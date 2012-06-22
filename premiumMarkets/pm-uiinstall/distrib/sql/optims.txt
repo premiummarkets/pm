@@ -1,0 +1,54 @@
+SELECT events.*,shares.*,portfolio.monitor from events,shares, portfolio where 
+events.date >= ? AND events.date <= ? AND 
+ ( events.analysename like ?  OR analysename = 'GenericEvents' ) AND 
+shares.symbol=events.symbol AND shares.isin=events.isin AND portfolio.symbol = events.symbol
+
+select quotations.date,quotations.closevalue from quotations where quotations.symbol= ? and quotations.isin= ? and quotations.date <= ?  ORDER BY quotations.date DESC 
+
+ALTER TABLE "APP"."EVENTS" ADD CONSTRAINT "EVENTS_SYMBOL_DATE_PKEY" UNIQUE ("DATE", "ANALYSENAME", "SYMBOL", "ISIN");
+ALTER TABLE "APP"."PORTFOLIO" ADD CONSTRAINT "SYMBOL_PKEY" PRIMARY KEY ("SYMBOL");
+ALTER TABLE "APP"."SHARES" ADD CONSTRAINT "SHARES_PKEY" PRIMARY KEY ("SYMBOL");
+
+VALUES SYSCS_UTIL.SYSCS_GET_RUNTIMESTATISTICS();
+
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(1);
+CALL SYSCS_UTIL.SYSCS_SET_STATISTICS_TIMING(1);
+SELECT distinct events.symbol,shares.symbol,portfolio.monitor from events,shares, portfolio where events.date >= '2002-10-01' AND events.date <= '2002-10-01' AND ( events.analysename = 'ALLCAC_UPOct2002b_b_MACD_RSI_1_s_SMA_RSI_1' OR analysename = 'GenericEvents' ) AND shares.symbol=events.symbol AND shares.isin=events.isin AND portfolio.symbol = shares.symbol;
+VALUES SYSCS_UTIL.SYSCS_GET_RUNTIMESTATISTICS();
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(0);
+
+CREATE INDEX "APP"."EVENTS_ANALYSENAME_INDEX" ON "APP"."EVENTS" ("ANALYSENAME");
+CREATE INDEX "APP"."EVENTS_ANALYSENAME_DEFID_INDEX" ON "APP"."EVENTS" ("ANALYSENAME","EVENTDEFID");
+
+CREATE INDEX "APP"."EVENTS_SYMBOL_ISIN_ANALYSE_INDEX" ON "APP"."EVENTS" ("ANALYSENAME", "SYMBOL", "ISIN");
+
+CREATE INDEX "APP"."EVENTS_SYMBOL_ISIN_INDEX" ON "APP"."EVENTS" ("SYMBOL", "ISIN");
+
+CREATE INDEX "APP"."EVENTS_ANALYSENAME_DATE" ON "APP"."EVENTS" ("ANALYSENAME","DATE");
+
+CREATE INDEX "APP"."EVENTS_ANALYSENAME_DATE_SYMBOL" ON "APP"."EVENTS" ("ANALYSENAME", "DATE" ,"SYMBOL");
+
+CREATE INDEX "APP"."EVENTS_SYMBOL_DATE_ISIN_ANALYSE_DEFID_INDEX" ON "APP"."EVENTS" ("DATE", "ANALYSENAME", "SYMBOL", "ISIN","EVENTDEFID");
+
+
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(1);
+CALL SYSCS_UTIL.SYSCS_SET_STATISTICS_TIMING(1);
+SELECT events.*,shares.* from events,shares where events.date >= '2002-10-01' AND events.date <= '2002-10-01' AND ( events.analysename = 'ALLCAC_UPOct2002b_b_MACD_RSI_1_s_SMA_RSI_1' OR analysename = 'GenericEvents' ) AND shares.symbol=events.symbol AND shares.isin=events.isin;
+VALUES SYSCS_UTIL.SYSCS_GET_RUNTIMESTATISTICS();
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(0);
+
+
+
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(1);
+CALL SYSCS_UTIL.SYSCS_SET_STATISTICS_TIMING(1);
+select quotations.date,quotations.closevalue from quotations where quotations.symbol= 'FTE.PA' and quotations.isin= 'FR0000133308' and quotations.date <= '2002-10-01'  ORDER BY quotations.date DESC;
+VALUES SYSCS_UTIL.SYSCS_GET_RUNTIMESTATISTICS();
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(0);
+
+MaximumDisplayWidth 5000;
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(1);
+CALL SYSCS_UTIL.SYSCS_SET_STATISTICS_TIMING(1);
+select quotations.* from quotations where quotations.symbol = 'SII.PA' AND quotations.isin = 'FR0000074122' AND date >=  '2009-03-01'  order by date  asc;
+select quotations.* from quotations where quotations.symbol = 'FTE.PA' AND quotations.isin = 'FR0000133308' AND date >=  '2009-03-01'  order by date  asc;
+VALUES SYSCS_UTIL.SYSCS_GET_RUNTIMESTATISTICS();
+CALL SYSCS_UTIL.SYSCS_SET_RUNTIMESTATISTICS(0);

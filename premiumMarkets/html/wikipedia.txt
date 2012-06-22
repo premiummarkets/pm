@@ -1,0 +1,42 @@
+{{articleissues|copyedit=May 2008|wikify=May 2008|advert=May 2008}}
+{{Infobox Software
+| name                   = Piggy Market Squeak
+| logo                   = [[Image:Piggy Market Squeak Main baner.jpg|100px]]
+| screenshot             = [[Image:Piggy Market Squeak Main screenshot.jpg|300px]]
+| caption                = Screenshot of Piggy Market Squeak
+| frequently_updated     = yes
+| programming language   = Java
+| platform               = [[Cross-platform]]
+| genre                  = [[Investment]]
+| license                = [[GNU General Public License]]
+| website                = http://www.gthoreton.co.uk/
+}}
+
+Piggy Market Squeak<ref>[http://www.gthoreton.co.uk/ Piggy Market Squeak @ www.gthoreton.co.uk]</ref> <ref>[http://sourceforge.net/projects/pmsqueak/ Piggy Market Squeak @ sourceforge.net]</ref> is a [[stock]]s and [[shares]] [[financial quote]] trend alert system and [[technical analysis software]].<br />
+Piggy Market Squeak is an [[Open Source]] software edited under [[GNU General Public License]].<br />
+Piggy Market Squeak provides advice to buy or sell [[stock]]s and [[shares]] using [[financial quote]] [[technical analysis]].<br />
+The tool is quite versatile, and made to programmaticaly integrate any [[Trading Indicator]]s as long as these are based on open, closed, high, low prices, as well as trade volumes.<br />
+
+==Features==
+* User friendly [[Standard Widget Toolkit]] [[Graphical user interface]].
+* List, highlight and sort the stocks and shares with buy or sell advice.
+* Email alerts.
+* [[Portfolio (finance)]] management.
+* Integrate [[financial market]] trend indicators based on open, closed, high, low prices, as well as trade volumes.
+* Can interact with third party indicator calculation software.
+
+==Technologies==
+* [[Standard Widget Toolkit]].
+* [[Java Platform, Standard Edition]].
+* Multi threading see [[Thread (computer science)]].
+* [[Java Message Service]] compliant.
+* [[Spring Framework]]
+
+
+==See also==
+* [[http://www.gthoreton.co.uk/ Piggy Market Squeak @ www.gthoreton.co.uk]]
+* [[http://sourceforge.net/projects/pmsqueak/ Piggy Market Squeak @ sourceforge.net]]
+* [[http://www.merriam-webster.com/dictionary/squeak Do pigs squeak?]]
+
+==References==
+{{reflist}}

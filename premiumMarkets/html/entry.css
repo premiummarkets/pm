@@ -1,0 +1,390 @@
+div.word_definition form
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	margin: 0;
+	padding: 0 0 0 0;
+}
+/*** The Entries. ***/
+#content div.entry
+{	border-bottom: solid 2px #EEEEEE;
+	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal; 	
+	margin-bottom: 1em;
+	padding-bottom: 1em;	
+}
+#content div.entry .verb_class
+{	display: block;
+}
+#content div.entry dl
+{	padding-bottom: .5em;
+}
+#content div.entry dl dd
+{	font-family: "Times New Roman", "Times Serif", Serif;
+}
+#content div.entry dl dt
+{	clear: left;	
+	float: left;
+	font-family: "Times New Roman", "Times Serif", Serif;
+	padding-right: .5em;
+}
+#content div.entry dl dd.func
+{	font-style: italic;
+}
+#content div.entry dl dd.hwrd
+{	font-family: Arial, Helvetica, Sans-Serif;
+	font-weight: bold;
+}
+#content div.entry dl dd.pron u
+{	font-family: "Times New Roman", "Times Serif", Serif;
+}
+#content div.entry.alpha dl dd.hwrd,
+#content div.entry.misc dl dd.hwrd
+{	color: black;
+}
+#content div.entry.biog dl dd.hwrd
+{	color: red;
+}
+#content div.entry.geog dl dd.hwrd
+{	color: green;
+}
+#content div.entry .if
+{	font-weight: bold;
+}
+#content div.entry .spl
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal;
+	font-style: italic;
+}
+#content div.entry .synonym
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal;
+	clear: left;
+	float: float;
+	margin-top: .5em;
+}
+#content div.entry .usage
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal;
+	margin-top: .5em;
+}
+#content .see_additional
+{	clear: none;
+	display: inline;
+	float: none;
+}
+/*** Item Lists ***/
+#content div.entry .item_list
+{	list-style-type: none;
+	margin-top: .5em;
+}
+#content div.entry .item_list li
+{	font-weight: bold;
+}
+/*** The Sense Labels and Definitions ***/
+.entry sup
+{	font-size: 70%;
+	line-height: 0;
+}
+.defs
+{	clear: left;
+	float: none;
+	display: block;	
+}
+.defs.variant
+{	clear: none;
+	display: inline;
+}
+.defs.variant em
+{	font-weight: normal;
+}
+.sense_content
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal;
+}
+.sense_label
+{	font-family: Arial, Helvetica, Sans-Serif;
+	font-size: 90%;
+	font-weight: bold;		
+	padding-right: 5px;
+}
+.sense_label a,
+.sense_label a:hover,
+.sense_label a:link,
+.sense_label a:visited
+{	color: black;
+}
+.sense_label.start
+{	clear: left;
+}
+.sense_break
+{	display: block;
+}
+.sense_label.subsense
+{	font-weight: normal;
+}
+/*** Teaser Text ***/
+.entry.teaser p
+{	font-family: "Times New Roman", "Times Serif", Serif;
+}
+/*** Lookups ***/
+a.lookup,
+.dxt a
+{	color: #23508A;	
+	font-weight: bold;
+	font-variant: small-caps;
+}
+a.formulaic
+{	color: #23508A;
+	font-weight: bold;	
+}
+a.lookup.art
+{	
+}
+a.lookup.small_caps
+{	
+}
+a.lookup.table
+{	
+}
+/*** Variants ***/
+.variant
+{	font-weight: bold;
+}
+/*** Verbal Illustrations ***/
+.vi
+{	font-family: "Times New Roman", "Times Serif", Serif;
+}
+/*** Variant Labels ***/
+.vl
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-style: italic;
+}
+/*** Abbreviations ***/
+.abbr
+{	font-style: italic;
+}
+.abbr.language
+{	font-style: normal;
+}
+/*** Miscellaneous ***/
+div.definition
+{	margin:0 0 5px 0;
+	padding:0;
+}
+div.senses
+{	margin: 0 0 2px 0;
+	padding:0;
+}
+div.undefined_run_on b
+{	margin: 0 5px 0 0;
+	padding: 0;
+}
+span.bold-italic
+{	font-style: italic;
+	font-weight: bold;
+}
+span.italic-small-caps
+{	font-variant: small-caps;
+	font-style: italic;
+}
+span.small-caps
+{	font-variant: small-caps;
+}
+span.roman
+{	font: normal 100% 'Times Roman', serif;
+}
+span.symbol
+{	font-family: Symbol;
+}
+span.pronchars,
+span.pronchars u,
+span.set
+{	font-family: "Times New Roman", "Times Serif", Serif;
+}
+span.unicode
+{	font-family: 'Lucida Sans Unicode';
+	font-size: .9em;
+	font-weight: normal;
+}
+span.wingdings
+{	font-family: Wingdings;
+}
+img.math.formula
+{	display: block;
+	margin: .25em auto;
+}
+/************************ Dictionary Specific Styles ***********************/
+.entry.misc .dxn
+{	font-family: Times, Times New Roman, Serif;
+}
+/************************ Thesaurus Specific Styles ************************/
+.word_definition form table select option
+{	font-family: Times, Times New Roman, Serif;
+}
+.entry.misc span.syn,
+.entry.misc span.rel
+{	font-family: Times, Times New Roman, Serif;
+}
+.entry.ithes .ant, 
+.entry.ithes .near, 
+.entry.ithes .ph, 
+.entry.ithes .rel, 
+.entry.ithes .syn
+{	display: block;
+	font-family: Times, Times New Roman, Serif;	
+}
+.entry.ithes .ant strong, 
+.entry.ithes .near strong, 
+.entry.ithes .ph strong, 
+.entry.ithes .rel strong, 
+.entry.ithes .syn strong
+{	margin-right: .4em;
+}
+.entry.ithes .dxn
+{	font-family: Times, Times New Roman, Serif;
+}
+.entry.ithes .dxt
+{	font-variant: small-caps;
+}
+.entry.ithes .if
+{	font-size: 90%;
+}
+.entry.ithes .il
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-style: italic;
+}
+.entry.ithes .text
+{	float: left;
+	font-family: Times, Times New Roman, Serif;
+	font-style: normal;
+	padding-right: 5px;
+}
+.entry.ithes .sin
+{	display: block;
+}
+.entry.ithes dt.sl
+{	float: left;
+	font-family: Times, Times New Roman, Serif;
+	font-style: normal;
+	padding-right: 5px;
+}
+.entry.ithes .slb
+{	font-family: Times, Times New Roman, Serif;
+	font-style: italic;	
+}
+.entry.ithes .vr .va
+{	font-weight: bold;
+}
+.entry.ithes .sl
+{	font-family: Times, Times New Roman, Serif;	
+	font-style: italic;
+}
+/************************ SED Specific Styles ************************/
+.entry.sed dl dd 
+{	font-family: Times, Times New Roman, Serif;
+}
+.entry.sed dl dd span.fl
+{	font-family: Times, Times New Roman, Serif;
+}
+.entry.sed dl dd.lang
+{	font-style: italic;
+}
+.entry.sed span.fl
+{	font-style: italic;
+}
+.entry.sed span.fl.verb
+{	display: block;
+	font-style: italic;
+	float: none;
+}
+.entry.sed .cref
+{	display: inline;
+	font-variant: small-caps;
+}
+.entry.sed .cref.syn,
+.entry.sed .cref.syn a,
+.entry.sed .cref.syn a:hover,
+.entry.sed .cref.syn a:link,
+.entry.sed .cref.syn a:visited
+{	display: inline;
+}
+.entry.sed .gl
+{	font-style: italic;
+}
+.entry.sed .if
+{	font-weight: bold;
+}
+.entry.sed .il
+{	font-style: italic;
+}
+.entry.sed .in
+{
+}
+.entry.sed .sense_content
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal;
+}
+.entry.sed .sif
+{	font-weight: bold;
+}
+.entry.sed span.sin span.if
+{	font-family: Times, Times New Roman, Serif;
+}
+.entry.sed .spl
+{	font-style: italic;
+}
+.entry.sed .ssl
+{	font-family: Times, Times New Roman, Serif;
+	font-style: italic;
+}
+.entry.sed .ufl
+{	font-style: italic;
+}
+.entry.sed .un
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-weight: normal;
+}
+.entry.sed .ure
+{	font-weight: bold;
+}
+.entry.sed .uro
+{	clear: left;
+	float: none;
+	display: block;
+}
+.entry.sed .uva
+{	font-weight: bold;
+}
+.entry.sed .uvl
+{	font-style: italic;
+}
+.entry.sed .va
+{	font-weight: bold;
+}
+.entry.sed .vi
+{	font-family: "Times New Roman", "Times Serif", Serif;
+	font-size: 95%;
+}
+.entry.sed .vl
+{	font-style: italic;
+	font-weight: normal;
+}
+.entry.sed .vpl
+{	font-style: italic;
+}
+.entry.sed .xr a,
+.entry.sed .xr a:hover,
+.entry.sed .xr a:link,
+.entry.sed .xr a:visited,
+.entry.sed .sxr a,
+.entry.sed .sxr a:hover,
+.entry.sed .sxr a:link,
+.entry.sed .sxr a:visited
+{	font-variant: small-caps;
+}
+.entry.sed sup.homograph
+{	font-weight: bold;
+}
+* html .entry.sed sup.homograph
+{	font-size: 90%;
+	font-weight: bold;
+}

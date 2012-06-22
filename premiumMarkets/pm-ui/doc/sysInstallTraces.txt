@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+  <META NAME="GENERATOR" CONTENT="GtkHTML/3.10.3">
+</HEAD>
+<BODY>
+Y:\pms_install\target&gt;java -jar pms.jar<BR>
+x86<BR>
+Windows XP<BR>
+5.1<BR>
+Writing file COPYING to Folder : C:\DOCUME~1\guil\LOCALS~1\Temp<BR>
+Done copy of file COPYING !<BR>
+Dialog return code is (0=Finish,1=Cancel,2=Error): 1<BR>
+<BR>
+x86<BR>
+Windows 2000<BR>
+5.0<BR>
+Writing file COPYING to Folder : C:\DOCUME~1\guil\LOCALS~1\Temp<BR>
+Done copy of file COPYING !<BR>
+<BR>
+On Wed, 2008-08-20 at 18:04 +0100, Katharina wrote:
+<BLOCKQUOTE TYPE=CITE>
+<PRE>
+<FONT COLOR="#000000">i386</FONT>
+<FONT COLOR="#000000">Mac OS X</FONT>
+<FONT COLOR="#000000">10.4.11</FONT>
+<FONT COLOR="#000000">Writing file COPYING to Folder : /tmp</FONT>
+<FONT COLOR="#000000">Done copy of file COPYING !</FONT>
+<FONT COLOR="#000000">Dialog return code is (0=Finish,1=Cancel,2=Error): </FONT>
+</PRE>
+</BLOCKQUOTE>
+</BODY>
+</HTML>

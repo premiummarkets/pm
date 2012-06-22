@@ -1,0 +1,136 @@
+/**
+ * Premium Markets is an automated financial technical analysis system. 
+ * It implements a graphical environment for monitoring financial technical analysis
+ * major indicators and for portfolio management.
+ * In its advanced packaging, not provided under this license, it also includes :
+ * Screening of financial web sites to pickup the best market shares, 
+ * Forecast of share prices trend changes on the basis of financial technical analysis,
+ * (with a rate of around 70% of forecasts being successful observed while back testing 
+ * over DJI, FTSE, DAX and SBF),
+ * Back testing and Email sending on buy and sell alerts triggered while scanning markets
+ * and user defined portfolios.
+ * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * 
+ * Copyright (C) 2008-2012 Guillaume Thoreton
+ * 
+ * This file is part of Premium Markets.
+ * 
+ * Premium Markets is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.finance.pms.portfolio;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+
+public class Transaction {
+	
+	public enum TransactionType {AIN,AOUT,NULL};
+	
+	private BigDecimal transactionPrice;
+	private BigDecimal quantity;
+	private BigDecimal fullAmountIn;
+	private BigDecimal fullAmountOut;
+	private TransactionType modtype;
+	private Date date;
+
+
+	public Transaction(BigDecimal previousAmountIn, BigDecimal previousAmountOut, BigDecimal quantity, BigDecimal transactionSharePrice, TransactionType modtype, Date date) 
+	throws InvalidQuantityException {
+		super();
+		
+		if (quantity.compareTo(BigDecimal.ZERO) < 0)  throw new InvalidQuantityException("The quantity can't be negative!",new Throwable());
+		this.fullAmountIn = previousAmountIn;
+		this.fullAmountOut = previousAmountOut;
+		this.quantity = quantity;
+		this.transactionPrice = transactionSharePrice;
+		this.modtype = modtype;
+		this.date = date;
+	}
+	
+	public void resetAmount() {
+		this.modtype = TransactionType.AIN;
+		this.fullAmountIn = BigDecimal.ZERO;
+		this.fullAmountOut =  BigDecimal.ZERO;
+	}
+	
+	public BigDecimal getTransactionPrice() {
+		return transactionPrice;
+	}
+	public void setTransactionPrice(BigDecimal transactionSharePrice) {
+		this.transactionPrice = transactionSharePrice;
+	}
+	public void setTransactionSharePrice(Float transactionSharePrice) {
+		this.transactionPrice = 
+			new BigDecimal(transactionSharePrice.toString()).setScale(2,BigDecimal.ROUND_DOWN);
+	}
+	
+	public BigDecimal getQuantity() {
+		return quantity;
+	}
+	public void setQuantity(BigDecimal quantity) {
+		this.quantity = quantity;
+	}
+	public void setQuantity(Float quantity) {
+		this.quantity = new BigDecimal(quantity.toString()).setScale(4,BigDecimal.ROUND_DOWN);
+	}
+	
+	public BigDecimal amount() {
+		return this.quantity.multiply(this.transactionPrice).setScale(2,BigDecimal.ROUND_HALF_UP);
+	}
+
+	
+	public BigDecimal fullAmountIn() {
+		
+		if (this.modtype.equals(TransactionType.AIN)) {
+			return this.fullAmountIn.add(this.amount());
+		} else {
+			return this.fullAmountIn;
+		}		
+	}
+	
+	public BigDecimal fullAmountOut() {
+		
+		if (this.modtype.equals(TransactionType.AOUT)) {
+			return this.fullAmountOut.add(this.amount());
+		} else {
+			return this.fullAmountOut;
+		}	
+	}
+
+	
+	public TransactionType getModtype() {
+		return modtype;
+	}
+
+
+	public void setModtype(TransactionType modtype) {
+		this.modtype = modtype;
+	}
+
+
+	public Date getDate() {
+		return date;
+	}
+
+	@Override
+	public String toString() {
+		return "Transaction [transactionPrice=" + transactionPrice + ", quantity=" + quantity + ", fullAmountIn=" + fullAmountIn
+				+ ", fullAmountOut=" + fullAmountOut + ", modtype=" + modtype + ", date=" + date + "]";
+	}
+	
+	
+	
+}

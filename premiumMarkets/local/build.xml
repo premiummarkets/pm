@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<project name="MigrateToDerby" basedir="/usr/local/opt/Prgs/ddlutils">
+	<path id="classpath">
+		<fileset dir="./lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	<target name="export-source-db" description="Dumps db structure and data">
+		<taskdef name="databaseToDdl" 
+			classname="org.apache.ddlutils.task.DatabaseToDdlTask">
+			<classpath refid="classpath" />
+		</taskdef>
+		<databaseToDdl modelName="MigrateTest" verbosity = "DEBUG">
+			<database url="jdbc:derby:/opt/USERDATA/derby/piggymarketsqueak" 
+				driverClassName="org.apache.derby.jdbc.EmbeddedDriver" />
+			<writeSchemaToFile outputFile="db-schema.xml" />
+			<writeDataToFile outputFile="data.xml" />
+		</databaseToDdl>
+	</target>
+</project>

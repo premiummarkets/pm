@@ -1,0 +1,12 @@
+drop table alerts;
+drop table currencyrate;
+drop table events;
+drop table portfolio;
+drop table portfolio_name;
+drop table quotations;
+drop table transactions;
+drop table trend_supplement;
+drop table tunedconf;
+drop table users;
+drop table weather;
+drop table shares;

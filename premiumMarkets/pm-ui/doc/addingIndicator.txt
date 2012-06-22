@@ -1,0 +1,8 @@
+1 - Specialize TalibIndicators 
+	=> Write (Override ?!)  calculate<Indicator> method + specific attributes -> that's a kind of mandatory so ...
+	=> Over write calculateEvent method. 
+		-> kind of mandatory as well!! 
+		-> Or use a scripting language like ruby to define calculation rules??
+2 - Add an event in the Enum EventDefinition
+3 - Instantiate new indicator in the TalibIndicatorCalculationService.calculateAllMACD 
+		-> will go in DB or Spring.xml with algebra and formulas

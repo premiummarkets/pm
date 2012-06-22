@@ -1,0 +1,19 @@
+<!DOCTYPE aspectj PUBLIC
+        "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+
+    <weaver>
+
+        <!-- only weave classes in our application-specific packages --><!--
+        <include within="com.finance.pms.datasources.web.formaters.*"/>
+
+    --></weaver>
+
+    <aspects>
+
+        <!-- weave in just this aspect --><!--        
+        <aspect name="com.finance.pms.admin.FormaterStats"/>
+
+    --></aspects>
+
+ </aspectj>

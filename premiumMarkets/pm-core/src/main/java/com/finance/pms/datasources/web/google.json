@@ -1,0 +1,698 @@
+
+{
+"start" : 0,
+"num_company_results" : "3589",
+"num_mf_results" : "24225",
+"num_all_results" : "",
+"original_query" : "((exchange:NYSE) OR (exchange:NASDAQ) OR (exchange:AMEX)) [(MarketCap \\x3E 4989 | MarketCap = 4989) \\u26 (MarketCap \\u3C 2270000000000 | MarketCap = 2270000000000) \\u26 (PE \\u3E 0.21 | PE = 0.21) \\u26 (PE \\u3C 4663 | PE = 4663) \\u26 (DividendYield \\u3E 0 | DividendYield = 0) \\u26 (DividendYield \\u3C 328 | DividendYield = 328) \\u26 (Price52WeekPercChange \\u3E -99.81 | Price52WeekPercChange = -99.81) \\u26 (Price52WeekPercChange \\u3C 781 | Price52WeekPercChange = 781)]",
+"query_for_display" : "((exchange:NYSE) OR (exchange:NASDAQ) OR (exchange:AMEX)) [(MarketCap &gt; 4989 | MarketCap = 4989) &amp; (MarketCap &lt; 2270000000000 | MarketCap = 2270000000000) &amp; (PE &gt; 0.21 | PE = 0.21) &amp; (PE &lt; 4663 | PE = 4663) &amp; (DividendYield &gt; 0 | DividendYield = 0) &amp; (DividendYield &lt; 328 | DividendYield = 328) &amp; (Price52WeekPercChange &gt; -99.81 | Price52WeekPercChange = -99.81) &amp; (Price52WeekPercChange &lt; 781 | Price52WeekPercChange = 781)]",
+"results_type" : "COMPANY",
+"results_display_type" : "TABLE",
+"searchresults" :
+[
+{
+"title" : "1-800-FLOWERS.COM, Inc.",
+"id" : "663427",
+"is_active" : "",
+"ticker" : "FLWS",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "327.81M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "16.38",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-52.97",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "1st Constitution Bancorp",
+"id" : "679187",
+"is_active" : "",
+"ticker" : "FCCY",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "36.38M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "8.69",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-40.97",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "1st Source Corporation",
+"id" : "213840",
+"is_active" : "",
+"ticker" : "SRCE",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "512.82M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "17.01",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "2.47",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-4.85",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "21st Century Holding Co.",
+"id" : "662822",
+"is_active" : "",
+"ticker" : "TCHC",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "40.07M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "3.38",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "13.90",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-65.34",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "3M Company",
+"id" : "24599",
+"is_active" : "",
+"ticker" : "MMM",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "46.10B",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "12.70",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "2.97",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-30.35",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "3SBio Inc. (ADR)",
+"id" : "713863",
+"is_active" : "",
+"ticker" : "SSRX",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "150.36M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "12.69",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-66.48",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "51job, Inc. (ADR)",
+"id" : "696234",
+"is_active" : "",
+"ticker" : "JOBS",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "265.36M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "22.20",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-54.96",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "8x8, Inc.",
+"id" : "660566",
+"is_active" : "",
+"ticker" : "EGHT",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "52.85M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "75.62",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-31.75",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "A-Power Energy Generation Systems, Ltd.",
+"id" : "722298",
+"is_active" : "",
+"ticker" : "APWR",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "227.64M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "7.86",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-12.40",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "AO Smith Corporation",
+"id" : "528794",
+"is_active" : "",
+"ticker" : "AOS",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "1.07B",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "11.41",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "1.98",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-21.70",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "A. Schulman, Inc.",
+"id" : "496144",
+"is_active" : "",
+"ticker" : "SHLM",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "499.92M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "23.78",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "3.02",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-7.34",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "ADAM, Inc.",
+"id" : "658627",
+"is_active" : "",
+"ticker" : "ADAM",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "50.34M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "13.33",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-32.73",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "AFP Provida SA (ADR)",
+"id" : "664115",
+"is_active" : "",
+"ticker" : "PVD",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "509.12M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "9.13",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "9.35",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-37.59",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "AM Castle \\u26 Co.",
+"id" : "91402",
+"is_active" : "",
+"ticker" : "CAS",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "337.42M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "7.56",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "1.42",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-54.75",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "AT Cross Company",
+"id" : "144698",
+"is_active" : "",
+"ticker" : "ATX",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "96.85M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "11.76",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-41.22",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "AAON, Inc.",
+"id" : "655936",
+"is_active" : "",
+"ticker" : "AAON",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "299.49M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "13.26",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "1.70",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-11.67",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "AAR Corp.",
+"id" : "19",
+"is_active" : "",
+"ticker" : "AIR",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "568.78M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "7.89",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-51.73",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "Aaron Rents, Inc.",
+"id" : "1568",
+"is_active" : "",
+"ticker" : "RNT",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "1.39B",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "17.89",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.24",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "19.93",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "Abaxis, Inc.",
+"id" : "656022",
+"is_active" : "",
+"ticker" : "ABAX",
+"exchange" : "NASDAQ",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "394.48M",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "33.18",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "0.00",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-19.69",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+, {
+"title" : "ABB Ltd (ADR)",
+"id" : "667049",
+"is_active" : "",
+"ticker" : "ABB",
+"exchange" : "NYSE",
+"is_supported_exchange" : "",
+"columns" : [
+{
+"display_name": "",
+"value" : "40.86B",
+"field" : "MarketCap",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "10.51",
+"field" : "PE",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "2.44",
+"field" : "DividendYield",
+"sort_order" : ""
+}
+, {
+"display_name": "",
+"value" : "-33.33",
+"field" : "Price52WeekPercChange",
+"sort_order" : ""
+}
+]
+}
+]
+,
+"mf_searchresults" :
+[
+]
+}

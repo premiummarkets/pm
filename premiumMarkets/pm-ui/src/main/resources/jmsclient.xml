@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- this is the Message Driven POJO (MDP) -->
+	<bean id="messageListener" class="com.finance.pms.talib.TestListener" />
+
+	<!-- and this is the message listener container -->
+	<bean id="listenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+		<property name="maxConcurrentConsumers" value="20" />
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="eventqueue" />
+		<property name="messageListener" ref="messageListener" />
+	</bean>
+
+</beans>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+		 
+	 <bean id="alerts" class="com.finance.pms.events.calculation.AlertCalculationService">
+		 <constructor-arg type="org.springframework.jms.core.JmsTemplate" ref="jmsTemplate"/>
+		 <constructor-arg type="javax.jms.Queue" ref="eventqueue"/>
+		 <property name="shareDAO" ref="shareDAO"/>
+		 <property name="portfolioDAO" ref="portfolioDAO"/>
+	</bean> 
+ </beans>

@@ -1,0 +1,2 @@
+update PORTFOLIO set PORTFOLIO.MONITOR = 0 where PORTFOLIO.NAME in (select name from portfolio_name where PORTFOLIO_NAME.TYPE = 'TuningAutoPortfolio');
+update PORTFOLIO set PORTFOLIO.MONITOR = 0 where PORTFOLIO.NAME in (select name from portfolio_name where PORTFOLIO_NAME.TYPE = 'AutoPortfolio');

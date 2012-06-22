@@ -1,0 +1,6 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\PMS\Parameters]
+"Application"="\"D:\\Program Files\\jdk6_u3\\jre\\bin\\java.exe\""
+"AppParameters"="-Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Dinstalldir=\"D:\\Program Files\\PiggyMarketSqueak\" -jar \"D:\\Program Files\\PiggyMarketSqueak\\all.jar\" all \"D:\\Program Files\\PiggyMarketSqueak\\db.properties\" euronext yahoo false true \"D:\\Program Files\\PiggyMarketSqueak\\list_test.txt\""
+"AppDirectory"="\"D:\\Program Files\\PiggyMarketSqueak\\\""

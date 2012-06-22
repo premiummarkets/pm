@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--<jnlp spec="1.6+" codebase="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/target" 
+	href="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/src/main/resources/PremiumMarkets.jnlp"> -->
+<!--<jnlp spec="1.6+" codebase="file:///C:" href="file:///C:/PremiumMarkets.jnlp"> -->
+<!--<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets-0.10.0.jnlp">-->
+	<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets.jnlp">
+	
+	<information>
+		<title>PremiumMarkets</title>
+		<vendor>Guillaume Thoréton</vendor>
+		<homepage href="http://downloads.sourceforge.net/pmsqueak/" />
+		<description>
+			Premium Markets is an automated financial technical analysis system. 
+It implements a graphical environment for monitoring financial technical analysis major indicators and for portfolio management.
+In its advanced packaging, not provided under this license, it also includes :
+Screening of financial web sites to pickup the best market shares, 
+Forecast of share prices trend changes on the basis of financial technical analysis,
+( with a forecasting accuracy of around 80% observed while back testing over DJI, FTSE, DAX and SBF ),
+Back testing and Email for buy and sell alerts triggered while scanning markets and user defined portfolios.
+Please refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features.
+
+Copyright (C) 2008-2012 Guillaume Thoreton
+
+This file is part of Premium Markets.
+
+Premium Markets is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+		</description>
+		<description>Please refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features.</description>
+		<description kind="short">
+			Premium Markets is an automated financial technical analysis system. 
+It implements a graphical environment for monitoring financial technical analysis major indicators and for portfolio management.
+Please refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features.
+		</description>
+		<icon href="icons/icon.png" />
+		<offline-allowed />
+	</information>
+	
+	<related-content title="Premium Markets PRICE TREND FORECAST web portal." href="http://premiummarkets.elasticbeanstalk.com/">
+		<description>Please refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features.</description>
+		<icon href="icons/icon.png" />
+	</related-content>
+	
+	<security>
+		<all-permissions />
+	</security>
+	
+	<resources>
+		<j2se version="1.6+" />
+		<jar href="pm.jar" main="true" download="eager" />
+		<!-- <jar href="pm-0.10.0.jar" main="true" download="eager" /> -->
+	</resources>
+	
+	<resources os="Windows" arch="x86">
+		<property name="swt.jar" value="swt-3.7.2-win32-win32-x86.jar"/>
+	</resources>
+	
+	<resources os="Windows" arch="x86_64">
+		<property name="swt.jar" value="swt-3.7.2-win32-win32-x86_64.jar" />
+	</resources>
+
+	<resources os="Windows" arch="amd64">
+		<property name="swt.jar" value="swt-3.7.2-win32-win32-x86_64.jar" />
+	</resources>
+	
+	<resources os="Windows CE" arch="arm">
+		<property name="swt.jar" value="swt-3.7.2-win32-wce_ppc-arm-j2se.jar" />
+	</resources>
+	
+	<resources os="Windows CE" arch="ppc-arm-j2me">
+		<property name="swt.jar" value="swt-3.7.2-win32-wce_ppc-arm-j2me.jar" />
+	</resources>
+	
+	<resources os="Linux">
+		<property name="swt.jar" value="swt-3.7.2-gtk-linux-x86.jar" />
+	</resources>
+
+	<resources os="Linux" arch="x86_64">
+		<property name="swt.jar" value="swt-3.7.2-gtk-linux-x86_64.jar" />
+	</resources>
+	
+	<resources os="Linux" arch="ppc">
+		<property name="swt.jar" value="swt-3.7.2-gtk-linux-ppc64.jar" />
+	</resources>
+
+	<resources os="Linux" arch="amd64">
+		<property name="swt.jar" value="swt-3.7.2-gtk-linux-x86_64.jar" />
+	</resources>
+
+	<resources os="SunOS" arch="sparc">
+		<property name="swt.jar" value="swt-3.7.2-gtk-solaris-sparc.jar" />
+	</resources>
+
+	<resources os="SunOS" arch="x86">
+		<property name="swt.jar" value="swt-3.7.2-gtk-solaris-x86.jar" />
+	</resources>
+	
+	<resources os="Mac OS X" arch="ppc">
+		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx-x86_64.jar" />
+	</resources>
+	
+	<resources os="Mac OS X" arch="x86">
+		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx.jar" />
+	</resources>
+	
+	<resources os="Mac OS X" arch="x86_64">
+		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx-x86_64.jar" />
+	</resources>
+	
+	<resources os="Mac OS X" arch="ppc">
+		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx.jar" />
+	</resources>
+	
+    <resources os="Mac OS" arch="PowerPC">
+		<property name="swt.jar" value="swt-3.7.2-carbon-macosx.jar" />
+	</resources>
+	
+	<application-desc main-class="com.finance.pms.admin.install.wizard.Install">
+		<argument>-d</argument>
+		<argument>false</argument>
+	</application-desc>
+	
+</jnlp>
+

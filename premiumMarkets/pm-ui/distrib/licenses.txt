@@ -1,0 +1,19 @@
+Apache Derby http://db.apache.org/derby/ Apache License, Version 2.0
+
+aspectj http://www.eclipse.org/aspectj/ Eclipse Public License - v 1.0
+
+spring http://www.springframework.org/ Apache License, Version 2.0.
+		
+junit http://www.junit.org/ Common Public License 1.0
+			
+commons-httpclient http://hc.apache.org/httpclient-3.x/ Apache License, Version 2.0
+
+ta-lib http://ta-lib.org/ BSD License
+		
+jfreechart http://www.jfree.org/jfreechart/ GNU Lesser General Public Licence
+
+apache ant  http://ant.apache.org/ Apache License, Version 2.0
+			
+easymock http://www.easymock.org/ MIT license
+			
+swt http://www.eclipse.org/swt/ Eclipse Public License - v 1.0

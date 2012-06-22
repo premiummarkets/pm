@@ -1,0 +1,104 @@
+/**
+ * Premium Markets is an automated financial technical analysis system. 
+ * It implements a graphical environment for monitoring financial technical analysis
+ * major indicators and for portfolio management.
+ * In its advanced packaging, not provided under this license, it also includes :
+ * Screening of financial web sites to pickup the best market shares, 
+ * Forecast of share prices trend changes on the basis of financial technical analysis,
+ * (with a rate of around 70% of forecasts being successful observed while back testing 
+ * over DJI, FTSE, DAX and SBF),
+ * Back testing and Email sending on buy and sell alerts triggered while scanning markets
+ * and user defined portfolios.
+ * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * 
+ * Copyright (C) 2008-2012 Guillaume Thoreton
+ * 
+ * This file is part of Premium Markets.
+ * 
+ * Premium Markets is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.finance.pms.datasources.db;
+
+import java.io.Serializable;
+
+
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Validatable.
+ * 
+ * @author Guillaume Thoreton
+ */
+public abstract class Validatable implements Serializable, Comparable<Validatable> {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6963504463049602627L;
+	
+	/** The Constant VALID. */
+	public static final int VALID=0;
+	
+	/** The Constant TOUPDATENAME. */
+	public static final int TOUPDATENAME =1;
+	
+	/** The Constant TOUPDATESYMBOL. */
+	public static final int TOUPDATESYMBOL =2;
+	
+	/** The Constant TOUPDATEISIN. */
+	public static final int TOUPDATEISIN =3;
+	
+	/** The Constant INVALIDE. */
+	public static final int INVALIDE=4;
+	
+	/** The state. */
+	private int state;
+
+	/**
+	 * Instantiates a new validatable.
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	public Validatable() {
+		super();
+	}
+
+	/**
+	 * Gets the state.
+	 * 
+	 * @return the state
+	 */
+	public int getState() {
+		return state;
+	}
+	
+	/**
+	 * Sets the state.
+	 * 
+	 * @param state the new state
+	 */
+	public void setState(int state) {
+		this.state = state;
+	}
+	
+	/**
+	 * To data base.
+	 * 
+	 * @return the query
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	public abstract Query toDataBase();
+	
+}

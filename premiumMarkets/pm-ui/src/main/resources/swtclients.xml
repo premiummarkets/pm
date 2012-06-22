@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+        
+    <context:annotation-config />
+	
+	<bean id="indicatorAnalysis" class="com.finance.pms.events.AnalysisClient"  destroy-method="close">
+	   	<property name="mailSender" ref="mailSender"/>
+	  	<property name="templateMessage" ref="templateMessage"/>
+	  	<property name="eventQueue" ref="eventqueue" />
+	</bean>
+
+	
+	<!-- Message listener container -->
+	<bean id="listenerContainer" class="com.finance.pms.queue.InnerMessageListener" destroy-method="stop">
+	  <constructor-arg type="com.finance.pms.queue.InnerQueue" ref="eventqueue"/>
+	  <constructor-arg type="javax.jms.MessageListener" ref="indicatorAnalysis"/> 
+	</bean>
+
+	<bean id="portfolioDAO" parent="txProxyTemplate">
+		<property name="target">
+			<bean  id="portfolioDAOTarget" class="com.finance.pms.portfolio.PortfolioDAOImpl">
+				<property name="sessionFactory" ref="sessionFactory" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="weatherDAO" parent="txProxyTemplate">
+		<property name="target">
+			<bean  id="weatherDAOTarget" class="com.finance.pms.weather.WeatherDAOImpl">
+				<property name="sessionFactory" ref="sessionFactory" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="currencyDao" parent="txProxyTemplate">
+		<property name="target">
+			<bean id="currencyDaoTarget" class="com.finance.pms.datasources.currency.CurrencyDAOImpl">
+				<property name="sessionFactory" ref="sessionFactory" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="currencyConverter" class="com.finance.pms.datasources.web.Converter">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<constructor-arg type="com.finance.pms.datasources.currency.CurrencyDAO" ref="currencyDao" />
+	</bean>
+	
+	<bean id="portfolioMgr" class="com.finance.pms.portfolio.PortfolioMgr">
+		<constructor-arg type="com.finance.pms.portfolio.PortfolioDAO"  ref="portfolioDAO"/>
+		<constructor-arg type="com.finance.pms.datasources.web.Converter" ref="currencyConverter"/>
+	</bean>
+	
+	<bean id="shareDAO" parent="txProxyTemplate">
+		<property name="target">
+			<bean  id="shareDAOTarget" class="com.finance.pms.datasources.shares.ShareDAOImpl">
+				<property name="sessionFactory" ref="sessionFactory" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="provider" class="com.finance.pms.datasources.web.Providers" abstract="true">
+				<property name="shareDAO" ref="shareDAO"/>
+				<property name="portfolioDAO" ref="portfolioDAO"/>
+	</bean>
+	
+	<bean id="boursoramaProviderSource" class="com.finance.pms.datasources.web.ProvidersBoursorama" parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="BOURSORAMA" />
+	</bean>
+	
+	<bean id="investirProviderSource" class="com.finance.pms.datasources.web.ProvidersInvestir">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="INVESTIR" />
+		<property name="portfolioDAO" ref="portfolioDAO"/>
+		<property name="shareDAO" ref="shareDAO"/>
+	</bean>
+	
+	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="YAHOO" />
+		<property name="portfolioDAO" ref="portfolioDAO"/>
+		<property name="shareDAO" ref="shareDAO"/>
+	</bean>
+	<bean id="euronextProviderSource" class="com.finance.pms.datasources.web.ProvidersEuroNext"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="EURONEXT" />
+	</bean>
+	<bean id="nasdaqProviderSource" class="com.finance.pms.datasources.web.ProvidersNASDAQ"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="NASDAQ" />
+	</bean>
+	<bean id="nyseProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="market" value="NYSE"/>
+		<property name="sharesListId" value="GOOGLENYSE" />
+	</bean>
+	<bean id="amexProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="market" value="AMEX"/>
+		<property name="sharesListId" value="GOOGLEAMEX" />
+	</bean>
+	<bean id="googleProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	<bean id="asxProviderSource" class="com.finance.pms.datasources.web.ProvidersASXMarket"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="ASX" />
+	</bean>
+	<bean id="bseProviderSource" class="com.finance.pms.datasources.web.ProvidersBSEMarket"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="BSE" />
+	</bean>
+	
+    <bean id="yahooIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices" parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="YAHOOINDICES" />
+	</bean>
+        
+    <bean id="inflationProviderSource" class="com.finance.pms.datasources.web.ProvidersInflation"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	
+	<bean id="realTimeGoogleProvider" class="com.finance.pms.datasources.web.intraday.RealTimeGoogleProvider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+	</bean>
+	
+	<bean id="pastRealTimeGoogleProvider" class="com.finance.pms.datasources.web.intraday.PastRealTimeGoogleProvider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+	</bean>
+	
+	<bean id="FTSE" class="com.finance.pms.datasources.web.Indice">
+		<constructor-arg type="java.lang.String"  value="FTSE"/>
+		<constructor-arg type="java.lang.String"  value="LSE"/>
+	</bean>
+	
+	<bean id="CAC" class="com.finance.pms.datasources.web.Indice">
+		<constructor-arg type="java.lang.String"  value="SBF120"/>
+		<constructor-arg type="java.lang.String"  value="EURONEXT"/>
+	</bean>
+	
+	<bean id="yahooOddIndiceProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="YAHOOINDEX" />
+	</bean>
+	
+	<bean id="closedDayQuotationssFactory" class="com.finance.pms.events.quotations.ClosedDayQuotationsFactory">
+	</bean>
+
+</beans>

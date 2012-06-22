@@ -1,0 +1,15 @@
+1 - Specialize HttpSource 
+	=> Specialize HttpSourceQuotation
+	/*
+	=> the only difference is in the url returned by  
+		getStockQuotationURL(String ticker, 
+		String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay)
+	=> Todo : create a quotation resource apart form market list source + add url in prop file.
+	*/
+2 - add a MarketQuotationProviders
+	add a SymbolNameResolver => add a mapping between market list and quotation providers : depend on market list MarketListProvider!
+3 - Specialize Providers
+	=> the only differences are :
+		- getQuotes => should be merge (cohesion)... only a bit is specific.
+4 - specialize LineFormater to add a new DayQuote formatter.
+		

@@ -1,0 +1,6 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\pmarkets\Parameters]
+"Application"="\"%JAVAEXE%\""
+"AppParameters"="-Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Dinstalldir=\"%CD%\" -jar \"%CD%\\pms.jar\" com.finance.pms.MainLauncher all "%CD%\db.properties" euronext yahoo true true "%CD%\list_test.txt\""
+"AppDirectory"="\"%CD%\\\""

@@ -1,0 +1,52 @@
+<assembly xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/assembly-1.1.0-SNAPSHOT.xsd">
+	<id>allinone</id>
+	<formats>
+		<format>jar</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory></outputDirectory>
+			<outputFileNameMapping></outputFileNameMapping>
+			<unpack>true</unpack>
+			<useProjectArtifact>true</useProjectArtifact>
+ 			<unpackOptions>
+				<excludes>
+					<exclude>**/META-INF/**</exclude>
+				</excludes>
+			</unpackOptions>	
+			<scope>runtime</scope>
+		</dependencySet>
+	</dependencySets>
+
+	<fileSets>
+		<fileSet>
+			<directory>target/classes</directory>
+			<outputDirectory></outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>../pm-ui/icons</directory>
+			<outputDirectory>icons</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory></directory>
+			<includes>
+				<include>COPYING</include>
+				<include>README</include>
+			</includes>
+			<outputDirectory></outputDirectory>
+		</fileSet>
+	</fileSets>
+	<files>
+		<file>
+			<source>../pm-ui/target/PremiumMarkets.zip</source>
+			<outputDirectory></outputDirectory>
+		</file>
+		<file>
+			<source>target/pmdb-initialdb.tar.bz2</source>
+			<outputDirectory></outputDirectory>
+		</file>
+	</files>
+</assembly>

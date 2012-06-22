@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+		
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<value>file:${installdir}/db.properties</value>
+		</property>
+	</bean>
+
+	<bean id="eventqueue" class="com.finance.pms.queue.InnerQueue">
+	</bean>
+	
+	<bean id="jmsTemplate" class="com.finance.pms.queue.InnerJmsTemplate">
+	</bean>
+	
+	<!--Email -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.host}" />
+		<property name="username" value="${mail.username}" />
+		<property name="password" value="${mail.password}" />
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">false</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="templateMessage" class="org.springframework.mail.SimpleMailMessage">
+		<property name="from" value="${mail.from}" />
+		<property name="to" value="${mail.to}" />
+	</bean>
+	
+	<!-- Database -->
+	<bean id="dataSource1"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${driver}" />
+		<property name="url" value="jdbc:${software}:${dbpath}/${database}" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="dataSource1"></property>
+		<property name="annotatedClasses">
+			<list>
+				<value>com.finance.pms.datasources.shares.Stock</value>
+				<value>com.finance.pms.portfolio.PortfolioShare</value>
+				<value>com.finance.pms.portfolio.Portfolio</value>
+				<value>com.finance.pms.portfolio.UserPortfolio</value>
+				<value>com.finance.pms.portfolio.AutoPortfolio</value>
+				<!-- <value>com.finance.pms.portfolio.TuningAutoPortfolio</value> -->
+				<value>com.finance.pms.portfolio.SharesList</value>
+				<value>com.finance.pms.alerts.Alert</value>
+				<value>com.finance.pms.screening.TrendSupplementedStock</value>
+				<value>com.finance.pms.datasources.currency.CurrencyRate</value>
+				<value>com.finance.pms.weather.WeatherElement</value>
+				<value>com.finance.pms.datasources.files.TransactionElement</value>
+				<!-- <value>com.finance.pms.neural.TunedConf</value> -->
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.DerbyDialect</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<!--<prop key="hibernate.hbm2ddl.auto">update</prop>-->
+				</props>
+		</property>
+	</bean>
+
+	<bean id="hibernateInterceptor" class="org.springframework.orm.hibernate3.HibernateInterceptor">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<bean id="myTxManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+    <!-- string trim simple isn't it -->
+	<bean id="txProxyTemplate" abstract="true"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager">
+			<ref bean="myTxManager" />
+		</property>
+		<property name="transactionAttributes">
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="scrapperMetrics" class="com.finance.pms.datasources.web.ScraperMetrics">
+		<constructor-arg type="org.springframework.jms.core.JmsTemplate" ref="jmsTemplate"/>
+		<constructor-arg type="javax.jms.Queue" ref="eventqueue"/>
+	</bean>	
+</beans>

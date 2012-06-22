@@ -1,0 +1,31 @@
+1 - Specialize HttpSource 
+	=> Specialize HttpSourceMarket
+		/* 
+		=> the only difference is in the url returned by getMarketStockListURL(String, String, String, StockCategories)
+		=> TODO : Merge (yahoo - bourso? - nasdaq - euronext) 
+				and create a market list resource apart from quotation source + add url in prop file. 
+		*/
+2 - Specialize Providers
+	=> Specialize ProvidersMarket
+	/*
+	=> the only differences are :
+		- currency
+		- getStockRefName is specialized : either isin or symbol
+		- public StockList retreiveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) : 
+			change httpSource and formatter refs
+	=> currency has to go in a props file + object refs should be the same now as thing are done in configs ...
+	=> PB : isin vs symbol ...
+	=> Todo : same as above, market list and quotation should be two distinct services.
+	*/
+3 - Add a Formating Object by specializing LineFormater
+	=> the only differences is formatLine, to create a stock object per line.
+	=> Merge and add a properties file containing a map (stock construct param, column number in the file/null if not applicable) + delim text and column 
+4 - Add a MarketListProviders, Market (?), ProvidersTypes (probably not any more?)
+	=> the lists have to be dynamically loaded at run time - use Spring ??
+5 - Add a call to Providers in spring xml context file : should be the same object now as thing are done in configs ...
+
+optional :
+6 - Add info about db availability in MarketsSettings list.
+	=> should be in a prop file as well!
+7 - create db.
+8 - export a view ?? and upload db!!

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC  "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+
+	<!--CONFIG-->
+	<bean id="businesslogicbean"
+	class="org.springframework.aop.framework.ProxyFactoryBean">
+		<property name="proxyInterfaces">
+			<value>IBusinessLogic</value>
+		</property>
+		<property name="target">
+			<ref local="beanTarget"/>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<value>theTracingBeforeAdvisor</value>
+				<value>theTracingAfterAdvisor</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--CLASS-->
+	<bean id="beanTarget" class="BusinessLogic"/>
+
+	<!--ADVISOR-->
+	<!--Note: An advisor assembles pointcuts and advice-->
+	<bean id="theTracingBeforeAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="advice">
+			<ref local="theTracingBeforeAdvice"/>
+		</property>
+		<property name="pattern">
+			<value>.*</value>
+		</property>
+	</bean>
+	
+	<!--ADVISOR-->
+	<!--Note: An advisor assembles pointcuts and advice-->
+	<bean id="theTracingAfterAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="advice">
+			<ref local="theTracingAfterAdvice"/>
+		</property>
+		<property name="pattern">
+			<value>.*</value>
+		</property>
+	</bean>
+
+	<!--ADVICE-->
+	<bean id="theTracingBeforeAdvice" class="TracingBeforeAdvice"/>
+	<bean id="theTracingAfterAdvice" class="TracingAfterAdvice"/>
+</beans>

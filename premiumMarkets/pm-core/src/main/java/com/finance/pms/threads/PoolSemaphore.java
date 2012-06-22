@@ -1,0 +1,355 @@
+/**
+ * Premium Markets is an automated financial technical analysis system. 
+ * It implements a graphical environment for monitoring financial technical analysis
+ * major indicators and for portfolio management.
+ * In its advanced packaging, not provided under this license, it also includes :
+ * Screening of financial web sites to pickup the best market shares, 
+ * Forecast of share prices trend changes on the basis of financial technical analysis,
+ * (with a rate of around 70% of forecasts being successful observed while back testing 
+ * over DJI, FTSE, DAX and SBF),
+ * Back testing and Email sending on buy and sell alerts triggered while scanning markets
+ * and user defined portfolios.
+ * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * 
+ * Copyright (C) 2008-2012 Guillaume Thoreton
+ * 
+ * This file is part of Premium Markets.
+ * 
+ * Premium Markets is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.finance.pms.threads;
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.mas.RestartServerException;
+
+
+
+// TODO: Auto-generated Javadoc
+/**
+ * The Class PoolSemaphore.
+ * 
+ * @author Guillaume Thoreton
+ */
+public class PoolSemaphore {
+	
+	/** The LOGGER. */
+	protected static MyLogger LOGGER = MyLogger.getLogger(PoolSemaphore.class);
+	
+	/** The Constant NUMBER_OF_CONNEXION_TRY. */
+	public static final int NUMBER_OF_CONNEXION_TRY = 10;
+	
+	/** The available. */
+	private final Semaphore available;
+	
+	/** The n threads. */
+	private int nThreads;
+
+	/** The source client. */
+	private SourceClient[] sourceClient;
+	
+	/** The source connector. */
+	private SourceConnector sourceConnector;
+	
+	/** The used. */
+	protected Boolean[] used;
+	
+
+	/**
+	 * Instantiates a new pool semaphore.
+	 * 
+	 * @param nThreads the n threads
+	 * @param sourceConnector the source connector
+	 * @param initPool the init pool
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	public PoolSemaphore(int nThreads, SourceConnector sourceConnector, Boolean initPool) {
+		
+		this.nThreads = nThreads;
+		this.sourceConnector = sourceConnector;
+		this.sourceClient  = new SourceClient[this.nThreads];
+		this.available = new Semaphore(nThreads, false);
+		used = new Boolean[nThreads];
+		
+		for (int i=0 ; i< nThreads; i++) used[i]=false;
+		if (initPool) {
+			this.sourceClient = initConnections();
+		}
+	}
+
+	/**
+	 * Inits the connections.
+	 * 
+	 * @return the source client[]
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	private SourceClient[] initConnections() {
+		
+		SourceClient[] ret = new SourceClient[this.nThreads];
+		int threadnum = 0;
+		
+		for (; threadnum < this.nThreads; threadnum++) {
+			ret[threadnum] = tryConnection(threadnum, false);
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Try connection.
+	 * 
+	 * @param threadnum the threadnum
+	 * @param crashed the crashed
+	 * 
+	 * @return the source client
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	private SourceClient tryConnection(int threadnum, Boolean crashed) {
+		
+		SourceClient ret = null;
+		int connectionTry = 0;
+		try {
+			if (crashed) restartSource(threadnum);
+			ret = initOneConnection(threadnum);
+		} catch (RestartServerException e) {
+			
+			while (connectionTry < 3 && connectionTry > -1) {
+				restartSource(threadnum);
+				try {
+					LOGGER.debug("\n\nConnection attempts for thread " + threadnum + " : " + (connectionTry + 1));
+					ret = initOneConnection(threadnum);
+					connectionTry = -1;
+				} catch (RestartServerException e1) {
+					connectionTry++;
+					LOGGER.debug("\n\nConnection echec for thread " + threadnum + " on the "+connectionTry+" attempts");
+				}
+			}
+			if (connectionTry == 3) {
+				LOGGER.warn("\n\nFATAL : Trice unabled to connect to Mas server : " + threadnum + " after restarting Mas server ... Aborting.");
+				used[threadnum] = true;
+			}
+		} catch (RuntimeException e) {
+			LOGGER.error("\n\nFATAL : Source connection ERROR :" + e,e);
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Inits the one connection.
+	 * 
+	 * @param threadnum the threadnum
+	 * 
+	 * @return the source client
+	 * 
+	 * @throws RestartServerException the restart server exception
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	private SourceClient initOneConnection(int threadnum) throws RestartServerException {
+
+		SourceClient ret;
+		int k;
+		for (k=0; k < PoolSemaphore.NUMBER_OF_CONNEXION_TRY; k++) {
+			try {
+				ret = this.sourceConnector.connect(threadnum);
+				return ret;
+			} catch (RestartServerException e) {
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e1) {
+					LOGGER.error("Wait for data source has been interrupted!",e1);
+				}
+			}
+		}
+		
+		throw new RuntimeException("FATAL : "+k+" times unabled to connect to data base : "+ threadnum +" ... Aborting.");
+	}
+
+	
+	/**
+	 * Gets the resource.
+	 * 
+	 * @return the resource
+	 * 
+	 * @throws InterruptedException the interrupted exception
+	 */
+	public SourceClient getResource() throws InterruptedException, TimeoutException {
+		
+		//check sanity before locking ...
+		checkSanity();
+		Boolean acquired = available.tryAcquire(30,TimeUnit.MINUTES);
+		if (!acquired) {
+			LOGGER.error("Couldn't acquire resource. Please increase the amount available.");
+			throw new TimeoutException("Couldn't acquire resource. Please increase the amount available.");
+		}
+		return getNextAvailableConnexion();
+	}
+
+	/**
+	 * Release resource.
+	 * 
+	 * @param x the x
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	public void releaseResource(SourceClient x) {
+		if (markAsUnused(x))
+			available.release();
+	}
+
+	/**
+	 * Gets the next available connexion.
+	 * 
+	 * @return the next available connexion
+	 */
+	private SourceClient getNextAvailableConnexion() {
+		for (int i = 0; i < this.nThreads; ++i) {
+			synchronized (used[i]) {
+				if (!used[i]) {
+					try {
+						if (null == sourceClient[i]) {
+							sourceClient[i] = this.initOneConnection(i);
+						}
+						used[i] = true;
+						return sourceClient[i];
+					} catch (RestartServerException e) {
+						LOGGER.error("I shouldn't be here ... Mas doesn't use that :-)",e);
+					} catch (RuntimeException e) {
+						LOGGER.error("FATAL : Source connection ERROR :" + e,e);
+					}
+				}
+			}
+		}
+		throw new UnsupportedOperationException("No resource available. Fixe me!");
+	}
+
+	/**
+	 * Mark as unused.
+	 * 
+	 * @param item the item
+	 * 
+	 * @return true, if successful
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	protected synchronized boolean markAsUnused(SourceClient item) {
+		for (int i = 0; i < nThreads; ++i) {
+			if (item == sourceClient[i]) {
+				if (used[i]) {
+					used[i] = false;
+					return true;
+				} else
+					return false;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Restart source.
+	 * 
+	 * @param item the item
+	 * 
+	 * @return the source client
+	 * 
+	 * @throws InterruptedException the interrupted exception
+	 * 
+	 * @author Guillaume Thoreton
+	 * @throws TimeoutException 
+	 */
+	public SourceClient restartSource(SourceClient item) throws InterruptedException, TimeoutException {
+	
+		int threadnum = 0;
+		for (; threadnum < nThreads; ++threadnum) {
+			if (item.equals(sourceClient[threadnum])) {
+				sourceClient[threadnum] = tryConnection(threadnum, true);
+				break;
+			}
+		}
+		
+		if (null != sourceClient[threadnum]) { //remove resource from pool
+			available.release();
+			used[threadnum]=false;
+		}
+	
+		return this.getResource();
+		
+	}
+
+	/**
+	 * Check sanity.
+	 * 
+	 * @throws InterruptedException the interrupted exception
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	private void checkSanity() throws InterruptedException {
+		int outOfOrder = 0;
+		for (int i = 0; i < this.nThreads; ++i) {
+			if (used[i] && sourceClient[i] == null) outOfOrder++;
+		}
+		if (outOfOrder == this.nThreads) {
+			LOGGER.error("All resources in the pool seams to be shutdowned and can't be restarted");
+			this.available.release(this.nThreads);
+			throw new InterruptedException("No resource available. Fixe me!");
+		}
+	}
+	
+	/**
+	 * Restart source.
+	 * 
+	 * @param resourceNum the resource num
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	private void restartSource(int resourceNum) {
+		
+		int s = this.sourceConnector.restartSource(resourceNum);
+		try {
+			synchronized (this) {
+				wait(s);
+			}
+		} catch (InterruptedException e) {
+			LOGGER.error("",e);
+		}
+	}
+	
+    /**
+     * Stop threads.
+     * 
+     * @author Guillaume Thoreton
+     */
+    public void stopThreads() {
+    	
+    	LOGGER.info("Stopping Thread pool, nb threads to stop : "+nThreads);
+    	
+        for (int i = 0; i < nThreads; i++) {
+        	if (null != sourceClient[i]) {
+        		sourceConnector.shutdownSource(sourceClient[i], i);
+        		LOGGER.info("Stopping Thread pool, "+sourceConnector.getClass().getName()+" shutting down : "+i);
+        	} else {
+        		LOGGER.info("Stopping DB Thread pool, "+sourceConnector.getClass().getName()+" is empy  : "+i);
+        	}
+        }
+    }
+
+}

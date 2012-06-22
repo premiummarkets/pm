@@ -1,0 +1,19 @@
+signed install.jar
+	<= install.jar
+		<= PiggyMarketSqueak.zip
+			<= gui.jar / all.jar
+			<= addondb.jar
+				<= addondb.tar.bzip2
+		<= initialdb.jar
+			<= initialdb.tar.bzip2
+			
+
+=> todo split in two eclipse projects, one for main and one for install
+
+	main pom generates gui.jar and all.jar artifacts + db add on + Premium Markets assembly?
+	
+	install pom generates install.jar artifact + initial db?
+	
+	all pom agregates and assembles pms.zip and pms.tar.gz
+
+	

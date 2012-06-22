@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="0.2 1.0" codebase="http://downloads.sourceforge.net/pmsqueak/"
+	href="PiggyMarketSqueak-0.4.0.jnlp">
+	<security>
+		<all-permissions />
+	</security>
+	<information>
+		<title>PiggyMarketSqueak</title>
+		<vendor>Guillaume Thoréton</vendor>
+		<homepage href="http://www.gthoreton.co.uk/index.htm" />
+		<description>
+			Piggy Market Squeak is an easy to use, out of the box, stock
+			trends alert system. Piggy Market Squeak comes with a user
+			friendly Graphical User Interface. Piggy Market Squeak will
+			highlight and sort the stocks and shares you should buy and
+			sell, either from a selected market place, or a selected set
+			of shares aggregated in a Portfolio. Highly versatile, it
+			can integrate any stocks and shares market trend indicators
+			based on open, closed, high and low prices, and trade
+			volumes. Piggy Market Squeak also provides extensible
+			interfaces to interact with third party indicator
+			calculation tools, any market lists and quotations available
+			on the Internet and any email server. Pure java application
+			using SWT, the more advanced features of JDK 1.5, multi
+			threading, JMS queue, Spring and more. Highly versatile and
+			customisable.
+		</description>
+		<description kind="short">
+			Piggy Market Squeak is an easy to use, stocks and shares
+			trends alert system. User friendly Graphical User Interface.
+			Email alerts. Highlights and sorts, buy and sell signals.
+			From market places, or portfolio. Versatile, integrates new
+			trend indicators.
+		</description>
+		<icon href="icons/icon.png" />
+		<offline-allowed />
+	</information>
+	<resources>
+		<j2se version="1.5+"
+			href="http://java.sun.com/products/autodl/j2se" />
+		<j2se version="1.5+" />
+		<jar href="install-0.4.0.jar" main="true" download="eager" />
+	</resources>
+	<application-desc main-class="com.finance.pms.admin.install.wizard.Install">
+		<argument>-d</argument>
+		<argument>false</argument>
+	</application-desc>
+</jnlp>
+

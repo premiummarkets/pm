@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: com.finance.pms.MainLauncher
+Class-Path: . lib/commons-logging.jar lib/commons-httpclient-3.0-rc2.jar lib/commons-codec-1.3.jar lib/postgresql-8.1-404.jdbc3.jar lib/hibernate3.jar lib/mail.jar lib/activation.jar lib/ta-lib-0.4.0.jar lib/spring.jar lib/log4j-1.2.12.jar lib/swt.jar lib/derby.jar lib/derbyclient.jar lib/javax.jms.jar lib/antlr-2.7.6.jar lib/aspectjrt.jar lib/aspectjweaver.jar lib/commons-collections-2.1.jar lib/dom4j-1.6.1.jar lib/ejb3-persistence.jar lib/hibernate-annotations.jar lib/hibernate-commons-annotations.jar lib/jta.jar lib/slf4j-api-1.5.2.jar lib/slf4j-simple-1.5.2.jar lib/spring.jar lib/spring-aspects.jar lib/spring-test.jar lib/cglib-nodep-2.1_2.jar
