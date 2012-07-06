@@ -52,8 +52,8 @@ public class StripedCloseAbsoluteRelative extends StripedCloseFunction {
 
 
 	@Override
-	public BigDecimal[] relatedClose() {
-		BigDecimal[] ret = new BigDecimal[0];
+	public Number[] relativeCloses() {
+	
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
 		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex).getClose();
@@ -63,7 +63,7 @@ public class StripedCloseAbsoluteRelative extends StripedCloseFunction {
 			retA.add(relatedCloseValue);
 		}
 
-		return  retA.toArray(ret);
+		return  retA.toArray(new BigDecimal[0]);
 	}
 
 	@Override

@@ -46,8 +46,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.hibernate.loader.custom.Return;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
@@ -60,29 +58,17 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 @Table(name="TREND_SUPPLEMENT")
 public class TrendSupplementedStock extends Validatable {
 
-	private static final BigDecimal PAYOUT_HIGH_ZERO = new BigDecimal(0.60).setScale(2,BigDecimal.ROUND_UP);
-	private static final BigDecimal PAYOUT_HIGH_MINNEG = new BigDecimal(1.00).setScale(2,BigDecimal.ROUND_UP);
-	private static final BigDecimal PAYOUT_MAXPOS = new BigDecimal(0.50).setScale(2,BigDecimal.ROUND_DOWN);
-	private static final BigDecimal PAYOUT_LOW_ZERO = new BigDecimal(0.40).setScale(2,BigDecimal.ROUND_DOWN);
-	private static final BigDecimal PAYPOUT_LOW_MINNEG = new BigDecimal(0.00).setScale(2,BigDecimal.ROUND_DOWN);
-	
-	private static final BigDecimal FORWARD_PE_MINNEG = new BigDecimal(30);
-	private static final BigDecimal FORWARD_PE_ZERO = new BigDecimal(15);
-	private static final BigDecimal FORWARD_PE_MAXPOS = BigDecimal.ZERO;
-	
-	private static final BigDecimal PEG_MINNEG = new BigDecimal(2);
-	private static final BigDecimal PEG_ZERO = new BigDecimal(0.75);
-	private static final BigDecimal PEG_MAXPOS = BigDecimal.ZERO;
-	
-	private static final BigDecimal EPS_GROWTH_MINNEG = BigDecimal.ZERO;
-	private static final BigDecimal EPS_GROWTH_ZERO = new BigDecimal(.20);
-	private static final BigDecimal EPS_GROWTH_MAXPOS = new BigDecimal(1);
-
 	private static final long serialVersionUID = -4962928490295672287L;
 
-	
-	private static Integer MAXREC = 5;
-	private static Integer MINREC = 1;
+
+	private static final double IDEALPOT = .30;
+	private static final double MINIDEALPRICECHG =.10;
+	private static final Integer IDEALREC = 5;
+	private static final double IDEALPAYOUT = 0.5;
+	private static final double IDEALPEG = 0.75;
+	private static final double IDEALEPSG = 0.20;
+	private static final double IDEALPE = 15.00;
+
 	
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(TrendSupplementedStock.class);
@@ -114,8 +100,8 @@ public class TrendSupplementedStock extends Validatable {
 	private Date endDate;
 	private BigDecimal close;
 	private BigDecimal ttmClose;
-	private BigDecimal quotePerfOverPeriod;
-	private BigDecimal fullRating;
+	private MyBigDec priceChangeTTM;
+	private MyBigDec fullRating;
 	
 	//CREATE TABLE "APP"."TREND_SUPPLEMENT" ("SYMBOL" VARCHAR(20) NOT NULL, "ISIN" VARCHAR(20) NOT NULL, 
 	//"BOURSOMEANRECOMMENDATIONS" NUMERIC(19,2) NOT NULL, "BOURSOTARGETPRICE" NUMERIC(19,2) NOT NULL, "YAHOOMEANRECOMMENDATIONS" NUMERIC(19,2) NOT NULL, "YAHOOTARGETPRICE" NUMERIC(19,2) NOT NULL, 
@@ -228,12 +214,12 @@ public class TrendSupplementedStock extends Validatable {
 		
 	}
 
-	public BigDecimal pastRating() {
-		BigDecimal o2payout = this.payoutRating(); 
-		BigDecimal o2c = this.quotePerfOverPeriod();
-
-		BigDecimal ret = o2payout.add(o2c);
-		Integer nbV = isValid(o2payout)+isValid(o2c);
+	public MyBigDec pastRating() {
+		MyBigDec payoutRat = this.payoutRating(); 
+		MyBigDec prcRat = this.priceChangeRating();
+		
+		MyBigDec ret = payoutRat.add(prcRat);
+		Integer nbV = isValid(payoutRat)+isValid(prcRat);
 		
 		return perCentOf(ret, nbV);
 	}
@@ -242,124 +228,111 @@ public class TrendSupplementedStock extends Validatable {
 	//ie :
 	//payout between 0 and 0.4 or 0.6 and 1 is bad
 	//payout close to 0.5 is good
-	private BigDecimal payoutRating() {
-		
-		BigDecimal payout = validated(this.payoutRatio());
-		
-//		BigDecimal o2payout = BigDecimal.ZERO;
-//		if (payout.compareTo(new BigDecimal(0.50)) <= 0) {
-//			//0.00, 0.40, 0.50
-//			o2payout = distanceRatioFromConstant(payout,PAYPOUT_LOW_MINNEG, PAYOUT_LOW_ZERO, PAYOUT_MAXPOS);
-//			
-//		} else if (payout.compareTo(new BigDecimal(0.50)) > 0) {
-//			//1.00, 0.60, 0.50
-//			o2payout = distanceRatioFromConstant(payout,PAYOUT_HIGH_MINNEG, PAYOUT_HIGH_ZERO, PAYOUT_MAXPOS);
-//		}
-//		return o2payout;
-		if (payout.compareTo(PAYOUT_HIGH_MINNEG) >= 0) return BigDecimal.ZERO;
-		if (payout.compareTo(PAYPOUT_LOW_MINNEG) <= 0) return BigDecimal.ZERO; 
-		
-		BigDecimal distanceToIdeal = payout.subtract(PAYOUT_MAXPOS).abs();
-		BigDecimal distBroughtToOne = distanceToIdeal.divide(PAYOUT_MAXPOS);
-		
-		//The shorter the distance, the better so we do 1 - dist
-		return BigDecimal.ONE.subtract(distBroughtToOne);
+	public MyBigDec payoutRating() {
+		return ratingFormula(this.payoutRatio(), IDEALPAYOUT);
 	}
 
-	public BigDecimal boursoPE() {
+	private MyBigDec ratingFormula(MyBigDec value, Double ideal) {
+		
+		if (!value.isValid()) {//no value
+			return value;
+		}
+		return new MyBigDec(value.getValue().divide(BigDecimal.valueOf(ideal),4,BigDecimal.ROUND_DOWN).subtract(BigDecimal.ONE).abs(), true);
+	}
+
+	public MyBigDec boursoPE() {
 		return calculatePE(close, this.boursoBNA);
 	}
 	
-	public BigDecimal boursoEPSG() {
+	public MyBigDec boursoEPSG() {
 		return calculateEPSG(this.boursoBNA, this.boursoEstBNA);
 	}
 
-	public BigDecimal boursoPEG() {
+	public MyBigDec boursoPEG() {
 		return this.calculatePEG(boursoPE(), boursoEPSG());
 	}
 	
-	public BigDecimal boursoPEGRating() {
+	public MyBigDec boursoPEGRating() {
 		return peEpsgPegRating(boursoPE(), boursoEPSG(), boursoPEG());
 	}
 	
-	private BigDecimal calculateEPSG(BigDecimal currentEPS, BigDecimal estEPS) {
-		if (currentEPS == null  || currentEPS.compareTo(BigDecimal.ZERO) == 0 || estEPS == null) {
-			return BigDecimal.ZERO;
+	private MyBigDec calculateEPSG(BigDecimal currentEPS, BigDecimal estEPS) {
+		if (currentEPS == null  || currentEPS.compareTo(BigDecimal.ZERO) == 0 || estEPS == null || estEPS.compareTo(BigDecimal.ZERO) == 0	) {
+			return new MyBigDec(null, false);
 		}
-		return estEPS.subtract(currentEPS).divide(currentEPS, 2, BigDecimal.ROUND_DOWN);
+		return new MyBigDec(estEPS.subtract(currentEPS).divide(currentEPS, 2, BigDecimal.ROUND_DOWN), true);
 	}
 
-	public BigDecimal calculatePE(BigDecimal currentPrice, BigDecimal currentEPS) {
+	public MyBigDec calculatePE(BigDecimal currentPrice, BigDecimal currentEPS) {
 		if (currentPrice == null || currentEPS == null || currentEPS.compareTo(BigDecimal.ZERO) == 0) {
-			return BigDecimal.ZERO;
+			return new MyBigDec(null, false);
 		}
-		return currentPrice.divide(currentEPS, 2, BigDecimal.ROUND_DOWN);
+		return new MyBigDec(currentPrice.divide(currentEPS, 2, BigDecimal.ROUND_DOWN), true);
 	}
 
-	public BigDecimal reutersPE() {
+	public MyBigDec reutersPE() {
 		return calculatePE(close, this.reutersEPS);
 	}
 	
-	public BigDecimal reutersEPSG() {
+	public MyBigDec reutersEPSG() {
 		return calculateEPSG(this.reutersEPS, this.reutersEstEPS);
 	}
 	
-	public BigDecimal reutersPEG() {
+	public MyBigDec reutersPEG() {
 		return this.calculatePEG(reutersPE(), reutersEPSG());
 	}
 	
-	public BigDecimal reutersPEGRating() {
+	public MyBigDec reutersPEGRating() {
 		return peEpsgPegRating(reutersPE(), reutersEPSG(), reutersPEG());
 	}
 
-	public BigDecimal yahooPE() {
+	public MyBigDec yahooPE() {
 		return calculatePE(close, this.yahooEPS);
 	}
 
-	public BigDecimal yahooEPSG() {
+	public MyBigDec yahooEPSG() {
 		return calculateEPSG(this.yahooEPS, this.yahooEstEPS);
 	}
 
-	public BigDecimal yahooPEG() {
+	public MyBigDec yahooPEG() {
 		return this.calculatePEG(yahooPE(), yahooEPSG());
 	}
 	
-	public BigDecimal yahooPEGRating() {
-		return peEpsgPegRating( yahooPE(), yahooEPSG(), yahooPEG());
+	public MyBigDec yahooPEGRating() {
+		return peEpsgPegRating(yahooPE(), yahooEPSG(), yahooPEG());
 	}
 
-	/**
-	 * @return
-	 */
 	// PEG ratio is obtained by dividing the  P/E ratio by the  annual earnings growth rate. 
 	// It is considered a form of normalisation because higher growth rates should cause higher P/E ratios.
-	private BigDecimal peEpsgPegRating(BigDecimal pe,BigDecimal epsg, BigDecimal peg) {
+	private MyBigDec peEpsgPegRating(MyBigDec pe,MyBigDec epsg, MyBigDec peg) {
 		// P/E : below 15 (ie not over priced),  EPS growth above .20,  PEG : below 0.75 (ie 15/20)
-		//30, 15, 0
-		BigDecimal peRatio = distanceRatioFromConstant(validated(pe),FORWARD_PE_MINNEG, FORWARD_PE_ZERO, FORWARD_PE_MAXPOS);
-		//0, 0.20, 1
-		BigDecimal epsRatio = distanceRatioFromConstant(validated(epsg), EPS_GROWTH_MINNEG, EPS_GROWTH_ZERO, EPS_GROWTH_MAXPOS);
-		//2, .75, 0
-		BigDecimal pegRatio = distanceRatioFromConstant(validated(peg), PEG_MINNEG, PEG_ZERO, PEG_MAXPOS);
+		MyBigDec peRatio = ratingFormula(pe, IDEALPE);
+		MyBigDec epsgRatio = new MyBigDec(null, false);
+		if (epsg.isValid()) {
+			epsgRatio = ratingFormula(new MyBigDec(adjustedMaxValue(epsg.getValue(), IDEALEPSG), true), IDEALEPSG) ;
+		}
+		MyBigDec pegRatio = ratingFormula(peg, IDEALPEG);
 		
-		BigDecimal ret = BigDecimal.ZERO;
-		ret =  peRatio.add(epsRatio).add(pegRatio).setScale(2,BigDecimal.ROUND_DOWN);
-		Integer nbV = 3;
+		MyBigDec ret = new MyBigDec(null, false);
+		ret =  peRatio.add(epsgRatio).add(pegRatio);
+		Integer nbV = isValid(peRatio) + isValid(epsgRatio) + isValid(pegRatio);
 		return perCentOf(ret, nbV);
 	}
 	
-	public BigDecimal recRating() {
-		BigDecimal ret = BigDecimal.ZERO;
+	public MyBigDec recRating() {
+		MyBigDec ret = new MyBigDec(BigDecimal.ZERO, false);
 		
+		MyBigDec yahooRecRat = recRatingFormula(yahooMeanRecommendations,IDEALREC);
+		MyBigDec boursoRecRat = recRatingFormula(boursoMeanRecommendations,IDEALREC);
+		MyBigDec yahooPricePotentialRat = pricePotentialRatingFormula(yahooPotentielPrice(), IDEALPOT);
+		MyBigDec boursoPricePotentialRat = pricePotentialRatingFormula(boursoPricePotentiel(), IDEALPOT);
 		ret = ret
-			.add(complementarPerCentOf(yahooMeanRecommendations,MAXREC,MINREC))
-			.add(complementarPerCentOf(boursoMeanRecommendations,MAXREC,MINREC))
-			.add(validated(getYahooPotentielPrice()))
-			.add(validated(getBoursoPricePotentiel()));
+			.add(yahooRecRat)
+			.add(boursoRecRat)
+			.add(yahooPricePotentialRat)
+			.add(boursoPricePotentialRat);
 		
-		Integer nbV = 
-					isValid(yahooMeanRecommendations) + isValid(boursoMeanRecommendations) +
-					isValid(getYahooPotentielPrice()) + isValid(getBoursoPricePotentiel());
+		Integer nbV = isValid(yahooRecRat) + isValid(boursoRecRat) + isValid(yahooPricePotentialRat) + isValid(boursoPricePotentialRat);
 		
 		return perCentOf(ret, nbV);
 	}
@@ -376,26 +349,20 @@ public class TrendSupplementedStock extends Validatable {
 	//		<= Yahoo peg
 	//		<= Bourso peg
 	//		<= Reuters peg
-	public BigDecimal fullRating() {
+	public MyBigDec fullRating() {
 
 		if (fullRating == null) {
 			
-			BigDecimal ret = BigDecimal.ZERO;
-			//BigDecimal pastAndOpinions = pastAndFuture();
-			BigDecimal pastRatings = pastRating();
-			BigDecimal recRatings = recRating();
-			BigDecimal pegRatings = pegRatings();
+			MyBigDec ret = new MyBigDec(null, false);
+			MyBigDec pastRatings = pastRating();
+			MyBigDec recRatings = recRating();
+			MyBigDec pegRatings = pegRatings();
 
-			//We want at least one valid past future rating and one valid peg
-			//if (isValid(pastAndOpinions) == 0 || isValid(pegRatings) == 0) {
-			if (isValid(pastRatings) == 0 || isValid(recRatings) == 0 || isValid(pegRatings) == 0) {
-				
-				fullRating =  BigDecimal.ZERO;
+			//We want at least one valid past rating or rec rating and one valid peg
+			if ((isValid(pastRatings) == 0 && isValid(recRatings) == 0) || isValid(pegRatings) == 0) {
+				fullRating =  new MyBigDec(null, false);
 			} else {
-
-				//ret = pastAndOpinions.add(pegRatings);
 				ret = pastRatings.add(recRatings).add(pegRatings);
-				//Integer nbV = isValid(pastAndOpinions)+isValid(pegRatings);
 				Integer nbV = isValid(pastRatings)+isValid(recRatings)+isValid(pegRatings);
 				fullRating = perCentOf(ret,nbV);
 			}
@@ -405,63 +372,46 @@ public class TrendSupplementedStock extends Validatable {
 	}
 	
 
-	public BigDecimal estimatedRating() {
-		BigDecimal ret = BigDecimal.ZERO;
-		BigDecimal futurRating = recRating();
-		BigDecimal pegRatings = pegRatings();
+	public MyBigDec estimationRating() {
+		MyBigDec ret =  new MyBigDec(null, false);
+		MyBigDec recRating = recRating();
+		MyBigDec pegRatings = pegRatings();
 		
 		//We want at least one valid future rating and one valid peg
-		if (isValid(futurRating) == 0 || isValid(pegRatings) == 0) {
-			return BigDecimal.ZERO;
+		if (isValid(recRating) == 0 || isValid(pegRatings) == 0) {
+			return ret;
 		}
 		
-		ret = futurRating.add(pegRatings);
-		Integer nbV = isValid(futurRating)+isValid(pegRatings);
+		ret = recRating.add(pegRatings);
+		Integer nbV = isValid(recRating)+isValid(pegRatings);
 		
 		return perCentOf(ret,nbV);
 	}
 	
 
-	public BigDecimal noDivFulRating() {
-		BigDecimal ret = BigDecimal.ZERO;
-		BigDecimal perfs = quotePerfOverPeriod();
-		BigDecimal futurRating = recRating();
-		BigDecimal pegRatings = pegRatings();
+	public MyBigDec noPayoutFullRating() {
+		MyBigDec ret =  new MyBigDec(null, false);
+		MyBigDec perfs = priceChangeRating();
+		MyBigDec recRating = recRating();
+		MyBigDec pegRatings = pegRatings();
 		
-		//We want at least one valid future rating and one valid peg
-		if (isValid(futurRating) == 0 || isValid(pegRatings) == 0) {
-			return BigDecimal.ZERO;
+		//We want at least one valid rec rating and one valid peg
+		if (isValid(recRating) == 0 || isValid(pegRatings) == 0) {
+			return ret;
 		}
 		
-		ret = futurRating.add(pegRatings).add(perfs);
-		Integer nbV = isValid(futurRating)+isValid(pegRatings)+isValid(perfs);
+		ret = recRating.add(pegRatings).add(perfs);
+		Integer nbV = isValid(recRating)+isValid(pegRatings)+isValid(perfs);
 		
 		return perCentOf(ret,nbV);
 	}
 	
-	public BigDecimal pastAndFuture() {
+	public MyBigDec pegRatings() {
 		
-		BigDecimal ret = BigDecimal.ZERO;
-		BigDecimal pastRating = pastRating();
-		BigDecimal futurRating = recRating();
-		
-		//An invalid future rating invalidates the past and future rating
-		if (isValid(futurRating) == 0) {
-			return BigDecimal.ZERO;
-		}
-		
-		ret = pastRating.add(futurRating);
-		Integer nbV = isValid(pastRating)+isValid(futurRating);
-		
-		return perCentOf(ret,nbV);
-	}
-	
-	public BigDecimal pegRatings() {
-		
-		BigDecimal ret = BigDecimal.ZERO;
-		BigDecimal yahooPEGRating = yahooPEGRating();
-		BigDecimal reutersPEGRating = reutersPEGRating();
-		BigDecimal boursoPEGRating = boursoPEGRating();
+		MyBigDec ret = new MyBigDec(BigDecimal.ZERO, false);
+		MyBigDec yahooPEGRating = yahooPEGRating();
+		MyBigDec reutersPEGRating = reutersPEGRating();
+		MyBigDec boursoPEGRating = boursoPEGRating();
 		
 		ret = yahooPEGRating.add(reutersPEGRating).add(boursoPEGRating);
 		Integer nbV = isValid(yahooPEGRating)+isValid(reutersPEGRating)+isValid(boursoPEGRating);
@@ -469,28 +419,22 @@ public class TrendSupplementedStock extends Validatable {
 		return perCentOf(ret,nbV);
 	}
 
-	private BigDecimal validated(BigDecimal value) {
-		return (value == null || value.compareTo(BigDecimal.ZERO) == 0)?BigDecimal.ZERO.setScale(4):value;
+	private Integer isValid(MyBigDec value) {
+		//return (value == null || value.compareTo(BigDecimal.ZERO) == 0)?0:1;
+		return (value.isValid())?1:0;
 	}
 	
-	private Integer isValid(BigDecimal value) {
-		return (value == null || value.compareTo(BigDecimal.ZERO) == 0)?0:1;
-	}
-	
-	private BigDecimal complementarPerCentOf(BigDecimal value, Integer factorUpLimit, Integer factorLowLimit) {
-		BigDecimal range = new BigDecimal(factorUpLimit - factorLowLimit + 1);
-		BigDecimal midle = range.divide(new BigDecimal(2),0,BigDecimal.ROUND_UP);
+	//The lower the better in bourso and Yahoo => we need to inverse that as ideal must be the high value
+	private MyBigDec recRatingFormula(BigDecimal value, Integer idealRec) {
+		return ratingFormula(new MyBigDec(BigDecimal.valueOf(idealRec).subtract(value), value.compareTo(BigDecimal.ZERO) != 0), idealRec.doubleValue());
 		
-		value = (value == null || value.compareTo(BigDecimal.ZERO) == 0)?midle:value;
-		
-		return midle.subtract(value).divide(range,4,BigDecimal.ROUND_DOWN);
 	}
 	
-	private BigDecimal perCentOf(BigDecimal value, Integer factor) {
-		if (factor == null || factor == 0 || value == null || value.compareTo(BigDecimal.ZERO) == 0) {
-			return BigDecimal.ZERO;
+	private MyBigDec perCentOf(MyBigDec value, Integer factor) {
+		if (factor == null || factor == 0 || !value.isValid()) {
+			return new MyBigDec(null, false);
 		}
-		return value.divide(new BigDecimal(factor),4,BigDecimal.ROUND_DOWN);
+		return new MyBigDec(value.getValue().divide(new BigDecimal(factor),4,BigDecimal.ROUND_DOWN), true);
 	}
 	
 
@@ -558,13 +502,11 @@ public class TrendSupplementedStock extends Validatable {
 		this.boursoTargetPrice = boursoramaTargetPrice;
 	}
 
-	@Transient
-	public BigDecimal getYahooPotentielPrice() {
+	public MyBigDec yahooPotentielPrice() {
 		return pricePotential(this.getYahooTargetPrice());
 	}
 
-	@Transient
-	public BigDecimal getBoursoPricePotentiel() {
+	public MyBigDec boursoPricePotentiel() {
 		return pricePotential(this.getBoursoTargetPrice());
 	}
 
@@ -572,9 +514,33 @@ public class TrendSupplementedStock extends Validatable {
 	 * @param targetPrice 
 	 * @return
 	 */
-	private BigDecimal pricePotential(BigDecimal targetPrice) {
-		if (close == null  || targetPrice.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
-		return targetPrice.subtract(this.close).divide(this.close, 4, RoundingMode.DOWN);
+	//Ideal = +infinite => n%
+	private MyBigDec pricePotential(BigDecimal targetPrice) {
+		
+		MyBigDec targetPercent = new MyBigDec(null, false);
+		if (this.close != null && targetPrice != null && targetPrice.compareTo(BigDecimal.ZERO) != 0) {
+			targetPercent = new MyBigDec(targetPrice.subtract(close).divide(close, 4, BigDecimal.ROUND_DOWN), true);
+		}
+
+		return targetPercent;
+	}
+	
+	private MyBigDec pricePotentialRatingFormula(MyBigDec targetPercent, double idealPot) {
+		if (targetPercent.isValid()) {
+			BigDecimal adjstedPriceChange = adjustedMaxValue(targetPercent.getValue(), idealPot);
+			return ratingFormula(new MyBigDec(adjstedPriceChange, targetPercent.isValid()), idealPot);
+		}
+		return new MyBigDec(null,false);
+	}
+
+	private BigDecimal adjustedMaxValue(BigDecimal value, double artiMax) {
+		BigDecimal adjstedValue = value;
+		if (adjstedValue.compareTo(BigDecimal.ZERO) <= 0) {
+			adjstedValue = BigDecimal.valueOf(artiMax*2).add(value.abs()); //neg price changes == artiMax + artiMax(to zero) + abs neg value
+		} else if (adjstedValue.compareTo(BigDecimal.valueOf(artiMax)) >= 0) { //pos price change > max == max
+			adjstedValue = BigDecimal.valueOf(artiMax); 
+		}
+		return adjstedValue;
 	}
 	
 	public BigDecimal yield() {
@@ -588,75 +554,45 @@ public class TrendSupplementedStock extends Validatable {
 		return this.getDividend().divide(this.close, 4, RoundingMode.DOWN);
 	}
 	
-	public BigDecimal payoutRatio() {
+	public MyBigDec payoutRatio() {
 		BigDecimal div = dividend; 
+		MyBigDec avgEps = avgEps();
+		
+		if (!avgEps.isValid()) return new MyBigDec(null, false);
 		if (div == null || div.compareTo(BigDecimal.ZERO) == 0) {
-			if (reutersYield != null && close != null) {
+			if (reutersYield != null && reutersYield.compareTo(BigDecimal.ZERO) !=0 && close != null) {
 				div = reutersYield.multiply(close);
 			} else {
-				div = BigDecimal.ZERO;
+				//return new MyBigDec(null, false);
+				//We set a ZERO dividend payout as valid as it is valid that a company doesn't distribute dividends
+				return new MyBigDec(BigDecimal.ZERO, true);
 			}
 		}
 		
-		return div.divide(avgEps(),2,BigDecimal.ROUND_DOWN);
+		return new MyBigDec(div.divide(avgEps.getValue(),2,BigDecimal.ROUND_DOWN), true);
 	}
 	
-	private BigDecimal avgEps() {
-		BigDecimal epsSum = validated(boursoBNA).add(validated(yahooEPS)).add(validated(reutersEPS));
-		int nbv = isValid(boursoBNA)+isValid(yahooEPS)+isValid(reutersEPS);
-		if (nbv == 0) return BigDecimal.ZERO; 
-		return epsSum.divide(new BigDecimal(nbv),2,BigDecimal.ROUND_DOWN);
+	private MyBigDec avgEps() {
+		MyBigDec bBNA = new MyBigDec(boursoBNA, boursoBNA != null && boursoBNA.compareTo(BigDecimal.ZERO) != 0);
+		MyBigDec yEPS = new MyBigDec(yahooEPS, yahooEPS != null && yahooEPS.compareTo(BigDecimal.ZERO) != 0);
+		MyBigDec rEPS = new MyBigDec(reutersEPS, reutersEPS != null && reutersEPS.compareTo(BigDecimal.ZERO) != 0);
+		MyBigDec epsSum = bBNA.add(yEPS).add(rEPS);
+		int nbv = isValid(bBNA)+isValid(yEPS)+isValid(rEPS);
+		if (nbv == 0) return new MyBigDec(null,false);
+		return new MyBigDec(epsSum.getValue().divide(new BigDecimal(nbv),2,BigDecimal.ROUND_DOWN), true);
 	}
 
 	//PEG == PE / EPS Growth
 	//PEG ratio is obtained by dividing the P/E ratio by the annual earnings growth rate. 
 	//It is considered a form of normalization because higher growth rates should cause higher P/E ratios.
-	public BigDecimal calculatePEG(BigDecimal pe, BigDecimal epsg) {
-		if  (pe == null || epsg == null || epsg.compareTo(BigDecimal.ZERO) <= 0) {
-			return BigDecimal.ZERO;
+	public MyBigDec calculatePEG(MyBigDec pe, MyBigDec epsg) {
+		if (!pe.isValid() || !epsg.isValid()) {
+			return new MyBigDec(null, false);
 		}
-		return pe.divide(epsg,2,RoundingMode.DOWN).movePointLeft(2);
-	}
-	
-	private BigDecimal distanceRatioFromConstant(BigDecimal value, BigDecimal limiteBasseNeg, BigDecimal middleZero, BigDecimal limiteHautePos) {
-		
-			BigDecimal distanceRatioFromConstant;
-			
-			if (BigDecimal.ZERO.compareTo(value) == 0) {
-				
-				distanceRatioFromConstant = BigDecimal.ZERO;
-				
-			} else {
-			
-				BigDecimal ratio = BigDecimal.ZERO;
-				BigDecimal totSpan = limiteHautePos.subtract(limiteBasseNeg);
-				BigDecimal lowSpan = middleZero.subtract(limiteBasseNeg);
-				BigDecimal highSpan = limiteHautePos.subtract(middleZero);
-				BigDecimal direction = (totSpan.compareTo(BigDecimal.ZERO) < 0)?new BigDecimal(-1):BigDecimal.ONE;
-				BigDecimal signedValue = value.multiply(direction);
-				
-				BigDecimal signedMiddle = middleZero.multiply(direction);
-				
-				if (signedValue.compareTo(signedMiddle) < 0) {
-					if (signedValue.compareTo(limiteBasseNeg.multiply(direction)) > 0) {
-						ratio = signedValue.subtract(signedMiddle).divide(lowSpan,2,BigDecimal.ROUND_DOWN);
-					} else {
-						distanceRatioFromConstant = BigDecimal.ONE.negate();
-					}
-				}
-				if (signedValue.compareTo(signedMiddle) > 0) {
-					if (signedValue.compareTo(limiteHautePos.multiply(direction)) < 0) {
-						ratio = signedValue.subtract(signedMiddle).divide(highSpan,2,BigDecimal.ROUND_DOWN);
-					} else {
-						distanceRatioFromConstant = BigDecimal.ONE;
-					}
-				} 
-				distanceRatioFromConstant = ratio.multiply(direction);
-			
-			}
-		
-		return distanceRatioFromConstant;
-		
+		if (epsg.isZero()) {
+			return new MyBigDec(null, false);
+		}
+		return new MyBigDec(pe.getValue().divide(epsg.getValue(),2,RoundingMode.DOWN).movePointLeft(2),true);
 	}
 
 	@Transient
@@ -683,22 +619,29 @@ public class TrendSupplementedStock extends Validatable {
 		this.stock = stock;
 	}
 
-	@Transient
-	public BigDecimal quotePerfOverPeriod() {
+	public MyBigDec priceChangeTTM() {
 
-		if (this.quotePerfOverPeriod  == null) {
+		if (this.priceChangeTTM  == null) {
 
 			if (this.close == null || ttmClose == null) {
-				this.quotePerfOverPeriod = BigDecimal.ZERO;
-
+				this.priceChangeTTM = new MyBigDec(null, false);
 			} else {
-				BigDecimal diff = close.subtract(ttmClose);
-				this.quotePerfOverPeriod = diff.divide(ttmClose, 4, BigDecimal.ROUND_DOWN);
+				BigDecimal priceDiffTTM = close.subtract(ttmClose);
+				this.priceChangeTTM = new MyBigDec(priceDiffTTM.divide(ttmClose, 4, BigDecimal.ROUND_DOWN), true);
 			}
 		}
 
-		return this.quotePerfOverPeriod;
+		return this.priceChangeTTM;
 
+	}
+	
+	//ideal price change => +infinite => becomes 0 to 10%
+	public MyBigDec priceChangeRating() {
+		
+		if (!priceChangeTTM().isValid()) return new MyBigDec(null, false);
+		
+		BigDecimal adjstedPriceChange = adjustedMaxValue(priceChangeTTM().getValue(), MINIDEALPRICECHG);
+		return ratingFormula(new MyBigDec(adjstedPriceChange, true), MINIDEALPRICECHG);
 	}
 
 	/**
@@ -725,6 +668,11 @@ public class TrendSupplementedStock extends Validatable {
 	@Transient
 	public Market getMarket() {
 		return this.stock.getMarket();
+	}
+	
+	public String dividendToString() {
+		if (dividend != null) return dividend.toString();
+		return "NA";
 	}
 	
 	public BigDecimal getDividend() {
@@ -846,6 +794,83 @@ public class TrendSupplementedStock extends Validatable {
 
 	public void setReutersYield(BigDecimal reutersYield) {
 		this.reutersYield = reutersYield;
+	}
+	
+	public class MyBigDec implements Comparable<MyBigDec>{
+		
+		BigDecimal value;
+		Boolean valid;
+
+		public MyBigDec(BigDecimal value, Boolean valid) {
+			super();
+			this.value = value;
+			this.valid = valid;
+		}
+
+		public MyBigDec add(MyBigDec addedValue) {
+			if (this.isValid() && addedValue.isValid()) {
+				this.value = this.value.add(addedValue.getValue());
+				return this;
+			}
+			if (this.isValid()) {
+				return this;
+			}
+			return addedValue;
+		}
+
+		public BigDecimal getValue() {
+			return (value == null)?BigDecimal.ZERO:value;
+		}
+		
+		public Double doubleValue() {
+			return (value == null)?Double.NaN:value.doubleValue();
+		}
+
+		public Boolean isValid() {
+			return valid;
+		}
+
+		public int compareTo(MyBigDec o2r) {
+			if (this.isValid() && o2r.isValid()) return this.getValue().compareTo(o2r.getValue());
+			if (this.isValid()) return -1;
+			if (o2r.isValid()) return 1;
+			//if (!this.isValid() && !o2r.isValid()) return 0;
+			return 0;
+			
+		}
+		
+		public Boolean isZero() {
+			if (isValid()) {
+				return this.getValue().compareTo(BigDecimal.ZERO) == 0;
+			}
+			return true;
+		}
+		
+		@Override
+		public String toString() {
+			if (!valid) return "NA";
+			return value.toString();
+		}
+		
+		
+	}
+
+	public BigDecimal close() {
+		return close;
+	}
+	
+	public String closeToString() {
+		if (close != null) return close.toString();
+		return "NA";
+	}
+
+	public BigDecimal ttmClose() {
+		return ttmClose;
+	}
+	
+	public String ttmCloseToString() {
+		if (ttmClose != null) return ttmClose.toString();
+		return "NA";
 	}
 
 }

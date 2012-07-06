@@ -55,9 +55,9 @@ package com.finance.pms.admin;
  */
 
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class DerbyImport {
@@ -70,21 +70,38 @@ public class DerbyImport {
 	}
 	
 	public void importDB() {
-		DbInstaller dbInstaller = new DbInstaller();
+//		DbInstaller dbInstaller = new DbInstaller();
+//		try {
+//			dbInstaller.importDB(
+//					new File("/home/guil/"),
+//					//"Developpement/Quotes/com.finance.pms/distrib/export_nasdaq-yahoo",
+//					"tmp",
+//					//"Developpement/Quotes/pms/distrib/export",
+//					connect());
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 		try {
-			dbInstaller.importDB(
-					new File("/home/guil/"),
-					//"Developpement/Quotes/com.finance.pms/distrib/export_nasdaq-yahoo",
-					//"tmp" ,
-					"Developpement/Quotes/pms/distrib/export",
-					connect(new File("/home/guil/Developpement/Quotes/pms/distrib/")));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			Connection connection = connect();
+			PreparedStatement psQuotation = connection.prepareStatement("CALL SYSCS_UTIL.SYSCS_IMPORT_TABLE (?,?,?,?,?,?,?)");
+			psQuotation.setString(1, null);
+			psQuotation.setString(2, "TREND_SUPPLEMENT");
+			psQuotation.setString(3, "/home/guil/tmp/TREND_SUPPLEMENT.dat");
+			psQuotation.setString(4, ";");
+			psQuotation.setString(5, null);
+			psQuotation.setString(6, null);
+			psQuotation.setString(7, "1");
+			
+			psQuotation.execute();
+			
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private Connection connect(File piggyMarketSqueakFolder) {
+	private Connection connect() {
 		Connection connection = null;
 		String connectionURL;
 			try {
@@ -97,7 +114,10 @@ public class DerbyImport {
 					e.printStackTrace();
 				}
 				// Set up the connection
-				connectionURL = "jdbc:derby:"+piggyMarketSqueakFolder.getAbsolutePath() +File.separator+"derby"+File.separator+"piggymarketsqueak";
+				//connectionURL = "jdbc:derby:"+piggyMarketSqueakFolder.getAbsolutePath() +File.separator+"derby"+File.separator+"piggymarketsqueak";
+				connectionURL = "jdbc:" +  "derby";
+				connectionURL = connectionURL + ":" + "/home/guil/Documents/Comptes/Gestion/PMS/";
+				connectionURL = connectionURL + "piggymarketsqueak";
 				connection = DriverManager.getConnection(connectionURL);
 				connection.setAutoCommit(true);
 			} catch (ClassNotFoundException e) {

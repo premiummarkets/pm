@@ -142,8 +142,8 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.horizontalSpan = 2;
 				text.setLayoutData(Errorlabel1LData);
-				text.setText("Ticking the following box, will be sell the share at current price and apply the transaction to the portfolio.\n" +
-							"Otherwise, the raw amounts in and out will be substracted from the total amounts as they are.");
+				text.setText("Ticking the following box, will sell the share at the current price and apply the transaction to the portfolio.\n" +
+							"Otherwise, the raw amounts in and out will be substracted from the total amounts as they are (ie all transactions on that line are canceled.)");
 				text.setFont(MainGui.DEFAULTFONT);
 				text.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
 			}

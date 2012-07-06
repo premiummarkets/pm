@@ -49,7 +49,7 @@ public class Sector {
 			
 			public int compare(TrendSupplementedStock o1, TrendSupplementedStock o2) {
 				if (o1.equals(02)) return 0;
-				return o1.fullRating().compareTo(o2.fullRating());
+				return o1.fullRating().getValue().compareTo(o2.fullRating().getValue());
 			}
 			
 		});
@@ -94,12 +94,12 @@ public class Sector {
 		BigDecimal ret = BigDecimal.ZERO.setScale(4);
 		int  nb = 0;
 		for (TrendSupplementedStock stockPerf : listOfShares) {
-			if (stockPerf.getYahooPotentielPrice() != null) {
-				ret = ret.add(stockPerf.getYahooPotentielPrice());
+			if (stockPerf.yahooPotentielPrice() != null) {
+				ret = ret.add(stockPerf.yahooPotentielPrice().getValue());
 				nb++;
 			}
-			if (stockPerf.getBoursoPricePotentiel() != null) {
-				ret = ret.add(stockPerf.getBoursoPricePotentiel());
+			if (stockPerf.boursoPricePotentiel() != null) {
+				ret = ret.add(stockPerf.boursoPricePotentiel().getValue());
 				nb++;
 			}
 		}
@@ -138,10 +138,15 @@ public class Sector {
 	
 	public BigDecimal getPerfs() {
 		BigDecimal ret = BigDecimal.ZERO.setScale(4);
+		int nbValids = listOfShares.size();
 		for (TrendSupplementedStock stockPerf : listOfShares) {
-			ret = ret.add(stockPerf.quotePerfOverPeriod());
+			if (stockPerf.priceChangeTTM().isValid()) {
+				ret = ret.add(stockPerf.priceChangeTTM().getValue());
+			} else {
+				nbValids--;
+			}
 		}
-		return ret.divide(new BigDecimal(listOfShares.size()),4,BigDecimal.ROUND_DOWN);
+		return ret.divide(new BigDecimal(nbValids),4,BigDecimal.ROUND_DOWN);
 	}
 	
 	public BigDecimal getYield() {

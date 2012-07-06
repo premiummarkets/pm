@@ -131,7 +131,7 @@ public class PortfolioComposite extends Composite {
 	private CTabFolder portfolioCTabFolder1;
 	private CTabItem[] cTabItem;
 
-	private Button portfolioAddbutton;
+	private Button addShareFromFilebutton;
 	private Button portfolioRemovebutton;
 	private Button portfolioDeletePortfoliobutton;
 	private Button portfolioAddPortFoliobutton;
@@ -210,7 +210,7 @@ public class PortfolioComposite extends Composite {
 	 * @author Guillaume Thoreton
 	 */
 	private enum Titles {
-		Name ("Stock name."), BuyPrc ("Buy price."), ZWProfPrc ("Minimum sell price for no loss including inflation."), Close("Last close price."),
+		Name ("Stock name."), BuyPrc ("Avg buy price."), ZWProfPrc ("Minimum sell price for no loss including inflation."), Close("Last close price."),
 		UrProf ("Unrealized profit percentage."), WUrProf ("Unrealized profit percentage including inflation."), 
 		UrGain ("Unrealized profit amount."), RGain("Realized profit amount."), CashIn("Amount of cash in."), CashOut("Amount of cash out."),
 		Value("Line value for last close price."), Quant ("Quantity."), 
@@ -323,6 +323,12 @@ public class PortfolioComposite extends Composite {
 						int si = portfolioCTabFolder1.getSelectionIndex();
 						if (!cTabItem[si].isDisposed()) refreshChartData(si);
 						highLightSlidingCols();
+						
+						//portfolioCTabFolder1.getParent().layout();
+						//portfolioCTabFolder1.getParent().pack();
+						//portfolioBoutonsGroup.pack();
+						//portfolioInfosGroup.pack();
+						
 					}
 
 				});
@@ -373,17 +379,22 @@ public class PortfolioComposite extends Composite {
 						newPortfolioText.setFont(MainGui.DEFAULTFONT);
 					}
 					{
-						portfolioAddbutton = new Button(portfolioBoutonsGroup, SWT.PUSH | SWT.CENTER);
+						addShareFromFilebutton = new Button(portfolioBoutonsGroup, SWT.PUSH | SWT.CENTER);
 						GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 						portfolioAddbuttonData.horizontalSpan = 2;
-						portfolioAddbutton.setLayoutData(portfolioAddbuttonData);
-						portfolioAddbutton.setText("New share ...");
-						portfolioAddbutton.setFont(MainGui.DEFAULTFONT);
-						portfolioAddbutton.addMouseListener(new MouseAdapter() {
+						addShareFromFilebutton.setLayoutData(portfolioAddbuttonData);
+						addShareFromFilebutton.setText("New share ...");
+						addShareFromFilebutton.setFont(MainGui.DEFAULTFONT);
+						addShareFromFilebutton.addMouseListener(new MouseAdapter() {
 							@Override
 							public void mouseDown(MouseEvent evt) {
+								portfolioBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+								try {
 								portfolioAddShareButtonMouseDown(evt);
 								refreshChartData(portfolioCTabFolder1.getSelectionIndex());
+								} finally {
+									portfolioBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+								}
 							}
 						});
 					}
@@ -634,19 +645,13 @@ public class PortfolioComposite extends Composite {
 				value.setForeground(new Color(getDisplay(),0,0,0));
 			}
 			
-//			if (new BigDecimal(gain.getText()).compareTo(BigDecimal.ZERO) == 0) {
-//				gain.setBackground(new Color(getDisplay(),246,244,242));
-//				gain.setForeground(new Color(getDisplay(),230,225,220));
-//			} else {
-				gain.setBackground(bgColor);
-				gain.setForeground(fgColor);
-//			}
+			gain.setBackground(bgColor);
+			gain.setForeground(fgColor);
+			
 			amountIn.setBackground(bgColor);
 			amountIn.setForeground(fgColor);
 			amountOut.setBackground(bgColor);
 			amountOut.setForeground(fgColor);
-//			historicalGain.setBackground(bgColor);
-//			historicalGain.setForeground(fgColor);
 			
 		}
 	}
@@ -1054,6 +1059,11 @@ public class PortfolioComposite extends Composite {
 			tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 			tableItem.setFont(MainGui.CONTENTFONT);
 		}
+		
+		Table ttomod = (Table) cTabItem[tabIdx].getData();
+		for (int j = 0; j < Titles.values().length; j++) {
+			ttomod.getColumn(j).pack();
+		}
 
 		refreshPortfolioTotalsInfos(tabIdx);
 	}
@@ -1062,41 +1072,67 @@ public class PortfolioComposite extends Composite {
 
 	/**
 	 * @param tableItem
-	 * @param tabi 
-	 * @param rowIndex 
+	 * @param tabIdx 
+	 * @param rowIdx 
 	 * @param transaction
 	 * @param pstmp
 	 * @throws InvalidQuantityException 
 	 */
-	private void applyTransaction(TableItem tableItem, int tabi, int rowIndex, SlidingPortfolioShare portfolioShare, Transaction transaction, Boolean proceed, Boolean reset) throws InvalidQuantityException {
-
-		Boolean removeRow = false;
+	//TODO create an add, remove update method (all in one) in Portfolio hierarchy
+	private void applyTransaction(TableItem tableItem, int tabIdx, int rowIdx, SlidingPortfolioShare portfolioShare, Transaction transaction, Boolean proceed, Boolean reset) 
+																																						throws InvalidQuantityException {
 		if (proceed) {
 
-			Portfolio portfolio = (Portfolio) portfolioShare.getPortfolio();
+			//Portfolio portfolio = (Portfolio) portfolioShare.getPortfolio();
+			Portfolio portfolio =  modelControler.getPortfolio(tabIdx);
 		
 			if (!reset) {
+				//Update or remove existing
+				portfolio.removeOrUpdateShare(portfolioShare, transaction.getQuantity(), transaction.getDate(), transaction.getTransactionPrice(), transaction.getModtype());
 				
-				portfolio.removeOrUpdateShare(portfolioShare, transaction.getQuantity(), transaction.getDate(), transaction.getTransactionPrice());
 				if (portfolioShare.getQuantity().compareTo(BigDecimal.ZERO) == 0) {
-					//modelControler.removeShareFromTab(tabi, rowIndex);
-					removeRow = true;
+					
+					Table ttomod = (Table) cTabItem[tabIdx].getData();
+					ttomod.remove(rowIdx);
+					modelControler.removeShareFromTab(tabIdx, rowIdx);
+					
+				} else {
+						updateTableItem(tableItem, portfolioShare);
 				}
+				
 			} else {
-				portfolio.rawRemoveShare(portfolioShare);
-				//modelControler.removeShareFromTab(tabi, rowIndex);
-				removeRow = true;
+				
+				Table ttomod = (Table) cTabItem[tabIdx].getData();
+				
+				//Remove existing
+				portfolio.rawRemoveShare(portfolioShare);	
+				ttomod.remove(rowIdx);
+				modelControler.removeShareFromTab(tabIdx, rowIdx);
+				
+				//Then Add as new
+				if (transaction.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
+					
+					PortfolioShare replacementPS = portfolio.addOrUpdateShare(
+							portfolioShare.getStock(), transaction.getQuantity(), EventSignalConfig.getNewDate(), 
+							transaction.getTransactionPrice(), portfolioShare.getMonitorLevel(), portfolioShare.getTransactionCurrency(),
+							TransactionType.AIN);
+					
+					int tabSize = modelControler.tabSize(tabIdx);
+					SlidingPortfolioShare replacememntSlidingPS = buildSlidingPortfolioShare(tabSize, replacementPS);
+					modelControler.addPortfolioShareToTab(tabIdx, replacememntSlidingPS);
+					
+//					tableItem = new TableItem(ttomod, SWT.DIALOG_TRIM, tabSize);
+//					portfolioShare = replacememntSlidingPS;
+					updateTableItem(new TableItem(ttomod, SWT.DIALOG_TRIM, tabSize), replacememntSlidingPS);
+					refreshChartData(portfolioCTabFolder1.getSelectionIndex());
+				}
+				
 			}
 			
-		} 
-		
-		if (removeRow) {
-			Table ttomod = (Table) cTabItem[tabi].getData();
-			ttomod.remove(rowIndex);
-			modelControler.removeShareFromTab(tabi, rowIndex);
 		} else {
 			updateTableItem(tableItem, portfolioShare);
 		}
+					
 	}
 
 
@@ -1348,15 +1384,23 @@ public class PortfolioComposite extends Composite {
 		ArrayList<SlidingPortfolioShare> list = new ArrayList<SlidingPortfolioShare>();
 		//int idx = 0;
 		for (PortfolioShare portfolioShare : portfolioShares) {
-			java.awt.Color paint = (java.awt.Color) paints[startIdx];
-			Color psColor = new Color(getDisplay(),paint.getRed(),paint.getGreen(),paint.getBlue());
-			list.add(new SlidingPortfolioShare(portfolioShare, 
-							chartsComposite.getSlidingStartDate(), chartsComposite.getSlidingEndDate(), 
-							slidingStartAnchor.getSelection(), slidingEndAnchor.getSelection(),
-							psColor));
+			SlidingPortfolioShare slidingPS = buildSlidingPortfolioShare(startIdx, portfolioShare);
+			list.add(slidingPS);
 			startIdx++;
 		}
 		return list;
+	}
+
+
+
+	private SlidingPortfolioShare buildSlidingPortfolioShare(int startIdx, PortfolioShare portfolioShare) {
+		java.awt.Color paint = (java.awt.Color) paints[startIdx];
+		Color psColor = new Color(getDisplay(),paint.getRed(),paint.getGreen(),paint.getBlue());
+		SlidingPortfolioShare slidingPS = new SlidingPortfolioShare(portfolioShare, 
+						chartsComposite.getSlidingStartDate(), chartsComposite.getSlidingEndDate(), 
+						slidingStartAnchor.getSelection(), slidingEndAnchor.getSelection(),
+						psColor);
+		return slidingPS;
 	}
 
 
@@ -1468,7 +1512,7 @@ public class PortfolioComposite extends Composite {
 
 			//open selection window
 			Collection<PortfolioShare> pSharesInTab = modelControler.getPortfolio(tabi).getListShares().values();
-			NewPortfolioItemDialog pItemd = NewPortfolioItemDialog.showUI(pSharesInTab);
+			NewPortfolioItemDialog pItemd = NewPortfolioItemDialog.showUI(pSharesInTab, getShell());
 			List<Stock> selectedStocks = pItemd.getSelectedStocks();
 
 			Collection<PortfolioShare> portfolioShares = addListOfShareToModel(tabi, pItemd.getSelectedMonitorLevel(), pItemd.getSelectedQuantity(), selectedStocks);
@@ -1514,41 +1558,22 @@ public class PortfolioComposite extends Composite {
 				listOfBoughtShares.add(portfolioShare);
 				
 			} catch (InvalidAlgorithmParameterException e) {
-				LOGGER.error("No quotations for " + stock, e);
+				String message = "No quotations for " + stock;
+				LOGGER.warn(message, e);
+				ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, message+"\n"+e.getMessage()+"\n"+e.toString(), null);
+				inst.open();
+				
 			} catch (InvalidQuantityException e) {
-				LOGGER.error("Wrong quantity for " + stock, e);
+				String message = "Wrong quantity for " + stock;
+				LOGGER.warn(message, e);
+				ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, message+"\n"+e.getMessage()+"\n"+e.toString(), null);
+				inst.open();
+				
 			}
 
 		}
 
 		return listOfBoughtShares;
-
-	}
-
-
-	/**
-	 * @param stockList
-	 */
-	public void addListOfSharesFromFile(List<Stock> stockList) {
-		int tabIndex = portfolioCTabFolder1.getSelectionIndex();
-
-		try {
-			Collection<PortfolioShare> portfolioShares = addListOfShareToModel(tabIndex, MonitorLevel.ANY, BigDecimal.ONE, stockList);
-			//int tabSize = tabbedPortfolioShares.get(tabIndex).size();
-			int tabSize = modelControler.tabSize(tabIndex);
-			updatePortfolioTabItems(tabIndex, buildSlidingPortfolioShareList(portfolioShares, tabSize), tabSize);
-			refreshChartData(portfolioCTabFolder1.getSelectionIndex());
-		} 		
-		catch (InvalidAlgorithmParameterException e) {
-			LOGGER.info(e,e);
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL,"Error adding share. \n"+e, null);
-			inst.open();
-		}
-		catch (Exception e) {
-			LOGGER.error(e,e);
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL,"Error adding share. \n"+e, null);
-			inst.open();
-		}
 
 	}
 
@@ -1575,9 +1600,9 @@ public class PortfolioComposite extends Composite {
 					modelControler.addPortfolioShareToTab(tabId, slidingPS);
 				}
 
-				TableItem item = new TableItem(ttomod, SWT.DIALOG_TRIM, startIdx);
+				TableItem item = new TableItem(ttomod, SWT.NONE, startIdx);
 				updateTableItem(item, slidingPS);
-
+				
 				startIdx ++;
 			} else {
 				LOGGER.warn("Share without a symbol properly set :( are not supported (yet?) : " + slidingPS.toString() + ". plz fix me :)");
@@ -1615,7 +1640,8 @@ public class PortfolioComposite extends Composite {
 				PortfolioShare portfolioShare = modelControler.getShareInTab(tabi, rowIndex);
 				if (applyTransaction) {
 					Date currentDate = EventSignalConfig.getNewDate();
-					modelControler.getPortfolio(tabi).removeOrUpdateShare(portfolioShare, portfolioShare.getQuantity(), currentDate, portfolioShare.getCloseQuotationFor(currentDate));
+					modelControler.getPortfolio(tabi).removeOrUpdateShare(	portfolioShare, portfolioShare.getQuantity(), currentDate, 
+																			portfolioShare.getCloseQuotationFor(currentDate), TransactionType.AOUT);
 				} else {
 					modelControler.getPortfolio(tabi).rawRemoveShare(portfolioShare);
 				}
@@ -1866,6 +1892,10 @@ public class PortfolioComposite extends Composite {
 	
 					}
 					if (isSlidingPrices) {
+				
+						for (int j = 0; j < Titles.values().length; j++) {
+							ttomod.getColumn(j).pack();
+						}
 						refreshPortfolioTotalsInfos(si);
 					}
 					

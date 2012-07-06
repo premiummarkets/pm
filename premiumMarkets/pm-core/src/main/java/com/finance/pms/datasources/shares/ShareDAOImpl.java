@@ -172,7 +172,8 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		@SuppressWarnings("unchecked")
 		List<TrendSupplementedStock> results = criteria.list();
 		
-		return (results == null || results.isEmpty() || results.get(0) == null)? new TrendSupplementedStock(stock): results.get(0);
+		//return (results == null || results.isEmpty() || results.get(0) == null)? new TrendSupplementedStock(stock): results.get(0);
+		return (results == null || results.isEmpty() || results.get(0) == null)? null : results.get(0);
 				
 	}
 

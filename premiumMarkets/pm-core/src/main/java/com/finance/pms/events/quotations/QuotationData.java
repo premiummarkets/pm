@@ -380,9 +380,6 @@ class QuotationData implements List<QuotationUnit> {
 	}
 
 	public double[] getVolumeValues() {
-//		if (this.stripedQuotations.isStriped()) 
-//			return this.stripedQuotations.getVolumeTrimList();
-//		else 
 			return this.getInput(VOLUME);
 	}
 	

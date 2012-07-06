@@ -259,6 +259,12 @@ public class GnuCashAdvPortfolioParser {
 			LOGGER.info("Parsing row for "+stock);
 			
 			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, account, EventSignalConfig.getNewDate());
+			if (transactionsForStock.size() == 0) {
+				throw new NoResultException(stock+" is in portoflio "+newPortfolioName+"\n" +
+						" but no transaction was found in the gnucash transaction report regarding the former.\n" +
+						"\tPlease check the gnucash transaction report.\n");
+			}
+			
 			PortfolioShare updatedPortfolioShare = addPortfolioShare(initOrUsedPorfolio, newPortfolioName, rowAtts, stock, account, transactionsForStock);
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(new ArrayList<TransactionElement>(transactionsForStock));
 		

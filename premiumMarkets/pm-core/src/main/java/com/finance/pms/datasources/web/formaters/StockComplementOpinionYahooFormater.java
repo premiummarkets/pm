@@ -78,48 +78,46 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 		lineNumber ++;
 
 		LOGGER.trace(line);
-		//if (lineNumber >= 95) {
-			TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
+		TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
 
-			if (stockPart.isNOTSetYahooTargetPrice()) {
-				Matcher mTargetP = meanTarget.matcher(line);
+		if (stockPart.isNOTSetYahooTargetPrice()) {
+			Matcher mTargetP = meanTarget.matcher(line);
 
-				if (mTargetP.find()) {
-					String mTargetPRes = mTargetP.group(1);
-					if ("NaN".equals(mTargetPRes)) {
-						stockPart.setYahooTargetPrice(BigDecimal.ZERO);
-					} else {
-						stockPart.setYahooTargetPrice(new BigDecimal(mTargetPRes));
-					}
+			if (mTargetP.find()) {
+				String mTargetPRes = mTargetP.group(1);
+				if ("NaN".equals(mTargetPRes)) {
+					stockPart.setYahooTargetPrice(BigDecimal.ZERO);
+				} else {
+					stockPart.setYahooTargetPrice(new BigDecimal(mTargetPRes));
 				}
 			}
-			if (stockPart.isNOTSetYahooMeanRecommendations()) {
-				Matcher mRec = meanRec.matcher(line);
-				if (mRec.find()) {
-					String rmRecRes = mRec.group(1);
-					if ("NaN".equals(rmRecRes)) {
-						stockPart.setYahooMeanRecommendations(BigDecimal.ZERO);
-					} else {
-						stockPart.setYahooMeanRecommendations(new BigDecimal(rmRecRes));
-					}
-
+		}
+		if (stockPart.isNOTSetYahooMeanRecommendations()) {
+			Matcher mRec = meanRec.matcher(line);
+			if (mRec.find()) {
+				String rmRecRes = mRec.group(1);
+				if ("NaN".equals(rmRecRes)) {
+					stockPart.setYahooMeanRecommendations(BigDecimal.ZERO);
+				} else {
+					stockPart.setYahooMeanRecommendations(new BigDecimal(rmRecRes));
 				}
+
 			}
-			
-			//This is a stopper
-			if (!stockPart.isNOTSetYahooMeanRecommendations() && !stockPart.isNOTSetYahooTargetPrice()) {
-				Matcher mTarg = nbOpinions.matcher(line);
-				if (mTarg.find()) {
-					Integer nbOps = new Integer(mTarg.group(1));
-					if (nbOps < 5) {
-						stockPart.setYahooMeanRecommendations(BigDecimal.ZERO);
-						stockPart.setYahooTargetPrice(BigDecimal.ZERO);
-					} 
-					endScrapping(stockPart);
-				}		
-			}
-						
-		//}
+		}
+
+		//This is a stopper
+		if (!stockPart.isNOTSetYahooMeanRecommendations() && !stockPart.isNOTSetYahooTargetPrice()) {
+			Matcher mTarg = nbOpinions.matcher(line);
+			if (mTarg.find()) {
+				Integer nbOps = new Integer(mTarg.group(1));
+				if (nbOps < 5) {
+					stockPart.setYahooMeanRecommendations(BigDecimal.ZERO);
+					stockPart.setYahooTargetPrice(BigDecimal.ZERO);
+				} 
+				endScrapping(stockPart);
+			}		
+		}
+
 		return null;
 	}
 

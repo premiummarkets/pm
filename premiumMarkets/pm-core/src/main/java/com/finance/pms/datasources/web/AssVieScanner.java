@@ -46,6 +46,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
@@ -89,7 +90,11 @@ public class AssVieScanner implements MyBeanFactoryAware {
 		Providers.getInstance(sharesListName).retrieveStockListFromBase(dbStockList);
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		
-		quotationUpdate.getQuotes(assVieStockList);
+		try {
+			quotationUpdate.getQuotes(assVieStockList);
+		} catch (StockNotFoundException e) {
+			LOGGER.warn(e);
+		}
 		
 	}
 	

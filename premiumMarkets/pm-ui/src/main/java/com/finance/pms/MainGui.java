@@ -42,7 +42,6 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.swt.SWT;
@@ -66,7 +65,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -81,9 +79,6 @@ import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.RefreshAllEventStrategyEngine;
 import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
-import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.gui.EventsComposite;
@@ -180,7 +175,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	private MenuItem quotationMenuItem;
 
-	private MenuItem newFileUpdatePortfolioMenu;
+//	private MenuItem newFileUpdatePortfolioMenu;
 
 	private MenuItem refreshMonitoredQuotations;
 
@@ -431,28 +426,27 @@ public class MainGui extends SashForm implements RefreshableView {
 								}
 							});
 						}
-						new MenuItem(quotationMenu, SWT.SEPARATOR);
-						{
-							MenuItem newFileMenu = new MenuItem(quotationMenu, SWT.CASCADE);
-							newFileMenu.setText("Add shares from file ...");
-							newFileMenu.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									portfollioAddSharesFromFileMouseDown(evt);
-								}
-							});
-
-						}
-						{
-							newFileUpdatePortfolioMenu = new MenuItem(quotationMenu, SWT.CHECK);
-							newFileUpdatePortfolioMenu.setText("Select this first to upload directly in the current porfolio");
-							newFileUpdatePortfolioMenu.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									//Test LOGGER.error("error",new Exception());
-								}
-							});
-						}
+//						new MenuItem(quotationMenu, SWT.SEPARATOR);
+//						{
+//							MenuItem newFileMenu = new MenuItem(quotationMenu, SWT.CASCADE);
+//							newFileMenu.setText("Add shares from file ...");
+//							newFileMenu.addSelectionListener(new SelectionAdapter() {
+//								@Override
+//								public void widgetSelected(SelectionEvent evt) {
+//									portfollioAddSharesFromFileMouseDown(evt);
+//								}
+//							});
+//						}
+//						{
+//							newFileUpdatePortfolioMenu = new MenuItem(quotationMenu, SWT.CHECK);
+//							newFileUpdatePortfolioMenu.setText("Select this first to upload directly in the current porfolio");
+//							newFileUpdatePortfolioMenu.addSelectionListener(new SelectionAdapter() {
+//								@Override
+//								public void widgetSelected(SelectionEvent evt) {
+//									//Test LOGGER.error("error",new Exception());
+//								}
+//							});
+//						}
 						quotationMenu.addListener(SWT.Show, new Listener() {
 							
 							public void handleEvent(Event evt) {
@@ -924,39 +918,38 @@ public class MainGui extends SashForm implements RefreshableView {
 		//Nothing to do
 	}
 
-	/**
-	 * Portfollio add list of shares mouse down.
-	 * 
-	 * @param event the event
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	private void portfollioAddSharesFromFileMouseDown(SelectionEvent event) {
-		
-		//Update share list
-		String[] filterExtensions = {"*.txt"};
-		FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
-		fileDialog.setText("Choose a file containing the list of new shares");
-
-		fileDialog.setFilterExtensions(filterExtensions);
-		String selectedFile = fileDialog.open();
-		List<Stock> listOShares = new StockList();
-		if (null != selectedFile) {
-			String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider","euronext");
-			QuotationUpdate quotationUpdate = new QuotationUpdate();
-			quotationUpdate.getQuotesForListInFile(selectedFile, listStProvider);
-			
-			//reset Event dates.
-			//eventModelImage.hardResetLastQuotationDate();
-			monitoredStocksEventModel.hardResetLastQuotationDate();
-			allStocksEventModel.hardResetLastQuotationDate();
-		}
-		
-		if (newFileUpdatePortfolioMenu.getSelection()) {
-			((PortfolioComposite) winTable[2]).addListOfSharesFromFile(listOShares);
-		}
-
-	}
+//	/**
+//	 * Portfollio add list of shares mouse down.
+//	 * 
+//	 * @param event the event
+//	 * 
+//	 * @author Guillaume Thoreton
+//	 */
+//	private void portfollioAddSharesFromFileMouseDown(SelectionEvent event) {
+//		
+//		//Update share list
+//		String[] filterExtensions = {"*.txt"};
+//		FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
+//		fileDialog.setText("Choose a file containing the list of new shares");
+//
+//		fileDialog.setFilterExtensions(filterExtensions);
+//		String selectedFile = fileDialog.open();
+//		List<Stock> listOShares = new StockList();
+//		if (null != selectedFile) {
+//			String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider","euronext");
+//			QuotationUpdate quotationUpdate = new QuotationUpdate();
+//			quotationUpdate.getQuotesForListInFile(selectedFile, listStProvider);
+//			
+//			//reset Event dates.
+//			monitoredStocksEventModel.hardResetLastQuotationDate();
+//			allStocksEventModel.hardResetLastQuotationDate();
+//		}
+//		
+//		if (newFileUpdatePortfolioMenu.getSelection()) {
+//			((PortfolioComposite) winTable[2]).addListOfSharesFromFile(listOShares);
+//		}
+//
+//	}
 
 	public Date getAnalysisStartDate() {
 		return analyseStartDateCalculation();

@@ -117,7 +117,7 @@ public class Charts {
 		
 		CombinedDataset combinedDataset = new CombinedDataset();
 		for (int k=0; k< portfolioShares.size(); k++) {
-			//PortfolioShare portfolioShare = portfolioShares.get(k).getUnderLyingPortfolioShare();
+			
 			Quotations quotations = getQuotations(stripedCloseFunction, portfolioShares.get(k));
 			combinedDataset.add(buildDataSet(stripedCloseFunction, quotations, portfolioShares.get(k)));
 
@@ -252,10 +252,10 @@ public class Charts {
 	private SeriesOHLCDataset buildDataSet(StripedCloseFunction stripedCloseFunction, Quotations bdQuotes, PortfolioShare portfolioShare) {
 		ArrayList<OHLCDataItem> ohlcList  = new ArrayList<OHLCDataItem>();
 		if (bdQuotes.size() > 0 && portfolioShare.getStock().getLastQuote().after(stripedCloseFunction.getArbitraryStartDate())) {
-			stripedCloseFunction.targetShareData(portfolioShare,bdQuotes);
+			stripedCloseFunction.targetShareData(portfolioShare, bdQuotes);
 			List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(stripedCloseFunction.getStartDateQuotationIndex(), stripedCloseFunction.getEndDateQuotationIndex());
-			BigDecimal[] relatedClose = stripedCloseFunction.relatedClose();
-			ohlcList = this.builtOHLCList(quotationUnits, relatedClose, stripedCloseFunction.getStartDateQuotationIndex(), stripedCloseFunction.getEndDateQuotationIndex());
+			Number[] relativeCloses = stripedCloseFunction.relativeCloses();
+			ohlcList = this.builtOHLCList(quotationUnits, relativeCloses, stripedCloseFunction.getStartDateQuotationIndex(), stripedCloseFunction.getEndDateQuotationIndex());
 		}
 		
 		return new SeriesOHLCDataset(portfolioShare, ohlcList);
@@ -269,15 +269,16 @@ public class Charts {
 		dateAxis.setVerticalTickLabels(true);
 	}
 
-	private ArrayList<OHLCDataItem> builtOHLCList(List<QuotationUnit> quotationUnits, BigDecimal[] relatedClose, Integer startI, Integer endI) {
+	private ArrayList<OHLCDataItem> builtOHLCList(List<QuotationUnit> quotationUnits, Number[] relativeCloses, Integer startIdx, Integer endIdx) {
 		
 		 ArrayList<OHLCDataItem> ret = new ArrayList<OHLCDataItem>();
 
-		 for (int i = 0; i < Math.min(relatedClose.length,endI); i++) {
-			 QuotationUnit trade = quotationUnits.get(i+startI);
+		 for (int i = 0; i < Math.min(relativeCloses.length, endIdx); i++) {
+			 QuotationUnit trade = quotationUnits.get(i+startIdx);
 			 OHLCDataItem ohlcDataItem =  new OHLCDataItem(
 						 trade.getDate(), 
-						 trade.getOpen().doubleValue(), trade.getHigh().doubleValue(), trade.getLow().doubleValue(),relatedClose[i].doubleValue(), new Double(trade.getVolume()));
+						 trade.getOpen().doubleValue(), trade.getHigh().doubleValue(), trade.getLow().doubleValue(), relativeCloses[i].doubleValue(), 
+						 new Double(trade.getVolume()));
 			 ret.add(ohlcDataItem);
 		 }
 	   

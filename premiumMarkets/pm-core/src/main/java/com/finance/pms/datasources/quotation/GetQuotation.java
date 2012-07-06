@@ -38,11 +38,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Observable;
+import java.util.concurrent.Callable;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.quotations.Quotations;
@@ -57,7 +59,7 @@ import com.finance.pms.threads.ObserverMsg.ObsKey;
  * 
  * @author Guillaume Thoreton
  */
-public class GetQuotation  extends Observable implements Runnable {
+public class GetQuotation  extends Observable implements Callable<GetQuotationResult> {
 	
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(GetQuotation.class);
@@ -92,13 +94,13 @@ public class GetQuotation  extends Observable implements Runnable {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+	@Override
+	public GetQuotationResult call() {
 		
 		Date dateDeb=null;
 		Date lastQuote=null;
+		GetQuotationResult ret = new GetQuotationResult(stock);
+		
 		try {
 			
 			dateDeb = DataSource.getInstance().getLastQuotationDateFromShares(stock);
@@ -125,6 +127,7 @@ public class GetQuotation  extends Observable implements Runnable {
 			
 			Quotations.removeCashedStock(stock);
 			
+			ret.hasQuotations = true;
 		} catch (Exception e) {
 			
 			try {
@@ -146,6 +149,8 @@ public class GetQuotation  extends Observable implements Runnable {
 			this.setChanged();
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
 		}
+		
+		return ret;
 	}
 
 	/**
@@ -178,6 +183,17 @@ public class GetQuotation  extends Observable implements Runnable {
 			}
 		});
 		DataSource.getInstance().executeBlock(updateLastQuotesQueries, DataSource.SHARES.getUPDATELASTQUOTEANDNAME());
+	}
+	
+	public class GetQuotationResult {
+
+		Stock stock;
+		Boolean hasQuotations;
+		
+		public GetQuotationResult(Stock stock) {
+			this.stock = stock;
+			this.hasQuotations = false;
+		}
 	}
 
 }

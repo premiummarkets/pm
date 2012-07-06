@@ -34,14 +34,11 @@ package com.finance.pms.portfolio.gui.charts;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class NewRefereeDialog.
  * 
@@ -68,27 +65,28 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * @return the new referee dialog
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param shell 
 	 */
-	public static NewRefereeDialog showUI() {
-		NewRefereeDialog inst = null;
-		try {
-			Display display = Display.getDefault();
-			Shell shell = new Shell(display);
-			inst = new NewRefereeDialog(shell, SWT.NULL);
-			inst.open();
-			
-			NewPortfolioItemDialog.swtLoop(inst, display);
-			
-		} catch (Exception e) {
-			LOGGER.debug("", e);
+	public static NewPortfolioItemDialog showUI(Shell shell) {
+		
+		if (inst == null || inst.isDisposed()) {
+
+			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
+			inst = new NewRefereeDialog(piShell, SWT.NULL);
+			try {
+				inst.open();
+				swtLoop();
+			} catch (Exception e) {
+				LOGGER.error("", e);
+			}
+		} else {
+			inst.forceFocus();
 		}
+		
 		return inst;
 	}
 
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.portfolio.gui.NewPortfolioItemDialog#open()
-	 */
 	@Override
 	public void open() {
 		super.open();
@@ -97,8 +95,11 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 		this.monitorLabel.setVisible(false);
 		this.quantityLabel.setVisible(false);
 		this.quantityText.setVisible(false);
-
-		//this.symbolTable
+		this.addShareManualGroup.dispose();
+		this.addFromFile.dispose();
+		
+		inst.layout();
+		inst.pack();
 		
 	}
 	

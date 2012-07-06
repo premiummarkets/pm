@@ -42,22 +42,24 @@ import java.util.TreeSet;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.screening.TrendSupplementedStock.MyBigDec;
 
 public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<TrendSupplementedStock>> {
 	
 	public static final int TREND_OUTDATE_LIMIT = 6;
-	static final BigDecimal CREDIBLE_SELL_THRESHOLD = new BigDecimal(MainPMScmd.getPrefs().get("trend.sellthreshold","-1.00"));
-	static final BigDecimal CREDIBLE_BUY_THRESHOLD = new BigDecimal(MainPMScmd.getPrefs().get("trend.buythreshold","0.50"));
+	//The lower the full rating the better
+	static final BigDecimal CREDIBLE_SELL_THRESHOLD = new BigDecimal(MainPMScmd.getPrefs().get("trend.sellthreshold","100.00"));
+	static final BigDecimal CREDIBLE_BUY_THRESHOLD = new BigDecimal(MainPMScmd.getPrefs().get("trend.buythreshold","0.00"));
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TrendSupplementStockExporter.class);
 	
-	private final class FullRatingCompartor implements Comparator<TrendSupplementedStock> {
+	protected final class FullRatingCompartor implements Comparator<TrendSupplementedStock> {
 		
 		public int compare(TrendSupplementedStock o2, TrendSupplementedStock o1) {
-			BigDecimal o1r = o1.fullRating();
-			BigDecimal o2r = o2.fullRating();
-			int ret =  (o1r).compareTo(o2r);
-			if (ret == 0) return o1.getStock().getSymbol().compareTo(o2.getStock().getSymbol());
+			MyBigDec o1r = o1.fullRating();
+			MyBigDec o2r = o2.fullRating();
+			int ret =  (o2r).compareTo(o1r);
+			if (ret == 0) return o2.getStock().getSymbol().compareTo(o1.getStock().getSymbol());
 			return ret;
 		}
 	}
@@ -103,26 +105,26 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		staleDateLimit.add(Calendar.MONTH, -TREND_OUTDATE_LIMIT);
 		
 		for (TrendSupplementedStock trendedStock : listOfShares) {
-			BigDecimal fullRating = trendedStock.fullRating();
+			MyBigDec fullRating = trendedStock.fullRating();
 			if (	
-					fullRating.compareTo(BigDecimal.ZERO) != 0 
-					&& fullRating.compareTo(CREDIBLE_BUY_THRESHOLD) < 0 && fullRating.compareTo(CREDIBLE_SELL_THRESHOLD) > 0 
+					fullRating.isValid() && trendedStock.priceChangeTTM().isValid()
+					&& fullRating.getValue().compareTo(CREDIBLE_BUY_THRESHOLD) > 0 && fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) < 0 
 					&& trendedStock.getTrendDate().after(staleDateLimit.getTime())
-					&& !( fullRating.compareTo(BigDecimal.ZERO) > 0  && trendedStock.quotePerfOverPeriod().compareTo(new BigDecimal(-0.10)) <= 0 )
+					&& !( fullRating.getValue().compareTo(BigDecimal.ZERO) > 0  && trendedStock.priceChangeTTM().getValue().compareTo(new BigDecimal(-0.10)) <= 0 )
 					
 			) {
 				ret.add(trendedStock);
-			} else if (fullRating.compareTo(BigDecimal.ZERO) == 0 ) {
+			} else if (!fullRating.isValid()) {
 				LOGGER.warn("Trend info is not to be found "+trendedStock);
 				this.notToBeFoundTrends.add(trendedStock);
-			} else if (fullRating.compareTo(CREDIBLE_BUY_THRESHOLD) >= 0 || fullRating.compareTo(CREDIBLE_SELL_THRESHOLD) <= 0 ) {
+			} else if (fullRating.getValue().compareTo(CREDIBLE_BUY_THRESHOLD) <= 0 || fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) >= 0 ) {
 				LOGGER.warn("Trend info is not credible for "+trendedStock);
 				notCredibleTrends.add(trendedStock);
 			} else if (!trendedStock.getTrendDate().after(staleDateLimit.getTime())) {
 				LOGGER.warn("Trend info is staled for "+trendedStock);
 				staledTrends.add(trendedStock);
-			} else if (trendedStock.quotePerfOverPeriod().compareTo(new BigDecimal(-0.10)) <= 0) {
-				LOGGER.warn("Trend info is ignored because of poor recent perfs for "+trendedStock);
+			} else if (!trendedStock.priceChangeTTM().isValid() || trendedStock.priceChangeTTM().getValue().compareTo(new BigDecimal(-0.10)) <= 0) {
+				LOGGER.warn("Trend info is ignored because of poor recent perfs for "+trendedStock+" or no quotations.");
 				this.ignoredTrends.add(trendedStock);
 			} else {
 				LOGGER.warn("Trend info is not valid for other reasons for "+trendedStock);

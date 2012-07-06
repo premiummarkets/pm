@@ -74,12 +74,14 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.StripedCloseAbsoluteRelative;
+import com.finance.pms.datasources.db.StripedCloseDayToDay;
 import com.finance.pms.datasources.db.StripedCloseFunction;
 import com.finance.pms.datasources.db.StripedCloseIndexRelative;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 import com.finance.pms.portfolio.gui.PortfolioComposite;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
@@ -102,20 +104,13 @@ public class ChartsComposite extends SashForm {
 			e.printStackTrace();
 		}
 	}
-	
-	/** The location frame. */
+
 	private java.awt.Frame chartFrame;				
-	
-	/** The new portfolio text. */
+
 	private Text selectReferreText;
-	
-	/** The striped close function. */
 	private StripedCloseFunction stripedCloseFunction;
-	
-	/** The referee quotations. */
 	private Quotations refereeQuotations;
-	
-	/** The collection shares. */
+
 	private List<SlidingPortfolioShare> listShares;
 	
 	private Charts chartWraper;
@@ -220,7 +215,7 @@ public class ChartsComposite extends SashForm {
 				chartFrame.setVisible(true);
 			}
 			{
-				Group portfolioBoutonsGroup = new Group(this, SWT.NONE);
+				final Group portfolioBoutonsGroup = new Group(this, SWT.NONE);
 				portfolioBoutonsGroup.setBackground(innerBgColor);
 				GridLayout portfolioBoutonsGroupLayout = new GridLayout();
 				portfolioBoutonsGroupLayout.numColumns = 3;
@@ -236,6 +231,7 @@ public class ChartsComposite extends SashForm {
 				final Button addRefereeCheck;
 				final Button absoluteReferenceCheck;
 				final Button relativePriceCheck;
+				final Button houseDrvCheck;
 				final Button selectRefereeButton;
 				{
 					relativePriceCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
@@ -251,9 +247,17 @@ public class ChartsComposite extends SashForm {
 					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					absoluteReferenceCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
-					absoluteReferenceCheck.setText("Absoute strenght");
+					absoluteReferenceCheck.setText("Real value");
 					absoluteReferenceCheck.setFont(MainGui.DEFAULTFONT);
 					absoluteReferenceCheck.setSelection(true);
+				}
+				{
+					houseDrvCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
+					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
+					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
+					houseDrvCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
+					houseDrvCheck.setFont(MainGui.DEFAULTFONT);
+					houseDrvCheck.setText("Day to day log change");
 				}
 				{
 					addRefereeCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
@@ -272,7 +276,12 @@ public class ChartsComposite extends SashForm {
 					selectRefereeButton.addMouseListener(new MouseAdapter() {
 						@Override
 						public void mouseDown(MouseEvent evt) {
-							selectReferee(listShares);
+							portfolioBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							try {
+								selectReferee(listShares);
+							} finally {
+								portfolioBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							}
 						}
 					});
 					selectRefereeButton.setEnabled(false);
@@ -428,7 +437,23 @@ public class ChartsComposite extends SashForm {
 						startDateLabel.setEnabled(true);
 						sliderEndDate.setEnabled(true);
 						endDateLabel.setEnabled(true);
-						stripedCloseFunction =  new StripedCloseAbsoluteRelative(slidingStartDate,slidingEndDate);
+						stripedCloseFunction =  new StripedCloseAbsoluteRelative(slidingStartDate, slidingEndDate);
+						
+						updateChart(listShares);
+					}
+				});
+				
+				houseDrvCheck.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseDown(MouseEvent evt) {
+		
+						selectReferreText.setEnabled(false);
+						selectRefereeButton.setEnabled(false);
+						sliderStartDate.setEnabled(true);
+						startDateLabel.setEnabled(true);
+						sliderEndDate.setEnabled(true);
+						endDateLabel.setEnabled(true);
+						stripedCloseFunction =  new StripedCloseDayToDay();
 						
 						updateChart(listShares);
 					}
@@ -530,13 +555,13 @@ public class ChartsComposite extends SashForm {
 	 */
 	private void selectReferee(List<SlidingPortfolioShare> listShares) {
 		//open selection window
-		NewRefereeDialog pItemd = NewRefereeDialog.showUI();
-		List<Stock> listStock = pItemd.getSelectedStocks();
+		NewPortfolioItemDialog pItemDialog = NewRefereeDialog.showUI(getShell());
+		List<Stock> listStock = pItemDialog.getSelectedStocks();
 		if (listStock.size() > 0) {
 			try {
 				loadRefereeQuotations(listStock.get(0));
 
-				MainPMScmd.getPrefs().put("charts.referee",listStock.get(0).getSymbol());
+				MainPMScmd.getPrefs().put("charts.referee", listStock.get(0).getSymbol());
 				updateChart(listShares);
 
 			} catch (InvalidAlgorithmParameterException e) {
@@ -545,7 +570,7 @@ public class ChartsComposite extends SashForm {
 						"Not enougth quotations for "+listStock.get(0).getName()+"\n"+e, null);
 				inst.open();
 			}
-		} else {
+		} else if (pItemDialog instanceof NewRefereeDialog) {
 			LOGGER.error(Thread.currentThread().getStackTrace()[0].getMethodName());
 			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, "No referee selected please select a stock \n", null);
 			inst.open();
@@ -560,7 +585,7 @@ public class ChartsComposite extends SashForm {
 	private void relativeIndexSetting() throws InvalidAlgorithmParameterException {
 		if ( !"Your referee".equals(selectReferreText.getText()) && refereeQuotations != null && refereeQuotations.size() != 0) {
 			try {
-				stripedCloseFunction =  new StripedCloseIndexRelative(refereeQuotations,slidingStartDate,slidingEndDate);
+				stripedCloseFunction =  new StripedCloseIndexRelative(refereeQuotations, slidingStartDate, slidingEndDate);
 			} catch (InvalidAlgorithmParameterException e) {
 				LOGGER.error("",e);
 			}

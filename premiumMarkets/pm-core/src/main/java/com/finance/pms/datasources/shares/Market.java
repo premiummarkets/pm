@@ -32,6 +32,10 @@
 package com.finance.pms.datasources.shares;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.finance.pms.admin.install.logging.MyLogger;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -39,7 +43,7 @@ import java.io.Serializable;
  * 
  * @author Guillaume Thoreton
  */
-public enum Market implements Serializable{
+public enum Market implements Serializable {
 	
 	UNKNOWN ("UNKNOWN","unknown",Currency.EUR,YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN"),
 	
@@ -61,11 +65,14 @@ public enum Market implements Serializable{
 	
 	TSX ("TSX","tsx",Currency.CAD,YahooMarketExtentions.TSX, "UNKNOWN", "WMORN");
 	
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);
+	
 	private String marketName;
 	private String friendlyName;
-	private YahooMarketExtentions marketExtention;
+	private YahooMarketExtentions yahooExtension;
 	private Currency currency;
-	private String googleMarketName;
+	private String googleExtension;
 	private String investirExtension;
 
 
@@ -81,8 +88,8 @@ public enum Market implements Serializable{
 		this.marketName = marketName;
 		this.friendlyName = friendlyName;
 		this.currency = currency;
-		this.marketExtention = marketExtentions;
-		this.googleMarketName = googleMarketName;
+		this.yahooExtension = marketExtentions;
+		this.googleExtension = googleMarketName;
 		this.investirExtension = investirExtension;
 	}
 
@@ -108,16 +115,32 @@ public enum Market implements Serializable{
 		this.currency = currency;
 	}
 
-	public YahooMarketExtentions getMarketExtention() {
-		return marketExtention;
+	public YahooMarketExtentions getYahooExtension() {
+		return yahooExtension;
 	}
 
-	public String getGoogleMarketName() {
-		return googleMarketName;
+	public String getGoogleExtension() {
+		return googleExtension;
 	}
 
 	public String getInvestirExtension() {
 		return investirExtension;
+	}
+	
+	public static Set<String> getExtensionFor(MarketQuotationProviders provider) {
+		Set<String> ret = new HashSet<String>();
+		String cmdParam4Prov = provider.getCmdParam();
+		
+		try {
+			for (Market market : values()) {
+				String ext = Market.class.getDeclaredField(cmdParam4Prov+"Extension").get(market).toString();
+				ret.add(ext);
+			}
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
+		
+		return ret;
 	}
 	
 	

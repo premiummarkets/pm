@@ -186,8 +186,8 @@ public class DerbyExport {
 				// Set up the connection
 				connectionURL = "jdbc:" +  "derby";
 				//connectionURL = connectionURL + ":" + "/opt/USERDATA/derby/";
-				//connectionURL = connectionURL + ":" + "/home/guil/Developpement/Quotes/";
-				connectionURL = connectionURL + ":" + "/home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/distrib/derby/";
+				connectionURL = connectionURL + ":" + "/home/guil/Developpement/Quotes/";
+				//connectionURL = connectionURL + ":" + "/home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/distrib/derby/";
 				connectionURL = connectionURL + dbName;
 				conn = DriverManager.getConnection(connectionURL);
 				conn.setAutoCommit(autocommit);

@@ -250,7 +250,7 @@ public abstract class AbstractSharesList extends Observable {
 		 return newCashOut;
 	 }
 
-	 protected void removeAmountToTotalAmount(PortfolioShare portfolioShare) {
+	 protected void removeAmountFromTotalAmount(PortfolioShare portfolioShare) {
 		 this.totalInAmountEver = this.totalInAmountEver.subtract(portfolioShare.getCashin());
 		 this.totalOutAmountEver = this.totalOutAmountEver.subtract(portfolioShare.getCashout());
 	 }
@@ -295,17 +295,6 @@ public abstract class AbstractSharesList extends Observable {
 		 return PortfolioMgr.getInstance().getCurrencyConverter();
 	 }
 
-	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency transactionCurrency) 
-																																						throws InvalidQuantityException {
-
-		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, currentDate, mLevel, transactionCurrency);
-		shareTransaction(portfolioShare, quantity, currentDate, buyPrice, TransactionType.AIN);
-		portfolioShare.addBuyAlerts(buyPrice, currentDate);
-		
-		return portfolioShare;
-
-	}
-
 	/**
 	 * @param stock
 	 * @param currentDate
@@ -318,26 +307,40 @@ public abstract class AbstractSharesList extends Observable {
 		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());
 		if (portfolioShare == null) {
 			portfolioShare = new PortfolioShare(this, stock, currentDate, mLevel,transactionCurrency);
-			
 			listShares.put(stock, portfolioShare);
 		}
 		return portfolioShare;
 	}
 
 
-	public void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal sellPrice) throws InvalidQuantityException {
+	public void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
 		
-		if (this.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin()) == null) 
+		if (this.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin()) == null) {
 			throw new InvalidQuantityException("The share "+portfolioShare+" is not in the portfolio "+this, new Throwable());
+		}
 		
-		shareTransaction(portfolioShare, quantity, currentDate, sellPrice, TransactionType.AOUT);
+		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
 		
 		if (portfolioShare.getQuantity().compareTo(BigDecimal.ZERO) == 0) {
 			this.removeShare(portfolioShare);
 		} else {
-			portfolioShare.addBuyAlerts(sellPrice, currentDate);
+			portfolioShare.addBuyAlerts(trPrice, currentDate);
 		}
 		
+	}
+	
+
+	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException {
+		
+		if (quantity.compareTo(BigDecimal.ZERO) == 0 || buyPrice.compareTo(BigDecimal.ZERO) == 0) {
+			throw new InvalidQuantityException("Invalid Quantity : "+quantity+"; or buy price : "+buyPrice+" for "+stock, new Exception());
+		}
+		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, currentDate, mLevel, trCurrency);
+		shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
+		portfolioShare.addBuyAlerts(buyPrice, currentDate);
+		
+		return portfolioShare;
+
 	}
 
 }

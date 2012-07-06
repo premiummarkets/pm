@@ -62,14 +62,6 @@ public class SlidingPortfolioShare extends PortfolioShare {
 	
 	Color color;
 	
-//	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color) {
-//		this.portfolioShare = portfolioShare;
-//		this.start = start;
-//		this.end = end;
-//		this.slidingEnd = slidingEnd;
-//		this.slidingStart = slidingStart;
-//		this.color = color;
-//	}
 	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color) {
 		super(portfolioShare);
 		this.underLyingPortfolioShare = portfolioShare;

@@ -112,10 +112,10 @@ public class StockListYahooIndiceFormater extends LineFormater {
 	private String removeTextDelim(String txt, String textDeli) {
 		String ret = txt;
 		if (!ret.contains(".") 
-				&& !market.getMarketExtention().equals(YahooMarketExtentions.NN)
-				&& !market.getMarketExtention().getSpecificMarketExtension().equals(SymbolNameResolver.UNKNOWNEXTENSION)) {
-			ret = ret.concat("."+market.getMarketExtention().getSpecificMarketExtension());
-			LOGGER.debug("Applied extention "+market.getMarketExtention().getSpecificMarketExtension()+" to symbol "+txt);
+				&& !market.getYahooExtension().equals(YahooMarketExtentions.NN)
+				&& !market.getYahooExtension().getSpecificMarketExtension().equals(SymbolNameResolver.UNKNOWNEXTENSION)) {
+			ret = ret.concat("."+market.getYahooExtension().getSpecificMarketExtension());
+			LOGGER.debug("Applied extention "+market.getYahooExtension().getSpecificMarketExtension()+" to symbol "+txt);
 		}
 		if (ret.contains(".NX")) {
 			ret = ret.replace(".NX", "."+YahooMarketExtentions.PAR.getSpecificMarketExtension());

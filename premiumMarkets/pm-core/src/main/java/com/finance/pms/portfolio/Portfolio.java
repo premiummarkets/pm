@@ -52,6 +52,7 @@ import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
@@ -114,7 +115,7 @@ public class Portfolio extends AbstractSharesList {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock,currentDate,true,transactionCurrency);
 			BigDecimal valueAtDate = quotations.getCloseForDate(currentDate);
 			
-			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency);
+			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 		} catch (NoQuotationsException e) {
 			throw new InvalidAlgorithmParameterException(e);
 		}
@@ -127,7 +128,7 @@ public class Portfolio extends AbstractSharesList {
 			BigDecimal valueAtDate = quotations.getCloseForDate(currentDate);
 			BigDecimal quantity = unitAmount.divide(valueAtDate, 4, BigDecimal.ROUND_DOWN);
 			
-			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency);
+			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 		} catch (NoQuotationsException e) {
 			throw new InvalidAlgorithmParameterException(e);
 		}
@@ -167,7 +168,7 @@ public class Portfolio extends AbstractSharesList {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(),date,true, portfolioShare.getTransactionCurrency());
 			BigDecimal lastQuotation = quotations.getCloseForDate(date);
 			
-			removeOrUpdateShare(portfolioShare, quantity, date, lastQuotation);
+			removeOrUpdateShare(portfolioShare, quantity, date, lastQuotation, TransactionType.AOUT);
 		} catch (NoQuotationsException e) {
 			throw new InvalidAlgorithmParameterException(e);
 		}
@@ -331,7 +332,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	public void rawRemoveShare(PortfolioShare portfolioShare) {
-		this.removeAmountToTotalAmount(portfolioShare);
+		this.removeAmountFromTotalAmount(portfolioShare);
 		listShares.remove(portfolioShare.getStock());
 		
 	}

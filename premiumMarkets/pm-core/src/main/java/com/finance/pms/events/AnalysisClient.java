@@ -33,7 +33,6 @@ package com.finance.pms.events;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +89,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	private MailSender mailSender;
     private SimpleMailMessage templateMessage;
     private InnerQueue eventQueue;
-    private ExecutorService analysisExecutor;
+    private ThreadPoolExecutor analysisExecutor;
     
     @Autowired
 	private ScraperMetrics scrapperMetrics;
@@ -99,9 +98,9 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     
     public AnalysisClient() {
 		super();
-		//this.analysisExecutor = Executors.newCachedThreadPool();
-		//new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-		this.analysisExecutor = new ThreadPoolExecutor(0, 800, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+		this.analysisExecutor = new ThreadPoolExecutor(0, 250, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+		this.analysisExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		
 	}
 
 

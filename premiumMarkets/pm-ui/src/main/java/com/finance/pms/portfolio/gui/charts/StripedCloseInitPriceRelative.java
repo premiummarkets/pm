@@ -60,10 +60,6 @@ public class StripedCloseInitPriceRelative extends StripedCloseFunction {
 		super();
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.db.StripedCloseFunction#setInternalRef(com.finance.pms.portfolio.PortfolioShare, double[])
-	 */
 	@Override
 	public void targetShareData(PortfolioShare portfolioShare, Quotations stockQuotations) {
 
@@ -85,13 +81,9 @@ public class StripedCloseInitPriceRelative extends StripedCloseFunction {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.db.StripedCloseFunction#relatedClose()
-	 */
 	@Override
-	public BigDecimal[] relatedClose() {
+	public BigDecimal[] relativeCloses() {
 		
-		BigDecimal[] ret = new BigDecimal[0];
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
 		for (int i = startDateQuotationIndex; i <= endDateQuotationIndex; i++) {
@@ -101,7 +93,7 @@ public class StripedCloseInitPriceRelative extends StripedCloseFunction {
 			retA.add(value);
 		}
 
-		return  retA.toArray(ret);
+		return  retA.toArray(new BigDecimal[0]);
 	}
 
 

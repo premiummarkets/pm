@@ -111,7 +111,7 @@ public abstract class TalibIndicator extends Indicator {
 	 */
 	public void exportToCSV() {
 		File export = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator
-				+ this.getStockName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_") + "_"+ this.getClass().getSimpleName() +".csv");
+				+ this.getStockName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) \\&]", "_") + "_"+ this.getClass().getSimpleName() +".csv");
 		
 		Integer fdIx = ((this.startIdx()-this.outBegIdx.value) < 0)?0:this.startIdx()-this.outBegIdx.value;
 		Integer ldIx = ((this.endIdx()-this.outBegIdx.value) < 0)?0:this.endIdx()-this.outBegIdx.value;
@@ -121,7 +121,7 @@ public abstract class TalibIndicator extends Indicator {
 			String header = getHeader();
 			fos.write(header);
 			for (int i = fdIx; i <= ldIx; i++) {
-				String line = getLine(i,i+this.outBegIdx.value);
+				String line = getLine(i , i + this.outBegIdx.value);
 				fos.write(line);
 			}
 			fos.close();

@@ -42,7 +42,6 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class StripedCloseIndexRelative.
  * 
@@ -69,7 +68,7 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public StripedCloseIndexRelative(Quotations relativeQuotations,Date arbitraryStartDate,Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
+	public StripedCloseIndexRelative(Quotations relativeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
 		super(arbitraryEndDate);
 
 		if (null == relativeQuotations || relativeQuotations.size() == 0) 
@@ -81,10 +80,6 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.db.StripedCloseFunction#setInternalRef(com.finance.pms.portfolio.PortfolioShare, double[])
-	 */
 	@Override
 	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
 
@@ -99,14 +94,9 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.db.StripedCloseFunction#relatedClose()
-	 */
 	@Override
-	public BigDecimal[] relatedClose() {
+	public BigDecimal[] relativeCloses() {
 
-		BigDecimal[] ret = new BigDecimal[0];
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
 		BigDecimal relativeQuotationsRoot =  relativeQuotations.get(startDateRelativeIndex).getClose();
@@ -124,7 +114,7 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 			retA.add(relatedCloseValue);
 		}
 
-		return  retA.toArray(ret);
+		return  retA.toArray(new BigDecimal[0]);
 
 	}
 	

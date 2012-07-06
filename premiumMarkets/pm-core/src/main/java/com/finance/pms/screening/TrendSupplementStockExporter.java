@@ -72,12 +72,13 @@ public abstract class TrendSupplementStockExporter extends Exporter<NavigableSet
 
 	protected TrendSupplementStockExporter(String fileExtention, Queue eventQueue, JmsTemplate jmsTemplate) {
 		super("perfsAndYield_" +fileExtention,
-				"rank;id;sector;" +
-				"div;yield;payout;Ryie;Rpout;%change;PastRat;" +
+				"rank;id;sector;close;ttmClose;" +
+				"div;yield;payout;Ryie;Rpout;poutRat;PrcCh;PrcRat;PastRat;" +
 				"Yrec;Brec;Ypot;Bpot;RecRat;" +
 				"Yeps;YestEps;Ype;YepsGrowth;Ypeg;YPegRat;" +
 				"Beps;BestEps;Bpe;BepsGrowth;Bpeg;BPegRat;" +
 				"Reps;RestEps;Rpe;RepsGrowth;Rpeg;RPegRat;" +
+				"PegRat;" +
 				"EstRat;NoDivRat;FulRat",
 				eventQueue, jmsTemplate);
 	}
@@ -94,7 +95,8 @@ public abstract class TrendSupplementStockExporter extends Exporter<NavigableSet
 		bufferedWriter.write(SEPARATOR+"Ideal Payout ratio is 50%. It shouldn't be outside the 40%, 60% limits.\n");
 		bufferedWriter.write(SEPARATOR+"EPS growth == Estimated EPS - Current EPS\n");
 		bufferedWriter.write(SEPARATOR+"PEG ratio == P/E ratio / EPS growth rate. It is considered a form of normalisation because higher growth rates should cause higher P/E ratios.\n");
-		bufferedWriter.write(SEPARATOR+"Ideal figures : P/E is below 15 (ie not over priced) and EPS growth is above 20% and PEG : below 0.75 (ie 15/20)\n\n");
+		bufferedWriter.write(SEPARATOR+"Ideal figures : P/E is below 15 (ie not over priced) and EPS growth is above 20% and PEG : below 0.75 (ie 15/20)\n");
+		bufferedWriter.write(SEPARATOR+"The lower the result, the better.\n\n");
 		bufferedWriter.write(header);
 		bufferedWriter.newLine();
 		
@@ -104,23 +106,27 @@ public abstract class TrendSupplementStockExporter extends Exporter<NavigableSet
 			rank++;
 			String newLine = 
 					rank.toString().concat(SEPARATOR)
-					.concat(stockPerf.getName().concat(BLANK))
+					.concat(stockPerf.getName().replace(SEPARATOR,"_").concat(BLANK))
 					.concat(stockPerf.getStock().getSymbol()).concat(BLANK)
 					.concat(stockPerf.getStock().getIsin()).concat(SEPARATOR)
 					.concat(stockPerf.getSectorHint()).concat(SEPARATOR)
+					.concat(stockPerf.closeToString()).concat(SEPARATOR)
+					.concat(stockPerf.ttmCloseToString()).concat(SEPARATOR)
 					 //Past reating
-					.concat(stockPerf.getDividend().toString()).concat(SEPARATOR)
+					.concat(stockPerf.dividendToString()).concat(SEPARATOR)
 					.concat(stockPerf.yield().toString()).concat(SEPARATOR)
 					.concat(stockPerf.payoutRatio().toString()).concat(SEPARATOR)
 					.concat(stockPerf.getReutersYield().toString()).concat(SEPARATOR)
 					.concat(stockPerf.getReutersPayoutRatio().toString()).concat(SEPARATOR)
-					.concat(stockPerf.quotePerfOverPeriod().toString()).concat(SEPARATOR)
+					.concat(stockPerf.payoutRating().toString()).concat(SEPARATOR)
+					.concat(stockPerf.priceChangeTTM().toString()).concat(SEPARATOR)
+					.concat(stockPerf.priceChangeRating().toString()).concat(SEPARATOR)
 					.concat(stockPerf.pastRating().toString()).concat(SEPARATOR)
 					//Reco
 					.concat(stockPerf.getYahooMeanRecommendations().toString()).concat(SEPARATOR)
 					.concat(stockPerf.getBoursoMeanRecommendations().toString()).concat(SEPARATOR)
-					.concat(stockPerf.getYahooPotentielPrice().toString()).concat(SEPARATOR)
-					.concat(stockPerf.getBoursoPricePotentiel().toString()).concat(SEPARATOR)
+					.concat(stockPerf.yahooPotentielPrice().toString()).concat(SEPARATOR)
+					.concat(stockPerf.boursoPricePotentiel().toString()).concat(SEPARATOR)
 					.concat(stockPerf.recRating().toString()).concat(SEPARATOR)
 					
 					//Actual PE EPSG PEG
@@ -145,9 +151,10 @@ public abstract class TrendSupplementStockExporter extends Exporter<NavigableSet
 					.concat(stockPerf.reutersPEG().toString()).concat(SEPARATOR)
 					.concat(stockPerf.reutersPEGRating().toString()).concat(SEPARATOR)
 					
+					.concat(stockPerf.pegRatings().toString()).concat(SEPARATOR)
 					//Totals
-					.concat(stockPerf.estimatedRating().toString()).concat(SEPARATOR)
-					.concat(stockPerf.noDivFulRating().toString()).concat(SEPARATOR)
+					.concat(stockPerf.estimationRating().toString()).concat(SEPARATOR)
+					.concat(stockPerf.noPayoutFullRating().toString()).concat(SEPARATOR)
 					.concat(stockPerf.fullRating().toString());
 			
 			bufferedWriter.write(newLine);

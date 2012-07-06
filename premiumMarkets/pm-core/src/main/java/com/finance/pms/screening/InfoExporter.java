@@ -76,7 +76,7 @@ public class InfoExporter extends TrendSupplementStockExporter {
 							} else if (previousRank < rank) {
 								symbolEvents.add(constructEvent(eventListName, trendSupplementedStock, EventDefinition.SCREENER, rank, previousRank, EventType.INFO, "Screener rank is Down", eventDate));
 							} 
-						}	else {
+						} else {
 							symbolEvents.add(constructEvent(eventListName, trendSupplementedStock, EventDefinition.SCREENER, rank, null, EventType.INFO, "Screener rank Init", eventDate));
 						}
 					} catch (IgnoredEventDateException e) {

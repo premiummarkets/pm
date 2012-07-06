@@ -51,8 +51,10 @@ public class TrendLoader implements ScreenerCalculator<TrendSupplementedStock> {
 
 
 	public TrendSupplementedStock calculate() {
-		TrendSupplementedStock supplementedStock =  shareDAO.loadTrendForStock(stock);
-		supplementedStock.init(end);
+		TrendSupplementedStock supplementedStock = shareDAO.loadTrendForStock(stock);
+		if (supplementedStock != null) {
+			supplementedStock.init(end);
+		}
 		return supplementedStock;
 	}
 	

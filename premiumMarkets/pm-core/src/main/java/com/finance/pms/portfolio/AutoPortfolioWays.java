@@ -37,6 +37,7 @@ import java.util.Map;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ObserverMsg;
 
 public interface AutoPortfolioWays {
@@ -53,13 +54,13 @@ public interface AutoPortfolioWays {
 
 	void setChanged();
 
-	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency transactionCurrency) throws InvalidQuantityException;
+	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException;
 	
 	TransactionHistory calculate(Date endDate, String... eventListName);
 
 	void exportAutoportfolioContent(Date date);
 
-	void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal sellPrice) throws InvalidQuantityException;
+	void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
 	
 	public TransactionHistory getTransactionHistory();
 	

@@ -129,7 +129,7 @@ public class GnucashGetPriceHelper {
 					
 					public String getReference() {
 						String symbol = pShares.getStock().getSymbolRoot();
-						String marketExtention = pShares.getStock().getMarket().getMarketExtention().getSpecificMarketExtension();
+						String marketExtention = pShares.getStock().getMarket().getYahooExtension().getSpecificMarketExtension();
 						String ext = "";
 						if (!marketExtention.isEmpty() && !isIsin(symbol)) {
 							ext = "."+marketExtention;

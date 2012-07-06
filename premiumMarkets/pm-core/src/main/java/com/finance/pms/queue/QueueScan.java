@@ -129,11 +129,18 @@ public class QueueScan extends Thread {
 			try {
 				LOGGER.debug("Processing message :"+nextMess);
 				this.myMessageListener.onMessage(nextMess);
-				destination.removeMessage(nextMess);
+				
 			} catch (Exception e) {
-				destination.removeMessage(nextMess);
+				
 				LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
 				LOGGER.debug(e,e);
+			} finally {
+				
+				try {
+					destination.removeMessage(nextMess);
+				} catch (Throwable e) {
+					LOGGER.error(e,e);
+				}
 			}
 		}
 

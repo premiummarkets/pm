@@ -1,14 +1,6 @@
 To have a look at : http://www.spacejock.com/SEDataFAQ.html
 
 Deliv :
-	//- test Tuning (run over different period in a row via script)
-	//- deploy
-	//- feed a proper auto portfolio
-	//- clean db (events - keep only the last 90 days for the best combination, portfolio other than autoportfolio like sharelists) 
-	//- test windows
-	//- have a quick look at the old logs ...
-	//- write about new features
-	//- deliv 
 	-send email, update comments
 	
 Ideas : 
@@ -55,12 +47,6 @@ Soft :
  - Unit tests for Portfolio management and events window ...
 
 Improve :
-  - All neural code is too verbose : downgrade from INFO to DEBUG.
-  - Factorisation of UserPortfolioUpdate and Screener
-  - Recognise patterns : Normalize quotation values over a period and set it as input. Ouput is defined same as actual
-  - Neural event calculator 
-		- multi threading training and topology refinement?
-		- with different dates as input
  - scrape last quotations on yahoo and investir web pages
  - Integrate alerts and screening events as bearish / bullish event and get rid of other eventType (idem as weather events)
 		 //TODO Threshold cross could be integrated in the bullish/bearish system : Buy cross is bullish and Sell cross is bearish ...
@@ -73,17 +59,8 @@ Improve :
 		////	//NB : THIS MAY BE CADUC AS WE HAVE NOW TWO DIFFERENT SIGNALS FOR BUY AND SELL 
 		- problem is what about the BEARISH and BULLISH events now should we filter Bullish and Bearish in respectively buy and sell signals?
 		- the second problem is that we want to check all alerts signals and only the latest for indicators and screening ?
- - Alert setting for gnucash accounts :
- 	set around buy price or current price
-		- pb of limit sell price if current price already above threshold
-		- pb of below limit sell price if price is far off above
-			- find a mix between buy price and current
-			- set alerts separetelly?
  - UI :
- 	- freeze the window when running long tasks in background 
- 		cf : http://dev.eclipse.org/viewcvs/index.cgi/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet130.java?view=co
  - use "ecartype" or something similar instead of threshold to exclude wrong trend full rating values
- - Standard derivation
  - Genetic Algo
  - Screening :	
     - reuters : http://www.reuters.com/finance/stocks/financialHighlights?symbol=PAJ.PA

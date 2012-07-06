@@ -84,8 +84,6 @@ public class SharesList extends AbstractSharesList {
 	
 	public SortedSet<Stock> toSortedStocksSet() {
 		SortedSet<Stock> retSet = new TreeSet<Stock>(new Comparator<Stock>() {
-
-			
 			public int compare(Stock o1, Stock o2) {
 				return o1.getName().compareTo(o2.getName());
 			}

@@ -31,15 +31,12 @@
  */
 package com.finance.pms.datasources.db;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Interface StripedCloseFunction.
  * 
@@ -85,7 +82,7 @@ public abstract class StripedCloseFunction {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public abstract BigDecimal[] relatedClose();
+	public abstract Number[] relativeCloses();
 
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;

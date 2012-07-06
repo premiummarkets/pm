@@ -33,9 +33,9 @@ package com.finance.pms.events.quotations;
 
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 
 /**
@@ -44,9 +44,9 @@ import java.util.Arrays;
  * @author Guillaume Thoreton
  */
 public class StripedQuotations {
-	/** The bar list. */
+
 	private ArrayList<QuotationUnit> barList;
-	/** The close list. */
+
 	private double[] closeList;
 	private double[] highList;
 	private double[] lowList;
@@ -164,10 +164,17 @@ public class StripedQuotations {
 		this.getBarList().add(quotationUnit);
 	}
 	
-	public void addBar(int i, java.util.Date date, double close) {
-		QuotationUnit quotationUnit = new QuotationUnit(date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,new BigDecimal(close),0l);
+	public void addBar(int i, Date date, double close) {
+		QuotationUnit quotationUnit = new QuotationUnit(date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO, new BigDecimal(close),0l);
 		this.getBarList().add(quotationUnit);
 		this.closeList[i] = close;
+		
+	}
+	
+	public void pushBar(Date date, BigDecimal close) {
+		QuotationUnit quotationUnit = new QuotationUnit(date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO, close,0l);
+		this.getBarList().add(quotationUnit);
+		this.closeList[this.getBarList().size()-1] = close.doubleValue();
 		
 	}
 

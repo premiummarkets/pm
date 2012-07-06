@@ -57,6 +57,7 @@ import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -250,7 +251,7 @@ public class AutoPortfolioDelegate {
 					BigDecimal buyPrice = quotations.getCloseForDate(currentDate);		
 					BigDecimal quantity = availableAmount.divide(buyPrice,10, BigDecimal.ROUND_DOWN);
 					
-					PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.NONE, transactionCurrency);
+					PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.NONE, transactionCurrency, TransactionType.AIN);
 	
 					//Log
 					return log("buy", thisPortfolio, portfolioShare, symbolEvents, buyPrice, currentDate);
@@ -390,7 +391,7 @@ public class AutoPortfolioDelegate {
 				}
 
 				synchronized (this) {
-					thisPortfolio.removeOrUpdateShare(portfolioShare, quantityProrata, currentDate, lastPrice);
+					thisPortfolio.removeOrUpdateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
 					LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+portfolioShare.getQuantity());
 
 					//log

@@ -94,7 +94,7 @@ public class SMA extends TalibIndicator {
 
 	@Override
 	protected String getHeader() {
-		return "DATE,QUOTE,SMA50\n";
+		return "DATE,QUOTE,SMA"+period+"\n";
 	}
 
 	@Override
@@ -108,6 +108,7 @@ public class SMA extends TalibIndicator {
 	}
 	
 	//TODO mv in the constructor for perfs
+	//TODO mv up
 	public StripedQuotations getStripedData(Integer lag) {
 
 		Integer fdIx = ((this.startIdx()-this.outBegIdx.value) < 0)?0:this.startIdx()-this.outBegIdx.value;

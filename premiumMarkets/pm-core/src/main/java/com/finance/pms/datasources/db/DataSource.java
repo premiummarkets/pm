@@ -1293,9 +1293,17 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 */
 	private String connectionUrl() {
 		String connectionURL;
+		
 		connectionURL = "jdbc:" + MainPMScmd.getPrefs().get("software", "derby");
-		connectionURL = connectionURL + ":" + MainPMScmd.getPrefs().get("dbpath", "derby/");
-		connectionURL = connectionURL + MainPMScmd.getPrefs().get("database", "premiummarkets");
+		
+		String commandLineDb = System.getProperty("databasePath");
+		if (commandLineDb != null) {
+			connectionURL = connectionURL + commandLineDb;
+		} else {
+			connectionURL = connectionURL + ":" + MainPMScmd.getPrefs().get("dbpath", "derby/");
+			connectionURL = connectionURL + MainPMScmd.getPrefs().get("database", "premiummarkets");
+		}
+
 		if (!MainPMScmd.getPrefs().get("username", "nouserspecified").equals("nouserspecified"))
 			connectionURL += "?user=" + MainPMScmd.getPrefs().get("username", "nouserspecified") + "&password=" + MainPMScmd.getPrefs().get("password", "password");
 		return connectionURL;
