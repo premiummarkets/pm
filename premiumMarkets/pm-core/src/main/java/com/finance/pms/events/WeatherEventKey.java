@@ -1,3 +1,4 @@
+
 /**
  * Premium Markets is an automated stock market analysis system.
  * It implements a graphical environment for monitoring stock market technical analysis
@@ -28,6 +29,8 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+
 package com.finance.pms.events;
 
 import java.util.Date;

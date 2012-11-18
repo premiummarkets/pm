@@ -1,0 +1,10 @@
+----------------------------------------------------------------
+Mon Jun 25 02:57:34 BST 2012:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.1.2 - (1095077): instance a816c00e-0138-215b-b3e2-000003347fd8 
+on database directory /home/guil/Documents/Comptes/Gestion/PMS/piggymarketsqueak  with class loader sun.misc.Launcher$AppClassLoader@5a8a7e 
+Loaded from file:/home/guil/.m2/repository/org/apache/derby/derby/10.8.1.2/derby-10.8.1.2.jar
+java.vendor=Oracle Corporation
+java.runtime.version=1.7.0_03-b04
+user.dir=/home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-uiinstall
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

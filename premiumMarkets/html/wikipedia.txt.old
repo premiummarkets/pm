@@ -1,0 +1,44 @@
+{{Infobox Software
+| name                   = Piggy Market Squeak
+| logo                   = [[Image:Piggy Market Squeak Main baner.jpg|100px]]
+| screenshot             = [[Image:Piggy Market Squeak Main screenshot.jpg|300px]]
+| caption                = Screenshot of Piggy Market Squeak
+| frequently_updated     = yes
+| programming language   = Java
+| platform               = [[Cross-platform]]
+| genre                  = [[Investment]]
+| license                = [[GNU General Public License]]
+| website                = http://www.gthoreton.co.uk/
+}}
+
+Piggy Market Squeak<ref>[http://www.gthoreton.co.uk/ Piggy Market Squeak @ www.gthoreton.co.uk]</ref> <ref>[http://sourceforge.net/projects/pmsqueak/ Piggy Market Squeak @ sourceforge.net]</ref> is a stocks and shares quotation trend alert system.<br />
+Piggy Market Squeak will give to its user the ability to list, highlight and sort the stocks and shares you are advised to buy or sell.<br /> 
+This information can be related to either a selected market place, or a portfolio containing a specific set of commodities or shares.<br />
+Piggy Market Squeak also gives the ability to set up an email account that will receive these alerts.<br />
+Piggy Market Squeak  is mainly based on market indicators.<br />
+The tool is quite versatile, and made to programmaticaly integrate any market trend indicators as long as these are based on open, closed, high, low prices, as well as trade volumes.<br />
+Piggy Market Squeak can also interact with third party indicator calculation tools.<br />
+Piggy Market Squeak should also be able deal with any market as long as the list of shares available for that market is provided.<br />
+
+==Features==
+* Comes with a user friendly SWT GUI.
+* List, highlight and sort the stocks and shares you are advised to buy or sell.
+* Portfolio management.
+* Integrate any market trend indicators as long as these are based on open, closed, high, low prices, as well as trade volumes.
+* Highly versatile and customisable.
+
+==Technologies==
+* Pure java application using SWT.
+* Up to date Java advanced features.
+* Multi threading.
+* JMS compliant.
+* Spring
+
+
+==See also==
+* [[http://www.gthoreton.co.uk/ Piggy Market Squeak @ www.gthoreton.co.uk]]
+* [[http://sourceforge.net/projects/pmsqueak/ Piggy Market Squeak @ sourceforge.net]]
+* [[http://www.merriam-webster.com/dictionary/squeak Do pigs squeak?]]
+
+==References==
+{{reflist}}
