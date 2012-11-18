@@ -41,14 +41,14 @@ import com.finance.pms.events.SymbolEvents;
 public class TransactionRecord {
 	
 	//this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "eventList");
-	String portfolioName;
-	BigDecimal availableCash;
-	Date date;
-	Stock stock;
-	String movement;
-	BigDecimal quantity;
-	BigDecimal transactionPrice;
-	SymbolEvents eventList;
+	private String portfolioName;
+	private BigDecimal availableCash;
+	private Date date;
+	private Stock stock;
+	private String movement;
+	private BigDecimal transactionQuantity;
+	private BigDecimal transactionPrice;
+	private SymbolEvents eventList;
 	private EventSource source;
 	
 	public TransactionRecord(String tunningPortfolioName,BigDecimal availbleCash, Date date, Stock stock, String movement, BigDecimal quantity, BigDecimal price, SymbolEvents eventList, EventSource source) {
@@ -58,7 +58,7 @@ public class TransactionRecord {
 		this.date = date;
 		this.stock = stock;
 		this.movement = movement;
-		this.quantity = quantity;
+		this.transactionQuantity = quantity;
 		this.transactionPrice = price;
 		this.eventList = eventList;
 		this.source = source;
@@ -92,11 +92,11 @@ public class TransactionRecord {
 	public void setMovement(String movement) {
 		this.movement = movement;
 	}
-	public BigDecimal getQuantity() {
-		return quantity;
+	public BigDecimal getTransactionQuantity() {
+		return transactionQuantity;
 	}
-	public void setQuantity(BigDecimal quantity) {
-		this.quantity = quantity;
+	public void setTransactionQuantity(BigDecimal quantity) {
+		this.transactionQuantity = quantity;
 	}
 	public BigDecimal getTransactionPrice() {
 		return transactionPrice;
@@ -115,7 +115,7 @@ public class TransactionRecord {
 				+ ".\n movement : " + movement
 				+ ".\n transactionPrice : " + transactionPrice 
 				+ ".\n date : " + date 
-				+ ".\n quantity left/bought : " + quantity
+				+ ".\n quantity left/bought : " + transactionQuantity
 				+ ".\n availableCash : " + availableCash 
 				+ ".\n eventList : " + eventList
 				+ ".\n buytriggeringEvents : " + ((eventList != null)? eventList.getBuyTriggeringEvents(): "none")

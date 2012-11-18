@@ -34,11 +34,15 @@ package com.finance.pms;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
+import java.util.Observer;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -65,10 +69,12 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Boolean export;
 	private Currency calculationCurrency;
 	private Boolean persistEvents;
+	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
+	private Observer[] observers;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
-													Collection<Stock> shareList, Date datedeb, Date datefin, Boolean export) {
+													Collection<Stock> shareList, Date datedeb, Date datefin, Boolean export, Observer... observers) {
 		super(999, springContext, eventListName);
 		this.periodType = periodType;
 		this.analyzer = analyzer;
@@ -77,16 +83,18 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.shareList = shareList;
 		this.export = export;
 		//calculationCurrency is null the stock currency will be used
+		this.observers = observers;
 	}
 	
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
-													Stock oneStock, Date datedeb, Date datefin, Boolean export, Currency calculationCurrency) {
+													Stock oneStock, Date datedeb, Date datefin, Boolean export, Currency calculationCurrency, Observer... observers) {
 		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, export);
 		this.calculationCurrency = calculationCurrency;
+		this.observers = observers;
 	}
 
-	public void runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException {
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException {
 		
 		this.passNumber = passNumber;
 		this.persistEvents = persistEvents;
@@ -95,11 +103,10 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		synchronized (syncObject) {
 			syncObject.wait();
 		}
+		
+		return runIndicatorsCalculationRes;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
 	public void run() {
 
 		try {
@@ -107,7 +114,9 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 			
-			analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, export, persistEvents);
+			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(
+					shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, 
+					periodType, passNumber, export, persistEvents, observers);
 			
 		} catch (Throwable e) {
 			LOGGER.error("Error in "+this.toString(),e);

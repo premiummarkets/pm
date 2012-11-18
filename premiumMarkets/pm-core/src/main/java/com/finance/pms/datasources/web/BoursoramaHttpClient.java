@@ -138,4 +138,9 @@ public class BoursoramaHttpClient extends MyHttpClient {
 		httppost.setRequestHeader("Connection","keep-alive");
 	}
 
+	@Override
+	public Boolean isValid() {
+		return true;
+	}
+
 }

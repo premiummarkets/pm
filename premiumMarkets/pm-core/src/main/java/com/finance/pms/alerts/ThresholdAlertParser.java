@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
@@ -46,6 +48,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -62,6 +65,12 @@ public class ThresholdAlertParser extends EventCompostionCalculator {
 		super(portfolioShare.getStock(),startDate, endDate, calculationCurrency);	
 		this.portfolioShare = portfolioShare;
 		
+	}
+	
+
+	@Override
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+		EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(stock, eventListName, datedeb, datefin, true, EventDefinition.alertsOnThresholds());
 	}
 
 	@Override
@@ -202,6 +211,17 @@ public class ThresholdAlertParser extends EventCompostionCalculator {
 	protected int getDaysSpan() {
 		return 0;
 	}
+
+	@Override
+	public  SortedMap<Date, double[]> calculationOutput() {
+		return new TreeMap<Date, double[]>();
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.ALERTTHRESHOLD;
+	}
+
 	
 	
 }

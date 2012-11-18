@@ -83,7 +83,7 @@ public class MACD extends TalibIndicator {
 	}
 
 	@Override
-	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData,Number...indicatorParams) {
+	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number...indicatorParams) {
 		RetCode rc = TalibCoreService.getCore().macd(startIdx, endIdx, inData[0], (Integer)indicatorParams[0], (Integer) indicatorParams[1],(Integer) indicatorParams[2], outBegIdx, outNBElement, macd, signal, history);
 		return rc;
 	}
@@ -139,6 +139,12 @@ public class MACD extends TalibIndicator {
 		double[][] ret = new double[1][closeValues.length];
 		ret[0]= closeValues;
 		return 	ret;
+	}
+
+	@Override
+	public double[] getOutputData() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

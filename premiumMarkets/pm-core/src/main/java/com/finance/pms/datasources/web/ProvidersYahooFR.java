@@ -57,8 +57,8 @@ public class ProvidersYahooFR extends ProvidersYahoo {
 	}
 	
 	@Override
-	public Date getQuotes(Stock ticker, Date start, Date end) throws HttpException, SQLException {
-		return super.getQuotes(ticker, start, end);
+	public void getQuotes(Stock ticker, Date start, Date end) throws HttpException, SQLException {
+		super.getQuotes(ticker, start, end);
 	}
 
 }

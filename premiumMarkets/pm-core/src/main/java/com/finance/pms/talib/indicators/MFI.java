@@ -48,7 +48,7 @@ public class MFI extends TalibIndicator {
 	
 
 	public MFI(Stock stock, Integer timePeriod, Integer lowerThres, Integer upperThres, Date startDate, Date endDate, Currency transactionCurrency) throws TalibException, NoQuotationsException {
-		super(stock, startDate, timePeriod,  endDate, 0, transactionCurrency , timePeriod);
+		super(stock, startDate, 100 + timePeriod,  endDate, 0, transactionCurrency , timePeriod);
 		this.lowerThreshold = lowerThres;
 		this.upperThreshold = upperThres;
 		this.period = timePeriod;
@@ -110,5 +110,11 @@ public class MFI extends TalibIndicator {
 
 	public Integer getPeriod() {
 		return period;
+	}
+
+	@Override
+	public double[] getOutputData() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

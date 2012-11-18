@@ -145,7 +145,7 @@ public abstract class HttpSourceQuotation extends HttpSource implements SourceCo
 	 * 
 	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
 	 */
-	public int restartSource(int connectionId) {
+	public int crashResart(int connectionId) {
 		return 0;
 	}
 

@@ -94,4 +94,10 @@ public class StandardDeviation extends TalibIndicator {
 		return period;
 	}
 
+	@Override
+	public double[] getOutputData() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

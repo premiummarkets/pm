@@ -33,9 +33,11 @@ package com.finance.pms.events.quotations;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 
 public interface QuotationsFactory {
 
@@ -61,7 +63,7 @@ public interface QuotationsFactory {
 
 	public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency) throws NoQuotationsException;
 
-	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift) throws NoQuotationsException;
+//	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift) throws NoQuotationsException;
 
 	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException;
 
@@ -70,6 +72,10 @@ public interface QuotationsFactory {
 	int minutesIncrement();
 
 	public abstract Boolean isInOpenHours(Date lastDate);
+
+	SortedMap<Date, double[]> buildMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
+	
+	
 	
 //	public Stack<OnTheFlyTuningPeriod> onTheFlyRetunDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq);
 

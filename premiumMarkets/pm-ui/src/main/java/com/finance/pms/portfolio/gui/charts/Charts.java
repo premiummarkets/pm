@@ -205,7 +205,7 @@ public class Charts {
 		Date endDate = stripedCloseFunction.getArbitraryEndDate();
 		Quotations bdQuotes;
 		try {
-			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(),startDate,endDate,true, portfolioShare.getTransactionCurrency(),0);
+			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(),startDate,endDate,true, portfolioShare.getTransactionCurrency(),0,0);
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);
 		}

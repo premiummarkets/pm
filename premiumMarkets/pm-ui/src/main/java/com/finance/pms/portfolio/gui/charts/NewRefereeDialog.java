@@ -34,6 +34,7 @@ package com.finance.pms.portfolio.gui.charts;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 import com.finance.pms.portfolio.PortfolioShare;
@@ -53,9 +54,10 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * @param style the style
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param composite 
 	 */
-	public NewRefereeDialog(Shell parent,int style) {
-		super(parent,style,new ArrayList<PortfolioShare>());
+	public NewRefereeDialog(Shell parent,int style, Composite composite) {
+		super(parent,style,new ArrayList<PortfolioShare>(), composite);
 	}
 	
 	
@@ -66,13 +68,14 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param shell 
+	 * @param composite 
 	 */
-	public static NewPortfolioItemDialog showUI(Shell shell) {
+	public static NewPortfolioItemDialog showUI(Shell shell, Composite composite) {
 		
 		if (inst == null || inst.isDisposed()) {
 
 			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
-			inst = new NewRefereeDialog(piShell, SWT.NULL);
+			inst = new NewRefereeDialog(piShell, SWT.NULL, composite);
 			try {
 				inst.open();
 				swtLoop();
@@ -95,6 +98,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 		this.monitorLabel.setVisible(false);
 		this.quantityLabel.setVisible(false);
 		this.quantityText.setVisible(false);
+		this.newPortfollioAddButton.setVisible(false);
 		this.addShareManualGroup.dispose();
 		this.addFromFile.dispose();
 		

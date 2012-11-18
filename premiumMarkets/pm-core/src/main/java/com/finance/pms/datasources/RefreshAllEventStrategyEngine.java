@@ -115,14 +115,14 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 			
 			LOGGER.debug("running analysis for " + analysers[i]);
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
-			analyzer.addObservers(engineObservers);
+			//analyzer.addObservers(engineObservers);
 
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 						SpringContext.getSingleton(),
 						analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, false);
+						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, false, engineObservers.toArray(new Observer[0]));
 			
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
 			try {

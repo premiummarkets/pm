@@ -96,11 +96,12 @@ public abstract class EventsCalculationThread extends Observable implements Call
 		
 	}
 
-	protected Map<EventKey, EventValue> calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators) { 
+	protected Map<EventKey, EventValue> calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, Date datedeb, Date datefin, Boolean persist) { 
 
 		Map<EventKey, EventValue> edata = new HashMap<EventKey, EventValue>();
 
 		for (EventCompostionCalculator evtCalculator: evtCalculators ) {
+			evtCalculator.cleanEventsFor(this.eventListName, datedeb, datefin, persist);
 			edata.putAll(evtCalculator.calculateEventsFor(this.eventListName));
 		}
 

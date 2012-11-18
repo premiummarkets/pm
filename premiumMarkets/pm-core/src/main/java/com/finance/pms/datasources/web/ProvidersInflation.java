@@ -79,7 +79,7 @@ public class ProvidersInflation extends Providers {
 	}
 
 	@Override
-	public Date getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
+	public void getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
 
 		MyUrl url;
 		if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
@@ -102,9 +102,9 @@ public class ProvidersInflation extends Providers {
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" : "+queries.size());
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeLongBatch(queries,DataSource.QUOTATIONS.getINSERT(),tablet2lock);
+		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
 
-		return extractLastDateFrom(queries);
+		//return extractLastDateFrom(queries);
 
 	}
 

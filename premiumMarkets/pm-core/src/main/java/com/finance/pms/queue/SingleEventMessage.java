@@ -68,7 +68,7 @@ public class SingleEventMessage extends IdentifiedObjecMessage { //, Comparable<
 	 */
 	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventValue eventInMess) {
 		super(analyseName.hashCode()+stock.hashCode()+eventInMess.hashCode());
-		this.eventMessageObject = new EventMessageObject(analyseName,calculationDate,eventInMess,stock);
+		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventInMess,stock);
 	}
 	
 

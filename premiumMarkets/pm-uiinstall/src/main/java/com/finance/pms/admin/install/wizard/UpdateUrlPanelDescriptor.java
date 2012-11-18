@@ -40,6 +40,7 @@ import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
@@ -122,7 +123,7 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 		protected void done() {
 				super.done();
 				
-				if (newestExist > 2) {
+				if (newestExist >= 1) {
 					System.out.print("Need download");
 					UpdateUrl updateUrl = (UpdateUrl) getPanelComponent();
 					updateUrl.jLabel1.setText("Your version dates from "+currentBuildDate);
@@ -198,7 +199,14 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 			System.out.println("Found pattern in : "+line);
 			versionNumber = fit.group(1).replace("-", "");
 			lastReleaseDate = sourceForgeDateFormat.parse(fit.group(2));
-			if (lastReleaseDate.after(currentBuildDate)) {
+			//if (lastReleaseDate.after(currentBuildDate)) {
+			Calendar lastReleaseCal = Calendar.getInstance();
+			lastReleaseCal.setTime(lastReleaseDate);
+			Calendar currentBuildCal= Calendar.getInstance();
+			currentBuildCal.setTime(currentBuildDate);
+			if (	lastReleaseCal.get(Calendar.YEAR) > currentBuildCal.get(Calendar.YEAR) ||
+					(lastReleaseCal.get(Calendar.YEAR) == currentBuildCal.get(Calendar.YEAR) && lastReleaseCal.get(Calendar.DAY_OF_YEAR) > currentBuildCal.get(Calendar.DAY_OF_YEAR))
+				) {
 				newestExist++;
 			}
 			System.out.println("Latest version is : "+versionNumber+" released on "+sourceForgeDateFormat.format(lastReleaseDate));

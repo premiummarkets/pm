@@ -87,13 +87,13 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 	}
 
 	@Override
-	public Date getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
+	public void getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
 		
 		MyUrl url;
 
 		if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for "+stock.toString());
 		
-		if (isStartAfterTodaysClose(start)) return null;
+		if (isStartAfterTodaysClose(start)) return;
 		
 		url = resolveUrlFor(stock, start, end);
 
@@ -103,9 +103,9 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeLongBatch(queries,DataSource.QUOTATIONS.getINSERT(),tablet2lock);
+		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries),tablet2lock);
 		
-		return extractLastDateFrom(queries);
+		//return extractLastDateFrom(queries);
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {

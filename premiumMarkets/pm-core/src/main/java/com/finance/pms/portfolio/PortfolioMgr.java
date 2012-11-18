@@ -323,6 +323,26 @@ public class PortfolioMgr implements ApplicationContextAware {
 			return false;
 		}
 	}
+	
+	public boolean isSellMonitoredForPortofolio(Stock stock, String eventListName) {
+		try {
+			AbstractSharesList portfolio = this.getPortfolio(eventListName);
+			PortfolioShare shareForStock = portfolio.getShareForStock(stock);
+			return (shareForStock != null) && (shareForStock.getMonitorLevel().equals(MonitorLevel.BEARISH) || shareForStock.getMonitorLevel().equals(MonitorLevel.ANY));
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+	
+	public boolean isBuyMonitoredForPortofolio(Stock stock, String eventListName) {
+		try {
+			AbstractSharesList portfolio = this.getPortfolio(eventListName);
+			PortfolioShare shareForStock = portfolio.getShareForStock(stock);
+			return (shareForStock != null) && (shareForStock.getMonitorLevel().equals(MonitorLevel.BULLISH) || shareForStock.getMonitorLevel().equals(MonitorLevel.ANY));
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
 
 	public List<UserPortfolio> getUserPortfolios() {
 		List<UserPortfolio> userPortfolios = new ArrayList<UserPortfolio>();

@@ -463,4 +463,9 @@ public class MasConnection implements SourceClient {
 	public Integer get_portNumber() {
 		return _portNumber;
 	}
+
+	@Override
+	public Boolean isValid() {
+		return true;
+	}
 }

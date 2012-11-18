@@ -129,7 +129,7 @@ public class HttpSourceInvestir extends HttpSource implements SourceConnector {
 	}
 
 	
-	public int restartSource(int connectionId) {
+	public int crashResart(int connectionId) {
 		return 0;
 	}
 

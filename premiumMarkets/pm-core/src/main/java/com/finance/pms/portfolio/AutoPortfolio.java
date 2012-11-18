@@ -91,14 +91,15 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		autoPortfolioDelegate = new AutoPortfolioDelegate(this);
 	}
 	
-	public BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
+	public synchronized BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
 
 		BigDecimal ret = BigDecimal.ZERO;
 
 		if (this.getNotNullTotalInAmountEver().compareTo(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH) <= 0) {
 			ret = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 		} else {
-			ret = getNotNullTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
+			//ret = getNotNullTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
+			ret = getNotNullTotalOutAmountEver().subtract(this.getTotalInAmountEver());
 		}
 
 		if (ret.compareTo(BigDecimal.ZERO) <= 0) {

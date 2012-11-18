@@ -39,8 +39,8 @@ import java.util.Date;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.quotations.CalculationQuotations;
 import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.events.quotations.StripedQuotations;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
@@ -51,7 +51,7 @@ public class SMA extends TalibIndicator {
 	private Integer period;
 
 	public SMA(Stock stock, Integer period, Date startDate, Date endDate, Currency calculationCurrency) throws TalibException, NoQuotationsException {
-		super(stock, startDate, period, endDate, 0, calculationCurrency, period);
+		super(stock, startDate, 2*period, endDate, 0, calculationCurrency, period);
 		this.period = period;
 	}
 	
@@ -60,6 +60,10 @@ public class SMA extends TalibIndicator {
 		this.period = period;
 	}
 
+
+	public SMA(TalibIndicator obv, Integer period) throws TalibException {
+		super(new CalculationQuotations(obv.getIndicatorQuotationData().getStock(), obv.getStripedData(0), obv.getIndicatorQuotationData().getStock().getMarket().getCurrency()), period);
+	}
 
 	/**
 	 * @param startIdx
@@ -107,22 +111,6 @@ public class SMA extends TalibIndicator {
 		return line;
 	}
 	
-	//TODO mv in the constructor for perfs
-	//TODO mv up
-	public StripedQuotations getStripedData(Integer lag) {
-
-		Integer fdIx = ((this.startIdx()-this.outBegIdx.value) < 0)?0:this.startIdx()-this.outBegIdx.value;
-		Integer ldIx = ((this.endIdx()-this.outBegIdx.value) < 0)?0:this.endIdx()-this.outBegIdx.value;
-
-		StripedQuotations ret = new StripedQuotations(ldIx-fdIx+1);
-
-		for (int i = fdIx; i <= ldIx; i++) {
-			ret.addBar(i, this.getIndicatorQuotationData().get(i+this.outBegIdx.value - lag).getDate(), sma[i]);
-		}
-		
-		return ret;
-	}
-	
 	public double[] getSma() {
 		return sma;
 	}
@@ -138,6 +126,11 @@ public class SMA extends TalibIndicator {
 	
 	public Integer getPeriod() {
 		return period;
+	}
+
+	@Override
+	public double[] getOutputData() {
+		return sma;
 	}
 
 	

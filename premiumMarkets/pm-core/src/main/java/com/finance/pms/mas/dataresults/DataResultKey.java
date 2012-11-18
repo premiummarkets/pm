@@ -45,59 +45,32 @@ import com.finance.pms.events.EventKey;
  */
 public class DataResultKey implements EventKey {
 	
-	/** The Constant serialVersionUID. */
+
 	private static final long serialVersionUID = 7449740441898110511L;
 	
-	/** The date. */
 	private Date date;
-	
-	/** The eventdef. */
 	private Integer eventDefId;
 	
-	/**
-	 * Instantiates a new data result key.
-	 * 
-	 * @param date the date
-	 * @param eventDefId the eventdef
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public DataResultKey(Date date, Integer eventDefId){
 		this.date = date;
 		this.eventDefId = eventDefId;
 	}
 	
-
-	/**
-	 * Gets the date.
-	 * 
-	 * @return the date
-	 */
-	
 	public Date getDate() {
 		return date;
 	}
 
-
-	/**
-	 * Gets the eventdef.
-	 * 
-	 * @return the eventdef
-	 */
-	
 	public Comparable<Integer> getEventDefId() {
 		return eventDefId;
 	}
 	
 	@SuppressWarnings("rawtypes")
-	
 	public Comparable getEvenType() {
 		// FIXME
 		return null;
 	}
 	
 	@SuppressWarnings("rawtypes")
-	
 	public Comparable getEventDefExtra() {
 		return null;
 	}	

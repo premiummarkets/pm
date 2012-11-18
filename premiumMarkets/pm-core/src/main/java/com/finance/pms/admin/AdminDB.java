@@ -96,7 +96,7 @@ public class AdminDB {
 		//new DataSource(dbProps);
 		SpringContext ctx = new SpringContext();
 		ctx.setDataSource(dbProps);
-		ctx.loadBeans("/connexions.xml", "/swtclients.xml");
+		ctx.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		ctx.refresh();
 		
 		portfolioDAO =  (PortfolioDAO)ctx.getBean("portfolioDAO");

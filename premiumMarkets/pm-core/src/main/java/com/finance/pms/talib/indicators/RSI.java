@@ -55,7 +55,7 @@ public class RSI extends TalibIndicator {
 
 
 	public RSI(Stock stock,Integer timePeriod,Integer upperThreshold, Integer lowerThreshold, Date startDate, Date endDate, Currency calculationCurrency) throws TalibException, NoQuotationsException {
-		super(stock, startDate, timePeriod, endDate, 0, calculationCurrency, timePeriod);
+		super(stock, startDate, 100+ timePeriod, endDate, 0, calculationCurrency, timePeriod);
 		this.timePeriod = timePeriod;
 		this.upperThreshold = upperThreshold;
 		this.lowerThreshold = lowerThreshold;	
@@ -112,6 +112,13 @@ public class RSI extends TalibIndicator {
 		double[][] ret = new double[1][closeValues.length];
 		ret[0]= closeValues;
 		return 	ret;
+	}
+
+
+	@Override
+	public double[] getOutputData() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	

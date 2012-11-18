@@ -32,6 +32,7 @@
 package com.finance.pms.datasources.db;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import com.finance.pms.threads.SourceClient;
 
@@ -69,5 +70,18 @@ public class MyDBConnection implements SourceClient {
 	 */
 	public Connection getConn() {
 		return conn;
+	}
+
+
+
+	@Override
+	public Boolean isValid() {
+		
+		try {
+			return !this.getConn().isClosed() && this.getConn().isValid(60);
+		} catch (SQLException e) {
+			return false;
+		}
+		
 	}
 }

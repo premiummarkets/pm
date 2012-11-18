@@ -51,6 +51,12 @@ public abstract class Indicator {
 		this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, firstDate, lastDate, true, calculationCurrency, firstIdxShift, lastIdxShift);
 	}
 	
+	protected Indicator(Quotations quotations) {
+		super();
+		this.stock = quotations.getStock();
+		this.quotations  = quotations;
+	}
+	
 	public Quotations getIndicatorQuotationData() {
 		return this.quotations;
 	}

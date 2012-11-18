@@ -35,6 +35,7 @@ import java.util.Map;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
 
@@ -44,10 +45,12 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 	private static MyLogger LOGGER = MyLogger.getLogger(ValidatedLatestEventsPonderationRule.class);
 	
 	private Map<Stock, Validity> tuningValidityList;
+	private EventDefinition filteredEventDef;
 
-	public ValidatedLatestEventsPonderationRule(Integer sellThreshold, Integer buyThreshold, Map<Stock, Validity> tuningValidityList) {
+	public ValidatedLatestEventsPonderationRule(Integer sellThreshold, Integer buyThreshold, Map<Stock, Validity> tuningValidityList, EventDefinition filteredEventDef) {
 		super(sellThreshold, buyThreshold);
 		this.tuningValidityList = tuningValidityList;
+		this.filteredEventDef = filteredEventDef;
 	}
 	
 	@Override
@@ -55,8 +58,8 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 		
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;
-		PonderationRule p1 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList);
-		PonderationRule p2 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList);
+		PonderationRule p1 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList, filteredEventDef);
+		PonderationRule p2 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList, filteredEventDef);
 		
 		return compareCal(se1, se2, p1, p2);
 	}
@@ -70,7 +73,6 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 		if (validity != null) {
 			isValid = validity.equals(Validity.SUCCESS);
 		} else {
-			//LOGGER.error("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents);
 			LOGGER.debug("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+ ". Neural trend was not calculated for that stock.");
 		}
 		
@@ -84,7 +86,7 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
-		return new ValidatedLatestEventsSignal();
+		return new ValidatedLatestEventsSignal(filteredEventDef);
 	}
 	
 }

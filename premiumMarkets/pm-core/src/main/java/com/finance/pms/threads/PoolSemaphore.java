@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.mas.RestartServerException;
 
 
@@ -127,12 +128,12 @@ public class PoolSemaphore {
 		SourceClient ret = null;
 		int connectionTry = 0;
 		try {
-			if (crashed) restartSource(threadnum);
+			if (crashed) crashSpecificRestart(threadnum);
 			ret = initOneConnection(threadnum);
 		} catch (RestartServerException e) {
 			
 			while (connectionTry < 3 && connectionTry > -1) {
-				restartSource(threadnum);
+				crashSpecificRestart(threadnum);
 				try {
 					LOGGER.debug("\n\nConnection attempts for thread " + threadnum + " : " + (connectionTry + 1));
 					ret = initOneConnection(threadnum);
@@ -178,10 +179,13 @@ public class PoolSemaphore {
 				} catch (InterruptedException e1) {
 					LOGGER.error("Wait for data source has been interrupted!",e1);
 				}
+			} catch (Exception e) {
+				LOGGER.error(e,e);
+				break;
 			}
 		}
 		
-		throw new RuntimeException("FATAL : "+k+" times unabled to connect to data base : "+ threadnum +" ... Aborting.");
+		throw new RuntimeException("FATAL : "+k+" times unabled to connect to server : "+ threadnum +" ... Aborting.");
 	}
 
 	
@@ -226,7 +230,8 @@ public class PoolSemaphore {
 			synchronized (used[i]) {
 				if (!used[i]) {
 					try {
-						if (null == sourceClient[i]) {
+						if (null == sourceClient[i] || !sourceClient[i].isValid()) {
+							LOGGER.warn("Connection is staled : restarting");
 							sourceClient[i] = this.initOneConnection(i);
 						}
 						used[i] = true;
@@ -276,20 +281,24 @@ public class PoolSemaphore {
 	 * @author Guillaume Thoreton
 	 * @throws TimeoutException 
 	 */
-	public SourceClient restartSource(SourceClient item) throws InterruptedException, TimeoutException {
+	public SourceClient reconnectSource(SourceClient item) throws InterruptedException, TimeoutException {
 	
-		int threadnum = 0;
-		for (; threadnum < nThreads; ++threadnum) {
-			if (item.equals(sourceClient[threadnum])) {
-				sourceClient[threadnum] = tryConnection(threadnum, true);
+		DataSource.getInstance().shutdownSource(item);
+		
+		for (int i = 0; i < nThreads; ++i) {
+	
+			if (item == sourceClient[i]) {
+				sourceClient[i] = tryConnection(i, true);
+				
+				if (null != sourceClient[i]) { //remove resource from pool
+					available.release();
+					used[i]=false;
+				}
+				
 				break;
 			}
 		}
-		
-		if (null != sourceClient[threadnum]) { //remove resource from pool
-			available.release();
-			used[threadnum]=false;
-		}
+	
 	
 		return this.getResource();
 		
@@ -321,9 +330,9 @@ public class PoolSemaphore {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private void restartSource(int resourceNum) {
+	private void crashSpecificRestart(int resourceNum) {
 		
-		int s = this.sourceConnector.restartSource(resourceNum);
+		int s = this.sourceConnector.crashResart(resourceNum);
 		try {
 			synchronized (this) {
 				wait(s);

@@ -62,23 +62,25 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	protected Stock stock;
 	protected Boolean export;
 	protected Boolean persistTrainingEvents;
-	//protected Set<EventCompostionCalculator> eventsCalculators;
-	
+	private Boolean persistEvents;
+
 	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
-											Set<Observer> observers, Boolean export, Boolean keepCache, Boolean persistTrainingEvents, Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
+											Set<Observer> observers, Boolean export, Boolean keepCache, Boolean persistEvents, Boolean persistTrainingEvents, 
+											Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
 		super(startDate, endDate, eventListName, calculationCurrency, observers, keepCache, eventQueue, jmsTemplate);
 		
 		this.stock = stock;
 		this.export = export;
 		this.persistTrainingEvents = persistTrainingEvents;
+		this.persistEvents = persistEvents;
 		
-		setCalculationParameters();
+		//setCalculationParameters();
 	}
 
 	protected abstract void setCalculationParameters();
 
 
-	public SymbolEvents call() {
+	public SymbolEvents call() throws IncompleteDataSetException {
 		
 		SymbolEvents ret = new SymbolEvents(stock);
 		
@@ -88,8 +90,9 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 			LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
 			
+			setCalculationParameters();
 			Set<EventCompostionCalculator> eventsCalculators = initIndicatorsAndCalculators(observers.toArray(new Observer[]{}));
-			Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(eventsCalculators);
+			Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(eventsCalculators, startDate, endDate, persistEvents);
 
 			for (EventValue eventValue : eventDataAggregation.values()) {
 				EventSource source = (eventValue.getEventDef().equals(EventDefinition.WEATHER))? EventSource.PMWeather : EventSource.PMTAEvents;
@@ -97,11 +100,19 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			}
 			
 			ret.addEventResultElement(eventDataAggregation, EventDefinition.getEventDefList());
+			
+			for (EventCompostionCalculator eventCompostionCalculator : eventsCalculators) {
+				ret.addCalculationOutput(eventCompostionCalculator.getEventDefinition(), eventCompostionCalculator.calculationOutput());
+			}
+			
 			LOGGER.debug("end analyse "+stock+" from "+startDate+" to "+endDate);
 			
+		} catch (IncompleteDataSetException e) {
+			throw e;
+			
 		} catch (Exception e) {
-			// Oops
 			LOGGER.error("ERROR : While calcuting Events for "+stock+", analysis "+this.eventListName+" and dates "+startDate+" to "+endDate, e);
+			throw new IncompleteDataSetException(stock, e.getMessage());
 			
 		} finally {
 			this.setChanged();
@@ -112,7 +123,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		
 	}
 
-	abstract protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws NotEnoughDataException;
+	abstract protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws NotEnoughDataException, IncompleteDataSetException;
 
 	/**
 	 * @param startDate
@@ -134,4 +145,5 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	}
 
 	protected abstract List<EventDefinition> getWantedEventCalculations();
+	
 }

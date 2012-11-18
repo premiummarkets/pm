@@ -34,7 +34,6 @@ package com.finance.pms.portfolio;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -44,6 +43,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.DateFactory;
 
 /**
  * @author Guillaume Thoreton
@@ -97,7 +97,7 @@ public class SharesList extends AbstractSharesList {
 	}
 
 	private PortfolioShare rawAddShare(Stock stock) {
-		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, new Date(0), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarket().getCurrency());
+		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, DateFactory.dateAtZero(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarket().getCurrency());
 		listShares.put(stock,portfolioShare);
 		return portfolioShare;
 	}

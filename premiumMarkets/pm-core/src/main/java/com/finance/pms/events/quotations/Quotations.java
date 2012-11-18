@@ -33,6 +33,7 @@ package com.finance.pms.events.quotations;
 
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +61,6 @@ public class Quotations {
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 	
-	//protected static ConcurrentHashMap<Stock, QuotationData> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, QuotationData>(1000,0.90f);
 	private static ConcurrentHashMap<Stock, SoftReference<QuotationData>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<QuotationData>>(1000,0.90f);
 	private static Object object = new Object();
 
@@ -77,11 +77,6 @@ public class Quotations {
 		if (targetCurrency == null) targetCurrency = stock.getMarket().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;
 		init(stock, firstDate, lastDate, keepCache, firstIndexShift, lastIndexShift);
-	}
-
-	//Called in Raters/Tester and UI
-	Quotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firtsIndexShift) throws NoQuotationsException {
-		this(stock, firstDate, lastDate, keepCache, targetCurrency, firtsIndexShift, 0);
 	}
 
 	//Called in CalculationQuotations (inheritance)
@@ -191,8 +186,36 @@ public class Quotations {
 		
 		SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
 		
-		quotationUnits.addAll(DataSource.getInstance().loadNStripedQuotationsBefore(stock, firstDate, indexShiftBefore, false));
-		quotationUnits.addAll(DataSource.getInstance().loadStripedQuotationsAfter(stock, firstDate));
+		ArrayList<QuotationUnit> nStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(stock, firstDate, indexShiftBefore, false);
+		ArrayList<QuotationUnit> stripedQuotationsAfter = DataSource.getInstance().loadStripedQuotationsAfter(stock, firstDate);
+		
+		ArrayList<QuotationUnit> stripedQuotations = nStripedQuotationsBefore;
+		stripedQuotations.addAll(stripedQuotationsAfter);
+		
+		//Remove splits
+		ArrayList<QuotationUnit> noSplitQuotations = new ArrayList<QuotationUnit>(stripedQuotations);
+		for (int j = 1; j < stripedQuotations.size(); j++) {
+			
+			double dj = stripedQuotations.get(j).getClose().doubleValue();
+			double djm1 =  stripedQuotations.get(j-1).getClose().doubleValue();
+			double change = (dj - djm1)/djm1;
+			if (!Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= 0.5) {
+				for (int i = 0; i < j; i++) {
+					QuotationUnit oldValue = noSplitQuotations.get(i);
+					Double factorDouble = Double.valueOf(dj/djm1);
+					BigDecimal factor = new BigDecimal(factorDouble.toString());
+					int scale = oldValue.getOpen().scale();
+					QuotationUnit newValue = 
+							new QuotationUnit(oldValue.getDate(), 
+									oldValue.getOpen().multiply(factor).setScale(scale, RoundingMode.HALF_UP), oldValue.getHigh().multiply(factor).setScale(scale, RoundingMode.HALF_UP), 
+									oldValue.getLow().multiply(factor).setScale(scale, RoundingMode.HALF_UP), oldValue.getClose().multiply(factor).setScale(scale, RoundingMode.HALF_UP), 
+									oldValue.getVolume());
+					noSplitQuotations.set(i, newValue);
+				}
+			}
+		}
+		
+		quotationUnits.addAll(noSplitQuotations);
 		
 		return new QuotationData(quotationUnits);
 	}
@@ -432,7 +455,7 @@ public class Quotations {
 	
 	public double stdevVolatility(Date startDate, Date endDate, Integer period) throws NoQuotationsException {
 		
-		double meanStdVariance = 0;
+		double meanStdDev = 0;
 		double[] closes = this.getCloseValues();
 		int startIdx = this.getClosestIndexForDate(0, startDate);
 		int endIdx = this.getClosestIndexForDate(0, endDate);
@@ -446,19 +469,20 @@ public class Quotations {
 			
 			double variance = 0;
 			for (int j = 0; j < period; j++) {
-				double dailyDiff = closes[i+j] - mean;
+				double dailyDiff = (closes[i+j] - mean)/mean;
 				double dailyVar = dailyDiff * dailyDiff;
 				variance = variance + dailyVar;
 			}
-			variance = variance/period;
+			variance = variance/(period-1); //sample standard deviation is used for the corrected estimator (using N - 1)
 			
 			double stdDev= Math.sqrt(variance);
 			
-			meanStdVariance = meanStdVariance + (stdDev/mean);
+			//meanStdVariance = meanStdVariance + (stdDev/mean);
+			meanStdDev = meanStdDev + (stdDev);
 		}
 		
 		int nbIter = (endIdx - startIdx)/period;
-		return meanStdVariance / nbIter;
+		return meanStdDev / nbIter;
 		
 	}
 	

@@ -35,7 +35,9 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.datasources.shares.Currency;
@@ -53,7 +55,7 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
+public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalculator {
 	
 	private StandardDeviation standardDeviation;
 	private int stddevQuotationStartDateIdx;
@@ -106,11 +108,11 @@ public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
 		if (Math.abs(currentDev) > this.standardDeviation.getStdDev()[stddevIndQuoteIndex]) {
 			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calcQuotationIdx).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			if (currentDev < 0 && !isPriceAboveSMA) {
-				res.setBearishcrossBellow(true);
+				res.setBearishCrossBellow(true);
 				//resType = EventType.BEARISH;
 			}
 			if (currentDev > 0 && isPriceAboveSMA) {
-				res.setBullishcrossOver(true);
+				res.setBullishCrossOver(true);
 				//resType = EventType.BULLISH;
 			}
 		}
@@ -140,12 +142,12 @@ public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String getHeader() {
+	protected String getHeader(List<Integer> scoringSmas) {
 		return "CALCULATOR DATE; CALCULATOR QUOTE; STDDEV DATE; STDDEV QUOTE; STDEV; SMA DATE; SMA QUOTE; SMA; bearish; bullish\n";
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BULLISH));
@@ -167,5 +169,10 @@ public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
 			line = line + ";0;0;\n";
 		}
 		return line;
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.STDDEV;
 	}
 }

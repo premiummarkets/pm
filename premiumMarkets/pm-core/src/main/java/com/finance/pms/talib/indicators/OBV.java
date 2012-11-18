@@ -31,6 +31,7 @@
  */
 package com.finance.pms.talib.indicators;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.finance.pms.datasources.shares.Currency;
@@ -44,20 +45,24 @@ public class OBV extends TalibIndicator {
 	private double[] obv;
 
 	public OBV(Stock stock, Date startDate, Date endDate, Currency transactionCurrency) throws TalibException, NoQuotationsException {
-		//super(stock, new Quotations(stock, startDate, endDate, true, transactionCurrency, 20));
-		super(stock, startDate, 20, endDate, 0, transactionCurrency);
+		super(stock, startDate, 150, endDate, 0, transactionCurrency);
 	}
 
 	@Override
 	protected String getHeader() {
-		// TODO Auto-generated method stub
-		return null;
+		String header = "DATE,QUOTE,VOLUME,OBV\n";
+		return header;
 	}
 
 	@Override
 	protected String getLine(int indicator, int quotation) {
-		// TODO Auto-generated method stub
-		return null;
+		String line =
+				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
+						this.getIndicatorQuotationData().get(quotation).getDate()) + "," +
+						this.getIndicatorQuotationData().get(quotation).getClose() + "," +
+						this.getIndicatorQuotationData().get(quotation).getVolume()+ "," +
+						obv[indicator] + "\n";
+		return line;
 	}
 
 	@Override
@@ -83,6 +88,11 @@ public class OBV extends TalibIndicator {
 	}
 	
 	public double[] getObv() {
+		return obv;
+	}
+
+	@Override
+	public double[] getOutputData() {
 		return obv;
 	}
 }

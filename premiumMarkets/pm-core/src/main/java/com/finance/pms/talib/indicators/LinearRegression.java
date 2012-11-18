@@ -91,4 +91,10 @@ public class LinearRegression extends TalibIndicator {
 						linearRegression[indicator] + "\n";
 			return line;
 	}
+
+	@Override
+	public double[] getOutputData() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

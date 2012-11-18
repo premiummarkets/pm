@@ -50,7 +50,6 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.portfolio.Portfolio;
@@ -95,7 +94,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 					final Queue eventQueue = this.eventQueue;
 					final JmsTemplate jmsTemplate = this.jmsTemplate;
 					
-					EventsResources.getInstance().cleanEventsForAnalysisName(portfolio.getName(), startDate, endDate, true, EventDefinition.alertsOnThresholds());
+					//EventsResources.getInstance().cleanEventsForAnalysisName(portfolio.getName(), startDate, endDate, true, EventDefinition.alertsOnThresholds());
 					
 					Future<SymbolEvents> submitedRunnable = 
 							(Future<SymbolEvents>) executor.submit(new AlertsCalculationThread(portfolioShare, startDate, endDate, portfolio.getName(), isUserPortfolio, keepCache, eventQueue, jmsTemplate));

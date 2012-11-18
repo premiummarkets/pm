@@ -61,11 +61,6 @@ public interface PortfolioDAO {
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
 	
-//	//Tuning
-//	public TuningAutoPortfolio loadTuningPortfolio(String name) throws InvalidAlgorithmParameterException;
-//	List<AutoPortfolio> loadAutoPortfolios();
-//	void deleteTuningPortfolios();
-	
 	//Transaction reports
 	public void saveOrUpdateTransactionReports(ArrayList<TransactionElement> reportElements);
 

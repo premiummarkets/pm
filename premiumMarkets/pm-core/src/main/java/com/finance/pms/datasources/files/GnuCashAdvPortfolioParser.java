@@ -330,7 +330,7 @@ public class GnuCashAdvPortfolioParser {
 		}
 		
 		if (portfolio == null) portfolio = new UserPortfolio(newPortfolioName, portfolioReportCurrency);
-		return portfolio.addOrUpdateShareWithNewAmounts(stock, account, quantity, EventSignalConfig.getNewDate(), calcCashin, calcCashout, MonitorLevel.ANY, portfolioReportCurrency);
+		return portfolio.addOrUpdateShareWithNewAmounts(stock, account, quantity, EventSignalConfig.getNewDate(), calcCashin, calcCashout, MonitorLevel.BEARISH, portfolioReportCurrency);
 	}
 
 

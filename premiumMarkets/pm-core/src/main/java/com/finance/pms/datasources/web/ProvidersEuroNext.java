@@ -100,7 +100,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 	 * @see com.finance.pms.datasources.web.Providers#getQuotes(com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date)
 	 */
 	@Override
-	public Date getQuotes(Stock ticker, Date start, Date end) throws SQLException {
+	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
 		throw new UnsupportedOperationException("Please use an other provider then a share list holder for that.");
 	}
 

@@ -114,7 +114,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 	
 	
 
-	public AddAlertDialog(Shell parent,PortfolioShare portfolioShare) {
+	public AddAlertDialog(Shell parent, PortfolioShare portfolioShare) {
 		super(parent);
 		this.portfolioShare = portfolioShare;
 		

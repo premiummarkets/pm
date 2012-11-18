@@ -60,9 +60,9 @@ import com.finance.pms.datasources.web.ScraperMetrics;
 import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
+import com.finance.pms.queue.BuySellSignalCalculatorMessage;
 import com.finance.pms.queue.ExportAutoPortfolioMessage;
 import com.finance.pms.queue.InnerQueue;
-import com.finance.pms.queue.SignalProcessorMessage;
 import com.finance.pms.queue.SingleEventMessage;
 import com.finance.pms.queue.SymbolEventsMessage;
 
@@ -95,7 +95,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	private ScraperMetrics scrapperMetrics;
     
     
-    
     public AnalysisClient() {
 		super();
 		this.analysisExecutor = new ThreadPoolExecutor(0, 250, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
@@ -103,22 +102,20 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		
 	}
 
-
-
 	public void onMessage(Message message) {
 
     	try {
 
-    		if (message instanceof SignalProcessorMessage) { //Retrieve events from DB and process Auto portfolios
+    		if (message instanceof BuySellSignalCalculatorMessage) { //Retrieve events from DB and process Auto portfolios. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
     			
-    			SignalProcessorMessage processorMessage = (SignalProcessorMessage)((SignalProcessorMessage) message).getObject();
+    			BuySellSignalCalculatorMessage processorMessage = (BuySellSignalCalculatorMessage)((BuySellSignalCalculatorMessage) message).getObject();
     			LOGGER.debug("New processor message received : " + processorMessage.getMessageTxt());
     			runSynchTask(
     					processorMessage.getSignalProcessingName(),
-    					new SignalProcessorMessageRunnable(processorMessage, (JmsTemplate) applicationContext.getBean("jmsTemplate"), (InnerQueue) applicationContext.getBean("eventqueue")));
+    					new BuySellSignalCalculatorMessageRunnable(processorMessage, (JmsTemplate) applicationContext.getBean("jmsTemplate"), (InnerQueue) applicationContext.getBean("eventqueue")));
 
  
-    		} else if (message instanceof ExportAutoPortfolioMessage) { //
+    		} else if (message instanceof ExportAutoPortfolioMessage) { //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
     			
     			ExportAutoPortfolioMessage m = (ExportAutoPortfolioMessage) message;
     			LOGGER.info("New export message received : " + m.getAnalyseName());
@@ -192,9 +189,16 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
  
     	//BUY SELL
     	//All Buy and Sell signals from auto portfolios and monitored user portfolios
+    	//Sell signal from sell only monitored portfolios
 		Boolean isValidAutoBuySellSignal = source.equals(EventSource.PMAutoBuySell) || ( source.equals(EventSource.PMUserBuySell)  && isMonitoredForPortfolio );
+		Boolean isSellMonitoredForPortfolio = PortfolioMgr.getInstance().isSellMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
+		Boolean isValidMonitoredSellOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isSellMonitoredForPortfolio && (eventType.equals(EventType.BEARISH) || eventType.equals(EventType.INFO));
+		Boolean isBuyMonitoredForPortfolio = PortfolioMgr.getInstance().isBuyMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
+		Boolean isValidMonitoredBuyOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isBuyMonitoredForPortfolio && (eventType.equals(EventType.BULLISH) || eventType.equals(EventType.INFO));
 		
-		Boolean isValidEventSource = isValidAlertEvent || isValidScreeningEvent || isValidAutoBuySellSignal || isValidScreeningMessage || isValidWeatherEvent;	
+		Boolean isValidEventSource = 
+				isValidAlertEvent || isValidScreeningEvent || isValidScreeningMessage || isValidWeatherEvent || 
+				isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
 		if 	(sendMailEnabled && isValidEventSource ) {
 			LOGGER.info(
 	    			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
@@ -280,14 +284,26 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	
 		switch (eventType) {
 			case BEARISH:
-				subject = source + " : SELL "+stockName+" in "+ eventListName;
+				String sellTrigPat = "selltriggeringEvents : ";
+				String sellTriggeringEvents = " ";
+				if (eMailTxt.contains(sellTrigPat)) {
+					int sstartIdx = eMailTxt.indexOf(sellTrigPat) + sellTrigPat.length();
+					sellTriggeringEvents = " with trigger " + eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
+				}
+				subject = source + " : " + stockName + " SELL"+ sellTriggeringEvents + "in " + eventListName;
 				break;
 			case BULLISH:
-				subject = source + " : BUY "+stockName+" in "+ eventListName;
+				String buyTrigPat = "buytriggeringEvents : ";
+				String buyTriggeringEvents = " ";
+				if (eMailTxt.contains(buyTrigPat)) {
+					int bstartIdx = eMailTxt.indexOf(buyTrigPat) + buyTrigPat.length();
+					buyTriggeringEvents = " with trigger" + eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
+				}
+				subject = source + " : " + stockName + " BUY" + buyTriggeringEvents + "in " + eventListName;
 				break;
 			default:
 				String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
-				subject = source + " : "+stockName+" "+ addEventType +" in "+ eventListName;
+				subject = source + " : " + stockName + " " + addEventType + " in " + eventListName;
 		}
 		
 		mail.setSubject(subject);
@@ -371,6 +387,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     	this.templateMessage = templateMessage;
     }
 	
+   
 	public void close() {
 		
 		try {

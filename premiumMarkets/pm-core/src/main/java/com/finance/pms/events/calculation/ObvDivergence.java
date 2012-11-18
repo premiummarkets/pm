@@ -34,8 +34,11 @@ package com.finance.pms.events.calculation;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -43,83 +46,164 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.talib.dataresults.StandardEventKey;
+import com.finance.pms.talib.indicators.ChaikinLine;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.OBV;
+import com.finance.pms.talib.indicators.SMA;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ObvDivergence extends IndicatorsCompositionCalculator {
-	OBV obv;
+public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
+	
+	private static final int SMOOTHING = 2;
+	
+	private OBV obv;
 	private Integer obvQuotationStartDateIdx;
+	private SMA obvSma;
+	private Integer obvSmaQuotationStartDateIdx;
+	private ChaikinLine chaikinLine;
+	private Integer chaikinQuotationStartDateIdx;
+	private SMA sma;
+	private Integer smaQuotationStartDateIdx;
 
-	public ObvDivergence(Stock stock, OBV obv, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+	public ObvDivergence(Stock stock, OBV obv, ChaikinLine chaikinLine, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate,  calculationCurrency);
-		this.obv = obv;
 		
+		this.obv = obv;
 		obvQuotationStartDateIdx = obv.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = obv.getIndicatorQuotationData().getClosestIndexForDate(obvQuotationStartDateIdx, endDate);
-		isValidData(stock, obv, startDate, obvQuotationStartDateIdx, macdQuotationEndDateIdx);
+		Integer obvQuotationEndDateIdx = obv.getIndicatorQuotationData().getClosestIndexForDate(obvQuotationStartDateIdx, endDate);
+		isValidData(stock, obv, startDate, obvQuotationStartDateIdx, obvQuotationEndDateIdx);
+		
+		this.chaikinLine = chaikinLine;
+		chaikinQuotationStartDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
+		Integer chaikinQuotationEndDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexForDate(chaikinQuotationStartDateIdx, endDate);
+		isValidData(stock, chaikinLine, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
+		
+		try {
+			this.obvSma = new SMA(obv, SMOOTHING);
+			this.sma = new SMA(stock, SMOOTHING, startDate, endDate, calculationCurrency, Math.max(SMOOTHING, getDaysSpan()), 0);
+		} catch (TalibException e) {
+			throw new NotEnoughDataException(e.getMessage(),e);
+		} catch (NoQuotationsException e) {
+			throw new NotEnoughDataException(e.getMessage(),e);
+		}
+		
+		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
+		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
+		
+		obvSmaQuotationStartDateIdx = obvSma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
+		Integer obvSmaQuotationEndDateIdx = obvSma.getIndicatorQuotationData().getClosestIndexForDate(obvSmaQuotationStartDateIdx, endDate);
+		isValidData(stock, obvSma, startDate, obvSmaQuotationStartDateIdx, obvSmaQuotationEndDateIdx);
 	}
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+		
 		FormulatRes res = new FormulatRes(EventDefinition.PMOBVDIVERGENCE);
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
-
-		Integer obvIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.obv, calculatorIndex, obvQuotationStartDateIdx);
+		
+		int obvIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.obv, calculatorIndex, obvQuotationStartDateIdx);
+		double[] obvLookBackP = Arrays.copyOfRange(this.obv.getObv(), obvIdx - getDaysSpan(), obvIdx);
+		double[] quotationLookBackP = Arrays.copyOfRange(this.getCalculatorQuotationData().getCloseValues(), calculatorIndex - getDaysSpan(), calculatorIndex);
+		
+		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
+		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
+		
+		int obvQuotationIdx = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, obvQuotationStartDateIdx);
+		int obvSmaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.obvSma, obvQuotationIdx, obvSmaQuotationStartDateIdx);
+		double[] obvLookBackPThresh = Arrays.copyOfRange(this.obvSma.getSma(), obvSmaIndex - getDaysSpan(), obvSmaIndex);
+		
 		{
-			Boolean isPriceDown = this.getCalculatorQuotationData().get(calculatorIndex - getDaysSpan()).getClose().doubleValue() 
-									> this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue();
-			Boolean isObvUp = obv.getObv()[obvIndicatorIndex - getDaysSpan()] < obv.getObv()[obvIndicatorIndex];
-			res.setBullishcrossOver(isPriceDown && isObvUp);
-			if (res.getBullishcrossOver()) return res;
+			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
+			Boolean isObvUp = higherLow(obvLookBackP, obvLookBackPThresh);
+			res.setBullishCrossOver(isPriceDown && isObvUp); 
+			
+			if (res.getBullishCrossOver()) return res;
 
 		}
 		{
-			Boolean isPriceUp = this.getCalculatorQuotationData().get(calculatorIndex - getDaysSpan()).getClose().doubleValue() 
-									< this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue();
-			Boolean isObvDown = obv.getObv()[obvIndicatorIndex - getDaysSpan()] > obv.getObv()[obvIndicatorIndex];
-			res.setBearishcrossBellow(isPriceUp && isObvDown);
-
+			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
+			Boolean isObvDown = lowerHigh(obvLookBackP, obvLookBackPThresh);
+			res.setBearishCrossBellow(isPriceUp && isObvDown);
+		
+			return res;
 		}
-		return res;
 	}
-
-	@Override
+	
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
-		return (getDaysSpan() <= index && index < this.obv.getObv().length);
+		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, index);
+		if (indicator instanceof OBV) return this.isInDataRange((OBV)indicator, index);
+		if (indicator instanceof ChaikinLine) return this.isInDataRange((ChaikinLine)indicator, index);
+		throw new RuntimeException("Booo",new Throwable());
+	}
+	
+	private boolean isInDataRange(SMA sma, Integer index) {
+		return getDaysSpan() <= index && index < sma.getSma().length;
+	}
+	
+	public Boolean isInDataRange(OBV obv, Integer index) {
+		return getDaysSpan() <= index && index < obv.getObv().length;
+	}
+	
+	private boolean isInDataRange(ChaikinLine chaikinLine, Integer index) {
+		return getDaysSpan() <= index && index < chaikinLine.getChaikinLine().length;
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMOBVDIVERGENCE, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMOBVDIVERGENCE, EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,obvQuotationStartDateIdx);
+		
+//		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
+		
+		int chaikinIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinLine, calculatorIndex, chaikinQuotationStartDateIdx);
+		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
+		
+		int obvIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.obv, calculatorIndex, obvQuotationStartDateIdx);
+		int obvQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, obvQuotationStartDateIdx);
+		int obvSmaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.obvSma, obvQuotationIndex, obvSmaQuotationStartDateIdx);
+		int obvSmaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(obvQuotationIndex, obvSmaQuotationStartDateIdx);
+		
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + ";" +calculatorClose + ";" 
-			+ this.obv.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + ";" +this.obv.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + ";" 
-			+ this.obv.getObv()[getIndicatorIndexFromCalculatorQuotationIndex(this.obv, calculatorIndex, obvQuotationStartDateIdx)];
+			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," // + this.sma.getSma()[smaIndex] + "," 
+			+ this.chaikinLine.getIndicatorQuotationData().get(chaikinQuotationIndex).getDate() + "," + this.chaikinLine.getChaikinLine()[chaikinIndex] + ","
+			+ this.obvSma.getIndicatorQuotationData().get(obvSmaQuotationIndex).getDate()+ "," + this.obvSma.getSma()[obvSmaIndex] + "," 
+			+ this.obv.getIndicatorQuotationData().get(obvQuotationIndex).getDate() + "," + this.obv.getObv()[obvIndex];
 		
 		if (bearishEventValue != null) {
-			line = line + ";"+calculatorClose+";0;\n";
+			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
-			line = line + ";0;"+calculatorClose+";\n";
+			line = line + ",0,"+calculatorClose+",";
 		} else {
-			line = line + ";0;0;\n";
+			line = line + ",0,0,";
 		}
+		
+		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		
 		return line;
 	}
 
 
 	@Override
-	protected String getHeader() {
-		return "CALCULATOR DATE; CALCULATOR QUOTE; OBV DATE; OBV QUOTE; OBV ;bearish; bullish\n";	
+	protected String getHeader(List<Integer> scoringSmas) {
+//		return "CALCULATOR DATE; CALCULATOR QUOTE; SMA; OBV SMA DATE; OBV SMA CalcQ; OBV SMA ;OBV DATE; OBV; bearish; bullish\n";	
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chaikin Date, Chaikin, OBV SMA DATE, OBV SMA, OBV DATE, OBV, bearish, bullish";
+		head = addScoringHeader(head, scoringSmas);
+		return head+"\n";	
 	}
 
 	@Override
 	protected int getDaysSpan() {
-		return 5;
+		return 60;
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.PMOBVDIVERGENCE;
 	}
 }

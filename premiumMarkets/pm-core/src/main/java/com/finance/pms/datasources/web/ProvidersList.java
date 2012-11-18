@@ -120,7 +120,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	}
 
 	@Override
-	public Date getQuotes(Stock ticker, Date start, Date end) throws SQLException {
+	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
 		throw new UnsupportedOperationException("Please use an other provider then a share list holder for that.");
 	}
 

@@ -34,6 +34,7 @@ package com.finance.pms.events.calculation;
 import java.util.Date;
 import java.util.Map;
 import java.util.Observer;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -59,7 +60,6 @@ public abstract class EventCompostionCalculator {
 		super();
 		this.stock = stock;
 		try {
-			
 			//TODO add dayspan to start shift
 			this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, calculationCurrency, calculatorIndexShift + 15, 0);
 			
@@ -79,6 +79,8 @@ public abstract class EventCompostionCalculator {
 	public EventCompostionCalculator(Stock stock) { //No quotation related calculator
 		this.stock = stock;
 	}
+	
+	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);
 
 	public abstract Map<EventKey, EventValue> calculateEventsFor(String eventListName);
 	
@@ -93,5 +95,9 @@ public abstract class EventCompostionCalculator {
 	}
 
 	protected abstract int getDaysSpan();
+	
+	public abstract SortedMap<Date, double[]> calculationOutput();
+	
+	public abstract EventDefinition getEventDefinition();
 
 }

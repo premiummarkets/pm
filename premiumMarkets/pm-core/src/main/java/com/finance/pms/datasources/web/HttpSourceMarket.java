@@ -106,7 +106,7 @@ public abstract class HttpSourceMarket extends HttpSource implements SourceConne
 
 
 	
-	public int restartSource(int connectionId) {
+	public int crashResart(int connectionId) {
 		//silent
 		return 0;
 	}

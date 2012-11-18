@@ -174,7 +174,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	/* (non-Javadoc)
 	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
 	 */
-	public int restartSource(int connectionId) {
+	public int crashResart(int connectionId) {
 		return 0;
 	}
 	

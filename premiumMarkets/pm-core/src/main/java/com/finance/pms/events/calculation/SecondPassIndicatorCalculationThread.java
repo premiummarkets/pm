@@ -61,11 +61,11 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	protected SecondPassIndicatorCalculationThread(
 			Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
 			Set<Observer> observers, Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators,
-			Boolean export, Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistTrainingEvents) throws NotEnoughDataException {
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, export, keepCache, persistTrainingEvents, eventQueue, jmsTemplate);
+			Boolean export, Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistEvents, Boolean persistTrainingEvents) throws NotEnoughDataException {
+		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, export, keepCache, persistEvents, persistTrainingEvents, eventQueue, jmsTemplate);
 		
 		this.availableSecondPassIndicatorCalculators = availableSecondPassIndicatorCalculators;
-		
+	
 	}
 
 	@Override
@@ -101,15 +101,15 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			return ret;
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException) {
-				LOGGER.warn("Failed calculation : " + warnMessage(EventDefinition.NEURAL.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
+				LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
 			} else if (e.getCause() instanceof NotEnoughDataException ) {
-				LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(EventDefinition.NEURAL.toString(), startDate, endDate));
+				LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate));
 			} else if (e.getCause() instanceof ErrorException) {
-				LOGGER.error(e,e);
+				LOGGER.error(stock+ " second pass calculation error ",e);
 			}
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(stock+ " second pass calculation error ",e);
 			throw e;
 		}
 	}
@@ -118,4 +118,5 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	protected List<EventDefinition> getWantedEventCalculations() {
 		return secondPassWantedCalculations;
 	}
+	
 }

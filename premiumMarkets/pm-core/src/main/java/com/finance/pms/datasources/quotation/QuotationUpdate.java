@@ -61,7 +61,6 @@ import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ObserverMsg;
 
 
@@ -270,7 +269,8 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 			
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
-			GetQuotation command = new GetQuotation(QuotationsFactories.getFactory().getValidQuotationDateBefore(EventSignalConfig.getNewDate()), stock);
+			//GetQuotation command = new GetQuotation(QuotationsFactories.getFactory().getValidQuotationDateBefore(EventSignalConfig.getNewDate()), stock);
+			GetQuotation command = new GetQuotation(EventSignalConfig.getNewDate(), stock);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
 			}
@@ -334,6 +334,10 @@ public class QuotationUpdate {
 				ret = ret + exp + "\n";
 			}
 			return ret;
+		}
+
+		public List<Stock> getInvalidStocks() {
+			return invalidStocks;
 		}
 	}
 

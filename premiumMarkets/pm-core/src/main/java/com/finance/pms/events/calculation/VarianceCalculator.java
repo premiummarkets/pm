@@ -41,6 +41,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -58,7 +59,7 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class VarianceCalculator extends IndicatorsCompositionCalculator {
+public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(VarianceCalculator.class);
 
@@ -223,11 +224,11 @@ public class VarianceCalculator extends IndicatorsCompositionCalculator {
 			double lastDiffToMean = lastVariation - meanPreviousVariation;
 	
 			if (lastDiffToMean < -stdDev && !positiveVariation) {
-				res.setBearishcrossBellow(true);
+				res.setBearishCrossBellow(true);
 				resType = EventType.BEARISH;
 			} else 
 			if (stdDev < lastDiffToMean &&  positiveVariation){
-				res.setBullishcrossOver(true);
+				res.setBullishCrossOver(true);
 				resType = EventType.BULLISH;
 			}
 		} else {
@@ -250,15 +251,20 @@ public class VarianceCalculator extends IndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String getHeader() {
+	protected String getHeader(List<Integer> scoringSmas) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.VARIANCE;
 	}
 
 

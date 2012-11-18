@@ -72,20 +72,28 @@ public enum EventDefinition implements Serializable {
 	CCIBELOW (18,"MAS CCI Crossed below -x"),
 	UNKNOWN99 (99,"Miscellaneous"),
 	
-	PMMACDZEROCROSS (101,"PM MACD Cross Zero"),
-	PMSMAREVERSAL (102,"PM SMA Reversal"),
-	PMRSITHRESHOLD (104,"PM RSI Threshold Cross"),
+	PMSMAREVERSAL (101,"PM SMA Reversal"),//
+	PMMACDZEROCROSS (102,"PM MACD Cross Zero"), //
+	PMMACDSIGNALCROSS (103,"PM MACD Cross Signal"),//
+	PMAROONTREND (104,"PM Aroon Divergence"), //
+	PMZLAGMACDZCROSS(155,"PM Zero Lag MACD Cross Signal"),
 	
-	PMMACDSIGNALCROSS (105,"PM MACD Cross Signal"),
-	PMMFIDIVERGENCE (109,"PM MFI Divergence"),
+	PMRSITHRESHOLD (110,"PM RSI Threshold Cross"),//
+	PMMFITHRESHOLD (111,"PM MFI Threshold Cross"),//
+	PMSSTOCHTHRESHOLD (112,"PM Stochastic Threshold Cross"),//
+	PMCHAIKINOSCTHRESHOLD (113,"PM Chaikin Oscillator Threshold"),//
+
+	PMRSIDIVERGENCE (120,"PM RSI Divergence"), //
+	PMMFIDIVERGENCE (121,"PM MFI Divergence"), //
+	PMSSTOCHDIVERGENCE (122,"PM Stochastic Divergence"), // 
+	PMCHAIKINOSCDIVERGENCE (123,"PM Chaikin Oscillator Divergence"), //
 	
-	//PMSSTOCHCROSSOVER (151,"PM Stochastic Cross"),
-	PMOBVDIVERGENCE (152,"PM OBV Divergence"),
-	PMMFITHRESHOLD (153,"PM MFI Threshold Cross"),
+	PMOBVDIVERGENCE (151,"PM OBV Divergence"),
+	PMACCDISTDIVERGENCE (152,"PM Acc Dist Divergence"),
 	STDDEV (154,"PM Standard Deviation"),
 	
 	//Attention!! Event of type threshold crossing or Forced Sell must be cleaned (or invalidated) after each signal check?? ToTest.
-	ALERTTHRESHOLD (201,"Alert on Threshold cross"),
+	ALERTTHRESHOLD (201,"Alert on Threshold cross"),//Not discardable??
 	
 	SCREENER (302,"Screener Alert"), //Not discardable
 	WEATHER (401,"Temperature"),  //Not discardable
@@ -94,11 +102,21 @@ public enum EventDefinition implements Serializable {
 	NEURAL (503,"Neural"),
 	VARIATION (504,"Variation"),
 	VARIANCE (505,"Variance"),
+	HOUSETREND(506,"HouseTrend"),
+	SECTOR(507,"SectorRanksTrend"),
 	
 	INFINITE (999,"Infinite");
 
 	private static final int FIRSTPMTECHEVENT = 100;
 	private static final int LASTPMTECHEVENT = 150;
+	private static final Map<Integer,String> EVENTDEFLIST;
+	static {
+		EventDefinition edVals[] = EventDefinition.values();
+		EVENTDEFLIST = new HashMap<Integer,String>();
+		for (Integer i =0; i < edVals.length; i++) {
+			EVENTDEFLIST.put(i, edVals[i].getEventDef());
+		}
+	}
 
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
@@ -171,12 +189,13 @@ public enum EventDefinition implements Serializable {
 	 * @return the event def list
 	 */
 	public static Map<Integer,String> getEventDefList() {
-		EventDefinition edVals[] = EventDefinition.values();
-		Map<Integer,String> r = new HashMap<Integer,String>();
-		for (Integer i =0; i < edVals.length; i++) {
-			r.put(i, edVals[i].getEventDef());
-		}
-		return r;
+//		EventDefinition edVals[] = EventDefinition.values();
+//		Map<Integer,String> r = new HashMap<Integer,String>();
+//		for (Integer i =0; i < edVals.length; i++) {
+//			r.put(i, edVals[i].getEventDef());
+//		}
+//		return r;
+		return EVENTDEFLIST;
 	}
 
 	public static EventDefinition[] tAIndicators() {
@@ -248,7 +267,11 @@ public enum EventDefinition implements Serializable {
 		return subEventList(FIRSTPMTECHEVENT, LASTPMTECHEVENT);
 	}
 	
-	public static String getEventDefinitionsConfigString(List<EventDefinition> eventDefinitions) {
+	public static List<EventDefinition> getEventDefinitionsListFor(EventDefinition eventDef) {
+		return subEventList(eventDef.eventDefId-1, eventDef.eventDefId+1);
+	}
+	
+	public static String getEvtDefsCfgStr(List<EventDefinition> eventDefinitions) {
 		
 		SortedSet<EventDefinition> sortedEvtDefs = new  TreeSet<EventDefinition>(new Comparator<EventDefinition>() {
 			

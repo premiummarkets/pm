@@ -300,7 +300,7 @@ public class MasSource implements SourceConnector {
 	 */
 	public static MasConnection restartConnection(MasConnection con) {
 		try {
-			return (MasConnection) MasSource.getInstance().getThreadPool().restartSource(con);
+			return (MasConnection) MasSource.getInstance().getThreadPool().reconnectSource(con);
 		} catch (InterruptedException e) {
 			LOGGER.error("", e);
 		} catch (TimeoutException e) {
@@ -583,7 +583,7 @@ public class MasSource implements SourceConnector {
 	/* (non-Javadoc)
 	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
 	 */
-	public int restartSource(int connectionId) {
+	public int crashResart(int connectionId) {
 		if (this.processMap.containsKey(new Integer(connectionId))) {
 			MasProcess mp = this.processMap.get(new Integer(connectionId));
 			mp.stopProcess();

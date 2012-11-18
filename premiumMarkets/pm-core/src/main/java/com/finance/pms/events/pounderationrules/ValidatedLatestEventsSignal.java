@@ -37,29 +37,44 @@ import com.finance.pms.events.EventValue;
 
 public class ValidatedLatestEventsSignal extends LatestEventsSignal {
 
-	public ValidatedLatestEventsSignal() {
+	private EventDefinition filteredEventDef;
+
+	public ValidatedLatestEventsSignal(EventDefinition filteredEventDef) {
 		super(false, true);
+		this.filteredEventDef = filteredEventDef;
 	}
 
 	@Override
 	public Integer addFilteredEvent(EventValue eventValue) {
 		
-		boolean isSameTrend = isSameTrend(eventValue);
-		if (!isSameTrend) {
-			if (eventValue.getEventType().equals(EventType.BEARISH)) {//Change from bearish to bullish as we parse from the latest (inv. chronological)
-				this.signalWeight++;
-			} else if (eventValue.getEventType().equals(EventType.BULLISH)) { //vice versa
-				this.signalWeight--;
-			}
+//		boolean isSameTrend = isSameTrend(eventValue);
+//		if (!isSameTrend) {
+//			if (eventValue.getEventType().equals(EventType.BEARISH) || eventValue.getEventType().equals(EventType.NONE)) {//Change from bearish to bullish as we parse from the latest (inv. chronological)
+//				this.signalWeight++;
+//			} else if (eventValue.getEventType().equals(EventType.BULLISH) || eventValue.getEventType().equals(EventType.NONE)) { //vice versa
+//				this.signalWeight--;
+//			} 
+//		}
+		if (eventValue.getEventType().equals(EventType.BEARISH)) {
+			this.signalWeight--;
+		} else if (eventValue.getEventType().equals(EventType.BULLISH)) {
+			this.signalWeight++;
 		}
 		listTriggeringEvent(eventValue, eventValue.getEventType(), eventValue.getEventDef());
 		
 		return 1;	
 	}
-
+	
+	
 	@Override
 	protected Boolean isFilteredEvent(EventValue eventValue) {
-		return eventValue.getEventDef().equals(EventDefinition.NEURAL);
+		return eventValue.getEventDef().equals(filteredEventDef);
 	}
+
+//	@Override
+//	protected boolean isSameTrend(EventValue eventValue) {
+//		if (this.lastParsedEventType == null || this.lastParsedEventType.equals(EventType.NONE)) return false;
+//		return  this.lastParsedEventType.equals(eventValue.getEventType());
+//	}
 
 }

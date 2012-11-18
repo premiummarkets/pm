@@ -139,7 +139,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 * @throws SQLException the SQL exception
 	 * @throws HttpException 
 	 */
-	public abstract Date getQuotes(Stock ticker, Date start, Date end) throws SQLException, HttpException; 
+	public abstract void getQuotes(Stock ticker, Date start, Date end) throws SQLException, HttpException; 
 	
 	
 	/**

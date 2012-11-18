@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -75,7 +76,9 @@ public class SymbolEvents implements Serializable {
 	
 	private Set<EventDefinition> buyTriggeringEvents;
 	private Set<EventDefinition> sellTriggeringEvents;
-	private Float triggeringFinalWeight ;
+	private Float triggeringFinalWeight;
+	
+	private Map<EventDefinition, SortedMap<Date, double[]>> calculationOutput;
 
 	public SymbolEvents(Stock stock) {
 		super();
@@ -323,7 +326,7 @@ public class SymbolEvents implements Serializable {
 		this.dataResultList.put(eventKey, eventValue);
 	}
 	
-	public void addEventResultElement(Map<EventKey,EventValue> evl,Map<Integer, String> edefl) {
+	public void addEventResultElement(Map<EventKey,EventValue> evl, Map<Integer, String> edefl) {
 		this.eventDefList.putAll(edefl);
 		this.dataResultList.putAll(evl);
 	}
@@ -485,5 +488,17 @@ public class SymbolEvents implements Serializable {
 		return sellTriggeringEvents;
 	}
 	//End Auto portfolio stuff
-	
+
+	public Map<EventDefinition, SortedMap<Date, double[]>> getCalculationOutput() {
+		return calculationOutput;
+	}
+
+	public void addCalculationOutput(EventDefinition eventDefinition, SortedMap<Date, double[]> calculationOutput) {
+		if (this.calculationOutput == null) {
+			this.calculationOutput = new HashMap<EventDefinition, SortedMap<Date,double[]>>();
+		}
+		this.calculationOutput.put(eventDefinition, calculationOutput);
+		
+	}
+
 }

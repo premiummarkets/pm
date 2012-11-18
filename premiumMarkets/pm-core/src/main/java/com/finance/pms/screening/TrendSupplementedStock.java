@@ -204,7 +204,7 @@ public class TrendSupplementedStock extends Validatable {
 		
 		try {
 			Date ttm = ttm(endDate);
-			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, ttm, endDate, true, null, 0);
+			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, ttm, endDate, true, null, 0, 0);
 			close = quotationsInstance.getCloseForDate(endDate);
 			ttmClose = quotationsInstance.getCloseForDate(ttm);
 			
@@ -623,7 +623,7 @@ public class TrendSupplementedStock extends Validatable {
 
 		if (this.priceChangeTTM  == null) {
 
-			if (this.close == null || ttmClose == null) {
+			if (this.close == null || ttmClose == null || ttmClose.compareTo(BigDecimal.ZERO) == 0) {
 				this.priceChangeTTM = new MyBigDec(null, false);
 			} else {
 				BigDecimal priceDiffTTM = close.subtract(ttmClose);

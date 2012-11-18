@@ -306,7 +306,7 @@ public abstract class AbstractSharesList extends Observable {
 		
 		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());
 		if (portfolioShare == null) {
-			portfolioShare = new PortfolioShare(this, stock, currentDate, mLevel,transactionCurrency);
+			portfolioShare = new PortfolioShare(this, stock, currentDate, mLevel, transactionCurrency);
 			listShares.put(stock, portfolioShare);
 		}
 		return portfolioShare;

@@ -43,6 +43,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.httpclient.HttpException;
 
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
@@ -51,6 +52,7 @@ import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
+import com.finance.pms.datasources.shares.YahooMarketExtentions;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
 
 
@@ -89,30 +91,35 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 	}
 	
 	@Override
-	public Date getQuotes(Stock stock, Date start, Date end) throws HttpException, SQLException {
+	public void getQuotes(Stock stock, Date start, Date end) throws HttpException, SQLException {
 
 		//TODO scrapeLast();
-		
+
 		if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for "+stock.toString());
-		
+
+		MyUrl url;
 		try {
-			
-			MyUrl url = resolveUrlFor(stock, start, end);
-
-			TreeSet<Validatable> queries = initValidatableSet();
-			queries.addAll(readPage(stock, url));
-
-			LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
-
-			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
-			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-			DataSource.getInstance().executeLongBatch(queries,DataSource.QUOTATIONS.getINSERT(),tablet2lock);
-
-			return extractLastDateFrom(queries);
-			
+			url = resolveUrlFor(stock, start, end);
 		} catch (InvalidAlgorithmParameterException e) {
-			return null;
+			return;
 		}
+
+		TreeSet<Validatable> queries = initValidatableSet();
+		queries.addAll(readPage(stock, url));
+
+		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+
+		try {
+			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
+			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+		} catch (SQLException e) {
+			
+			LOGGER.error("Yahoo quotations sql error trying : "+url.getUrl(), e);
+			throw e;
+		}
+
+		//return extractLastDateFrom(queries);
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
@@ -188,20 +195,41 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		
 		MyUrl url;
 		
-		Calendar endCal = Calendar.getInstance();
-		endCal.setTime(end);
-		endCal.set(Calendar.MINUTE, 0);
-		endCal.set(Calendar.SECOND, 0);
-		endCal.set(Calendar.MILLISECOND, 0);
-		Calendar yesterday5PM = Calendar.getInstance();
-		yesterday5PM.setTime(new Date());
-		yesterday5PM.set(Calendar.HOUR_OF_DAY,17);
-		yesterday5PM.set(Calendar.DAY_OF_YEAR,-1);
-		if (endCal.getTime().after(yesterday5PM.getTime())) {
-			endCal.add(Calendar.DAY_OF_YEAR, -1);
-			end = endCal.getTime();
-		}
-		if (!start.before(end)) throw new InvalidAlgorithmParameterException();
+//		Calendar endCal = Calendar.getInstance();
+//		endCal.setTime(end);
+//		endCal.set(Calendar.MINUTE, 0);
+//		endCal.set(Calendar.SECOND, 0);
+//		endCal.set(Calendar.MILLISECOND, 0);
+		
+		//Old try
+//		Calendar yesterday5PM = Calendar.getInstance();
+//		yesterday5PM.setTime(new Date());
+//		yesterday5PM.set(Calendar.HOUR_OF_DAY,17);
+//		yesterday5PM.set(Calendar.DAY_OF_YEAR,-1);
+//		if (endCal.getTime().after(yesterday5PM.getTime())) {
+//			endCal.add(Calendar.DAY_OF_YEAR, -1);
+//			end = endCal.getTime();
+//		}
+		
+		//New try
+//		Calendar today5PM = Calendar.getInstance();
+//		today5PM.setTime(new Date());
+//		today5PM.set(Calendar.HOUR_OF_DAY,17);
+//		if (endCal.getTime().before(today5PM.getTime())) {
+//			endCal.add(Calendar.DAY_OF_YEAR, -1);
+//			end = endCal.getTime();
+//		}
+			
+		Date today = EventSignalConfig.getNewDate();
+		Calendar todayCal = Calendar.getInstance();
+		todayCal.setTime(today);
+		todayCal.set(Calendar.HOUR_OF_DAY, 0);
+		todayCal.set(Calendar.MINUTE, 0);
+		todayCal.set(Calendar.SECOND, 0);
+		todayCal.set(Calendar.MILLISECOND, 0);
+		today = todayCal.getTime();
+		
+		if (start.after(end) || ( start.equals(end) && end.equals(today) ) ) throw new InvalidAlgorithmParameterException();
 		
 
 		Calendar gcStart = Calendar.getInstance();
@@ -210,6 +238,11 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		gcEnd.setTime(end);
 
 		String symbol = stock.getSymbol();
+		if (symbol.endsWith("."+YahooMarketExtentions.EURONEXT.getSpecificMarketExtension())) {
+			String regex = "\\."+YahooMarketExtentions.EURONEXT.getSpecificMarketExtension()+"$";
+			String replacement = "."+YahooMarketExtentions.PAR.getSpecificMarketExtension();
+			symbol = symbol.replaceAll(regex, replacement);
+		}
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^"+symbol;
 
 		url = this.httpSource.getStockQuotationURL(symbol,

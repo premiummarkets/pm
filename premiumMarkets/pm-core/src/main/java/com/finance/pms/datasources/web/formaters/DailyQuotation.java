@@ -65,7 +65,7 @@ public class DailyQuotation extends Stock {
 	
 	@Override
 	public String toString() {
-		return super.toString()+ "; Quotation date :"+quoteDate;
+		return super.toString()+ "; Quotation date :"+quoteDate+"; "+mainQuery;
 	}
 	
 	public Date getQuoteDate() {

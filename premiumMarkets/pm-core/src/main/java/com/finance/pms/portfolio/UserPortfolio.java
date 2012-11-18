@@ -102,7 +102,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		
 //		//Test
 //		try {
-//			if (currentDate.after(new SimpleDateFormat("yyyyMMdd").parse("20120307")) && this.name.equals("ANewCpt") ) {
+//			if (currentDate.after(new SimpleDateFormat("yyyyMMdd").parse("20120930")) && this.name.equals("APEG") ) {
 //				System.out.println("I am here");
 //			}
 //		} catch (ParseException e) {

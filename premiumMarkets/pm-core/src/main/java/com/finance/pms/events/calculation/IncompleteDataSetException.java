@@ -31,13 +31,32 @@
  */
 package com.finance.pms.events.calculation;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.finance.pms.datasources.shares.Stock;
+
 public class IncompleteDataSetException extends Exception {
 
 	private static final long serialVersionUID = 8415012484395864898L;
-	
 
-	public IncompleteDataSetException(String arg0) {
+	private List<Stock> failingStocks;
+
+	public IncompleteDataSetException(Stock failingStock, String arg0) {
 		super(arg0);
+		this.failingStocks = new ArrayList<Stock>();
+		this.failingStocks.add(failingStock);
+	}
+
+
+	public IncompleteDataSetException(List<Stock> failingStocks, String arg0) {
+		super(arg0);
+		this.failingStocks = failingStocks;
+	}
+
+
+	public List<Stock> getFailingStocks() {
+		return failingStocks;
 	}
 
 }

@@ -257,7 +257,7 @@ public class ChartsComposite extends SashForm {
 					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					houseDrvCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
 					houseDrvCheck.setFont(MainGui.DEFAULTFONT);
-					houseDrvCheck.setText("Day to day log change");
+					houseDrvCheck.setText("Daily log ROC");
 				}
 				{
 					addRefereeCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
@@ -537,7 +537,7 @@ public class ChartsComposite extends SashForm {
 			try {
 				if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
 					
-				refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarket().getCurrency(),0);
+				refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarket().getCurrency(),0,0);
 
 				stripedCloseFunction =  new StripedCloseIndexRelative(refereeQuotations, slidingStartDate, slidingEndDate);
 				selectReferreText.setText(stock.getName());
@@ -555,7 +555,7 @@ public class ChartsComposite extends SashForm {
 	 */
 	private void selectReferee(List<SlidingPortfolioShare> listShares) {
 		//open selection window
-		NewPortfolioItemDialog pItemDialog = NewRefereeDialog.showUI(getShell());
+		NewPortfolioItemDialog pItemDialog = NewRefereeDialog.showUI(getShell(), this);
 		List<Stock> listStock = pItemDialog.getSelectedStocks();
 		if (listStock.size() > 0) {
 			try {

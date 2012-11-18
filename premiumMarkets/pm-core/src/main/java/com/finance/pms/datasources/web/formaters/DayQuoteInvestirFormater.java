@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +53,9 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	
 	private static PatternProperties PATTERNS;
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
-	private NumberFormat numberFormat = NumberFormat.getNumberInstance();
+	private NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.FRANCE);
+	//private NumberFormat quoteNumberFormat = new DecimalFormat("#0,000");
+	//private NumberFormat volumeNumberFormat = new DecimalFormat("0 000 000");
 	
 	private Pattern quotationPattern;
 	private Pattern datePattern;
@@ -121,11 +124,11 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			case 1 :
 				Matcher fitCloseQuotation = quotationPattern.matcher(line);
 				if (fitCloseQuotation.find()) {
-					close = new BigDecimal(numberFormat.parse(fitCloseQuotation.group(1)).doubleValue()).setScale(2,BigDecimal.ROUND_DOWN);
-					Currency quotationCurrency = Currency.valueOf(fitCloseQuotation.group(2));
-					if (!quotationCurrency.equals(currency)) {
-						throw new StopParseErrorException("Currency inconsitency with "+params.get(0)+" "+params.get(1)+" "+myUrl, "");
-					}
+					close = new BigDecimal(numberFormat.parse(fitCloseQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
+//					Currency quotationCurrency = Currency.valueOf(fitCloseQuotation.group(2));
+//					if (!quotationCurrency.equals(currency)) {
+//						throw new StopParseErrorException("Currency inconsitency with "+params.get(0)+" "+params.get(1)+" "+myUrl, "");
+//					}
 					cpt++;
 				}
 				
@@ -133,21 +136,21 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			case 2 :
 				Matcher fitHighQuotation = quotationPattern.matcher(line);
 				if (fitHighQuotation.find()) {
-					high = new BigDecimal(numberFormat.parse(fitHighQuotation.group(1)).doubleValue()).setScale(2,BigDecimal.ROUND_DOWN);
+					high = new BigDecimal(numberFormat.parse(fitHighQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
 					cpt++;
 				}
 				break;
 			case 3 :
 				Matcher fitLowQuotation = quotationPattern.matcher(line);
 				if (fitLowQuotation.find()) {
-					low = new BigDecimal(numberFormat.parse(fitLowQuotation.group(1)).doubleValue()).setScale(2,BigDecimal.ROUND_DOWN);
+					low = new BigDecimal(numberFormat.parse(fitLowQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
 					cpt++;
 				}
 				break;
 			case 4 :
 				Matcher fitOpenQuotation = quotationPattern.matcher(line);
 				if (fitOpenQuotation.find()) {
-					open = new BigDecimal(numberFormat.parse(fitOpenQuotation.group(1)).doubleValue()).setScale(2,BigDecimal.ROUND_DOWN);
+					open = new BigDecimal(numberFormat.parse(fitOpenQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
 					cpt++;
 				}
 				break;

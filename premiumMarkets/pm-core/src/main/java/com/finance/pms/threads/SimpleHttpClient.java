@@ -55,6 +55,12 @@ public class SimpleHttpClient extends MyHttpClient {
 		this.getParams().setSoTimeout(900000);
 		this.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
 	}
+
+
+	@Override
+	public Boolean isValid() {
+		return true;
+	}
 	
 	
 }

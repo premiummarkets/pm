@@ -35,7 +35,9 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.datasources.shares.Currency;
@@ -52,9 +54,9 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class SmaReversal extends IndicatorsCompositionCalculator {
+public class SmaReversal extends TalibIndicatorsCompositionCalculator {
 	
-	private static final int DAYS_SPAN = 2;
+	private static final int DAYS_SPAN = 15;
 
 	private SMA sma;
 	
@@ -96,25 +98,23 @@ public class SmaReversal extends IndicatorsCompositionCalculator {
 		
 		Integer smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
 		
-		//BULL : Quote above SMA and SMA up over n days reversal after a BEAR trend  
+		//BULL : Quote above SMA and SMA up over n days after a BEAR trend  
 		{	
 			boolean isAboveSMA = this.sma.getSma()[smaIndex] < this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue(); //  sma <  close
-			boolean isSMAUp = this.sma.getSma()[smaIndex - 2] + stdDev(smaIndex - 2)  < this.sma.getSma()[smaIndex - 1] 
-			               && this.sma.getSma()[smaIndex - 1] + stdDev(smaIndex - 1) < this.sma.getSma()[smaIndex]; // up sma trend over n days
+			boolean isSMAUp = this.sma.getSma()[smaIndex - getDaysSpan()] <  this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBearish = EventType.BEARISH.equals(previousTrend);
-			res.setBullishcrossOver(isAboveSMA && isSMAUp && isPreviouslyBearish);	
+			res.setBullishCrossOver(isAboveSMA && isSMAUp && isPreviouslyBearish);	
 			if (isSMAUp && isAboveSMA) {
 				previousTrend = EventType.BULLISH;
 			} 
 		}
 		
-		//BEAR : Quote below SMA and down over n reversal days after a BULL trend
+		//BEAR : Quote below SMA and down over n days after a BULL trend
 		{
 			boolean isBelowSMA = this.sma.getSma()[smaIndex] > this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue(); //  sma >  close
-			boolean isSMADown = this.sma.getSma()[smaIndex - 2] >  this.sma.getSma()[smaIndex - 1] + stdDev(smaIndex - 1) 
-							&& this.sma.getSma()[smaIndex - 1] > sma.getSma()[smaIndex] + stdDev(smaIndex) ; // down sma trend over n days
+			boolean isSMADown = this.sma.getSma()[smaIndex - getDaysSpan()] >  this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBullish = EventType.BULLISH.equals(previousTrend);
-			res.setBearishcrossBellow(isBelowSMA && isSMADown && isPreviouslyBullish);
+			res.setBearishCrossBellow(isBelowSMA && isSMADown && isPreviouslyBullish);
 			if (isSMADown && isBelowSMA) {
 				previousTrend = EventType.BEARISH;
 			} 
@@ -124,15 +124,15 @@ public class SmaReversal extends IndicatorsCompositionCalculator {
 	}
 
 
-	/**
-	 * @param index
-	 * @return
-	 */
-	private double stdDev(Integer index) {
-		//if (index - stdDevOutBegIdx.value > 0) return smaStdDevs[index-stdDevOutBegIdx.value];
-		return 0;
-		//return  1.0013;
-	}
+//	/**
+//	 * @param index
+//	 * @return
+//	 */
+//	private double stdDev(Integer index) {
+//		//if (index - stdDevOutBegIdx.value > 0) return smaStdDevs[index-stdDevOutBegIdx.value];
+//		return 0;
+//		//return  1.0013;
+//	}
 	
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
@@ -140,7 +140,7 @@ public class SmaReversal extends IndicatorsCompositionCalculator {
 	}
 	
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSMAREVERSAL,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSMAREVERSAL,EventType.BULLISH));
@@ -149,23 +149,35 @@ public class SmaReversal extends IndicatorsCompositionCalculator {
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
 			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
-			+ stdDev(getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx));
+			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)]; // +","
+//			+ stdDev(getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx));
 		
 		if (bearsihEventValue != null) {
-			line = line + ","+calculatorClose+",0,\n";
+			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
-			line = line + ",0,"+calculatorClose+",\n";
+			line = line + ",0,"+calculatorClose+",";
 		} else {
-			line = line + ",0,0,\n";
+			line = line + ",0,0,";
 		}
+		
+		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		
 		return line;
 	}
 
 
 	@Override
-	protected String getHeader() {
-		return "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", STD DEV (alpha), bearish, bullish\n";
+	protected String getHeader(List<Integer> scoringSmas) {
+		//return "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", STD DEV (alpha), bearish, bullish\n";
+		String head =  "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
+		head = addScoringHeader(head, scoringSmas);
+		return head+"\n";	
+	}
+
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.PMSMAREVERSAL;
 	}
 	
 	

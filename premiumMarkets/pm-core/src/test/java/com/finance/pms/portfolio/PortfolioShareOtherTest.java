@@ -56,6 +56,7 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.PortfolioShare.InOutWeighted;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -94,7 +95,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.PARIS,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.EUR);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
 		
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement( stock, "FR0010096354", simpleDateFormat.parse("11/07/04"), new BigDecimal(11.2894), new BigDecimal(246.6478), Currency.EUR));
@@ -136,7 +137,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.PARIS,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.EUR);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
 		
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement( stock, "FR0000133308",simpleDateFormat.parse("16/06/98"), new BigDecimal(17.91), new BigDecimal(10.619), Currency.EUR));
@@ -229,7 +230,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.PARIS,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.GBP);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.GBP);
 		
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement( stock,"IGLT.L",simpleDateFormat.parse("12/07/10"), new BigDecimal(1065.20), new BigDecimal(760), Currency.GBP));
@@ -263,7 +264,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.PARIS,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.EUR);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
 	
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement( stock,"FR0010091173",simpleDateFormat.parse("30/12/96"), new BigDecimal(356.34), new BigDecimal(57), Currency.EUR));
@@ -296,7 +297,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.EURONEXT,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.EUR);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
 	
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement(stock, "ETF_Securities_Brent_Oil", simpleDateFormat.parse("09/03/11"), new BigDecimal(63.28), new BigDecimal(129.00000), Currency.EUR));
@@ -329,7 +330,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.PARIS,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.EUR);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
 	
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement(stock, "BPCE_5.20%02-14_TSR(Euronext)", simpleDateFormat.parse("26/09/02"), new BigDecimal(103.26), new BigDecimal(50.00000), Currency.EUR));
@@ -361,7 +362,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				Market.PARIS,
 				"",TradingMode.CONTINUOUS,0l);
 		
-		testObject = new PortfolioShare(null, stock, new Date(0), MonitorLevel.NONE, Currency.EUR);
+		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
 	
 		SortedSet<TransactionElement> elements = new TreeSet<TransactionElement>();
 		elements.add(new TransactionElement(stock, "TEMPLETON_GLOBAL_BOND", simpleDateFormat.parse("01/05/10"), new BigDecimal(17.72), new BigDecimal(1410.63000), Currency.EUR));

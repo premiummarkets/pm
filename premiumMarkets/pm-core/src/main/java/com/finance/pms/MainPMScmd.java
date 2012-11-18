@@ -58,6 +58,7 @@ import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.ProvidersInflation;
+import com.finance.pms.events.calculation.DateFactory;
 
 
 // TODO: Auto-generated Javadoc
@@ -191,7 +192,7 @@ public class MainPMScmd {
 			if(getInflationData) {
 				Stock inflationStock = new Stock(
 						ProvidersInflation.SYMBOL,ProvidersInflation.SYMBOL,ProvidersInflation.SYMBOL,
-						new Boolean(false),StockCategories.INDICES_OTHER, new Date(0),
+						new Boolean(false),StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
 						new SymbolMarketQuotationProvider(),Market.NYSE,"None",TradingMode.UNKNOWN,0L);
 				DataSource.getInstance().getShareDAO().saveOrUpdateShare(inflationStock);
 				Providers.getInstance("inflation").getQuotes(inflationStock, null, null);

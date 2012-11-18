@@ -69,7 +69,6 @@ public class StandardEventKey implements EventKey {
 	}
 	
 	
-	
 	public StandardEventKey(Date date,Integer eventdefId, String eventType) {
 		super();
 		this.date = date;
@@ -78,36 +77,20 @@ public class StandardEventKey implements EventKey {
 	}
 
 
-
-	/**
-	 * Gets the event date.
-	 * 
-	 * @return the event date
-	 */
-	
 	public Date getDate() {
 		return date;
 	}
-	
 
 	
 	public Comparable<?> getEvenType() {
 		return eventType;
 	}
 
-	
-	/**
-	 * Gets the even def.
-	 * 
-	 * @return the even def
-	 */
-	
 	public Comparable<?> getEventDefId() {
 		return eventdef;
 	}
 	
 	@SuppressWarnings("rawtypes")
-	
 	public Comparable getEventDefExtra() {
 		return eventdef;
 	}

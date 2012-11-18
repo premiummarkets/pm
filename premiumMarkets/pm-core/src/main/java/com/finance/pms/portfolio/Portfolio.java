@@ -221,6 +221,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Enumerated(EnumType.STRING)
+	//TODO NAN currency
 	public Currency getPortfolioCurrency() {
 		return portfolioCurrency;
 	}
@@ -285,11 +286,11 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 
-	private Currency inferPortfolioCurrency() {
+	public Currency inferPortfolioCurrency() {
 		Currency currency;
 		if (this.portfolioCurrency == null) {  //Portfolio potentially hosting multiple transaction : we convert the total to EUR
 			currency = Currency.EUR;
-		} else {// One curency portfolio
+		} else {// One currency portfolio
 			currency = this.portfolioCurrency;
 		}
 		return currency;

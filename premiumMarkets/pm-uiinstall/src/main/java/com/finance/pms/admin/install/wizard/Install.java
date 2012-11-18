@@ -231,7 +231,7 @@ public class Install {
 			pfile = new File(InstallFolderPanel.piggyMarketSqueakFolder.getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
 			props.load(propFileIS);
-			props.put("dbpath",installPath+File.separator+"derby"+File.separator);
+			props.put("dbpath", installPath+File.separator+"derby"+File.separator);
 			props.store(new FileOutputStream(pfile), "Added settings properties for windows");
 
 		} catch (FileNotFoundException e) {

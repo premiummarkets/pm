@@ -92,7 +92,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			
 			LOGGER.debug("running analysis for " + analysers[i]);
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
-			analyzer.addObservers(engineObservers);
+			//analyzer.addObservers(engineObservers);
 			
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
@@ -101,7 +101,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 					SpringContext.getSingleton(), 
 					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-					shareList, datedeb, datefin, false);
+					shareList, datedeb, datefin, false, engineObservers.toArray(new Observer[0]));
 			
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
 			try {

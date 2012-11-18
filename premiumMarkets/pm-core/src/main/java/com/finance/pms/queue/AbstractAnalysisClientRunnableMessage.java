@@ -109,9 +109,7 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 			public Message createMessage(Session session) throws JMSException {
 				Map<String, Config> signalConfig = new HashMap<String, Config>();
 				signalConfig.put(Config.EVENT_SIGNAL_NAME, ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME));
-				Message message = new SignalProcessorMessage(
-						"Run Auto portfolios Calculation from " + startDate + " to "+endDate, startDate, endDate,
-						signalProcessingPortfolioName, signalConfig, additionalEventListName);
+				Message message = new BuySellSignalCalculatorMessage("Run Auto portfolios Calculation from " + startDate + " to "+endDate, startDate, endDate, signalProcessingPortfolioName, signalConfig, additionalEventListName);
 				return message;
 			}
 		});

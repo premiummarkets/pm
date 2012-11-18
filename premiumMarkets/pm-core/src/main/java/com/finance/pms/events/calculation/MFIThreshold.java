@@ -35,7 +35,9 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -48,7 +50,8 @@ import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.MFI;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class MFIThreshold extends IndicatorsCompositionCalculator {
+public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
+	
 	private MFI mfi;
 	private Integer mfiQuotationStartDateIdx;
 	
@@ -59,6 +62,7 @@ public class MFIThreshold extends IndicatorsCompositionCalculator {
 		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
 		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(mfiQuotationStartDateIdx, endDate);
 		isValidData(stock, mfi, startDate, mfiQuotationStartDateIdx, macdQuotationEndDateIdx);
+		
 	}
 
 	@Override
@@ -71,13 +75,13 @@ public class MFIThreshold extends IndicatorsCompositionCalculator {
 		{
 			//BULL : MFI cross below low threshold (over sold)
 			boolean isMFICrossingBelow = this.mfi.getMfi()[mfiIndicatorIndex-1] > mfi.getLowerThreshold() && mfi.getLowerThreshold() > this.mfi.getMfi()[mfiIndicatorIndex]; // 1rst mfi > 20 > last mfi
-			res.setBullishcrossOver(isMFICrossingBelow);
-			if (res.getBullishcrossOver()) return res;
+			res.setBullishCrossOver(isMFICrossingBelow);
+			if (res.getBullishCrossOver()) return res;
 		} 
 		{
 			//BEAR : MFI cross above upper threshold (over bought)
-			boolean isMFICrossingAbove = this.mfi.getMfi()[mfiIndicatorIndex-1]  < mfi.getUpperThreshold()  && mfi.getUpperThreshold() < this.mfi.getMfi()[mfiIndicatorIndex];// 1rst mfi < 70 < last mfi
-			res.setBearishcrossBellow(isMFICrossingAbove);
+			boolean isMFICrossingAbove = this.mfi.getMfi()[mfiIndicatorIndex-1]  < mfi.getUpperThreshold()  && mfi.getUpperThreshold() < this.mfi.getMfi()[mfiIndicatorIndex];// 1rst mfi < 80 < last mfi
+			res.setBearishCrossBellow(isMFICrossingAbove);
 		}
 		
 		return res;
@@ -85,39 +89,52 @@ public class MFIThreshold extends IndicatorsCompositionCalculator {
 	
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
-		return (1 <= index && index < mfi.getMfi().length);
+		return (getDaysSpan() <= index && index < mfi.getMfi().length);
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFITHRESHOLD, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFITHRESHOLD, EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
 		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + ";" +calculatorClose + ";" 
-			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + ";" +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + ";" 
+			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
+			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
+			+ this.mfi.getLowerThreshold() + ","
+			+ this.mfi.getUpperThreshold() + ","
 			+ this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)];
 		
 		if (bearsihEventValue != null) {
-			line = line + ";"+calculatorClose+";0;\n";
+			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
-			line = line + ";0;"+calculatorClose+";\n";
+			line = line + ",0,"+calculatorClose+",";
 		} else {
-			line = line + ";0;0;\n";
+			line = line + ",0,0,";
 		}
+		
+		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		
 		return line;
 	}
 
 
 	@Override
-	protected String getHeader() {
-		return "CALCULATOR DATE; CALCULATOR QUOTE; MFI DATE; MFI QUOTE; MFI ;bearish; bullish\n";	
+	protected String getHeader(List<Integer> scoringSmas) {
+//		return "CALCULATOR DATE; CALCULATOR QUOTE; MFI DATE; MFI QUOTE; MFI ;bearish; bullish\n";	
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI, bearish, bullish";
+		head = addScoringHeader(head, scoringSmas);
+		return head+"\n";	
 	}
 
 	@Override
 	protected int getDaysSpan() {
-		return 0;
+		return 1;
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.PMMFITHRESHOLD;
 	}
 }

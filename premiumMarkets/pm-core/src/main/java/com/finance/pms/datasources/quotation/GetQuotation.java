@@ -48,6 +48,7 @@ import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
 
@@ -81,74 +82,79 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	 */
 	public GetQuotation(Date dateFin, Stock stock) {
 		super();
+		this.stock = stock;
 		
 		Calendar endDayMidNight = Calendar.getInstance();
-		
-		endDayMidNight.setTime(dateFin);
+		endDayMidNight.setTime(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
 		endDayMidNight.set(Calendar.HOUR_OF_DAY, 0);
 		endDayMidNight.set(Calendar.MINUTE, 0);
 		endDayMidNight.set(Calendar.SECOND, 0);
+		endDayMidNight.set(Calendar.MILLISECOND, 0);
 		this.dateFin = endDayMidNight.getTime();
-		
-		this.stock = stock;
-
+	
 	}
 
 	@Override
 	public GetQuotationResult call() {
 		
 		Date dateDeb=null;
-		Date lastQuote=null;
 		GetQuotationResult ret = new GetQuotationResult(stock);
 		
 		try {
 			
 			dateDeb = DataSource.getInstance().getLastQuotationDateFromShares(stock);
-			
+
+			Calendar startDayMidNight = Calendar.getInstance();
+			startDayMidNight.setTime(dateDeb);
+			startDayMidNight.set(Calendar.HOUR_OF_DAY, 0);
+			startDayMidNight.set(Calendar.MINUTE, 0);
+			startDayMidNight.set(Calendar.SECOND, 0);
+			startDayMidNight.set(Calendar.MILLISECOND, 0);
+
+			startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
+			dateDeb = startDayMidNight.getTime();
+
+			if (dateDeb.after(dateFin)) {
+				LOGGER.guiInfo(
+						"Quotation for "+stock.getSymbol()+ " are up to date "+
+								" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+				ret.hasQuotations = true;
+				return ret;
+			}
+
 			LOGGER.guiInfo(
 					"Updating quotation for "+stock.getSymbol()+
 					" from the " +new SimpleDateFormat("yyyy/MM/dd").format(dateDeb)+ 
 					" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+
+
+			LOGGER.guiInfo("Downloading for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin);
+			Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, dateDeb, dateFin);
 			
-			Calendar startDayMidNight = Calendar.getInstance();
-			startDayMidNight.setTime(dateDeb);
-			startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-			
-			dateDeb = startDayMidNight.getTime();
-			if (dateDeb.before(dateFin)) {
-				LOGGER.guiInfo("Downloading for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin);
-				lastQuote =  Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, dateDeb, dateFin);
-				if (lastQuote != null) { //lastQuote == null means up to date
-					updateLastQuoteDateForShareInDB(lastQuote);
-					stock.setLastQuote(lastQuote);
-				}
-				LOGGER.guiInfo("Downloaded for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
-			}
-			
-			Quotations.removeCashedStock(stock);
-			
-			ret.hasQuotations = true;
 		} catch (Exception e) {
-			
-			try {
-				lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);
-				updateLastQuoteDateForShareInDB(lastQuote);
-			} catch (Exception e1) {
-				LOGGER.error("Can't update last quotation date for share "+stock+ " after "+e+" because "+e1,e1);
-			}
 			
 			String scrapErrorMess = "Failed to update quotes for :" + stock.toString() +".\n" +
 					" 		Because "+e+".\n" +
-					" 		In update request from "+dateDeb+ " to "+ dateFin+ ".\n" +
-					" 		Reseting last update quote to : "+lastQuote;
-			
+					" 		In update request from "+dateDeb+ " to "+ dateFin+ ".";
 			LOGGER.warn(scrapErrorMess);
 			LOGGER.debug(e,e);
 			
 		} finally {
+			
 			this.setChanged();
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
+			
 		}
+		
+		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);
+		stock.setLastQuote(lastQuote);
+		updateLastQuoteDateForShareInDB(lastQuote);
+		//DataSource.getInstance().getShareDAO().saveOrUpdateShare(stock);
+
+		LOGGER.guiInfo("Downloaded for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
+
+		Quotations.removeCashedStock(stock);
+		ret.hasQuotations = true;
 		
 		return ret;
 	}
@@ -157,7 +163,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	 * @param lastquote
 	 * @throws SQLException
 	 */
-	private void updateLastQuoteDateForShareInDB(Date lastQuote) throws Exception {
+	private void updateLastQuoteDateForShareInDB(Date lastQuote) {
 		
 		if (null == lastQuote) {
 			LOGGER.debug("No last date returned from quotation fetch for : "+stock+". Assuming that it is up to date.");
@@ -182,7 +188,13 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 				return uQ;
 			}
 		});
-		DataSource.getInstance().executeBlock(updateLastQuotesQueries, DataSource.SHARES.getUPDATELASTQUOTEANDNAME());
+		
+		try {
+			DataSource.getInstance().executeBlock(updateLastQuotesQueries, DataSource.SHARES.getUPDATELASTQUOTEANDNAME());
+		} catch (SQLException e) {
+			LOGGER.error(e,e);
+		}
+		
 	}
 	
 	public class GetQuotationResult {

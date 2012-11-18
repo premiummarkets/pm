@@ -41,6 +41,8 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.Indicator;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.StripedQuotations;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
@@ -50,10 +52,15 @@ public abstract class TalibIndicator extends Indicator {
 	
 	protected MInteger outBegIdx = new MInteger();
 	protected MInteger outNBElement = new MInteger();
-	private Date outBegDate;
+	protected Date outBegDate;
 
 	protected TalibIndicator(Stock stock, Date firstDate, Integer firstIdxShift, Date lastDate, Integer lastIdxShift, Currency calculationCurrency, Number...indicatorParams) throws TalibException, NoQuotationsException {
 		super(stock, firstDate, lastDate, calculationCurrency, firstIdxShift + 15, lastIdxShift);
+		if (hasQuotations()) this.calculateIndicator(indicatorParams);
+	}
+	
+	protected TalibIndicator(Quotations calcQuotations, Number...indicatorParams) throws TalibException {
+		super(calcQuotations);
 		if (hasQuotations()) this.calculateIndicator(indicatorParams);
 	}
 
@@ -80,7 +87,7 @@ public abstract class TalibIndicator extends Indicator {
 				outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
 			}
 		} catch (Exception e) {
-			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + this.getStockName(), new Throwable());
+			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + this.getStockName(), e);
 		}
 	
 	}
@@ -147,6 +154,22 @@ public abstract class TalibIndicator extends Indicator {
 	public MInteger getOutNBElement() {
 		return outNBElement;
 	}
+	
+	public StripedQuotations getStripedData(Integer lagFix) {
+
+		Integer fdIx = ((this.startIdx()-this.outBegIdx.value) < 0)?0:this.startIdx()-this.outBegIdx.value;
+		Integer ldIx = ((this.endIdx()-this.outBegIdx.value) < 0)?0:this.endIdx()-this.outBegIdx.value;
+
+		StripedQuotations ret = new StripedQuotations(ldIx-fdIx+1);
+
+		for (int i = fdIx; i <= ldIx; i++) {
+			ret.addBar(i, this.getIndicatorQuotationData().get(i + this.outBegIdx.value - lagFix).getDate(), getOutputData()[i]);
+		}
+		
+		return ret;
+	}
+
+	abstract public double[] getOutputData();
 
 	@Override
 	public String toString() {

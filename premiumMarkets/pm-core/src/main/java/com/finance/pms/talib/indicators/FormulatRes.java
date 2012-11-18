@@ -36,8 +36,8 @@ import java.util.Date;
 import com.finance.pms.events.EventDefinition;
 
 public class FormulatRes {
-	Boolean bullishcrossOver = false;
-	Boolean bearishcrossBellow = false;
+	Boolean bullishCrossOver = false;
+	Boolean bearishCrossBellow = false;
 	Date currentDate;
 	EventDefinition eventDefinition;
 	
@@ -57,26 +57,26 @@ public class FormulatRes {
 		this.currentDate = currentDate;
 	}
 
-	public Boolean getBullishcrossOver() {
-		return bullishcrossOver;
+	public Boolean getBullishCrossOver() {
+		return bullishCrossOver;
 	}
-	public void setBullishcrossOver(Boolean bullishcrossOver) {
-		this.bullishcrossOver = bullishcrossOver;
+	public void setBullishCrossOver(Boolean bullishCrossOver) {
+		this.bullishCrossOver = bullishCrossOver;
 	}
-	public Boolean getBearishcrossBellow() {
-		return bearishcrossBellow;
+	public Boolean getBearishCrossBellow() {
+		return bearishCrossBellow;
 	}
-	public void setBearishcrossBellow(Boolean bearishcrossBellow) {
-		this.bearishcrossBellow = bearishcrossBellow;
+	public void setBearishCrossBellow(Boolean bearishCrossBellow) {
+		this.bearishCrossBellow = bearishCrossBellow;
 	}
 	/**
 	 * @return
 	 */
 	public Integer formulaTrend() {
 		Integer ret = 0;
-		ret = (getBullishcrossOver()) ? 1 : 0;
-		ret = (getBearishcrossBellow()) ? -1 : ret;
-		ret = (getBullishcrossOver() && getBearishcrossBellow()) ? 0 : ret;
+		ret = (getBullishCrossOver()) ? 1 : 0;
+		ret = (getBearishCrossBellow()) ? -1 : ret;
+		ret = (getBullishCrossOver() && getBearishCrossBellow()) ? 0 : ret;
 		return ret;
 	}
 	

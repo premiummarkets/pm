@@ -57,6 +57,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -97,6 +98,8 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	
 
 	protected static NewPortfolioItemDialog inst;
+	
+	private Composite composite;
 
 	private Group shareListGroup;
 	protected Group addShareManualGroup;
@@ -120,6 +123,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	private MonitorLevel selectedMonitorLevel;
 
 	private Button newPortfollioValidateButton;
+	protected Button newPortfollioAddButton;
 	
 
 	/**
@@ -130,14 +134,17 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @param alreadyBought the already scaned
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param composite 
 	 */
-	public NewPortfolioItemDialog(Shell parent, int style, Collection<PortfolioShare> alreadyBought) {
+	public NewPortfolioItemDialog(Shell parent, int style, Collection<PortfolioShare> alreadyBought, Composite composite) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE | style);
-		this.selectedMonitorLevel = MonitorLevel.ANY;
+		this.selectedMonitorLevel = MonitorLevel.BEARISH;
 		this.selectedQuantity = BigDecimal.ONE;
 		this.selectedStocks = new ArrayList<Stock>();
 		
 		this.alreadyBought = alreadyBought;
+		
+		this.composite = composite;
 	}
 
 	/**
@@ -152,7 +159,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		ctx.setDataSource(args[0]);
 		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
 		ctx.refresh();
-		showUI(new ArrayList<PortfolioShare>(), new Shell());
+		showUI(new ArrayList<PortfolioShare>(), new Shell(), null);
 	}
 
 	/**
@@ -164,12 +171,12 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public static NewPortfolioItemDialog showUI(Collection<PortfolioShare> alreadyScanned, Shell shell) {
+	public static NewPortfolioItemDialog showUI(Collection<PortfolioShare> alreadyScanned, Shell shell, PortfolioComposite composite) {
 		
 		if (inst == null || inst.isDisposed()) {
 
 			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
-			inst = new NewPortfolioItemDialog(piShell, SWT.NULL, alreadyScanned);
+			inst = new NewPortfolioItemDialog(piShell, SWT.NULL, alreadyScanned, composite);
 			try {
 				inst.open();
 				swtLoop();
@@ -445,12 +452,28 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				for (int j = 0, n = MonitorLevel.values().length; j < n; j++) {
 					moniCombo.add(MonitorLevel.values()[j].getMonitorLevel());
 				}
-				moniCombo.select(moniCombo.indexOf(MonitorLevel.ANY.getMonitorLevel()));
+				moniCombo.select(moniCombo.indexOf(MonitorLevel.BEARISH.getMonitorLevel()));
+			}
+			{
+				newPortfollioAddButton = new Button(shareListGroup, SWT.BORDER);
+				GridData newShareValidateButtonLData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				newShareValidateButtonLData.horizontalSpan = 1;
+				newPortfollioAddButton.setLayoutData(newShareValidateButtonLData);
+				newPortfollioAddButton.setText("Add");
+				newPortfollioAddButton.setFont(MainGui.DEFAULTFONT);
+				final NewPortfolioItemDialog pC = this;
+				newPortfollioAddButton.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseDown(MouseEvent evt) {
+						newPortfollioItemAddButtonMouseDown();
+						((PortfolioComposite)composite).addShares(pC);
+					}
+				});
 			}
 			{
 				newPortfollioValidateButton = new Button(shareListGroup, SWT.BORDER);
 				GridData newShareValidateButtonLData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				newShareValidateButtonLData.horizontalSpan = 2;
+				newShareValidateButtonLData.horizontalSpan = 1;
 				newPortfollioValidateButton.setLayoutData(newShareValidateButtonLData);
 				newPortfollioValidateButton.setText("Ok");
 				newPortfollioValidateButton.setFont(MainGui.DEFAULTFONT);
@@ -636,6 +659,25 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 
 		symbolTable.removeAll();
 		updateTableDisplay();
+	}
+	
+	/**
+	 * New portfollio item validate button mouse down.
+	 * 
+	 * @param evt the evt
+	 * 
+	 * @author Guillaume Thoreton
+	 */
+	private void newPortfollioItemAddButtonMouseDown() {
+		
+		selectedStocks = new ArrayList<Stock>();
+		int[] selections = symbolTable.getSelectionIndices();
+		for (int i = 0; i < selections.length; i++) {
+			selectedStocks.add(stockList.get(selections[i]));
+		}
+		selectedQuantity = new BigDecimal(quantityText.getText());
+		selectedMonitorLevel = MonitorLevel.valueOfString(moniCombo.getText());
+		
 	}
 
 	/**

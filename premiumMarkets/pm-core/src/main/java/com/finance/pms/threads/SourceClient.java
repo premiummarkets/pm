@@ -38,5 +38,7 @@ package com.finance.pms.threads;
  * @author Guillaume Thoreton
  */
 public interface SourceClient {
+	
+	public Boolean isValid();
 
 }

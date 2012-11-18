@@ -218,7 +218,7 @@ public abstract class TrendSupplementStockExporter extends Exporter<NavigableSet
 	/**
 	 * @param previousEventValue
 	 */
-	private Integer extractPreviousRankFromMessage(EventValue previousEventValue) {
+	protected Integer extractPreviousRankFromMessage(EventValue previousEventValue) {
 		
 		Pattern pattern = Pattern.compile("Rank is : --([0-9]+)--");
 		Matcher matcher = pattern.matcher(previousEventValue.getMessage());

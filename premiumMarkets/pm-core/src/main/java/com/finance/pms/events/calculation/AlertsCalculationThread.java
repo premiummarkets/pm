@@ -83,7 +83,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				ThresholdAlertParser thresholdAlertIndicator =  new ThresholdAlertParser(portfolioShare, startDate, endDate, calculationCurrency);
 				Set<EventCompostionCalculator> evtCalculators = new HashSet<EventCompostionCalculator>();
 				evtCalculators.add(thresholdAlertIndicator);
-				Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(evtCalculators);
+				Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(evtCalculators, startDate, endDate, true);
 				
 				for (EventValue eventValue : eventDataAggregation.values()) {
 					//Here eventListName must be = to portfolio name for alerts

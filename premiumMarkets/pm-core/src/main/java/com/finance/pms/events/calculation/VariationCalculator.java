@@ -39,6 +39,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -59,7 +61,7 @@ public class VariationCalculator extends EventCompostionCalculator {
 		super(stock, startDate, endDate, transactionCurrency, timePeriod);
 		this.analysisName = analysisName;
 		this.timePeriod = timePeriod;
-		this.devSpanDiff=devSpanDiff;
+		this.devSpanDiff = devSpanDiff;
 		
 		initExport();
 		
@@ -75,6 +77,13 @@ public class VariationCalculator extends EventCompostionCalculator {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+
+	@Override
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+		// Nothing as variation should be unmutable
+		
 	}
 
 	@Override
@@ -168,6 +177,16 @@ public class VariationCalculator extends EventCompostionCalculator {
 
 	protected int getDaysSpan() {
 		return 0;
+	}
+
+	@Override
+	public  SortedMap<Date, double[]> calculationOutput() {
+		return new TreeMap<Date, double[]>();
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.VARIATION;
 	}
 
 

@@ -36,10 +36,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.commons.math.stat.regression.SimpleRegression;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
@@ -53,16 +59,22 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public abstract class IndicatorsCompositionCalculator extends EventCompostionCalculator {
+public abstract class TalibIndicatorsCompositionCalculator extends EventCompostionCalculator {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCompositionCalculator.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionCalculator.class);
 	
-	public IndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
 	}
 
-	public IndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency transactionCurrency, int calculatorIndexShift) throws NotEnoughDataException {
+	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency transactionCurrency, int calculatorIndexShift) throws NotEnoughDataException {
 		super(stock, startDate, endDate, transactionCurrency, calculatorIndexShift);
+	}
+	
+
+	@Override
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+		// Nothing as Talib events are not clean but overriden
 	}
 
 	@Override
@@ -85,7 +97,7 @@ public abstract class IndicatorsCompositionCalculator extends EventCompostionCal
 				}
 			}
 			
-		} catch (InvalidAlgorithmParameterException e) {
+		} catch (Exception e) {
 			LOGGER.error("",e);
 		} finally {
 			if (LOGGER.isDebugEnabled()) {
@@ -164,7 +176,6 @@ public abstract class IndicatorsCompositionCalculator extends EventCompostionCal
 	 */
 	public void exportToCSV(Map<EventKey, EventValue> edata, String eventListName) {
 		
-		
 		File export = 
 				new File(
 						System.getProperty("installdir") + File.separator + "tmp" + File.separator +
@@ -173,10 +184,10 @@ public abstract class IndicatorsCompositionCalculator extends EventCompostionCal
 		FileWriter fos = null;
 		try {
 			fos = new FileWriter(export);
-			String header = getHeader();
+			String header = getHeader(null);
 			fos.write(header);
 			for (int i = calculationStartIdx; i <= calculationEndIdx; i++) {
-				String line = buildLine(i, edata);
+				String line = buildLine(i, edata, null);
 				fos.write(line);
 			}
 			fos.flush();
@@ -191,12 +202,137 @@ public abstract class IndicatorsCompositionCalculator extends EventCompostionCal
 					LOGGER.error("", e);
 				}
 		}
+		
+	}
+	
+	protected String addScoringHeader(String head, List<Integer> scoringSmas) {
+		if (scoringSmas == null) return head;
+		for (Integer integer : scoringSmas) {
+			head = head + ", sma "+integer;
+		}
+		return head;
 	}
 
-	protected  abstract String getHeader();
+	
+	protected String addScoringLinesElement(String line, Date date, List<SortedMap<Date, double[]>> linearsExpects) {
+		
+		if (linearsExpects == null) return line;
+		
+		for (SortedMap<Date, double[]> linear : linearsExpects) {
+			double[] ds = linear.get(date);
+			if (ds != null) {
+				line = line + ds[0]+ ",";
+			} else {
+				line = line + "0,";
+			}
+		}
+		
+		return line;
+	}
 
-	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata);
+	protected  abstract String getHeader(List<Integer> scoringSmas);
+
+	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects);
 	
+
+	protected Boolean lowerLow(double[] data, double[] threshCurve) {
+		
+		//build low through array
+		List<Double> lowThrough = lowThrough(data, threshCurve);
+		
+		//linear reg of the curve
+		double dataSlope = dataSlope(lowThrough);
+		
+		return dataSlope < 0;
+
+	}
+
+	private List<Double> lowThrough(double[] data, double[] threshCurve) {
+		List<Double> lowThrough = new ArrayList<Double>();
+		for (int i = 1 ; i < data.length-1; i++) {
+			if (data[i-1] > data[i] && data[i] < data[i+1] && data[i] < threshCurve[i]) {// low through
+				lowThrough.add(data[i]);
+			}
+		}
+		return lowThrough;
+	}
+
+
+	protected Boolean higherHigh(double[] data, double[] threshCurve) {
+
+		//build high peaks array
+		List<Double> highPeaks = highPeaks(data, threshCurve);
+
+		//linear reg of the curve
+		double dataSlope = dataSlope(highPeaks);
+
+		return dataSlope > 0;
+
+	}
+
+	private List<Double> highPeaks(double[] data, double[] threshCurve) {
+		List<Double> highPeaks = new ArrayList<Double>();
+		for (int i = 1 ; i < data.length-1; i++) {
+			if (data[i-1] < data[i] && data[i] > data[i+1] && data[i] > threshCurve[i]) {
+				highPeaks.add(data[i]);
+			}
+		}
+		return highPeaks;
+	}
 	
+
+	protected Boolean higherLow(double[] data, double[] threshCurve) {
+		
+		//build low through array
+		List<Double> lowThrough = lowThrough(data, threshCurve);
+		
+		//linear reg of the curve
+		double dataSlope = dataSlope(lowThrough);
+		
+		return dataSlope > 0;
+		
+		
+	}
+	
+
+	protected Boolean lowerHigh(double[] data, double[] threshCurve) {
+		
+		//build high peaks array
+		List<Double> highPeaks = highPeaks(data, threshCurve);
+
+		//linear reg of the curve
+		double dataSlope = dataSlope(highPeaks);
+
+		return dataSlope < 0;
+		
+	}
+	
+	private double dataSlope(List<Double> data) {
+		double[] dataArr = new double[data.size()];
+		for (int i = 0; i < dataArr.length; i++) {
+			dataArr[i] = data.get(i);
+		}
+		return dataSlope(dataArr);
+	}
+
+	protected double dataSlope(double[] data) {
+		
+		//linear reg of the curve
+		double[][] regInput = new double[data.length][];
+		for (int i = 0; i < data.length; i++) {
+			regInput[i] = new double[]{i,data[i]};
+		}
+		SimpleRegression regression = new SimpleRegression();
+		regression.addData(regInput);
+		double slope = regression.getSlope();
+		
+		return slope;
+	
+	}
+	
+	public  SortedMap<Date, double[]> calculationOutput() {
+		return new TreeMap<Date, double[]>();
+	}
+
 
 }

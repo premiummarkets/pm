@@ -114,30 +114,11 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		return shareList;
 	}
 	
-//	@SuppressWarnings("unchecked")
-//	
-//	public List<AutoPortfolio> loadAutoPortfolios() {
-//		List<AutoPortfolio>  retour;
-//		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(AutoPortfolio.class);
-//		detachedCriteria.addOrder(Order.asc("name"));
-//		retour = this.getHibernateTemplate().findByCriteria(detachedCriteria);
-//		
-//		return retour;
-//	}
-	
 	@SuppressWarnings("unchecked")
 	
 	public List<String> loadShareListNames() {
 		return this.getHibernateTemplate().find("select name from SharesList");
 	}
-
-//	
-//	public TuningAutoPortfolio loadTuningPortfolio(String name) throws InvalidAlgorithmParameterException {		
-//		
-//		TuningAutoPortfolio portfolio = (TuningAutoPortfolio)this.getHibernateTemplate().get(TuningAutoPortfolio.class,name);
-//		if (portfolio == null)  throw new InvalidAlgorithmParameterException("No portfolio named :"+name);
-//		return portfolio;
-//	}
 
 	@SuppressWarnings("unchecked")
 	

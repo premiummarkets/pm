@@ -34,9 +34,9 @@ package com.finance.pms.events.calculation;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.Observer;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.SortedMap;
 
 import javax.jms.Queue;
 
@@ -47,6 +47,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.portfolio.PortfolioDAO;
 
 
@@ -66,11 +67,11 @@ public abstract class IndicatorsCalculationService {
 	protected ShareDAO shareDAO;
 	protected PortfolioDAO portfolioDAO;
 	private Collection<Stock> symbolsCache;
-	protected Set<Observer> observers;
+	//protected Set<Observer> observers;
 
 	public IndicatorsCalculationService() {
 		super();
-		observers = new ConcurrentSkipListSet<Observer>();
+		//observers = new ConcurrentSkipListSet<Observer>();
 	}
 
 	/**
@@ -94,15 +95,23 @@ public abstract class IndicatorsCalculationService {
 	 * @param limitedCache 
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param observers 
+	 * @return 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber) throws InvalidAlgorithmParameterException {
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, Observer... observers) throws InvalidAlgorithmParameterException {
+		
 		if ((this.symbolsCache == null) || !keepCache) this.symbolsCache = loadAllStocksFromDB();
+		
+		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analysisRes = null;
 		try {
-			analyze(this.symbolsCache, datedeb, datefin, calculationCurrency, analyseName, periodType, keepCache, passNumber, false, true);
+			analysisRes = analyze(this.symbolsCache, datedeb, datefin, calculationCurrency, analyseName, 
+					periodType, keepCache, passNumber, false, true);
 		} catch (IncompleteDataSetException e) {
 			LOGGER.warn(e);
 		}
+		
+		return analysisRes;
 	}
 	
 
@@ -141,12 +150,14 @@ public abstract class IndicatorsCalculationService {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param persistEvents 
+	 * @return 
 	 * @throws InvalidAlgorithmParameterException 
 	 * @throws IncompleteDataSetException 
 	 */
-	public void analyze(Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-						String periodType, Boolean kc, Integer passNumber, Boolean export, Boolean persistEvents)	throws InvalidAlgorithmParameterException, IncompleteDataSetException {
-		this.analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, export, persistEvents);		
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyze(
+			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
+			String periodType, Boolean kc, Integer passNumber, Boolean export, Boolean persistEvents, Observer... observers)	throws InvalidAlgorithmParameterException, IncompleteDataSetException {
+		return this.analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, export, persistEvents, observers);		
 	}
 	
 	/**
@@ -161,12 +172,16 @@ public abstract class IndicatorsCalculationService {
 	 * @param limitedCache 
 	 * @author Guillaume Thoreton
 	 * @param persistEvents 
+	 * @param observers 
+	 * @return 
 	 * @throws InvalidAlgorithmParameterException 
 	 * @throws IncompleteDataSetException 
 	 */
-	public void partialAnalyze(Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-								String periodType, Boolean keepCache, Integer passNumer, Boolean export, Boolean persistEvents) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
-		this.analyze(symbols, dateDeb, dateFin, calculationCurrency, eventListName,periodType , keepCache, passNumer, export, persistEvents);
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> partialAnalyze(
+			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
+			String periodType, Boolean keepCache, Integer passNumer, Boolean export, Boolean persistEvents, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
+		
+		return this.analyze(symbols, dateDeb, dateFin, calculationCurrency, eventListName,periodType , keepCache, passNumer, export, persistEvents, observers);
 	}
 	
 	public void setShareDAO(ShareDAO shareDAO) {
@@ -185,38 +200,53 @@ public abstract class IndicatorsCalculationService {
 	 * @param calculationCurrency TODO
 	 * @param periodType the period type
 	 * @author Guillaume Thoreton
+	 * @param observers 
+	 * @return 
 	 * @throws InvalidAlgorithmParameterException 
 	 * @throws IncompleteDataSetException 
 	 */
-	protected abstract void analyseSymbolCollection(Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String eventListName, 
-													String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents) throws InvalidAlgorithmParameterException, IncompleteDataSetException;
+	protected abstract Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
+			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String eventListName, 
+			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents, Observer... observers) 
+					throws InvalidAlgorithmParameterException, IncompleteDataSetException;
 
 	
-	public void runIndicatorsCalculation(Collection<Stock> shareList, String eventListName, Date startDate, Date endDate, Currency calculationCurrency, 
-											String periodType, Integer passNumber, Boolean export, Boolean persistEvents) throws InvalidAlgorithmParameterException {
+	
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(
+			Collection<Stock> shareList, String eventListName, Date startDate, Date endDate, Currency calculationCurrency, 
+			String periodType, Integer passNumber, Boolean export, Boolean persistEvents, Observer... observers)
+																				throws InvalidAlgorithmParameterException {
+		
+		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> calcRes = null;
 		if (shareList.size() > 0) {
 			try {
-				partialAnalyze(shareList, startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, export, persistEvents);
+				calcRes = partialAnalyze(
+							shareList, startDate, endDate, calculationCurrency, eventListName, 
+							periodType, true, passNumber, export, persistEvents, observers);
+				
 			} catch (IncompleteDataSetException e) {
 				LOGGER.warn(e);
 			}
+			
 		} else {
-			fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber);
+			calcRes = fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, observers);
+		
 		}
 		
+		return calcRes;
 	}
 	
 	
-	//XXX observers should be passed as params to service methods as their life cycle is shorter than the singleton
-	public void addObservers(Collection<Observer> observers) {
-		if (observers != null) {
-			this.observers.addAll(observers);
-		} 
-	}
-
-	public void removeObserver(Observer otfObserver) {
-		this.observers.remove(otfObserver);
-	}
+//	//XXX observers should be passed as params to service methods as their life cycle is shorter than the singleton
+//	public void addObservers(Collection<Observer> observers) {
+//		if (observers != null) {
+//			this.observers.addAll(observers);
+//		} 
+//	}
+//
+//	public void removeObserver(Observer otfObserver) {
+//		this.observers.remove(otfObserver);
+//	}
 	
 	
 }

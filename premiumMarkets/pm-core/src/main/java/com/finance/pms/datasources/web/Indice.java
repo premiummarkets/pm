@@ -77,7 +77,9 @@ public class Indice implements Comparable<Indice> {
 		String[] indices = yahooIndices.split(",");
 		for (String indice : indices) {
 			String[] indiceElems = indice.split(":");
-			listIndice.add(new Indice(indiceElems[0],indiceElems[1]));
+			if (indiceElems.length == 2) {
+				listIndice.add(new Indice(indiceElems[0],indiceElems[1]));
+			}
 		}
 		return listIndice;
 	}

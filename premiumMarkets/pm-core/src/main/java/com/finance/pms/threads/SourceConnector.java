@@ -70,7 +70,7 @@ public interface SourceConnector {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public int restartSource(int connectionId); 
+	public int crashResart(int connectionId); 
 	
 	/**
 	 * Shutdown source.

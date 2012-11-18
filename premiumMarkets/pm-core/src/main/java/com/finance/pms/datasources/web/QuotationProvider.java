@@ -42,7 +42,7 @@ import com.finance.pms.datasources.shares.Stock;
 public interface QuotationProvider {
 	
 	
-	public Date getQuotes(Stock stock, Date start, Date end) throws Exception;
+	public void getQuotes(Stock stock, Date start, Date end) throws Exception;
 	
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception;
 

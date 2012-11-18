@@ -36,6 +36,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
+import java.util.Observer;
+import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +51,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 
 
@@ -100,8 +104,9 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 	 * @see com.finance.pms.events.calculation.IndicatorCalculationService#analyseSymbolCollection(java.lang.String, java.util.Date, java.util.Date, java.util.Collection)
 	 */
 	@Override
-	public void analyseSymbolCollection(
-			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String analyseName,String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean p) {
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
+			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, 
+			String analyseName,String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean p, Observer...observers) {
 
 		//		String dateDeb = "now - 30 day";
 		//		String dateFin = "now";
@@ -158,6 +163,8 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		return null;
 	}
 	
 	

@@ -114,7 +114,7 @@ public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnec
 	}
 
 	
-	public int restartSource(int connectionId) {
+	public int crashResart(int connectionId) {
 		return 0;
 	}
 

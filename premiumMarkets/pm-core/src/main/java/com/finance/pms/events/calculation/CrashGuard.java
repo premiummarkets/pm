@@ -33,7 +33,9 @@ package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -49,7 +51,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
  * TODO Main indexes sma 10 negative/positive for 15 days in a row
  *
  */
-public class CrashGuard extends IndicatorsCompositionCalculator {
+public class CrashGuard extends TalibIndicatorsCompositionCalculator {
 	
 	private static final int DAYS_SPAN = 10;
 	
@@ -79,7 +81,7 @@ public class CrashGuard extends IndicatorsCompositionCalculator {
 			
 			boolean sharpSMAFAll = (rate <= -0.15); 
 			
-			res.setBearishcrossBellow(sharpSMAFAll);	
+			res.setBearishCrossBellow(sharpSMAFAll);	
 			
 		}
 		
@@ -97,15 +99,20 @@ public class CrashGuard extends IndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String getHeader() {
+	protected String getHeader(List<Integer> scoringSmas) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.CRASHGUARD;
 	}
 
 	

@@ -1,0 +1,1 @@
+update portfolio set MONITOR = 1 where MONITOR = 3;

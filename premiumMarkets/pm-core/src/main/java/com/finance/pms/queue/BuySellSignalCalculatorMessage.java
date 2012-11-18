@@ -41,7 +41,7 @@ import javax.jms.JMSException;
 
 import com.finance.pms.admin.config.Config;
 
-public class SignalProcessorMessage extends IdentifiedObjecMessage implements Serializable {
+public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage implements Serializable {
 	
 	private static final long serialVersionUID = -4542088662852292807L;
 	
@@ -54,7 +54,7 @@ public class SignalProcessorMessage extends IdentifiedObjecMessage implements Se
 	private String signalProcessingName;
 	private String[] additionalEventListNames;
 	
-	public SignalProcessorMessage(String messageTxt, Date startDate, Date endDate, String signalProcessingName, Map<String,Config> ptc, String... eventListName) {
+	public BuySellSignalCalculatorMessage(String messageTxt, Date startDate, Date endDate, String signalProcessingName, Map<String,Config> ptc, String... eventListName) {
 		super(messageTxt.hashCode()+startDate.hashCode()+signalProcessingName.hashCode());
 		this.messageTxt = messageTxt;
 		this.passedThroughConfigs = ptc;
@@ -370,7 +370,7 @@ public class SignalProcessorMessage extends IdentifiedObjecMessage implements Se
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		SignalProcessorMessage other = (SignalProcessorMessage) obj;
+		BuySellSignalCalculatorMessage other = (BuySellSignalCalculatorMessage) obj;
 		if (messageTxt == null) {
 			if (other.messageTxt != null)
 				return false;

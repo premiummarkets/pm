@@ -101,7 +101,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 	 * @see com.finance.pms.datasources.web.Providers#getQuotes(com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date)
 	 */
 	@Override
-	public Date getQuotes(Stock ticker, Date start, Date end) throws SQLException, HttpException {
+	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException, HttpException {
 		
 		DayQuoteBoursoramaFormater dayQuoteBoursoramaFormater = new DayQuoteBoursoramaFormater(
 				this.httpSource.getStockQuotationURL(
