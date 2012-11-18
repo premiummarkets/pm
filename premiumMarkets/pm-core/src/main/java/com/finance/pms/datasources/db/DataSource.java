@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -45,6 +44,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -300,11 +300,28 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			putInPrefs("perceptron.minNbOfTrainingYears",props);
 			putInPrefs("perceptron.expectedSmothingSMAPeriod",props);
 			putInPrefs("perceptron.perceptronMinMonthEvents",props);
+			putInPrefs("perceptron.stampoutput",props);
+			putInPrefs("perceptron.exportoutput",props);
+			if (System.getProperty("neural.nbTrainingIter") != null) {
+				MainPMScmd.getPrefs().put("neural.nbTrainingIter", System.getProperty("neural.nbTrainingIter"));
+			} else {
+				putInPrefs("neural.nbTrainingIter",props);
+			}
+			
+			//Sector
+			//sector.nbTrainingIter
+			if (System.getProperty("sector.nbTrainingIter") != null) {
+				MainPMScmd.getPrefs().put("sector.nbTrainingIter", System.getProperty("sector.nbTrainingIter"));
+			} else {
+				putInPrefs("sector.nbTrainingIter",props);
+			}
 			
 			//tune 
 			putInPrefs("perceptron.retuneSpan", props);
 			putInPrefs("perceptron.retuneFreq", props);
 			putInPrefs("tuning.configs",props);
+			putInPrefs("perceptron.nbfolds",props);
+			putInPrefs("perceptron.foldsize",props);
 			
 			//Q fact
 			putInPrefs("bean.quotationFactory", props);
@@ -343,45 +360,45 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			
 			MainPMScmd.getPrefs().flush();
 		} catch (Exception e) {
-			LOGGER.error("Couldn't find propertie file. Check the propeties path",e);
+			LOGGER.error("Couldn't init DataSource. Check the propeties path",e);
 		}
-		QUOTATIONS.TABLE_NAME = MainPMScmd.getPrefs().get("quotations", "quotations");
-		QUOTATIONS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("symbol", "symbol");
-		QUOTATIONS.ISIN_FIELD = MainPMScmd.getPrefs().get("isin", "isin");
-		QUOTATIONS.DATE_FIELD = MainPMScmd.getPrefs().get("date", "date");
-		QUOTATIONS.DAY_OPEN_FIELD = MainPMScmd.getPrefs().get("open", "openvalue");
-		QUOTATIONS.DAY_CLOSE_FIELD = MainPMScmd.getPrefs().get("close", "closevalue");
-		QUOTATIONS.DAY_HIGH_FIELD = MainPMScmd.getPrefs().get("high", "high");
-		QUOTATIONS.DAY_LOW_FIELD = MainPMScmd.getPrefs().get("low", "low");
-		QUOTATIONS.DAY_VOLUME_FIELD = MainPMScmd.getPrefs().get("volume", "volume");
-		QUOTATIONS.CURRENCY_FIELD = MainPMScmd.getPrefs().get("currency", "currency");
-		SHARES.TABLE_NAME = MainPMScmd.getPrefs().get("shares", "shares");
-		SHARES.ISIN_FIELD = MainPMScmd.getPrefs().get("lookup.isin", "isin");
-		SHARES.SYMBOL_FIELD = MainPMScmd.getPrefs().get("lookup.symbol", "symbol");
-		SHARES.NAME_FIELD = MainPMScmd.getPrefs().get("lookup.name", "name");
-		SHARES.REMOVABLE = MainPMScmd.getPrefs().get("lookup.removable", "removable");
-		SHARES.CATEGORY = MainPMScmd.getPrefs().get("lookup.category", "category");
-		SHARES.LASTQUOTE = MainPMScmd.getPrefs().get("lookup.lastquote", "lastquote");
-		SHARES.QUOTATIONPROVIDER = MainPMScmd.getPrefs().get("lookup.provider", "quotationprovider");
-		SHARES.MARKET = MainPMScmd.getPrefs().get("lookup.market", "marketlistprovider");
-		PORTFOLIO.TABLE_NAME = MainPMScmd.getPrefs().get("portfolio.table", "portfolio");
-		PORTFOLIO.SYMBOL_FIELD = MainPMScmd.getPrefs().get("portfolio.symbol", "symbol");
-		PORTFOLIO.QUANTIY_FIELD = MainPMScmd.getPrefs().get("portfolio.quantity", "quantity");
-		PORTFOLIO.DATE_FIELD = MainPMScmd.getPrefs().get("portfolio.buydate", "buydate");
-		PORTFOLIO.CASHIN_FIELD = MainPMScmd.getPrefs().get("portfolio.cashin", "cashin");
-		PORTFOLIO.CASHOUT_FIELD = MainPMScmd.getPrefs().get("portfolio.cashout", "cashout");
-		PORTFOLIO.NAME_FIELD = MainPMScmd.getPrefs().get("portfolio.name", "name");
-		PORTFOLIO.MONITOR_FIELD = MainPMScmd.getPrefs().get("portfolio.monitor", "monitor");
-		EVENTS.EVENTS_TABLE_NAME = MainPMScmd.getPrefs().get("events.table", "events");
-		EVENTS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("events.symbol", "symbol");
-		EVENTS.ISIN_FIELD = MainPMScmd.getPrefs().get("events.isin", "isin");
-		EVENTS.ACCURACY_FIELD = MainPMScmd.getPrefs().get("events.accuracy", "accuracy");
-		EVENTS.DATE_FIELD = MainPMScmd.getPrefs().get("events.date", "date");
-		EVENTS.EVENTDEFID_FIELD = MainPMScmd.getPrefs().get("events.eventdefid", "eventdefid");
-		EVENTS.EVENTDEF_FIELD = MainPMScmd.getPrefs().get("events.eventdef", "eventdef");
+		QUOTATIONS.TABLE_NAME = MainPMScmd.getPrefs().get("quotations", "QUOTATIONS");
+		QUOTATIONS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("symbol", "SYMBOL");
+		QUOTATIONS.ISIN_FIELD = MainPMScmd.getPrefs().get("isin", "ISIN");
+		QUOTATIONS.DATE_FIELD = MainPMScmd.getPrefs().get("date", "DATE");
+		QUOTATIONS.DAY_OPEN_FIELD = MainPMScmd.getPrefs().get("open", "OPENVALUE");
+		QUOTATIONS.DAY_CLOSE_FIELD = MainPMScmd.getPrefs().get("close", "CLOSEVALUE");
+		QUOTATIONS.DAY_HIGH_FIELD = MainPMScmd.getPrefs().get("high", "HIGH");
+		QUOTATIONS.DAY_LOW_FIELD = MainPMScmd.getPrefs().get("low", "LOW");
+		QUOTATIONS.DAY_VOLUME_FIELD = MainPMScmd.getPrefs().get("volume", "VOLUME");
+		QUOTATIONS.CURRENCY_FIELD = MainPMScmd.getPrefs().get("currency", "CURRENCY");
+		SHARES.TABLE_NAME = MainPMScmd.getPrefs().get("shares", "SHARES");
+		SHARES.ISIN_FIELD = MainPMScmd.getPrefs().get("lookup.isin", "ISIN");
+		SHARES.SYMBOL_FIELD = MainPMScmd.getPrefs().get("lookup.symbol", "SYMBOL");
+		SHARES.NAME_FIELD = MainPMScmd.getPrefs().get("lookup.name", "NAME");
+		SHARES.REMOVABLE = MainPMScmd.getPrefs().get("lookup.removable", "REMOVABLE");
+		SHARES.CATEGORY = MainPMScmd.getPrefs().get("lookup.category", "CATEGORY");
+		SHARES.LASTQUOTE = MainPMScmd.getPrefs().get("lookup.lastquote", "LASTQUOTE");
+		SHARES.QUOTATIONPROVIDER = MainPMScmd.getPrefs().get("lookup.provider", "QUOTATIONPROVIDER");
+		SHARES.MARKET = MainPMScmd.getPrefs().get("lookup.market", "MARKETLISTPROVIDER");
+		PORTFOLIO.TABLE_NAME = MainPMScmd.getPrefs().get("portfolio.table", "PORTFOLIO");
+		PORTFOLIO.SYMBOL_FIELD = MainPMScmd.getPrefs().get("portfolio.symbol", "SYMBOL");
+		PORTFOLIO.QUANTIY_FIELD = MainPMScmd.getPrefs().get("portfolio.quantity", "QUANTITY");
+		PORTFOLIO.DATE_FIELD = MainPMScmd.getPrefs().get("portfolio.buydate", "BUYDATE");
+		PORTFOLIO.CASHIN_FIELD = MainPMScmd.getPrefs().get("portfolio.cashin", "CASHIN");
+		PORTFOLIO.CASHOUT_FIELD = MainPMScmd.getPrefs().get("portfolio.cashout", "CASHOUT");
+		PORTFOLIO.NAME_FIELD = MainPMScmd.getPrefs().get("portfolio.name", "NAME");
+		PORTFOLIO.MONITOR_FIELD = MainPMScmd.getPrefs().get("portfolio.monitor", "MONITOR");
+		EVENTS.EVENTS_TABLE_NAME = MainPMScmd.getPrefs().get("events.table", "EVENTS");
+		EVENTS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("events.symbol", "SYMBOL");
+		EVENTS.ISIN_FIELD = MainPMScmd.getPrefs().get("events.isin", "ISIN");
+		EVENTS.ACCURACY_FIELD = MainPMScmd.getPrefs().get("events.accuracy", "ACCURACY");
+		EVENTS.DATE_FIELD = MainPMScmd.getPrefs().get("events.date", "DATE");
+		EVENTS.EVENTDEFID_FIELD = MainPMScmd.getPrefs().get("events.eventdefid", "EVENTDEFID");
+		EVENTS.EVENTDEF_FIELD = MainPMScmd.getPrefs().get("events.eventdef", "EVENTDEF");
 		EVENTS.EVENTDEFEXTENSION_FIELD = "EVENTDEFEXTENSION";
-		EVENTS.EVENTTYPE_FIELD = MainPMScmd.getPrefs().get("events.type", "eventtype");
-		EVENTS.ANALYSE_NAME = MainPMScmd.getPrefs().get("events.type", "analysename");
+		EVENTS.EVENTTYPE_FIELD = MainPMScmd.getPrefs().get("events.type", "EVENTTYPE");
+		EVENTS.ANALYSE_NAME = MainPMScmd.getPrefs().get("events.type", "ANALYSENAME");
 		
 		if (singleton == null) {
 			LOGGER.debug("Number of Long batch DB Threads :" + new Integer(MainPMScmd.getPrefs().get("db.poolsize", "10")));
@@ -430,12 +447,12 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			return ret;
 		} catch (InterruptedException e) {
 			LOGGER.error("Unable to get Connection. Is data base started?", e);
-			System.exit(1);
+			//System.exit(1);
 		} catch (TimeoutException e) {
 			LOGGER.error("Unable to get Connection. Is data base started? Thread lock ?", e);
 		}
 		LOGGER.error("Unable to get Connection. For one reason or the other ...");
-		System.exit(1);
+		//System.exit(1);
 		return null;
 	}
 
@@ -447,13 +464,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 * @author Guillaume Thoreton
 	 */
 	public static void realesePoolConnection(SourceClient conn) {
+		
 		try {
+			
 			((MyDBConnection) conn).getConn().commit();
+			
 		} catch (SQLException e) {
-			// ((MyDBConnection) conn).getConn().rollback();
-			LOGGER.error("ERROR releasing connection : ",e);
+			LOGGER.error("ERROR releasing connection : ", e);
 			LOGGER.debug(e.getCause());
 			LOGGER.debug(e.getNextException());
+			
+			try {
+				conn = DataSource.getInstance().getThreadPool().reconnectSource(conn);
+			} catch (Exception e1) {
+				LOGGER.error(e,e);
+			}
+			
 		}
 		DataSource.getInstance().getThreadPool().releaseResource(conn);
 	}
@@ -1021,7 +1047,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 	
-	public void cleanEventsForAnalysisName(final String analyseName, final Date start, final Date end, EventDefinition ...eventDefinitions) {
+	public void cleanEventsForAnalysisName(String analyseName, Date start, Date end, EventDefinition ...eventDefinitions) {
 
 		try {
 			
@@ -1033,7 +1059,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			executeUpdate(iq);
 			
 		} catch (SQLException e) {
-			LOGGER.error(e,e);
+			LOGGER.warn("Ignoring deletion error : ",e);
 		}
 	}
 	
@@ -1281,8 +1307,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				throw new RestartServerException("Data Base not started or already in use.");
 			} else {
 				LOGGER.error("Can't start Data Base!?",e);
+				throw new RuntimeException("Can't start Data Base!?",e);
 			}
-			return null;
+			//return null;
 		}
 		nbExceptions = 0;
 		return conn;
@@ -1294,18 +1321,23 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	private String connectionUrl() {
 		String connectionURL;
 		
-		connectionURL = "jdbc:" + MainPMScmd.getPrefs().get("software", "derby");
+		String protocol = MainPMScmd.getPrefs().get("software", "derby");
+		connectionURL = "jdbc:" + protocol;
 		
-		String commandLineDb = System.getProperty("databasePath");
+		String commandLineDb = System.getProperty("dbpath");
 		if (commandLineDb != null) {
-			connectionURL = connectionURL + commandLineDb;
+			MainPMScmd.getPrefs().put("dbpath", commandLineDb);
+			connectionURL = connectionURL + ":" + commandLineDb;
 		} else {
 			connectionURL = connectionURL + ":" + MainPMScmd.getPrefs().get("dbpath", "derby/");
-			connectionURL = connectionURL + MainPMScmd.getPrefs().get("database", "premiummarkets");
 		}
+		
+		if (connectionURL.endsWith("/")) connectionURL = connectionURL.substring(0,connectionURL.length()-1);
+		connectionURL = connectionURL + "/" + MainPMScmd.getPrefs().get("database", "premiummarkets");
 
-		if (!MainPMScmd.getPrefs().get("username", "nouserspecified").equals("nouserspecified"))
-			connectionURL += "?user=" + MainPMScmd.getPrefs().get("username", "nouserspecified") + "&password=" + MainPMScmd.getPrefs().get("password", "password");
+		String username = MainPMScmd.getPrefs().get("username", "nouserspecified");
+		if (!username.isEmpty() && !username.equals("nouserspecified"))
+			connectionURL += "?user=" + username + "&password=" + MainPMScmd.getPrefs().get("password", "password");
 		return connectionURL;
 	}
 
@@ -1358,11 +1390,12 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			if (qL.size() > 0) resReq = pst.executeBatch();
 			
 		} catch (SQLException e) {
-			if (!e.getCause().getMessage().contains("duplicate key"))  {
-				LOGGER.error("Error while doing insert : " + debug, e);
-			} else {
-				LOGGER.error("Duplicate key while doing insert : " + debug, e);
-			}
+//			if (!e.getCause().getMessage().toLowerCase().contains("duplicate"))  {
+//				LOGGER.error("Error while doing insert : " + debug, e);
+//			} else {
+//				LOGGER.warn("Duplicate key while doing insert : " + debug, e);
+//			}
+			LOGGER.error("Error while doing insert : " + debug, e);
 			throw e;
 		} finally {
 			DataSource.realesePoolConnection(sdbcnx);
@@ -1392,7 +1425,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			if (qL.size() > 0) resReq = pst.executeBatch();
 			
 		} catch (SQLException e) {
-			if (!e.getCause().getMessage().contains("duplicate key"))  {
+			if (!e.getCause().getMessage().toLowerCase().contains("duplicate"))  {
 				LOGGER.error("Error while doing " + preparedQuery + ". Details (in debug only): " + debug, e);
 			} else {
 				LOGGER.error("Duplicate key while doing " + preparedQuery + ". Details (in debug only): " + debug, e);
@@ -1448,46 +1481,111 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 * @author Guillaume Thoreton
 	 */
 	public int[] executeUpdateBlock(ArrayList<Validatable> qL, String preparedQuery, ArrayList<Validatable> s4UqL, String selectForUpDateQ) throws SQLException {
-		
-//		for (Validatable validatable : s4UqL) {
-//			Query query = validatable.toDataBase();
-//			query.setQuery(selectForUpDateQ);
-//			exectuteSelect(Object.class, query);
-//		}
 		return executeBlock(qL, preparedQuery);
 	}
 
 	/**
 	 * Execute long batch.
 	 * 
-	 * @param queries the queries
-	 * @param statement the statement
+	 * @param insertQueries the queries
+	 * @param insertStatement the statement
 	 * @param tablesLocked the tables locked
 	 * 
 	 * @throws SQLException the SQL exception
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param updateStatement 
 	 */
-	public void executeLongBatch(Collection<Validatable> queries, String statement, List<TableLocker> tablesLocked) throws SQLException {
+	public void executeInsertOrUpdateQuotations(List<Validatable> insertQueries, List<TableLocker> tablesLocked) throws SQLException {
 		
 		MyDBConnection sdbcnx = this.getConnection(null);
+		Collection<Validatable> updateQueries = new ArrayList<Validatable>();
+		Collection<Validatable> remainingInserts = new ArrayList<Validatable>();
+		int[] updateRess = new int[0];
 		try {
+			
 			Statement s = sdbcnx.getConn().createStatement();
+			
 			for (int i = 0; i < tablesLocked.size(); i++) {
 				if (!tablesLocked.get(i).getLockModeValue().equals(TableLocker.LockMode.NOLOCK)) {
 					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName()+ tablesLocked.get(i).getLockModeValue().getLockMode());
 					LOGGER.debug("Lock on table : " + tablesLocked.get(i).getTableName() + " : "+ tablesLocked.get(i).getLockModeValue().getLockMode());
 				}
 			}
-			DataSource.getInstance().executeBlock(sdbcnx, queries, statement);
-		} catch (SQLException e) {
-			if (!e.getCause().getMessage().contains("duplicate key"))  {
-				LOGGER.error("Insertion exception :" + e,e);
+			
+			for (Validatable validatable : insertQueries) {
+				
+				final List<Object> insertParams = validatable.toDataBase().getParameterValues();
+				
+				Validatable updteQ = new StockToDB() {
+
+					private static final long serialVersionUID = 7116230546055867637L;
+
+					@Override
+					public Query toDataBase() {
+					
+						//set
+						Query qupdate = new Query();
+						qupdate.addValue(insertParams.get(1));
+						qupdate.addValue(insertParams.get(2));
+						qupdate.addValue(insertParams.get(3));
+						qupdate.addValue(insertParams.get(4));
+						qupdate.addValue(insertParams.get(5));
+						qupdate.addValue(insertParams.get(6));
+
+						//where
+						qupdate.addValue(insertParams.get(7));
+						qupdate.addValue(insertParams.get(8));
+						qupdate.addValue(insertParams.get(0));
+
+						return qupdate;
+						
+					}
+
+					@Override
+					public String toString() {
+						 return "["+insertParams.get(1)+","+insertParams.get(2)+","+insertParams.get(3)+","+insertParams.get(4)+","+insertParams.get(5)+","+insertParams.get(6)+","+insertParams.get(7)+","+insertParams.get(8)+","+insertParams.get(0)+"]";
+					}
+				};
+				
+				updateQueries.add(updteQ);
+			}	
+			updateRess = DataSource.getInstance().executeBlock(sdbcnx, updateQueries, DataSource.QUOTATIONS.getUPDATE());
+			
+			for (int i = 0; i < updateRess.length; i++) {
+				if (updateRess[i] == 0) { 
+					remainingInserts.add(insertQueries.get(i));
+				}
 			}
-			throw e;
+			DataSource.getInstance().executeBlock(sdbcnx, remainingInserts, DataSource.QUOTATIONS.getINSERT());
+			
+		} catch (Exception e) {
+
+			LOGGER.error(
+					"Error updating quotations :\n" +
+					"Update request params :\n"+
+							printHugeCollection(updateQueries)+"\n" +
+					"Insert request params :\n"+
+							printHugeCollection(remainingInserts)+"\n" +
+					"Update return was " +
+							Arrays.toString(updateRess)
+					, e);
+			
+			throw new SQLException(e);
+			
 		} finally {
 			DataSource.realesePoolConnection(sdbcnx);
 		}
+	}
+
+	public static String printHugeCollection(Collection<Validatable> collection) {
+		
+		StringBuffer buffer = new StringBuffer();
+		for (Validatable validatable : collection) {
+			buffer.append(validatable+"\n");
+		}
+		
+		return buffer.toString();
 	}
 
 	/**
@@ -1538,6 +1636,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					+ QUOTATIONS.DAY_CLOSE_FIELD + " , " + QUOTATIONS.DAY_VOLUME_FIELD + " , " + QUOTATIONS.CURRENCY_FIELD + " , "
 					+ QUOTATIONS.SYMBOL_FIELD + " , " + QUOTATIONS.ISIN_FIELD + " ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		}
+		
+		public static String getUPDATE() {
+			return "UPDATE " + QUOTATIONS.TABLE_NAME + 
+					" set " + 
+					QUOTATIONS.DAY_OPEN_FIELD + "= ? , " + QUOTATIONS.DAY_HIGH_FIELD + " =? , " + QUOTATIONS.DAY_LOW_FIELD + "=? , " + QUOTATIONS.DAY_CLOSE_FIELD + "=? , " +
+					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? " +
+					" where "+ QUOTATIONS.SYMBOL_FIELD + "= ? and " + QUOTATIONS.ISIN_FIELD + "= ? and "+ QUOTATIONS.DATE_FIELD + "= ? ";
+		}
 
 		/**
 		 * Gets the dELETE.
@@ -1587,6 +1693,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			l.add(DataSource.QUOTATIONS.ISIN_FIELD);
 			return l;
 		}
+
+
 	}
 
 	/**
@@ -1787,14 +1895,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	/* (non-Javadoc)
 	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
 	 */
-	public int restartSource(int connectionId) {
-		return 0;
+	public int crashResart(int connectionId) {
+		return 1;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.finance.pms.threads.SourceConnector#shutdownSource(com.finance.pms.threads.SourceClient, int)
 	 */
 	public void shutdownSource(SourceClient sourceClient, int connectionId) {
+		try {
+			((MyDBConnection) sourceClient).getConn().close();
+		} catch (SQLException e) {
+			LOGGER.error("ERROR : couldn't close DB connection", e);
+		}
+	}
+	
+	public void shutdownSource(SourceClient sourceClient) {
 		try {
 			((MyDBConnection) sourceClient).getConn().close();
 		} catch (SQLException e) {

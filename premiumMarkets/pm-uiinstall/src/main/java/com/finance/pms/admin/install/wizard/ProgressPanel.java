@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -192,23 +191,34 @@ public ProgressPanel() {
         contentPanel1.setLayout(new java.awt.BorderLayout());
         contentPanel1.add(blankSpace, BorderLayout.NORTH);
         
-//        jTextAreaDescr = new JTextArea(10,30);
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
         jTextAreaDescr.setFocusable(true);
         jTextAreaDescr.setText("<html>"+
         		"<br />" +
-"Premium Markets is an automated financial technical analysis system. <br />"+
-"It implements a graphical environment for monitoring financial technical analysis major indicators and for portfolio management. <br />"+
+//        		Premium Markets is an automated stock market analysis system.
+//        		It implements a graphical environment for monitoring stock market technical analysis
+//        		major indicators, portfolio management and historical data charting.
+//        		In its advanced packaging, not provided under this license, it also includes :
+//        		Screening of financial web sites to pick up the best market shares, 
+//        		Price trend prediction based on stock market technical analysis and indexes rotation,
+//        		With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+//        		FTSE, DAX and SBF, Back testing, 
+//        		Buy sell email notifications with automated markets and user defined portfolios scanning.
+//        		Please refer to Premium Markets PRICE TREND FORECAST web portal at 
+//        		http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
+"Premium Markets is an automated stock market analysis system.<br />"+
+"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.<br />"+
 "In its advanced packaging, not provided under this license, it also includes : <br />"+
 "<ul>" +
-	"<li>Screening of financial web sites to pickup the best market shares,</li>"+
-	"<li>Forecast of share prices trend changes on the basis of financial technical analysis,<br /> "+
-	"(with a rate of around 70% of forecasts being successful observed while back testing over DJI, FTSE, DAX and SBF),</li>"+
-	"<li>Back testing and Email sending on buy and sell alerts triggered while scanning markets and user defined portfolios. </li>" +
+	"<li>Screening of financial web sites to pick up the best market shares,</li>"+
+	"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
+	"<li>With around 80% of forecasted trades above buy and hold, while back testing over DJI,FTSE, DAX and SBF,</li>"+
+	"<li>Back testing,</li>"+
+	"<li>Buy sell email notifications with automated markets and user defined portfolios scanning.</li>" +
 "</ul>" +
 "Please refer to Premium Markets PRICE TREND FORECAST web portal at " +
-"<a href=\"http://premiummarkets.elasticbeanstalk.com/\">http://premiummarkets.elasticbeanstalk.com/</a><br /> for a preview of more advanced features.<br /><br /><br />" +
+"<a href=\"http://premiummarkets.elasticbeanstalk.com/\">http://premiummarkets.elasticbeanstalk.com/</a><br /> for a preview and a free workable demo of more advanced features.<br /><br /><br />" +
 "</html>");
         
         contentPanel1.add(jTextAreaDescr, java.awt.BorderLayout.CENTER);

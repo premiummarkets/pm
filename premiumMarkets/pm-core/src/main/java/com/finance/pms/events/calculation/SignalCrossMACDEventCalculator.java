@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -35,7 +34,9 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -49,22 +50,22 @@ import com.finance.pms.talib.indicators.MACD;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class SignalCrossMACDEventCalculator extends IndicatorsCompositionCalculator {
-	
+public class SignalCrossMACDEventCalculator extends TalibIndicatorsCompositionCalculator {
+
+//	SMA sma;
+//	private Integer smaQuotationStartDateIdx;
 	MACD macd;
-	SMA sma;
-	private Integer smaQuotationStartDateIdx;
 	private Integer macdQuotationStartDateIdx;
 	
-	public SignalCrossMACDEventCalculator(Stock stock,MACD macd,SMA sma, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+	public SignalCrossMACDEventCalculator(Stock stock, MACD macd, SMA sma, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate,calculationCurrency);
+		
+//		this.sma = sma;
+//		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
+//		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+//		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
+		
 		this.macd = macd;
-		this.sma = sma;
-		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-		
 		macdQuotationStartDateIdx = macd.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
 		Integer macdQuotationEndDateIdx = macd.getIndicatorQuotationData().getClosestIndexForDate(macdQuotationStartDateIdx, endDate);
 		isValidData(stock, macd, startDate, macdQuotationStartDateIdx, macdQuotationEndDateIdx);
@@ -77,26 +78,26 @@ public class SignalCrossMACDEventCalculator extends IndicatorsCompositionCalcula
 		FormulatRes res = new FormulatRes(EventDefinition.PMMACDSIGNALCROSS);
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
-		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
+//		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
 		Integer macdIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx);
 		
 		{
 			//Quote above SMA,  macd below 0 crossover its signal
-			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
+//			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			boolean isMacdNegative = macd.getMacd()[macdIndicatorIndex] < 0;
 			boolean isMacdCrossingOverSignal = (macd.getMacd()[macdIndicatorIndex-1] < macd.getSignal()[macdIndicatorIndex-1]) 	// 1rst macd < 1rst Signal
 			&& (macd.getMacd()[macdIndicatorIndex] > macd.getSignal()[macdIndicatorIndex]); 					//last macd > last Signal
-			res.setBullishcrossOver(isPriceAboveSMA && isMacdNegative && isMacdCrossingOverSignal); 
-			if (res.getBullishcrossOver()) return res;
+			res.setBullishCrossOver(isMacdNegative && isMacdCrossingOverSignal); 
+			if (res.getBullishCrossOver()) return res;
 		}
 		{
 			//Quote below SMA and macd above 0 cross below its signal
-			boolean isPriceBelowSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() < sma.getSma()[smaIndicatorIndex];
-			double alpha = macdStdDev(macdIndicatorIndex);
-			boolean isMacdPositive = macd.getMacd()[macdIndicatorIndex] > alpha ;
+//			boolean isPriceBelowSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() < sma.getSma()[smaIndicatorIndex];
+//			double alpha = macdStdDev(macdIndicatorIndex);
+			boolean isMacdPositive = macd.getMacd()[macdIndicatorIndex] > 0 ;
 			boolean isMacdCrossingBellowSignal = (macd.getMacd()[macdIndicatorIndex-1] > macd.getSignal()[macdIndicatorIndex-1]) 	// 1rst macd > 1rst Signal
 			&& (macd.getMacd()[macdIndicatorIndex] < macd.getSignal()[macdIndicatorIndex]); 					//last macd < last Signal
-			res.setBearishcrossBellow(isMacdPositive && isMacdCrossingBellowSignal && isPriceBelowSMA); 
+			res.setBearishCrossBellow(isMacdPositive && isMacdCrossingBellowSignal); 
 		}
 
 		
@@ -104,11 +105,11 @@ public class SignalCrossMACDEventCalculator extends IndicatorsCompositionCalcula
 		
 	}
 	
-	private double macdStdDev(Integer index) {
-		//if (index - macdStdDevOutBegIdx.value > 0) return macdStdDevs[index-macdStdDevOutBegIdx.value];
-		return 0;
-		//return  1.0013;
-	}
+//	private double macdStdDev(Integer index) {
+//		//if (index - macdStdDevOutBegIdx.value > 0) return macdStdDevs[index-macdStdDevOutBegIdx.value];
+//		return 0;
+//		//return  1.0013;
+//	}
 	
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
@@ -132,36 +133,47 @@ public class SignalCrossMACDEventCalculator extends IndicatorsCompositionCalcula
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDSIGNALCROSS,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDSIGNALCROSS,EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
+//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,macdQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
+//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
+//			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
 			+ this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
 			+ this.macd.getMacd()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100+"," 
-			+ this.macd.getSignal()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100 +","
-			+ this.macdStdDev(getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx));
+			+ this.macd.getSignal()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100;
+//			+ this.macdStdDev(getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx));
 		
 		if (bearishEventValue != null) {
-			line = line + ","+calculatorClose+",0,\n";
+			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
-			line = line + ",0,"+calculatorClose+",\n";
+			line = line + ",0,"+calculatorClose+",";
 		} else {
-			line = line + ",0,0,\n";
+			line = line + ",0,0,";
 		}
+		
+		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		
 		return line;
 	}
 
 
 	@Override
-	protected String getHeader() {
-		return "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA50, MACD DATE, MACD QUOTE, MACD, SIGNAL, macd dev ,bearish, bullish\n";
+	protected String getHeader(List<Integer> scoringSmas) {
+		//return "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA "+sma.getPeriod()+", MACD DATE, MACD QUOTE, MACD, SIGNAL, macd dev ,bearish, bullish\n";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MACD DATE, MACD QUOTE, MACD, SIGNAL,bearish, bullish";
+		head = addScoringHeader(head, scoringSmas);
+		return head+"\n";	
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.PMMACDSIGNALCROSS;
 	}
 	
 	

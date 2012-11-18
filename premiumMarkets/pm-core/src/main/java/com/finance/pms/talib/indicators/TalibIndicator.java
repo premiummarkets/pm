@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -41,6 +40,8 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.Indicator;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.StripedQuotations;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
@@ -50,10 +51,15 @@ public abstract class TalibIndicator extends Indicator {
 	
 	protected MInteger outBegIdx = new MInteger();
 	protected MInteger outNBElement = new MInteger();
-	private Date outBegDate;
+	protected Date outBegDate;
 
 	protected TalibIndicator(Stock stock, Date firstDate, Integer firstIdxShift, Date lastDate, Integer lastIdxShift, Currency calculationCurrency, Number...indicatorParams) throws TalibException, NoQuotationsException {
 		super(stock, firstDate, lastDate, calculationCurrency, firstIdxShift + 15, lastIdxShift);
+		if (hasQuotations()) this.calculateIndicator(indicatorParams);
+	}
+	
+	protected TalibIndicator(Quotations calcQuotations, Number...indicatorParams) throws TalibException {
+		super(calcQuotations);
 		if (hasQuotations()) this.calculateIndicator(indicatorParams);
 	}
 
@@ -80,7 +86,7 @@ public abstract class TalibIndicator extends Indicator {
 				outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
 			}
 		} catch (Exception e) {
-			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + this.getStockName(), new Throwable());
+			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + this.getStockName(), e);
 		}
 	
 	}
@@ -147,6 +153,22 @@ public abstract class TalibIndicator extends Indicator {
 	public MInteger getOutNBElement() {
 		return outNBElement;
 	}
+	
+	public StripedQuotations getStripedData(Integer lagFix) {
+
+		Integer fdIx = ((this.startIdx()-this.outBegIdx.value) < 0)?0:this.startIdx()-this.outBegIdx.value;
+		Integer ldIx = ((this.endIdx()-this.outBegIdx.value) < 0)?0:this.endIdx()-this.outBegIdx.value;
+
+		StripedQuotations ret = new StripedQuotations(ldIx-fdIx+1);
+
+		for (int i = fdIx; i <= ldIx; i++) {
+			ret.addBar(i, this.getIndicatorQuotationData().get(i + this.outBegIdx.value - lagFix).getDate(), getOutputData()[i]);
+		}
+		
+		return ret;
+	}
+
+	abstract public double[] getOutputData();
 
 	@Override
 	public String toString() {

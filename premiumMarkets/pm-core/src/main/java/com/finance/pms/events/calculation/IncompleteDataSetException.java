@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -31,13 +30,32 @@
  */
 package com.finance.pms.events.calculation;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.finance.pms.datasources.shares.Stock;
+
 public class IncompleteDataSetException extends Exception {
 
 	private static final long serialVersionUID = 8415012484395864898L;
-	
 
-	public IncompleteDataSetException(String arg0) {
+	private List<Stock> failingStocks;
+
+	public IncompleteDataSetException(Stock failingStock, String arg0) {
 		super(arg0);
+		this.failingStocks = new ArrayList<Stock>();
+		this.failingStocks.add(failingStock);
+	}
+
+
+	public IncompleteDataSetException(List<Stock> failingStocks, String arg0) {
+		super(arg0);
+		this.failingStocks = failingStocks;
+	}
+
+
+	public List<Stock> getFailingStocks() {
+		return failingStocks;
 	}
 
 }

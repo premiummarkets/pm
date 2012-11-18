@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -79,6 +78,7 @@ import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Converter;
 import com.finance.pms.datasources.web.ProvidersInflation;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -478,9 +478,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	@Override
 	public String toString() {
-		return "PortfolioShare [stock=" + stock.getName() + ", avgBuyPrice=" + this.getAvgBuyPrice() + ", cashin=" + cashin + ", cashout=" + cashout+
-				//+ ", lastDayCloseQuotation=" + lastDayCloseQuotation + ", quantity=" + quantity + "]";
-				", quantity=" + quantity + "]";
+		return "PortfolioShare [stock=" + stock.getName() + ", avgBuyPrice=" + this.getAvgBuyPrice() + ", cashin=" + cashin + ", cashout=" + cashout + ", quantity=" + quantity + "]";
 	}
 	
 	public void applyTransaction(Transaction transaction, boolean propagate) throws InvalidQuantityException {
@@ -537,17 +535,23 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 */
 	private void addAboveTakeProfitAlert(BigDecimal calculationPrice) {
 	
-		this.removeAlert(AlertType.ABOVE_TAKE_PROFIT_LIMIT);	
+		try {
+			this.removeAlert(AlertType.ABOVE_TAKE_PROFIT_LIMIT);	
 
-		BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
-		
-		BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(this.getCashin());
-		BigDecimal aboveSellLimit = augmentedCashin.subtract(this.getCashout()).divide(this.getQuantity(),4,BigDecimal.ROUND_CEILING);
-		BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit,4,BigDecimal.ROUND_CEILING).subtract(BigDecimal.ONE.setScale(4));
-		
-		String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" profit. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
-		
-		addAboveTakeProfitAlert(aboveSellLimit,aboveMessage);
+			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
+			
+			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(this.getCashin());
+			BigDecimal aboveSellLimit = augmentedCashin.subtract(this.getCashout()).divide(this.getQuantity(),4,BigDecimal.ROUND_CEILING);
+			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 4, BigDecimal.ROUND_CEILING).subtract(BigDecimal.ONE.setScale(4));
+			
+			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" profit. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
+			
+			addAboveTakeProfitAlert(aboveSellLimit,aboveMessage);
+			
+		} catch (RuntimeException e) {
+			LOGGER.error("Failed to update portfolioshare :"+this,e);
+			throw e;
+		}
 	}
 	
 
@@ -1061,7 +1065,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			BigDecimal inflatAtSecond;
 			Stock stock =new Stock(
 					ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
-					new Boolean(false), StockCategories.INDICES_OTHER, new Date(0), new SymbolMarketQuotationProvider(),
+					new Boolean(false), StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
 					Market.NYSE, "None", TradingMode.UNKNOWN, 0L);
 			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, fisrtDate, false, Currency.USD);
 			inflatAtFirst = inflationQuotations.getCloseForDate(fisrtDate);

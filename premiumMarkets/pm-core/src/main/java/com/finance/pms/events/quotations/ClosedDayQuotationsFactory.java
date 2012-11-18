@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -31,14 +30,18 @@
  */
 package com.finance.pms.events.quotations;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	
@@ -47,23 +50,15 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift, lastIndexShift);
 	}
 	
-	
-	public  Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift);
-	}
-	
-	
 	public  Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency) throws NoQuotationsException {
 		return new Quotations(stock, oneLargeIncrementBefore(endDate), endDate, keepCache, targetCurrency, 0, 0);
 	}
-	
 	
 	public  Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency) throws NoQuotationsException {
 		return new Quotations(stock, quotationData, targetCurrency);
 	}
 	
-	
-	public  Calendar incrementDate(Calendar calendar,int amount) {
+	public  Calendar incrementDate(Calendar calendar, int amount) {
 		calendar.add(Calendar.DAY_OF_YEAR, noGapsAmount(amount));
 		closeNoQuotationEdgeGap(calendar, Math.signum(amount));
 		return calendar;
@@ -79,14 +74,14 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 	
 	
-	public  Calendar incrementDateLarge(Calendar calendar,int amount) {
+	public  Calendar incrementDateLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.MONTH, noGapsAmount(amount));
 		closeNoQuotationEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 	
 	
-	public  Calendar incrementDateExtraLarge(Calendar calendar,int amount) {
+	public  Calendar incrementDateExtraLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.YEAR, noGapsAmount(amount));
 		closeNoQuotationEdgeGap(calendar, Math.signum(amount));
 		return calendar;
@@ -186,82 +181,26 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	public Boolean isInOpenHours(Date lastDate) {
 		throw new NotImplementedException();
 	}
-
-//	
-//	public Stack<OnTheFlyTuningPeriod> onTheFlyRetunDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
-//		
-//		Calendar dateDebCal = Calendar.getInstance();
-//		dateDebCal.setTime(dateDeb);
-//		dateDebCal.set(Calendar.HOUR_OF_DAY,0);
-//		dateDebCal.set(Calendar.MINUTE,0);
-//		dateDebCal.set(Calendar.SECOND,0);
-//		dateDebCal.set(Calendar.MILLISECOND,0);
-//		Calendar dateFinCal = Calendar.getInstance();
-//		dateFinCal.setTime(dateFin);
-//		dateFinCal.set(Calendar.HOUR_OF_DAY,0);
-//		dateFinCal.set(Calendar.MINUTE,0);
-//		dateFinCal.set(Calendar.SECOND,0);
-//		dateFinCal.set(Calendar.MILLISECOND,0);
-//		Stack<OnTheFlyTuningPeriod> retuneDates = new Stack<OnTheFlyTuningPeriod>();
-//		
-//		while (dateDebCal.getTime().before(dateFinCal.getTime())) {
-//	
-//			Integer distanceToDateDeb = QuotationsFactories.getFactory().largeIncrementGap(dateDebCal, dateFinCal);
-//			if (distanceToDateDeb < 2*tuneFreq) {
-//				Date endDate = dateFinCal.getTime();
-//				Date startDate = dateDebCal.getTime();
-//				dateFinCal = dateDebCal;
-//				retuneDates.add(new OnTheFlyTuningPeriod(dateDeb, dateFin, startDate, endDate));
-//			} else {
-//				Date endDate = dateFinCal.getTime();
-//				QuotationsFactories.getFactory().incrementDateLarge(dateFinCal, -tuneFreq);
-//				Date startDate = dateFinCal.getTime();
-//				retuneDates.add(new OnTheFlyTuningPeriod(dateDeb, dateFin, startDate, endDate));
-//			}
-//			
-//		}
-//		
-//		return retuneDates;
-//	}
 	
-//	
-//	public Date getTrainingStartDate(Stock stock, Date endDate) throws NotEnoughDataException {
-//		
-//		Date trainingStart;
-//		TuningSignalConfig eventSignalConfig = (TuningSignalConfig) ConfigThreadLocal.get("eventSignal");
-//		
-//		//first quotation date
-//		Date firstQuotationDate = QuotationsFactories.getFactory().getFirstQuotationDateFromQuotations(stock);
-//		
-//		//add 12 month to start for indicators calculation as a minimum
-//		Calendar firstAvailableTrainingStart = Calendar.getInstance();
-//		firstAvailableTrainingStart.setTime(firstQuotationDate);
-//		QuotationsFactories.getFactory().incrementDateLarge(firstAvailableTrainingStart, eventSignalConfig.getPerceptronMinMonthEvents());
-//		trainingStart = firstAvailableTrainingStart.getTime();
-//		
-//		//check if more than min year of training
-//		int minNbYearsOfTraining = eventSignalConfig.getPerceptronMinNbYearsOfTraining();
-//		Calendar minTrainingStart = Calendar.getInstance();
-//		minTrainingStart.setTime(endDate);
-//		QuotationsFactories.getFactory().incrementDateExtraLarge(minTrainingStart, -minNbYearsOfTraining);
-//		
-//		if (minTrainingStart.before(firstAvailableTrainingStart)) {
-//			throw new NotEnoughDataException(firstAvailableTrainingStart.getTime(), endDate, 
-//					"Can't train neural network for "+stock.getSymbol()+" between "+minTrainingStart.getTime()+" and "+endDate+
-//					" as the first available quotations is on the "+firstAvailableTrainingStart.getTime()+". Not enough quotations.", new Throwable());
-//		}
-//		
-//		//check if no more than max years of training
-//		int maxNbYearsOfTraining = eventSignalConfig.getPerceptronMaxNbYearsOfTraining();
-//		Calendar maxTrainingStart = Calendar.getInstance();
-//		maxTrainingStart.setTime(endDate);
-//		QuotationsFactories.getFactory().incrementDateExtraLarge(maxTrainingStart, -maxNbYearsOfTraining);
-//		
-//		if (maxTrainingStart.after(firstAvailableTrainingStart)) {
-//			trainingStart = maxTrainingStart.getTime();
-//		}
-//		
-//		return trainingStart;
-//	}
+	@Override
+	public SortedMap<Date, double[]> buildMapFromQuotations(Quotations quotations) throws NotEnoughDataException {
+		
+		try {
+			SortedMap<Date, double[]> fullRefSQuotationsMap = new TreeMap<Date, double[]>();
+			Date firstRefStockQuote = quotations.getDate(0);
+			Calendar current = Calendar.getInstance();
+			current.setTime(firstRefStockQuote);
+			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
+			while (current.getTime().before(lastRefStockQuote) || current.getTime().equals(lastRefStockQuote)) {
+				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getCloseForDate(current.getTime()).doubleValue()} );
+				QuotationsFactories.getFactory().incrementDate(current, 1);
+			}
+			
+			return fullRefSQuotationsMap;
+			
+		} catch (InvalidAlgorithmParameterException e) {
+			throw new NotEnoughDataException(e.getMessage(), e);
+		}
+	}
 
 }

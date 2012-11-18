@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -39,7 +38,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Observer;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -51,8 +52,12 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.EventsResources;
+import com.finance.pms.events.WeatherEventKey;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.talib.dataresults.StandardEventValue;
 
 public class WeatherChecker extends EventCompostionCalculator {
 	
@@ -70,25 +75,28 @@ public class WeatherChecker extends EventCompostionCalculator {
 		this.endDate = endDate;
 		
 	}
+	
 
 	@Override
-	public Map<EventKey, EventValue> calculateEventsFor(String eventListName) {
-		return preCalculateEvents(eventListName);
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+		EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(stock, eventListName, datedeb, datefin, persist, this.getEventDefinition());
+		
 	}
+
 
 	/**
 	 * @param eventListName 
 	 * @return
 	 */
-	Map<EventKey, EventValue> preCalculateEvents(String eventListName) {
-		
-		Map<EventKey, EventValue> eventData = new HashMap<EventKey, EventValue>();
+	@Override 
+	public Map<EventKey, EventValue> calculateEventsFor(String eventListName)  {
 		
 		Calendar endDateCalendar = firstDayOfPrevMonthOf(endDate);
 		Calendar currentDateCalendar = firstDayOfPrevMonthOf(startDate);
 		Calendar todayCalendar = firstDayOfPrevMonthOf(EventSignalConfig.getNewDate());
 		
-		EventValue eventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
+		EventValue meanEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
+		EventValue trendChangeEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
 		
 		for (; 	currentDateCalendar.getTime().compareTo(endDateCalendar.getTime()) <= 0 && currentDateCalendar.getTime().compareTo(todayCalendar.getTime()) <= 0; 
 				currentDateCalendar.add(Calendar.MONTH, 1)) {
@@ -113,10 +121,10 @@ public class WeatherChecker extends EventCompostionCalculator {
 				Integer monthMeanOfMonthMeans = calculateMeanHistory(monthWeatherElementHistory);
 
 				//Position to mean
-				positionToMean(eventValue, endDate, currentDateWeather, monthMeanOfMonthMeans, eventListName);
+				positionToMean(meanEventValue, endDate, currentDateWeather, monthMeanOfMonthMeans, eventListName);
 
 				//Trend change detection
-				trendChangeDetection(eventValue, endDate, currentDateWeather, monthMeanOfMonthMeans, eventListName);
+				trendChangeDetection(trendChangeEventValue, endDate, currentDateWeather, monthMeanOfMonthMeans, eventListName);
 				
 			} else {
 				
@@ -124,12 +132,24 @@ public class WeatherChecker extends EventCompostionCalculator {
 			}
 		}
 
-		if (!eventValue.getEventType().equals(EventType.NONE)) {
-			LOGGER.info("Weather hint : " +eventValue);
-			addEvent(eventData, eventValue.getDate(), eventValue.getEventDef(), eventValue.getEventType(), eventValue.getMessage(), eventListName);
+		Map<EventKey, EventValue> eventData = new HashMap<EventKey, EventValue>();
+		if (!meanEventValue.getEventType().equals(EventType.NONE)) {
+			LOGGER.info("Weather mean temperature hint : " +meanEventValue);
+			addEvent(eventData, meanEventValue.getDate(), meanEventValue.getEventDef(), meanEventValue.getEventType(), meanEventValue.getMessage(), eventListName, "mean");
+		}
+		
+		if (!trendChangeEventValue.getEventType().equals(EventType.NONE)) {
+			LOGGER.info("Weather trend change in temperature hint : " +trendChangeEventValue);
+			addEvent(eventData, trendChangeEventValue.getDate(), trendChangeEventValue.getEventDef(), trendChangeEventValue.getEventType(), trendChangeEventValue.getMessage(), eventListName, "trend");
 		}
 		
 		return eventData;
+	}
+	
+	private void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, String hint) {
+		EventKey iek = new WeatherEventKey(currentDate, eventDefinition, eventType, hint);
+		EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
+		eventData.put(iek, iev);
 	}
 
 	/**
@@ -159,7 +179,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 		currentDateCal.setTime(currentDate);
 		
 		Calendar zeroYearCal = Calendar.getInstance();
-		zeroYearCal.setTime(new Date(0));
+		zeroYearCal.setTime(DateFactory.dateAtZero());
 		zeroYearCal.set(Calendar.MONTH, currentDateCal.get(Calendar.MONTH));
 		Date zeroDate = zeroYearCal.getTime();
 		return zeroDate;
@@ -198,7 +218,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 			} else if (firstPreviousTemp < secondPreviousTemp && secondPreviousTemp > currentTemp && secondPreviousTemp >= meanHistory) {//down reversal
 				addTrendChangeEvent(eventValue, endDate, EventType.BEARISH, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature reversal detected ");
 			} else {
-				addTrendChangeEvent(eventValue, endDate, EventType.NONE, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "RAS in temperature (we need : t0>t1<t2 and t1<Mean or t0<t1>t2 and t1>Mean) ");
+				addTrendChangeEvent(eventValue, endDate, EventType.INFO, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature event (we need : t0>t1<t2 and t1<Mean or t0<t1>t2 and t1>Mean) ");
 			}
 		} catch (Exception e) {
 			LOGGER.error("No monthly weather history for "+endDate,e);
@@ -237,9 +257,10 @@ public class WeatherChecker extends EventCompostionCalculator {
 	private void addTrendChangeEvent(EventValue eventValue, Date endDate, EventType eventType, String eventListName,
 									Date firstDayOfPrevMonth, Integer meanHistory, Integer firstPreviousTemp, Integer middlePreviousTemp, Integer currentTemp, String msgPreamb) {
 		DateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
-		DateFormat monthSF = new SimpleDateFormat("MMMMMMMMMMMMMM");
+		DateFormat monthSF = new SimpleDateFormat("MMMMMMMMMMMMMM yyyy");
 		
-		String message = msgPreamb +
+		String message = 
+				eventType + " " + msgPreamb +
 				"for last " + monthSF.format(firstDayOfPrevMonth) + ". " +
 				"Previous are "+firstPreviousTemp+" , "+ middlePreviousTemp+". " +
 				"Current is "+currentTemp+". " +
@@ -259,7 +280,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 	 */
 	private void positionToMean(EventValue eventValue, Date endDate, WeatherElement currentDateWeather, Integer meanHistory, String eventListName) {
 		DateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
-		DateFormat monthSF = new SimpleDateFormat("MMMMMMMMMMMMMM");
+		DateFormat monthSF = new SimpleDateFormat("MMMMMMMMMMMMMM yyyy");
 		String trendHintMsg;
 		if (currentDateWeather.getAvgTemp() < meanHistory) {
 			trendHintMsg = "is Below historical mean";
@@ -270,7 +291,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		}
 		
 		String message = "Last "+monthSF.format(currentDateWeather.getDate())+" avg temperature ("+currentDateWeather.getAvgTemp()+") "+trendHintMsg+" ("+meanHistory+") on the "+simpleDateFormat.format(endDate);
-		//addEvent(eventData, endDate, EventDefinition.WEATHER, EventType.INFO, message, eventListName);
 		addEventConcat(eventValue, EventType.INFO, message);
 		
 	}
@@ -293,32 +313,40 @@ public class WeatherChecker extends EventCompostionCalculator {
 		return 0;
 	}
 
-	private EventValue addEventConcat(EventValue eventValue, EventType eventType, String message) {
+	private EventValue addEventConcat(EventValue concatenedEvtVal, EventType newEventType, String message) {
 		
-		eventValue.setMessage(message+"\n"+eventValue.getMessage());
-		EventType prevEventDef = eventValue.getEventType();
+		concatenedEvtVal.setMessage(message+"\n"+concatenedEvtVal.getMessage());
 		
-		switch (prevEventDef) {//event type super seeding : NONE, INFO, BULLISH/BEARISH
-		case NONE :
-			eventValue.setEventType(eventType);
+		EventType prevEventType= concatenedEvtVal.getEventType();
+		
+		switch (prevEventType) {//event type super seeding : NONE, INFO, BULLISH/BEARISH
+		case NONE : //NONE is super seeded by all others
+			concatenedEvtVal.setEventType(newEventType);
 			break;
 		case INFO :
-			if (!eventType.equals(EventType.NONE)) {
-				eventValue.setEventType(eventType);
-			}
-			break;
 		case BULLISH :
 		case BEARISH :
-			if (!eventType.equals(EventType.NONE) && !eventType.equals(EventType.INFO)) {
-				eventValue.setEventType(eventType);
+			if (!newEventType.equals(EventType.NONE)) {
+				concatenedEvtVal.setEventType(newEventType);
 			}
 			break;
 		default:
 			throw new NotImplementedException(new Throwable());
 		}
 		
-		return eventValue;
+		return concatenedEvtVal;
 	}
+
+	@Override
+	public  SortedMap<Date, double[]> calculationOutput() {
+		return new TreeMap<Date, double[]>();
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.WEATHER;
+	}
+
 	
 	
 }

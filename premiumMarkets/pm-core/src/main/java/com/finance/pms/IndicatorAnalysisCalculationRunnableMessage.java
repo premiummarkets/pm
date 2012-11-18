@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -34,11 +33,15 @@ package com.finance.pms;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
+import java.util.Observer;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -65,10 +68,12 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Boolean export;
 	private Currency calculationCurrency;
 	private Boolean persistEvents;
+	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
+	private Observer[] observers;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
-													Collection<Stock> shareList, Date datedeb, Date datefin, Boolean export) {
+													Collection<Stock> shareList, Date datedeb, Date datefin, Boolean export, Observer... observers) {
 		super(999, springContext, eventListName);
 		this.periodType = periodType;
 		this.analyzer = analyzer;
@@ -77,16 +82,18 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.shareList = shareList;
 		this.export = export;
 		//calculationCurrency is null the stock currency will be used
+		this.observers = observers;
 	}
 	
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
-													Stock oneStock, Date datedeb, Date datefin, Boolean export, Currency calculationCurrency) {
+													Stock oneStock, Date datedeb, Date datefin, Boolean export, Currency calculationCurrency, Observer... observers) {
 		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, export);
 		this.calculationCurrency = calculationCurrency;
+		this.observers = observers;
 	}
 
-	public void runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException {
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException {
 		
 		this.passNumber = passNumber;
 		this.persistEvents = persistEvents;
@@ -95,11 +102,10 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		synchronized (syncObject) {
 			syncObject.wait();
 		}
+		
+		return runIndicatorsCalculationRes;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
 	public void run() {
 
 		try {
@@ -107,7 +113,9 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 			
-			analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, export, persistEvents);
+			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(
+					shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, 
+					periodType, passNumber, export, persistEvents, observers);
 			
 		} catch (Throwable e) {
 			LOGGER.error("Error in "+this.toString(),e);

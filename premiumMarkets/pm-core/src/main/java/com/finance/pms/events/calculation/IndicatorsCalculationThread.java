@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -62,23 +61,25 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	protected Stock stock;
 	protected Boolean export;
 	protected Boolean persistTrainingEvents;
-	//protected Set<EventCompostionCalculator> eventsCalculators;
-	
+	private Boolean persistEvents;
+
 	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
-											Set<Observer> observers, Boolean export, Boolean keepCache, Boolean persistTrainingEvents, Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
+											Set<Observer> observers, Boolean export, Boolean keepCache, Boolean persistEvents, Boolean persistTrainingEvents, 
+											Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
 		super(startDate, endDate, eventListName, calculationCurrency, observers, keepCache, eventQueue, jmsTemplate);
 		
 		this.stock = stock;
 		this.export = export;
 		this.persistTrainingEvents = persistTrainingEvents;
+		this.persistEvents = persistEvents;
 		
-		setCalculationParameters();
+		//setCalculationParameters();
 	}
 
 	protected abstract void setCalculationParameters();
 
 
-	public SymbolEvents call() {
+	public SymbolEvents call() throws IncompleteDataSetException {
 		
 		SymbolEvents ret = new SymbolEvents(stock);
 		
@@ -88,8 +89,9 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 			LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
 			
+			setCalculationParameters();
 			Set<EventCompostionCalculator> eventsCalculators = initIndicatorsAndCalculators(observers.toArray(new Observer[]{}));
-			Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(eventsCalculators);
+			Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(eventsCalculators, startDate, endDate, persistEvents);
 
 			for (EventValue eventValue : eventDataAggregation.values()) {
 				EventSource source = (eventValue.getEventDef().equals(EventDefinition.WEATHER))? EventSource.PMWeather : EventSource.PMTAEvents;
@@ -97,11 +99,19 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			}
 			
 			ret.addEventResultElement(eventDataAggregation, EventDefinition.getEventDefList());
+			
+			for (EventCompostionCalculator eventCompostionCalculator : eventsCalculators) {
+				ret.addCalculationOutput(eventCompostionCalculator.getEventDefinition(), eventCompostionCalculator.calculationOutput());
+			}
+			
 			LOGGER.debug("end analyse "+stock+" from "+startDate+" to "+endDate);
 			
+		} catch (IncompleteDataSetException e) {
+			throw e;
+			
 		} catch (Exception e) {
-			// Oops
 			LOGGER.error("ERROR : While calcuting Events for "+stock+", analysis "+this.eventListName+" and dates "+startDate+" to "+endDate, e);
+			throw new IncompleteDataSetException(stock, e.getMessage());
 			
 		} finally {
 			this.setChanged();
@@ -112,7 +122,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		
 	}
 
-	abstract protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws NotEnoughDataException;
+	abstract protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws NotEnoughDataException, IncompleteDataSetException;
 
 	/**
 	 * @param startDate
@@ -134,4 +144,5 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	}
 
 	protected abstract List<EventDefinition> getWantedEventCalculations();
+	
 }

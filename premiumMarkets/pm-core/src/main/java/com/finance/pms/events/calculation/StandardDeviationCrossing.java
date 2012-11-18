@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -35,7 +34,9 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.datasources.shares.Currency;
@@ -53,7 +54,7 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
+public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalculator {
 	
 	private StandardDeviation standardDeviation;
 	private int stddevQuotationStartDateIdx;
@@ -106,11 +107,11 @@ public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
 		if (Math.abs(currentDev) > this.standardDeviation.getStdDev()[stddevIndQuoteIndex]) {
 			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calcQuotationIdx).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			if (currentDev < 0 && !isPriceAboveSMA) {
-				res.setBearishcrossBellow(true);
+				res.setBearishCrossBellow(true);
 				//resType = EventType.BEARISH;
 			}
 			if (currentDev > 0 && isPriceAboveSMA) {
-				res.setBullishcrossOver(true);
+				res.setBullishCrossOver(true);
 				//resType = EventType.BULLISH;
 			}
 		}
@@ -140,12 +141,12 @@ public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String getHeader() {
+	protected String getHeader(List<Integer> scoringSmas) {
 		return "CALCULATOR DATE; CALCULATOR QUOTE; STDDEV DATE; STDDEV QUOTE; STDEV; SMA DATE; SMA QUOTE; SMA; bearish; bullish\n";
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BULLISH));
@@ -167,5 +168,10 @@ public class StandardDeviationCrossing extends IndicatorsCompositionCalculator {
 			line = line + ";0;0;\n";
 		}
 		return line;
+	}
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.STDDEV;
 	}
 }

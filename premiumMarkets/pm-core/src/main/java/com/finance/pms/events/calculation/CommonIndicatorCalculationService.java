@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -33,13 +32,17 @@ package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
-import java.util.concurrent.ExecutionException;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -95,8 +98,10 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	 * @see com.finance.pms.events.calculation.IndicatorCalculationService#analyseSymbolCollection(java.lang.String, java.util.Date, java.util.Date, java.util.Collection)
 	 */
 	@Override
-	protected void analyseSymbolCollection(Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-										   String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
+	protected Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
+			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
+			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents, Observer...observers) 
+					throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
 		//TODO deal with the periodType
 		if (!periodType.equals("daily")) throw new UnsupportedOperationException("Period != daily. Fix me!");
@@ -117,7 +122,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		}
 		
 		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
-		this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, export, persistEvents);
+		return this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, export, persistEvents, observers);
 		
 	}
 
@@ -132,16 +137,24 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param persistEvents 
+	 * @param observers 
+	 * @return 
 	 * @throws IncompleteDataSetException 
 	 */
-	private void allEventsCalculation(Collection<Stock> stList, final Date startDate, final Date endDate, Currency calculationCurrency, final String eventListName, 
-									  final Boolean keepCache, int passNumber, Boolean export, Boolean persistEvents) throws IncompleteDataSetException {
+	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> allEventsCalculation(
+				Collection<Stock> stList, final Date startDate, final Date endDate, 
+				Currency calculationCurrency, final String eventListName, 
+				final Boolean keepCache, int passNumber, Boolean export, Boolean persistEvents, Observer... observers) 
+				throws IncompleteDataSetException {
+		
+		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> ret =  new HashMap<Stock, Map<EventDefinition, SortedMap<Date, double[]>>>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
 		List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
 		for (Observer observer : observers) {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, stList.size()));
 		}
+		Set<Observer> obsSet = new HashSet<Observer>(Arrays.asList(observers));
 		
 		Boolean isDataSetComplete = true;
 		for (final Stock stock : stList) {
@@ -157,12 +170,12 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 				if (passNumber == 2) {
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
-																						stock, startDate, endDate, stockCalcCurrency, eventListName, observers,
-																						availSecondPIndCalculators, export, keepCache, eventQueue, jmsTemplate, persistEvents);
+																						stock, startDate, endDate, stockCalcCurrency, eventListName, obsSet,
+																						availSecondPIndCalculators, export, keepCache, eventQueue, jmsTemplate, persistEvents, true);
 				} else {
 					calculationRunnableTarget = new FirstPassIndicatorCalculationThread(
-																						stock, startDate, endDate, stockCalcCurrency, eventListName, observers,
-																						keepCache, eventQueue, jmsTemplate);
+																						stock, startDate, endDate, stockCalcCurrency, eventListName, obsSet,
+																						keepCache, eventQueue, jmsTemplate, persistEvents);
 				}
 				
 				Future<SymbolEvents> submitedRunnable = (Future<SymbolEvents>) executor.submit(calculationRunnableTarget);
@@ -179,7 +192,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
-				LOGGER.error(shutdownNow,new Exception());
+				LOGGER.error(shutdownNow, new Exception());
 				isDataSetComplete = false;
 			}
 		} catch (InterruptedException e) {
@@ -188,23 +201,35 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			isDataSetComplete = false;
 		}
 		
-		try {
-			List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
-			for (Future<SymbolEvents> future : futures) {
-				allEvents.add(future.get());
+		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
+		List<Stock> failingStocks = new ArrayList<Stock>();
+		for (Future<SymbolEvents> future : futures) {
+			try {
+				
+				SymbolEvents se = future.get();
+				allEvents.add(se);
+				Map<EventDefinition, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutput();
+				if (calculationOutput == null) calculationOutput = new HashMap<EventDefinition, SortedMap<Date,double[]>>();
+				ret.put(se.getStock(), calculationOutput);
+				
+			} catch (Exception e) {
+				if (e.getCause() instanceof IncompleteDataSetException) {
+					failingStocks.addAll(((IncompleteDataSetException) e.getCause()).getFailingStocks());
+				} else {
+					LOGGER.error(e,e);
+				}
+				isDataSetComplete = false;
 			}
-			EventsResources.getInstance().storeEvents(allEvents, persistEvents, eventListName);
-			
-		} catch (InterruptedException e) {
-			LOGGER.error(e,e);
-			isDataSetComplete = false;
-		} catch (ExecutionException e) {
-			LOGGER.error(e,e);
-			isDataSetComplete = false;
 		}
 		
+		LOGGER.info("storing "+allEvents.size()+" sets of events, from "+startDate+" to "+endDate);
+		EventsResources.getInstance().storeEvents(allEvents, persistEvents, eventListName);
+		
+		
 		if (!isDataSetComplete) {
-			throw new IncompleteDataSetException("All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage.");
+			throw new IncompleteDataSetException(failingStocks, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage.");
 		}
+		
+		return ret;
 	}
 }

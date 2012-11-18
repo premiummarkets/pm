@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -34,6 +33,7 @@ package com.finance.pms.portfolio.gui.charts;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 import com.finance.pms.portfolio.PortfolioShare;
@@ -53,9 +53,10 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * @param style the style
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param composite 
 	 */
-	public NewRefereeDialog(Shell parent,int style) {
-		super(parent,style,new ArrayList<PortfolioShare>());
+	public NewRefereeDialog(Shell parent,int style, Composite composite) {
+		super(parent,style,new ArrayList<PortfolioShare>(), composite);
 	}
 	
 	
@@ -66,13 +67,14 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param shell 
+	 * @param composite 
 	 */
-	public static NewPortfolioItemDialog showUI(Shell shell) {
+	public static NewPortfolioItemDialog showUI(Shell shell, Composite composite) {
 		
 		if (inst == null || inst.isDisposed()) {
 
 			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
-			inst = new NewRefereeDialog(piShell, SWT.NULL);
+			inst = new NewRefereeDialog(piShell, SWT.NULL, composite);
 			try {
 				inst.open();
 				swtLoop();
@@ -95,6 +97,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 		this.monitorLabel.setVisible(false);
 		this.quantityLabel.setVisible(false);
 		this.quantityText.setVisible(false);
+		this.newPortfollioAddButton.setVisible(false);
 		this.addShareManualGroup.dispose();
 		this.addFromFile.dispose();
 		

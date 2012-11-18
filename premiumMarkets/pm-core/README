@@ -18,11 +18,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 Description :
 
-Premium Markets is an automated financial technical analysis system. 
-It implements a graphical environment for monitoring financial technical analysis 
-major indicators and for portfolio management.
-Please refer to Premium Markets PRICE TREND FORECAST web portal 
-at http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features.
+Premium Markets is an automated stock market analysis system.
+It implements a graphical environment for monitoring stock market technical analysis
+major indicators, portfolio management and historical data charting.
+Please refer to Premium Markets PRICE TREND FORECAST web portal at 
+http://premiummarkets.elasticbeanstalk.com/ 
+for a preview and a free workable demo of the trend prediction feature.
 
 How to install?
 

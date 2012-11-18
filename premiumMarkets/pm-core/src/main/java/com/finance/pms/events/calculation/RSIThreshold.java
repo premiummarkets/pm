@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -35,7 +34,9 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -49,21 +50,21 @@ import com.finance.pms.talib.indicators.RSI;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class RSIThresholdCrossCalculator extends IndicatorsCompositionCalculator {
+public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 	
-	SMA sma;
+//	SMA sma;
+//	private Integer smaQuotationStartDateIdx;
 	RSI rsi;
-	private Integer smaQuotationStartDateIdx;
 	private Integer rsiQuotationStartDateIdx;
 	
-	public RSIThresholdCrossCalculator(Stock stock, SMA sma, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+	public RSIThreshold(Stock stock, SMA sma, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
-		this.sma = sma;
+//		this.sma = sma;
 		this.rsi = rsi;
 		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
+//		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
+//		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+//		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 		
 		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
 		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(rsiQuotationStartDateIdx, endDate);
@@ -77,22 +78,22 @@ public class RSIThresholdCrossCalculator extends IndicatorsCompositionCalculator
 		FormulatRes res = new FormulatRes(EventDefinition.PMRSITHRESHOLD);
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
-		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
+//		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
 		Integer rsiIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx);
 
 		
 		{
 			//BULL : RSI cross below low threshold (over sold) with an up trend (above sma)
 			boolean isRSICrossingBelow = this.rsi.getRsi()[rsiIndicatorIndex-1] > rsi.getLowerThreshold() && rsi.getLowerThreshold() > this.rsi.getRsi()[rsiIndicatorIndex]; // 1rst rsi > 30 > last rsi 
-			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
-			res.setBullishcrossOver(isRSICrossingBelow && isPriceAboveSMA);
-			if (res.getBullishcrossOver()) return res;
+//			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
+			res.setBullishCrossOver(isRSICrossingBelow);
+			if (res.getBullishCrossOver()) return res;
 		} 
 		{
 			//BEAR : RSI cross above upper threshold (over bought) with a down trend (under sma)
 			boolean isRSICrossingAbove = this.rsi.getRsi()[rsiIndicatorIndex-1]  < rsi.getUpperThreshold()  && rsi.getUpperThreshold() < this.rsi.getRsi()[rsiIndicatorIndex];// 1rst rsi < 70 <  last rsi 
-			boolean isPriceBelowSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() < sma.getSma()[smaIndicatorIndex];
-			res.setBearishcrossBellow(isRSICrossingAbove && isPriceBelowSMA);
+//			boolean isPriceBelowSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() < sma.getSma()[smaIndicatorIndex];
+			res.setBearishCrossBellow(isRSICrossingAbove);
 		}
 		
 		return res;
@@ -114,34 +115,40 @@ public class RSIThresholdCrossCalculator extends IndicatorsCompositionCalculator
 
 
 	@Override
-	protected String getHeader() {
-		return "CALCULATOR DATE, CALCULATOR QUOTE, SMA DATE, SMA QUOTE, SMA50, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish\n";
+	protected String getHeader(List<Integer> scoringSmas) {
+//		return "CALCULATOR DATE, CALCULATOR QUOTE, SMA DATE, SMA QUOTE, SMA50, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish\n";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
+		head = addScoringHeader(head, scoringSmas);
+		return head+"\n";	
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
+//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
+//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
+//			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
 			+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
 			+ this.rsi.getLowerThreshold() + ","
 			+ this.rsi.getUpperThreshold() + ","
 			+ this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)];
 		
 		if (bearishEventValue != null) {
-			line = line + ","+calculatorClose+",0,\n";
+			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
-			line = line + ",0,"+calculatorClose+",\n";
+			line = line + ",0,"+calculatorClose+",";
 		} else {
-			line = line + ",0,0,\n";
+			line = line + ",0,0,";
 		}
+		
+		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		
 		return line;
 	}
 
@@ -150,5 +157,11 @@ public class RSIThresholdCrossCalculator extends IndicatorsCompositionCalculator
 	@Override
 	protected int getDaysSpan() {
 		return 1;
+	}
+
+
+	@Override
+	public EventDefinition getEventDefinition() {
+		return EventDefinition.PMRSITHRESHOLD;
 	}
 }

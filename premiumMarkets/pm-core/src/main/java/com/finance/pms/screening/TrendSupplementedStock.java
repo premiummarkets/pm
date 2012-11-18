@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -204,7 +203,7 @@ public class TrendSupplementedStock extends Validatable {
 		
 		try {
 			Date ttm = ttm(endDate);
-			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, ttm, endDate, true, null, 0);
+			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, ttm, endDate, true, null, 0, 0);
 			close = quotationsInstance.getCloseForDate(endDate);
 			ttmClose = quotationsInstance.getCloseForDate(ttm);
 			
@@ -623,7 +622,7 @@ public class TrendSupplementedStock extends Validatable {
 
 		if (this.priceChangeTTM  == null) {
 
-			if (this.close == null || ttmClose == null) {
+			if (this.close == null || ttmClose == null || ttmClose.compareTo(BigDecimal.ZERO) == 0) {
 				this.priceChangeTTM = new MyBigDec(null, false);
 			} else {
 				BigDecimal priceDiffTTM = close.subtract(ttmClose);

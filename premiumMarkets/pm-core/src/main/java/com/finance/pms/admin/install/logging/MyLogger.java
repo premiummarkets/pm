@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -89,14 +88,9 @@ public class MyLogger {
 
 	/** The name. */
 	private static String mailRecipientName = Messages.getEncriptedString("mail.recipientname"); 
-	
-	/** The mail recipient domain. */
 	private static String mailRecipientDomain = Messages.getEncriptedString("mail.recipientdomain"); 
-	
-	/** The mail smtp pass. */
+	private static String mailSmtpUser = MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain;
 	private static String mailSmtpPass = Messages.getEncriptedString("mail.smtppass"); 
-	
-	/** The mail smtp host. */
 	private static String mailSmtpHost = Messages.getEncriptedString("mail.smtphost"); 
 	
 	private static TreeSet<Integer> hashesSet = new TreeSet<Integer>();
@@ -105,17 +99,8 @@ public class MyLogger {
 	/** The session. */
 	private static Session session;
 	
-	/** The this address. */
-	private static Address thisAddress;
-	
-	/** The activate mail. */
-	private static String activateMail;
-	
-	/** The auth. */
-	private static String username;
-	
-	/** The password. */
-	private static String password;
+	private static Address senderAddress;
+	private static String mailActivationType;
 	
 	/** The s. */
 	private static Semaphore semaphore;
@@ -125,17 +110,45 @@ public class MyLogger {
 	
 	public static String version = "None";
 	
+//	<property name="host" value="${mail.host}" />
+//	<property name="username" value="${mail.username}" />
+//	<property name="password" value="${mail.password}" />
+//	<property name="javaMailProperties">
+//		<props>
+//			<prop key="mail.smtp.auth">true</prop>
+//			<prop key="mail.smtp.starttls.enable">false</prop>
+//		</props>
+//	</property>	
 	static {
-		Properties props = new Properties();
-		props.put("mail.smtps.starttls.enable", "true");
-		props.put("mail.transport.protocol", "smtps");
-		props.put("mail.smtps.host", MyLogger.mailSmtpHost);
-		props.put("mail.smtps.auth", "true");
-		MyLogger.session = Session.getInstance(props);
-		
-		MyLogger.username = MainPMScmd.getPrefs().get("mail.username",MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain);  //$NON-NLS-2$
-		MyLogger.password = MainPMScmd.getPrefs().get("mail.password",MyLogger.mailSmtpPass); 
 		MyLogger.semaphore = new Semaphore(1);
+		
+		//MyLogger.senderUsername = MainPMScmd.getPrefs().get("mail.username", MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain);  //$NON-NLS-2$
+		//MyLogger.senderPassword = MainPMScmd.getPrefs().get("mail.password", MyLogger.mailSmtpPass); 
+		//MyLogger.mailSmtpHost = MainPMScmd.getPrefs().get("mail.host", MyLogger.mailSmtpHost); 
+		
+		String senderUserName = MainPMScmd.getPrefs().get("mail.username", null);
+		String senderPassword = MainPMScmd.getPrefs().get("mail.password",null); 
+		String senderHost = MainPMScmd.getPrefs().get("mail.host", null);
+		
+		boolean credentialsAreValid = senderUserName != null && !senderUserName.isEmpty() && senderPassword != null && !senderPassword.isEmpty();
+		boolean allFieldsAreValid = credentialsAreValid && senderHost != null && !senderHost.isEmpty();
+		if ( allFieldsAreValid ) {
+			
+			MyLogger.mailSmtpHost = senderHost;
+			MyLogger.mailSmtpUser = senderUserName;
+			MyLogger.mailSmtpPass = senderPassword;
+		}
+				
+		Properties props = new Properties();
+		//props.put("mail.transport.protocol", "smtps");
+		//props.put("mail.smtps.host", MyLogger.mailSmtpHost);
+		//props.put("mail.smtps.starttls.enable", "true");
+		props.put("mail.transport.protocol", "smtp");
+		props.put("mail.smtp.host", MyLogger.mailSmtpHost);
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.auth", "true");
+
+		MyLogger.session = Session.getInstance(props);
 		
 		//init hashesSet
 		try {
@@ -161,7 +174,6 @@ public class MyLogger {
 		//get version
 		try {
 			Properties pbuild = new Properties();
-			//pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
 			pbuild.load(MyLogger.class.getClassLoader().getResourceAsStream("pmsbuild.properties"));
 			version = pbuild.getProperty("application.buildtime");
 		} catch (IOException e1) {
@@ -707,9 +719,9 @@ public class MyLogger {
 		final String errorStr = (null == errorMsg)?"No message available":errorMsg.toString();
 		
 		//is active?
-		MyLogger.activateMail = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
-		System.out.println("Mail Settings : log activated : " + MyLogger.activateMail); 
-		if ("false".equals(MyLogger.activateMail) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
+		MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
+		System.out.println("Mail Settings : log activated : " + MyLogger.mailActivationType); 
+		if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
 		
 		Thread sendLogThread = new Thread() {
 			@Override
@@ -721,6 +733,9 @@ public class MyLogger {
 				try {
 					semaphore.acquire();
 					
+					MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
+					if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
+					
 					//Create msg
 					StringBuffer msgBoddy = createMsgBodyFirstLines(error, errorStr, 200);
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
@@ -730,24 +745,26 @@ public class MyLogger {
 					}
 					
 					//Email
-					Transport transport = MyLogger.session.getTransport("smtps"); 
-					transport.connect(MyLogger.username, MyLogger.password);
+					//Transport transport = MyLogger.session.getTransport("smtps"); 
+					//transport.connect(MyLogger.senderUsername, MyLogger.senderPassword);
+					Transport transport = MyLogger.session.getTransport("smtp"); 
+					transport.connect(MyLogger.mailSmtpUser, MyLogger.mailSmtpPass);
 					
 					MimeMessage msg = new MimeMessage(MyLogger.session);		
 					fromAdressResolution();
 
-					msg.setFrom(MyLogger.thisAddress);
-					msg.setSender(MyLogger.thisAddress);
-					Address[] rTo = {MyLogger.thisAddress};
+					msg.setFrom(MyLogger.senderAddress);
+					msg.setSender(MyLogger.senderAddress);
+					Address[] rTo = {MyLogger.senderAddress};
 					msg.setReplyTo(rTo);
 					msg.setRecipients(Message.RecipientType.TO, MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain); 
-					msg.setSubject("Error detected on Version build : "+version); 
+					msg.setSubject("Error detected on Version build : "+version+ " from user "+MyLogger.senderAddress); 
 					msg.setSentDate(new Date());					
 					msg.setText(msgBoddy.toString());
 
 					msg.saveChanges();      // don't forget this
 					
-					if (!"force".equals(MyLogger.activateMail)) {
+					if (!"force".equals(MyLogger.mailActivationType)) {
 						
 						///Dialog
 						try {
@@ -806,12 +823,12 @@ public class MyLogger {
 			 */
 			private void fromAdressResolution() {
 				try {
-					String from = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain);  //$NON-NLS-2$
-					MyLogger.thisAddress = new InternetAddress(from);
+					String from = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailSmtpUser);
+					MyLogger.senderAddress = new InternetAddress(from);
 				} catch (AddressException e) {
 					delegateLogger.error("Error from adress :"+e); 
 					e.printStackTrace();
-					MyLogger.thisAddress = new InternetAddress();
+					MyLogger.senderAddress = new InternetAddress();
 				}
 			}
 

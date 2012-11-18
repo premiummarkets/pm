@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -49,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -223,11 +223,8 @@ public class EventsResources {
 		if (isEventCached) {
 			
 			synchronized (this) {
-				//ConcurrentHashMap<Stock, ConcurrentSkipListSet<EventCacheEntry>> eventsForName = EVENTS_CACHE.get(eventListName);
 				StockEventsCache eventsForName = EVENTS_CACHE.get(eventListName);
 				if (eventsForName == null) {
-					//eventsForName = new ConcurrentHashMap<Stock, ConcurrentSkipListSet<EventCacheEntry>>();
-					//EVENTS_CACHE.put(eventListName, eventsForName);
 					eventsForName = new StockEventsCache();
 					EVENTS_CACHE.put(eventListName, eventsForName);
 				}
@@ -292,7 +289,7 @@ public class EventsResources {
 				
 				StockEventsCache eventsForName = EVENTS_CACHE.get(eventListName);
 				if (eventsForName == null) {
-					LOGGER.info("No events cached for " + eventListName+ " and "+stock);
+					LOGGER.info("No events cached for " + eventListName+ " and "+stock + " from "+startDate+" to "+endDate);
 				} else {
 					try {
 						retVal = subCachedEvents(stock, startDate, endDate, eventsForName, eventListName);
@@ -467,16 +464,17 @@ public class EventsResources {
 			buildUpdateValidatableList(events, qInsert, lqUpdate);
 
 			List<Validatable> lqRemainingInsert = new ArrayList<Validatable>();
+			int[] updated = new int[0];
 			try {
 
-				LOGGER.debug("Starting updating :"+lqUpdate,new Throwable());
-				int[] updated = DataSource.getInstance().executeBlockWithTimeStamp(lqUpdate, DataSource.EVENTS.getUPDATE());
-				LOGGER.debug("Finished updating :"+lqUpdate,new Throwable());
-
+				updated = DataSource.getInstance().executeBlockWithTimeStamp(lqUpdate, DataSource.EVENTS.getUPDATE());
+				
 				//Insert the raws not updated
 				for (int i=0;i<updated.length;i++) {
 					final Query query = qInsert.get(i);
-					if (updated[i] == 0) { //Raw not updated
+
+					if (updated[i] == 0) { //Raw not updated //XXX is 0 returned if the line is present but the update values are the same as the existing line?
+						
 						lqRemainingInsert.add(new StockToDB() {
 
 							private static final long serialVersionUID = -1418476918112988888L;
@@ -491,15 +489,45 @@ public class EventsResources {
 								return query.toString();
 							}
 						});
+						
 					} else if (updated[i] != 1) {
-						LOGGER.error("Strange return from update detected :  update "+lqUpdate+", insert "+lqRemainingInsert);
+						LOGGER.error(
+								"Strange return from events update detected :\n" +
+								"Update request params :\n"+
+									DataSource.printHugeCollection(lqUpdate)+"\n" +
+								"Insert request params :\n"+
+									DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
+								"Update return was " +
+										Arrays.toString(updated)
+								);
 					}
 				}
 
-				DataSource.getInstance().executeBlockWithTimeStamp(lqRemainingInsert, DataSource.EVENTS.getINSERT());
+				try {
+				
+					DataSource.getInstance().executeBlockWithTimeStamp(lqRemainingInsert, DataSource.EVENTS.getINSERT());
+					
+				} catch (Exception e) {
+					LOGGER.error(
+							"Pb inserting after updating events :\n" +
+							"Update request params :\n"+
+								DataSource.printHugeCollection(lqUpdate)+"\n" +
+							"Insert request params :\n"+
+								DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
+							"Update return was " +
+									Arrays.toString(updated)
+							, e);
+				}
 
 			} catch (SQLException e) {
-				LOGGER.error("ERROR : updating events for request list : update "+lqUpdate+", insert "+lqRemainingInsert,e);
+				LOGGER.error("Pb insert/update events :\n" +
+							"Update request params :\n"+
+								DataSource.printHugeCollection(lqUpdate)+"\n" +
+							"Insert request params :\n"+
+								DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
+							"Update return was " +
+									Arrays.toString(updated)
+							,e);
 				LOGGER.debug(e.getCause());
 				LOGGER.debug(e.getNextException());
 			}
@@ -895,28 +923,28 @@ public class EventsResources {
 	public void setSortedList(List<SymbolEvents> sortedList) {
 		this.sortedList = sortedList;
 	}
-
-	@Deprecated
-	public void cleanEventsForStockInAnalysisName(Stock stock, String analysisName, Date startDate, Date endDate, Boolean persist, EventDefinition... indicators) {
+	
+	public void cleanEventsForAnalysisNameAndStock(Stock stock, String analysisName, Date datedeb, Date datefin, Boolean persist, EventDefinition... indicators) {
+		
 		
 		//Cash
 		if (isEventCached) {
 			synchronized (this) {
 				StockEventsCache eventsForAnalysis = EVENTS_CACHE.get(analysisName);
-				//XXX indicators should be filtered
-				removeEventsFromEventsCacheFor(stock, eventsForAnalysis, startDate, endDate);
+				if (eventsForAnalysis != null) {
+					removeEventsFromEventsCacheFor(stock, eventsForAnalysis, datedeb, datefin, indicators);
+				}
 			}
 		}
 		
 		//DB
 		if (persist || !isEventCached) {
-			DataSource.getInstance().cleanEventsForAnalysisNameAndStock(stock, analysisName, startDate, endDate, indicators);
+			DataSource.getInstance().cleanEventsForAnalysisNameAndStock(stock, analysisName, datedeb, datefin, indicators);
 		}
+		
 	}
 
 
-	@Deprecated
-	//XXX indicators should be filtered in the cache
 	public void cleanEventsForAnalysisName(String analysisName, Date datedeb, Date datefin, Boolean persist, EventDefinition... indicators) {
 		
 		//Cash
@@ -925,8 +953,7 @@ public class EventsResources {
 				StockEventsCache eventsForAnalysis = EVENTS_CACHE.get(analysisName);
 				if (eventsForAnalysis != null) {
 					for (Stock stock : eventsForAnalysis.keySet()) {
-						//XXX indicators should be filtered
-						removeEventsFromEventsCacheFor(stock, eventsForAnalysis, datedeb, datefin);
+						removeEventsFromEventsCacheFor(stock, eventsForAnalysis, datedeb, datefin, indicators);
 					}
 				}
 			}
@@ -959,13 +986,20 @@ public class EventsResources {
 	 * @param startDate
 	 * @param endDate
 	 */
-	//XXX indicators should be filtered
-	@Deprecated
-	private void removeEventsFromEventsCacheFor(Stock stock, StockEventsCache eventsForAnalysis, Date startDate, Date endDate) {
+	private void removeEventsFromEventsCacheFor(Stock stock, StockEventsCache eventsForAnalysis, Date startDate, Date endDate, EventDefinition... indicators) {
+		
+		List<EventDefinition> indicatorsList = Arrays.asList(indicators);
 		if (eventsForAnalysis != null) {
 			SortedSet<EventCacheEntry> eventsForStockAndAnalysis = eventsForAnalysis.getEvents(stock);
 			if (eventsForStockAndAnalysis != null) {
-				SortedSet<EventCacheEntry> subSetToRemove = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
+				SortedSet<EventCacheEntry> dateSubSet = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
+				SortedSet<EventCacheEntry> subSetToRemove = new TreeSet<EventCacheEntry>(new EventCacheEntryComparator());
+				for (EventCacheEntry eventCacheEntry : dateSubSet) {
+					EventDefinition eventDef =  eventCacheEntry.getEventValue().getEventDef();
+					if (indicatorsList.contains(eventDef)) {
+						subSetToRemove.add(eventCacheEntry);
+					}
+				}
 				eventsForStockAndAnalysis.removeAll(subSetToRemove);
 			}
 		}

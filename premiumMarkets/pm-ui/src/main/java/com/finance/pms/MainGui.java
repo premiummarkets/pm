@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -506,10 +505,16 @@ public class MainGui extends SashForm implements RefreshableView {
 										Properties pbuild = new Properties();
 										pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
 										ErrorDialog dialog = new ErrorDialog(getShell(),SWT.NULL,
-												"\tPremium Markets is an automated financial technical analysis system. \n"+
-"It implements a graphical environment for monitoring financial technical analysis major indicators and for portfolio management. \n"+
+//												Premium Markets is an automated stock market analysis system.
+//												It implements a graphical environment for monitoring stock market technical analysis
+//												major indicators, portfolio management and historical data charting.
+//												Please refer to Premium Markets PRICE TREND FORECAST web portal at 
+//												http://premiummarkets.elasticbeanstalk.com/ 
+//												for a preview and a free workable demo of the trend prediction feature.
+												"\tPremium Markets is an automated stock market analysis system. \n"+
+"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting. \n"+
 "\n\tPlease refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/  \n"+
-"for a preview of more advanced features.\n" +
+"for a preview and a free workable demo of the trend prediction feature. \n" +
 "\nPremium Markets\nCopyright (C) 2008-2012 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime"), null);
 										dialog.open();				
 										

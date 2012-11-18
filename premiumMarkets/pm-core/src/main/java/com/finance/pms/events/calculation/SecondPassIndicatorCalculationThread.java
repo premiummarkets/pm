@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -61,11 +60,11 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	protected SecondPassIndicatorCalculationThread(
 			Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
 			Set<Observer> observers, Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators,
-			Boolean export, Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistTrainingEvents) throws NotEnoughDataException {
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, export, keepCache, persistTrainingEvents, eventQueue, jmsTemplate);
+			Boolean export, Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistEvents, Boolean persistTrainingEvents) throws NotEnoughDataException {
+		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, export, keepCache, persistEvents, persistTrainingEvents, eventQueue, jmsTemplate);
 		
 		this.availableSecondPassIndicatorCalculators = availableSecondPassIndicatorCalculators;
-		
+	
 	}
 
 	@Override
@@ -101,15 +100,15 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			return ret;
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException) {
-				LOGGER.warn("Failed calculation : " + warnMessage(EventDefinition.NEURAL.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
+				LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
 			} else if (e.getCause() instanceof NotEnoughDataException ) {
-				LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(EventDefinition.NEURAL.toString(), startDate, endDate));
+				LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate));
 			} else if (e.getCause() instanceof ErrorException) {
-				LOGGER.error(e,e);
+				LOGGER.error(stock+ " second pass calculation error ",e);
 			}
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(stock+ " second pass calculation error ",e);
 			throw e;
 		}
 	}
@@ -118,4 +117,5 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	protected List<EventDefinition> getWantedEventCalculations() {
 		return secondPassWantedCalculations;
 	}
+	
 }

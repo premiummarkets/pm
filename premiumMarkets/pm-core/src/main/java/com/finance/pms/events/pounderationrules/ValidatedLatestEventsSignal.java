@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -37,29 +36,44 @@ import com.finance.pms.events.EventValue;
 
 public class ValidatedLatestEventsSignal extends LatestEventsSignal {
 
-	public ValidatedLatestEventsSignal() {
+	private EventDefinition filteredEventDef;
+
+	public ValidatedLatestEventsSignal(EventDefinition filteredEventDef) {
 		super(false, true);
+		this.filteredEventDef = filteredEventDef;
 	}
 
 	@Override
 	public Integer addFilteredEvent(EventValue eventValue) {
 		
-		boolean isSameTrend = isSameTrend(eventValue);
-		if (!isSameTrend) {
-			if (eventValue.getEventType().equals(EventType.BEARISH)) {//Change from bearish to bullish as we parse from the latest (inv. chronological)
-				this.signalWeight++;
-			} else if (eventValue.getEventType().equals(EventType.BULLISH)) { //vice versa
-				this.signalWeight--;
-			}
+//		boolean isSameTrend = isSameTrend(eventValue);
+//		if (!isSameTrend) {
+//			if (eventValue.getEventType().equals(EventType.BEARISH) || eventValue.getEventType().equals(EventType.NONE)) {//Change from bearish to bullish as we parse from the latest (inv. chronological)
+//				this.signalWeight++;
+//			} else if (eventValue.getEventType().equals(EventType.BULLISH) || eventValue.getEventType().equals(EventType.NONE)) { //vice versa
+//				this.signalWeight--;
+//			} 
+//		}
+		if (eventValue.getEventType().equals(EventType.BEARISH)) {
+			this.signalWeight--;
+		} else if (eventValue.getEventType().equals(EventType.BULLISH)) {
+			this.signalWeight++;
 		}
 		listTriggeringEvent(eventValue, eventValue.getEventType(), eventValue.getEventDef());
 		
 		return 1;	
 	}
-
+	
+	
 	@Override
 	protected Boolean isFilteredEvent(EventValue eventValue) {
-		return eventValue.getEventDef().equals(EventDefinition.NEURAL);
+		return eventValue.getEventDef().equals(filteredEventDef);
 	}
+
+//	@Override
+//	protected boolean isSameTrend(EventValue eventValue) {
+//		if (this.lastParsedEventType == null || this.lastParsedEventType.equals(EventType.NONE)) return false;
+//		return  this.lastParsedEventType.equals(eventValue.getEventType());
+//	}
 
 }

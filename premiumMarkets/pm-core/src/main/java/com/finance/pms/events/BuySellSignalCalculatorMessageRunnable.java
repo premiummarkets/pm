@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -31,6 +30,7 @@
  */
 package com.finance.pms.events;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -43,27 +43,29 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.portfolio.AutoPortfolioLogAnalyser;
 import com.finance.pms.portfolio.AutoPortfolioWays;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.TransactionHistory;
 import com.finance.pms.portfolio.TransactionRecord;
-import com.finance.pms.queue.SignalProcessorMessage;
+import com.finance.pms.queue.BuySellSignalCalculatorMessage;
 import com.finance.pms.queue.SingleEventMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class SignalProcessorMessageRunnable implements Runnable {
+public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(SignalProcessorMessageRunnable.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(BuySellSignalCalculatorMessageRunnable.class);
 	
-	private SignalProcessorMessage message;
+	private BuySellSignalCalculatorMessage message;
 	private JmsTemplate jmsTemplate;
 	private Queue eventQueue;
 
-	public SignalProcessorMessageRunnable(Message message, JmsTemplate jmsTemplate, Queue eventQueue) {
+	public BuySellSignalCalculatorMessageRunnable(Message message, JmsTemplate jmsTemplate, Queue eventQueue) {
 		super();
-		this.message = (SignalProcessorMessage) message;
+		this.message = (BuySellSignalCalculatorMessage) message;
 		this.jmsTemplate = jmsTemplate;
 		this.eventQueue = eventQueue;
 	}
@@ -92,11 +94,31 @@ public class SignalProcessorMessageRunnable implements Runnable {
 				
 			}
 			
+			AutoPortfolioLogAnalyser logAnalyser = new AutoPortfolioLogAnalyser(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + portfolio.getName()+"_Log.csv", ",");
+			String logAnalysisMsg = logAnalyser.message();
+			if (!logAnalysisMsg.isEmpty()) sendTransactionSummary(portfolio, logAnalysisMsg);
+			
 			LOGGER.info("Processor message completed : " +message.getMessageTxt()+", " +message.getSignalProcessingName()+" on the " + message.getStartDate()+ " with "+ Arrays.toString(message.getAdditionalEventListNames()));
 		} catch (Exception e) {
 			LOGGER.error("Error in "+this.toString(),e);
 		}
 
+	}
+
+	private void sendTransactionSummary(final AutoPortfolioWays portfolio, final String logAnalysisMsg) {
+		jmsTemplate.send(eventQueue, new MessageCreator() {
+			
+			public Message createMessage(Session session) throws JMSException {
+				
+				EventValue eventValue = new EventValue(message.getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
+				SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), message.getEndDate(), AnalysisClient.ANY_STOCK, eventValue);
+				infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), EventSource.PMAutoBuySell); //Source (event calculator)
+				infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
+				infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+				
+				return infoMessage;
+			}
+		});
 	}
 	
 	private void sendTransactionHistory(TransactionHistory transactionHistory) {
@@ -107,8 +129,22 @@ public class SignalProcessorMessageRunnable implements Runnable {
 				
 				public Message createMessage(Session session) throws JMSException {
 					
-					EventValue eventValue = new EventValue(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, EventType.INFO, record.toString(), record.getPortfolioName());
+					EventType eventType = EventType.INFO;
+					if (record.getMovement().equals("buy")) {
+						eventType = EventType.BULLISH;
+					} else 
+					if (record.getMovement().equals("sell")) {
+						eventType = EventType.BEARISH;
+					}
+					
+					String message = record.toString()+"\n\n"+ BuySellSignalCalculatorMessageRunnable.messageLinks("*", record.getStock());
+					EventValue eventValue = new EventValue(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, eventType, message, record.getPortfolioName());
 					SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventValue);
+//					Map<EventKey, EventValue> dataResultList = new HashMap<EventKey, EventValue>();
+//					EventKey eventKey = new StandardEventKey(eventValue.getDate(), eventValue.getEventDef(), eventValue.getEventType());
+//					dataResultList.put(eventKey, eventValue);
+//					SymbolEventsMessage infoMessage =new SymbolEventsMessage(new SymbolEvents(record.getStock(), dataResultList, EventDefinition.getEventDefList(), EventState.STATE_TERMINATED));
+					
 					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
 					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
@@ -124,6 +160,13 @@ public class SignalProcessorMessageRunnable implements Runnable {
 	@Override
 	public String toString() {
 		return this.getClass().getName()+" processing "+this.message.getSignalProcessingName() + " at "+ message.getStartDate();
+	}
+	
+	public static String messageLinks(String analysisName, Stock stock) {
+		return 
+				"Generated file :\n"+
+				"file:// "+System.getProperty("installdir") + File.separator + "autoPortfolioLogs"+ File.separator +analysisName+stock.getSymbol()+"_BuyAndSellRecords*.csv\n" +
+				"file:// "+System.getProperty("installdir") + File.separator + "tmp" + File.separator + "nr_"+stock.getSymbol()+"_cf"+analysisName+"*.csv\n";
 	}
 
 }

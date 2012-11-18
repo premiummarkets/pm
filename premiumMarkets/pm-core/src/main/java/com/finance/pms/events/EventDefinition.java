@@ -1,16 +1,15 @@
 /**
- * Premium Markets is an automated financial technical analysis system. 
- * It implements a graphical environment for monitoring financial technical analysis
- * major indicators and for portfolio management.
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
  * In its advanced packaging, not provided under this license, it also includes :
- * Screening of financial web sites to pickup the best market shares, 
- * Forecast of share prices trend changes on the basis of financial technical analysis,
- * (with a rate of around 70% of forecasts being successful observed while back testing 
- * over DJI, FTSE, DAX and SBF),
- * Back testing and Email sending on buy and sell alerts triggered while scanning markets
- * and user defined portfolios.
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
+ * FTSE, DAX and SBF, Back testing, 
+ * Buy sell email notifications with automated markets and user defined portfolios scanning.
  * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features. 
+ * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -72,20 +71,28 @@ public enum EventDefinition implements Serializable {
 	CCIBELOW (18,"MAS CCI Crossed below -x"),
 	UNKNOWN99 (99,"Miscellaneous"),
 	
-	PMMACDZEROCROSS (101,"PM MACD Cross Zero"),
-	PMSMAREVERSAL (102,"PM SMA Reversal"),
-	PMRSITHRESHOLD (104,"PM RSI Threshold Cross"),
+	PMSMAREVERSAL (101,"PM SMA Reversal"),//
+	PMMACDZEROCROSS (102,"PM MACD Cross Zero"), //
+	PMMACDSIGNALCROSS (103,"PM MACD Cross Signal"),//
+	PMAROONTREND (104,"PM Aroon Divergence"), //
+	PMZLAGMACDZCROSS(155,"PM Zero Lag MACD Cross Signal"),
 	
-	PMMACDSIGNALCROSS (105,"PM MACD Cross Signal"),
-	PMMFIDIVERGENCE (109,"PM MFI Divergence"),
+	PMRSITHRESHOLD (110,"PM RSI Threshold Cross"),//
+	PMMFITHRESHOLD (111,"PM MFI Threshold Cross"),//
+	PMSSTOCHTHRESHOLD (112,"PM Stochastic Threshold Cross"),//
+	PMCHAIKINOSCTHRESHOLD (113,"PM Chaikin Oscillator Threshold"),//
+
+	PMRSIDIVERGENCE (120,"PM RSI Divergence"), //
+	PMMFIDIVERGENCE (121,"PM MFI Divergence"), //
+	PMSSTOCHDIVERGENCE (122,"PM Stochastic Divergence"), // 
+	PMCHAIKINOSCDIVERGENCE (123,"PM Chaikin Oscillator Divergence"), //
 	
-	//PMSSTOCHCROSSOVER (151,"PM Stochastic Cross"),
-	PMOBVDIVERGENCE (152,"PM OBV Divergence"),
-	PMMFITHRESHOLD (153,"PM MFI Threshold Cross"),
+	PMOBVDIVERGENCE (151,"PM OBV Divergence"),
+	PMACCDISTDIVERGENCE (152,"PM Acc Dist Divergence"),
 	STDDEV (154,"PM Standard Deviation"),
 	
 	//Attention!! Event of type threshold crossing or Forced Sell must be cleaned (or invalidated) after each signal check?? ToTest.
-	ALERTTHRESHOLD (201,"Alert on Threshold cross"),
+	ALERTTHRESHOLD (201,"Alert on Threshold cross"),//Not discardable??
 	
 	SCREENER (302,"Screener Alert"), //Not discardable
 	WEATHER (401,"Temperature"),  //Not discardable
@@ -94,11 +101,21 @@ public enum EventDefinition implements Serializable {
 	NEURAL (503,"Neural"),
 	VARIATION (504,"Variation"),
 	VARIANCE (505,"Variance"),
+	HOUSETREND(506,"HouseTrend"),
+	SECTOR(507,"SectorRanksTrend"),
 	
 	INFINITE (999,"Infinite");
 
 	private static final int FIRSTPMTECHEVENT = 100;
 	private static final int LASTPMTECHEVENT = 150;
+	private static final Map<Integer,String> EVENTDEFLIST;
+	static {
+		EventDefinition edVals[] = EventDefinition.values();
+		EVENTDEFLIST = new HashMap<Integer,String>();
+		for (Integer i =0; i < edVals.length; i++) {
+			EVENTDEFLIST.put(i, edVals[i].getEventDef());
+		}
+	}
 
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
@@ -171,12 +188,13 @@ public enum EventDefinition implements Serializable {
 	 * @return the event def list
 	 */
 	public static Map<Integer,String> getEventDefList() {
-		EventDefinition edVals[] = EventDefinition.values();
-		Map<Integer,String> r = new HashMap<Integer,String>();
-		for (Integer i =0; i < edVals.length; i++) {
-			r.put(i, edVals[i].getEventDef());
-		}
-		return r;
+//		EventDefinition edVals[] = EventDefinition.values();
+//		Map<Integer,String> r = new HashMap<Integer,String>();
+//		for (Integer i =0; i < edVals.length; i++) {
+//			r.put(i, edVals[i].getEventDef());
+//		}
+//		return r;
+		return EVENTDEFLIST;
 	}
 
 	public static EventDefinition[] tAIndicators() {
@@ -248,7 +266,11 @@ public enum EventDefinition implements Serializable {
 		return subEventList(FIRSTPMTECHEVENT, LASTPMTECHEVENT);
 	}
 	
-	public static String getEventDefinitionsConfigString(List<EventDefinition> eventDefinitions) {
+	public static List<EventDefinition> getEventDefinitionsListFor(EventDefinition eventDef) {
+		return subEventList(eventDef.eventDefId-1, eventDef.eventDefId+1);
+	}
+	
+	public static String getEvtDefsCfgStr(List<EventDefinition> eventDefinitions) {
 		
 		SortedSet<EventDefinition> sortedEvtDefs = new  TreeSet<EventDefinition>(new Comparator<EventDefinition>() {
 			

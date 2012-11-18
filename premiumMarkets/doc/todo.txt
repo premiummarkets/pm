@@ -147,6 +147,7 @@ Perf:
  - progress bar update not accurate ... => find a way
  
 Archi :
+ - Create a analysis name reference table containing analysis descriptions. Exports and events would then refer to this with an Id instead of the full name (which is too long or not descriptive enough)
  - Trend delegate service in provider instead of model object TrendSupplemented. 
  - Refactor market addition so it's by config : cf addingMarket.txt
  - factorise the send event methods which are scattered around.
@@ -365,7 +366,34 @@ ij> select count(*) from portfolio where portfolio.name='YAHOOINDICES,BSESN:BSE'
 ij> select count(*) from portfolio where portfolio.name='YAHOOINDICES,FTSE:LSE';
 1          
 -----------
-118        
+118      
+
+Training polocy big change :
+
+-  Actual Conf : some thing like pr_ETNPR_sp_0_th_1_1_tr_2_sl_1_tl_0.0_lg_1_es_50_sma0_1_sma1_1_i_-101-102-104-105-109
+	It tells which es, sma and eventDefs used in training and to use in calculation
+=> New Conf : some thing like [listOfSupportStock]_pr_ETNPR_sp_0_th_1_1_tr_2_sl_1_tl_0.0_lg_1_es_50_sma0_1_sma1_1_i_-101-102-104-105-109
+
+- Actual TunedConf :  record of the last working conf for a specified config file (also we use only one config file now) and a specified stock
+=> Keep it like this.
+
+- Actual AbstractOnTheFlyTrendCalculator : 
+	For each stock, it checks the last calculation date and periodicaly retune then calculate (with tuneFreq being the period lenth) up to that date.
+	Tuning includes picking up the right config (by scoring over two years) then the stock is trained with the elected config over the period.
+	Then does a last calculation up to the end date requested (last period being one day long).
+	Only the necessary trainings and calculations are done as previous results are fetched from the events table.
+=> New AbstractOnTheFlyTrendCalculator :
+	We now will use a pre created small set of trained configs (with diff supports and diff sma, es, event defs ..). All pre trained to the latest date possible.
+	Tuning will include picking up the right config. But just by calculation as no training is requiered. Hence We do past calculations for each config and score.
+	The best config is used for the current calculation.
+	
+	1. Generate PM events from lastCalc to endDate => analyse name doesn't have to contain stock name : generic name
+	2. Check the config for the stock status via the TunedCong object (which ...)
+	3. If new or staled => run calc before period start to pickup the config. => analyse name doesn't have to contain stock name : generic name. 
+		neural files a 100% linked to analyse name and tuning params
+	4. Calc with the elected config.
+	
+	
 		
 	
 	
