@@ -3,9 +3,8 @@ Short description (jnlp, README, about) :
 Premium Markets is an automated stock market analysis system.
 It implements a graphical environment for monitoring stock market technical analysis
 major indicators, portfolio management and historical data charting.
-Please refer to Premium Markets PRICE TREND FORECAST web portal at 
-http://premiummarkets.elasticbeanstalk.com/ 
-for a preview and a free workable demo of the trend prediction feature.
+See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com 
+for documentation and a free workable demo of the forecast engine.
 
 Long description (jnlp, header, install progress panel, http://premiummarkets.elasticbeanstalk.com) :
 
@@ -15,11 +14,11 @@ major indicators, portfolio management and historical data charting.
 In its advanced packaging, not provided under this license, it also includes :
 Screening of financial web sites to pick up the best market shares, 
 Price trend prediction based on stock market technical analysis and indexes rotation,
-With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
-FTSE, DAX and SBF, Back testing, 
-Buy sell email notifications with automated markets and user defined portfolios scanning.
-Please refer to Premium Markets PRICE TREND FORECAST web portal at 
-http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
+Around 80% of predicted trades more profitable than buy and hold, leading to 4 times 
+more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testing, 
+Automated buy sell email notifications on trend change signals calculated over markets 
+and user defined portfolios. See Premium Markets FORECAST web portal at 
+http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
 
 License jargon :
 
@@ -46,29 +45,41 @@ Free stock market forecast. Neural network, indexes and technical analysis for b
 Title reviewed on keyword results description :
 #Free stock market forecast. Buy sell emails investment advises. Neural network, indexes, technical analysis for trend predictions.
 Free stock market forecast. Buy sell emails. Neural network, indexes, technical analysis predictions
+Title 60 char
+Free stock market forecast and analysis with buy sell signals
 
 Initial description :
 Premium Markets is a stocks and shares price trend forecast engine using neural network, automated financial technical analysis, screening for best stocks and shares and sector rotation strategy.<br /> 
-70% successful trading above buy and hold observed while back testing over DJI, FTSE, DAX and SBF. <br />
+70% successful trading above buy and hold observed while back testing over NYSE, NASDAQ, EURONEXT and LSE. <br />
 Email notification service on buy and sell signals while scanning markets and user defined portfolios.<br />
 Premium Markets  is also available as a standalone software including monitoring of financial technical analysis major indicators, portfolio management and quotations charting.
 Description reviewed on keyword results description :
-Premium Markets is a stocks and shares price prediction engine using neural networks.<br />
-The stock market forecast is based on technical analysis of markets and stocks, as well as sector rotation and market indexes performances.<br />
-This free trend forecast software can help you, as a stock market beginner or as an advanced investor, in stock market screening, performance projections and finding of the future best stocks and shares.<br />
-Premium market offers stocks buy sell signals and monitoring via buy sell advices sent via in emails notifications.<br />
-The free stock market analysis software is also available as a standalone application software which includes monitoring of technical analysis major indicators, stock portfolio management and stock price charting.<br />
+Premium Markets is a free stocks and shares markets price trend prediction engine using neural networks.<br />
+The stock market forecast is based on technical analysis of stocks and markets, as well as on sectors and markets indices rotation and stock markets performances.<br />
+This free trend forecast software can help you, as a stock market beginner or as an advanced investor, in stock market screening, performance projections, market analysis and ultimately in finding the best future stocks and shares for your swing or long term investments.<br />
+Premium market offers stocks buy sell signals monitoring via buy sell advices sent through emails notifications.<br />
+The free stock market analysis software is also available as a standalone application software which includes monitoring of technical analysis major indicators, stock portfolio management and stock historical data charting.<br />
 Premium market is a free addition to your stock market watch and stock market future trend analysis.<br />
 
 Meta tags short description :
 Premium Markets stocks and shares price trend forecast using neural network, technical analysis, sector rotation. 70% above buy and hold while back testing.
 Meta tags short reviewed on keyword results description :
 Free stock market forecast and predictions. Neural network engine for stock market analysis and investment. Stock market watch for best buy and sell stocks.
+Meta tag descr. 150 :
+Free stock market forecast and prediction using technical analysis and sector rotation. Market watch and signals for optimised buy and sell investment
+
+H1 :
+Premium Markets, Free stock market forecast and Trend Prediction based on Neural Networks, Sectors Indices performance and Technical Analysis
+H1 review on keywords :
+Premium Markets, Free stock market Forecast, Trend Analysis, Investment Advises and Buy Sell signals, based on Sectors Rotation and Technical Analysis
 
 Meta tags keywords :
 investment, stock market, rsi, stochastic, shares, buying shares, swing trading, technical analysis, financial forecast, mfi, automated trading, sell shares, moving average, blue chip shares, investing in shares, artificial intelligence, sma, divergence, oscillator
 stock screening, macd, chaikin, neural network, trend following, trend forecast, shares prices, sector rotation, penny shares, price forecast, trend detection, buying shares online, shares online, shares price, how to invest in shares, popular shares, shares tips
 trading risk, equity shares, oil shares, shares market, shares markets, value of shares, share screening, Aroon, sector rotation, forecast engine, market indices, portfolio, stocks and share.
+
+Best goog 2nd pass :
+stock market trend analysis, stock market advice, stock buy sell signals, Share price prediction, stock market forecast, Stock market prediction, buy sell signals, buy and sell signal, free stock market software, analysis stock market, analysis stock market, buy sell stock signals, stock market watch, free stock market, stock market investment 
 
 Best keyword search - goog- :
 stock market investment

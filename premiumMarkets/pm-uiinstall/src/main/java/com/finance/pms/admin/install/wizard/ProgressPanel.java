@@ -5,11 +5,11 @@
  * In its advanced packaging, not provided under this license, it also includes :
  * Screening of financial web sites to pick up the best market shares, 
  * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
- * FTSE, DAX and SBF, Back testing, 
- * Buy sell email notifications with automated markets and user defined portfolios scanning.
- * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
+ * Around 80% of predicted trades more profitable than buy and hold, leading to 4 times 
+ * more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testing, 
+ * Automated buy sell email notifications on trend change signals calculated over markets 
+ * and user defined portfolios. See Premium Markets FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -32,12 +32,19 @@ package com.finance.pms.admin.install.wizard;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -45,6 +52,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import com.finance.pms.admin.install.TextAreaStream;
@@ -188,40 +196,59 @@ public ProgressPanel() {
         jLabel1 = new JLabel();
         jLabel2 = new JLabel();
         
-        contentPanel1.setLayout(new java.awt.BorderLayout());
-        contentPanel1.add(blankSpace, BorderLayout.NORTH);
+        contentPanel1.setLayout(new BorderLayout());
+        //contentPanel1.add(blankSpace, BorderLayout.NORTH);
+       // contentPanel1.add(blankSpace);
         
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
         jTextAreaDescr.setFocusable(true);
-        jTextAreaDescr.setText("<html>"+
-        		"<br />" +
-//        		Premium Markets is an automated stock market analysis system.
-//        		It implements a graphical environment for monitoring stock market technical analysis
-//        		major indicators, portfolio management and historical data charting.
-//        		In its advanced packaging, not provided under this license, it also includes :
-//        		Screening of financial web sites to pick up the best market shares, 
-//        		Price trend prediction based on stock market technical analysis and indexes rotation,
-//        		With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
-//        		FTSE, DAX and SBF, Back testing, 
-//        		Buy sell email notifications with automated markets and user defined portfolios scanning.
-//        		Please refer to Premium Markets PRICE TREND FORECAST web portal at 
-//        		http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
-"Premium Markets is an automated stock market analysis system.<br />"+
-"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.<br />"+
-"In its advanced packaging, not provided under this license, it also includes : <br />"+
-"<ul>" +
-	"<li>Screening of financial web sites to pick up the best market shares,</li>"+
-	"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
-	"<li>With around 80% of forecasted trades above buy and hold, while back testing over DJI,FTSE, DAX and SBF,</li>"+
-	"<li>Back testing,</li>"+
-	"<li>Buy sell email notifications with automated markets and user defined portfolios scanning.</li>" +
-"</ul>" +
-"Please refer to Premium Markets PRICE TREND FORECAST web portal at " +
-"<a href=\"http://premiummarkets.elasticbeanstalk.com/\">http://premiummarkets.elasticbeanstalk.com/</a><br /> for a preview and a free workable demo of more advanced features.<br /><br /><br />" +
-"</html>");
+        jTextAreaDescr.setText(
+        	"<html>"+
+        	"<p>" +
+			"Premium Markets is an automated stock market analysis system.<br />"+
+			"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.<br />" +
+			"<br />"+
+			"I also invite you for a preview of Premium Markets Forecast advanced features (not provided under this license) which includes : <br />"+
+			"<ul>" +
+				"<li>Screening of financial web sites to pick up the best market shares,</li>"+
+				"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
+				"<li>80% of predicted trades more profitable than buy and hold, leading to 4 times more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE,</li>"+
+				"<li>Back testing,</li>"+
+				"<li>Buy sell email notifications on predictions with automated markets and user defined portfolios scanning.</li>" +
+			"</ul>" +
+			"<br />" +
+			"</p>" +
+			"</html>"
+        	);
+        contentPanel1.add(jTextAreaDescr, java.awt.BorderLayout.NORTH);
+        //contentPanel1.add(jTextAreaDescr);
         
-        contentPanel1.add(jTextAreaDescr, java.awt.BorderLayout.CENTER);
+        try {
+			final URI uri = new URI("http://premiummarkets.elasticbeanstalk.com/");
+			
+			class OpenUrlAction implements ActionListener {
+			    @Override public void actionPerformed(ActionEvent e) {   
+			    	open(uri);
+			    }
+			 }
+			
+			JButton button = new JButton();
+			button.setText("<HTML><FONT color=\"red\">Click <FONT color=\"#000099\"><blink><U>http://premiummarkets.elasticbeanstalk.com/</U></blink></FONT> for a preview and a free workable demo of the <b>FORECAST</b> engine.</FONT></HTML>");
+			button.setHorizontalAlignment(SwingConstants.LEFT);
+			button.setBorderPainted(false);
+			button.setOpaque(false);
+			button.setBackground(Color.WHITE);
+			button.setToolTipText(uri.toString());
+			button.addActionListener(new OpenUrlAction());
+			button.setFocusable(true);
+			
+			contentPanel1.add(button, java.awt.BorderLayout.CENTER);
+			//contentPanel1.add(button);
+			
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 
         jPanel1.setLayout(new java.awt.GridLayout(0, 1));
         
@@ -231,21 +258,26 @@ public ProgressPanel() {
         jLabel2.setFont(new java.awt.Font("MS Sans Serif", 1, 11));
       
         progressBar.setStringPainted(true);
+        
+        jPanel1.add(blankSpace);
         jPanel1.add(progressBar);
         
         jPanel1.add(jLabel1);
         jPanel1.add(jLabel2);
-        
-//        progressDescription.setFont(new java.awt.Font("MS Sans Serif", 1, 11));
-//        progressDescription.setText("Downloading and Extracting files ...");
-//        jPanel1.add(progressDescription);
-
-        
 
         contentPanel1.add(jPanel1, java.awt.BorderLayout.SOUTH);
+        //contentPanel1.add(jPanel1);
         
         return contentPanel1;
     }
+    
+    	static void open(URI uri) {
+        if (Desktop.isDesktopSupported()) {
+          try {
+            Desktop.getDesktop().browse(uri);
+          } catch (IOException e) { /* TODO: error handling */ }
+        } else { /* TODO: error handling */ }
+     }
     
     
     /**
@@ -257,14 +289,10 @@ public ProgressPanel() {
         return null;
     }
     
-	/* (non-Javadoc)
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
+
 	public void propertyChange(PropertyChangeEvent evt) {
 		if ("progress" == evt.getPropertyName()) {
 			int progress = (Integer) evt.getNewValue();
-//			if (progress < 0) progress = 0;
-//			if (progress > 100) progress = 100;
 			progressBar.setValue((int) progress);
 		}
 	}

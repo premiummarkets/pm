@@ -5,11 +5,11 @@
  * In its advanced packaging, not provided under this license, it also includes :
  * Screening of financial web sites to pick up the best market shares, 
  * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
- * FTSE, DAX and SBF, Back testing, 
- * Buy sell email notifications with automated markets and user defined portfolios scanning.
- * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
+ * Around 80% of predicted trades more profitable than buy and hold, leading to 4 times 
+ * more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testing, 
+ * Automated buy sell email notifications on trend change signals calculated over markets 
+ * and user defined portfolios. See Premium Markets FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -60,6 +60,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -78,6 +79,7 @@ import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.RefreshAllEventStrategyEngine;
 import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
+import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.gui.EventsComposite;
@@ -165,10 +167,11 @@ public class MainGui extends SashForm implements RefreshableView {
 	/** The refresh model. */
 	private EventModel<RefreshAllEventStrategyEngine> allStocksEventModel;
 	private EventModel<RefreshMonitoredStrategyEngine> monitoredStocksEventModel;
+	private EventModel<RefreshPortfolioStrategyEngine> portfolioStocksEventModel;
 
 	private MenuItem refreshStockList;
 
-	private MenuItem refreshQuotations;
+	private MenuItem refreshAllPortfoliosQuotations;
 	
 	private MenuItem refreshRecommendations;
 
@@ -202,6 +205,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 		allStocksEventModel = EventModel.getInstance(new RefreshAllEventStrategyEngine(), logComposite);
 		monitoredStocksEventModel = EventModel.getInstance(new RefreshMonitoredStrategyEngine(), logComposite);
+		portfolioStocksEventModel = EventModel.getInstance(new RefreshPortfolioStrategyEngine(), logComposite);
 	
 		initMenus();
 		initContent();
@@ -244,19 +248,61 @@ public class MainGui extends SashForm implements RefreshableView {
 					FileInputStream exitImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/exit.png"));
 					Image exitImage = new Image(getDisplay(),exitImg);
 					fileMenuItem.setImage(new Image(getDisplay(), exitImage.getImageData()));
+					fileMenu = new Menu(fileMenuItem);
+					fileMenuItem.setMenu(fileMenu);
 					{
-						fileMenu = new Menu(fileMenuItem);
-						{
-							exitMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
-							exitMenuItem.setText("Exit");
-							exitMenuItem.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									closeButtonMouseDown(evt);
+						MenuItem forecast = new MenuItem(fileMenu, SWT.CASCADE);
+						forecast.setText("The Forescast Engine (NEW)");
+						forecast.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent evt) {
+								Program.launch("http://premiummarkets.elasticbeanstalk.com/");
+							}
+						});
+					}
+					{
+						MenuItem doc = new MenuItem(fileMenu, SWT.CASCADE);
+						doc.setText("Project documentation");
+						doc.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent evt) {
+								Program.launch("http://premiummarkets.elasticbeanstalk.com/html/swtui.html");
+							}
+						});
+					}
+					new MenuItem(fileMenu, SWT.SEPARATOR);
+					{
+						MenuItem about = new MenuItem(fileMenu, SWT.CASCADE);
+						about.setText("About");
+						about.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent evt) {
+								try {
+									Properties pbuild = new Properties();
+									pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
+									ErrorDialog dialog = new ErrorDialog(getShell(),SWT.NULL,
+"Premium Markets is an automated stock market analysis system.\n"+
+"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
+"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
+"\nPremium Markets\nCopyright (C) 2008-2012 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime"), null);
+									dialog.open();				
+									
+								} catch (IOException e) {
+									LOGGER.debug(e);
 								}
-							});
-						}
-						fileMenuItem.setMenu(fileMenu);
+							}
+						});
+					}
+					new MenuItem(fileMenu, SWT.SEPARATOR);
+					{
+						exitMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
+						exitMenuItem.setText("Exit");
+						exitMenuItem.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent evt) {
+								closeButtonMouseDown(evt);
+							}
+						});
 					}
 				}
 				{
@@ -400,8 +446,8 @@ public class MainGui extends SashForm implements RefreshableView {
 							refreshRecommendations.setEnabled(false);
 						}
 						{
-							refreshQuotations = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshQuotations.addSelectionListener(new EventRefreshController(allStocksEventModel,this) {
+							refreshAllPortfoliosQuotations = new MenuItem(quotationMenu, SWT.CASCADE);
+							refreshAllPortfoliosQuotations.addSelectionListener(new EventRefreshController(portfolioStocksEventModel,this) {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
@@ -414,7 +460,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						}
 						{
 							refreshMonitoredQuotations = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshMonitoredQuotations.addSelectionListener(new EventRefreshController(monitoredStocksEventModel,this) {
+							refreshMonitoredQuotations.addSelectionListener(new EventRefreshController(monitoredStocksEventModel, this) {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
@@ -425,27 +471,6 @@ public class MainGui extends SashForm implements RefreshableView {
 								}
 							});
 						}
-//						new MenuItem(quotationMenu, SWT.SEPARATOR);
-//						{
-//							MenuItem newFileMenu = new MenuItem(quotationMenu, SWT.CASCADE);
-//							newFileMenu.setText("Add shares from file ...");
-//							newFileMenu.addSelectionListener(new SelectionAdapter() {
-//								@Override
-//								public void widgetSelected(SelectionEvent evt) {
-//									portfollioAddSharesFromFileMouseDown(evt);
-//								}
-//							});
-//						}
-//						{
-//							newFileUpdatePortfolioMenu = new MenuItem(quotationMenu, SWT.CHECK);
-//							newFileUpdatePortfolioMenu.setText("Select this first to upload directly in the current porfolio");
-//							newFileUpdatePortfolioMenu.addSelectionListener(new SelectionAdapter() {
-//								@Override
-//								public void widgetSelected(SelectionEvent evt) {
-//									//Test LOGGER.error("error",new Exception());
-//								}
-//							});
-//						}
 						quotationMenu.addListener(SWT.Show, new Listener() {
 							
 							public void handleEvent(Event evt) {
@@ -453,7 +478,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								Providers provider =  Providers.getInstance(listProvCmd);
 								refreshStockList.setText("Refresh stock list "+listProvCmd+" "+Indice.formatName(provider.getIndices()));
 								refreshRecommendations.setText("Refresh recommandations for "+listProvCmd+" "+Indice.formatName(provider.getIndices()));
-								refreshQuotations.setText("Refresh quotations for all portfolios"); //using "+MainPMScmd.prefs.get("quotes.provider", "euronext"));
+								refreshAllPortfoliosQuotations.setText("Refresh quotations for all portfolios"); //using "+MainPMScmd.prefs.get("quotes.provider", "euronext"));
 								refreshMonitoredQuotations.setText("Refresh quotations for monitored shares"); // using "+MainPMScmd.prefs.get("quotes.provider", "euronext"));
 							}
 						});
@@ -491,39 +516,6 @@ public class MainGui extends SashForm implements RefreshableView {
 						}
 
 						optionMenuItem.setMenu(optionMenu);
-					}
-				}
-				{
-					{
-						{
-							MenuItem about = new MenuItem(fileMenu, SWT.CASCADE, 0);
-							about.setText("About");
-							about.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									try {
-										Properties pbuild = new Properties();
-										pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
-										ErrorDialog dialog = new ErrorDialog(getShell(),SWT.NULL,
-//												Premium Markets is an automated stock market analysis system.
-//												It implements a graphical environment for monitoring stock market technical analysis
-//												major indicators, portfolio management and historical data charting.
-//												Please refer to Premium Markets PRICE TREND FORECAST web portal at 
-//												http://premiummarkets.elasticbeanstalk.com/ 
-//												for a preview and a free workable demo of the trend prediction feature.
-												"\tPremium Markets is an automated stock market analysis system. \n"+
-"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting. \n"+
-"\n\tPlease refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/  \n"+
-"for a preview and a free workable demo of the trend prediction feature. \n" +
-"\nPremium Markets\nCopyright (C) 2008-2012 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime"), null);
-										dialog.open();				
-										
-									} catch (IOException e) {
-										LOGGER.debug(e);
-									}
-								}
-							});
-						}
 					}
 				}
 			}
@@ -618,14 +610,8 @@ public class MainGui extends SashForm implements RefreshableView {
 				System.out.println(fd[i].getName() + "," + fd[i].getHeight());
 			}
 			System.out.println("System default font : " + shell.getDisplay().getSystemFont().getFontData()[0].getName());
-			//		// and the non-scalable ones
-			//		fd = shell.getDisplay().getFontList(null, false);
-			//		for( int i = 0; i < fd.length; i++ ) {
-			//			System.out.println(fd[i].getName());
-			//		}
 		}
 		
-		//String myDefFontName = "DejaVu Sans Mono";
 		String myDefFontName = shell.getDisplay().getSystemFont().getFontData()[0].getName();
 		String myContentFontName = shell.getDisplay().getSystemFont().getFontData()[0].getName();
 		
@@ -645,7 +631,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		}
 		
-		//MainGui.DEFAULTFONT =  new Font(display, new FontData("Courier New", 8, SWT.NORMAL));
 		MainGui.DEFAULTFONT = new Font(display, myDefFontName, 10, SWT.NORMAL);
 		MainGui.CONTENTFONT = new Font(display, myContentFontName, 9, SWT.NORMAL);
 	}
@@ -814,7 +799,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		this.winTable[0].dispose();
 		this.winTable[1].dispose();
 		this.winTable[2].dispose();
-		//this.winTable[3].dispose();
 		this.getShell().dispose();
 		SpringContext.getSingleton().close();
 	}
@@ -825,7 +809,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		if (Desktop.isDesktopSupported() && hintNumber == 0) {
 			
 			desktop = Desktop.getDesktop();
-			String messageHead = "piggymarketsqueak@googlemail.com?SUBJECT=You have just been running Premium Markets UI from http://premiummarkets.elasticbeanstalk.com/index.htm";
+			String messageHead = "piggymarketsqueak@googlemail.com?SUBJECT=You have just been running Premium Markets UI from http://premiummarkets.elasticbeanstalk.com";
 			String messageBody = "";
 			String release = "";
 
@@ -840,13 +824,12 @@ public class MainGui extends SashForm implements RefreshableView {
 
 			messageBody +=
 					"&BODY=" +
-							"Please refer to Premium Markets PRICE TREND FORECAST web portal at " +
-							"http://premiummarkets.elasticbeanstalk.com/ for a preview of MORE ADVANCED features.\n\n\n"+
 							"Premium Markets is an open source and a non profitable development work.\n" +
 							"It is also a work in progress that you and others can benefit from for free.\n"+
 							"Hence any suggestions or questions are welcome.\n" +
 							"Thank you for your time using Premium Markets.\n" +
-							"Guillaume.\n\n\n\n" +
+							"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n"+
+							"Regards,\nGuillaume.\n\n\n\n" +
 							"Release reference : "+release+" ... "+hintNumber ; 
 
 			try {
@@ -922,39 +905,6 @@ public class MainGui extends SashForm implements RefreshableView {
 	public void refreshView() {
 		//Nothing to do
 	}
-
-//	/**
-//	 * Portfollio add list of shares mouse down.
-//	 * 
-//	 * @param event the event
-//	 * 
-//	 * @author Guillaume Thoreton
-//	 */
-//	private void portfollioAddSharesFromFileMouseDown(SelectionEvent event) {
-//		
-//		//Update share list
-//		String[] filterExtensions = {"*.txt"};
-//		FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
-//		fileDialog.setText("Choose a file containing the list of new shares");
-//
-//		fileDialog.setFilterExtensions(filterExtensions);
-//		String selectedFile = fileDialog.open();
-//		List<Stock> listOShares = new StockList();
-//		if (null != selectedFile) {
-//			String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider","euronext");
-//			QuotationUpdate quotationUpdate = new QuotationUpdate();
-//			quotationUpdate.getQuotesForListInFile(selectedFile, listStProvider);
-//			
-//			//reset Event dates.
-//			monitoredStocksEventModel.hardResetLastQuotationDate();
-//			allStocksEventModel.hardResetLastQuotationDate();
-//		}
-//		
-//		if (newFileUpdatePortfolioMenu.getSelection()) {
-//			((PortfolioComposite) winTable[2]).addListOfSharesFromFile(listOShares);
-//		}
-//
-//	}
 
 	public Date getAnalysisStartDate() {
 		return analyseStartDateCalculation();

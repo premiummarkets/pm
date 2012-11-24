@@ -5,11 +5,11 @@
  * In its advanced packaging, not provided under this license, it also includes :
  * Screening of financial web sites to pick up the best market shares, 
  * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With around 80% of forecasted trades above buy and hold, while back testing over DJI, 
- * FTSE, DAX and SBF, Back testing, 
- * Buy sell email notifications with automated markets and user defined portfolios scanning.
- * Please refer to Premium Markets PRICE TREND FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com/ for a preview and a free workable demo.
+ * Around 80% of predicted trades more profitable than buy and hold, leading to 4 times 
+ * more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testing, 
+ * Automated buy sell email notifications on trend change signals calculated over markets 
+ * and user defined portfolios. See Premium Markets FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
  * 
  * Copyright (C) 2008-2012 Guillaume Thoreton
  * 
@@ -58,9 +58,4 @@ public class RefreshMonitoredStrategyEngine extends UserContentStrategyEngine {
 		List paramsAsList = Arrays.asList(viewStateParams);
 		quotationUpdate.getQuotesFor((List<Stock>) paramsAsList);
 	}
-
-//	@Override
-//	protected List<Stock> listOfShares() {
-//		return DataSource.getInstance().getShareDAO().loadMonitoredShares();
-//	}
 }

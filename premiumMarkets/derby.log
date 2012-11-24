@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Tue Nov 06 20:52:06 GMT 2012:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.1.2 - (1095077): instance a816c00e-013a-d77e-8d90-0000020df508 
+Fri Nov 23 23:16:20 GMT 2012:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013b-2f8e-b739-000002a33788 
 on database directory /home/guil/Developpement/Quotes/PremiumMarkets/derby/premiummarkets  with class loader sun.misc.Launcher$AppClassLoader@90fd20 
 Loaded from file:/home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-uiinstall/target/pm.jar
 java.vendor=Oracle Corporation
@@ -9,8 +9,8 @@ user.dir=/home/guil/Developpement/git/pmsqueak/premiumMarkets
 derby.system.home=null
 Database Class Loader started - derby.database.classpath=''
 ----------------------------------------------------------------
-Tue Nov 06 20:53:46 GMT 2012: Shutting down Derby engine
+Fri Nov 23 23:20:06 GMT 2012: Shutting down Derby engine
 ----------------------------------------------------------------
-Tue Nov 06 20:53:47 GMT 2012:
-Shutting down instance a816c00e-013a-d77e-8d90-0000020df508 on database directory /home/guil/Developpement/Quotes/PremiumMarkets/derby/premiummarkets with class loader sun.misc.Launcher$AppClassLoader@90fd20 
+Fri Nov 23 23:20:07 GMT 2012:
+Shutting down instance a816c00e-013b-2f8e-b739-000002a33788 on database directory /home/guil/Developpement/Quotes/PremiumMarkets/derby/premiummarkets with class loader sun.misc.Launcher$AppClassLoader@90fd20 
 ----------------------------------------------------------------

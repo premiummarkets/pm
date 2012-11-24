@@ -21,9 +21,8 @@ Description :
 Premium Markets is an automated stock market analysis system.
 It implements a graphical environment for monitoring stock market technical analysis
 major indicators, portfolio management and historical data charting.
-Please refer to Premium Markets PRICE TREND FORECAST web portal at 
-http://premiummarkets.elasticbeanstalk.com/ 
-for a preview and a free workable demo of the trend prediction feature.
+See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com 
+for documentation and a free workable demo of the forecast engine.
 
 How to install?
 
