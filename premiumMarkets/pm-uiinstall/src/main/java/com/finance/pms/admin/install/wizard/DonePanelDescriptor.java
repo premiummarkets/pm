@@ -76,12 +76,15 @@ public class DonePanelDescriptor extends WizardPanelDescriptor {
     @Override
   	public void aboutToDisplayPanel() {
     	
-    	String guiShell = InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath() + File.separator + "shell" + File.separator + "gui" + Install.systemType.getShext();
+    	SystemTypes systemType = Install.systemType;
+    	if (systemType == null) systemType = SystemTypes.WINDOWS;
+    	
+		String guiShell = InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath() + File.separator + "shell" + File.separator + "gui" + systemType.getShext();
 	
 		panel3.endInstall.append("Installation completed.\n" +
-								 "I will now try to run the program for you. It may not work depending on your sytem.\n");
+								 "I will now try to run the program for you. It may not work depending on your sytem.\nThank for your patience.\n");
 		panel3.endInstall.append("To run it by your self, you can either :\n\n");
-		String unixAdvice = (Install.systemType.equals(SystemTypes.WINDOWS))?"":"Don't forget to do a chmod u+x on it before hand.\n";
+		String unixAdvice = (systemType.equals(SystemTypes.WINDOWS))?"":"Don't forget to do a chmod u+x on it beforehand.\n";
 		panel3.endInstall.append("\t- Use this file : \n"+ guiShell + "\n"+unixAdvice+"\n");
 		panel3.endInstall.append("\t- Or for windows users, the newly Premium Markets icon on your Desktop.\n\n\n\n\n\t\t\tThank you for using Premium Markets.");
 		

@@ -44,6 +44,8 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 	
 	private static final long serialVersionUID = -4542088662852292807L;
 	
+	private boolean isProcessed = false;
+	
 	private String messageTxt;
 	private Map<String,Config> passedThroughConfigs;
 	
@@ -399,6 +401,14 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 		return "SignalProcessorMessage [eventListName=" + additionalEventListNames + ", messageTxt=" + messageTxt
 				+ ", passedThroughConfigs=" + passedThroughConfigs + ", startDate=" + startDate+ ", endDate=" + endDate
 				+ ", signalProcessingName=" + signalProcessingName + ", messageKey=" + messageKey + "]";
+	}
+
+	public boolean isProcessed() {
+		return isProcessed;
+	}
+
+	public void setProcessed(boolean processed) {
+		isProcessed = true;
 	}
 	
 }

@@ -53,17 +53,13 @@ public class IntroPanelDescriptor extends WizardPanelDescriptor {
         super(IDENTIFIER, new IntroPanel());
     }
     
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getNextPanelDescriptor()
-     */
+    
     @Override
 	public Object getNextPanelDescriptor() {
         return UpdateUrlPanelDescriptor.IDENTIFIER;
     }
     
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getBackPanelDescriptor()
-     */
+
     @Override
 	public Object getBackPanelDescriptor() {
         return null;
@@ -79,12 +75,5 @@ public class IntroPanelDescriptor extends WizardPanelDescriptor {
 	public void displayingPanel() {
 		super.displayingPanel();
 	}
-	
-//	private void selectNextButton() {
-//		Box next = (Box) this.getWizard().getDialog().findComponentAt(
-//        		this.getWizard().getDialog().getWidth()-150,this.getWizard().getDialog().getHeight()-50);
-//        JButton button = (JButton) next.getComponent(2);
-//        button.requestFocusInWindow();
-//	} 
     
 }

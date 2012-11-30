@@ -576,6 +576,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			shell.setMaximized(true);
 			
 			LOGGER.debug("Starting MainGUI display thread");
+			System.out.println("IHM RUNNING");
 			while (!shell.isDisposed()) {
 				try {
 					LOGGER.trace("Disptaching MainGUI events");

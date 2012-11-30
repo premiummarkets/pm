@@ -113,7 +113,7 @@ public class TransactionRecord {
 				+ ".\n stock : " + stock 
 				+ ".\n movement : " + movement
 				+ ".\n transactionPrice : " + transactionPrice 
-				+ ".\n date : " + date 
+				+ ".\n date (mvt detection date) : " + date 
 				+ ".\n quantity left/bought : " + transactionQuantity
 				+ ".\n availableCash : " + availableCash 
 				+ ".\n eventList : " + eventList

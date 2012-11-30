@@ -39,6 +39,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -66,6 +67,7 @@ import org.xml.sax.InputSource;
 
 import com.finance.pms.admin.DbInstaller;
 import com.finance.pms.admin.NoPreparedDbException;
+import com.finance.pms.admin.install.SystemTypes;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 
@@ -250,6 +252,26 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     	task = new Task(InstallFolderPanel.piggyMarketSqueakFolder, this, panel3);
 		task.execute();
 		
+		@SuppressWarnings("all")
+		final SwingWorker<Void, Void> connectionCheck = new SwingWorker<Void,Void>() {
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				try {
+					System.out.println("Connection check.");
+					//ApacheConnectionChecker.checkBlindConnection();
+					Class<?> connectionCheker = Class.forName("com.finance.pm.ApacheConnectionChecker", false, this.getClass().getClassLoader());
+					Method method = connectionCheker.getMethod("checkBlindConnection", null);
+					method.invoke(null, null);
+				} catch (Throwable e) {
+					System.out.println("No Connection check available.");
+				}
+				return null;
+			}
+			
+		};
+		connectionCheck.execute();
+		
 		SwingWorker<Void, Void> deltaPrg = new SwingWorker<Void,Void>() {
 
 			@Override
@@ -266,13 +288,13 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						}
 					}
 				}
+				connectionCheck.cancel(true);
 				return null;
 			}
 			
 		};
-
 		deltaPrg.execute();
-		
+			
     }
     
     @Override
@@ -411,9 +433,23 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						e.printStackTrace();
 					}
 					System.out.println("I guess you need : "+jnlpSelectedFileName);
+				
+				//Install has been started from jnlp
+				} else {
+					System.out.println("Javaws is saying you need "+jnlpSelectedFileName);
 				}
 				
-					//Delete the other swt files
+				if (Install.systemType == null) {
+					String sysn = System.getProperty("os.name");
+					System.out.println("2nd attempt with os.name : "+sysn);
+					if (sysn != null) {
+						Install.systemType = SystemTypes.getType(sysn);
+					} else {
+						Install.systemType = SystemTypes.getType(jnlpSelectedFileName);
+					}
+				}
+				
+				//Delete the other swt files
 				Boolean foundLib = false;
 				File libDir = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"lib");
 				File[] swtFiles = libDir.listFiles(new FilenameFilter() {
@@ -439,7 +475,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					}
 				} 
 				
-					//Warning msg
+				//Warning msg
 				if (!foundLib) {
 					System.out.println("---- WARNING ----");
 					System.out.println("Sorry no SWT library was found for you system.");
@@ -456,7 +492,9 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				//ICONS
 				File iconNewFile = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon.img");
 				iconNewFile.delete();
-				File icon = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon"+Install.systemType.getIcoext());
+				SystemTypes systemType = Install.systemType;
+				if (systemType == null) systemType = SystemTypes.WINDOWS;
+				File icon = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon"+systemType.getIcoext());
 				System.out.println("renaming " +icon.getAbsolutePath() + " to "+ iconNewFile.getAbsolutePath());
 				Boolean rni = icon.renameTo(iconNewFile);
 				if (!rni) {

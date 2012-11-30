@@ -47,6 +47,7 @@ import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsScreennerBuyAlertOnlyPonderationRule;

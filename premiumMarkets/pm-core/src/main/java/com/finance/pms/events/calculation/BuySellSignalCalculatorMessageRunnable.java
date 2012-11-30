@@ -28,7 +28,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.events;
+package com.finance.pms.events.calculation;
 
 import java.io.File;
 import java.util.Arrays;
@@ -44,7 +44,11 @@ import org.springframework.jms.core.MessageCreator;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.MessageProperties;
+import com.finance.pms.events.AnalysisClient;
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventSource;
+import com.finance.pms.events.EventType;
+import com.finance.pms.events.EventValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.AutoPortfolioLogAnalyser;
 import com.finance.pms.portfolio.AutoPortfolioWays;
@@ -100,7 +104,16 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 			
 			LOGGER.info("Processor message completed : " +message.getMessageTxt()+", " +message.getSignalProcessingName()+" on the " + message.getStartDate()+ " with "+ Arrays.toString(message.getAdditionalEventListNames()));
 		} catch (Exception e) {
+			
 			LOGGER.error("Error in "+this.toString(),e);
+			
+		} finally {
+			
+			 synchronized (message) {
+				 message.setProcessed(true);
+				 message.notifyAll();
+			}
+			
 		}
 
 	}
@@ -139,12 +152,7 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 					
 					String message = record.toString()+"\n\n"+ BuySellSignalCalculatorMessageRunnable.messageLinks("*", record.getStock());
 					EventValue eventValue = new EventValue(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, eventType, message, record.getPortfolioName());
-					SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventValue);
-//					Map<EventKey, EventValue> dataResultList = new HashMap<EventKey, EventValue>();
-//					EventKey eventKey = new StandardEventKey(eventValue.getDate(), eventValue.getEventDef(), eventValue.getEventType());
-//					dataResultList.put(eventKey, eventValue);
-//					SymbolEventsMessage infoMessage =new SymbolEventsMessage(new SymbolEvents(record.getStock(), dataResultList, EventDefinition.getEventDefList(), EventState.STATE_TERMINATED));
-					
+					SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventValue);			
 					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
 					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);

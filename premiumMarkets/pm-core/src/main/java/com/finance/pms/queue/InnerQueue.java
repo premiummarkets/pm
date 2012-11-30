@@ -85,7 +85,6 @@ public class InnerQueue implements Queue {
 	 * @author Guillaume Thoreton
 	 */
 	public Boolean isEmpty() {
-		//return myQueue.isEmpty();
 		return myQueueSize == 0;
 	}
 	

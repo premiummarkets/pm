@@ -435,12 +435,6 @@ public class AutoPortfolioDelegate {
 		
 		getTransactionHistory().add(transactionRecord);
 	
-//		this.log(
-//				shareList.getAvailableCash().toString(),new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(currentDate),
-//				symbolEvents.getStock().getSymbol(),symbolEvents.getStock().getIsin(),
-//				symbolEvents.getStock().getName(), movement,
-//				portfolioShare.getQuantity().toString(), price.toString(), portfolioShare.getQuantity().multiply(price).toString(),
-//				symbolEvents.toAutoPortfolioLog());
 		this.log(transactionRecord);
 		
 		return transactionRecord;

@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.Observer;
 import java.util.Set;
 
-import com.finance.pms.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
@@ -49,6 +48,7 @@ import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.threads.ConfigThreadLocal;

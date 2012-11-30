@@ -8,8 +8,8 @@
 	
 	<information>
 		<title>PremiumMarkets</title>
-		<vendor>Guillaume Thoréton</vendor>
-		<homepage href="http://downloads.sourceforge.net/pmsqueak/" />
+		<vendor>Premium Markets</vendor>
+		<homepage href="http://premiummarkets.elasticbeanstalk.com" />
 		<description>
 Premium Markets is an automated stock market analysis system.
 It implements a graphical environment for monitoring stock market technical analysis
@@ -62,7 +62,6 @@ See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstal
 	<resources>
 		<j2se version="1.6+" />
 		<jar href="pm.jar" main="true" download="eager" />
-		<!-- <jar href="pm-0.10.0.jar" main="true" download="eager" /> -->
 	</resources>
 	
 	<resources os="Windows" arch="x86">

@@ -1886,8 +1886,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public SourceClient connect(int connectionId) throws RestartServerException {
 		
 		MyDBConnection ret = null;
-		Connection c = this.connect(false);
-		ret = new MyDBConnection(c);
+		Connection connection = this.connect(false);
+		ret = new MyDBConnection(connection);
 		return ret;
 	}
 

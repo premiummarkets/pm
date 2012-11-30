@@ -28,7 +28,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms;
+package com.finance.pms.events.calculation;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,12 +37,12 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.SortedMap;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 

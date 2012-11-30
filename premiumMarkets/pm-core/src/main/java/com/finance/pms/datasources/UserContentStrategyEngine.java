@@ -39,7 +39,6 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
@@ -48,6 +47,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.threads.ConfigThreadLocal;
 

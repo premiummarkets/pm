@@ -74,16 +74,16 @@ public enum SystemTypes {
 	 */
 	public static SystemTypes getType(String name) {
 		
-		if (name != null && name.toLowerCase().contains(SystemTypes.WINDOWS.getLowerSys())) 
+		if (name != null && (name.toLowerCase().contains(SystemTypes.WINDOWS.getLowerSys()) || name.toLowerCase().contains("win32") || name.toLowerCase().contains("wce")) ) 
 			return SystemTypes.WINDOWS;
 		
-		if (name != null && name.toLowerCase().contains(SystemTypes.LINUX.getLowerSys())) 
+		if (name != null && (name.toLowerCase().contains(SystemTypes.LINUX.getLowerSys()) || name.toLowerCase().contains("sun") || name.toLowerCase().contains("solaris")) ) 
 			return SystemTypes.LINUX;
 		
 		if (name != null && name.toLowerCase().contains(SystemTypes.MAC.getLowerSys())) 
 			return SystemTypes.MAC;
 		
-		return SystemTypes.LINUX;
+		return null; //SystemTypes.WINDOWS;
 	}
 
 

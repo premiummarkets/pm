@@ -56,6 +56,7 @@ import com.finance.pms.admin.install.logging.PopupMessageRunnable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.ScraperMetrics;
+import com.finance.pms.events.calculation.BuySellSignalCalculatorMessageRunnable;
 import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
@@ -121,11 +122,11 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     			runSynchTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
     			
     			
-    		} else if (message instanceof AbstractAnalysisClientRunnableMessage) { //Runnable Messages : screener, indicator and alerts on threshold
+    		} else if (message instanceof AbstractAnalysisClientRunnableMessage) { //Runnable Messages : screener, indicator, all stocks summaries and alerts on threshold
     			
-    			AbstractAnalysisClientRunnableMessage screenerMessage = (AbstractAnalysisClientRunnableMessage) message;
-    			LOGGER.info("New runnable message received : "+screenerMessage.getAnalysisName()+" for "+screenerMessage.getClass().getName());
-    			runSynchTask(screenerMessage.getAnalysisName(), screenerMessage);
+    			AbstractAnalysisClientRunnableMessage runnableMessage = (AbstractAnalysisClientRunnableMessage) message;
+    			LOGGER.info("New runnable message received : "+runnableMessage.getAnalysisName()+" for "+runnableMessage.getClass().getName());
+    			runSynchTask(runnableMessage.getAnalysisName(), runnableMessage);
     			
     		} else if (message instanceof ObjectMessage) { //SymbolEvent : send email
 
@@ -189,6 +190,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     	//BUY SELL
     	//All Buy and Sell signals from auto portfolios and monitored user portfolios
     	//Sell signal from sell only monitored portfolios
+    	Boolean isValidPmUserEvent = source.equals(EventSource.PMUserBuySell) && symbolEvents.getStock().equals(ANY_STOCK);
 		Boolean isValidAutoBuySellSignal = source.equals(EventSource.PMAutoBuySell) || ( source.equals(EventSource.PMUserBuySell)  && isMonitoredForPortfolio );
 		Boolean isSellMonitoredForPortfolio = PortfolioMgr.getInstance().isSellMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
 		Boolean isValidMonitoredSellOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isSellMonitoredForPortfolio && (eventType.equals(EventType.BEARISH) || eventType.equals(EventType.INFO));
@@ -197,7 +199,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		
 		Boolean isValidEventSource = 
 				isValidAlertEvent || isValidScreeningEvent || isValidScreeningMessage || isValidWeatherEvent || 
-				isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
+				isValidPmUserEvent || isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
 		if 	(sendMailEnabled && isValidEventSource ) {
 			LOGGER.info(
 	    			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
