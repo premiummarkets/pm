@@ -148,7 +148,7 @@ public class AutoPortfolioLogAnalyser {
 			ArrayList<QuotationUnit> lastQUnit = DataSource.getInstance().loadStripedQuotationsAfter(stock, stock.getLastQuote());
 			BigDecimal close = lastQUnit.get(0).getClose();
 			ret.get(stock).lastQuote = close;
-			BigDecimal closeEUR = PortfolioMgr.getInstance().getCurrencyConverter().convert(stock.getMarket().getCurrency(), Currency.EUR, close, stock.getLastQuote());
+			BigDecimal closeEUR = PortfolioMgr.getInstance().getCurrencyConverter().convert(stock.getMarketValuation().getCurrency(), Currency.EUR, close, stock.getLastQuote());
 			ret.get(stock).lastQuoteEUR = closeEUR;
 			
 		}
@@ -171,7 +171,7 @@ public class AutoPortfolioLogAnalyser {
 		NumberFormat nf = new DecimalFormat("#0.0000");
 		for (Stock stock : gainPerLine.keySet()) {
 			Gain gain = gainPerLine.get(stock);
-			Currency currency = stock.getMarket().getCurrency();
+			Currency currency = stock.getMarketValuation().getCurrency();
 			buffer.append(
 					stock.getSymbol() + separator + "\t\t" +
 					nf.format(gain.realizedAmount())+ " "+currency+ separator +  "\t\t" +nf.format(gain.realizedAmountEUR())+" "+Currency.EUR+ separator +  "\t\t" +
@@ -246,7 +246,7 @@ public class AutoPortfolioLogAnalyser {
 		
 		public void addOut(BigDecimal amount, Stock stock, Date date) {
 			this.out = this.out.add(amount);
-			BigDecimal amountEUR = PortfolioMgr.getInstance().getCurrencyConverter().convert(stock.getMarket().getCurrency(), Currency.EUR, amount, date);
+			BigDecimal amountEUR = PortfolioMgr.getInstance().getCurrencyConverter().convert(stock.getMarketValuation().getCurrency(), Currency.EUR, amount, date);
 			this.outEUR = this.outEUR.add(amountEUR);
 			
 			updateRealGainAmount();
@@ -255,7 +255,7 @@ public class AutoPortfolioLogAnalyser {
 
 		public void addIn(BigDecimal amount, Stock stock, Date date) {
 			this.in = this.in.add(amount);
-			BigDecimal amountEUR = PortfolioMgr.getInstance().getCurrencyConverter().convert(stock.getMarket().getCurrency(), Currency.EUR, amount, date);
+			BigDecimal amountEUR = PortfolioMgr.getInstance().getCurrencyConverter().convert(stock.getMarketValuation().getCurrency(), Currency.EUR, amount, date);
 			this.inEUR = this.inEUR.add(amountEUR);
 		}
 		

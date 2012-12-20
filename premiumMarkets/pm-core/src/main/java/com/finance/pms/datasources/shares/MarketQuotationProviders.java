@@ -43,10 +43,7 @@ public enum MarketQuotationProviders {
 	
 	DEFAULT (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
 	YAHOO (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
-	//BOURSORAMA (ProvidersTypes.BOURSORAMA, new BoursoramaSymbolNameResolver(),"boursorama"),
-	//YAHOOFR (ProvidersTypes.YAHOOFR,new YahooSymbolNameResolver(),"yahoofr"),
 	GOOGLE (ProvidersTypes.GOOGLE,new GoogleSymbolNameResolver(),"google"),
-	//YAHOOINDICES (ProvidersTypes.GOOGLE,new YahooSymbolNameResolver(),"yahooIndices"),
 	INVESTIR (ProvidersTypes.INVESTIR,new InvestirSymbolNameResolver(),"investir");
 	
 	/** The LOGGER. */

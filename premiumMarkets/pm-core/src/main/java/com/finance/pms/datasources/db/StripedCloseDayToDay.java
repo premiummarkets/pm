@@ -49,6 +49,11 @@ public class StripedCloseDayToDay extends StripedCloseFunction {
 	private SortedMap<Date, double[]> houseDerivation;
 	private Date startDate;
 	private Date endDate;
+	private Boolean rootAtZero;
+	
+	public StripedCloseDayToDay(Boolean rootAtZero) {
+		this.rootAtZero = rootAtZero;
+	}
 
 	@Override
 	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
@@ -79,7 +84,8 @@ public class StripedCloseDayToDay extends StripedCloseFunction {
 		List<Double> ret = new ArrayList<Double>();
 		SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
 		
-		double root = tailMap.get(tailMap.firstKey())[0];
+	//	double root = tailMap.get(tailMap.firstKey())[0];
+		double root = (rootAtZero)?tailMap.get(tailMap.firstKey())[0]:0d;
 		Set<Date> keySet = tailMap.keySet();
 		for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
 			Date date = iterator.next();

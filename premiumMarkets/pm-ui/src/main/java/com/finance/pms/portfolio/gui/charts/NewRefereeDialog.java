@@ -30,13 +30,16 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
-import java.util.ArrayList;
-
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
-import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.MainGui;
 import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 
 /**
@@ -55,8 +58,8 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * @author Guillaume Thoreton
 	 * @param composite 
 	 */
-	public NewRefereeDialog(Shell parent,int style, Composite composite) {
-		super(parent,style,new ArrayList<PortfolioShare>(), composite);
+	public NewRefereeDialog(Composite parent,int style, Composite composite) {
+		super(parent,style, composite);
 	}
 	
 	
@@ -74,9 +77,33 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 		if (inst == null || inst.isDisposed()) {
 
 			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
-			inst = new NewRefereeDialog(piShell, SWT.NULL, composite);
+			piShell.setText("Premium Markets - Referee selection.");
+			piShell.setFont(MainGui.DEFAULTFONT);
+			piShell.setLayout(new FillLayout());
+			
+			final ScrolledComposite scrollComposite = new ScrolledComposite(piShell,SWT.BORDER | SWT.RESIZE);
+			inst = new NewRefereeDialog(scrollComposite, SWT.NULL, composite);
+			inst.open();
+			scrollComposite.setContent(inst);
+		    scrollComposite.setExpandVertical(true);
+		    scrollComposite.setExpandHorizontal(true);
+		    scrollComposite.setMinSize(inst.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		    scrollComposite.addControlListener(new ControlAdapter() {
+		      public void controlResized(ControlEvent e) {
+		        Rectangle r = scrollComposite.getClientArea();
+		        scrollComposite.setMinSize(inst.computeSize(r.width, r.height));
+		      }
+		    });
+		    scrollComposite.pack();
+		    
+		    piShell.setSize(scrollComposite.computeSize(200, 500));
+		    Rectangle mainBounds = shell.getBounds();
+		    Rectangle marketShellBounds = piShell.getBounds();
+		    piShell.setLocation(mainBounds.x+mainBounds.width/4-marketShellBounds.x/2,mainBounds.y+mainBounds.y/4);
+		    piShell.open();
+
+			
 			try {
-				inst.open();
 				swtLoop();
 			} catch (Exception e) {
 				LOGGER.error("", e);

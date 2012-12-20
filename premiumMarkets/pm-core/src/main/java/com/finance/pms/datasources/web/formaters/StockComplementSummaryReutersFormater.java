@@ -87,7 +87,8 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 					epsd= new BigDecimal(epsValueStr).setScale(4, BigDecimal.ROUND_DOWN);
 				}
 				
-				stockPart.setReutersEPS(epsd.multiply(new BigDecimal(stockPart.getMarket().getCurrency().getUnitFactor())));
+				//stockPart.setReutersEPS(epsd.multiply(new BigDecimal(stockPart.getMarket().getCurrency().getToRatedUnitFactor())));
+				stockPart.setReutersEPS(epsd.multiply(stockPart.getMarketValuation().getCurrencyFactor()));
 			}
 		}
 

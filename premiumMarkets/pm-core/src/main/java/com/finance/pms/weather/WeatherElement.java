@@ -47,7 +47,6 @@ public class WeatherElement extends Validatable {
 	
 	private static final long serialVersionUID = 1073659764360998307L;
 	
-	@Id
 	Date date;
 	
 	Integer maxTemp;
@@ -125,6 +124,7 @@ public class WeatherElement extends Validatable {
 		this.wind = wind;
 	}
 	
+	@Id
 	public Date getDate() {
 		return date;
 	}

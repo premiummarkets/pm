@@ -93,7 +93,8 @@ public class Stock extends Validatable {
     private Date lastQuote;
     
     /** The provider type. */
-    private  Market market;
+    //private  Market market;
+    private  MarketValuation marketValuation;
     
     /** The market. */
     private  SymbolMarketQuotationProvider symbolMarketQuotationProvider;
@@ -130,7 +131,7 @@ public class Stock extends Validatable {
 	public Stock(Stock si) {
 		super();
 		Stock s = si;
-		this.market = s.market;
+		this.marketValuation = s.marketValuation;
 		this.symbolMarketQuotationProvider = s.symbolMarketQuotationProvider;
 		this.symbol = s.symbol;
 		this.isin = s.isin;
@@ -156,8 +157,8 @@ public class Stock extends Validatable {
  * @author Guillaume Thoreton
  */
 	@Deprecated
-	public Stock(String isin, String symbol, StockCategories stockCat, SymbolMarketQuotationProvider marketQuotationsProvider, Market market) {
-		this.market = market;
+	public Stock(String isin, String symbol, StockCategories stockCat, SymbolMarketQuotationProvider marketQuotationsProvider, MarketValuation market) {
+		this.marketValuation = market;
 	    this.symbolMarketQuotationProvider = marketQuotationsProvider;
 		try {
 			this.setIsin(isin);
@@ -195,9 +196,9 @@ public class Stock extends Validatable {
 	@Deprecated
 	public Stock( String isin, String symbol, String name, Boolean removable,
 			StockCategories category, 
-			SymbolMarketQuotationProvider marketQuotationsProvider, Market market) 
+			SymbolMarketQuotationProvider marketQuotationsProvider, MarketValuation market) 
 	throws InvalidAlgorithmParameterException {
-		this.market = market;
+		this.marketValuation = market;
 		this.symbolMarketQuotationProvider = marketQuotationsProvider;
 	    this.setIsin(isin);
 	    this.setSymbol(symbol);
@@ -212,11 +213,11 @@ public class Stock extends Validatable {
 	
 	public Stock(String isin, String symbol, String name, Boolean removable,
 			StockCategories category, SymbolMarketQuotationProvider marketQuotationsProvider,
-			Market  market,
+			MarketValuation  market,
 			String sectorHint, TradingMode tradingMode, Long capitalisation) 
 	throws InvalidAlgorithmParameterException {
 		
-		this.market = market;
+		this.marketValuation = market;
 		this.symbolMarketQuotationProvider = marketQuotationsProvider;
 	    this.setIsin(isin);
 	    this.setSymbol(symbol);
@@ -248,10 +249,10 @@ public class Stock extends Validatable {
 	public Stock(String isin, String symbol, String name, Boolean removable,
 			StockCategories category, Date lastquote, 
 			SymbolMarketQuotationProvider marketQuotationsProvider, 
-			Market market,
+			MarketValuation market,
 			String sectorHint, TradingMode tradingMode, Long capitalisation) 
 	throws InvalidAlgorithmParameterException {
-	    this.market = market;
+	    this.marketValuation = market;
 	    this.symbolMarketQuotationProvider = marketQuotationsProvider;
 	    this.setIsin(isin);
 	    this.setSymbol(symbol);
@@ -266,7 +267,7 @@ public class Stock extends Validatable {
 	}
 
 	public void resetStock(Stock stock) {
-		this.market = stock.market;
+		this.marketValuation = stock.marketValuation;
 		this.symbolMarketQuotationProvider = stock.symbolMarketQuotationProvider;
 		this.symbol = stock.symbol;
 		this.isin = stock.isin;
@@ -389,7 +390,7 @@ public class Stock extends Validatable {
 			LOGGER.error("",e);
 		}
 		iq.addValue(this.getSymbolMarketQuotationProvider().toString());
-		iq.addValue(this.getMarket().toString());
+		iq.addValue(this.getMarketValuation().toString());
 		iq.addValue(this.getSectorHint());
 		iq.addValue(this.getTradingMode().toString());
 		iq.addValue(this.getCapitalisation());
@@ -402,21 +403,25 @@ public class Stock extends Validatable {
 	 */
 	@Override
 	public String toString() {
+		
 		String str = "";
+		
 		try {
 			Currency currency = Currency.NAN;
-			if (this.getMarket() != null) {
-				currency = this.getMarket().getCurrency();
+			if (this.getMarketValuation() != null) {
+				currency = this.getMarketValuation().getCurrency();
 			}
 			String lastDateQ = null;
-			SimpleDateFormat dateFormat =new SimpleDateFormat("YYYY-MM-dd");
+			SimpleDateFormat dateFormat =new SimpleDateFormat("yyyy-MM-dd");
 			if (this.lastQuote != null) {
 				lastDateQ = dateFormat.format(this.lastQuote);
 			}
-			str = "Symbol :"+this.getSymbol()+"; Isin :"+this.getIsin()+"; Name :"+this.getName()+"; Currency :"+currency+"; last date Q :"+lastDateQ;
+			str = "Symbol :"+this.getSymbol()+"; Isin :"+this.getIsin()+"; Name :"+this.getName()+"; Currency :"+currency+"; Last date Q :"+lastDateQ;
+			
 		} catch (RuntimeException e) {
-			LOGGER.debug("Can't print stock : "+this.symbol+";"+this.isin+";"+this.name,e);
+			LOGGER.error("Can't print stock : "+this.symbol+";"+this.isin+";"+this.name+";"+lastQuote, e);
 		}
+		
 		return str;
 	}
 	
@@ -565,7 +570,7 @@ public class Stock extends Validatable {
      */
     public Boolean toBeRemoved(SharesListId whichMarket) {
     	return this.isRemovable() && this.isObsolete() 
-				&& whichMarket.equals(this.getMarket());
+				&& whichMarket.equals(this.getMarketValuation());
     }
     
     /**
@@ -594,10 +599,12 @@ public class Stock extends Validatable {
 	 * 
 	 * @return the provider type
 	 */
-    @Enumerated(EnumType.STRING)
-    @Column(name="MARKETLISTPROVIDER")
-	public Market getMarket() {
-		return market;
+//    @Enumerated(EnumType.STRING)
+//    @Column(name="MARKETLISTPROVIDER")
+    @Embedded
+    @AttributeOverride(name="market",column=@Column(name="MARKETLISTPROVIDER"))
+	public MarketValuation getMarketValuation() {
+		return marketValuation;
 	}
 
 	/**
@@ -605,9 +612,9 @@ public class Stock extends Validatable {
 	 * 
 	 * @param market the market list provider
 	 */
-	public void setMarket(Market market) {
-		this.market = market;
-	}
+    public void setMarketValuation(MarketValuation market) {
+    	this.marketValuation = market;
+    }
 
 	/**
 	 * Gets the symbol market quotation provider.

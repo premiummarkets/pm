@@ -188,7 +188,7 @@ public class DbSettings {
 		
 		this.shell = new Shell(shell,SWT.RESIZE);
 		this.open();
-		this.shell.open();;
+		this.shell.open();
 	}
 
 

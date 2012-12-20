@@ -31,35 +31,19 @@
 package com.finance.pms.datasources.shares;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 public enum Currency  implements Serializable {
 
-	NAN(1,"NAN"), EUR(1,"Euro"), USD(1,"U.S. Dollar"), AUD(1,"Australian Dollar"), GBP(100,"U.K. Pound Sterling"), INR(1,"Indian Rupee"), CAD(1,"Canadian Dollar");
+	NAN("NAN"), EUR("Euro"), USD("U.S. Dollar"), AUD("Australian Dollar"), GBP("U.K. Pound Sterling"), INR("Indian Rupee"), CAD("Canadian Dollar");
 
-	private Integer unitFactor;
 	private String imfCurrencyName;
 
-	private Currency(Integer unitFactor,String imfCurrencyName) {
-		this.unitFactor = unitFactor;
+	private Currency(String imfCurrencyName) {
 		this.imfCurrencyName = imfCurrencyName;
-	}
-	
-	public BigDecimal translateToExchangeUnit(BigDecimal amount) {
-		return amount.divide(new BigDecimal(unitFactor),4,BigDecimal.ROUND_DOWN);
-	}
-	
-	public BigDecimal translateToQuotationUnit(BigDecimal amount) {
-		return amount.multiply(new BigDecimal(unitFactor));
 	}
 	
 	public String getImfCurrencyName() {
 		return imfCurrencyName;
 	}
-
-	public Integer getUnitFactor() {
-		return unitFactor;
-	}
-
 
 }

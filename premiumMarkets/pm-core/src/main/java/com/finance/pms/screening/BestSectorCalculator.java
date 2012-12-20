@@ -63,6 +63,8 @@ public class BestSectorCalculator implements ScreenerCalculator<NavigableSet<Sec
 			
 		});
 		
+		
+		//TODO integrate with SectorKey Comparator
 		Map<String,Sector>  mapped = new HashMap<String, Sector>() {
 			private static final long serialVersionUID = 1L;
 

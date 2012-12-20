@@ -70,13 +70,6 @@ public class InnerJmsTemplate extends JmsTemplate {
 			if (message instanceof SingleEventMessage && !((InnerQueue) destination).contains(message)) {
 				((InnerQueue) destination).addMessage(message);
 			} else if (message instanceof SymbolEventsMessage) {
-//				Integer oIndex = ((InnerQueue) destination).myQueue.indexOf(message);
-//				if (oIndex > -1) {
-//					SymbolEventsMessage sem = (SymbolEventsMessage)((InnerQueue) destination).myQueue.get(oIndex);
-//					((SymbolEvents)sem.getObject()).addEventResultElement(((SymbolEventsMessage)message).symbolEvents);
-//				} else {
-//					((InnerQueue) destination).myQueue.add(message);
-//				}
 				((InnerQueue) destination).addMessage(message);
 			} else {
 				((InnerQueue) destination).addMessage(message);

@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.prefs.BackingStoreException;
 
 import org.eclipse.swt.SWT;
@@ -96,6 +97,7 @@ public class MarketsSettings extends Composite {
 	SharesListId currentMarketListProvider = SharesListId.valueOfCmd(MainPMScmd.getPrefs().get("quotes.listprovider", SharesListId.YAHOOINDICES.getSharesListCmdParam()));
 	MarketQuotationProviders currentQuotationProvider = MarketQuotationProviders.valueOfCmd(MainPMScmd.getPrefs().get("quotes.provider", MarketQuotationProviders.YAHOO.getCmdParam()));
 	Providers yahooProvider = Providers.getInstance(SharesListId.YAHOOINDICES.getSharesListCmdParam());
+	
 
 	Button shareListRadio[];
 	CCombo quotationSourceCombo[];
@@ -169,9 +171,21 @@ public class MarketsSettings extends Composite {
 			this.setBackground(new Color(getDisplay(), 239, 183, 103));
 			this.setLayout(compositeLayout);
 			
+			checkDefaultIndices();
+			
 			this.initGui();
 		} catch (Exception e) {
 			LOGGER.error("", e);
+		}
+	}
+
+	private void checkDefaultIndices() {
+		Set<Indice> indices = yahooProvider.getIndices();
+		if (indices.size() == 0) {
+			List<String> shareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames();
+			for (String yahooIndice : shareListNames) {
+				yahooProvider.addIndices(Indice.parseString(yahooIndice.replace(SharesListId.YAHOOINDICES.name()+",", "")), false);
+			}
 		}
 	}
 
@@ -239,7 +253,8 @@ public class MarketsSettings extends Composite {
 				yahooIndicesChooserLabel.setText("Your custom indice format is <YAHOOINDICE>:<MARKET>.\n " +
 						"Where MARKET is like : "+ Arrays.asList(Market.values()) + ".\n" +
 						"(ex : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
-						"You can specify several indices commat separeted.");
+						"You can specify several indices commat separeted.\n" +
+						"You can also leave blank to aggregate all the prexisting yahoo indices available below.\n");
 				yahooIndicesChooserLabel.setFont(MainGui.DEFAULTFONT);
 				yahooIndicesChooserLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
 				
@@ -317,6 +332,7 @@ public class MarketsSettings extends Composite {
 										shareList = SharesListId.valueOfCmd(shareListRadio[k].getText().split(" ")[0]);
 									} else if (k == CUSTOMLISTRADIOPOSITION) {
 										yahooProvider.addIndices(Indice.parseString(yahooIndicesChooserInput.getText()), true);
+										checkDefaultIndices();
 										shareList = SharesListId.YAHOOINDICES;
 									} else if (k > CUSTOMLISTRADIOPOSITION) {
 										try {

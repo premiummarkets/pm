@@ -72,11 +72,12 @@ import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.TradingMode;
-import com.finance.pms.datasources.web.Converter;
+import com.finance.pms.datasources.web.CurrencyConverter;
 import com.finance.pms.datasources.web.ProvidersInflation;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -125,9 +126,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	private String account;
 
-	// hibernate
-	@SuppressWarnings("unused")
-	private PortfolioShare() {
+	//hib
+	public PortfolioShare() {
 		super();
 	}
 
@@ -427,11 +427,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.monitorLevel = monitorLevel;
 	}
 
-//	@SuppressWarnings("unused")
-//	private void setLastDayCloseQuotation(BigDecimal lastDayCloseValue) {
-//		this.lastDayCloseQuotation = lastDayCloseValue;
-//	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -467,6 +462,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	@JoinColumn(name = "name", nullable = false)
 	@ForeignKey(name = "FK_PORTFOLIO_TO_PORTFOLIO_NAME")
 	@Id
+	//@NotFound(action=NotFoundAction.IGNORE)
 	public AbstractSharesList getPortfolio() {
 		return portfolio;
 	}
@@ -486,14 +482,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		if (transaction.getModtype().equals(TransactionType.AIN)) {
 			this.setQuantity(transaction.getQuantity().add(this.getQuantity()));
 			this.setCashin(transaction.fullAmountIn());
-			if (propagate) this.portfolio.addAmountToTotalAmountIn(transaction.amount(), getStockCurrency(), transaction.getDate());
+			if (propagate) this.portfolio.addAmountToTotalAmountIn(transaction.amount(), transactionCurrency, transaction.getDate());
 		}
 		if (transaction.getModtype().equals(TransactionType.AOUT)) {
 			BigDecimal newQuantity = transaction.getQuantity().subtract(this.getQuantity()).negate();
 			if (newQuantity.compareTo(BigDecimal.ZERO) < 0) throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
 			this.setQuantity(newQuantity);
 			this.setCashout(transaction.fullAmountOut());
-			if (propagate) this.portfolio.addAmountToTotalAmountOut(transaction.amount(), getStockCurrency(), transaction.getDate());
+			if (propagate) this.portfolio.addAmountToTotalAmountOut(transaction.amount(), transactionCurrency, transaction.getDate());
 		}
 		if (transaction.getModtype().equals(TransactionType.NULL))
 			throw new InvalidParameterException(" Transaction mode shouldn't be NULL : " + transaction);
@@ -810,10 +806,10 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return alertsDown;
 	}
 
-	@Transient
-	public Currency getStockCurrency() {
-		return this.getStock().getMarket().getCurrency();
-	}
+//	@Transient
+//	public MarketValuation getStockCurrency() {
+//		return this.getStock().getMarketValuation();
+//	}
 
 	@Enumerated(EnumType.STRING)
 	public Currency getTransactionCurrency() {
@@ -867,7 +863,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 					throw new InvalidAlgorithmParameterException("No transaction data for "+this);
 				}
 
-				Converter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
+				CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
 
 				BigDecimal cashIn = BigDecimal.ZERO;
 				BigDecimal currentQuantity = BigDecimal.ZERO;
@@ -911,10 +907,10 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			throws InvalidAlgorithmParameterException {
 		
 		if (transactionsForStock.isEmpty()) {
-			throw new InvalidAlgorithmParameterException("No transaciton data for "+this);
+			throw new InvalidAlgorithmParameterException("No transaction data for "+this);
 		}
 		
-		Converter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
+		CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
 		BigDecimal weightedCashin = BigDecimal.ZERO;
 		BigDecimal weightedCashout = BigDecimal.ZERO;
 		
@@ -1066,7 +1062,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			Stock stock =new Stock(
 					ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
 					new Boolean(false), StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
-					Market.NYSE, "None", TradingMode.UNKNOWN, 0L);
+					new MarketValuation(Market.NYSE), "None", TradingMode.UNKNOWN, 0L);
 			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, fisrtDate, false, Currency.USD);
 			inflatAtFirst = inflationQuotations.getCloseForDate(fisrtDate);
 			inflatAtSecond = inflationQuotations.getCloseForDate(secondDate);

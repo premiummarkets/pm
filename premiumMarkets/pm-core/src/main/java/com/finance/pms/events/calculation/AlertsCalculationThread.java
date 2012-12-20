@@ -47,6 +47,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventSource;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -99,5 +100,10 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		}
 		
 		return ret;
+	}
+	
+	@Override
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+		EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(portfolioShare.getStock(), eventListName, datedeb, datefin, true, EventDefinition.alertsOnThresholds());
 	}
 }

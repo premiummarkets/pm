@@ -122,7 +122,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
-		DayQuoteYahooFormater dsf = new DayQuoteYahooFormater(url, stock, stock.getMarket().getCurrency().name());
+		DayQuoteYahooFormater dsf = new DayQuoteYahooFormater(url, stock, stock.getMarketValuation().getCurrency().name());
 		return this.httpSource.readURL(dsf);
 	}
 
@@ -164,9 +164,10 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 				stockList.get(stockList.indexOf(s)).setName(s.getName());
 			}
 			try {
-				DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-			} catch (SQLException e) {
-				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :" + e.getMessage() + " cause : "+ e.getCause());
+//				DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
+				DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+//			} catch (SQLException e) {
+//				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :" + e.getMessage() + " cause : "+ e.getCause());
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}

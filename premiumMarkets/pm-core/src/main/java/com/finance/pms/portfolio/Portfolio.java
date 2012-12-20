@@ -164,7 +164,7 @@ public class Portfolio extends AbstractSharesList {
 
 	public void removeOrUpdateShareForQuantity(PortfolioShare portfolioShare, BigDecimal quantity, Date date) throws InvalidAlgorithmParameterException, InvalidQuantityException {
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(),date,true, portfolioShare.getTransactionCurrency());
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), date, true, portfolioShare.getTransactionCurrency());
 			BigDecimal lastQuotation = quotations.getCloseForDate(date);
 			
 			removeOrUpdateShare(portfolioShare, quantity, date, lastQuotation, TransactionType.AOUT);
@@ -234,7 +234,7 @@ public class Portfolio extends AbstractSharesList {
 	@Override
 	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, Date currentDate, MonitorLevel mLevel, Currency transactionCurrency) {
 		if (this.portfolioCurrency != null && !this.portfolioCurrency.equals(transactionCurrency)) {
-			throw new RuntimeException("Currency is inconsistent in report : portfolio currency is " + this.portfolioCurrency + " and " + stock.getSymbol() + " is " + transactionCurrency);
+			throw new RuntimeException("Currency is inconsistent : portfolio currency is " + this.portfolioCurrency + " and " + stock.getSymbol() + " is " + transactionCurrency);
 		}
 		return super.getOrCreatePortfolioShare(stock, currentDate, mLevel, transactionCurrency);
 	}

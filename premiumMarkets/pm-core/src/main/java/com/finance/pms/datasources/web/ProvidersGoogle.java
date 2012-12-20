@@ -108,7 +108,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
-		DayQuoteFormater dsf = new DayQuoteGoogleFormater(url,stock,stock.getMarket().getCurrency().name());
+		DayQuoteFormater dsf = new DayQuoteGoogleFormater(url,stock,stock.getMarketValuation().getCurrency().name());
 		List<Validatable> readURL = this.httpSource.readURL(dsf);
 		return readURL;
 	}
@@ -127,7 +127,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		String extension = googleSymbolNameResolver.getExtension(stock.getSymbol());
 		
 		//TODO solve market for extension
-		Market market  = stock.getMarket();
+		Market market  = stock.getMarketValuation().getMarket();
 		if ("L".equals(extension)) market =  Market.LSE;
 		
 		String ticker = market.getMarketName()+":"+stock.getSymbol().replaceAll("\\."+extension, "");

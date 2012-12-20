@@ -77,13 +77,6 @@ public class VariationCalculator extends EventCompostionCalculator {
 			e.printStackTrace();
 		}
 	}
-	
-
-	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
-		// Nothing as variation should be unmutable
-		
-	}
 
 	@Override
 	public Map<EventKey, EventValue> calculateEventsFor(String eventListName) {

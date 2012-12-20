@@ -105,7 +105,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
 			try {
 				actionThread.runIndicatorsCalculation(maxPass,true);
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				LOGGER.error(e,e);
 			}
 		}

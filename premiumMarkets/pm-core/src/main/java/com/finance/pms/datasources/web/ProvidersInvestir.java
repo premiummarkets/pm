@@ -89,7 +89,7 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
-		DayQuoteInvestirFormater dsf = new DayQuoteInvestirFormater(url, stock, stock.getMarket().getCurrency().name());
+		DayQuoteInvestirFormater dsf = new DayQuoteInvestirFormater(url, stock, stock.getMarketValuation().getCurrency().name());
 		return this.httpSource.readURL(dsf);
 	}
 	
@@ -104,7 +104,7 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		String extension = stock.getSymbolMarketQuotationProvider().getMarketQuotationProvider().getSymbolNameResolver().getExtension(stock.getSymbol());
 		
 		if (extension.equals(stock.getSymbol())) { //No symbol extension. We try white the market
-			extension = stock.getMarket().getInvestirExtension();
+			extension = stock.getMarketValuation().getMarket().getInvestirExtension();
 		}
  
 		Calendar today = Calendar.getInstance();

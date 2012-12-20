@@ -48,8 +48,10 @@ import com.finance.pms.datasources.db.DataSource.SHARES;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.StockToDB;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -106,7 +108,7 @@ public class AdminDB {
 		Boolean justcheckB = new Boolean(justcheck);
 		if (command.equals("-fixLastupdatedate")) fixLastUpdateDate(shares,justcheckB);
 		if (command.equals("-cleanobsoletequotes")) cleanObsoleteQuotes(shares,justcheckB);
-		if (command.equals("-addsuffixe")) addSuffixe(shares,justcheckB);
+		//if (command.equals("-addsuffixe")) addSuffixe(shares,justcheckB);
 		if (command.equals("-addExtension")) addExtension(shares,justcheckB);
 		if (command.equals("-fixPortfolioSymbols")) fixPortfolioSymbols(justcheckB);
 		//FIXME if (command.equals("-updateNAN")) updateNANSymbol(DataSource.getInstance().loadStocks(StockCategories.SICAV),justcheckB);
@@ -174,7 +176,7 @@ public class AdminDB {
 								.getString(SHARES.NAME_FIELD).trim(), rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs
 										.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
 										new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),
-										Market.valueOf(rs.getString(SHARES.MARKET).trim()),
+										new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 										rs.getString(SHARES.SECTOR_HINT),
 										TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
 										rs.getLong(SHARES.CAPITALISATION)));
@@ -307,66 +309,66 @@ public class AdminDB {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private static void addSuffixe(StockList shares, Boolean justCheck) {
-		
-		List<Validatable> lstUpdate = new ArrayList<Validatable>();
-		List<Validatable> lstUpdateS = new ArrayList<Validatable>();
-		
-		for (Stock s: shares) {
-			String symbol = s.getSymbol();
-			try {
-				s.setSymbol(symbol);
-			} catch (InvalidAlgorithmParameterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			{
-				final Query uQ = new Query(DataSource.SHARES.getUPDATEREFERENCE());		
-					uQ.addValue(s.getSymbol());
-					uQ.addValue(s.getName());
-					uQ.addValue(s.getIsin());
-					lstUpdate.add(new Stock(s) {
-						@Override
-						public Query toDataBase() {
-							return uQ;
-						}
-					});
-			}
-			
-			{
-				final Query uQ2 = new Query(DataSource.QUOTATIONS.getUPDATEREFERENCE());
-				uQ2.addValue(s.getSymbol());
-				//uQ2.addValue(s.getName());
-				uQ2.addValue(s.getIsin());
-				lstUpdateS.add(new Stock(s) {
-					@Override
-					public Query toDataBase() {
-						return uQ2;
-					}
-				});
-			}
-			
-		}
-		
-		System.out.println("Number tickers that while be updated : " + lstUpdate.size());
-		System.out.println("Tickers that while be updated : " + lstUpdate);
-		
-		System.out.println("Number shares that while be updated : " + lstUpdateS.size());
-		System.out.println("shares that while be updated : " + lstUpdateS);
-		
-		try {
-			if (!justCheck)
-				DataSource.getInstance().executeBlock(lstUpdate, DataSource.SHARES.getUPDATEREFERENCE());
-
-			if (!justCheck)
-				DataSource.getInstance().executeBlock(lstUpdateS, DataSource.QUOTATIONS.getUPDATEREFERENCE());
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+//	private static void addSuffixe(StockList shares, Boolean justCheck) {
+//		
+//		List<Validatable> lstUpdate = new ArrayList<Validatable>();
+//		List<Validatable> lstUpdateS = new ArrayList<Validatable>();
+//		
+//		for (Stock s: shares) {
+//			String symbol = s.getSymbol();
+//			try {
+//				s.setSymbol(symbol);
+//			} catch (InvalidAlgorithmParameterException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			
+//			{
+//				final Query uQ = new Query(DataSource.SHARES.getUPDATEREFERENCE());		
+//					uQ.addValue(s.getSymbol());
+//					uQ.addValue(s.getName());
+//					uQ.addValue(s.getIsin());
+//					lstUpdate.add(new Stock(s) {
+//						@Override
+//						public Query toDataBase() {
+//							return uQ;
+//						}
+//					});
+//			}
+//			
+//			{
+//				final Query uQ2 = new Query(DataSource.QUOTATIONS.getUPDATEREFERENCE());
+//				uQ2.addValue(s.getSymbol());
+//				//uQ2.addValue(s.getName());
+//				uQ2.addValue(s.getIsin());
+//				lstUpdateS.add(new Stock(s) {
+//					@Override
+//					public Query toDataBase() {
+//						return uQ2;
+//					}
+//				});
+//			}
+//			
+//		}
+//		
+//		System.out.println("Number tickers that while be updated : " + lstUpdate.size());
+//		System.out.println("Tickers that while be updated : " + lstUpdate);
+//		
+//		System.out.println("Number shares that while be updated : " + lstUpdateS.size());
+//		System.out.println("shares that while be updated : " + lstUpdateS);
+//		
+//		try {
+//			if (!justCheck)
+//				DataSource.getInstance().executeBlock(lstUpdate, DataSource.SHARES.getUPDATEREFERENCE());
+//
+//			if (!justCheck)
+//				DataSource.getInstance().executeBlock(lstUpdateS, DataSource.QUOTATIONS.getUPDATEREFERENCE());
+//
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
 	
 	/**
 	 * Update nan symbol.
@@ -376,68 +378,68 @@ public class AdminDB {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private static void updateNANSymbol(StockList shares, Boolean justCheck) {
-		
-		List<Validatable> lstUpdate = new ArrayList<Validatable>();
-		List<Validatable> lstUpdateS = new ArrayList<Validatable>();
-		
-		for (Stock s: shares) {
-			String isin = s.getIsin();
-			String isinNumber = isin.substring(2);
-			
-			try {
-				s.setSymbol(isinNumber);
-			} catch (InvalidAlgorithmParameterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			{
-				final Query uQ = new Query(DataSource.SHARES.getUPDATEREFERENCE());		
-					uQ.addValue(s.getSymbol());
-					uQ.addValue(s.getName());
-					uQ.addValue(s.getIsin());
-					lstUpdate.add(new Stock(s) {
-						@Override
-						public Query toDataBase() {
-							return uQ;
-						}
-					});
-			}
-			
-			{
-				final Query uQ2 = new Query(DataSource.QUOTATIONS.getUPDATEREFERENCE());
-				uQ2.addValue(s.getSymbol());
-				//uQ2.addValue(s.getName());
-				uQ2.addValue(s.getIsin());
-				lstUpdateS.add(new Stock(s) {
-					@Override
-					public Query toDataBase() {
-						return uQ2;
-					}
-				});
-			}
-			
-		}
-		
-		System.out.println("Number tickers that while be updated : " + lstUpdate.size());
-		System.out.println("Tickers that while be updated : " + lstUpdate);
-		
-		System.out.println("Number shares that while be updated : " + lstUpdateS.size());
-		System.out.println("shares that while be updated : " + lstUpdateS);
-		
-		try {
-			if (!justCheck)
-				DataSource.getInstance().executeBlock(lstUpdate, DataSource.SHARES.getUPDATEREFERENCE());
-
-			if (!justCheck)
-				DataSource.getInstance().executeBlock(lstUpdateS, DataSource.QUOTATIONS.getUPDATEREFERENCE());
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+//	private static void updateNANSymbol(StockList shares, Boolean justCheck) {
+//		
+//		List<Validatable> lstUpdate = new ArrayList<Validatable>();
+//		List<Validatable> lstUpdateS = new ArrayList<Validatable>();
+//		
+//		for (Stock s: shares) {
+//			String isin = s.getIsin();
+//			String isinNumber = isin.substring(2);
+//			
+//			try {
+//				s.setSymbol(isinNumber);
+//			} catch (InvalidAlgorithmParameterException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			
+//			{
+//				final Query uQ = new Query(DataSource.SHARES.getUPDATEREFERENCE());		
+//					uQ.addValue(s.getSymbol());
+//					uQ.addValue(s.getName());
+//					uQ.addValue(s.getIsin());
+//					lstUpdate.add(new Stock(s) {
+//						@Override
+//						public Query toDataBase() {
+//							return uQ;
+//						}
+//					});
+//			}
+//			
+//			{
+//				final Query uQ2 = new Query(DataSource.QUOTATIONS.getUPDATEREFERENCE());
+//				uQ2.addValue(s.getSymbol());
+//				//uQ2.addValue(s.getName());
+//				uQ2.addValue(s.getIsin());
+//				lstUpdateS.add(new Stock(s) {
+//					@Override
+//					public Query toDataBase() {
+//						return uQ2;
+//					}
+//				});
+//			}
+//			
+//		}
+//		
+//		System.out.println("Number tickers that while be updated : " + lstUpdate.size());
+//		System.out.println("Tickers that while be updated : " + lstUpdate);
+//		
+//		System.out.println("Number shares that while be updated : " + lstUpdateS.size());
+//		System.out.println("shares that while be updated : " + lstUpdateS);
+//		
+//		try {
+//			if (!justCheck)
+//				DataSource.getInstance().executeBlock(lstUpdate, DataSource.SHARES.getUPDATEREFERENCE());
+//
+//			if (!justCheck)
+//				DataSource.getInstance().executeBlock(lstUpdateS, DataSource.QUOTATIONS.getUPDATEREFERENCE());
+//
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
 	
 	/**
 	 * Insert portfolio.

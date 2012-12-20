@@ -68,13 +68,14 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
-import com.finance.pms.datasources.web.Converter;
+import com.finance.pms.datasources.web.CurrencyConverter;
 import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.QuotationProvider;
@@ -87,27 +88,21 @@ import com.finance.pms.portfolio.UserPortfolio;
 public class GnuCashAdvPortfolioParser {
 	
 	private static final int REALIZED_GAIN = 10;
-	
 	private static final int INCOME_COLUMN = 9;
-
 	private static final int MONEYOUT_COLUMN = 8;
-
 	private static final int MONEYIN_COLUMN = 7;
-	
+	@SuppressWarnings("unused") private static final int VALUE_COLUMN = 6;
 	private static final int BASIS_COLUMN = 5;
-	
+	@SuppressWarnings("unused") private static final int UNKNOWN_COLUMN = 4;
 	private static final int PRICE_COLUMN = 3;
-
 	private static final int NBSHARES_COLUMN = 2;
-
 	private static final int SYMBOL_COLUMN = 1;
-	
 	private static final int ACCOUNT_COLUMN = 0;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(GnuCashAdvPortfolioParser.class);
 	
 	ShareDAO shareDAO;
-	Converter currencyConverter;
+	CurrencyConverter currencyConverter;
 	GnuCashParserHelper gnuCashParserHelper;
 	
 	private List<String> notFoundStocks;
@@ -117,7 +112,7 @@ public class GnuCashAdvPortfolioParser {
 		return notFoundStocks;
 	}
 
-	public GnuCashAdvPortfolioParser(ShareDAO shareDAO, Converter currencyConverter) {
+	public GnuCashAdvPortfolioParser(ShareDAO shareDAO, CurrencyConverter currencyConverter) {
 		super();
 		this.shareDAO = shareDAO;
 		this.currencyConverter = currencyConverter;
@@ -195,6 +190,8 @@ public class GnuCashAdvPortfolioParser {
 			throw new IOException("Invalid file "+e.getMessage(),e);
 		} 
 		
+		if (newPortfolio == null) throw new IOException("Invalid file.\nNo transaciton were found for that portfolio");
+		
 		return newPortfolio;
 
 	}
@@ -228,7 +225,7 @@ public class GnuCashAdvPortfolioParser {
 		"Money In".equals(((Element) rowAtts.item(MONEYIN_COLUMN)).getTextContent().trim()) &&
 		"Money Out".equals(((Element) rowAtts.item(MONEYOUT_COLUMN)).getTextContent().trim()) &&
 		"Income".equals(((Element) rowAtts.item(INCOME_COLUMN)).getTextContent().trim()) &&
-		"Realised Gain".equals(((Element) rowAtts.item(REALIZED_GAIN)).getTextContent().trim().replaceAll("EUR( |\n)*", "")))
+		(((Element) rowAtts.item(REALIZED_GAIN)).getTextContent().trim().replaceAll("EUR( |\n)*", "")).matches("Reali.ed Gain"))
 			return;
 			
 		throw new RuntimeException("Invalid file or gnucash export");
@@ -361,7 +358,7 @@ public class GnuCashAdvPortfolioParser {
 							Stock stock = new Stock(ref, ref, name, true, 
 									StockCategories.DEFAULT_CATEGORY, 
 									new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(cmdParam), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
-									market, 
+									new MarketValuation(market), 
 									"",TradingMode.CONTINUOUS,0l);
 							
 							Date end = EventSignalConfig.getNewDate();

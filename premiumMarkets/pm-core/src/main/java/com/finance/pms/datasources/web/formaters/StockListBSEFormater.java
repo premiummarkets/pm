@@ -37,6 +37,7 @@ import java.util.List;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -81,7 +82,7 @@ public class StockListBSEFormater extends LineFormater {
 						strArray[1].trim(), 
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,YahooMarketExtentions.BSE.toString()),
-						Market.BSE,
+						new MarketValuation(Market.BSE),
 						"",TradingMode.CONTINUOUS,0l));
 			}
 			return retour;

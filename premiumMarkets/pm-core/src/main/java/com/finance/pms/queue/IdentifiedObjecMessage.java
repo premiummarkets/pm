@@ -34,7 +34,7 @@ import javax.jms.ObjectMessage;
 
 public abstract class IdentifiedObjecMessage implements ObjectMessage {
 
-	Integer messageKey;
+	protected Integer messageKey;
 	
 	protected IdentifiedObjecMessage(Integer messageKey) {
 		super();

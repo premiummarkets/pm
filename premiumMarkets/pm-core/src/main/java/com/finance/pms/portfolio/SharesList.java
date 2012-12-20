@@ -96,7 +96,7 @@ public class SharesList extends AbstractSharesList {
 	}
 
 	private PortfolioShare rawAddShare(Stock stock) {
-		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, DateFactory.dateAtZero(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarket().getCurrency());
+		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, DateFactory.dateAtZero(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
 		listShares.put(stock,portfolioShare);
 		return portfolioShare;
 	}

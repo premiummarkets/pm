@@ -31,8 +31,6 @@
 package com.finance.pms.admin.install.wizard;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -111,7 +109,8 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 		private WizardPanelDescriptor w;
 		Date lastReleaseDate;
 		Date currentBuildDate;
-		private DateFormat sourceForgeDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+		//private DateFormat sourceForgeDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+		private DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
 
 		Task(WizardPanelDescriptor w) {
 			super();
@@ -139,7 +138,8 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 					updateUrl.downLoadLatest(versionNumber, observer);
 					
 				} else {
-					System.out.print("You have latest : " + sourceForgeDateFormat.format(currentBuildDate));
+					//System.out.print("You have latest : " + sourceForgeDateFormat.format(currentBuildDate));
+					System.out.print("You have latest : " + jnlpDateFormat.format(currentBuildDate)+"\n");
 					w.getWizard().setCurrentPanel(LicencePanelDescriptor.IDENTIFIER);
 				}
 				
@@ -156,37 +156,33 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 				String currentBuild = pbuild.getProperty("application.buildtime");
 				currentBuildDate = buildDateFormat.parse(currentBuild); //2009/08/31 12:54:39 BST
 				
-				URL sourceforge = new URL("http://sourceforge.net/projects/pmsqueak/files/");
+				//URL sourceforge = new URL("http://sourceforge.net/projects/pmsqueak/files/");
+				URL sourceforge = new URL("http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp");
 			    URLConnection yc = sourceforge.openConnection();
+			    yc.setReadTimeout(15000);
 			    BufferedReader br = new BufferedReader(new InputStreamReader(yc.getInputStream()));
 
 				String line;
-				//Pattern pattern = Pattern.compile(".*PiggyMarketSqueak(.*)\\.jnlp:.*released on (.*)\""); 	//released on 2009-02-04
-				// <a href="/projects/pmsqueak/files/latest/download?source=files" title="/executable pmsqueak/0.9.0/PiggyMarketSqueak-0.9.0.jnlp:  released on 2010-06-13 22:51:27 UTC">
-				Pattern pattern = Pattern.compile("PremiumMarkets(.*)\\.jnlp:.*released on ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3})\">");
-				Pattern pattern2 = Pattern.compile("-(.*)\\.jnlp:.*released on ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3})\">");
-				Matcher fit, fit2;
+//				Pattern pattern = Pattern.compile("PremiumMarkets(.*)\\.jnlp:.*released on ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3})\">");
+//				Pattern pattern2 = Pattern.compile("-(.*)\\.jnlp:.*released on ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]{3})\">");
+				//This version : 2012/12/19 22:23:43 GMT
+				Pattern pattern = Pattern.compile("This version : ([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]*)");
+				Matcher fit;
+				//Matcher fit2;
 				while (null != (line = br.readLine())) {
 					//System.out.println(line);
 					fit = pattern.matcher(line);
-					fit2 = pattern2.matcher(line);
+					//fit2 = pattern2.matcher(line);
 					if (fit.find()) {
 						checkFit(line, fit);
 						break;
-					} else if (fit2.find()) {
-						checkFit(line, fit2);
-						break;
-					}
+					} 
+//					else if (fit2.find()) {
+//						checkFit(line, fit2);
+//						break;
+//					}
 				}
 				
-				
-				
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ParseException e) {
-				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -196,20 +192,27 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 
 		private void checkFit(String line, Matcher fit) throws ParseException {
 			System.out.println("Found pattern in : "+line);
-			versionNumber = fit.group(1).replace("-", "");
-			lastReleaseDate = sourceForgeDateFormat.parse(fit.group(2));
+			//versionNumber = fit.group(1).replace("-", "");
+			//lastReleaseDate = sourceForgeDateFormat.parse(fit.group(2));
+			versionNumber = fit.group(1).replaceAll("[ /:]", ".");
+			lastReleaseDate = jnlpDateFormat.parse(fit.group(1));
 			//if (lastReleaseDate.after(currentBuildDate)) {
 			Calendar lastReleaseCal = Calendar.getInstance();
 			lastReleaseCal.setTime(lastReleaseDate);
+			lastReleaseCal.set(Calendar.MILLISECOND, 0);
+			lastReleaseCal.set(Calendar.SECOND, 0);
 			Calendar currentBuildCal= Calendar.getInstance();
 			currentBuildCal.setTime(currentBuildDate);
-			if (	lastReleaseCal.get(Calendar.YEAR) > currentBuildCal.get(Calendar.YEAR) ||
-					(lastReleaseCal.get(Calendar.YEAR) == currentBuildCal.get(Calendar.YEAR) && lastReleaseCal.get(Calendar.DAY_OF_YEAR) > currentBuildCal.get(Calendar.DAY_OF_YEAR))
-				) {
-				newestExist++;
-			}
-			System.out.println("Latest version is : "+versionNumber+" released on "+sourceForgeDateFormat.format(lastReleaseDate));
-			System.out.println("Your version was released on the "+sourceForgeDateFormat.format(currentBuildDate));
+			currentBuildCal.set(Calendar.MILLISECOND, 0);
+			currentBuildCal.set(Calendar.SECOND, 0);
+//			if (	lastReleaseCal.get(Calendar.YEAR) > currentBuildCal.get(Calendar.YEAR) ||
+//					(lastReleaseCal.get(Calendar.YEAR) == currentBuildCal.get(Calendar.YEAR) && lastReleaseCal.get(Calendar.DAY_OF_YEAR) > currentBuildCal.get(Calendar.DAY_OF_YEAR))
+//				) {
+//				newestExist++;
+//			}
+			if (lastReleaseCal.getTime().after(currentBuildCal.getTime())) newestExist++;
+			System.out.println("Latest version is : "+versionNumber+" released on "+jnlpDateFormat.format(lastReleaseDate));
+			System.out.println("Your version was released on the "+jnlpDateFormat.format(currentBuildDate));
 		}
 		
 	}

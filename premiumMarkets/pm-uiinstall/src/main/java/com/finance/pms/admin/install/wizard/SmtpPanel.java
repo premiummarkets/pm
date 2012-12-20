@@ -56,21 +56,30 @@ public class SmtpPanel extends JPanel {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -2997823935558776268L;
 	
-	/** The Constant keys. */
-	protected static final String[] keys = {"mail.to", "mail.host", "mail.username", "mail.password"};
+	protected static final String[] keys = {
+		"mail.to", 
+		//"mail.from", 
+		"mail.host", "mail.username", "mail.password"};
 	
-	/** The Constant exValue. */
-	protected static final String[] exValue = {"ex : your.name@yourdomain.com", "ex : smtp.yourdomain.com", "", ""};
-	
-	/** The key comments. */
+	protected static final String[] exValue = {"", "", "", "", ""};
+
 	private final String[] keyComments = { 
 					"Your email address",
-					"Your email provider server dns name or IP ", 
-					"Your email provider server user name - If authentication is required -",
-					"Your email provider server password - If authentication is required -"};
+				//	"Your reply email address",
+					"Your email provider Internet Address", 
+					"Your email provider User Name",
+					"Your email provider Password"};
+	
+	private String[] toolTip = {
+			"You can get these parameters from your email client account set up or webmail provider. This will be used for buy and sell and errors notifications.",
+		//	"Usually the same as your email address above.",
+			"Also called OutGoing Server SMTP dns name or IP. For Example : smtp.gmail.com, relay.plus.net, smtp.mail.yahoo.com ...",
+			"You will find these in the authentication parameters of your email account set up. Leave blank if no authentication is required",
+			"Leave blank if no authentication is required"
+	};
 	
 	/** The jtxt. */
-	static protected JTextField[] jtxt = new JTextField[4];
+	protected JTextField[] jtxt = new JTextField[keyComments.length];
  
     /** The content panel. */
     private JPanel contentPanel;
@@ -114,7 +123,8 @@ public class SmtpPanel extends JPanel {
         
         textLabel.setBackground(Color.gray);
         textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 20));
-        textLabel.setText("PLease setup your email address and ISP smtp access parameters");
+        textLabel.setText("Please setup your email address and ISP smtp access parameters");
+        //textLabel.setToolTipText("You can get these from your email client account set up or webmail provider. This will be used for buy and sell and errors notifications.");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);
         
@@ -155,16 +165,18 @@ public class SmtpPanel extends JPanel {
 		for (int i = 0;i < keys.length;i++) {
 			
 			//comment
-			jp.add(new JLabel(keyComments[i]));
+			JLabel label = new JLabel(keyComments[i]);
+			//label.setToolTipText(toolTip[i]);
+			jp.add(label);
 			
 			//text
 			JPanel txtjp = new JPanel(new BorderLayout());
-			//StringContent sc = new StringContent(10);
-			//jtxt[i]=new JTextField(new PlainDocument(sc));
-			if (keys[i].equals("mail.password")) 
+			if (keys[i].equals("mail.password")) {
 					jtxt[i] = new JPasswordField(); 
-				else 
+			} else {
 					jtxt[i] = new JTextField();
+			}
+			jtxt[i].setToolTipText(toolTip[i]);
 			txtjp.add(jtxt[i],BorderLayout.NORTH);
 			txtjp.add(new JLabel(exValue[i]),BorderLayout.SOUTH);
 			jp.add(txtjp);
@@ -181,8 +193,6 @@ public class SmtpPanel extends JPanel {
      */
     private ImageIcon getImageIcon() {
     	return null;
-    	
-
     }    
     
     /**

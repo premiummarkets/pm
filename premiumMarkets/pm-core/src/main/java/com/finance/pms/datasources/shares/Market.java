@@ -31,6 +31,7 @@
 package com.finance.pms.datasources.shares;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,36 +45,36 @@ import com.finance.pms.admin.install.logging.MyLogger;
  */
 public enum Market implements Serializable {
 	
-	UNKNOWN ("UNKNOWN","unknown",Currency.EUR,YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN"),
+	UNKNOWN ("UNKNOWN","unknown",Currency.EUR,BigDecimal.ONE,YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN"),
 	
-	EURONEXT ("EURONEXT","euronext",Currency.EUR,YahooMarketExtentions.PAR, "EPA", "XPAR"),
+	EURONEXT ("EURONEXT","euronext",Currency.EUR,BigDecimal.ONE,YahooMarketExtentions.PAR, "EPA", "XPAR"),
 	
-	PARIS ("PARIS","paris",Currency.EUR,YahooMarketExtentions.PAR, "EPA", "XPAR"),
+	PARIS ("PARIS","paris",Currency.EUR,BigDecimal.ONE,YahooMarketExtentions.PAR, "EPA", "XPAR"),
 	
-	NASDAQ ("NASDAQ","nasdaq",Currency.USD,YahooMarketExtentions.NASDAQ, "NASDAQ", "WMORN"),
+	NASDAQ ("NASDAQ","nasdaq",Currency.USD,BigDecimal.ONE,YahooMarketExtentions.NASDAQ, "NASDAQ", "WMORN"),
 	
-	ASX ("ASX","asx",Currency.AUD,YahooMarketExtentions.ASX, "UNKNOWN", "WMORN"),
+	ASX ("ASX","asx",Currency.AUD,BigDecimal.ONE,YahooMarketExtentions.ASX, "UNKNOWN", "WMORN"),
 	
-	BSE ("BSE","bse",Currency.INR,YahooMarketExtentions.BSE, "UNKNOWN", "WMORN"),
+	BSE ("BSE","bse",Currency.INR,BigDecimal.ONE,YahooMarketExtentions.BSE, "UNKNOWN", "WMORN"),
 	
-	NYSE ("NYSE","nyse",Currency.USD,YahooMarketExtentions.NYSE, "NSE", "WMORN"),
+	NYSE ("NYSE","nyse",Currency.USD,BigDecimal.ONE,YahooMarketExtentions.NYSE, "NSE", "WMORN"),
 	
-	AMEX  ("AMEX","amex",Currency.USD,YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN"),
+	AMEX  ("AMEX","amex",Currency.USD,BigDecimal.ONE,YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN"),
 	
-	LSE ("LON","lse",Currency.GBP,YahooMarketExtentions.LON, "UNKNOWN", "WMORN"),
+	LSE ("LON","lse",Currency.GBP,new BigDecimal(100),YahooMarketExtentions.LON, "UNKNOWN", "WMORN"),
 	
-	TSX ("TSX","tsx",Currency.CAD,YahooMarketExtentions.TSX, "UNKNOWN", "WMORN");
+	TSX ("TSX","tsx",Currency.CAD,BigDecimal.ONE,YahooMarketExtentions.TSX, "UNKNOWN", "WMORN");
 	
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);
 	
 	private String marketName;
 	private String friendlyName;
+	private Currency defaultCurrency;
+	private BigDecimal defaultCurrencyFactor;
 	private YahooMarketExtentions yahooExtension;
-	private Currency currency;
 	private String googleExtension;
 	private String investirExtension;
-
 
 	/**
 	 * Instantiates a new market.
@@ -83,10 +84,11 @@ public enum Market implements Serializable {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private Market(String marketName,String friendlyName,Currency currency,YahooMarketExtentions marketExtentions, String googleMarketName, String investirExtension) {
+	private Market(String marketName,String friendlyName,Currency defaultCurrency,BigDecimal defaultCurrencyFactor, YahooMarketExtentions marketExtentions, String googleMarketName, String investirExtension) {
 		this.marketName = marketName;
 		this.friendlyName = friendlyName;
-		this.currency = currency;
+		this.defaultCurrency = defaultCurrency;
+		this.defaultCurrencyFactor = defaultCurrencyFactor;
 		this.yahooExtension = marketExtentions;
 		this.googleExtension = googleMarketName;
 		this.investirExtension = investirExtension;
@@ -106,12 +108,13 @@ public enum Market implements Serializable {
 		return marketName;
 	}
 
-	public Currency getCurrency() {
-		return currency;
+	public Currency getDefaultCurrency() {
+		return defaultCurrency;
 	}
 
-	public void setCurrency(Currency currency) {
-		this.currency = currency;
+	@SuppressWarnings("unused")
+	private void setDefaultCurrency(Currency defaultCurrency) {
+		this.defaultCurrency = defaultCurrency;
 	}
 
 	public YahooMarketExtentions getYahooExtension() {
@@ -140,6 +143,15 @@ public enum Market implements Serializable {
 		}
 		
 		return ret;
+	}
+
+	public BigDecimal getDefaultCurrencyFactor() {
+		return defaultCurrencyFactor;
+	}
+
+	@SuppressWarnings("unused")
+	private void setDefaultCurrencyFactor(BigDecimal defaultCurrencyFactor) {
+		this.defaultCurrencyFactor = defaultCurrencyFactor;
 	}
 	
 	

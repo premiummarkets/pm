@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -84,7 +85,8 @@ public class AssVieFormater extends LineFormater {
 				try {
 					Validatable stock = 
 							new Stock(isin, isin, name, true,
-							StockCategories.SICAV, new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), Market.EURONEXT,
+							StockCategories.SICAV, new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
+							new MarketValuation(Market.EURONEXT),
 							"",TradingMode.CONTINUOUS,0l);
 					
 					ret.add(stock);

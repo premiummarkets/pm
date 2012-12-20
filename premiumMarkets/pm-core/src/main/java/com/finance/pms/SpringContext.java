@@ -30,6 +30,7 @@
  */
 package com.finance.pms;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -97,6 +98,7 @@ public class SpringContext extends GenericApplicationContext {
 		
 		//Add db.properties path as variable to be retrieved when loading configuration file
 		System.setProperty("dbproperites_file",arg);
+		System.setProperty("dbproperties", new File(arg).getName());
 		
 		ConstructorArgumentValues dataSCAV = new  ConstructorArgumentValues();
         dataSCAV.addGenericArgumentValue(arg,"java.lang.String");

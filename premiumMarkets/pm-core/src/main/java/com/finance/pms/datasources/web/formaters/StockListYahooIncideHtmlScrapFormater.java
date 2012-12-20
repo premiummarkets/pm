@@ -38,8 +38,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -51,11 +51,11 @@ public class StockListYahooIncideHtmlScrapFormater extends LineFormater {
 	
 	private static PatternProperties PATTERNS;
 	
-	private Market market;
+	private MarketValuation market;
 	private Pattern yahooIndiceStockElementPattern;
 
 	
-	public StockListYahooIncideHtmlScrapFormater(String myUrl, Market market) {
+	public StockListYahooIncideHtmlScrapFormater(String myUrl, MarketValuation market) {
 		super(new MyUrl(myUrl));
 		this.market = market;
 		

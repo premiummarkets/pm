@@ -2701,3 +2701,210 @@ Caused by: ERROR 23505: The statement was aborted because it would have caused a
 	at org.apache.derby.impl.sql.GenericPreparedStatement.executeStmt(Unknown Source)
 	at org.apache.derby.impl.sql.GenericPreparedStatement.execute(Unknown Source)
 	... 13 more
+[14/12/2012 14:31:02:253] [main] ERROR: com.finance.pms.portfolio.gui.NewPortfolioDialog.error:277 : java.lang.ArrayIndexOutOfBoundsException: 34
+java.lang.ArrayIndexOutOfBoundsException: 34
+	at com.finance.pms.portfolio.gui.PortfolioComposite.buildSlidingPortfolioShare(PortfolioComposite.java:1396)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.buildSlidingPortfolioShareList(PortfolioComposite.java:1386)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.addShares(PortfolioComposite.java:1545)
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog$8.mouseDown(NewPortfolioItemDialog.java:482)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog.swtLoop(NewPortfolioItemDialog.java:212)
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog.showUI(NewPortfolioItemDialog.java:185)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.portfolioAddShareButtonMouseDown(PortfolioComposite.java:1514)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.access$11(PortfolioComposite.java:1507)
+	at com.finance.pms.portfolio.gui.PortfolioComposite$5.mouseDown(PortfolioComposite.java:390)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:583)
+[14/12/2012 14:31:08:181] [main] ERROR: com.finance.pms.portfolio.gui.NewPortfolioDialog.error:277 : java.lang.ArrayIndexOutOfBoundsException: 34
+java.lang.ArrayIndexOutOfBoundsException: 34
+	at com.finance.pms.portfolio.gui.PortfolioComposite.buildSlidingPortfolioShare(PortfolioComposite.java:1396)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.buildSlidingPortfolioShareList(PortfolioComposite.java:1386)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.addShares(PortfolioComposite.java:1545)
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog$8.mouseDown(NewPortfolioItemDialog.java:482)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog.swtLoop(NewPortfolioItemDialog.java:212)
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog.showUI(NewPortfolioItemDialog.java:185)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.portfolioAddShareButtonMouseDown(PortfolioComposite.java:1514)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.access$11(PortfolioComposite.java:1507)
+	at com.finance.pms.portfolio.gui.PortfolioComposite$5.mouseDown(PortfolioComposite.java:390)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:583)
+[14/12/2012 14:31:29:563] [main] ERROR: com.finance.pms.portfolio.gui.PortfolioComposite.error:277 : java.lang.ArrayIndexOutOfBoundsException: 34
+java.lang.ArrayIndexOutOfBoundsException: 34
+	at com.finance.pms.portfolio.gui.PortfolioComposite.buildSlidingPortfolioShare(PortfolioComposite.java:1396)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.buildSlidingPortfolioShareList(PortfolioComposite.java:1386)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.addShares(PortfolioComposite.java:1545)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.portfolioAddShareButtonMouseDown(PortfolioComposite.java:1516)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.access$11(PortfolioComposite.java:1507)
+	at com.finance.pms.portfolio.gui.PortfolioComposite$5.mouseDown(PortfolioComposite.java:390)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:583)
+[15/12/2012 01:17:23:897] [main] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.error:277 : 
+java.lang.NullPointerException
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.initGUI(ChartsComposite.java:267)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.<init>(ChartsComposite.java:148)
+	at com.finance.pms.MainGui.initContent(MainGui.java:654)
+	at com.finance.pms.MainGui.<init>(MainGui.java:211)
+	at com.finance.pms.MainGui.main(MainGui.java:570)
+[20/12/2012 02:12:40:261] [main] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.error:369 : getStackTrace
+[20/12/2012 02:12:40:926] [Thread-5] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.run:901 : Failed to process error "getStackTrace", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 02:15:10:465] [main] ERROR: com.finance.pms.MainGui.error:347 : Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+java.lang.Error: Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+	at com.finance.pms.portfolio.gui.charts.NewRefereeDialog.showUI(NewRefereeDialog.java:80)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.selectReferee(ChartsComposite.java:584)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.access$1(ChartsComposite.java:582)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite$2.mouseDown(ChartsComposite.java:288)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:624)
+[20/12/2012 02:15:10:470] [Thread-6] ERROR: com.finance.pms.MainGui.run:901 : Failed to process error "Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 02:15:41:954] [main] ERROR: com.finance.pms.MainGui.error:347 : Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+java.lang.Error: Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+	at com.finance.pms.portfolio.gui.charts.NewRefereeDialog.showUI(NewRefereeDialog.java:80)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.selectReferee(ChartsComposite.java:584)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.access$1(ChartsComposite.java:582)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite$2.mouseDown(ChartsComposite.java:288)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:624)
+[20/12/2012 02:15:41:956] [Thread-7] ERROR: com.finance.pms.MainGui.run:901 : Failed to process error "Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 02:16:00:900] [main] ERROR: com.finance.pms.MainGui.error:347 : Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+java.lang.Error: Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+	at com.finance.pms.portfolio.gui.charts.NewRefereeDialog.showUI(NewRefereeDialog.java:80)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.selectReferee(ChartsComposite.java:584)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.access$1(ChartsComposite.java:582)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite$2.mouseDown(ChartsComposite.java:288)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:624)
+[20/12/2012 02:16:00:902] [Thread-8] ERROR: com.finance.pms.MainGui.run:901 : Failed to process error "Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 02:16:16:737] [main] ERROR: com.finance.pms.MainGui.error:347 : Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+java.lang.Error: Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+
+	at com.finance.pms.portfolio.gui.charts.NewRefereeDialog.showUI(NewRefereeDialog.java:80)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.selectReferee(ChartsComposite.java:584)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite.access$1(ChartsComposite.java:582)
+	at com.finance.pms.portfolio.gui.charts.ChartsComposite$2.mouseDown(ChartsComposite.java:288)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:624)
+[20/12/2012 02:16:16:739] [Thread-9] ERROR: com.finance.pms.MainGui.run:901 : Failed to process error "Error in Main Gui : Unresolved compilation problem: 
+	The constructor NewRefereeDialog(ScrolledComposite, int, Composite) is undefined
+", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 02:31:11:770] [main] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.error:369 : getStackTrace
+[20/12/2012 02:31:12:404] [Thread-5] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.run:901 : Failed to process error "getStackTrace", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 02:32:17:329] [main] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.error:369 : getStackTrace
+[20/12/2012 02:32:17:348] [Thread-6] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.run:901 : Failed to process error "getStackTrace", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 11:36:24:649] [main] ERROR: com.finance.pms.portfolio.gui.PortfolioComposite.error:347 : java.lang.NullPointerException
+java.lang.NullPointerException
+	at com.finance.pms.portfolio.gui.NewPortfolioItemDialog.showUI(NewPortfolioItemDialog.java:201)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.portfolioAddShareButtonMouseDown(PortfolioComposite.java:1515)
+	at com.finance.pms.portfolio.gui.PortfolioComposite.access$11(PortfolioComposite.java:1508)
+	at com.finance.pms.portfolio.gui.PortfolioComposite$5.mouseDown(PortfolioComposite.java:390)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(Unknown Source)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Unknown Source)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Unknown Source)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Unknown Source)
+	at com.finance.pms.MainGui.main(MainGui.java:624)
+[20/12/2012 11:36:24:683] [Thread-5] ERROR: com.finance.pms.portfolio.gui.PortfolioComposite.run:901 : Failed to process error "java.lang.NullPointerException", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+
+[20/12/2012 11:44:43:230] [main] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.error:369 : getStackTrace
+[20/12/2012 11:44:43:236] [Thread-5] ERROR: com.finance.pms.portfolio.gui.charts.ChartsComposite.run:901 : Failed to process error "getStackTrace", cause "java.lang.NullPointerException".
+Errors can be forwarded to development team by email.
+To enable this feature, you must setup your email parameters in the Settings menu and restart.
+Thanks.
+
+

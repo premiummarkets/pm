@@ -214,18 +214,18 @@ public abstract class IndicatorsCalculationService {
 	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(
 			Collection<Stock> shareList, String eventListName, Date startDate, Date endDate, Currency calculationCurrency, 
 			String periodType, Integer passNumber, Boolean export, Boolean persistEvents, Observer... observers)
-																				throws InvalidAlgorithmParameterException {
+																				throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
 		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> calcRes = null;
 		if (shareList.size() > 0) {
-			try {
+//			try {
 				calcRes = partialAnalyze(
 							shareList, startDate, endDate, calculationCurrency, eventListName, 
 							periodType, true, passNumber, export, persistEvents, observers);
 				
-			} catch (IncompleteDataSetException e) {
-				LOGGER.warn(e);
-			}
+//			} catch (IncompleteDataSetException e) {
+//				//LOGGER.warn(e);
+//			}
 			
 		} else {
 			calcRes = fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, observers);
@@ -234,19 +234,6 @@ public abstract class IndicatorsCalculationService {
 		
 		return calcRes;
 	}
-	
-	
-//	//XXX observers should be passed as params to service methods as their life cycle is shorter than the singleton
-//	public void addObservers(Collection<Observer> observers) {
-//		if (observers != null) {
-//			this.observers.addAll(observers);
-//		} 
-//	}
-//
-//	public void removeObserver(Observer otfObserver) {
-//		this.observers.remove(otfObserver);
-//	}
-	
 	
 }
 	

@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -89,7 +90,7 @@ public class StockList extends ArrayList<Stock> {
 					String[] toktbl = { 
 							Stock.MISSINGCODE, Stock.MISSINGCODE, "No Name",
 							StockCategories.DEFAULT_CATEGORY.getCategory(),
-							SharesListId.UNKNOWN.getSharesListCmdParam(),
+							SharesListId.UNKNOWN.getSharesListCmdParam(), "1",
 							MarketQuotationProviders.YAHOO.getCmdParam(),
 							 };
 					//TODO Gestion des ticker provenant d'un fichier : cat�gorie??
@@ -120,6 +121,12 @@ public class StockList extends ArrayList<Stock> {
 						if (!value4col.equals(",")) st.nextToken();
 						cptr++;
 					}
+					if (st.hasMoreTokens()) {//market currency factor
+						value4col = st.nextToken();
+						toktbl[cptr] = (value4col.equals(",")) ? BigDecimal.ONE.toString(): value4col.trim();
+						if (!value4col.equals(",")) st.nextToken();
+						cptr++;
+					}
 					if (st.hasMoreTokens()) {//quotation provider
 						value4col = st.nextToken();
 						toktbl[cptr] = (value4col.equals(",")) ? MarketQuotationProviders.DEFAULT.getCmdParam() : value4col.trim();
@@ -127,8 +134,8 @@ public class StockList extends ArrayList<Stock> {
 					newStock = new Stock(
 							toktbl[1], toktbl[0], toktbl[2], false,
 							StockCategories.valueOfString(toktbl[3]),
-							new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(toktbl[5]),SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-							Market.valueOf(toktbl[4]),
+							new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(toktbl[6]),SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
+							new MarketValuation(Market.valueOf(toktbl[4]),new BigDecimal(toktbl[5])),
 							"",TradingMode.CONTINUOUS,0l);
 					this.add(newStock);
 				}
@@ -157,7 +164,7 @@ public class StockList extends ArrayList<Stock> {
 			try {
 				Stock newStock = new Stock(listIt.next().toUpperCase(),null,null,false,StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-						Market.UNKNOWN,"",TradingMode.CONTINUOUS,0l);
+						new MarketValuation(Market.UNKNOWN),"",TradingMode.CONTINUOUS,0l);
 				newStock.setSymbolMarketQuotationProvider(marketListProvider);
 				this.add(newStock);
 			} catch (InvalidAlgorithmParameterException e) {

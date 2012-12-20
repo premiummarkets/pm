@@ -30,11 +30,9 @@
  */
 package com.finance.pms.admin.install.logging;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
@@ -49,7 +47,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.swing.JFrame;
@@ -86,97 +83,172 @@ public class MyLogger {
 		return new MyLogger(Logger.getLogger(clazz));
 	}
 
-	/** The name. */
-	private static String mailRecipientName = Messages.getEncriptedString("mail.recipientname"); 
-	private static String mailRecipientDomain = Messages.getEncriptedString("mail.recipientdomain"); 
-	private static String mailSmtpUser = MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain;
-	private static String mailSmtpPass = Messages.getEncriptedString("mail.smtppass"); 
-	private static String mailSmtpHost = Messages.getEncriptedString("mail.smtphost"); 
+	//	mail.from=your.name@yourdomain.com
+	//	mail.to=
+	//	mail.host=smtp.yourdomain.com
+	//	mail.username=your.login
+	//	mail.password=
+	//private static String mailRecipientName = Messages.getEncriptedString("mail.recipientname"); 
+	//private static String mailRecipientDomain = Messages.getEncriptedString("mail.recipientdomain"); 
+	//private static String mailSmtpUser = MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain;
+	private static String mailUserName = Messages.getEncriptedString("mail.recipientname") + "@" + Messages.getEncriptedString("mail.recipientdomain");
+	private static String mailPassword = Messages.getEncriptedString("mail.smtppass"); 
+	private static String mailHost = Messages.getEncriptedString("mail.smtphost"); 
+	private static String mailTo = Messages.getEncriptedString("mail.recipientname") + "@" + Messages.getEncriptedString("mail.recipientdomain");
+	private static String mailFrom;
+	
 	
 	private static TreeSet<Integer> hashesSet = new TreeSet<Integer>();
 	private static File hashCodesFile = new File("hashes.txt");
 	
-	/** The session. */
 	private static Session session;
-	
-	private static Address senderAddress;
-	private static String mailActivationType;
-	
-	/** The s. */
 	private static Semaphore semaphore;
 	
-	/** The last message. */
-	public static String lastMessage = ""; 
+	private static String mailActivationType;
 	
+	public static String lastMessage = ""; 
 	public static String version = "None";
 	
-//	<property name="host" value="${mail.host}" />
-//	<property name="username" value="${mail.username}" />
-//	<property name="password" value="${mail.password}" />
-//	<property name="javaMailProperties">
-//		<props>
-//			<prop key="mail.smtp.auth">true</prop>
-//			<prop key="mail.smtp.starttls.enable">false</prop>
-//		</props>
-//	</property>	
 	static {
+		
 		MyLogger.semaphore = new Semaphore(1);
 		
-		//MyLogger.senderUsername = MainPMScmd.getPrefs().get("mail.username", MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain);  //$NON-NLS-2$
-		//MyLogger.senderPassword = MainPMScmd.getPrefs().get("mail.password", MyLogger.mailSmtpPass); 
-		//MyLogger.mailSmtpHost = MainPMScmd.getPrefs().get("mail.host", MyLogger.mailSmtpHost); 
-		
-		String senderUserName = MainPMScmd.getPrefs().get("mail.username", null);
-		String senderPassword = MainPMScmd.getPrefs().get("mail.password",null); 
-		String senderHost = MainPMScmd.getPrefs().get("mail.host", null);
-		
-		boolean credentialsAreValid = senderUserName != null && !senderUserName.isEmpty() && senderPassword != null && !senderPassword.isEmpty();
-		boolean allFieldsAreValid = credentialsAreValid && senderHost != null && !senderHost.isEmpty();
-		if ( allFieldsAreValid ) {
-			
-			MyLogger.mailSmtpHost = senderHost;
-			MyLogger.mailSmtpUser = senderUserName;
-			MyLogger.mailSmtpPass = senderPassword;
-		}
-				
-		Properties props = new Properties();
-		//props.put("mail.transport.protocol", "smtps");
-		//props.put("mail.smtps.host", MyLogger.mailSmtpHost);
-		//props.put("mail.smtps.starttls.enable", "true");
-		props.put("mail.transport.protocol", "smtp");
-		props.put("mail.smtp.host", MyLogger.mailSmtpHost);
-		props.put("mail.smtp.starttls.enable", "true");
-		props.put("mail.smtp.auth", "true");
-
-		MyLogger.session = Session.getInstance(props);
-		
-		//init hashesSet
 		try {
-			hashCodesFile.createNewFile();
-			BufferedReader fileReader = new BufferedReader(new FileReader(hashCodesFile));
-			String hline;
-			while ((hline = fileReader.readLine()) != null) {
-				hashesSet.add(new Integer(hline));
+
+			//Init props
+			Properties props = new Properties();
+			String dbProperty = System.getProperty("dbproperties");
+			if (dbProperty == null) dbProperty = "db.properties";
+			props.load(new FileInputStream((new File(System.getProperty("installdir")+File.separator+dbProperty))));
+			if (props.containsKey("mail.log.activated")) {
+				MainPMScmd.getPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
+				MyLogger.mailActivationType = props.getProperty("mail.log.activated");  
 			}
-			fileReader.close();
+			if (props.containsKey("mail.log.local")) {
+				MainPMScmd.getPrefs().put("mail.log.local", props.getProperty("mail.log.local"));
+			}
 			
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			if (props.containsKey("mail.username")) {
+				MainPMScmd.getPrefs().put("mail.username", props.getProperty("mail.username"));
+			}
+			if (props.containsKey("mail.password")) {
+				MainPMScmd.getPrefs().put("mail.password", props.getProperty("mail.password"));
+			}
+			if (props.containsKey("mail.host")) {
+				MainPMScmd.getPrefs().put("mail.host", props.getProperty("mail.host"));
+			}
+//			if (props.containsKey("mail.to")) {
+//				MainPMScmd.getPrefs().put("mail.to", props.getProperty("mail.to"));
+//			}
+			if (props.containsKey("mail.from")) {
+				MainPMScmd.getPrefs().put("mail.from", props.getProperty("mail.from"));
+			}
+			MainPMScmd.getPrefs().flush();
+
+			
+			//reset smtp connection settings for log msgs if they have been set up by user
+			String propsMailUserName = MainPMScmd.getPrefs().get("mail.username", "nouser");
+			String propsMailPassword = MainPMScmd.getPrefs().get("mail.password","nopassword"); 
+			String propsMailHost = MainPMScmd.getPrefs().get("mail.host", null);
+			//boolean credentialsAreValid = propsMailUserName != null && !propsMailUserName.isEmpty() && propsMailPassword != null && !propsMailPassword.isEmpty();
+			//boolean allConnectionFieldsAreValid = credentialsAreValid && propsMailHost != null && !propsMailHost.isEmpty();
+			boolean allConnectionFieldsAreValid = propsMailHost != null && !propsMailHost.isEmpty();
+			if ( allConnectionFieldsAreValid ) {
+				MyLogger.mailHost = propsMailHost;
+				MyLogger.mailUserName = propsMailUserName;
+				MyLogger.mailPassword = propsMailPassword;
+			}
+			MyLogger.mailFrom = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailUserName);
+			
+			//Session props and email addresses
+			Properties mailSessionProps = new Properties();
+			mailSessionProps.put("mail.transport.protocol", "smtp");
+			mailSessionProps.put("mail.smtp.host", MyLogger.mailHost);
+			
+			
+			Boolean isLocal = new Boolean(MainPMScmd.getPrefs().get("mail.log.local", "false"));
+			if (isLocal) {
+				
+				MyLogger.mailTo = MainPMScmd.getPrefs().get("mail.to", MyLogger.mailFrom);
+				
+			} else {
+				
+				//Test the smtp session
+				mailSessionProps.put("mail.smtp.starttls.enable", "true");
+				mailSessionProps.put("mail.smtp.auth", "true");
+				
+				InternetAddress senderAddress;
+				try {
+					senderAddress = new InternetAddress(MyLogger.mailFrom);
+				} catch (Exception e) {
+					senderAddress = new InternetAddress(MyLogger.mailUserName);
+				}
+				
+				MyLogger.session = Session.getInstance(mailSessionProps);
+				Transport transport = MyLogger.session.getTransport();
+				MimeMessage testMsg = new MimeMessage(MyLogger.session);
+				testMsg.setSubject("Smtp connection test msg");
+				testMsg.setText("Smtp connection test msg");
+				testMsg.setFrom(senderAddress);
+				testMsg.setSender(senderAddress);
+				Address[] rTo = {senderAddress};
+				testMsg.setReplyTo(rTo);
+				testMsg.setRecipients(Message.RecipientType.TO, mailTo);
+				testMsg.saveChanges();   
+				try {
+					transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
+					transport.sendMessage(testMsg, testMsg.getAllRecipients());
+					System.out.println("Valid auths connection");
+				} catch (Exception e) {
+					mailSessionProps.put("mail.smtp.starttls.enable", "false");
+					MyLogger.session = Session.getInstance(mailSessionProps);
+					try {
+						transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
+						transport.sendMessage(testMsg, testMsg.getAllRecipients());
+						System.out.println("Valid auth connection");
+					} catch (Exception e1) {
+						mailSessionProps.put("mail.smtp.auth", "false");
+						MyLogger.session = Session.getInstance(mailSessionProps);
+						try {
+							transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
+							transport.sendMessage(testMsg, testMsg.getAllRecipients());
+							System.out.println("Valid non auth smtp connection");
+						} catch (Exception e2) {
+							System.out.println("Could not set up error msg handling.\nThis feature will be deisabled until you set up your smtp connection in Settings ..." + e); 
+							MainPMScmd.getPrefs().put("mail.log.activated", "false");
+							MainPMScmd.getPrefs().flush();
+						}
+					}
+				}
+			}
+			
+		} catch (Throwable e) {
+			System.out.println("log send failed, exception: " + e); 
 			e.printStackTrace();
 		}
 		
-		//get version
+		//Init hashesSet
+		try {
+			//hashCodesFile.createNewFile();
+			//BufferedReader fileReader = new BufferedReader(new FileReader(hashCodesFile));
+			//String hline;
+			//while ((hline = fileReader.readLine()) != null) {
+			//	hashesSet.add(new Integer(hline));
+			//}
+			//fileReader.close();
+			hashCodesFile.delete();
+			
+		} catch (Throwable e) {
+			System.out.println("log send failed, exception: " + e); 
+			e.printStackTrace();
+		}
+		
+		//Get version
 		try {
 			Properties pbuild = new Properties();
 			pbuild.load(MyLogger.class.getClassLoader().getResourceAsStream("pmsbuild.properties"));
 			version = pbuild.getProperty("application.buildtime");
-		} catch (IOException e1) {
+		} catch (Throwable e1) {
 			System.out.println("log send failed, exception: " + e1); 
 			e1.printStackTrace();
 		}
@@ -273,7 +345,17 @@ public class MyLogger {
 	 */
 	public void error(Object message, Throwable t) {
 		delegateLogger.error(message, t);
-		this.sendMail(message, t);
+		this.sendMail(message, t, false);
+	}
+	
+	public void warn(Object message, Boolean isTest) {
+		delegateLogger.warn(message);
+		this.sendMail(message, null, isTest);
+	}
+	
+	public void warn(Object message, Throwable t, Boolean isTest) {
+		delegateLogger.warn(message, t);
+		this.sendMail(message, t, isTest);
 	}
 
 	/**
@@ -285,7 +367,7 @@ public class MyLogger {
 	 */
 	public void error(Object message) {
 		delegateLogger.error(message);
-		this.sendMail(message, null);
+		this.sendMail(message, null, false);
 	}
 
 	/**
@@ -298,7 +380,7 @@ public class MyLogger {
 	 */
 	public void fatal(Object message, Throwable t) {
 		delegateLogger.fatal(message, t);
-		this.sendMail(message, t);
+		this.sendMail(message, t, false);
 	}
 
 	/**
@@ -310,7 +392,7 @@ public class MyLogger {
 	 */
 	public void fatal(Object message) {
 		delegateLogger.fatal(message);
-		this.sendMail(message, null);
+		this.sendMail(message, null, false);
 	}
 
 	/**
@@ -714,7 +796,12 @@ public class MyLogger {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private void sendMail(Object errorMsg, final Throwable error) {
+	//Email settings options :
+	//false (no email no popup), 
+	//true (send error email only - no test error email, no duplicates -, with popup), 
+	//force (send error email and test error email - with duplicates -, no popup),
+	//forceNoTest (send only errors, no test and no popup)
+	private void sendMail(Object errorMsg, final Throwable error, final Boolean isTest) {
 		
 		final String errorStr = (null == errorMsg)?"No message available":errorMsg.toString();
 		
@@ -736,35 +823,46 @@ public class MyLogger {
 					MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
 					if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
 					
+					Boolean isSendingErrorEmail = "true".equals(MyLogger.mailActivationType) || "force".equals(MyLogger.mailActivationType) ||  "forceNoTest".equals(MyLogger.mailActivationType);
+					Boolean isSendingTestEmail = "force".equals(MyLogger.mailActivationType);
+					Boolean isPopup = "true".equals(MyLogger.mailActivationType);
+					Boolean hasDuplicate = isTest;
+					
+					if (isTest && !isSendingTestEmail || !isSendingErrorEmail) return;
+					
 					//Create msg
 					StringBuffer msgBoddy = createMsgBodyFirstLines(error, errorStr, 200);
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
 
-					if (hashesSet.contains(bodyHashcode)) {
+					//if (!isTest && hashesSet.contains(bodyHashcode) || (isTest && !"force".equals(MyLogger.mailActivationType))) {
+					if (!hasDuplicate && hashesSet.contains(bodyHashcode)) {
 						return;
+					} 
+					if (hasDuplicate && !hashesSet.contains(bodyHashcode)) {
+						hashesSet.add(bodyHashcode);
+						writeHashesToFile(bodyHashcode);
 					}
 					
 					//Email
-					//Transport transport = MyLogger.session.getTransport("smtps"); 
-					//transport.connect(MyLogger.senderUsername, MyLogger.senderPassword);
 					Transport transport = MyLogger.session.getTransport("smtp"); 
-					transport.connect(MyLogger.mailSmtpUser, MyLogger.mailSmtpPass);
+					transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 					
 					MimeMessage msg = new MimeMessage(MyLogger.session);		
-					fromAdressResolution();
+					InternetAddress senderAddress = fromAdressResolution();
 
-					msg.setFrom(MyLogger.senderAddress);
-					msg.setSender(MyLogger.senderAddress);
-					Address[] rTo = {MyLogger.senderAddress};
+					msg.setFrom(senderAddress);
+					msg.setSender(senderAddress);
+					Address[] rTo = {senderAddress};
 					msg.setReplyTo(rTo);
-					msg.setRecipients(Message.RecipientType.TO, MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain); 
-					msg.setSubject("Error detected on Version build : "+version+ " from user "+MyLogger.senderAddress); 
+					msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo); 
+					msg.setSubject("Error detected on Version build : "+version+ " from user "+senderAddress); 
 					msg.setSentDate(new Date());					
 					msg.setText(msgBoddy.toString());
 
 					msg.saveChanges();      // don't forget this
 					
-					if (!"force".equals(MyLogger.mailActivationType)) {
+					//if (!"force".equals(MyLogger.mailActivationType) && !"forceNoTest".equals(MyLogger.mailActivationType)) {
+					if (isPopup) {
 						
 						///Dialog
 						try {
@@ -772,7 +870,7 @@ public class MyLogger {
 							frame = new JFrame();
 							String report = "An error has occured.\nThis error may be recoverable.\n"
 									+ "By cliking OK on the button below this error will automatically be sent to the development team.\n";
-							customDialog = new CustomDialog(frame, report, createMsgBodyFirstLines(error, errorStr, 20).toString(), "Error Report", false);
+							customDialog = new CustomDialog(frame, report, createMsgBodyFirstLines(error, errorStr, 20).toString(), "Error Report", true);
 							customDialog.pack();
 							customDialog.setVisible(true);
 							customDialog.dispose();
@@ -783,6 +881,8 @@ public class MyLogger {
 							} else {
 								MainPMScmd.getPrefs().put("mail.log.activated", "false");
 								MainPMScmd.getPrefs().flush();
+								isSendingErrorEmail = false;
+								isSendingTestEmail = false;
 							}
 
 						} catch (Throwable e) {
@@ -790,7 +890,8 @@ public class MyLogger {
 							e.printStackTrace();
 						}
 						
-					} else {
+					} 
+					if (isSendingErrorEmail || (isTest && isSendingTestEmail)) {
 						doSend(bodyHashcode, transport, msg);
 					}
 					
@@ -803,33 +904,45 @@ public class MyLogger {
 							"Thanks.\n\n");
 					
 				} finally {
-					semaphore.release();
 					customDialog = null;
 					frame = null;
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					semaphore.release();
+					
 				}
 				
 			}
 
 			private void doSend(Integer bodyHashcode, Transport transport, MimeMessage msg) throws IOException, MessagingException {
-				if (!hashesSet.contains(bodyHashcode)) {
-					hashesSet.add(bodyHashcode);
-					writeHashesToFile(bodyHashcode);
-					transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
-				}
+				transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
 			}
 
-			/**
-			 * 
-			 */
-			private void fromAdressResolution() {
+			private InternetAddress fromAdressResolution() {
+//				try {
+//					String from = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailUserName);
+//					MyLogger.senderAddress = new InternetAddress(from);
+//				} catch (AddressException e) {
+//					delegateLogger.error("Error from adress :"+e); 
+//					e.printStackTrace();
+//					MyLogger.senderAddress = new InternetAddress();
+//				}
+				InternetAddress senderAddress;
 				try {
-					String from = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailSmtpUser);
-					MyLogger.senderAddress = new InternetAddress(from);
-				} catch (AddressException e) {
-					delegateLogger.error("Error from adress :"+e); 
-					e.printStackTrace();
-					MyLogger.senderAddress = new InternetAddress();
+					senderAddress = new InternetAddress(MyLogger.mailFrom);
+				} catch (Exception e) {
+					try {
+						senderAddress = new InternetAddress(MyLogger.mailUserName);
+					} catch (Exception e1) {
+						delegateLogger.error("Error from adress :"+e); 
+						e.printStackTrace();
+						senderAddress = new InternetAddress();
+					}
 				}
+				return senderAddress;
 			}
 
 			/**

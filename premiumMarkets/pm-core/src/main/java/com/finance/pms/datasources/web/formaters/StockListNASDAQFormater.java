@@ -37,6 +37,7 @@ import java.util.List;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -103,7 +104,7 @@ public class StockListNASDAQFormater extends LineFormater {
 						true,
 						this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-						Market.NASDAQ,
+						new MarketValuation(Market.NASDAQ),
 						"",TradingMode.CONTINUOUS,0l));
 			}
 			return retour;

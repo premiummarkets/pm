@@ -91,7 +91,7 @@ public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnec
 	public String getRealTimeQuotesURL(Stock stock, int interval, int nbPeriods) {
 		return String.format(
 						"http://www.google.com/finance/getprices?q=%s&x=%s&i=%d&p=%dd&f=d,o,h,l,c,v", 
-						stock.getSymbolRoot(), stock.getMarket().getGoogleExtension(), interval, nbPeriods);
+						stock.getSymbolRoot(), stock.getMarketValuation().getMarket().getGoogleExtension(), interval, nbPeriods);
 	}
 
 	@Override

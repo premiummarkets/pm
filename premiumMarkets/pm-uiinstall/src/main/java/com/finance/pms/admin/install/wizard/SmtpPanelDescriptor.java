@@ -74,33 +74,24 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
         setPanelComponent(panel3);
         
     }
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getNextPanelDescriptor()
-     */
+
     @Override
 	public Object getNextPanelDescriptor() {
         return DonePanelDescriptor.IDENTIFIER;
-        //return null;
+      
     }
     
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getBackPanelDescriptor()
-     */
+
     @Override
 	public Object getBackPanelDescriptor() {
         return InstallFolderPanelDescriptor.IDENTIFIER;
     }
     
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#aboutToDisplayPanel()
-     */
     @Override
 	public void aboutToDisplayPanel() {
         setNextButtonAccordingToForm();
 		p = new Properties();
-		//load props
+		
 		try {
 			pfile = new File(InstallFolderPanel.piggyMarketSqueakFolder.getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
@@ -116,10 +107,6 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
 		
     }    
     
-
-    /* (non-Javadoc)
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
     public void actionPerformed(ActionEvent e) {
         setNextButtonAccordingToForm();
     }
@@ -134,17 +121,15 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
     	Install.selectNextButton();
     }
     
-    
-
-	/* (non-Javadoc)
-	 * @see com.nexes.wizard.WizardPanelDescriptor#aboutToHidePanel()
-	 */
+   
 	@Override
 	public void aboutToHidePanel() {
 		super.aboutToHidePanel();
-		for (int i =0; i < SmtpPanel.jtxt.length; i++) {
-			p.put(SmtpPanel.keys[i], SmtpPanel.jtxt[i].getText());
+		for (int i =0; i < panel3.jtxt.length; i++) {
+			p.put(SmtpPanel.keys[i], panel3.jtxt[i].getText());
 		}
+		Object value = p.get("mail.from");
+		if (value != null) p.put("mail.to", value);
 		
 		try {
 			p.store(new FileOutputStream(pfile), "Added settings properties from install");

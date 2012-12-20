@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -55,9 +55,9 @@ import com.finance.pms.datasources.web.MyUrl;
 public class StockListYahooIndiceFormater extends LineFormater {
 	
 	/** The providers types. */
-	private Market market;
+	private MarketValuation market;
 	
-	public StockListYahooIndiceFormater(String myUrl, Market market) {
+	public StockListYahooIndiceFormater(String myUrl, MarketValuation market) {
 		super(new MyUrl(myUrl));
 		this.market = market;
 	}
@@ -111,10 +111,10 @@ public class StockListYahooIndiceFormater extends LineFormater {
 	private String removeTextDelim(String txt, String textDeli) {
 		String ret = txt;
 		if (!ret.contains(".") 
-				&& !market.getYahooExtension().equals(YahooMarketExtentions.NN)
-				&& !market.getYahooExtension().getSpecificMarketExtension().equals(SymbolNameResolver.UNKNOWNEXTENSION)) {
-			ret = ret.concat("."+market.getYahooExtension().getSpecificMarketExtension());
-			LOGGER.debug("Applied extention "+market.getYahooExtension().getSpecificMarketExtension()+" to symbol "+txt);
+				&& !market.getMarket().getYahooExtension().equals(YahooMarketExtentions.NN)
+				&& !market.getMarket().getYahooExtension().getSpecificMarketExtension().equals(SymbolNameResolver.UNKNOWNEXTENSION)) {
+			ret = ret.concat("."+market.getMarket().getYahooExtension().getSpecificMarketExtension());
+			LOGGER.debug("Applied extention "+market.getMarket().getYahooExtension().getSpecificMarketExtension()+" to symbol "+txt);
 		}
 		if (ret.contains(".NX")) {
 			ret = ret.replace(".NX", "."+YahooMarketExtentions.PAR.getSpecificMarketExtension());

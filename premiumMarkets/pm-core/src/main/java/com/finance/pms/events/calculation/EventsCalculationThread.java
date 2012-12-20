@@ -98,9 +98,14 @@ public abstract class EventsCalculationThread extends Observable implements Call
 	protected Map<EventKey, EventValue> calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, Date datedeb, Date datefin, Boolean persist) { 
 
 		Map<EventKey, EventValue> edata = new HashMap<EventKey, EventValue>();
-
+		
+		try {
+			cleanEventsFor(this.eventListName, datedeb, datefin, persist);
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
+		
 		for (EventCompostionCalculator evtCalculator: evtCalculators ) {
-			evtCalculator.cleanEventsFor(this.eventListName, datedeb, datefin, persist);
 			edata.putAll(evtCalculator.calculateEventsFor(this.eventListName));
 		}
 
@@ -121,7 +126,8 @@ public abstract class EventsCalculationThread extends Observable implements Call
 				return message;
 			}
 		});
-		
 	}
+	
+	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);
 
 }

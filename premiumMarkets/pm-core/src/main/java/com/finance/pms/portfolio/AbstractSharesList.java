@@ -51,6 +51,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.DiscriminatorOptions;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -71,6 +72,7 @@ import com.finance.pms.portfolio.Transaction.TransactionType;
 @Table(name="PORTFOLIO_NAME")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type",discriminatorType=DiscriminatorType.STRING)
+@DiscriminatorOptions(force=true)
 public abstract class AbstractSharesList extends Observable {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(AbstractSharesList.class);

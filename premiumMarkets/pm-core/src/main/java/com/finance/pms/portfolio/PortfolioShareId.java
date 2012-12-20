@@ -42,13 +42,12 @@ public class PortfolioShareId extends StockId {
 	 */
 	private static final long serialVersionUID = 1169434372679058467L;
 	
+	private String name;
+	
 	
 	@SuppressWarnings("unused")
 	private PortfolioShareId() {
 	}
-	
-	@Id
-	private String name;
 	
 
 	public PortfolioShareId(String symbol, String isin, String portfolio) {
@@ -56,6 +55,7 @@ public class PortfolioShareId extends StockId {
 		this.name = portfolio;
 	}
 
+	@Id
 	public String getName() {
 		return name;
 	}

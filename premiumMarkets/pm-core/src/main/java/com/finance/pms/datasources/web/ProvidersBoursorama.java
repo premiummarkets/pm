@@ -107,7 +107,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 				ticker.getIsin(), 
 				new SimpleDateFormat("yyyy").format(start),new SimpleDateFormat("MM").format(start),new SimpleDateFormat("dd").format(start),
 				new SimpleDateFormat("yyyy").format(end), new SimpleDateFormat("MM").format(end), new SimpleDateFormat("dd").format(end)),
-				ticker,ticker.getMarket().getCurrency().name());
+				ticker,ticker.getMarketValuation().getCurrency().name());
 		this.getHttpSource().getScrapperMetrics().addRecord(dayQuoteBoursoramaFormater, "No quotations from boursorma any more");
 		throw new HttpException("Invalid login on bourso!");
 	
@@ -403,9 +403,10 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 			stockList.get(stockList.indexOf(s)).setName(s.getName());
 		}
 		try {
-			DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-		} catch (SQLException e) {
-			LOGGER.warn("Warning, this ticker may already be in database. If true, only quotations will be updated :" + e.getMessage() + " cause : " + e.getCause());
+			//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
+			DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+//		} catch (SQLException e) {
+//			LOGGER.warn("Warning, this ticker may already be in database. If true, only quotations will be updated :" + e.getMessage() + " cause : " + e.getCause());
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}
@@ -500,10 +501,11 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 			LOGGER.info(sb.toString());
 		}
 		try {
-			DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-		} catch (SQLException e) {
-			LOGGER.warn("@d. Warning, this ticker is already in database. Only quotations will be updated :"
-					+ e.getMessage() + " cause : " + e.getCause());
+			//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
+			DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+//		} catch (SQLException e) {
+//			LOGGER.warn("@d. Warning, this ticker is already in database. Only quotations will be updated :"
+//					+ e.getMessage() + " cause : " + e.getCause());
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}

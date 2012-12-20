@@ -87,6 +87,7 @@ import org.jfree.chart.ChartColor;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.ErrorDialog;
 import com.finance.pms.MainGui;
+import com.finance.pms.RefreshableView;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -121,7 +122,7 @@ import com.finance.pms.threads.ObserverMsg;
  * 
  * @author Guillaume Thoreton
  */
-public class PortfolioComposite extends Composite {
+public class PortfolioComposite extends Composite implements RefreshableView {
 
 	/** The LOGGER. */
 	public static MyLogger LOGGER = MyLogger.getLogger(PortfolioComposite.class);
@@ -324,12 +325,7 @@ public class PortfolioComposite extends Composite {
 						int si = portfolioCTabFolder1.getSelectionIndex();
 						if (!cTabItem[si].isDisposed()) refreshChartData(si);
 						highLightSlidingCols();
-						
-						//portfolioCTabFolder1.getParent().layout();
-						//portfolioCTabFolder1.getParent().pack();
-						//portfolioBoutonsGroup.pack();
-						//portfolioInfosGroup.pack();
-						
+												
 					}
 
 				});
@@ -1397,7 +1393,8 @@ public class PortfolioComposite extends Composite {
 
 
 	private SlidingPortfolioShare buildSlidingPortfolioShare(int startIdx, PortfolioShare portfolioShare) {
-		java.awt.Color paint = (java.awt.Color) paints[startIdx];
+		int colidx = startIdx % paints.length;
+		java.awt.Color paint = (java.awt.Color) paints[colidx];
 		Color psColor = new Color(getDisplay(),paint.getRed(),paint.getGreen(),paint.getBlue());
 		SlidingPortfolioShare slidingPS = new SlidingPortfolioShare(portfolioShare, 
 						chartsComposite.getSlidingStartDate(), chartsComposite.getSlidingEndDate(), 
@@ -1533,13 +1530,21 @@ public class PortfolioComposite extends Composite {
 	void addShares(NewPortfolioItemDialog pItemd) {
 
 		int tabi = portfolioCTabFolder1.getSelectionIndex();
+		Portfolio portfolio = modelControler.getPortfolio(tabi);
 
 		try {
 			List<Stock> selectedStocks = pItemd.getSelectedStocks();
 
-			Collection<PortfolioShare> portfolioShares = addListOfShareToModel(tabi, pItemd.getSelectedMonitorLevel(), pItemd.getSelectedQuantity(), selectedStocks);
-			int tabSize = modelControler.tabSize(tabi);
-			updatePortfolioTabItems(tabi, buildSlidingPortfolioShareList(portfolioShares, tabSize), tabSize);
+			Collection<PortfolioShare> addedPortfolioShares = addListOfShareToModel(tabi, pItemd.getSelectedMonitorLevel(), pItemd.getSelectedQuantity(), selectedStocks);
+			//int tabSize = modelControler.tabSize(tabi);
+			//updatePortfolioTabItems(tabi, buildSlidingPortfolioShareList(addedPortfolioShares, tabSize), tabSize);
+			
+			modelControler.resetOnePortfolioModel(tabi, portfolio);
+			Table t  = (Table)  cTabItem[tabi].getData();
+			t.removeAll();
+			
+			updatePortfolioTabItems(tabi, buildSlidingPortfolioShareList(portfolio.getListShares().values(), 0), 0);
+			
 			refreshChartData(portfolioCTabFolder1.getSelectionIndex());
 
 		} catch (InvalidAlgorithmParameterException e) {
@@ -1569,7 +1574,7 @@ public class PortfolioComposite extends Composite {
 			PortfolioShare portfolioShare;
 			try {
 				Portfolio portfolio = modelControler.getPortfolio(tabi);
-				portfolioShare = portfolio.addOrUpdateShareForQuantity(stock, quantity, EventSignalConfig.getNewDate(), monitorLevel, stock.getMarket().getCurrency());
+				portfolioShare = portfolio.addOrUpdateShareForQuantity(stock, quantity, EventSignalConfig.getNewDate(), monitorLevel, stock.getMarketValuation().getCurrency());
 				listOfBoughtShares.add(portfolioShare);
 				
 			} catch (InvalidAlgorithmParameterException e) {
@@ -1606,7 +1611,7 @@ public class PortfolioComposite extends Composite {
 	private void updatePortfolioTabItems(int tabId, List<SlidingPortfolioShare> listPortfolioShare, int startIdx) {
 		
 		Table ttomod = (Table) cTabItem[tabId].getData();
-
+		
 		//Update the table
 		for (SlidingPortfolioShare slidingPS : listPortfolioShare) {
 			if (!slidingPS.getSymbol().equals(Stock.MISSINGCODE)) {
@@ -2088,6 +2093,39 @@ public class PortfolioComposite extends Composite {
 				inst.open();
 			}
 		}
+	}
+
+
+
+	@Override
+	public void endRefreshAction() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void initRefreshAction() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void refreshView() {
+		
+		int tabindex = portfolioCTabFolder1.getSelectionIndex();
+		if (tabindex == -1) return;
+		List<SlidingPortfolioShare> list = modelControler.getShareListInTab(tabindex);
+		
+		Table t  = (Table)  cTabItem[tabindex].getData();
+		t.removeAll();
+		updatePortfolioTabItems(tabindex, list, 0);
+		refreshChartData(portfolioCTabFolder1.getSelectionIndex());
+	}
+
+	@Override
+	public Date getAnalysisStartDate() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -52,8 +52,8 @@ import org.springframework.mail.SimpleMailMessage;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.admin.install.logging.PopupMessageRunnable;
 import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.ScraperMetrics;
 import com.finance.pms.events.calculation.BuySellSignalCalculatorMessageRunnable;
@@ -81,7 +81,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	public static Stock ANY_STOCK = new Stock("ANYSTOCK","ANYSTOCK");
 	static {
 		ANY_STOCK.setName("ANY STOCK");
-		ANY_STOCK.setMarket(Market.EURONEXT);
+		ANY_STOCK.setMarketValuation(new MarketValuation(Market.EURONEXT));
 	}
 	
 	ApplicationContext applicationContext;
@@ -209,19 +209,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			
 		} 
     }
-
-
-	/**
-	 * @param symbolEventMessage
-	 */
-	void openPopup( String reportHeader, String reportContent, String title) {
-		
-		PopupMessageRunnable messageBox = new PopupMessageRunnable(reportHeader,reportContent,title, true);
-		
-		Thread thread = new Thread(messageBox);
-		thread.setDaemon(true);
-		thread.start();
-	}
 
 	/**
 	 * @param m
@@ -437,7 +424,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			}
 			LOGGER.info("Metrics sent.");
 			
-			
+		
 			LOGGER.info("AnalysisClient is closed.");
 			
 		} catch (Exception e) {

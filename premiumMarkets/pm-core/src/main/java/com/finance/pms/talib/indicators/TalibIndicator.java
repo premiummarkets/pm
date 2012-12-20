@@ -86,6 +86,7 @@ public abstract class TalibIndicator extends Indicator {
 				outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
 			}
 		} catch (Exception e) {
+			LOGGER.error(this.getClass().getName()+" Calculation error for Quote :" + this.getStockName(), e);
 			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + this.getStockName(), e);
 		}
 	

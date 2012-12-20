@@ -67,7 +67,6 @@ public abstract class EventCompostionCalculator {
 		}
 		this.calculationStartIdx =  this.getCalculatorQuotationData().getClosestIndexForDate(0, startDate);
 		this.calculationEndIdx = this.getCalculatorQuotationData().getClosestIndexForDate(0, endDate);
-		
 	}
 	
 	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Observer... observers) throws NotEnoughDataException {
@@ -79,7 +78,7 @@ public abstract class EventCompostionCalculator {
 		this.stock = stock;
 	}
 	
-	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);
+	//public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);
 
 	public abstract Map<EventKey, EventValue> calculateEventsFor(String eventListName);
 	

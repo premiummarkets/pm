@@ -98,7 +98,7 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor {
 		File pmFolder = new File(installationFolder.getAbsoluteFile() + File.separator + Install.piggyMarketSqueak);
 		if (pmFolder != null && pmFolder.exists()) {
 			//TODO all ready installed
-			System.out.println("Install folder already exists.");
+			System.out.println("Install folder already exists : "+pmFolder.getAbsolutePath());
 		} else {
 			pmFolder.mkdirs();
 		}

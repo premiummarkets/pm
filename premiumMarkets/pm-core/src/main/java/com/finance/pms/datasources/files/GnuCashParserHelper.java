@@ -73,12 +73,12 @@ public class GnuCashParserHelper {
 		return number;
 	}
 
-	/**
-	 * @param amount
-	 * @param transactionCurrency
-	 * @return
-	 */
-	BigDecimal unitConvertion(BigDecimal amount, Currency transactionCurrency) {
-		return transactionCurrency.translateToQuotationUnit(amount);
-	}
+//	/**
+//	 * @param amount
+//	 * @param transactionCurrency
+//	 * @return
+//	 */
+//	BigDecimal unitConvertion(BigDecimal amount, Currency transactionCurrency) {
+//		return transactionCurrency.translateToQuotationUnit(amount);
+//	}
 }

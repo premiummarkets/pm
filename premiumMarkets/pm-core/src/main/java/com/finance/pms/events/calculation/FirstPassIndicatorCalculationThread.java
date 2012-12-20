@@ -294,7 +294,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("ZeroCrossMACD",startDate, endDate) + butMessage(simpleDateFormat,e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("ZeroCrossMACD",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("ZeroCrossMACD",new Date(), new Date()), e);
 				}
 				zeroCrossMACDOk = false;
 			}
@@ -307,7 +307,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("SignalCrossMACD",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("SignalCrossMACD",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("SignalCrossMACD",new Date(), new Date()), e);
 				}
 				signalCrossMACDOk = false;
 			}
@@ -320,7 +320,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("SmaReversal",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("SmaReversal",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("SmaReversal",new Date(), new Date()), e);
 				}
 				smaReversalOk = false;
 			} 
@@ -333,7 +333,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("RSIThresholdCross",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("RSIThresholdCross",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("RSIThresholdCross",new Date(), new Date()), e);
 				}
 				rsiThresholdCrossOk = false;
 			}
@@ -346,7 +346,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("RSIDivergence",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("MFIDivergence",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("MFIDivergence",new Date(), new Date()), e);
 				}
 				rsiDivergenceOk = false;
 			}
@@ -359,7 +359,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("ObvDivergence",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("ObvDivergence",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("ObvDivergence",new Date(), new Date()), e);
 				}
 				obvDivergenceOk = false;
 			}
@@ -372,7 +372,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("MFIDivergence",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("MFIDivergence",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("MFIDivergence",new Date(), new Date()), e);
 				}
 				mfiDivergenceOk = false;
 			}
@@ -385,7 +385,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("MFIThreshold",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("MFIThreshold",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("MFIThreshold",new Date(), new Date()), e);
 				}
 				mfiThresholdOk = false;
 			}
@@ -398,7 +398,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("StochasticThreshold", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("StochasticThreshold",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("StochasticThreshold",new Date(), new Date()), e);
 				}
 				stochThresholdOk = false;
 			}
@@ -412,7 +412,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("StochasticDivergence", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("StochasticDivergence",new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("StochasticDivergence",new Date(), new Date()), e);
 				}
 				stockDivergenceOk = false;
 			}
@@ -425,7 +425,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("ChaikinDivergence", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("ChaikinDivergence", new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("ChaikinDivergence", new Date(), new Date()), e);
 				}
 				chaikinDivergenceOk = false;
 			}
@@ -438,7 +438,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("ChaikinOscillatorDivergence", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("ChaikinOscillatorDivergence", new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("ChaikinOscillatorDivergence", new Date(), new Date()), e);
 				}
 				chaikinOscDivergenceOk = false;
 			}
@@ -451,7 +451,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("ChaikinOscillatorThreshold", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("ChaikinOscillatorThreshold", new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("ChaikinOscillatorThreshold", new Date(), new Date()), e);
 				}
 				chaikinOscThresholdOk = false;
 			}
@@ -464,7 +464,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("AroonTrend", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("AroonTrend", new Date(), new Date()));
+					LOGGER.error("Failed calculation : "+warnMessage("AroonTrend", new Date(), new Date()), e);
 				}
 				aroonTrendOk = false;
 			}
@@ -538,6 +538,12 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	@Override
 	protected List<EventDefinition> getWantedEventCalculations() {
 		return firstPassWantedCalculations;
+	}
+	
+
+	@Override
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+		// Nothing as Talib events are not clean but overriden
 	}
 
 }

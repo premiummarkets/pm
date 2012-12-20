@@ -61,7 +61,7 @@ public class SMA extends TalibIndicator {
 
 
 	public SMA(TalibIndicator obv, Integer period) throws TalibException {
-		super(new CalculationQuotations(obv.getIndicatorQuotationData().getStock(), obv.getStripedData(0), obv.getIndicatorQuotationData().getStock().getMarket().getCurrency()), period);
+		super(new CalculationQuotations(obv.getIndicatorQuotationData().getStock(), obv.getStripedData(0), obv.getIndicatorQuotationData().getStock().getMarketValuation().getCurrency()), period);
 	}
 
 	/**

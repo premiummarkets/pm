@@ -56,12 +56,9 @@ public class ErrorDialog extends Dialog {
 	
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(ErrorDialog.class);
-
-	/** The dialog shell. */
-	//private Shell dialogShell;
-
+	
 	/** The Validerbutton1. */
-	private Button valideButton1;
+	protected Button valideButton1;
 
 	/** The Errorlabel1. */
 	private Label errorLabel1;
@@ -73,19 +70,6 @@ public class ErrorDialog extends Dialog {
 	private String addMessage;
 	
 	private Boolean isOk = false;
-	
-	
-//	private static List<Field> fields = new ArrayList<Field>();
-//	private int cpt = 0;
-//	
-//	static {
-//		Field[] fields = SWT.class.getFields();
-//		for (Field swtField : fields) {
-//			if (swtField.getName().contains("CURSOR_")) {
-//				ErrorDialog.fields.add(swtField);
-//			}
-//		}
-//	}
 
 	/**
 	 * The main method.
@@ -163,24 +147,8 @@ public class ErrorDialog extends Dialog {
 				GridData Validerbutton1LData = new GridData(GridData.FILL_HORIZONTAL);
 				Validerbutton1LData.horizontalAlignment = GridData.CENTER;
 				valideButton1.setLayoutData(Validerbutton1LData);
-				valideButton1.setText("Ok");
-				valideButton1.setFont(MainGui.DEFAULTFONT);
-				valideButton1.addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseDown(MouseEvent evt) {
-						Validerbutton1MouseDown(evt);
-//						try {
-//							Field field = fields.get(cpt++);
-//							int cursor = field.getInt(null);
-//							System.out.println("Cursor : "+field.getName());
-//							getParent().setCursor(new Cursor(getParent().getDisplay(), cursor));
-//						} catch (Exception e) {
-//							e.printStackTrace();
-//						}
-					}
-				});
+				validationButtonTxtAndAction();
 			}
-			// dialogShell.layout();
 			getParent().pack();
 			getParent().open();
 			Display display = getParent().getDisplay();
@@ -202,6 +170,17 @@ public class ErrorDialog extends Dialog {
 		}
 	}
 
+	protected void validationButtonTxtAndAction() {
+		valideButton1.setText("Ok");
+		valideButton1.setFont(MainGui.DEFAULTFONT);
+		valideButton1.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDown(MouseEvent evt) {
+				validerbutton1MouseDown(evt);
+			}
+		});
+	}
+
 	/**
 	 * Validerbutton1 mouse down.
 	 * 
@@ -209,7 +188,7 @@ public class ErrorDialog extends Dialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private void Validerbutton1MouseDown(MouseEvent evt) {
+	protected void validerbutton1MouseDown(MouseEvent evt) {
 		LOGGER.debug("Validerbutton1.mouseDown, event=" + evt);
 		isOk = true;
 		getParent().dispose();

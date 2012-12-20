@@ -176,7 +176,8 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		//} else if (arg != null && arg.equals("done")) {
 		} else if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) { //Logger end
 			
-			//nothing yet
+			//refresh is done in endJob()
+			//view.refreshView();
 			
 		} else {//Increment
 		

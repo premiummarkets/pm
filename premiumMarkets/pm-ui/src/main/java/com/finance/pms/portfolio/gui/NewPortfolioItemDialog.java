@@ -41,6 +41,9 @@ import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -53,6 +56,8 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -77,6 +82,7 @@ import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -113,8 +119,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	enum Titles {Symbol,Name,Category};
 	
 	private StockList stockList;
-	private Collection<PortfolioShare> alreadyBought;
-
+	
 	private List<Stock> selectedStocks;
 	private BigDecimal selectedQuantity;
 	protected Label monitorLabel;
@@ -135,13 +140,11 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @author Guillaume Thoreton
 	 * @param composite 
 	 */
-	public NewPortfolioItemDialog(Shell parent, int style, Collection<PortfolioShare> alreadyBought, Composite composite) {
-		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE | style);
+	public NewPortfolioItemDialog(Composite parent, int style, Composite composite) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
 		this.selectedMonitorLevel = MonitorLevel.BEARISH;
 		this.selectedQuantity = BigDecimal.ONE;
 		this.selectedStocks = new ArrayList<Stock>();
-		
-		this.alreadyBought = alreadyBought;
 		
 		this.composite = composite;
 	}
@@ -173,11 +176,36 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	public static NewPortfolioItemDialog showUI(Collection<PortfolioShare> alreadyScanned, Shell shell, PortfolioComposite composite) {
 		
 		if (inst == null || inst.isDisposed()) {
+			
+			Shell piShell = new Shell(shell,SWT.DIALOG_TRIM|SWT.RESIZE);
+			piShell.setText("Premium Markets - Share selection.");
+			piShell.setFont(MainGui.DEFAULTFONT);
+			piShell.setLayout(new FillLayout());
+			
+			final ScrolledComposite scrollComposite = new ScrolledComposite(piShell,SWT.BORDER | SWT.RESIZE);
+			inst = new NewPortfolioItemDialog(scrollComposite, SWT.RESIZE, composite);
+			inst.open();
+			scrollComposite.setContent(inst);
+		    scrollComposite.setExpandVertical(true);
+		    scrollComposite.setExpandHorizontal(true);
+		    scrollComposite.setMinSize(inst.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		    scrollComposite.addControlListener(new ControlAdapter() {
+		      public void controlResized(ControlEvent e) {
+		        Rectangle r = scrollComposite.getClientArea();
+		        scrollComposite.setMinSize(inst.computeSize(r.width, r.height));
+		      }
+		    });
+		    scrollComposite.pack();
+		    
+		    piShell.setSize(scrollComposite.computeSize(200, 500));
+		    Rectangle mainBounds = shell.getBounds();
+		    Rectangle marketShellBounds = piShell.getBounds();
+		    piShell.setLocation(mainBounds.x+mainBounds.width/4-marketShellBounds.x/2,mainBounds.y+mainBounds.y/4);
+		    piShell.open();
 
-			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
-			inst = new NewPortfolioItemDialog(piShell, SWT.NULL, alreadyScanned, composite);
+			
 			try {
-				inst.open();
+				//inst.open();
 				swtLoop();
 			} catch (Exception e) {
 				LOGGER.error("", e);
@@ -228,7 +256,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		dialogShellLayout.verticalSpacing = 15;
 		this.setLayout(dialogShellLayout);
 		this.setBackground(new Color(getDisplay(), 204, 204, 255));
-		this.getShell().setText("Premium Markets - Select a share.");
+		//this.getShell().setText("Premium Markets - Share selection.");
 		
 		{
 			addFromFile = new Button(this, SWT.NONE);
@@ -249,7 +277,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		{
 			addShareManualGroup = new Group(this, SWT.NONE);
 			GridLayout portfolioBoutonsGroupLayout = new GridLayout();
-			portfolioBoutonsGroupLayout.numColumns=7;
+			portfolioBoutonsGroupLayout.numColumns=8;
 			addShareManualGroup.setLayout(portfolioBoutonsGroupLayout);
 			addShareManualGroup.setText("Add new share manually");
 			addShareManualGroup.setFont(MainGui.DEFAULTFONT);
@@ -270,6 +298,9 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			Label marketLab = new Label(addShareManualGroup, SWT.NONE);
 			marketLab.setText("Market");
 			marketLab.setFont(MainGui.DEFAULTFONT);
+			Label currencyFactorLab = new Label(addShareManualGroup, SWT.NONE);
+			currencyFactorLab.setText("Unit factor");
+			currencyFactorLab.setFont(MainGui.DEFAULTFONT);
 			Label providerLab = new Label(addShareManualGroup, SWT.NONE);
 			providerLab.setText("Provider");
 			providerLab.setFont(MainGui.DEFAULTFONT);
@@ -298,10 +329,16 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				marketCombo.add(Market.values()[j].name());
 			}
 			marketCombo.setEditable(false);
+			final Text currencyFactorTxt = new Text(addShareManualGroup, SWT.NONE);
+			currencyFactorTxt.setEditable(true);
+			currencyFactorTxt.setFont(MainGui.CONTENTFONT);
+			currencyFactorTxt.setToolTipText(
+					"This is to deal with quotations available in fractions of the main currency.\n" +
+					"For instance for quotations in Pence, we use GBP as currency but specify a unit factor 100 here for conversion purpose.");
 			final CCombo provCombo = new CCombo(addShareManualGroup, SWT.NONE);
+			provCombo.setFont(MainGui.DEFAULTFONT);
 			final CCombo symbolExtTxt = new CCombo(addShareManualGroup, SWT.NONE);
 			ext = "NONE";
-			provCombo.setFont(MainGui.DEFAULTFONT);
 			for (int j = 0, n = MarketQuotationProviders.values().length; j < n; j++) {
 				provCombo.add(MarketQuotationProviders.values()[j].name());
 			}
@@ -370,14 +407,14 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 			Button manualAddOkButton = new Button(addShareManualGroup, SWT.BORDER);
 			GridData newShareValidateButtonLData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			newShareValidateButtonLData.horizontalSpan = 7;
+			newShareValidateButtonLData.horizontalSpan = 8;
 			manualAddOkButton.setLayoutData(newShareValidateButtonLData);
 			manualAddOkButton.setText("Add new share to list");
 			manualAddOkButton.setFont(MainGui.DEFAULTFONT);
 			manualAddOkButton.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseDown(MouseEvent evt) {
-					validateNewManualShare(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, provCombo);
+					validateNewManualShare(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
 				}
 			});
 			manualAddOkButton.addKeyListener(new KeyAdapter() {
@@ -385,7 +422,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				@Override
 				public void keyReleased(KeyEvent e) {
 					if (e.keyCode == SWT.CR) {
-						validateNewManualShare(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, provCombo);
+						validateNewManualShare(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
 					}
 				}
 				
@@ -465,7 +502,15 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 					@Override
 					public void mouseDown(MouseEvent evt) {
 						newPortfollioItemAddButtonMouseDown();
-						((PortfolioComposite)composite).addShares(pC);
+						try {
+							((PortfolioComposite)composite).addShares(pC);
+						} catch (Exception e) {
+							LOGGER.error(e,e);
+							ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+							inst.open();
+						}
+						symbolTable.deselectAll();
+						selectedStocks = new ArrayList<Stock>();
 					}
 				});
 			}
@@ -498,10 +543,10 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		}
 	}
 	
-	private void validateNewManualShare(Text symbolTxt,  Text isinTxt,  Text nameTxt,  CCombo typeCombo, CCombo marketCombo,  CCombo provCombo) {
+	private void validateNewManualShare(Text symbolTxt,  Text isinTxt,  Text nameTxt,  CCombo typeCombo, CCombo marketCombo,  Text  currencyFactorTxt, CCombo provCombo) {
 		getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		try {
-			portfolioAddShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, provCombo);
+			portfolioAddShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
 			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
@@ -516,9 +561,9 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		stockList = new StockList();
 		stockList.addAll(DataSource.getInstance().loadAllStocks());
 		
-		for (PortfolioShare portfolioShare : alreadyBought) {
-			stockList.remove(portfolioShare.getStock());
-		}
+//		for (PortfolioShare portfolioShare : alreadyBought) {
+//			stockList.remove(portfolioShare.getStock());
+//		}
 		
 		symbolTable.removeAll();
 		updateTableDisplay();
@@ -536,7 +581,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		}
 	}
 	
-	private void portfolioAddShareFromForm(Text symbolTxt, Text isinTxt, Text nameTxt, CCombo typeCombo, CCombo marketCombo, CCombo provCombo) 
+	private void portfolioAddShareFromForm(Text symbolTxt, Text isinTxt, Text nameTxt, CCombo typeCombo, CCombo marketCombo,Text currencyFactor, CCombo provCombo) 
 																																		throws InvalidAlgorithmParameterException {
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider","euronext");
@@ -549,7 +594,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 					listStProvider, 
 					isinTxt.getText(), symbol, nameTxt.getText(), 
 					StockCategories.valueOf(typeCombo.getText()), 
-					MarketQuotationProviders.valueOf(provCombo.getText()), Market.valueOf(marketCombo.getText()));
+					MarketQuotationProviders.valueOf(provCombo.getText()), new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText())));
 		} catch (StockNotFoundException e) {
 			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
 			inst.open();

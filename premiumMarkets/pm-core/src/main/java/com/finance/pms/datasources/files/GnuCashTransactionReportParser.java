@@ -69,6 +69,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -138,6 +139,7 @@ public class GnuCashTransactionReportParser {
 			
 			System.out.println(reportElements);
 			PortfolioMgr.getInstance().getPortfolioDAO().deleteTransactionReports();
+			if (reportElements.size() == 0) throw new IOException("Invalid file.\nNo transaction found.");
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(reportElements);
 
 		} catch (XPathExpressionException e) {
@@ -205,7 +207,8 @@ public class GnuCashTransactionReportParser {
 			String account = accountPath[accountPath.length-1].replaceAll("[ \n]+","_");
 			
 			Currency transactionCurrency = gnuCashParserHelper.extractCurrency(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
-			BigDecimal price = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent()),transactionCurrency);
+			//BigDecimal price = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent()),transactionCurrency);
+			BigDecimal price = gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
 			
 			String[] amountString = ((Element) rowAtts.item(AMOUNT_COLUMN)).getTextContent().trim().split(" +");
 			
@@ -314,7 +317,7 @@ public class GnuCashTransactionReportParser {
 		Stock stock = new Stock("LU0294219869","LU0294219869","",false,
 				StockCategories.DEFAULT_CATEGORY,EventSignalConfig.getNewDate(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", EventSignalConfig.getNewDate());
 		StringBuffer printReportTransactions = cashTransactionReportParser.printReportTransactions(fteReports);

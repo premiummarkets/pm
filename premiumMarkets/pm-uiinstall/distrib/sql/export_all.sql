@@ -3,8 +3,8 @@ CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from CURRENCYRATE','/home/guil/Dev
 CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from EVENTS','/home/guil/Developpement/Quotes/tmp/EVENTS.dat',null,null,null);
 CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from PORTFOLIO','/home/guil/Developpement/Quotes/tmp/PORTFOLIO.dat',null,null,null);
 CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from PORTFOLIO_NAME','/home/guil/Developpement/Quotes/tmp/PORTFOLIO_NAME.dat',null,null,null);
-CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from QUOTATIONS','/home/guil/Developpement/Quotes/tmp/QUOTATIONS.dat',null,null,null);
-CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from shares','/home/guil/Developpement/Quotes/tmp/SHARES.dat',null,null,null);
+CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from QUOTATIONS','/home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/distrib/export/QUOTATIONS.dat',';',null,null);
+CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from shares','/home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/distrib/export/SHARES.dat',';',null,null);
 CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from TREND_SUPPLEMENT','/home/guil/Developpement/Quotes/tmp/TREND_SUPPLEMENT.dat',null,null,null);
 CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from TUNEDCONF','/home/guil/Developpement/Quotes/tmp/TUNEDCONF.dat',null,null,null);
 CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from USERS','/home/guil/Developpement/Quotes/tmp/USERS.dat',null,null,null);

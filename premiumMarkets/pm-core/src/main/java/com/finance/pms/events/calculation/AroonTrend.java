@@ -36,6 +36,7 @@ package com.finance.pms.events.calculation;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.SMA;
@@ -69,8 +71,12 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 			
 			int aroonPeriod = getDaysSpan();
 			this.aroon =  new HouseAroon(stock, startDate, endDate, calculationCurrency, aroonPeriod);
+			
 		} catch (TalibException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			Calendar startDateCal = Calendar.getInstance();
+			startDateCal.setTime(startDate);
+			QuotationsFactories.getFactory().incrementDate(startDateCal, getDaysSpan()*2);
+			throw new NotEnoughDataException(startDateCal.getTime(), endDate, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
 			throw new NotEnoughDataException(e.getMessage(),e);
 		}

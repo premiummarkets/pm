@@ -51,7 +51,8 @@ public enum SharesListId {
 	BSE ("bse",ProvidersTypes.BSE,"All BSE form bseindia.com"),
 	GOOGLENYSE ("nyse",ProvidersTypes.GOOGLE,"All NYSE from google"),
 	GOOGLEAMEX ("amex",ProvidersTypes.GOOGLE, "All AMEX from google"),
-	YAHOOINDICES ("yahooIndices",ProvidersTypes.YAHOOINDICES, "Fill in your custom Yahoo indices below");
+	YAHOOINDICES ("yahooIndices",ProvidersTypes.YAHOOINDICES, "Fill in the box bellow to create your custom Yahoo indices below.");
+	
 
 	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);

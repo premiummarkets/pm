@@ -52,7 +52,6 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
@@ -73,13 +72,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		weatherElements = WeatherDAOImpl.getInstance().getMonthlyWeatherUntil(endDate, new WeatherElementsComparator());
 		this.startDate = startDate;
 		this.endDate = endDate;
-		
-	}
-	
-
-	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
-		EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(stock, eventListName, datedeb, datefin, persist, this.getEventDefinition());
 		
 	}
 
@@ -218,7 +210,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 			} else if (firstPreviousTemp < secondPreviousTemp && secondPreviousTemp > currentTemp && secondPreviousTemp >= meanHistory) {//down reversal
 				addTrendChangeEvent(eventValue, endDate, EventType.BEARISH, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature reversal detected ");
 			} else {
-				addTrendChangeEvent(eventValue, endDate, EventType.INFO, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature event (we need : t0>t1<t2 and t1<Mean or t0<t1>t2 and t1>Mean) ");
+				addTrendChangeEvent(eventValue, endDate, EventType.INFO, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature RAS (we need : t0>t1<t2 and t1<Mean or t0<t1>t2 and t1>Mean) ");
 			}
 		} catch (Exception e) {
 			LOGGER.error("No monthly weather history for "+endDate,e);

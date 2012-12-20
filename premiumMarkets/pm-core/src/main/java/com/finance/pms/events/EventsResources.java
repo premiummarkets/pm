@@ -193,7 +193,9 @@ public class EventsResources {
 		midleList = new ArrayList<SymbolEvents>();
 		finList = new ArrayList<SymbolEvents>();
 		debList = new ArrayList<SymbolEvents>();
-		isEventCached = new Boolean(MainPMScmd.getPrefs().get("event.cache","true"));
+		String eventCacheProp = MainPMScmd.getPrefs().get("event.cache","true");
+		LOGGER.info("Event cache is set to "+eventCacheProp);
+		isEventCached = new Boolean(eventCacheProp);
 		singleton = this;
 
 	}
@@ -458,7 +460,7 @@ public class EventsResources {
 		}
 		
 		if (persist || !isEventCached) {
-
+			LOGGER.info("cleaning Events in db cached is "+isEventCached+", persist is "+persist+" other params "+eventListName);
 			ArrayList<Query> qInsert = new ArrayList<Query>();
 			ArrayList<Validatable> lqUpdate = new ArrayList<Validatable>();
 			buildUpdateValidatableList(events, qInsert, lqUpdate);
@@ -939,6 +941,7 @@ public class EventsResources {
 		
 		//DB
 		if (persist || !isEventCached) {
+			LOGGER.info("cleaning Events in db cached is "+isEventCached+", persist is "+persist+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+indicators);
 			DataSource.getInstance().cleanEventsForAnalysisNameAndStock(stock, analysisName, datedeb, datefin, indicators);
 		}
 		

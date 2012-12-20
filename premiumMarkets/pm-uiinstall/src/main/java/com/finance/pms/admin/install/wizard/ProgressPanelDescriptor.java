@@ -467,7 +467,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						System.out.println("testing, no mvn version swst lib file : "+noMvnVersionLibSwtFileName);
 						if (noMvnVersionLibSwtFileName.equals(jnlpSelectedFileName)) {
 							foundLib = true;
-							System.out.println("!@#$-------------!@#$ Found this swt lib for the system : "+swtFile.getAbsolutePath()+" !@#$----!@#$ ");
+							System.out.println("Ooops Found this swt lib for the system : "+swtFile.getAbsolutePath()+" Ooops");
 						} else {
 							swtFile.delete();
 							System.out.println("deleting lib " +swtFile.getAbsolutePath());

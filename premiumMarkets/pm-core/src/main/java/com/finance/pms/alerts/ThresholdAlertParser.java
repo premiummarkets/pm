@@ -47,7 +47,6 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -64,12 +63,6 @@ public class ThresholdAlertParser extends EventCompostionCalculator {
 		super(portfolioShare.getStock(),startDate, endDate, calculationCurrency);	
 		this.portfolioShare = portfolioShare;
 		
-	}
-	
-
-	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
-		EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(stock, eventListName, datedeb, datefin, true, EventDefinition.alertsOnThresholds());
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import java.util.List;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -94,7 +95,7 @@ public class StockListEuroNextFormater extends LineFormater {
 				
 				retour.add(new Stock(strArray[1], strArray[4], strArray[0], true, this.stockCategorie, 
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,strArray[3]), 
-						Market.EURONEXT,
+						new MarketValuation(Market.EURONEXT),
 						strArray[5],TradingMode.valueOfLabel(strArray[14]),capitalisation));
 			}
 			return retour;

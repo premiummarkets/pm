@@ -62,19 +62,19 @@ public class StockTest extends TestCase {
 	public void testStockStringString() {
 		
 		System.out.println("s1");
-		Stock s1 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+		Stock s1 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 		assertEquals("FTE.PA",s1.getSymbol());
 		
 		System.out.println("s2");
-		Stock s2 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s2 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		assertEquals(null,s2.getSymbol());
 		
 		System.out.println("s3");
-		Stock s3 = new Stock(Stock.MISSINGCODE,Stock.MISSINGCODE,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s3 = new Stock(Stock.MISSINGCODE,Stock.MISSINGCODE,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		assertEquals(Stock.MISSINGCODE,s3.getIsin());
 		
 		System.out.println("s4");
-		Stock s4 = new Stock("FR0000",Stock.MISSINGCODE,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s4 = new Stock("FR0000",Stock.MISSINGCODE,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		assertEquals(null,s4.getSymbol());
 		assertEquals("FR0000",s4.getIsin());
 
@@ -111,16 +111,16 @@ public class StockTest extends TestCase {
 	public void testSetIsin() throws InvalidAlgorithmParameterException  {
 		
 		System.out.println("s1");
-		Stock s1 = new Stock(null,"FTE.FR",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s1 = new Stock(null,"FTE.FR",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		assertEquals("FTE.FR",s1.getSymbol());
 		
 		System.out.println("s2");
-		Stock s2 = new Stock(null,"FTE.FR",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s2 = new Stock(null,"FTE.FR",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		s2.setIsin("FR000");
 		assertEquals("FTE.FR",s2.getSymbol());
 		
 		System.out.println("s3");
-		Stock s3 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s3 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		try {
 			s3.setIsin("GB000");
 		} catch (InvalidAlgorithmParameterException e) {
@@ -131,7 +131,7 @@ public class StockTest extends TestCase {
 		assertEquals("FTE",s3.getSymbol());
 		
 		System.out.println("s4");
-		Stock s4 = new Stock(null,Stock.MISSINGCODE,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s4 = new Stock(null,Stock.MISSINGCODE,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		s4.setIsin("FR000");
 		assertEquals(null,s4.getSymbol());
 		
@@ -150,17 +150,17 @@ public class StockTest extends TestCase {
 		System.out.println("s1");
 		
 		System.out.println("s2");
-		Stock s2 = new Stock("FR000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s2 = new Stock("FR000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		s2.setSymbol("FTE");
 		assertEquals("FTE",s2.getSymbol());
 		
 		System.out.println("s3");
-		Stock s3 = new Stock("FR000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s3 = new Stock("FR000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		s3.setSymbol("FTE.FR");
 		assertEquals("FTE.FR",s3.getSymbol());
 		
 		System.out.println("s4");
-		Stock s4 = new Stock("FR000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s4 = new Stock("FR000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		try {
 			s4.setSymbol("FTE.GB");
 		} catch (InvalidAlgorithmParameterException e) {
@@ -170,15 +170,15 @@ public class StockTest extends TestCase {
 		assertEquals("FTE.GB",s4.getSymbol());
 		
 		System.out.println("s5");
-		Stock s5 = new Stock("FR000","FTE.GB",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);	
+		Stock s5 = new Stock("FR000","FTE.GB",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));	
 		assertEquals("FTE.GB",s5.getSymbol());
 		
 		System.out.println("s6");
-		Stock s6 = new Stock(null,"FTE.FR",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);	
+		Stock s6 = new Stock(null,"FTE.FR",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));	
 		assertEquals("FTE.FR",s6.getSymbol());
 		
 		System.out.println("s7");
-		Stock s7 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.EURONEXT);
+		Stock s7 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.EURONEXT));
 		try {
 			s7.getSymbol();
 		} catch (RuntimeException e) {
@@ -225,53 +225,53 @@ public class StockTest extends TestCase {
 	public void testEquals() {
 		
 		{
-			Stock s1 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s2 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s1 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s2 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(true,s1.equals(s2));
 		}
 		{
-			Stock s3 = new Stock("FR0000","PAJ",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock("FR0000","PAJ",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock("BLABLA","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock("BLABLA","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock("BLABLA",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock("BLABLA",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock("FR0000","FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(true,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock("BLABLA",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock("BLABLA",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock("FR0000",null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock(null,null,StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(true,s3.equals(s4));
 		}
 		{
-			Stock s3 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
-			Stock s4 = new Stock(null,"PAJ",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),Market.EURONEXT);
+			Stock s3 = new Stock(null,"FTE",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
+			Stock s4 = new Stock(null,"PAJ",StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,"PAR"),new MarketValuation(Market.EURONEXT));
 			assertEquals(false,s3.equals(s4));
 		}
 	}

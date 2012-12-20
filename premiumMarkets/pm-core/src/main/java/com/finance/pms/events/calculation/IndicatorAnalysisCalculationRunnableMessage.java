@@ -70,6 +70,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Boolean persistEvents;
 	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
 	private Observer[] observers;
+	
+	private IncompleteDataSetException exception;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
@@ -93,7 +95,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.observers = observers;
 	}
 
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException {
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException, IncompleteDataSetException {
 		
 		this.passNumber = passNumber;
 		this.persistEvents = persistEvents;
@@ -103,22 +105,30 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			syncObject.wait();
 		}
 		
+		if (exception != null) {
+			throw exception;
+		}
+		
 		return runIndicatorsCalculationRes;
 	}
 
 	public void run() {
 
 		try {
-			
+
+
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
-			
+
 			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(
 					shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, 
 					periodType, passNumber, export, persistEvents, observers);
 			
+		} catch (IncompleteDataSetException e) {
+			exception = e;
+
 		} catch (Throwable e) {
-			LOGGER.error("Error in "+this.toString(),e);
+			LOGGER.error("Error in "+this.toString(), e);
 
 		} finally {
 			synchronized (syncObject) {

@@ -58,18 +58,12 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	
 	private static final long serialVersionUID = -257553176773712060L;
 	
-	@Id  @GeneratedValue
 	Integer id;
-	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
-	@JoinColumns({ @JoinColumn(name = "isin", referencedColumnName = "isin"), @JoinColumn(name = "symbol", referencedColumnName = "symbol") })
 	Stock stock;
 	String account;
-	@Temporal(TemporalType.DATE)
 	Date date;
 	BigDecimal quantity;
 	BigDecimal price;
-	@Enumerated(EnumType.STRING)
 	Currency currency;
 	
 	@SuppressWarnings("unused")
@@ -100,10 +94,13 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		return equalDate;
 	}
 
+	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+	@JoinColumns({ @JoinColumn(name = "isin", referencedColumnName = "isin"), @JoinColumn(name = "symbol", referencedColumnName = "symbol") })
 	public Stock getStock() {
 		return stock;
 	}
 
+	@Temporal(TemporalType.DATE)
 	public Date getDate() {
 		return date;
 	}
@@ -163,6 +160,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		this.price = price;
 	}
 
+	@Id  @GeneratedValue
 	public Integer getId() {
 		return id;
 	}
@@ -234,11 +232,11 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		return true;
 	}
 
+	@Enumerated(EnumType.STRING)
 	public Currency getCurrency() {
 		return currency;
 	}
 
-	//@SuppressWarnings("unused")
 	public void setCurrency(Currency currency) {
 		this.currency = currency;
 	}

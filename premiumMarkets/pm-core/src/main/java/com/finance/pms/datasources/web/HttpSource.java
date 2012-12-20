@@ -126,9 +126,6 @@ public abstract class HttpSource {
 				MainPMScmd.getPrefs().put("mail.username", props.getProperty("mail.username"));
 			if (props.containsKey("mail.password") && !props.getProperty("mail.password").equals(""))
 				MainPMScmd.getPrefs().put("mail.password", props.getProperty("mail.password"));
-			//mail.log.activated
-			if (props.containsKey("mail.log.activated"))
-				MainPMScmd.getPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
 			
 			MainPMScmd.getPrefs().flush();
 		} catch (Exception e) {

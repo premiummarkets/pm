@@ -50,6 +50,7 @@ import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -91,7 +92,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("FR0010096354","PAJ.PA","",false,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
@@ -133,7 +134,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("FR0000133308","FTE.PA","",false,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
@@ -226,7 +227,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("IGLT.L","IGLT.L","",false,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.GBP);
@@ -260,7 +261,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("FR0010091173","FR0010091173","",false,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
@@ -293,7 +294,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("GB00B0CTWC01","OILB.L","",false,
 				StockCategories.DEFAULT_CATEGORY,new Date(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.EURONEXT,
+				new MarketValuation(Market.EURONEXT),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
@@ -326,7 +327,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("FR0000188625","FR0000188625","",false,
 				StockCategories.DEFAULT_CATEGORY,new Date(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);
@@ -358,7 +359,7 @@ public class PortfolioShareOtherTest extends TestCase {
 		Stock stock = new Stock("LU0294219869","LU0294219869","",false,
 				StockCategories.DEFAULT_CATEGORY,new Date(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-				Market.PARIS,
+				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
 		
 		testObject = new PortfolioShare(null, stock, DateFactory.dateAtZero(), MonitorLevel.NONE, Currency.EUR);

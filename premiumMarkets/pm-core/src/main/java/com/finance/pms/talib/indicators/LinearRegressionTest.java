@@ -54,7 +54,7 @@ public class LinearRegressionTest {
 		
 		//Stock stock = DataSource.getInstance().loadStockBySymbol("LYXHEA.XPAR");
 		Stock stock = DataSource.getInstance().loadStockBySymbol("DJI");
-		linearRegression = new LinearRegression(stock, new SimpleDateFormat("yyyy-MM-dd").parse("1970-01-01"), new Date(), stock.getMarket().getCurrency());
+		linearRegression = new LinearRegression(stock, new SimpleDateFormat("yyyy-MM-dd").parse("1970-01-01"), new Date(), stock.getMarketValuation().getCurrency());
 	}
 
 	@Test

@@ -82,11 +82,6 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 		this.jmsTemplate = jmsTemplate;
 	}
 
-//	public AbstractAnalysisClientRunnableMessage(Integer key, String analysisName) {
-//		super(key);	
-//		this.analysisName = analysisName;
-//	}
-
 	//TODO factorise as well ...
 	protected void sendRunnableStartProcessingEvent(final String analyseName, final AbstractAnalysisClientRunnableMessage objectMessage) {	
 		

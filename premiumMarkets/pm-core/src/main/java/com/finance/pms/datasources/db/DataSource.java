@@ -63,7 +63,9 @@ import org.springframework.context.ApplicationContextAware;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
@@ -419,6 +421,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 */
 	private void putInPrefs(String property, Properties props) {
 		if (props.containsKey(property))
+			LOGGER.info("event cache is "+props.containsKey(property));
 			MainPMScmd.getPrefs().put(property, props.getProperty(property));
 	}
 
@@ -631,7 +634,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst = scnx.getConn().prepareStatement(sqlQuery);
 			rs = pst.executeQuery();
 			while (rs.next()) {
-				Stock st = new Stock(rs.getString(2), rs.getString(1),StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),Market.UNKNOWN);
+				Stock st = new Stock(rs.getString(2), rs.getString(1),StockCategories.DEFAULT_CATEGORY,new SymbolMarketQuotationProvider(),new MarketValuation(Market.UNKNOWN));
 				retour.add(st);
 			}
 			rs.close();
@@ -672,7 +675,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							.getString(SHARES.NAME_FIELD).trim(), rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs
 							.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
 							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),
-							Market.valueOf(rs.getString(SHARES.MARKET).trim()),
+							//Market.valueOf(rs.getString(SHARES.MARKET).trim()),
+							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 							rs.getString(SHARES.SECTOR_HINT),
 							TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
 							rs.getLong(SHARES.CAPITALISATION));
@@ -839,7 +843,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							rs.getDate(SHARES.LASTQUOTE),
 							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),
 							rs.getString(SHARES.SYMBOL_FIELD).trim()),
-							Market.valueOf(rs.getString(SHARES.MARKET).trim()),
+							//Market.valueOf(rs.getString(SHARES.MARKET).trim()),
+							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 							rs.getString(SHARES.SECTOR_HINT),
 							TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
 							rs.getLong(SHARES.CAPITALISATION)
@@ -1062,7 +1067,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
-			executeUpdate(iq);
+			executeUpdate(iq, 600);
 			
 		} catch (SQLException e) {
 			LOGGER.warn("Ignoring deletion error : ",e);
@@ -1075,7 +1080,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			
 			Query iq = new Query("DELETE FROM "+ EVENTS.EVENTS_TABLE_NAME + " WHERE "+EVENTS.ANALYSE_NAME+" = ?");
 			iq.addValue(analyseName);
-			executeUpdate(iq);
+			executeUpdate(iq, 600);
 			
 		} catch (SQLException e) {
 			LOGGER.error(e,e);
@@ -1098,7 +1103,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
-			executeUpdate(iq);
+			executeUpdate(iq, 600);
 			
 		} catch (SQLException e) {
 			LOGGER.error(e,e);
@@ -1188,7 +1193,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 	
-	private int executeUpdate(Query query) throws SQLException {
+	private int executeUpdate(Query query, int queryTimeOutInSec) throws SQLException {
 
 		LOGGER.trace("Query : "+query.getQuery());
 		LOGGER.trace("Params : "+query.getParameterValues());
@@ -1217,6 +1222,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 //			}
 			
 			pst = conn.prepareStatement(sqlQueryString);
+			pst.setQueryTimeout(queryTimeOutInSec);
 			
 			for (int i = 0; i < query.getParameterValues().size(); i++) {
 				setObject(query, pst, i);
@@ -1300,12 +1306,20 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			conn = DriverManager.getConnection(connectionURL);
 			conn.setAutoCommit(autocommit);
 			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+			
 			LOGGER.debug("Db connection isolation : "+conn.getTransactionIsolation()+". Autocommit : "+conn.getAutoCommit());
-			LOGGER.debug("Db connexion 	url : " + connectionURL);
+			StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+			String stackString = "";
+			if (LOGGER.isDebugEnabled()) {
+				for (StackTraceElement stackTraceElement : stackTrace) {
+					stackString = stackString + "\n"+ stackTraceElement.toString();
+				}
+			}
+			LOGGER.info("Db connexion 	url : " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx")+" -  Stack trace : "+stackString);
 		} 
 
 		catch (SQLException e) {
-			LOGGER.debug("SQL ERROR; Conneciton URL : " + connectionURL);
+			LOGGER.debug("SQL ERROR; Connection URL : " + connectionURL);
 			LOGGER.debug("Data Base not started !? :" + e);
 			LOGGER.debug("cause : " + e.getCause() + "\n next : " + e.getNextException(),e);
 			nbExceptions++;
@@ -1315,7 +1329,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				LOGGER.error("Can't start Data Base!?",e);
 				throw new RuntimeException("Can't start Data Base!?",e);
 			}
-			//return null;
 		}
 		nbExceptions = 0;
 		return conn;
@@ -1729,6 +1742,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String QUOTATIONPROVIDER;
 		/** The MARKET. */
 		public static String MARKET;
+		
+		public static String CURRENCYFACTOR="CURRENCYFACTOR";
+		public static String CURRENCY="CURRENCY";
 		public static String SECTOR_HINT = "SECTOR_HINT";
 		public static String TRADING_MODE = "TRADING_MODE";
 		public static String CAPITALISATION = "CAPITALISATION";
@@ -1738,26 +1754,16 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		 * 
 		 * @return the iNSERT
 		 */
-		@Deprecated
-		public static String getINSERT() {
-			return "INSERT INTO " + SHARES.TABLE_NAME + " ( " 
-					+ SHARES.SYMBOL_FIELD + " , " + SHARES.ISIN_FIELD + " , "
-					+ SHARES.NAME_FIELD + " , " + SHARES.REMOVABLE + " , " 
-					+ SHARES.CATEGORY + " , " + SHARES.LASTQUOTE + " , "
-					+ SHARES.QUOTATIONPROVIDER + " , " + SHARES.MARKET + " , "
-					+ SHARES.SECTOR_HINT + " , " + SHARES.TRADING_MODE + " , "
-					+ SHARES.CAPITALISATION + "  ) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
-		}
-
-		/**
-		 * Gets the dELETE.
-		 * 
-		 * @return the dELETE
-		 */
-		@Deprecated
-		public static String getDELETE() {
-			return "DELETE FROM " + SHARES.TABLE_NAME + " where " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
-		}
+//		@Deprecated
+//		public static String getINSERT() {
+//			return "INSERT INTO " + SHARES.TABLE_NAME + " ( " 
+//					+ SHARES.SYMBOL_FIELD + " , " + SHARES.ISIN_FIELD + " , "
+//					+ SHARES.NAME_FIELD + " , " + SHARES.REMOVABLE + " , " 
+//					+ SHARES.CATEGORY + " , " + SHARES.LASTQUOTE + " , "
+//					+ SHARES.QUOTATIONPROVIDER + " , " + SHARES.MARKET + " , "
+//					+ SHARES.SECTOR_HINT + " , " + SHARES.TRADING_MODE + " , "
+//					+ SHARES.CAPITALISATION + "  ) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+//		}
 
 		/**
 		 * Gets the uPDATELASTQUOTE.
@@ -1781,16 +1787,16 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					+ " where " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
 		}
 
-		/**
-		 * Gets the uPDATEREFERENCE.
-		 * 
-		 * @return the uPDATEREFERENCE
-		 */
-		@Deprecated
-		public static String getUPDATEREFERENCE() {
-			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.SYMBOL_FIELD + " = ? ," + SHARES.NAME_FIELD + " = ? "
-					+ " where " + SHARES.ISIN_FIELD + " = ? ";
-		}
+//		/**
+//		 * Gets the uPDATEREFERENCE.
+//		 * 
+//		 * @return the uPDATEREFERENCE
+//		 */
+//		@Deprecated
+//		public static String getUPDATEREFERENCE() {
+//			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.SYMBOL_FIELD + " = ? ," + SHARES.NAME_FIELD + " = ? "
+//					+ " where " + SHARES.ISIN_FIELD + " = ? ";
+//		}
 		
 	}
 
@@ -1912,7 +1918,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			((MyDBConnection) sourceClient).getConn().close();
 		} catch (SQLException e) {
-			LOGGER.error("ERROR : couldn't close DB connection", e);
+			LOGGER.warn("Couldn't close DB connection. Probably staled or alreday closed.");
 		}
 	}
 	
@@ -1920,7 +1926,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			((MyDBConnection) sourceClient).getConn().close();
 		} catch (SQLException e) {
-			LOGGER.error("ERROR : couldn't close DB connection", e);
+			LOGGER.warn("ERROR : couldn't close DB connection. Probably staled or alreday closed.");
 		}
 	}
 

@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.PortfolioMgr;
 
@@ -73,14 +74,14 @@ public class Quotations {
 
 	//Called in indicator calculation and event composition calculations
 	Quotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
-		if (targetCurrency == null) targetCurrency = stock.getMarket().getCurrency(); //TODO use Currency.NAN instead of null
+		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;
 		init(stock, firstDate, lastDate, keepCache, firstIndexShift, lastIndexShift);
 	}
 
 	//Called in CalculationQuotations (inheritance)
 	Quotations(Stock stock, QuotationData quotationData, Currency targetCurrency) {
-		if (targetCurrency == null) targetCurrency = stock.getMarket().getCurrency(); //TODO use Currency.NAN instead of null
+		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.stock = stock;
 		this.targetCurrency = targetCurrency;
 		firstDateShiftedIdx = 0;
@@ -302,14 +303,15 @@ public class Quotations {
 			return amount;
 		}
 		
-		return PortfolioMgr.getInstance().getCurrencyConverter().convert(this.stock.getMarket().getCurrency(), targetCurrency, amount, date);
+		return PortfolioMgr.getInstance().getCurrencyConverter().convert(this.stock.getMarketValuation(), targetCurrency, amount, date);
 		
 	}
 
 
 	private boolean notToBeConverted() {
-		Currency marketCurrency = this.stock.getMarket().getCurrency();
-		return this.targetCurrency.equals(marketCurrency) || Currency.NAN.equals(this.targetCurrency) || Currency.NAN.equals(marketCurrency);
+		MarketValuation marketCurrency = this.stock.getMarketValuation();
+		return (this.targetCurrency.equals(marketCurrency.getCurrency()) && marketCurrency.getCurrencyFactor().compareTo(BigDecimal.ONE) == 0) || 
+				Currency.NAN.equals(this.targetCurrency) || Currency.NAN.equals(marketCurrency.getCurrency());
 	}
 	
 	public List<QuotationUnit> getQuotationUnits(Integer startIndex, Integer endIndex) {

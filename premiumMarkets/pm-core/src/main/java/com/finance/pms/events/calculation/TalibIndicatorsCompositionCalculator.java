@@ -69,12 +69,6 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency transactionCurrency, int calculatorIndexShift) throws NotEnoughDataException {
 		super(stock, startDate, endDate, transactionCurrency, calculatorIndexShift);
 	}
-	
-
-	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
-		// Nothing as Talib events are not clean but overriden
-	}
 
 	@Override
 	public Map<EventKey, EventValue> calculateEventsFor(String eventListName) {

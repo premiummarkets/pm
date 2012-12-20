@@ -34,8 +34,11 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.MarketValuation;
 
 public interface CurrencyConverter {
 
 	BigDecimal convert(Currency fromCurrency, Currency toCurrency, BigDecimal amount, Date date);
+	
+	BigDecimal convert(MarketValuation fromCurrency, Currency toCurrency, BigDecimal amount, Date date);
 }

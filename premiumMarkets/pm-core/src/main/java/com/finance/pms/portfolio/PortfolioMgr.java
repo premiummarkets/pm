@@ -42,6 +42,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Converter;
+import com.finance.pms.datasources.web.CurrencyConverter;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.SilentPonderationRule;
 
@@ -290,7 +291,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 	
 	
-	public Converter getCurrencyConverter() {
+	public CurrencyConverter getCurrencyConverter() {
 		return currencyConverter;
 	}
 
@@ -317,7 +318,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		try {
 			AbstractSharesList portfolio = this.getPortfolio(eventListName);
 			PortfolioShare shareForStock = portfolio.getShareForStock(stock);
-			return (shareForStock != null) && shareForStock.getMonitorLevel().equals(MonitorLevel.ANY);
+			return (shareForStock != null) && !shareForStock.getMonitorLevel().equals(MonitorLevel.NONE);
 		} catch (IllegalArgumentException e) {
 			return false;
 		}

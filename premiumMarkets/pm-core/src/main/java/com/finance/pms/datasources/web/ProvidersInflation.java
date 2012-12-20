@@ -89,7 +89,7 @@ public class ProvidersInflation extends Providers {
 
 		TreeSet<Validatable> queries = initValidatableSet();
 
-		LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarket().getCurrency().name());
+		LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name());
 		List<Validatable> urlResults = this.httpSource.readURL(dsf);
 		for (Validatable validatable : urlResults) {
 			if (((DailyQuotation) validatable).getQuoteDate().after(start)) {

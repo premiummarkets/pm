@@ -235,7 +235,11 @@ public class Install {
 				} 
 			}
 
-		}finally {
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
 
 			Frame[] frames = Frame.getFrames();
 			for (Frame frame : frames) {

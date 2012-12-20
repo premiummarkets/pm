@@ -94,9 +94,6 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	}
 
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.events.calculation.IndicatorCalculationService#analyseSymbolCollection(java.lang.String, java.util.Date, java.util.Date, java.util.Collection)
-	 */
 	@Override
 	protected Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
@@ -166,7 +163,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				final JmsTemplate jmsTemplate = this.jmsTemplate;
 
 				IndicatorsCalculationThread calculationRunnableTarget;
-				Currency stockCalcCurrency = (calculationCurrency == null)?stock.getMarket().getCurrency():calculationCurrency;
+				Currency stockCalcCurrency = (calculationCurrency == null)?stock.getMarketValuation().getCurrency():calculationCurrency;
 
 				if (passNumber == 2) {
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(

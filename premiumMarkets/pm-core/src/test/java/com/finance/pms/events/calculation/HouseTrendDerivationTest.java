@@ -67,7 +67,7 @@ public class HouseTrendDerivationTest {
 		Stock stock = DataSource.getInstance().loadStockBySymbol("GSPC");
 		Date firstDate = new SimpleDateFormat("yyyy MM dd").parse("1999 11 08");
 		Date lastDate =  new SimpleDateFormat("yyyy MM dd").parse("2012 10 24");
-		houseTrendDerivation = new HouseTrendDerivation(stock, firstDate, lastDate, stock.getMarket().getCurrency(), 84);
+		houseTrendDerivation = new HouseTrendDerivation(stock, firstDate, lastDate, stock.getMarketValuation().getCurrency(), 84);
 		
 		calculatedEvts = houseTrendDerivation.calculateEventsFor(EVTLISTNAME);
 		

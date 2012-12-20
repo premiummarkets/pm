@@ -61,6 +61,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -176,8 +177,6 @@ public class MainGui extends SashForm implements RefreshableView {
 	private MenuItem refreshRecommendations;
 
 	private MenuItem quotationMenuItem;
-
-//	private MenuItem newFileUpdatePortfolioMenu;
 
 	private MenuItem refreshMonitoredQuotations;
 
@@ -410,6 +409,29 @@ public class MainGui extends SashForm implements RefreshableView {
 								}
 							});
 						}
+						{
+							MenuItem eventForecast = new MenuItem(eventsMenu, SWT.CASCADE);
+							eventForecast.setText("Run a neural network forecast on technical analysis");
+							eventForecast.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NULL, 
+											"Run a neural network forecast on technical analysis is not available in this version\n"+
+											"This feature is part of the advance Permium Markets Forecast engine not included under this license.\n", 
+											null,
+											"Click here for more information and a workable demo.",
+											new ActionDialogAction() {
+
+										@Override
+										public void action(Button targetButton) {
+											Program.launch("http://premiummarkets.elasticbeanstalk.com");
+
+										}
+									});
+									actionDialog.open();
+								}
+							});
+						}
 					}
 				}
 				{
@@ -437,13 +459,32 @@ public class MainGui extends SashForm implements RefreshableView {
 							refreshRecommendations.addSelectionListener(new EventRefreshController(allStocksEventModel, this) {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
-									this.updateEventRefreshModelState(true,false,false,true);
-									initRefreshAction();
-									super.widgetSelected(evt);
+									//LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
+									//this.updateEventRefreshModelState(true,false,false,true);
+									//initRefreshAction();
+									//super.widgetSelected(evt);
+									refreshRecommendations.addSelectionListener(new SelectionAdapter() {
+										@Override
+										public void widgetSelected(SelectionEvent evt) {
+											ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NULL, 
+													"Recommandations refresh is not available in this version\n"+ 
+													"This feature is part of the advance Permium Markets Forecast engine not included under this license.\n",
+													null,
+													"Click here for more information and a workable demo.",
+													new ActionDialogAction() {
+
+												@Override
+												public void action(Button targetButton) {
+													Program.launch("http://premiummarkets.elasticbeanstalk.com");
+
+												}
+											});
+										  actionDialog.open();
+										}
+									});
 								}
 							});
-							refreshRecommendations.setEnabled(false);
+							refreshRecommendations.setEnabled(true);
 						}
 						{
 							refreshAllPortfoliosQuotations = new MenuItem(quotationMenu, SWT.CASCADE);
@@ -506,7 +547,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						new MenuItem(optionMenu, SWT.SEPARATOR);
 						{
 							settingsMenuItem = new MenuItem(optionMenu, SWT.CASCADE);
-							settingsMenuItem.setText("Miscellaneous");
+							settingsMenuItem.setText("Application Settings ...");
 							settingsMenuItem.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
@@ -717,10 +758,10 @@ public class MainGui extends SashForm implements RefreshableView {
 		    });
 		    scrollComposite.pack();
 		    
-		    mSShell.setMinimumSize(scrollComposite.computeSize(SWT.DEFAULT, 700));
-		    Rectangle mainBounds = getShell().getBounds();
+		    mSShell.setSize(scrollComposite.computeSize(SWT.DEFAULT, 700));
+		    Rectangle mainBounds = shell.getBounds();
 		    Rectangle marketShellBounds = mSShell.getBounds();
-		    mSShell.setLocation(mainBounds.x+mainBounds.width/2-marketShellBounds.x,mainBounds.y);
+		    mSShell.setLocation(mainBounds.x+mainBounds.width/4-marketShellBounds.x/2,mainBounds.y+mainBounds.y/4);
 			mSShell.open();
 			
 			while (!mSShell.isDisposed() && !shell.isDisposed()) {
@@ -904,7 +945,11 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	public void refreshView() {
-		//Nothing to do
+		for (Composite composite : winTable) {
+			if (composite instanceof RefreshableView) {
+				((RefreshableView) composite).refreshView();
+			}
+		}
 	}
 
 	public Date getAnalysisStartDate() {

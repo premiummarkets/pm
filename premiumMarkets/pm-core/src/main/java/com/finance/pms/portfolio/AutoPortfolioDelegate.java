@@ -243,7 +243,7 @@ public class AutoPortfolioDelegate {
 		
 			Stock stock = symbolEvents.getStock();
 			//XXX what if we buy twice the same share but with a different currency?
-			Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null)? stock.getMarket().getCurrency(): this.thisPortfolio.getPortfolioCurrency();
+			Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null)? stock.getMarketValuation().getCurrency(): this.thisPortfolio.getPortfolioCurrency();
 			
 			synchronized (thisPortfolio) {
 				

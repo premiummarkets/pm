@@ -72,8 +72,6 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		this.export = export;
 		this.persistTrainingEvents = persistTrainingEvents;
 		this.persistEvents = persistEvents;
-		
-		//setCalculationParameters();
 	}
 
 	protected abstract void setCalculationParameters();

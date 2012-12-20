@@ -42,6 +42,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -108,7 +109,7 @@ public class MarketList {
 						true,
 						stockCategories, 
 						new SymbolMarketQuotationProvider(marketQuotationsProviders,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
-						market,
+						new MarketValuation(market),
 						"",TradingMode.CONTINUOUS,capD.longValue());
 
 				list.add(s);

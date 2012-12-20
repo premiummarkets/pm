@@ -49,6 +49,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
@@ -191,7 +192,7 @@ public class MainPMScmd {
 				Stock inflationStock = new Stock(
 						ProvidersInflation.SYMBOL,ProvidersInflation.SYMBOL,ProvidersInflation.SYMBOL,
 						new Boolean(false),StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
-						new SymbolMarketQuotationProvider(),Market.NYSE,"None",TradingMode.UNKNOWN,0L);
+						new SymbolMarketQuotationProvider(),new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
 				DataSource.getInstance().getShareDAO().saveOrUpdateShare(inflationStock);
 				Providers.getInstance("inflation").getQuotes(inflationStock, null, null);
 			}

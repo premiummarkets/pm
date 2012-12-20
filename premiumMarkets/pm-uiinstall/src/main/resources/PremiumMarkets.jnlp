@@ -4,6 +4,7 @@
 	href="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/src/main/resources/PremiumMarkets.jnlp"> -->
 <!--<jnlp spec="1.6+" codebase="file:///C:" href="file:///C:/PremiumMarkets.jnlp"> -->
 <!--<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets-0.10.0.jnlp">-->
+
 	<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets.jnlp">
 	
 	<information>
@@ -22,10 +23,11 @@ more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testin
 Automated buy sell email notifications on trend change signals calculated over markets 
 and user defined portfolios. See Premium Markets FORECAST web portal at 
 http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+This version : ${pm.buildtime}
 
 Copyright (C) 2008-2012 Guillaume Thoreton
 
-This file is part of Premium Markets.
+This file is part of Premium Markets.	
 
 Premium Markets is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the Free

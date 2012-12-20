@@ -46,6 +46,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.LineFormater;
@@ -90,7 +91,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 
 	@Override
 	protected LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders) {
-		return new StockListYahooIncideHtmlScrapFormater(url, market);
+		return new StockListYahooIncideHtmlScrapFormater(url, new MarketValuation(market));
 	}
 
 
@@ -230,7 +231,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 			LOGGER.guiInfo("Updating screening info : yahoo PEG for "+trendSupStock.getStock());
 			String url;
 			LineFormater dsf;
-			if (trendSupStock.getStock().getMarket().getCurrency().equals(Currency.USD)) {
+			if (trendSupStock.getStock().getMarketValuation().getCurrency().equals(Currency.USD)) {
 				url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageEstimatesURL(trendSupStock.getStock().getSymbol());
 				dsf = new StockComplementEstimatesYahooFormater(url, trendSupStock);
 			} else {

@@ -39,6 +39,7 @@ import org.junit.Test;
 import com.finance.pms.SpringContext;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.quotations.NoQuotationsException;
 
@@ -56,8 +57,8 @@ public class SMATest {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-dd");
 		Stock stock = new Stock("BARC.L","GB0031348658");
 		stock.setLastQuote(dateFormat.parse("2010-Jun-02"));
-		stock.setMarket(Market.LSE);
-		SMA sma = new SMA(stock, 200, dateFormat.parse("2008-Jun-02"), dateFormat.parse("2010-Jun-02"), stock.getMarket().getCurrency());
+		stock.setMarketValuation(new MarketValuation(Market.LSE));
+		SMA sma = new SMA(stock, 200, dateFormat.parse("2008-Jun-02"), dateFormat.parse("2010-Jun-02"), stock.getMarketValuation().getCurrency());
 		//Double smaTrend = sma.getSma()[sma.getOutNBElement().value -1] - sma.getSma()[sma.getOutBegIdx().value];
 		int i = sma.getOutNBElement().value - 1;
 //		int j = sma.getOutBegIdx().value;
@@ -80,7 +81,7 @@ public class SMATest {
 //		springContext.refresh();
 		
 		Stock stock = DataSource.getInstance().loadStockBySymbol("AKA.PA");
-		SMA sma = new SMA(stock, 12, new SimpleDateFormat("dd/MM/yy HH:mm:ss").parse("05/03/12 09:00:00"), new SimpleDateFormat("dd/MM/yy HH:mm:ss").parse("06/03/12 17:35:00"), stock.getMarket().getCurrency());
+		SMA sma = new SMA(stock, 12, new SimpleDateFormat("dd/MM/yy HH:mm:ss").parse("05/03/12 09:00:00"), new SimpleDateFormat("dd/MM/yy HH:mm:ss").parse("06/03/12 17:35:00"), stock.getMarketValuation().getCurrency());
 		sma.exportToCSV();
 	}
 

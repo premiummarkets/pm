@@ -42,6 +42,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
@@ -181,6 +182,10 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		this.getHibernateTemplate().saveOrUpdateAll(listStocks);
 		
 	}
+	@Override
+	public void saveOrUpdateShare(List<Validatable> shares) {
+		this.getHibernateTemplate().saveOrUpdateAll(shares);
+	}
 
 	
 	public Collection<Stock> loadAllUserPortoflioShares() {
@@ -192,6 +197,16 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 			}
 		}
 		return stocks;
+	}
+
+	@Override
+	public List<String> sectorHintList() {
+		Criteria criteria = this.getHibernateTemplate().getSessionFactory().getCurrentSession().createCriteria( Stock.class );
+		criteria.setProjection(Projections.distinct(Projections.property( "sectorHint" )));
+		@SuppressWarnings("unchecked")
+		List<String> results = criteria.list();
+		
+		return results;
 	}
 
 }

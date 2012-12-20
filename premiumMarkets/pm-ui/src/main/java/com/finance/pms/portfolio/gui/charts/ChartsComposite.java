@@ -231,6 +231,7 @@ public class ChartsComposite extends SashForm {
 				final Button absoluteReferenceCheck;
 				final Button relativePriceCheck;
 				final Button houseDrvCheck;
+				final Button rootAtZero;
 				final Button selectRefereeButton;
 				{
 					relativePriceCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
@@ -253,10 +254,17 @@ public class ChartsComposite extends SashForm {
 				{
 					houseDrvCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
 					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
-					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
+					//portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					houseDrvCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
 					houseDrvCheck.setFont(MainGui.DEFAULTFONT);
 					houseDrvCheck.setText("Daily log ROC");
+					
+					rootAtZero = new Button(portfolioBoutonsGroup, SWT.CHECK | SWT.LEAD);
+					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
+					portfolioAddbuttonData.horizontalSpan=2;
+					rootAtZero.setLayoutData(portfolioAddbuttonData);
+					rootAtZero.setFont(MainGui.DEFAULTFONT);
+					rootAtZero.setText("Root at Zero");
 				}
 				{
 					addRefereeCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
@@ -452,9 +460,28 @@ public class ChartsComposite extends SashForm {
 						startDateLabel.setEnabled(true);
 						sliderEndDate.setEnabled(true);
 						endDateLabel.setEnabled(true);
-						stripedCloseFunction =  new StripedCloseDayToDay();
+						stripedCloseFunction =  new StripedCloseDayToDay(rootAtZero.getSelection());
 						
 						updateChart(listShares);
+					}
+				});
+				
+				rootAtZero.addMouseListener(new MouseAdapter() {
+
+					@Override
+					public void mouseUp(MouseEvent e) {
+						if (houseDrvCheck.getSelection()) {
+							
+							selectReferreText.setEnabled(false);
+							selectRefereeButton.setEnabled(false);
+							sliderStartDate.setEnabled(true);
+							startDateLabel.setEnabled(true);
+							sliderEndDate.setEnabled(true);
+							endDateLabel.setEnabled(true);
+							stripedCloseFunction =  new StripedCloseDayToDay(rootAtZero.getSelection());
+							
+							updateChart(listShares);
+						}
 					}
 				});
 				
@@ -536,7 +563,7 @@ public class ChartsComposite extends SashForm {
 			try {
 				if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
 					
-				refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarket().getCurrency(),0,0);
+				refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarketValuation().getCurrency(),0,0);
 
 				stripedCloseFunction =  new StripedCloseIndexRelative(refereeQuotations, slidingStartDate, slidingEndDate);
 				selectReferreText.setText(stock.getName());

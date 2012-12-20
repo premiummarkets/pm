@@ -42,19 +42,8 @@ public class StockId implements Serializable {
 	 */
 	private static final long serialVersionUID = 3134640535970138359L;
 	
-	
-	/** The symbol. */
-	@Id
-	@Column(name="symbol")
     protected String symbol;
-	
-    /** The isin. */
-	@Id
-	@Column(name="isin")
     protected String isin;
-
-
-	
 
 	protected StockId() {
 		super();
@@ -71,6 +60,8 @@ public class StockId implements Serializable {
 		this.isin = isin;
 	}
 
+	@Id
+	@Column(name="symbol")
 	public String getSymbol() {
 		return symbol;
 	}
@@ -79,6 +70,8 @@ public class StockId implements Serializable {
 		this.symbol = symbol;
 	}
 
+	@Id
+	@Column(name="isin")
 	public String getIsin() {
 		return isin;
 	}

@@ -50,8 +50,8 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -150,7 +150,7 @@ public class QuotationUpdate {
 	
 	public void getQuotesForUi(
 			String sharesList, String isin, String symbol, String name, 
-			StockCategories category, MarketQuotationProviders quoteProvider, Market market) throws InvalidAlgorithmParameterException, StockNotFoundException {
+			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException, StockNotFoundException {
 
 		StockList dbStockList = new StockList();
 		Providers.getInstance(sharesList).retrieveStockListFromBase(dbStockList);

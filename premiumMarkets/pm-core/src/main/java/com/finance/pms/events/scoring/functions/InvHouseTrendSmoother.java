@@ -64,8 +64,20 @@ public class InvHouseTrendSmoother extends Smoother {
 			List<Date> qKeys = new ArrayList<Date>(pQs.keySet());
 			start = (houseTrend.firstKey().before(qKeys.get(period)))?qKeys.get(period):houseTrend.firstKey();
 	
-			int indexOfStart = qKeys.indexOf(start);
-			if (indexOfStart == -1) throw new RuntimeException(new InvalidAlgorithmParameterException());
+			//int indexOfStart = qKeys.indexOf(start);
+			int indexOfStart = -1;
+			for (indexOfStart = 0;indexOfStart < qKeys.size(); indexOfStart++) {
+				if (qKeys.get(indexOfStart).equals(start) || qKeys.get(indexOfStart).after(start)) {
+					start =  qKeys.get(indexOfStart);
+					break;
+				}
+			}
+			if (indexOfStart == -1) {
+				throw new RuntimeException(
+					new InvalidAlgorithmParameterException(
+							"Start : "+start+", period "+period+", first houseTrend "+houseTrend.firstKey()+", first qKeys "+pQs.firstKey()) + ", qKey at period "+qKeys.get(period)+ "\n" +
+							"qKeys : "+ qKeys);
+			}
 			SortedMap<Date, double[]> resInit = pQs.subMap(qKeys.get(indexOfStart - period), qKeys.get(indexOfStart));
 			List<Date> keysInit = qKeys.subList(indexOfStart - period, indexOfStart);
 			

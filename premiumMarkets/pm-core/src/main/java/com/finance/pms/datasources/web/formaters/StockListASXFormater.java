@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
@@ -90,7 +91,7 @@ public class StockListASXFormater extends LineFormater {
 						removeTextDelim(strArray[0],textDelim), 
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,YahooMarketExtentions.ASX.toString()),
-						Market.ASX,
+						new MarketValuation(Market.ASX),
 						"",TradingMode.CONTINUOUS,0l));
 			}
 			return retour;

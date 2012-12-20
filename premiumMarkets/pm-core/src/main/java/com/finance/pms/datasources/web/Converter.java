@@ -55,6 +55,7 @@ import com.finance.pms.datasources.currency.CurrencyDAO;
 import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.web.formaters.ImfCurrencyHistoryFormater;
 
 public class Converter implements CurrencyConverter, MyBeanFactoryAware {
@@ -137,8 +138,19 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 		return -2;
 	}
 
-	public BigDecimal convert(Currency fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
+	//We can convert only toward Base Unit not toward sub unit like pence for pound
+	public BigDecimal convert(MarketValuation fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
 		
+		BigDecimal fromBaseCurrencyAmount = fromCurrency.translateToBaseCurrencyUnit(amount);
+		BigDecimal converted = this.convert(fromCurrency.getCurrency(), toCurrency, fromBaseCurrencyAmount, date);
+		
+		return converted;
+		
+	}
+	
+
+	@Override
+	public BigDecimal convert(Currency fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
 		Boolean convertable = !fromCurrency.equals(toCurrency) && !Currency.NAN.equals(toCurrency) && !Currency.NAN.equals(fromCurrency);
 		
 		BigDecimal exchangeRate = BigDecimal.ONE;
@@ -146,7 +158,7 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 			exchangeRate = fetchRate(fromCurrency, toCurrency, date);
 		}
 		
-		return toCurrency.translateToQuotationUnit(exchangeRate.multiply(fromCurrency.translateToExchangeUnit(amount)).setScale(4, BigDecimal.ROUND_DOWN));
+		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 
 	private BigDecimal fetchRate(Currency fromCurrency, Currency toCurrency, Date date) {

@@ -96,7 +96,8 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 				epsd= new BigDecimal(eps).setScale(4, BigDecimal.ROUND_DOWN);
 			}
 			
-			stockPart.setYahooEPS(epsd.multiply(new BigDecimal(stockPart.getMarket().getCurrency().getUnitFactor())));
+			//stockPart.setYahooEPS(epsd.multiply(new BigDecimal(stockPart.getMarketValuation().getCurrency().getToRatedUnitFactor())));
+			stockPart.setYahooEPS(epsd.multiply(stockPart.getMarketValuation().getCurrencyFactor()));
 		}
 
 		if (isDivSetOrReset && !stockPart.isNOTSetYahooEPS()) {

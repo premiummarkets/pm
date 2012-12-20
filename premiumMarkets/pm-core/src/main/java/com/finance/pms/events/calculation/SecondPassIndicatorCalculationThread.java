@@ -49,6 +49,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
@@ -68,7 +69,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	}
 
 	@Override
-	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) {
+	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws IncompleteDataSetException {
 		
 		Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
 		
@@ -78,7 +79,8 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 					EventCompostionCalculator instanciatedECC = instanciateECC(eventDefinition, availableSecondPassIndicatorCalculators.get(eventDefinition), observers);
 					eventCalculations.add(instanciatedECC);
 				} catch (Exception e) {
-					LOGGER.warn(e);
+					//LOGGER.error(e,e);
+					throw new IncompleteDataSetException(stock, e.getMessage());
 				}
 			}
 		}
@@ -100,9 +102,15 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			return ret;
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException) {
-				LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
-			} else if (e.getCause() instanceof NotEnoughDataException ) {
-				LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate));
+				if (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException ) {
+					LOGGER.warn(
+							"This is an info test message :\n" +
+							"Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate),true);
+				} else {
+					LOGGER.warn(	
+							"This is an info test message :\n" +
+							"Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause(),true);
+				}
 			} else if (e.getCause() instanceof ErrorException) {
 				LOGGER.error(stock+ " second pass calculation error ",e);
 			}
@@ -116,6 +124,17 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	@Override
 	protected List<EventDefinition> getWantedEventCalculations() {
 		return secondPassWantedCalculations;
+	}
+	
+	@Override
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+
+		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
+			if (checkWanted(eventDefinition)) {
+				LOGGER.info("cleaning "+eventDefinition+" events for "+eventListName+" from "+datedeb + " to "+datefin);
+				EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
+			}
+		}
 	}
 	
 }
