@@ -40,6 +40,8 @@ import org.springframework.jms.UncategorizedJmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
+import com.finance.pms.MainPMScmd;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class InnerJmsTemplate.
@@ -50,6 +52,8 @@ public class InnerJmsTemplate extends JmsTemplate {
 	
 	
 
+	private Boolean sendMailEnabled;
+
 	/**
 	 * Instantiates a new inner jms template.
 	 * 
@@ -57,6 +61,7 @@ public class InnerJmsTemplate extends JmsTemplate {
 	 */
 	private InnerJmsTemplate() {
 		super(new InnerConnectionFactory());
+		sendMailEnabled = new Boolean(MainPMScmd.getPrefs().get("mail.infoalert.activated","false"));
 	}
 
 	@Override
@@ -66,6 +71,8 @@ public class InnerJmsTemplate extends JmsTemplate {
 		
 		try {
 			Message message = (Message) messageCreator.createMessage(innerSession);
+			
+			if (message instanceof EmailMessage && !sendMailEnabled) return;
 			
 			if (message instanceof SingleEventMessage && !((InnerQueue) destination).contains(message)) {
 				((InnerQueue) destination).addMessage(message);

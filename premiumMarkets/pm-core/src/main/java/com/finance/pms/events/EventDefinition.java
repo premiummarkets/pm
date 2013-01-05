@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.finance.pms.admin.install.logging.MyLogger;
-
 
 // TODO: Auto-generated Javadoc
 /**
@@ -117,8 +115,7 @@ public enum EventDefinition implements Serializable {
 		}
 	}
 
-	/** The LOGGER. */
-	protected static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
+	//private static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
 	
 	/** The event def. */
 	private final String eventDef;

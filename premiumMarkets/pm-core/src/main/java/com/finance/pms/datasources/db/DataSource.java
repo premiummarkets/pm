@@ -364,6 +364,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			putInPrefs("test.endDate", props);
 			
 			//Event cache
+			LOGGER.info("event cache is "+props.getProperty("event.cache"));
 			putInPrefs("event.cache", props);
 			
 			MainPMScmd.getPrefs().flush();
@@ -421,7 +422,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 */
 	private void putInPrefs(String property, Properties props) {
 		if (props.containsKey(property))
-			LOGGER.info("event cache is "+props.containsKey(property));
 			MainPMScmd.getPrefs().put(property, props.getProperty(property));
 	}
 

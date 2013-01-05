@@ -66,11 +66,13 @@ public class HullMASmoother extends Smoother {
 		MInteger halfSmaOutNBElement = new MInteger();
 		double[] halfSma = new double[data.size() - period/2 +1];
 		RetCode halfSmaRc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period/2, halfSmaOutBegIdx, halfSmaOutNBElement, halfSma);
+		if (!halfSmaRc.equals(RetCode.Success)) throw new RuntimeException("Bad retCode "+halfSmaRc);
 		
 		MInteger smaOutBegIdx = new MInteger();
 		MInteger smaOutNBElement = new MInteger();
 		double[] sma = new double[data.size() - period +1];
 		RetCode smaRc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, smaOutBegIdx, smaOutNBElement, sma);
+		if (!smaRc.equals(RetCode.Success)) throw new RuntimeException("Bad retCode "+smaRc);
 		
 		double[] diffSma = new double[data.size() - period +1];
 		int halfSmaStartIdx = smaOutBegIdx.value - halfSmaOutBegIdx.value;
@@ -84,6 +86,7 @@ public class HullMASmoother extends Smoother {
 		int sqrSmaPeriod = (int) Math.rint(Math.sqrt(period));
 		double[] sqrSma = new double[diffSma.length - sqrSmaPeriod +1];
 		RetCode sqrSmaRc = TalibCoreService.getCore().sma(0, diffSma.length -1, diffSma, sqrSmaPeriod, sqrSmaOutBegIdx, sqrSmaOutNBElement, sqrSma);
+		if (!sqrSmaRc.equals(RetCode.Success)) throw new RuntimeException("Bad retCode "+sqrSmaRc);
 		
 		int sqrStartIdx = period + sqrSmaPeriod;
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();

@@ -459,8 +459,8 @@ public class EventsResources {
 			addEventsToCache(events, eventListName);
 		}
 		
+		LOGGER.info("storing Events in db cached is "+isEventCached+", persist is "+persist+" other params "+eventListName);
 		if (persist || !isEventCached) {
-			LOGGER.info("cleaning Events in db cached is "+isEventCached+", persist is "+persist+" other params "+eventListName);
 			ArrayList<Query> qInsert = new ArrayList<Query>();
 			ArrayList<Validatable> lqUpdate = new ArrayList<Validatable>();
 			buildUpdateValidatableList(events, qInsert, lqUpdate);
@@ -940,8 +940,8 @@ public class EventsResources {
 		}
 		
 		//DB
+		LOGGER.info("cleaning Events in db cached is "+isEventCached+", persist is "+persist+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+indicators);
 		if (persist || !isEventCached) {
-			LOGGER.info("cleaning Events in db cached is "+isEventCached+", persist is "+persist+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+indicators);
 			DataSource.getInstance().cleanEventsForAnalysisNameAndStock(stock, analysisName, datedeb, datefin, indicators);
 		}
 		

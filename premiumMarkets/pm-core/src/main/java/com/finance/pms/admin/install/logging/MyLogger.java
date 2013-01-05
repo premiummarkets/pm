@@ -137,9 +137,6 @@ public class MyLogger {
 			if (props.containsKey("mail.host")) {
 				MainPMScmd.getPrefs().put("mail.host", props.getProperty("mail.host"));
 			}
-//			if (props.containsKey("mail.to")) {
-//				MainPMScmd.getPrefs().put("mail.to", props.getProperty("mail.to"));
-//			}
 			if (props.containsKey("mail.from")) {
 				MainPMScmd.getPrefs().put("mail.from", props.getProperty("mail.from"));
 			}
@@ -170,6 +167,7 @@ public class MyLogger {
 			if (isLocal) {
 				
 				MyLogger.mailTo = MainPMScmd.getPrefs().get("mail.to", MyLogger.mailFrom);
+				MyLogger.session = Session.getInstance(mailSessionProps);
 				
 			} else {
 				

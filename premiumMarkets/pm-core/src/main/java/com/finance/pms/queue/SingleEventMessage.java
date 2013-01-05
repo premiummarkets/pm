@@ -50,7 +50,7 @@ import com.finance.pms.events.EventValue;
  * 
  * @author Guillaume Thoreton
  */
-public class SingleEventMessage extends IdentifiedObjecMessage { //, Comparable<InnerMessage> {
+public class SingleEventMessage extends EmailMessage {
 
 	/** The p. */
 	private Properties properties = new Properties();
@@ -67,7 +67,7 @@ public class SingleEventMessage extends IdentifiedObjecMessage { //, Comparable<
 	 */
 	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventValue eventInMess) {
 		super(analyseName.hashCode()+stock.hashCode()+eventInMess.hashCode());
-		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventInMess,stock);
+		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventInMess, stock);
 	}
 	
 

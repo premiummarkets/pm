@@ -1,4 +1,5 @@
 select TUNEDCONF.lastcalculation,TUNEDCONF.CONFIGFILE, SHARES.*  from TUNEDCONF,SHARES where TUNEDCONF.symbol=SHARES.symbol and TUNEDCONF.isin=SHARES.isin and SHARES.lastquote < TUNEDCONF.lastcalculation; -- and  TUNEDCONF.CONFIGFILE='preTrainConfs.NEURAL.csv';
+select TUNEDCONF.* from TUNEDCONF where TUNEDCONF.lastcalculation > (select max(date) from EVENTS where EVENTS.eventdefid not in (503,507) and TUNEDCONF.symbol=EVENTS.symbol and TUNEDCONF.isin=EVENTS.isin);
 update TUNEDCONF set TUNEDCONF.lastcalculation=(select max(date) from EVENTS where EVENTS.eventdefid not in (503,507) and TUNEDCONF.symbol=EVENTS.symbol and TUNEDCONF.isin=EVENTS.isin) where TUNEDCONF.CONFIGFILE='preTrainConfs.NEURAL.csv';
 --update TUNEDCONF set TUNEDCONF.lastcalculation=(select date(max(date)) from EVENTS where EVENTS.eventdefid not in (503,507) and TUNEDCONF.symbol=EVENTS.symbol and TUNEDCONF.isin=EVENTS.isin) where TUNEDCONF.CONFIGFILE='preTrainConfs.NEURAL.csv';
 

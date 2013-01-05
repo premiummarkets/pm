@@ -46,27 +46,13 @@ import com.finance.pms.admin.install.logging.MyLogger;
  */
 public class QueueScan extends Thread {
 	
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(QueueScan.class);
 	
-	/** The destination. */
-	private InnerQueue destination;
-	
-	/** The my message listener. */
-	private MessageListener myMessageListener;
-	
-	/** The to be stoped. */
-	private Boolean toBeStoped = false;
 
-	/**
-	 * Sets the to be stoped.
-	 * 
-	 * @param toBeStoped the new to be stoped
-	 */
-	public void setToBeStoped(Boolean toBeStoped) {
-		this.toBeStoped = toBeStoped;
-	}
+	private InnerQueue destination;
+	private MessageListener myMessageListener;
+	private Boolean toBeStoped = false;
 
 
 	/**
@@ -84,6 +70,10 @@ public class QueueScan extends Thread {
 	
 	}
 
+	
+	public void setToBeStoped(Boolean toBeStoped) {
+		this.toBeStoped = toBeStoped;
+	}
 
 	/**
 	 * Start.
@@ -98,9 +88,6 @@ public class QueueScan extends Thread {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see java.lang.Thread#run()
-	 */
 	@Override
 	public void run() {
 		

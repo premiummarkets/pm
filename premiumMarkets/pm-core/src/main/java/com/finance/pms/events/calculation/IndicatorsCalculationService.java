@@ -207,7 +207,7 @@ public abstract class IndicatorsCalculationService {
 	protected abstract Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents, Observer... observers) 
-					throws InvalidAlgorithmParameterException, IncompleteDataSetException;
+			throws InvalidAlgorithmParameterException, IncompleteDataSetException;
 
 	
 	
@@ -218,15 +218,11 @@ public abstract class IndicatorsCalculationService {
 		
 		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> calcRes = null;
 		if (shareList.size() > 0) {
-//			try {
+
 				calcRes = partialAnalyze(
 							shareList, startDate, endDate, calculationCurrency, eventListName, 
 							periodType, true, passNumber, export, persistEvents, observers);
 				
-//			} catch (IncompleteDataSetException e) {
-//				//LOGGER.warn(e);
-//			}
-			
 		} else {
 			calcRes = fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, observers);
 		

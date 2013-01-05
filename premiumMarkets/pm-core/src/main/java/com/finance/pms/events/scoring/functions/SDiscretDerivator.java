@@ -30,40 +30,11 @@
  */
 package com.finance.pms.events.scoring.functions;
 
-import java.util.Collection;
+import java.util.Date;
+import java.util.SortedMap;
 
-import org.apache.commons.math.stat.descriptive.AbstractUnivariateStatistic;
+public interface SDiscretDerivator {
 
-public class ApacheStats {
-	
-	AbstractUnivariateStatistic statistic;
-
-	public ApacheStats(AbstractUnivariateStatistic statistic) {
-		super();
-		this.statistic = statistic;
-	}
-	
-	public double evaluate(Collection<double[]> subMap) {
-		double[] values = new double[subMap.size()];
-		int i = 0;
-		for (double[] element : subMap) {
-			values[i] = element[0];
-			i++;
-		}
-		
-		return statistic.evaluate(values);
-	}
-	
-	public double sEvaluate(Collection<Double> subMap) {
-		double[] values = new double[subMap.size()];
-		int i = 0;
-		for (Double element : subMap) {
-			values[i] = element;
-			i++;
-		}
-		
-		return statistic.evaluate(values);
-	}
-	
+	public SortedMap<Date, Double> sDerivateDiscret(SortedMap<Date, Double> data);
 
 }

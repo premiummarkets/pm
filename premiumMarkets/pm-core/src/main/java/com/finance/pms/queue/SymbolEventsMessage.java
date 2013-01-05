@@ -47,7 +47,7 @@ import com.finance.pms.events.SymbolEvents;
  * 
  * @author Guillaume Thoreton
  */
-public class SymbolEventsMessage extends IdentifiedObjecMessage {
+public class SymbolEventsMessage extends EmailMessage {
 	
 	/** The event in mess. */
 	SymbolEvents symbolEvents;

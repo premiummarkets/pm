@@ -85,11 +85,16 @@ public class InnerQueue implements Queue {
 	 * @author Guillaume Thoreton
 	 */
 	public Boolean isEmpty() {
-		return myQueueSize == 0;
+		synchronized (myQueue) {
+			return myQueueSize == 0;
+		}
 	}
 	
 	public Boolean isEmptyAndProcessed() {
-		return isEmpty() && this.inProcessQueue.isEmpty();
+		synchronized (myQueue) {
+			return myQueueSize == 0 && this.inProcessQueue.isEmpty();
+		}
+		
 	}
 	
 	/**
@@ -121,8 +126,10 @@ public class InnerQueue implements Queue {
 	 * @author Guillaume Thoreton
 	 */
 	public void removeMessage(Message identifiedObjecMessage) {
+		synchronized (myQueue) {
+			inProcessQueue.remove(((IdentifiedObjecMessage)identifiedObjecMessage).getMessageKey());
+		}
 		
-		inProcessQueue.remove(((IdentifiedObjecMessage)identifiedObjecMessage).getMessageKey());
 	}
 
 	public String getQueueName() throws JMSException {
@@ -130,11 +137,18 @@ public class InnerQueue implements Queue {
 	}
 	
 	public Integer size() {
-		return myQueue.size();
+		//return myQueue.size();
+		synchronized (myQueue) {
+			return myQueueSize;
+		}
+		
 	}
 	
 	public Integer messagesInProcess() {
-		return inProcessQueue.size();
+		synchronized (myQueue) {
+			return inProcessQueue.size();
+		}
+		
 	}
 	
 	public String toString() {
@@ -155,7 +169,10 @@ public class InnerQueue implements Queue {
 	}
 
 	public boolean contains(Message message) {
-		return myQueue.contains(message);
+		synchronized (myQueue) {
+			return myQueue.contains(message);
+		}
+		
 	}
 	
 	

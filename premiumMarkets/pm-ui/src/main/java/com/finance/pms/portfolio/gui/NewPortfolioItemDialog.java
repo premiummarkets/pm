@@ -375,13 +375,17 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 					symbolExtTxt.add("NONE");
 
 					String provStr = provCombo.getText();
-					if (provStr != null) {
-						MarketQuotationProviders provider = MarketQuotationProviders.valueOf(provStr);
-						Set<String> extensionsForMarket = Market.getExtensionFor(provider);
-						for (String ext : extensionsForMarket) {
-							symbolExtTxt.add(ext);
+					if (provStr != null && !provStr.isEmpty()) {
+						try {
+							MarketQuotationProviders provider = MarketQuotationProviders.valueOf(provStr);
+							Set<String> extensionsForMarket = Market.getExtensionFor(provider);
+							for (String ext : extensionsForMarket) {
+								symbolExtTxt.add(ext);
+							}
+							symbolExtTxt.pack();
+						} catch (Exception e1) {
+							LOGGER.error("Invalid quotation provider market? : "+provStr,e1);
 						}
-						symbolExtTxt.pack();
 					}
 				}
 			});

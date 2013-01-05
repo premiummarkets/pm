@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class SlopeDerivator implements DiscretDerivator {
+public class SlopeDerivator implements DiscretDerivator, SDiscretDerivator {
 	
 	private int period;
 	private double slope;
@@ -83,6 +83,40 @@ public class SlopeDerivator implements DiscretDerivator {
 				}
 			} 
 			ret.put(keys.get(i), new double[]{drv});
+		}
+
+		return ret;
+	}
+
+	@Override
+	public SortedMap<Date, Double> sDerivateDiscret(SortedMap<Date, Double> data) {
+		
+		SortedMap<Date, Double> ret = new TreeMap<Date,Double>();
+
+		List<Double> values = new ArrayList<Double>(data.values());
+		List<Date> keys = new ArrayList<Date>(data.keySet());
+		
+		for (int i = 0; i < period; i++) {
+			ret.put(keys.get(i), 0.5);
+		}
+		
+		for (int i = period; i < values.size(); i++) {
+			
+			double drv = 0.5;
+			double prev = values.get(i-period);
+			double current = values.get(i);
+			double percentDiff = (current - prev)/Math.abs(prev);
+		
+			boolean isBuySlope = (buyCrossTowardCenter)? percentDiff > (slope * new Double(period)) :  percentDiff < (-slope * new Double(period));
+			if ( isBuySlope ) {
+				drv = 0;
+			} else {
+				boolean isSellSlope = (sellCrossTowardCenter)?  percentDiff < (-slope * new Double(period))  : percentDiff > (slope * new Double(period));
+				if ( isSellSlope ) {
+					drv = 1;
+				}
+			} 
+			ret.put(keys.get(i), drv);
 		}
 
 		return ret;

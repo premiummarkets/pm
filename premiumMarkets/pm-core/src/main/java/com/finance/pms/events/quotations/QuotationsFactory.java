@@ -74,6 +74,8 @@ public interface QuotationsFactory {
 
 	SortedMap<Date, double[]> buildMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
 	
+	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
+	
 	
 	
 //	public Stack<OnTheFlyTuningPeriod> onTheFlyRetunDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq);

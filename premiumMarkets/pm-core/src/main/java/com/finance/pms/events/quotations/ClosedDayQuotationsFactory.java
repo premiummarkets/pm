@@ -203,4 +203,25 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		}
 	}
 
+	@Override
+	public SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations) throws NotEnoughDataException {
+		
+		try {
+			SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
+			Date firstRefStockQuote = quotations.getDate(0);
+			Calendar current = Calendar.getInstance();
+			current.setTime(firstRefStockQuote);
+			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
+			while (current.getTime().before(lastRefStockQuote) || current.getTime().equals(lastRefStockQuote)) {
+				fullRefSQuotationsMap.put(current.getTime(), quotations.getCloseForDate(current.getTime()).doubleValue() );
+				QuotationsFactories.getFactory().incrementDate(current, 1);
+			}
+			
+			return fullRefSQuotationsMap;
+			
+		} catch (InvalidAlgorithmParameterException e) {
+			throw new NotEnoughDataException(e.getMessage(), e);
+		}
+	}
+
 }

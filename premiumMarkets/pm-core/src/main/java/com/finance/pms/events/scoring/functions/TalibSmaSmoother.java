@@ -43,7 +43,7 @@ import com.finance.pms.talib.indicators.TalibCoreService;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
-public class TalibSmaSmoother extends Smoother {
+public class TalibSmaSmoother extends Smoother implements SSmoother {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibSmaSmoother.class);
 
@@ -61,7 +61,6 @@ public class TalibSmaSmoother extends Smoother {
 		
 		int lag = 0;
 		if (fixLag) {
-			//lag = (period - 1) / 2;
 			lag = period / 2 + 1;
 		} 
 		
@@ -97,6 +96,55 @@ public class TalibSmaSmoother extends Smoother {
 		for (Date date : data.keySet()){
 			if (j >= period - lag && (j- (period - lag)) < sma.length) {
 				ret.put(date, new double[] {sma[j - (period - lag)]});
+			}
+			j++;
+		}
+		
+		
+		return ret;
+	}
+
+
+	@Override
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
+		
+		int lag = 0;
+		if (fixLag) {
+			lag = period / 2 + 1;
+		} 
+		
+		MInteger outBegIdx = new MInteger();
+		MInteger outNBElement = new MInteger();
+		int endIdx = data.size()-1;
+		int startIdx = 0;
+		
+		double[] sma = new double[data.size() - period +1];
+		
+		double[] inReal = new double[data.size()];
+		int i=0;
+		for (Double dv : data.values()) {
+			inReal[i] = dv;
+			i++;
+		}
+		
+		RetCode rc;
+		if (period == 1) {
+			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
+			outBegIdx = new MInteger();
+			outBegIdx.value = startIdx;
+			outNBElement = new MInteger();
+			outNBElement.value = endIdx - outBegIdx.value;
+			rc = RetCode.Success;
+		} else {
+			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
+		}
+		LOGGER.debug("smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		int j = 0;
+		for (Date date : data.keySet()){
+			if (j >= period - lag && (j- (period - lag)) < sma.length) {
+				ret.put(date, sma[j - (period - lag)]);
 			}
 			j++;
 		}

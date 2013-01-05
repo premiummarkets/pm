@@ -61,6 +61,7 @@ import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.queue.BuySellSignalCalculatorMessage;
+import com.finance.pms.queue.EmailMessage;
 import com.finance.pms.queue.ExportAutoPortfolioMessage;
 import com.finance.pms.queue.InnerQueue;
 import com.finance.pms.queue.SingleEventMessage;
@@ -128,7 +129,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     			LOGGER.info("New runnable message received : "+runnableMessage.getAnalysisName()+" for "+runnableMessage.getClass().getName());
     			runSynchTask(runnableMessage.getAnalysisName(), runnableMessage);
     			
-    		} else if (message instanceof ObjectMessage) { //SymbolEvent : send email
+    		} else if (message instanceof EmailMessage) { //SymbolEvent : send email
 
     			SymbolEvents symbolEventMessage = extractSymbolEventsObject(message);
     			String eventListName = extractEventListName(message);
@@ -146,7 +147,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				}
 
     		} else {
-    			throw new IllegalArgumentException("Message must be of type Inner or Processor Message");
+    			throw new IllegalArgumentException("Unrecognised message type : "+message.getClass().getSimpleName());
     		}
     		
     	} catch (JMSException ex) {
@@ -200,7 +201,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		Boolean isValidEventSource = 
 				isValidAlertEvent || isValidScreeningEvent || isValidScreeningMessage || isValidWeatherEvent || 
 				isValidPmUserEvent || isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
-		if 	(sendMailEnabled && isValidEventSource ) {
+		if 	( sendMailEnabled && isValidEventSource ) {
 			LOGGER.info(
 	    			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
 	    			+ symbolEvents.getSymbolName()+" ("+symbolEvents.getSymbol()+"), "+symbolEvents.toEMail());
@@ -228,7 +229,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	private SymbolEvents extractSymbolEventsObject(Message message) throws JMSException {
 	
 		if (message instanceof SingleEventMessage) {
-			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage)message).getObject();
+			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage) message).getObject();
 			return  new SymbolEvents(eventMessageObject);
 		} else if (message instanceof SymbolEventsMessage) {
 			return (SymbolEvents) ((ObjectMessage) message).getObject();
@@ -240,7 +241,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 	private String extractEventListName(Message message) throws JMSException {
 		if (message instanceof SingleEventMessage) {
-			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage)message).getObject();
+			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage) message).getObject();
 			return eventMessageObject.getEventListName();
 		} 
 		return null;
@@ -297,8 +298,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		mail.setSubject(subject);
 		mail.setText(eMailTxt+"\n\n\n"+notaBene);
 		mail.setSentDate(event.getLastDate());
-        
-		//this.openPopup(subject, eMailTxt, "Info/Alert");
+
         try {
             this.mailSender.send(mail);
         }
