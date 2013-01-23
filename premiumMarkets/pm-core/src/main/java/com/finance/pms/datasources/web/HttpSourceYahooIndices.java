@@ -127,7 +127,6 @@ public class HttpSourceYahooIndices extends HttpSourceMarket {
 	@Override
 	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		GetMethod getMethod = new GetMethod(url.getUrl());
-		//getMethod.setFollowRedirects(false);
 		return getMethod;
 	}
 	

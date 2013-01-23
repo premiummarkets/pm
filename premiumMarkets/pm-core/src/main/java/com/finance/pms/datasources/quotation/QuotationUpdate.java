@@ -114,17 +114,17 @@ public class QuotationUpdate {
 	 */
 	private void getQuotesAndNewForShareListFromWeb(Providers provider, String marketQuotationsProvider) {
 		
-		StockList stockList = new StockList();
-		provider.retrieveStockListFromBase(stockList);
+		StockList existingDBStocks = new StockList();
+		provider.retrieveStockListFromBase(existingDBStocks);
 		
 		StockList bdStockList =  new StockList();
-		bdStockList.addAll(stockList);
+		bdStockList.addAll(existingDBStocks);
 		
-		provider.retrieveStockListFromWeb(MarketQuotationProviders.valueOfCmd(marketQuotationsProvider), stockList);
+		StockList shareListStocks = provider.retrieveStockListFromWeb(MarketQuotationProviders.valueOfCmd(marketQuotationsProvider), existingDBStocks);
 		
-		stockList.removeAll(bdStockList);
+		//stockList.removeAll(bdStockList);
 		try {
-			getQuotes(stockList);
+			getQuotes(shareListStocks);
 		} catch (StockNotFoundException e) {
 			LOGGER.warn(e);
 		}
@@ -268,7 +268,6 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 			
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
-			//GetQuotation command = new GetQuotation(QuotationsFactories.getFactory().getValidQuotationDateBefore(EventSignalConfig.getNewDate()), stock);
 			GetQuotation command = new GetQuotation(EventSignalConfig.getNewDate(), stock);
 			for (Observer observer : observers) {
 				command.addObserver(observer);

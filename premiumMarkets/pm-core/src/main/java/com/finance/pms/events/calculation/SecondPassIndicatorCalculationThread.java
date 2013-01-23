@@ -103,13 +103,9 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException) {
 				if (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException ) {
-					LOGGER.warn(
-							"This is an info test message :\n" +
-							"Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate),true);
+					LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate),true);
 				} else {
-					LOGGER.warn(	
-							"This is an info test message :\n" +
-							"Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause(),true);
+					LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause(),true);
 				}
 			} else if (e.getCause() instanceof ErrorException) {
 				LOGGER.error(stock+ " second pass calculation error ",e);
@@ -132,7 +128,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
 			if (checkWanted(eventDefinition)) {
 				LOGGER.info("cleaning "+eventDefinition+" events for "+eventListName+" from "+datedeb + " to "+datefin);
-				EventsResources.getInstance().cleanEventsForAnalysisNameAndStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
+				EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
 			}
 		}
 	}

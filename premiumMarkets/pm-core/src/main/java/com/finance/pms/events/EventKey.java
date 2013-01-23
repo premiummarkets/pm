@@ -38,7 +38,7 @@ import java.util.Date;
  * 
  * @author Guillaume Thoreton
  */
-public interface EventKey extends Serializable {
+public interface EventKey extends Serializable, Comparable<EventKey> {
 	
 	public Date getDate();
 	

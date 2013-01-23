@@ -38,7 +38,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -62,18 +61,22 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionCalculator.class);
 	
+	 SortedMap<Date, double[]>  calculationOutput;
+	
 	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
+		this.calculationOutput = new TreeMap<Date, double[]>();
 	}
 
 	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency transactionCurrency, int calculatorIndexShift) throws NotEnoughDataException {
 		super(stock, startDate, endDate, transactionCurrency, calculatorIndexShift);
+		this.calculationOutput = new TreeMap<Date, double[]>();
 	}
 
 	@Override
 	public Map<EventKey, EventValue> calculateEventsFor(String eventListName) {
 		
-		Map<EventKey, EventValue> edata = new HashMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		
 		FormulatRes res;
 		try {
@@ -97,6 +100,10 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 				exportToCSV(edata, eventListName);
 			}
 		}
+		
+		if (!edata.isEmpty()) {
+			calculationOutput.put(edata.lastKey().getDate(), new double[]{});
+		};
 		
 		return edata;
 		
@@ -324,7 +331,8 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	}
 	
 	public  SortedMap<Date, double[]> calculationOutput() {
-		return new TreeMap<Date, double[]>();
+		//return new TreeMap<Date, double[]>();
+		return calculationOutput;
 	}
 
 

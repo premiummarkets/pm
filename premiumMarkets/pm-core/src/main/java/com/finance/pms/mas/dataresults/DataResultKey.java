@@ -108,5 +108,14 @@ public class DataResultKey implements EventKey {
 	public String toString() {
 		return "DataResultKey [date=" + date + ", eventdef=" + eventDefId + "]";
 	}
+
+	@Override
+	public int compareTo(EventKey o) {
+		int dateCompare = date.compareTo(o.getDate());
+		if (dateCompare == 0) {
+			return eventDefId.compareTo((Integer) o.getEventDefId());
+		}
+		return dateCompare;
+	}
 	
 }

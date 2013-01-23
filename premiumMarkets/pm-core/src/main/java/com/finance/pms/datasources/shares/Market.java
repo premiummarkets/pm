@@ -57,6 +57,8 @@ public enum Market implements Serializable {
 	
 	BSE ("BSE","bse",Currency.INR,BigDecimal.ONE,YahooMarketExtentions.BSE, "UNKNOWN", "WMORN"),
 	
+	NSE ("NSE","nse",Currency.INR,BigDecimal.ONE,YahooMarketExtentions.BSE, "UNKNOWN", "WMORN"),
+	
 	NYSE ("NYSE","nyse",Currency.USD,BigDecimal.ONE,YahooMarketExtentions.NYSE, "NSE", "WMORN"),
 	
 	AMEX  ("AMEX","amex",Currency.USD,BigDecimal.ONE,YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN"),

@@ -209,6 +209,23 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				if (calculationOutput == null) calculationOutput = new HashMap<EventDefinition, SortedMap<Date,double[]>>();
 				ret.put(se.getStock(), calculationOutput);
 				
+				try {
+					if (LOGGER.isInfoEnabled()) {
+						String outPutSize = "Nan";
+						String availOutputs = "Nan";
+						if (calculationOutput != null && calculationOutput.size() > 0) {
+							availOutputs = EventDefinition.getEventDefCollectionAsString(calculationOutput.keySet());
+							EventDefinition firstKey = calculationOutput.keySet().toArray(new EventDefinition[]{})[0];
+							SortedMap<Date, double[]> firstOutput = calculationOutput.get(firstKey);
+							outPutSize = firstOutput.size()+"";
+						}
+						LOGGER.info(
+								"Adding "+se.getDataResultList().size()+" events from "+se.getStock()+".  Available outputs "+availOutputs+". First calculation Ouput size is "+outPutSize+", pass num "+passNumber+", eventListName "+eventListName);
+					}
+				} catch (Exception e) {
+					LOGGER.warn(e,e);
+				}
+				
 			} catch (Exception e) {
 				if (e.getCause() instanceof IncompleteDataSetException) {
 					failingStocks.addAll(((IncompleteDataSetException) e.getCause()).getFailingStocks());
@@ -219,8 +236,8 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			}
 		}
 		
-		LOGGER.info("storing "+allEvents.size()+" sets of events, from "+startDate+" to "+endDate);
-		EventsResources.getInstance().storeEvents(allEvents, persistEvents, eventListName);
+		LOGGER.info("Storing "+allEvents.size()+" sets of events, from "+startDate+" to "+endDate);
+		EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
 		
 		
 		if (!isDataSetComplete) {

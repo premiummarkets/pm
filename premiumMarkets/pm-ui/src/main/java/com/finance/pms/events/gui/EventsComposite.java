@@ -411,9 +411,10 @@ public class EventsComposite extends Composite implements RefreshableView {
 					combo.setLayoutData(group1LData);
 					combo.add(EventsActionSortEnum.DEFAULTWEIGTHTXT.getText());
 					combo.add(EventsActionSortEnum.LATESTNOALERTSEVENTSTXT.getText());
-					for (int j = 0, n = EventDefinition.values().length; j < n; j++) {
-						if (EventDefinition.values()[j].getEventDefId() >= 100)
-							combo.add(EventDefinition.values()[j].getEventDef());
+					List<EventDefinition> pmEventDefinitionsList = EventDefinition.getPMEventDefinitionsList();
+					for (int j = 0, n = pmEventDefinitionsList.size(); j < n; j++) {
+						//if (EventDefinition.get(j).getEventDefId() >= 100) combo.add(EventDefinition.values()[j].getEventDef());
+						 combo.add(pmEventDefinitionsList.get(j).getEventDef());
 					}
 					combo.setText(action.getActionSortEnum().getText());
 					combo.setFont(MainGui.DEFAULTFONT);
@@ -429,14 +430,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 								Integer buyEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
 								setAction(new EventsActionSort(EventsActionSortEnum.DEFAULTWEIGTHTXT, new DefaultPonderationRule(sellEventTriggerThreshold, buyEventTriggerThreshold)));
 							} else if (combo.getText().equals(EventsActionSortEnum.LATESTEVENTSTXT.getText())) {
-								//FIXME
+								//FIXME//setAction(new EventsActionSort(EventsActionSortEnum.LATESTEVENTSTXT, new LatestEventsPonderationRule()));
 								throw new NotImplementedException();
-								//setAction(new EventsActionSort(EventsActionSortEnum.LATESTEVENTSTXT, new LatestEventsPonderationRule()));
 							} else if (combo.getText().equals(EventsActionSortEnum.LATESTNOALERTSEVENTSTXT.getText())) {
 								setAction(new EventsActionSort(EventsActionSortEnum.LATESTNOALERTSEVENTSTXT, new LatestEventsIndicatorOnlyPonderationRule()));
-							} else {//if (combo.getText().equals(EventsActionSortEnum.TALIBWEIGHTTXT.getText())) {
+							} else {
 								EventDefinition eventDefinition = EventDefinition.valueOfEventDef(combo.getText());
-								setAction(new EventsActionSort(EventsActionSortEnum.TALIBWEIGHTTXT, new IndicatorPonderationRule(eventDefinition.getEventDefId())));
+								setAction(new EventsActionSort(EventsActionSortEnum.TALIBWEIGHTTXT, new IndicatorPonderationRule(eventDefinition.getEventDefId()), eventDefinition));
 							}
 							sortOnWeigthCriteriasActions();
 							reloadTabs();
@@ -638,7 +638,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 						}
 
 						private void selection() {
-							EventsResources.getInstance().cleanEventsForAnalysisName(IndicatorCalculationServiceMain.UI_ANALYSIS, analyseStartDate, EventSignalConfig.getNewDate(), true);
+							EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, analyseStartDate, EventSignalConfig.getNewDate(), true);
 							sortOnWeigthCriteriasActions();
 							reloadTabs();
 							enableRefreshButtons();
@@ -823,7 +823,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private void sortOnWeigthCriteriasActions() {
 		try {
 			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-			EventsResources.getInstance().loadEventsByCriteriaAndDate(analyseStartDate, infCrit, supCrit, action.getPonderationRule(), IndicatorCalculationServiceMain.UI_ANALYSIS);
+			EventsResources.getInstance().loadEventsByCriteriaAndDate(analyseStartDate, infCrit, supCrit, action.getPonderationRule(), action.getIndicators(), IndicatorCalculationServiceMain.UI_ANALYSIS);
 		} catch (InvalidAlgorithmParameterException e) {
 			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, e.toString(), null);
 			inst.open();
@@ -900,7 +900,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 		} finally {
 			//eventModelImage.setStartAnalyseDate(analyseStartDate);
 		}
-		this.sortOnWeigthCriteriasActions();
+		try {
+			this.sortOnWeigthCriteriasActions();
+		} catch (Exception e1) {
+			ErrorDialog dialog = new ErrorDialog(this.getShell(), SWT.NULL, "Invalide date : "+dateCriteriatext, null);
+			dialog.open();
+		}
 		reloadTabs();
 		try {
 			MainPMScmd.getPrefs().flush();

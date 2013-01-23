@@ -48,6 +48,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
@@ -57,6 +58,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormLayout;
@@ -111,6 +113,8 @@ public class MainGui extends SashForm implements RefreshableView {
 	
 	/** The option menu. */
 	private Menu optionMenu;
+	
+	private MenuItem quotationMenuItem;
 	
 	/** The option menu item. */
 	private MenuItem optionMenuItem;
@@ -176,8 +180,6 @@ public class MainGui extends SashForm implements RefreshableView {
 	
 	private MenuItem refreshRecommendations;
 
-	private MenuItem quotationMenuItem;
-
 	private MenuItem refreshMonitoredQuotations;
 
 	private SashForm sashes;
@@ -195,22 +197,23 @@ public class MainGui extends SashForm implements RefreshableView {
 	public MainGui(Composite parent, String dbFilePath) {
 		super(parent, SWT.VERTICAL);
 
+		this.setLayout(new FillLayout()); 
 		MainGui.dbfile = dbFilePath;
 		
 		sashes = new SashForm(this, SWT.HORIZONTAL);
 		logComposite = new LogComposite(this, SWT.NONE);
-		
-		this.setWeights(new int[]{98,2});
-		
+				
 		allStocksEventModel = EventModel.getInstance(new RefreshAllEventStrategyEngine(), logComposite);
 		monitoredStocksEventModel = EventModel.getInstance(new RefreshMonitoredStrategyEngine(), logComposite);
 		portfolioStocksEventModel = EventModel.getInstance(new RefreshPortfolioStrategyEngine(), logComposite);
-	
+		
 		initMenus();
 		initContent();
 		
 		Integer hintNumber = new Integer(MainPMScmd.getPrefs().get("email.hint","0"));
 		if (hintNumber == 0) openMarkets(getShell());
+		
+		this.layout();
 		
 	}
 	
@@ -442,51 +445,6 @@ public class MainGui extends SashForm implements RefreshableView {
 					{
 						Menu quotationMenu = new Menu(quotationMenuItem);
 						{
-							refreshStockList = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshStockList.addSelectionListener(new EventRefreshController(allStocksEventModel, this) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
-									eventModel.setLastListFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(true,false,false,false);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								}
-							});
-						}
-						{
-							refreshRecommendations = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshRecommendations.addSelectionListener(new EventRefreshController(allStocksEventModel, this) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									//LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
-									//this.updateEventRefreshModelState(true,false,false,true);
-									//initRefreshAction();
-									//super.widgetSelected(evt);
-									refreshRecommendations.addSelectionListener(new SelectionAdapter() {
-										@Override
-										public void widgetSelected(SelectionEvent evt) {
-											ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NULL, 
-													"Recommandations refresh is not available in this version\n"+ 
-													"This feature is part of the advance Permium Markets Forecast engine not included under this license.\n",
-													null,
-													"Click here for more information and a workable demo.",
-													new ActionDialogAction() {
-
-												@Override
-												public void action(Button targetButton) {
-													Program.launch("http://premiummarkets.elasticbeanstalk.com");
-
-												}
-											});
-										  actionDialog.open();
-										}
-									});
-								}
-							});
-							refreshRecommendations.setEnabled(true);
-						}
-						{
 							refreshAllPortfoliosQuotations = new MenuItem(quotationMenu, SWT.CASCADE);
 							refreshAllPortfoliosQuotations.addSelectionListener(new EventRefreshController(portfolioStocksEventModel,this) {
 								@Override
@@ -515,15 +473,83 @@ public class MainGui extends SashForm implements RefreshableView {
 						quotationMenu.addListener(SWT.Show, new Listener() {
 							
 							public void handleEvent(Event evt) {
+								refreshAllPortfoliosQuotations.setText("Refresh quotations for all portfolios"); 
+								refreshMonitoredQuotations.setText("Refresh quotations for monitored shares");
+							}
+						});
+						quotationMenuItem.setMenu(quotationMenu);
+					}
+				}
+				{
+					marketsMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+					marketsMenuItem.setText("Stocks");
+					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+					marketsMenuItem.setImage(new Image(getDisplay(),portImg));
+					{
+						Menu marketMenu = new Menu(marketsMenuItem);
+						{
+							refreshStockList = new MenuItem(marketMenu, SWT.CASCADE);
+							refreshStockList.addSelectionListener(new EventRefreshController(allStocksEventModel, this) {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									LOGGER.guiInfo("I am refreshing. Thanks for waiting...");
+									eventModel.setLastListFetch(EventModel.DEFAULT_DATE);
+									this.updateEventRefreshModelState(true,false,false,false);
+									initRefreshAction();
+									super.widgetSelected(evt);
+								}
+							});
+						}
+						{
+							refreshRecommendations = new MenuItem(marketMenu, SWT.CASCADE);
+							refreshRecommendations.addSelectionListener(new EventRefreshController(allStocksEventModel, this) {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									
+									refreshRecommendations.addSelectionListener(new SelectionAdapter() {
+										@Override
+										public void widgetSelected(SelectionEvent evt) {
+											ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NULL, 
+													"Recommandations refresh is not available in this version\n"+ 
+													"This feature is part of the advance Permium Markets Forecast engine not included under this license.\n",
+													null,
+													"Click here for more information and a workable demo.",
+													new ActionDialogAction() {
+
+												@Override
+												public void action(Button targetButton) {
+													Program.launch("http://premiummarkets.elasticbeanstalk.com");
+
+												}
+											});
+										  actionDialog.open();
+										}
+									});
+								}
+							});
+							refreshRecommendations.setEnabled(true);
+						}
+						{
+							MenuItem marketOptMenuItem = new MenuItem(marketMenu, SWT.CASCADE);
+							marketOptMenuItem.setText("Customize your list ...");
+							marketOptMenuItem.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
+									openMarkets(getShell());
+								}
+							});
+						}
+						marketMenu.addListener(SWT.Show, new Listener() {
+							
+							public void handleEvent(Event evt) {
 								String listProvCmd = MainPMScmd.getPrefs().get("quotes.listprovider", "euronext");
 								Providers provider =  Providers.getInstance(listProvCmd);
 								refreshStockList.setText("Refresh stock list "+listProvCmd+" "+Indice.formatName(provider.getIndices()));
 								refreshRecommendations.setText("Refresh recommandations for "+listProvCmd+" "+Indice.formatName(provider.getIndices()));
-								refreshAllPortfoliosQuotations.setText("Refresh quotations for all portfolios"); //using "+MainPMScmd.prefs.get("quotes.provider", "euronext"));
-								refreshMonitoredQuotations.setText("Refresh quotations for monitored shares"); // using "+MainPMScmd.prefs.get("quotes.provider", "euronext"));
 							}
 						});
-						quotationMenuItem.setMenu(quotationMenu);
+						marketsMenuItem.setMenu(marketMenu);
 					}
 				}
 				{
@@ -533,17 +559,6 @@ public class MainGui extends SashForm implements RefreshableView {
 					optionMenuItem.setImage(new Image(getDisplay(),toolImg));
 					{
 						optionMenu = new Menu(optionMenuItem);
-						{
-							marketsMenuItem = new MenuItem(optionMenu, SWT.CASCADE);
-							marketsMenuItem.setText("Choose a market ...");
-							marketsMenuItem.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
-									openMarkets(getShell());
-								}
-							});
-						}
 						new MenuItem(optionMenu, SWT.SEPARATOR);
 						{
 							settingsMenuItem = new MenuItem(optionMenu, SWT.CASCADE);
@@ -608,13 +623,90 @@ public class MainGui extends SashForm implements RefreshableView {
 			
 			setupAppDefaultFont(display, shell);
 			
-			MainGui inst = new MainGui(shell,dbfile);
+			final MainGui inst = new MainGui(shell,dbfile);
+			
+			inst.addControlListener(new ControlListener() {
+				
+				@Override
+				public void controlResized(ControlEvent e) {
+					//inst.sashes.getParent().pack();
+				}
+				
+				@Override
+				public void controlMoved(ControlEvent e) {
+					//nothing
+				}
+			});
 			
 			shell.layout();
-			inst.pack();
-			shell.pack();
+            shell.pack();
+			
+            //Shell
+            {
+				Point prefSize = inst.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+				int width = Math.max(prefSize.x/2,700);
+				int height = Math.max((prefSize.y*8)/10,500);
+				Rectangle shellBounds = shell.computeTrim(0,0,width,height); 
+				shell.setSize(shellBounds.width, shellBounds.height); 
+            }
+            
+            //shell.pack();
+			
+			//Log
+            {
+				Rectangle mainBounds = shell.getClientArea();
+				
+				Point logPrefSize = inst.logComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+				Point logCompositeSize = inst.logComposite.computeSize(mainBounds.width, Math.max(10,logPrefSize.y));
+				inst.logComposite.setSize(logCompositeSize);
+				Rectangle logBounds = inst.logComposite.getBounds();
+				int xLog = 100*logBounds.height/mainBounds.height +1;
+				if ((100 -xLog) < 97) {
+					xLog=2;
+				}
+				inst.setWeights(new int[]{100-xLog,xLog});
+            }
+			
+			//Portfolio Composite
+            {
+				Rectangle portfolioShashBounds = ((PortfolioComposite)inst.winTable[2]).getClientArea();
+				
+				Point portPrefSize = ((PortfolioComposite)inst.winTable[2]).portfolioBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+				Point portCompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioBoutonsGroup.computeSize(portPrefSize.x, Math.max(50,portPrefSize.y));
+				((PortfolioComposite)inst.winTable[2]).portfolioBoutonsGroup.setSize(portCompositeSize);
+				Rectangle buttonsBounds = ((PortfolioComposite)inst.winTable[2]).portfolioBoutonsGroup.getBounds();
+				
+				Point port1PrefSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+				Point port1CompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(port1PrefSize.x, Math.max(50,port1PrefSize.y));
+				((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.setSize(port1CompositeSize);
+				Rectangle infoBounds = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.getBounds();
+				
+				int xPort = 100*buttonsBounds.height/portfolioShashBounds.height + 2;
+				int x1Port = 100*infoBounds.height/portfolioShashBounds.height + 2;
+				if ((100 -xPort -x1Port) < 20) {
+					xPort=25;
+					x1Port=30;
+				}
+				((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-xPort-x1Port,xPort,x1Port});
+            }
+			
+			//Chart
+            {
+				Rectangle chartShashBounds = ((ChartsComposite)inst.winTable[1]).getClientArea();
+				
+				Point chartPrefSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+				Point chartCompositeSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
+				((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.setSize(chartCompositeSize);
+				Rectangle chartButtonsBounds = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.getBounds();
+				int xLog = 100*chartButtonsBounds.height/chartShashBounds.height +2;
+				if ((100 -xLog) < 20) {
+					xLog=30;
+				}
+				((ChartsComposite)inst.winTable[1]).setWeights(new int[]{100-xLog,xLog});
+            }
+            	
 			shell.open();
-			shell.setMaximized(true);
+			//shell.setMaximized(true);
 			
 			LOGGER.debug("Starting MainGUI display thread");
 			System.out.println("IHM RUNNING");
@@ -628,7 +720,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in Gui : ",e);
 					inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-					ErrorDialog dialog = new ErrorDialog(inst.getShell(),SWT.NULL, "An unhandeled error as occured.", e.getMessage());
+					ErrorDialog dialog = new ErrorDialog(inst.getShell(),SWT.NULL, "An unhandeled error as occurred.", e.getMessage());
 					dialog.open();
 				}
 			}

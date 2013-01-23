@@ -63,8 +63,10 @@ public class StockComplementYahooFormater extends LineFormater {
 			LOGGER.debug("", e);
 		}
 		String symbol = stockPart.getSymbol().replace(".", "\\.");
-		nameIsinPattern = Pattern.compile(StockComplementYahooFormater.PATTERNS.getProperty("yahoonameisincompletion", symbol));
-		nameNoIsinPattern = Pattern.compile(StockComplementYahooFormater.PATTERNS.getProperty("yahoonamenoisincompletion", symbol));
+		String isinPatProperty = String.format(StockComplementYahooFormater.PATTERNS.getProperty("yahoonameisincompletion"), symbol);
+		nameIsinPattern = Pattern.compile(isinPatProperty);
+		String noIsinPatproperty = String.format(StockComplementYahooFormater.PATTERNS.getProperty("yahoonamenoisincompletion"), symbol);
+		nameNoIsinPattern = Pattern.compile(noIsinPatproperty);
 	
 	}
 
@@ -77,16 +79,16 @@ public class StockComplementYahooFormater extends LineFormater {
 		Matcher fitNameIsin;
 		fitNameIsin = nameIsinPattern.matcher(line);
 		if (fitNameIsin.find()) {
-			parsedName = fitNameIsin.group(1);
-			parsedIsin = fitNameIsin.group(2);
+			parsedName = fitNameIsin.group(1).trim();
+			parsedIsin = fitNameIsin.group(2).trim();
 		
 			
 		} else {
 			Matcher fitNameNoIsin;
 			fitNameNoIsin = nameNoIsinPattern.matcher(line);
 			if (fitNameNoIsin.find()) {
-				parsedName = fitNameNoIsin.group(1);
-				parsedIsin = stockPart.getSymbol();
+				parsedName = fitNameNoIsin.group(1).trim();
+				parsedIsin = stockPart.getSymbol().trim();
 			
 			}
 			

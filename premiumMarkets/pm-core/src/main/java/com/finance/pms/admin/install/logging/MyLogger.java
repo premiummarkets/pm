@@ -88,9 +88,6 @@ public class MyLogger {
 	//	mail.host=smtp.yourdomain.com
 	//	mail.username=your.login
 	//	mail.password=
-	//private static String mailRecipientName = Messages.getEncriptedString("mail.recipientname"); 
-	//private static String mailRecipientDomain = Messages.getEncriptedString("mail.recipientdomain"); 
-	//private static String mailSmtpUser = MyLogger.mailRecipientName + "@" + MyLogger.mailRecipientDomain;
 	private static String mailUserName = Messages.getEncriptedString("mail.recipientname") + "@" + Messages.getEncriptedString("mail.recipientdomain");
 	private static String mailPassword = Messages.getEncriptedString("mail.smtppass"); 
 	private static String mailHost = Messages.getEncriptedString("mail.smtphost"); 
@@ -147,8 +144,6 @@ public class MyLogger {
 			String propsMailUserName = MainPMScmd.getPrefs().get("mail.username", "nouser");
 			String propsMailPassword = MainPMScmd.getPrefs().get("mail.password","nopassword"); 
 			String propsMailHost = MainPMScmd.getPrefs().get("mail.host", null);
-			//boolean credentialsAreValid = propsMailUserName != null && !propsMailUserName.isEmpty() && propsMailPassword != null && !propsMailPassword.isEmpty();
-			//boolean allConnectionFieldsAreValid = credentialsAreValid && propsMailHost != null && !propsMailHost.isEmpty();
 			boolean allConnectionFieldsAreValid = propsMailHost != null && !propsMailHost.isEmpty();
 			if ( allConnectionFieldsAreValid ) {
 				MyLogger.mailHost = propsMailHost;
@@ -227,13 +222,6 @@ public class MyLogger {
 		
 		//Init hashesSet
 		try {
-			//hashCodesFile.createNewFile();
-			//BufferedReader fileReader = new BufferedReader(new FileReader(hashCodesFile));
-			//String hline;
-			//while ((hline = fileReader.readLine()) != null) {
-			//	hashesSet.add(new Integer(hline));
-			//}
-			//fileReader.close();
 			hashCodesFile.delete();
 			
 		} catch (Throwable e) {
@@ -828,11 +816,9 @@ public class MyLogger {
 					
 					if (isTest && !isSendingTestEmail || !isSendingErrorEmail) return;
 					
-					//Create msg
-					StringBuffer msgBoddy = createMsgBodyFirstLines(error, errorStr, 200);
+					//Msg hash
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
 
-					//if (!isTest && hashesSet.contains(bodyHashcode) || (isTest && !"force".equals(MyLogger.mailActivationType))) {
 					if (!hasDuplicate && hashesSet.contains(bodyHashcode)) {
 						return;
 					} 
@@ -841,32 +827,38 @@ public class MyLogger {
 						writeHashesToFile(bodyHashcode);
 					}
 					
-					//Email
+					//Email msg
 					Transport transport = MyLogger.session.getTransport("smtp"); 
 					transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 					
 					MimeMessage msg = new MimeMessage(MyLogger.session);		
 					InternetAddress senderAddress = fromAdressResolution();
-
+					
+					StringBuffer msgBody = createMsgBodyFirstLines(error, errorStr, 200);
+					String msgSubject = "Error detected on Version build : "+version+ " from user "+senderAddress;
+					if (isTest && isSendingTestEmail) {
+						msgBody.insert(0, "This is an info test message : \n");
+						msgSubject = msgSubject.replaceFirst("Error detected", "Warning detected");
+					}
+					
 					msg.setFrom(senderAddress);
 					msg.setSender(senderAddress);
 					Address[] rTo = {senderAddress};
 					msg.setReplyTo(rTo);
 					msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo); 
-					msg.setSubject("Error detected on Version build : "+version+ " from user "+senderAddress); 
+					msg.setSubject(msgSubject); 
 					msg.setSentDate(new Date());					
-					msg.setText(msgBoddy.toString());
+					msg.setText(msgBody.toString());
 
 					msg.saveChanges();      // don't forget this
 					
-					//if (!"force".equals(MyLogger.mailActivationType) && !"forceNoTest".equals(MyLogger.mailActivationType)) {
 					if (isPopup) {
 						
 						///Dialog
 						try {
 
 							frame = new JFrame();
-							String report = "An error has occured.\nThis error may be recoverable.\n"
+							String report = "An error has occurred.\nThis error may be recoverable.\n"
 									+ "By cliking OK on the button below this error will automatically be sent to the development team.\n";
 							customDialog = new CustomDialog(frame, report, createMsgBodyFirstLines(error, errorStr, 20).toString(), "Error Report", true);
 							customDialog.pack();
@@ -905,7 +897,7 @@ public class MyLogger {
 					customDialog = null;
 					frame = null;
 					try {
-						Thread.sleep(2000);
+						Thread.sleep(4000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -920,14 +912,7 @@ public class MyLogger {
 			}
 
 			private InternetAddress fromAdressResolution() {
-//				try {
-//					String from = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailUserName);
-//					MyLogger.senderAddress = new InternetAddress(from);
-//				} catch (AddressException e) {
-//					delegateLogger.error("Error from adress :"+e); 
-//					e.printStackTrace();
-//					MyLogger.senderAddress = new InternetAddress();
-//				}
+
 				InternetAddress senderAddress;
 				try {
 					senderAddress = new InternetAddress(MyLogger.mailFrom);

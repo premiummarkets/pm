@@ -101,7 +101,7 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 	 */
 	@Override
 	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
-		throw new UnsupportedOperationException("Please use an other provider then a share list holder for that.");
+		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
 	/* (non-Javadoc)
@@ -146,7 +146,7 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 	 */
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks,StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use an other provider then a share list holder for that.");
+		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
 	/* (non-Javadoc)

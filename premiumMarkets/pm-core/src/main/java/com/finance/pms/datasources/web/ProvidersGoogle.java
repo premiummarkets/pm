@@ -152,12 +152,12 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 
 	@Override
 	public void retrieveAndCompleteStockInfo(Stock s, StockList stockList) {
-		throw new UnsupportedOperationException("Please use an other share list holder provider for that.");
+		throw new UnsupportedOperationException("Please use another share list holder provider for that.");
 	}
 
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use an other share list holder provider for that.");
+		throw new UnsupportedOperationException("Please use another share list holder provider for that.");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

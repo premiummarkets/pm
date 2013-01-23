@@ -177,5 +177,22 @@ public class StockList extends ArrayList<Stock> {
 		super();
 		this.addAll(existingStocksSet);
 	}
+	
+	public StockList(List<Stock> existingStocksSet) {
+		super();
+		this.addAll(existingStocksSet);
+	}
+
+	public Stock findLenientRefs(String ... refs) {
+		for (Stock stock : this) {
+			for (String ref : refs ) {
+				if (ref != null && (stock.getSymbol().equals(ref) || stock.getIsin().equals(ref))) {
+					return stock;
+				}
+			}
+		}
+		return null;
+	}
+		
 
 }

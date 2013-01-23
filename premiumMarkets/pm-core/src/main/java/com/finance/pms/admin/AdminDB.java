@@ -562,7 +562,6 @@ public class AdminDB {
 				ns.setSymbolMarketQuotationProvider(newSymbolMarketQuotationProvider);
 				ns.setSymbol(symbol);
 			} catch (InvalidAlgorithmParameterException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			

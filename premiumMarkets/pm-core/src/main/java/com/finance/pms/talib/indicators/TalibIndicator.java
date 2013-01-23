@@ -80,7 +80,7 @@ public abstract class TalibIndicator extends Indicator {
 			RetCode rc = talibCall(startIdx, endIdx, inData, indicatorParams);
 				
 			if (!rc.equals(RetCode.Success)) {
-				LOGGER.error(this.getClass().getName()+" Calculation error : " + rc + " for Quote :" + this.getStockName());
+				LOGGER.warn(this.getClass().getName()+" Calculation error : " + rc + " for Quote :" + this.getStockName());
 				throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + rc + " for share :" + this.getStockName(), new Throwable());
 			} else {
 				outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);

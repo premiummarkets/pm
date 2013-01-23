@@ -37,6 +37,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.httpclient.HttpException;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
@@ -46,6 +47,8 @@ import com.finance.pms.datasources.web.formaters.LineFormater;
 public abstract class ProvidersMarket extends ProvidersList {
 
 
+	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersMarket.class);
+	
 	@Override
 	public Set<Indice> getIndices() {
 		return new TreeSet<Indice>();
@@ -66,7 +69,7 @@ public abstract class ProvidersMarket extends ProvidersList {
 		
 		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
 		
-		LineFormater lsf = this.getFormater(getUrl(),this.getMarket(),marketQuotationsProviders);
+		LineFormater lsf = this.getFormater(getUrl(), this.getMarket(), marketQuotationsProviders);
 		@SuppressWarnings("rawtypes")
 		List ltmp = new ArrayList();
 		try {

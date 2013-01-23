@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.Validatable;
@@ -62,9 +61,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 
 	@Override
 	protected LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders) {
-		return new StockListBSEFormater(
-				httpSource.getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY),
-				StockCategories.DEFAULT_CATEGORY,marketQuotationsProviders);
+		return new StockListBSEFormater(httpSource.getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY), StockCategories.DEFAULT_CATEGORY, marketQuotationsProviders);
 	}
 
 	@Override
@@ -81,7 +78,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 		try {
 			ltmp = getSymbol(stock,stock.getName());
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.warn("@d. Invalid symbol format when compementing.",e);
+			LOGGER.warn("@d. Invalid symbol format when complementing.",e);
 		}
 		
 		if (ltmp.size() == 0) {
@@ -91,7 +88,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 				try {
 					ltmp = getSymbol(stock,splat);
 				} catch (UnsupportedEncodingException e) {
-					LOGGER.warn("@d. Invalid symbol format when compementing.",e);
+					LOGGER.warn("@d. Invalid symbol format when complementing.",e);
 				}
 
 		}
@@ -147,7 +144,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 
 	@Override
 	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
-		throw new NotImplementedException();
+		//throw new NotImplementedException();
 		
 	}
 	

@@ -166,7 +166,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	 * @param sharesListStocks
 	 */
 	@SuppressWarnings("unchecked")
-	@Override
+	@Override//TODO merge with nse indices => create market indices related Provider : probably add an interface alike MarketListProvider
 	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) {
 		
 		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
@@ -174,8 +174,8 @@ public class ProvidersYahooIndices extends ProvidersList {
 		for (Indice indice : indices) {
 			
 			for (Integer i = 0; i < 50; i++) {
-				String url = this.httpSource.getCategoryStockListURL(StockCategories.INDICES_OTHER, "^" + indice.getName(),i.toString());
-				LOGGER.debug("Indice Url : " + url);
+				String url = this.httpSource.getCategoryStockListURL(StockCategories.INDICES_OTHER, "^" + indice.getName(), i.toString());
+				LOGGER.info("Indice Url : " + url);
 				LineFormater yahooIndiceFormater = this.getFormater(url, indice.getMarket(), marketQuotationsProviders);
 				@SuppressWarnings("rawtypes")
 				List listOfIndiceStocks = new ArrayList();
@@ -375,6 +375,6 @@ public class ProvidersYahooIndices extends ProvidersList {
 			}
 		}
 		
-		MainPMScmd.getPrefs().put("quotes.yahoo.indices",Indice.formatToString(indices));
+		MainPMScmd.getPrefs().put("quotes.yahoo.indices",Indice.formatToString(this.indices));
 	}
 }

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -44,6 +45,7 @@ import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
@@ -125,31 +127,21 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	public TransactionHistory calculate(Date endDate, String... additionalEventListNames) {
 		
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
-		
-		List<SymbolEvents> listEvents = loadEventsForCalculation(endDate);
+		List<SymbolEvents> listEvents = loadEventsForCalculation(endDate, null);
 		return autoPortfolioDelegate.calculate(listEvents, endDate, getNonNullBuyPonderationRule(), getNonNullSellPonderationRule());
 	}
 	
-	/**
-	 * @param currentDate
-	 * @param eventListNames
-	 * @return
-	 */
-	
-	public List<SymbolEvents> loadEventsForCalculation(Date currentDate) {
+
+	public List<SymbolEvents> loadEventsForCalculation(Date currentDate, Set<EventDefinition> eventDefinitions) {
 		
 		List<SymbolEvents> fullListEvents = new ArrayList<SymbolEvents>();
-		fullListEvents = loadEvents(currentDate, eventSignalConfig, this.additionalPortfolioEventListNames, this.getName());
+		fullListEvents = loadEvents(currentDate, eventSignalConfig, eventDefinitions, this.additionalPortfolioEventListNames, this.getName());
 
 		return fullListEvents;
 	}
 
-	/**
-	 * @param currentDate
-	 * @param eventSignalConfig
-	 * @return
-	 */
-	private List<SymbolEvents> loadEvents(Date currentDate, EventSignalConfig eventSignalConfig, String[] additionalPortfolioEventListNames, String... otherNames) {
+
+	private List<SymbolEvents> loadEvents(Date currentDate, EventSignalConfig eventSignalConfig, Set<EventDefinition> eventDefinitions, String[] additionalPortfolioEventListNames, String... otherNames) {
 		
 		Date dateStart = eventLoadStartDate(currentDate, eventSignalConfig.getBackwardDaySpan());
 		String[] fullEventListNames = Arrays.copyOf(additionalPortfolioEventListNames, additionalPortfolioEventListNames.length+otherNames.length);
@@ -158,7 +150,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 			fullEventListNames[additionalPortfolioEventListNames.length + i] = otherNames[i];
 		}
 		
-		return EventsResources.getInstance().getListEventsFor(dateStart, currentDate, true, fullEventListNames);
+		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, true, eventDefinitions, fullEventListNames);
 	}
 
 	/**

@@ -68,11 +68,11 @@ public class StandardEventKey implements EventKey {
 	}
 	
 	
-	public StandardEventKey(Date date,Integer eventdefId, String eventType) {
+	public StandardEventKey(Date date,Integer eventdefId, String eventTypeChar) {
 		super();
 		this.date = date;
 		this.eventdef = EventDefinition.valueOf(eventdefId);
-		this.eventType = EventType.valueOf(eventType.charAt(0));
+		this.eventType = EventType.valueOf(eventTypeChar.charAt(0));
 	}
 
 
@@ -99,9 +99,6 @@ public class StandardEventKey implements EventKey {
 	public String toString() {
 		return "StandardEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + "]";
 	}
-
-
-
 	
 	public int hashCode() {
 		final int prime = 31;
@@ -137,6 +134,26 @@ public class StandardEventKey implements EventKey {
 		} else if (!eventdef.equals(other.eventdef))
 			return false;
 		return true;
+	}
+
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public int compareTo(EventKey o) {
+		
+		int dateCompare = date.compareTo(o.getDate());
+		if (dateCompare == 0) {
+			int evtTypecompare = eventType.compareTo((EventType) o.getEvenType());
+			if (evtTypecompare == 0) {
+				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
+				if (evtDefCompare == 0) {
+					return getEventDefExtra().compareTo(o.getEventDefExtra());
+				}
+			}
+			return evtTypecompare;
+		}
+		
+		return dateCompare;
 	}	
 
 }

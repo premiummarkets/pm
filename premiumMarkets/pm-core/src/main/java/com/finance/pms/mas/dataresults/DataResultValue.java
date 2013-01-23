@@ -60,7 +60,7 @@ public class DataResultValue extends EventValue {
 	 */
 	public DataResultValue(Date date, Integer eventdef, char eventtype){
 		
-		super(date,EventDefinition.valueOf(eventdef),EventType.valueOf(eventtype),"");
+		super(date, EventDefinition.valueOf(eventdef), EventType.valueOf(eventtype),"");
 		
 	}
 	
@@ -69,13 +69,13 @@ public class DataResultValue extends EventValue {
 	 * 
 	 * @param date the date
 	 * @param eventdef the eventdef
-	 * @param eventtype the eventtype
+	 * @param eventtypeChar the eventtype
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public DataResultValue(Date date, Integer eventdef, String eventtype){
+	public DataResultValue(Date date, Integer eventdef, String eventtypeChar){
 		
-		super(date,EventDefinition.valueOf(eventdef),EventType.valueOf(eventtype.charAt(0)),"");
+		super(date, EventDefinition.valueOf(eventdef), EventType.valueOf(eventtypeChar.charAt(0)),"");
 		
 	}
 

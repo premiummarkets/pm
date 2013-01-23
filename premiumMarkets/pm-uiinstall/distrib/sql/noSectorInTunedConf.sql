@@ -1,0 +1,1 @@
+delete from TUNEDCONF where TUNEDCONF.CONFIGFILE <> 'preTrainConfs.NEURAL.csv';

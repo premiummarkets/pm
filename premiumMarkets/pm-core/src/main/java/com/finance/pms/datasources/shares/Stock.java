@@ -569,8 +569,7 @@ public class Stock extends Validatable {
      * @author Guillaume Thoreton
      */
     public Boolean toBeRemoved(SharesListId whichMarket) {
-    	return this.isRemovable() && this.isObsolete() 
-				&& whichMarket.equals(this.getMarketValuation());
+    	return this.isRemovable() && this.isObsolete() && whichMarket.equals(this.getMarketValuation());
     }
     
     /**
@@ -599,8 +598,6 @@ public class Stock extends Validatable {
 	 * 
 	 * @return the provider type
 	 */
-//    @Enumerated(EnumType.STRING)
-//    @Column(name="MARKETLISTPROVIDER")
     @Embedded
     @AttributeOverride(name="market",column=@Column(name="MARKETLISTPROVIDER"))
 	public MarketValuation getMarketValuation() {

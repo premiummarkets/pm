@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Thu Dec 20 11:39:32 GMT 2012:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013b-b81c-7299-000003221cc0 
+Sun Jan 20 21:25:26 GMT 2013:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013c-59d9-fe89-000003121918 
 on database directory /home/guil/Developpement/Quotes/premiummarkets  with class loader sun.misc.Launcher$AppClassLoader@bf9a12 
 Loaded from file:/home/guil/.m2/repository/org/apache/derby/derby/10.9.1.0/derby-10.9.1.0.jar
 java.vendor=Oracle Corporation

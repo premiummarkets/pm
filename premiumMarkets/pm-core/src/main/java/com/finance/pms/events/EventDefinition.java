@@ -32,10 +32,13 @@ package com.finance.pms.events;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -185,17 +188,15 @@ public enum EventDefinition implements Serializable {
 	 * @return the event def list
 	 */
 	public static Map<Integer,String> getEventDefList() {
-//		EventDefinition edVals[] = EventDefinition.values();
-//		Map<Integer,String> r = new HashMap<Integer,String>();
-//		for (Integer i =0; i < edVals.length; i++) {
-//			r.put(i, edVals[i].getEventDef());
-//		}
-//		return r;
 		return EVENTDEFLIST;
 	}
 
 	public static EventDefinition[] tAIndicators() {
 		return subEventArray(0,200);
+	}
+	
+	public static Set<EventDefinition> allIndicators() {
+		return new HashSet<EventDefinition>(Arrays.asList(subEventArray(EventDefinition.ZERO.ordinal(),EventDefinition.INFINITE.ordinal())));
 	}
 	
 	public static EventDefinition[] allDiscardableEvents() {
@@ -283,6 +284,18 @@ public enum EventDefinition implements Serializable {
 		}
 		
 		return ret;
+	}
+	
+	public static String getEventDefArrayAsString(EventDefinition[] definitions) {
+		String indicatorsStr = "";
+		for (EventDefinition eventDefinition : definitions) {
+			indicatorsStr = indicatorsStr + " " +eventDefinition.name();
+		}
+		return indicatorsStr;
+	}
+
+	public static String getEventDefCollectionAsString(Set<EventDefinition> definitions) {
+		return EventDefinition.getEventDefArrayAsString(definitions.toArray(new EventDefinition[]{}));
 	}
 	
 }

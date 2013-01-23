@@ -1,0 +1,1 @@
+alter table EVENTS change `DATE` `DATE` DATETIME NOT NULL;

@@ -98,12 +98,12 @@ public enum EventType implements Serializable {
 	 * @author Guillaume Thoreton
 	 */
 	public static EventType valueOf(Character et) {
+		et = Character.toLowerCase(et);
 		EventType eValues[] = EventType.values();
 		for (int i=0; i < eValues.length; i++) {
 			if (eValues[i].getEventTypeChar().equals(et)) 
 					return eValues[i];
 		}
-		//return null;
 		throw new IllegalArgumentException("No enum const EventType." + et);
 	}
 

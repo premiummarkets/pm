@@ -118,6 +118,10 @@
 		<property name="sharesListId" value="BSE" />
 	</bean>
 	
+	<bean id="nseIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersNSEIndices" parent="provider">
+		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
+		<property name="sharesListId" value="NSEINDICES" />
+	</bean>
     <bean id="yahooIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices" parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOOINDICES" />
@@ -126,6 +130,11 @@
     <bean id="inflationProviderSource" class="com.finance.pms.datasources.web.ProvidersInflation"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	
+	<bean id="parentShareListMgr" class="com.finance.pms.portfolio.ShareListMgr"  abstract="true">
+	</bean>
+	<bean id="shareListMgr" class="com.finance.pms.portfolio.ShareListDefaultMgr"  parent="parentShareListMgr">
 	</bean>
 	
 	<bean id="realTimeGoogleProvider" class="com.finance.pms.datasources.web.intraday.RealTimeGoogleProvider">

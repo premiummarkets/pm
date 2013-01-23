@@ -35,17 +35,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.NavigableSet;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
@@ -54,31 +60,28 @@ import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.LineFormater;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.portfolio.ShareListMgr;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.screening.TrendSupplementedStock;
 import com.finance.pms.threads.ObserverMsg;
 
 public abstract class ProvidersList extends Providers implements MarketListProvider {
 
-	private class StockSupplementRunnable extends Observable implements Runnable{
-		private final NavigableSet<Stock> sortedExistingStocksSet;
-		private final SharesList existingSharesList;
-		private final Set<Stock> newStocksRequestsSet;
+	private class StockSupplementRunnable extends Observable implements Callable<TrendSupplementedStock>{
 
 		private final Stock stockFromWeb;
-		private final Set<TrendSupplementedStock> newTrendsRequestsSet;
+		private boolean trendSuppNeeded;
 
-		private StockSupplementRunnable(Stock stockFromWeb, NavigableSet<Stock> sortedExistingStocksSet, SharesList existingSharesList, 
-										Set<Stock> newStocksRequestsSet, Set<TrendSupplementedStock> newTrendsRequestsSet) {
-			this.sortedExistingStocksSet = sortedExistingStocksSet;
-			this.existingSharesList = existingSharesList;
-			this.newStocksRequestsSet = newStocksRequestsSet;
+		private StockSupplementRunnable(Stock stockFromWeb, boolean trendSuppNeeded) {
+		
 			this.stockFromWeb = stockFromWeb;
-			this.newTrendsRequestsSet = newTrendsRequestsSet;
+			this.trendSuppNeeded = trendSuppNeeded;
 		}
 
-		public void run() {
+		@Override
+		public TrendSupplementedStock call() {
 
 			try {
 
@@ -86,33 +89,30 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				
 				if (stockFromWebCompleted != null) { //Enough completion was found to make a valid share
 
-					Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockFromWebCompleted);//so the stock was already in db after all?
-					((Stock) stockFromWebCompleted).setLastQuote(formerQuotationDate);
-
-					LOGGER.info("Ticker " + stockFromWebCompleted.toString() + " is new and will be added with last quote : "+ formerQuotationDate);
-					newStocksRequestsSet.add((Stock)stockFromWebCompleted);
-
+					LOGGER.info("Supplemented Ticker " + stockFromWebCompleted.toString());
+					
 					//Add trend info
 					TrendSupplementedStock trendStock = new TrendSupplementedStock((Stock) stockFromWebCompleted);
-					retrieveScreeningInfoForShare(trendStock);
-					newTrendsRequestsSet.add(trendStock);
-
-					//Add new stock to existing stock list
-					sortedExistingStocksSet.add((Stock)stockFromWebCompleted);
+					if (trendSuppNeeded) retrieveScreeningInfoForShare(trendStock);
 					
-					//Add new stock to the shares list
-					existingSharesList.addShare((Stock) stockFromWeb);
+					return trendStock;
 				}
 
 			} finally {
 				this.setChanged();
 				this.notifyObservers();
-			}				
+			}
+			
+			return null;
 		}
 	}
 
 
-	static MyLogger LOGGER = MyLogger.getLogger(ProvidersList.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersList.class);
+	
+	@Autowired()
+	@Qualifier("shareListMgr")
+	ShareListMgr shareListMgr;
 	
 	protected ProvidersList() {
 		super();
@@ -120,7 +120,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 	@Override
 	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
-		throw new UnsupportedOperationException("Please use an other provider then a share list holder for that.");
+		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
 	@Override
@@ -149,10 +149,8 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				stockList.get(stockList.indexOf(stock)).setName(stock.getName());
 			}
 			try {
-				//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
+				
 				DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
-//			} catch (SQLException e) {
-//				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :"+ e.getMessage() + " cause : " + e.getCause());
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -162,67 +160,82 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use an other provider then a share list holder for that.");
+		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
 	@Override
-	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders,StockList existingStocks) {
-		LOGGER.info("From Web - "+this.getClass().getSimpleName()+" : ");
+	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList dbStocks) {
 		
-		//Existing stock set
-		final NavigableSet<Stock> sortedExistingStocksSet = sortedExistingStockSet(existingStocks);
+		String shareListDescrTxt = this.getSharesListIdEnum()+" with indices "+this.getIndices();
+		LOGGER.warn("From Web - "+this.getClass().getSimpleName()+" ( "+shareListDescrTxt+") : ", true);
 		
 		//Share list
-		final SharesList existingSharesList = loadSharesListForThisListProvider();
+		SharesList existingSharesList = loadSharesListForThisListProvider();
 
 		//Fetch		
 		Set<Stock> listAsFromWeb  = fetchStockList(marketQuotationsProviders);
-		int nbStockAsFromWeb = listAsFromWeb.size();
-		LOGGER.guiInfo("Number of stocks retreived from web for "+ this.getSharesListIdEnum()+" on the " + new Date() + " : " + nbStockAsFromWeb);
-
+		
+		LOGGER.guiInfo("Number of stocks retreived from web for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + listAsFromWeb.size());
+		LOGGER.guiInfo("Number of stocks in the list " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + existingSharesList.getListShares().size());
+		LOGGER.guiInfo("Number of stocks in the database " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + dbStocks.size());
+		LOGGER.warn(
+				"Before update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
+				", inital in "+shareListDescrTxt+" share list : " +existingSharesList.getListShares().size(), true);
 		
 		//Completing and adding new from web
-		final Set<Stock> newStocksRequestsSet = new ConcurrentSkipListSet<Stock>();
-		final Set<TrendSupplementedStock> newTrendsRequestsSet = new ConcurrentSkipListSet<TrendSupplementedStock>();
-		int cpt = 0;
-		
+		Set<TrendSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<TrendSupplementedStock>();
+
+		Boolean trendSuppNeeded = new Boolean(MainPMScmd.getPrefs().get("marketlistretrieval.trendSuppNeeded","false"));
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("marketlistretrieval.semaphore.nbthread","20")));
 		for (Observer observer : observers) {
-			//observer.update(null, "init "+listAsFromWeb.size());
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, listAsFromWeb.size()));
 		}
 		
+		
+		List<Future<TrendSupplementedStock>> completedTrendSuppStocksFutures = new ArrayList<Future<TrendSupplementedStock>>();	
+		List<Stock> inDBNewInList = new ArrayList<Stock>();
 		for (final Stock stockFromWeb : listAsFromWeb) {
 			
-			//Completion of new stock, only if the stock requires supplement of info
-			if (!sortedExistingStocksSet.contains(stockFromWeb) && supplementRequiered(stockFromWeb)) {//this is a new stock
-
-				StockSupplementRunnable stockSupRunnable = new StockSupplementRunnable(stockFromWeb, sortedExistingStocksSet, existingSharesList, newStocksRequestsSet, newTrendsRequestsSet);
-				for (Observer observer : observers) {
-					stockSupRunnable.addObserver(observer);
-				}
+			Stock foundStock = null;
+			
+			//Look in share list
+			PortfolioShare shareForLienientRefs = existingSharesList.getShareForLienientRefs(stockFromWeb.getSymbol(), stockFromWeb.getIsin());
+			
+			//Look in exiting db
+			if (shareForLienientRefs == null) {
+				foundStock = dbStocks.findLenientRefs(stockFromWeb.getSymbol(), stockFromWeb.getIsin());
 				
-				Thread thread = new Thread(stockSupRunnable);
-				executor.execute(thread);
-
-				LOGGER.debug("Done : "+((++cpt)*100/nbStockAsFromWeb)+" % ");
+				//This is a new stock
+				if (foundStock == null) {
+					
+					//Completion of new stock, only if the stock requires supplement of info or is not complete
+					if (supplementRequiered(stockFromWeb) || trendSuppNeeded) {
+						StockSupplementRunnable stockSupRunnable = new StockSupplementRunnable(stockFromWeb, trendSuppNeeded);
+						for (Observer observer : observers) {
+							stockSupRunnable.addObserver(observer);
+						}
+						completedTrendSuppStocksFutures.add(executor.submit(stockSupRunnable));
+					
+					}  else {//We add it as is
+						
+						supplementedStockFromWeb.add(new TrendSupplementedStock(stockFromWeb));//We will need to add it in db as well
+						existingSharesList.addShare(stockFromWeb);
+						inDBNewInList.add(foundStock);
+						
+					}
+					
+				} else {//The stock is in the db We add to the share list	
+					existingSharesList.addShare(foundStock);
+					inDBNewInList.add(foundStock);
+				} 
 				
-			} else { //this is an existing stock
-
-				//Add existing stocks to shares list if not already there
-				PortfolioShare shareForStock = existingSharesList.getShareForLienientSymbol(stockFromWeb.getSymbol());
-				if (shareForStock == null) {
-					LOGGER.info("This ticker is in the data base but needs to be added to the market list ("+existingSharesList.getName()+") : " + stockFromWeb);
-					NavigableSet<Stock> existingStockMatchingFromWeb = sortedExistingStocksSet.subSet(stockFromWeb, true, stockFromWeb, true);
-					existingSharesList.addShare(existingStockMatchingFromWeb.first());
-				}
 			}
 			
 		} //End for loop on share list
-
+		
 		executor.shutdown();
 		try {
-			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			boolean awaitTermination = executor.awaitTermination(1, TimeUnit.HOURS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
 				LOGGER.error(shutdownNow,new Exception());
@@ -231,32 +244,85 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			List<Runnable> shutdownNow = executor.shutdownNow();
 			LOGGER.error(shutdownNow,e);
 		}
+		
+		for (Future<TrendSupplementedStock> future : completedTrendSuppStocksFutures) {
+			try {
+				TrendSupplementedStock trendSupplementedStock = future.get();
+				supplementedStockFromWeb.add(trendSupplementedStock);
+			} catch (Exception e) {
+				LOGGER.error(e,e);
+			}
+		}
 
 		//Addition of new stocks in DB
-		LOGGER.guiInfo("Number of new tickers to be added : " + newStocksRequestsSet.size());
-		LOGGER.info("New Tickers to be added : " + newStocksRequestsSet);
+		LOGGER.guiInfo("Number of supplemented tickers from web : " + supplementedStockFromWeb.size());
+			
 		try {
-			if (newStocksRequestsSet.size() > 0) shareDAO.saveOrUpdateShare(newStocksRequestsSet);
-			if (newTrendsRequestsSet.size() > 0) shareDAO.saveOrUpdateShareTrendInfo(newTrendsRequestsSet);
+			if (supplementedStockFromWeb.size() > 0) {
+				Set<Stock> newStockRequestsSet = new ConcurrentSkipListSet<Stock>();
+				
+				for (TrendSupplementedStock trendSuppStock : supplementedStockFromWeb) {
+					
+					Stock stock = trendSuppStock.getStock();
+					
+					//Update last quotation
+					Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);//Is there any quotation from a removed share?
+					if (formerQuotationDate.after(DateFactory.dateAtZero())) {
+						LOGGER.warn("Adding stock "+stock+" in db but it has already quotations until "+formerQuotationDate);
+					}
+					stock.setLastQuote(formerQuotationDate);
+					
+					//Adding stock for update in db
+					newStockRequestsSet.add(stock);
+					
+					//Add stocks to shares list (double check that no already ther after completion)
+					PortfolioShare shareForStock = existingSharesList.getShareForLienientSymbol(stock.getSymbol());
+					if (shareForStock == null) {
+						LOGGER.info("This ticker is in the data base but needs to be added to the market list ("+shareListDescrTxt+") : " + stock);
+						existingSharesList.addShare(stock);
+						
+					}
+					
+				}
+				LOGGER.guiInfo("Number of new tickers added to the list : " + inDBNewInList.size() + newStockRequestsSet.size());
+			
+				shareDAO.saveOrUpdateShare(newStockRequestsSet);
+				shareDAO.saveOrUpdateShareTrendInfo(supplementedStockFromWeb);
+			}
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("Can't update stock info for "+existingSharesList.getName()+". new supplemented Stocks : "+supplementedStockFromWeb,e);
 		}	
+		
+		//Remove obsolete stocks from list
+		Set<PortfolioShare> tobeRemovedFromList = new HashSet<PortfolioShare>();
+		if (!listAsFromWeb.isEmpty()) {
+			for (PortfolioShare shareListElement : existingSharesList.getListShares().values()) {
+				if (!listAsFromWeb.contains(shareListElement.getStock())) {
+					LOGGER.info(shareListElement.getStock() + " is not in " + shareListDescrTxt + " and will be removed from the list");
+					tobeRemovedFromList.add(shareListElement);
+				}
+			}
+			LOGGER.guiInfo("Number of old tickers removed from the list : " + tobeRemovedFromList.size());
+			if (tobeRemovedFromList.size() > 0) {
+				shareListMgr.removeSharesFromList(existingSharesList, shareListDescrTxt, tobeRemovedFromList, listAsFromWeb.size());
+			}
+			
+		}
+		
 		
 		//Share list
 		portfolioDAO.saveOrUpdatePortfolio(existingSharesList);
+		LOGGER.guiInfo("Number of stocks in the list after update for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + existingSharesList.getListShares().size());
+		LOGGER.warn(
+				"After update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
+				", in "+shareListDescrTxt+" list : " +existingSharesList.getListShares().size() +
+				", supplemented (was not in db or was corrupted) "+supplementedStockFromWeb.size() + ", already in bd added to share list "+inDBNewInList.size() +
+				", asked for removal "+ tobeRemovedFromList.size(), true);
 		
-		return new StockList(sortedExistingStocksSet);
+		
+		return new StockList(existingSharesList.toStocksSet());
 	}
 
-	/**
-	 * @param existingStocks
-	 * @return
-	 */
-	private NavigableSet<Stock> sortedExistingStockSet(StockList existingStocks) {
-		final NavigableSet<Stock> existingStocksSet = new ConcurrentSkipListSet<Stock>(getNewStockComparator());
-		existingStocksSet.addAll(existingStocks);
-		return existingStocksSet;
-	}
 
 	/**
 	 * @param stockWeb
@@ -264,7 +330,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	 */
 	private boolean supplementRequiered(final Stock stockWeb) {
 		return 
-			!stockWeb.isFieldSet("isin")|| !stockWeb.isFieldSet("symbol") || !stockWeb.isFieldSet("name") || !stockWeb.isFieldSet("sectorHint");
+			!stockWeb.isFieldSet("isin")|| !stockWeb.isFieldSet("symbol") || !stockWeb.isFieldSet("name") || !stockWeb.isFieldSet("sectorHint") || stockWeb.getSymbol().equals(stockWeb.getIsin());
 	}
 
 
@@ -272,7 +338,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	
 	protected abstract Comparator<Stock> getNewStockComparator();
 
-	protected abstract LineFormater getFormater(String url,Market market, MarketQuotationProviders marketQuotationsProviders);
+	protected abstract LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders);
 
 	
 	protected abstract Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders);

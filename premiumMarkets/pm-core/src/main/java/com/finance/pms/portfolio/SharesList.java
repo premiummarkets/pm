@@ -41,8 +41,8 @@ import java.util.TreeSet;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.DateFactory;
 
 /**
  * @author Guillaume Thoreton
@@ -96,7 +96,7 @@ public class SharesList extends AbstractSharesList {
 	}
 
 	private PortfolioShare rawAddShare(Stock stock) {
-		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, DateFactory.dateAtZero(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
+		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
 		listShares.put(stock,portfolioShare);
 		return portfolioShare;
 	}

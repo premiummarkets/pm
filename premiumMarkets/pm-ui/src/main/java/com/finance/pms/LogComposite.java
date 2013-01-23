@@ -68,16 +68,11 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 	public LogComposite(Composite arg0, int arg1) {
 		super(arg0, arg1);
 		
-//		GridLayout gridLayout = new GridLayout();
-//		this.setLayout(gridLayout);
-		
 		{
-			//logGroup = new Group(this, SWT.SHADOW_NONE);
 			GridLayout group1Layout = new GridLayout();
 			group1Layout.numColumns = 8;
 			group1Layout.marginHeight = 0;
 			group1Layout.makeColumnsEqualWidth = true;
-			//logGroup.setLayout(group1Layout);
 			this.setLayout(group1Layout);
 			{
 			    logDisplay = new Label(this,SWT.SHADOW_NONE);

@@ -81,6 +81,7 @@ import com.finance.pms.events.EventState;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.mas.RestartServerException;
 import com.finance.pms.portfolio.MonitorLevel;
@@ -136,8 +137,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			props.load(new FileInputStream((new File(pathToprops))));
 			// Connection
-//			if (props.containsKey("dbpath"))
-//				MainPMScmd.getPrefs().put("dbpath", props.getProperty("dbpath"));
 			if (System.getProperty("dbpath") != null) {
 				MainPMScmd.getPrefs().put("dbpath", System.getProperty("dbpath"));
 			} else {
@@ -355,6 +354,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				MainPMScmd.getPrefs().put("trend.sellthreshold", props.getProperty("trend.sellthreshold"));
 			if (props.containsKey("trend.buythreshold"))
 				MainPMScmd.getPrefs().put("trend.buythreshold", props.getProperty("trend.buythreshold"));
+			putInPrefs("marketlistretrieval.trendSuppNeeded",props);
 			
 			//Gnu
 			if (props.containsKey("gnurepport.dateformat"))
@@ -574,18 +574,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				retour = date;
 				LOGGER.debug("Last ticker date in data base for " + stock.getSymbol() + " : " + date.toString());
 			} else {
-				// retour = "19700101";
-				DateFormat df = new SimpleDateFormat("yyyyMMdd");
-				retour = df.parse("19700101");
+				retour = DateFactory.dateAtZero();
 				LOGGER.warn("No value in data base : " + stock + " is a new ticker");
 			}
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
 			LOGGER.error("Query : " +  sqlQuery + "Param : " + stock,e);
-			retour = null;
-		} catch (ParseException e) {
-			LOGGER.error("Date formating ERROR while reading data base :" + e,e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -808,7 +803,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 * @author Guillaume Thoreton
 	 */
 	@SuppressWarnings("unchecked")
-	public List<SymbolEvents> loadEventsByDate(Date startDate, Date endDate, String... eventListNames) {
+	public List<SymbolEvents> loadEventsByDate(String eventsTableName, Date startDate, Date endDate, Set<EventDefinition> eventDefinitions, String... eventListNames) {
 		
 		String eventListConstraint = " ( ";
 		String sep = "'";
@@ -818,18 +813,30 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 		eventListConstraint += "' ) ";
 		
+		String eventDefIdConstraint = " ( ";
+		if (eventDefinitions != null) 
+		{
+			String sep2 = "";
+			for (EventDefinition eventlist : eventDefinitions) {
+				eventDefIdConstraint = eventDefIdConstraint + sep2 + eventlist.getEventDefId();
+				sep2 = " , ";
+			}
+			eventDefIdConstraint += " ) ";
+		}
+		
 		Query select = new Query(
 				"SELECT "
-				+ EVENTS.EVENTS_TABLE_NAME + ".*," 
+				+ eventsTableName + ".*," 
 				+ SHARES.TABLE_NAME+ ".*" 
-				+ " FROM " + EVENTS.EVENTS_TABLE_NAME + "," + SHARES.TABLE_NAME 
+				+ " FROM " + eventsTableName + "," + SHARES.TABLE_NAME 
 				+ " WHERE "
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " >= ? AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " <= ? AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ANALYSE_NAME + " in "+eventListConstraint+" AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
-				+ SHARES.TABLE_NAME + "."+ SHARES.SYMBOL_FIELD + "=" + EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD + " AND "
-				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD ) {
+				+ eventsTableName +"."+ EVENTS.DATE_FIELD + " >= ? AND " 
+				+ eventsTableName +"."+ EVENTS.DATE_FIELD + " <= ? AND " 
+				+ eventsTableName +"."+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint+" AND " 
+				+ ((eventDefinitions != null)?(eventsTableName +"."+EVENTS.EVENTDEFID_FIELD + " in " +eventDefIdConstraint+" AND "):"")
+				+ eventsTableName +"."+ EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
+				+ SHARES.TABLE_NAME + "."+ SHARES.SYMBOL_FIELD + "=" + eventsTableName +"."+ EVENTS.SYMBOL_FIELD + " AND "
+				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + eventsTableName +"."+ EVENTS.ISIN_FIELD ) {
 			
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 				try {
@@ -843,7 +850,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							rs.getDate(SHARES.LASTQUOTE),
 							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),
 							rs.getString(SHARES.SYMBOL_FIELD).trim()),
-							//Market.valueOf(rs.getString(SHARES.MARKET).trim()),
 							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 							rs.getString(SHARES.SECTOR_HINT),
 							TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
@@ -871,27 +877,46 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return (List<SymbolEvents>) lret;
 	}
 	
-	public SymbolEvents loadEventsByDate(final Stock stock, Date startDate, Date endDate, String... eventListNames) {
+
+//	public SymbolEvents loadAllEventsFor(String eventsTableName, Stock stock, String eventListName) {
+//		return this.loadEventsByDate(eventsTableName, stock, DateFactory.dateAtZero(), EventSignalConfig.getNewDate(), null, eventListName);
+//	}
+	
+	public SymbolEvents loadEventsByDate(String eventsTableName, final Stock stock, Date startDate, Date endDate, Set<EventDefinition> eventDefinitions, String... eventListNames) {
 		
 		String eventListConstraint = " ( ";
-		String sep = "'";
-		for (String eventlist : eventListNames) {
-			eventListConstraint = eventListConstraint + sep + eventlist;
-			sep = "' , '";
+		{
+			String sep = "'";
+			for (String eventlist : eventListNames) {
+				eventListConstraint = eventListConstraint + sep + eventlist;
+				sep = "' , '";
+			}
+			eventListConstraint += "' ) ";
 		}
-		eventListConstraint += "' ) ";
+		
+		String eventDefIdConstraint = " ( ";
+		if (eventDefinitions != null) 
+		{
+			String sep2 = "";
+			for (EventDefinition eventlist : eventDefinitions) {
+				eventDefIdConstraint = eventDefIdConstraint + sep2 + eventlist.getEventDefId();
+				sep2 = " , ";
+			}
+			eventDefIdConstraint += " ) ";
+		}
 		
 		Query select = new Query(
 				"SELECT "
-				+ EVENTS.EVENTS_TABLE_NAME + ".*"
-				+ " FROM " + EVENTS.EVENTS_TABLE_NAME
+				+ "*"
+				+ " FROM " + eventsTableName
 				+ " WHERE "
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " >= ? AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " <= ? AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ANALYSE_NAME + " in "+eventListConstraint+" AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD + " = ? AND "
-				+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD+" = ?") {
+				+ EVENTS.DATE_FIELD + " >= ? AND " 
+				+ EVENTS.DATE_FIELD + " <= ? AND " 
+				+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint+" AND " 
+				+ ((eventDefinitions != null)?(EVENTS.EVENTDEFID_FIELD + " in " +eventDefIdConstraint+" AND "):"")
+				+ EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
+				+ EVENTS.SYMBOL_FIELD + " = ? AND "
+				+ EVENTS.ISIN_FIELD+" = ?") {
 			
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 				try {
@@ -945,10 +970,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					rs.getString(EVENTS.MESSAGE_FIELD),
 					rs.getString(EVENTS.ANALYSE_NAME));
 		} else {
-			eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD));
+			eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD).toLowerCase());
 			eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
 						rs.getInt(EVENTS.EVENTDEFID_FIELD),
-						rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
+						rs.getString(EVENTS.EVENTTYPE_FIELD).trim().toLowerCase(),
 						rs.getString(EVENTS.MESSAGE_FIELD),
 						rs.getString(EVENTS.ANALYSE_NAME));
 		}
@@ -1058,12 +1083,12 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 	
-	public void cleanEventsForAnalysisName(String analyseName, Date start, Date end, EventDefinition ...eventDefinitions) {
+	public void cleanEventsForIndicators(String eventsTableName, String analyseName, Date start, Date end, EventDefinition ...eventDefinitions) {
 
 		try {
 			
 			String eventDefConstraint = eventDefinitionConstraint(eventDefinitions);
-			Query iq = new Query(DataSource.EVENTS.getDelete() + eventDefConstraint);
+			Query iq = new Query(DataSource.EVENTS.getDelete(eventsTableName) + eventDefConstraint);
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
@@ -1074,11 +1099,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 	
-	public void cleanEventsForAnalysisName(final String analyseName) {
+	public void cleanEventsForAnalysisName(String eventTableName, String analyseName) {
 		
 		try {
 			
-			Query iq = new Query("DELETE FROM "+ EVENTS.EVENTS_TABLE_NAME + " WHERE "+EVENTS.ANALYSE_NAME+" = ?");
+			Query iq = new Query("DELETE FROM "+ eventTableName + " WHERE "+EVENTS.ANALYSE_NAME+" = ?");
 			iq.addValue(analyseName);
 			executeUpdate(iq, 600);
 			
@@ -1087,14 +1112,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 	
-	public void cleanEventsForAnalysisNameAndStock(final Stock stock, final String analyseName, final Date start, final Date end, EventDefinition ...eventDefinitions) {
+	public void cleanEventsForAnalysisNameAndStock(String eventTableName, Stock stock, String analyseName, Date start, Date end, EventDefinition ...eventDefinitions) {
 
 		try {
 
 			String eventDefConstraint = eventDefinitionConstraint(eventDefinitions);
 
 			String preparedQuery = 
-					"DELETE FROM "+ EVENTS.EVENTS_TABLE_NAME + " WHERE "+
+					"DELETE FROM "+ eventTableName + " WHERE "+
 					EVENTS.SYMBOL_FIELD+"= ? AND "+ EVENTS.ISIN_FIELD+"= ? AND "+EVENTS.ANALYSE_NAME+" = ? AND "+EVENTS.DATE_FIELD+" >= ? AND "+EVENTS.DATE_FIELD+" <= ?"+ eventDefConstraint;
 
 			Query iq = new Query(preparedQuery);
@@ -1193,7 +1218,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 	
-	private int executeUpdate(Query query, int queryTimeOutInSec) throws SQLException {
+	public int executeUpdate(Query query, int queryTimeOutInSec) throws SQLException {
 
 		LOGGER.trace("Query : "+query.getQuery());
 		LOGGER.trace("Params : "+query.getParameterValues());
@@ -1409,11 +1434,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			if (qL.size() > 0) resReq = pst.executeBatch();
 			
 		} catch (SQLException e) {
-//			if (!e.getCause().getMessage().toLowerCase().contains("duplicate"))  {
-//				LOGGER.error("Error while doing insert : " + debug, e);
-//			} else {
-//				LOGGER.warn("Duplicate key while doing insert : " + debug, e);
-//			}
 			LOGGER.error("Error while doing insert : " + debug, e);
 			throw e;
 		} finally {
@@ -1422,13 +1442,32 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return resReq;
 	}
 	
-	public int[] executeBlockWithTimeStamp(Collection<Validatable> qL, String preparedQuery) throws SQLException {
+	public int[] executeBlockWithTimeStamp(Collection<Validatable> qL, String preparedQuery, boolean preLockRequiered, String tableToLock) throws SQLException {
 		
 		MyDBConnection sdbcnx = this.getConnection(null);
 		int[] resReq = {};
 		String debug = "";
+		PreparedStatement pst = sdbcnx.getConn().prepareStatement(preparedQuery);
 		try {
-			PreparedStatement pst = sdbcnx.getConn().prepareStatement(preparedQuery);
+			
+			if (preLockRequiered) {
+				int cpt = 0;
+				while (cpt < 10) {
+					try {
+						pst.execute("LOCK TABLES "+tableToLock+" WRITE");
+						break;
+					} catch (Exception e) {
+						LOGGER.warn("Attempt to lock table "+tableToLock+" nb "+cpt+" as failed. I will retry up to 10 times every minutes.",e,true);
+						try {
+							Thread.sleep(60000);
+						} catch (InterruptedException e1) {
+							LOGGER.error(e,e);
+						}
+						cpt++;
+					}
+				}
+			}
+			
 			Iterator<Validatable> qIt = qL.iterator();
 			LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
 			while (qIt.hasNext()) {
@@ -1444,13 +1483,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			if (qL.size() > 0) resReq = pst.executeBatch();
 			
 		} catch (SQLException e) {
+			
 			if (!e.getCause().getMessage().toLowerCase().contains("duplicate"))  {
 				LOGGER.error("Error while doing " + preparedQuery + ". Details (in debug only): " + debug, e);
 			} else {
 				LOGGER.error("Duplicate key while doing " + preparedQuery + ". Details (in debug only): " + debug, e);
 			}
 			throw e;
+			
 		} finally {
+			
+			try {
+				if (preLockRequiered) pst.execute("UNLOCK TABLES");
+			} catch (Exception e) {
+				LOGGER.error(e,e);
+			}
+			
 			DataSource.realesePoolConnection(sdbcnx);
 		}
 		return resReq;
@@ -1521,13 +1569,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		Collection<Validatable> updateQueries = new ArrayList<Validatable>();
 		Collection<Validatable> remainingInserts = new ArrayList<Validatable>();
 		int[] updateRess = new int[0];
+		Boolean tableLocked = false;
+		Statement s = sdbcnx.getConn().createStatement();
 		try {
-			
-			Statement s = sdbcnx.getConn().createStatement();
 			
 			for (int i = 0; i < tablesLocked.size(); i++) {
 				if (!tablesLocked.get(i).getLockModeValue().equals(TableLocker.LockMode.NOLOCK)) {
-					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName()+ tablesLocked.get(i).getLockModeValue().getLockMode());
+					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName()+" "+ tablesLocked.get(i).getLockModeValue().getLockMode());
+					tableLocked = true;
 					LOGGER.debug("Lock on table : " + tablesLocked.get(i).getTableName() + " : "+ tablesLocked.get(i).getLockModeValue().getLockMode());
 				}
 			}
@@ -1579,7 +1628,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			DataSource.getInstance().executeBlock(sdbcnx, remainingInserts, DataSource.QUOTATIONS.getINSERT());
 			
 		} catch (Exception e) {
-
 			LOGGER.error(
 					"Error updating quotations :\n" +
 					"Update request params :\n"+
@@ -1593,6 +1641,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			throw new SQLException(e);
 			
 		} finally {
+			try {
+				if (tableLocked) s.execute("UNLOCK TABLES");
+			} catch (Exception e) {
+				LOGGER.error(e,e);
+			}
 			DataSource.realesePoolConnection(sdbcnx);
 		}
 	}
@@ -1750,22 +1803,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String CAPITALISATION = "CAPITALISATION";
 
 		/**
-		 * Gets the iNSERT.
-		 * 
-		 * @return the iNSERT
-		 */
-//		@Deprecated
-//		public static String getINSERT() {
-//			return "INSERT INTO " + SHARES.TABLE_NAME + " ( " 
-//					+ SHARES.SYMBOL_FIELD + " , " + SHARES.ISIN_FIELD + " , "
-//					+ SHARES.NAME_FIELD + " , " + SHARES.REMOVABLE + " , " 
-//					+ SHARES.CATEGORY + " , " + SHARES.LASTQUOTE + " , "
-//					+ SHARES.QUOTATIONPROVIDER + " , " + SHARES.MARKET + " , "
-//					+ SHARES.SECTOR_HINT + " , " + SHARES.TRADING_MODE + " , "
-//					+ SHARES.CAPITALISATION + "  ) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
-//		}
-
-		/**
 		 * Gets the uPDATELASTQUOTE.
 		 * 
 		 * @return the uPDATELASTQUOTE
@@ -1786,17 +1823,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? ," + SHARES.NAME_FIELD + " = ? "
 					+ " where " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
 		}
-
-//		/**
-//		 * Gets the uPDATEREFERENCE.
-//		 * 
-//		 * @return the uPDATEREFERENCE
-//		 */
-//		@Deprecated
-//		public static String getUPDATEREFERENCE() {
-//			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.SYMBOL_FIELD + " = ? ," + SHARES.NAME_FIELD + " = ? "
-//					+ " where " + SHARES.ISIN_FIELD + " = ? ";
-//		}
 		
 	}
 
@@ -1854,25 +1880,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String MESSAGE_FIELD ="MESSAGE";
 		
 
-		/**
-		 * Gets the iNSERT.
-		 * 
-		 * @return the iNSERT
-		 */
-		public static String getINSERT() {
-			return "INSERT INTO " + EVENTS.EVENTS_TABLE_NAME + " ( " + EVENTS.SYMBOL_FIELD + ", " + EVENTS.ISIN_FIELD + ", "
+		public static String getINSERT(String eventTableName) {
+			return "INSERT INTO " + eventTableName + " ( " + EVENTS.SYMBOL_FIELD + ", " + EVENTS.ISIN_FIELD + ", "
 					+ EVENTS.ACCURACY_FIELD + " , " + EVENTS.DATE_FIELD + " , " + EVENTS.EVENTDEFID_FIELD + " , "
 					+ EVENTS.EVENTDEF_FIELD + " , " + EVENTS.EVENTDEFEXTENSION_FIELD + " , " + EVENTS.EVENTTYPE_FIELD + "," + EVENTS.MESSAGE_FIELD + "," + EVENTS.ANALYSE_NAME 
 					+"  ) VALUES (?,?,?,?,?,?,?,?,?,?)";
 		}
 
-		/**
-		 * Gets the uPDATE.
-		 * 
-		 * @return the uPDATE
-		 */
-		public static String getUPDATE() {
-			return "UPDATE " + EVENTS.EVENTS_TABLE_NAME + " SET " 
+		public static String getUPDATE(String eventTableName) {
+			return "UPDATE " + eventTableName + " SET " 
 			+ EVENTS.ACCURACY_FIELD + "= ? , " 
 			+ EVENTS.EVENTDEF_FIELD + "= ? , " + EVENTS.EVENTTYPE_FIELD + " = ? , " + EVENTS.MESSAGE_FIELD + "= ? "
 					+ " WHERE " 
@@ -1881,8 +1897,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					+ EVENTS.ANALYSE_NAME + " = ?";
 		}
 		
-		public static String getDelete() {
-			return "DELETE FROM "+ EVENTS.EVENTS_TABLE_NAME + " WHERE "+EVENTS.ANALYSE_NAME+" = ? AND "+EVENTS.DATE_FIELD+" >= ? AND "+EVENTS.DATE_FIELD+" <= ?";
+		public static String getDelete(String eventTableName) {
+			return "DELETE FROM "+ eventTableName + " WHERE "+EVENTS.ANALYSE_NAME+" = ? AND "+EVENTS.DATE_FIELD+" >= ? AND "+EVENTS.DATE_FIELD+" <= ?";
 		}
 	}
 
@@ -1956,5 +1972,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public ShareDAO getShareDAO() {
 		return shareDAO;
 	}
+
+	public void executeInsertOrUpdateQuotations(ArrayList<Validatable> insertQueries) throws SQLException {
+		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
+		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
+		executeInsertOrUpdateQuotations(insertQueries, tablet2lock);
+		
+	}
+
 
 }

@@ -122,22 +122,6 @@ public class TrendSupplementedStock extends Validatable {
 		this.symbol = stock.getSymbol();
 
 		this.trendDate = Calendar.getInstance().getTime();
-	
-//		yahooMeanRecommendations = BigDecimal.ZERO;
-//		boursoMeanRecommendations = BigDecimal.ZERO;
-//		yahooTargetPrice = BigDecimal.ZERO;
-//		boursoTargetPrice = BigDecimal.ZERO;
-//		dividend = BigDecimal.ZERO;
-//		
-//		yahooEPS = BigDecimal.ZERO;
-//		yahooEstEPS = BigDecimal.ZERO;
-//		
-//		reutersPayoutRatio = BigDecimal.ZERO;
-//		reutersEPS = BigDecimal.ZERO;
-//		reutersEstEPS = BigDecimal.ZERO;
-//		
-//		boursoBNA = BigDecimal.ZERO;
-//		boursoEstBNA = BigDecimal.ZERO;
 		
 	}
 	

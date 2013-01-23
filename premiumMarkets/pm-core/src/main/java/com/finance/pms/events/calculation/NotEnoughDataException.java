@@ -60,7 +60,12 @@ public class NotEnoughDataException extends Exception {
 
 	@Override
 	public String getMessage() {
-		return super.getMessage()+"FYI, the available quotations for this share ranges from "+shiftedStartDate+ " to "+ shiftedEndDate + ".";
+		if (shiftedEndDate !=null && shiftedStartDate != null) {
+			return super.getMessage()+"FYI, the available quotations for this share ranges from "+shiftedStartDate+ " to "+ shiftedEndDate + ".";
+		} else {
+			return super.getMessage();
+		}
+		
 	}
 	
 	

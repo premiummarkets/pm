@@ -63,6 +63,8 @@ public enum ProvidersTypes {
 	/** The EURONEXT. */
 	GOOGLE ("google","Google"),
 	
+	NSEINDICES ("nseIndices","NseIndices"), 
+	
 	YAHOOINDICES ("yahooindex","YahooIndex"), 
 	
 	INVESTIR("investir","Investir");

@@ -30,6 +30,10 @@
  */
 package com.finance.pms.datasources.shares;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
@@ -43,15 +47,28 @@ import com.finance.pms.datasources.web.ProvidersTypes;
  */
 public enum SharesListId {
 
-	UNKNOWN ("unknown",ProvidersTypes.NONE,"No market"),
-	EURONEXT ("euronext",ProvidersTypes.EURONEXT,"All Euronext shares from www.euronext.com"),
-	BOURSORAMA ("boursorama",ProvidersTypes.BOURSORAMA,"All Euronext shares from www.boursorama.com"),
-	NASDAQ ("nasdaq",ProvidersTypes.NASDAQ,"All nasdaq from www.nasdaq.com"),
-	ASX ("asx",ProvidersTypes.ASX,"All ASX from www.asx.com.au"),
-	BSE ("bse",ProvidersTypes.BSE,"All BSE form bseindia.com"),
-	GOOGLENYSE ("nyse",ProvidersTypes.GOOGLE,"All NYSE from google"),
-	GOOGLEAMEX ("amex",ProvidersTypes.GOOGLE, "All AMEX from google"),
-	YAHOOINDICES ("yahooIndices",ProvidersTypes.YAHOOINDICES, "Fill in the box bellow to create your custom Yahoo indices below.");
+	UNKNOWN ("unknown",ProvidersTypes.NONE,"No comment","No market", false),
+	EURONEXT ("euronext",ProvidersTypes.EURONEXT,"No comment", "All EURONEXT shares from euronext.com", false),
+	BOURSORAMA ("boursorama",ProvidersTypes.BOURSORAMA,"No comment","All EURONEXT shares from boursorama.com", false),
+	NASDAQ ("nasdaq",ProvidersTypes.NASDAQ,"No comment","All NASDAQ from nasdaq.com", false),
+	ASX ("asx",ProvidersTypes.ASX,"No comment","All ASX from asx.com.au", false),
+	BSE ("bse",ProvidersTypes.BSE,"No comment","All BSE from bseindia.com", false),
+	GOOGLENYSE ("nyse",ProvidersTypes.GOOGLE,"No comment","All NYSE from google.com", false),
+	GOOGLEAMEX ("amex",ProvidersTypes.GOOGLE, "No comment","All AMEX from google.com", false),
+	NSEINDICES ("nseIndices",ProvidersTypes.NSEINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
+			"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +
+			"(these are nse indices you can find at nseindia.com)\n " +
+			"and MARKET ID  has to be "+Market.NSE+".\n" +
+			"(ex : NIFTY:NSE, CNX100:NSE, ... standing for cnx nifty, cnx 100 ...)\n" +
+			"You can specify several indices comma separeted and build you own composite list.\n" +
+			"If left blank, it will aggregate all the prexisting NSE indices available in your database.\n", "NSE INDICES components", true),
+	YAHOOINDICES ("yahooIndices",ProvidersTypes.YAHOOINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
+			"Where INDICE ID like NDX, FTLC, SBF250 ...\n" +
+			"(these are yahoo indices like the one you can find at http://finance.yahoo.com/indices for instance.)\n " +
+			"and MARKET ID is like : "+ Arrays.asList(Market.values()) + ".\n" +
+			"(ex : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
+			"You can specify several indices comma separeted and build you own composite list.\n" +
+			"If left blank, it will aggregate all the prexisting YAHOO indices available in your database.\n", "YAHOO INDICES components", true);
 	
 
 	/** The LOGGER. */
@@ -59,7 +76,10 @@ public enum SharesListId {
 
 	private String sharesListCmdParam;
 	private ProvidersTypes providersType;
+	
+	private String comment;
 	private String description;
+	private Boolean isIndicesComposite;
 
 
 	/**
@@ -71,10 +91,12 @@ public enum SharesListId {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private SharesListId(String cmdParam, ProvidersTypes providersType, String content) {
+	private SharesListId(String cmdParam, ProvidersTypes providersType, String comment, String description, Boolean isIndicesComposite) {
 		this.providersType = providersType;
 		this.sharesListCmdParam = cmdParam;
-		this.description=content;
+		this.comment = comment;
+		this.description=description;
+		this.isIndicesComposite = isIndicesComposite;
 	}
 	
 	/**
@@ -131,11 +153,6 @@ public enum SharesListId {
 		return retour;	
 	}
 
-	/**
-	 * Gets the cmd param.
-	 * 
-	 * @return the cmd param
-	 */
 	public String getSharesListCmdParam() {
 		return sharesListCmdParam;
 	}
@@ -154,6 +171,30 @@ public enum SharesListId {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public Boolean getIsIndicesComposite() {
+		return isIndicesComposite;
+	}
+	
+	public static List<Integer> getCompositeListsOrdinals() {
+		List<Integer> sharesListIds = new ArrayList<Integer>();
+		for (SharesListId shareListId : SharesListId.values()) {
+			if (shareListId.isIndicesComposite) sharesListIds.add(shareListId.ordinal());
+		}
+		return sharesListIds;
+	}
+
+	public static int getNbCompositeLists() {
+		int ret = 0;
+		for (SharesListId shareListId : SharesListId.values()) {
+			if (shareListId.isIndicesComposite) ret++;
+		}
+		return ret;
+	}
+
+	public String getComment() {
+		return comment;
 	}
 
 

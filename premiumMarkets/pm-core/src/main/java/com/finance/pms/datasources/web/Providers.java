@@ -151,7 +151,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public abstract StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders,StockList stockList);
+	public abstract StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stocksInDB);
 	
 	/**
 	 * Retreive stock list from cmd line.
@@ -190,9 +190,10 @@ public abstract class Providers  implements MyBeanFactoryAware {
      * @author Guillaume Thoreton
      */
     public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) {
-    	StockList stockList = new StockList();
-    	this.retrieveStockListFromBase(stockList);
-		this.retrieveStockListFromWeb(marketQuotationsProviders,stockList);
+    	
+    	StockList existingDBStocks = new StockList();
+    	this.retrieveStockListFromBase(existingDBStocks);
+		this.retrieveStockListFromWeb(marketQuotationsProviders, existingDBStocks);
     }
     
     /**
@@ -322,7 +323,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 * @return
 	 */
 	public SharesList loadSharesListForThisListProvider() {
-		return initSharesList(this.getSharesListIdEnum().name(),"");
+		return initSharesList(this.getSharesListIdEnum().name(), Indice.formatToString(this.getIndices()));
 	}
 	
 	/**

@@ -35,20 +35,25 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -60,6 +65,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.ErrorDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
@@ -69,7 +75,6 @@ import com.finance.pms.admin.OtherException;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.MyDBConnection;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.web.Indice;
@@ -94,18 +99,29 @@ public class MarketsSettings extends Composite {
 		availabledb.add("nasdaq-yahoo");
 	}
 	
-	SharesListId currentMarketListProvider = SharesListId.valueOfCmd(MainPMScmd.getPrefs().get("quotes.listprovider", SharesListId.YAHOOINDICES.getSharesListCmdParam()));
+	SharesListId currentMarketShareListId = SharesListId.valueOfCmd(MainPMScmd.getPrefs().get("quotes.listprovider", SharesListId.YAHOOINDICES.getSharesListCmdParam()));
+	String currentMarketListIndices = MainPMScmd.getPrefs().get("quotes.listproviderindices", "");
+	String currentShareListName = (currentMarketListIndices.isEmpty())?currentMarketShareListId.name():currentMarketShareListId.name()+","+currentMarketListIndices;
 	MarketQuotationProviders currentQuotationProvider = MarketQuotationProviders.valueOfCmd(MainPMScmd.getPrefs().get("quotes.provider", MarketQuotationProviders.YAHOO.getCmdParam()));
-	Providers yahooProvider = Providers.getInstance(SharesListId.YAHOOINDICES.getSharesListCmdParam());
 	
+	String selectedMarketListIndices = currentMarketListIndices;
+	SharesListId  selectedMarketShareListId = currentMarketShareListId;
+	String selectedQuotationProvider = currentQuotationProvider.getCmdParam();
 
 	Button shareListRadio[];
 	CCombo quotationSourceCombo[];
-	private Label yahooIndicesChooserLabel;
-	private Text yahooIndicesChooserInput;
+	private Label[] indicesChooserLabels;
+	private Text[] indicesChooserInput;
 	private int sharesListSize;
-	private final int CUSTOMLISTRADIOPOSITION = SharesListId.YAHOOINDICES.ordinal() - 1;
 
+	private final Font biggerFont;
+	private List<String> shareListNames;
+	{
+		FontData[] defaultFontData = MainGui.DEFAULTFONT.getFontData();
+		defaultFontData[0].setHeight(11);
+		biggerFont = new Font(getDisplay(), defaultFontData);
+	}
+	
 	/**
 	 * The main method.
 	 * 
@@ -170,23 +186,29 @@ public class MarketsSettings extends Composite {
 			
 			this.setBackground(new Color(getDisplay(), 239, 183, 103));
 			this.setLayout(compositeLayout);
-			
-			checkDefaultIndices();
-			
+
 			this.initGui();
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}
 	}
 
-	private void checkDefaultIndices() {
-		Set<Indice> indices = yahooProvider.getIndices();
-		if (indices.size() == 0) {
-			List<String> shareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames();
-			for (String yahooIndice : shareListNames) {
-				yahooProvider.addIndices(Indice.parseString(yahooIndice.replace(SharesListId.YAHOOINDICES.name()+",", "")), false);
-			}
+
+	private String checkDefaultIndices(List<String> shareListNames, SharesListId sharesListId) {
+
+		Set<Indice> indices = new TreeSet<Indice>();
+		if (currentMarketShareListId.equals(sharesListId) && !currentMarketListIndices.isEmpty()) {
+			return currentMarketListIndices;
+		} else {
+			for (String shareListName : shareListNames) {
+				if (shareListName.contains(sharesListId.name())) {
+					indices.addAll(Indice.parseString(shareListName));
+				}
+			} 
 		}
+		
+		return Indice.formatToString(indices);
+
 	}
 
 	/**
@@ -205,7 +227,12 @@ public class MarketsSettings extends Composite {
 			Text tabDescr = new Text(this, SWT.WRAP);
 			tabDescr.setLayoutData(txtDescrLayoutData);
 			tabDescr.setBackground(new Color(this.getDisplay(), 239, 203, 152));
-			tabDescr.setText("You can choose the list of shares you are interested in either \n\t by using yahoo indices \n\t or by selecting a full market place.");
+			tabDescr.setText(
+					"Choose the list of shares you are interested in.\n" +
+					"\tSome lists are based on indices components like yahoo indices or NSE indices. You can select several indices and build you own list.\n" +
+					"\tOthers contains a full market place.\n" +
+					"Note that the only available quotation provider is yahoo for bulk selection.\n" +
+					"You can select other providers when adding individual stocks in the portfolio manager interface.");
 			tabDescr.setFont(MainGui.DEFAULTFONT);
 			
 			//Init widget arrays
@@ -214,83 +241,157 @@ public class MarketsSettings extends Composite {
 			titleLayoutData.grabExcessVerticalSpace = false;
 			titleLayoutData.horizontalSpan = 2;
 			
-			List<String> shareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames();
+			shareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames();
 			SharesListId[] shareListIds = SharesListId.values();
-			sharesListSize = shareListIds.length - 1 + shareListNames.size();
+			sharesListSize = shareListIds.length + shareListNames.size();
+			indicesChooserInput = new Text[sharesListSize];
+			indicesChooserLabels = new Label[sharesListSize];
 			shareListRadio = new Button[sharesListSize];
 			quotationSourceCombo = new CCombo[sharesListSize];
 			
-			Label yahooIndicesLabel = new Label(this, SWT.NONE);
-			yahooIndicesLabel.setLayoutData(titleLayoutData);
-			yahooIndicesLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
-			yahooIndicesLabel.setText("Custom your own share list using Yahoo indices : ");
-			yahooIndicesLabel.setFont(MainGui.DEFAULTFONT);
 			{
-				//Custom form
-				marketRow(
-						CUSTOMLISTRADIOPOSITION, SharesListId.YAHOOINDICES, SharesListId.YAHOOINDICES.getSharesListCmdParam(), SharesListId.YAHOOINDICES.getDescription(), 
-						SharesListId.YAHOOINDICES.name()+Indice.formatName(yahooProvider.getIndices()));
-				yahooIndicesChooserInput = new Text(this, SWT.NONE);
-				GridData inputIndicesLayouts = new GridData(GridData.FILL_HORIZONTAL);
-				inputIndicesLayouts.horizontalSpan = 2;
-				yahooIndicesChooserInput.setLayoutData(inputIndicesLayouts);
-				String txt = Indice.formatToString(yahooProvider.getIndices());
-				yahooIndicesChooserInput.setText(txt);
-				yahooIndicesChooserInput.setFont(MainGui.CONTENTFONT);
-				yahooIndicesChooserInput.addModifyListener(new ModifyListener() {
+				int radioIdx = 0;
+				for (final SharesListId shareListId : SharesListId.values()) {
 					
-					public void modifyText(ModifyEvent e) {
-						shareListRadio[CUSTOMLISTRADIOPOSITION].setSelection(true);
-						Event event = new Event();
-						event.type = SWT.MouseDown;
-						shareListRadio[CUSTOMLISTRADIOPOSITION].notifyListeners(SWT.MouseDown, event);
-					}
-				});
-				yahooIndicesChooserLabel = new Label(this, SWT.NONE);
-				GridData desrcIndicesLayouts = new GridData(GridData.FILL_HORIZONTAL);
-				desrcIndicesLayouts.horizontalSpan = 2;
-				yahooIndicesChooserLabel.setLayoutData(desrcIndicesLayouts);
-				yahooIndicesChooserLabel.setText("Your custom indice format is <YAHOOINDICE>:<MARKET>.\n " +
-						"Where MARKET is like : "+ Arrays.asList(Market.values()) + ".\n" +
-						"(ex : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
-						"You can specify several indices commat separeted.\n" +
-						"You can also leave blank to aggregate all the prexisting yahoo indices available below.\n");
-				yahooIndicesChooserLabel.setFont(MainGui.DEFAULTFONT);
-				yahooIndicesChooserLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
+					if (shareListId.equals(SharesListId.UNKNOWN)) continue;
+					
+					final int fRadioIdx = radioIdx;
+
+					if (shareListId.getIsIndicesComposite()) {//composite => Custom form + indices list
+					
+							//custom text area radio 
+							String customIndices = checkDefaultIndices(shareListNames,shareListId);
+							Label customIndicesLabel = new Label(this, SWT.NONE);
+							customIndicesLabel.setLayoutData(titleLayoutData);
+							customIndicesLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
+							customIndicesLabel.setText("Create a new share list using "+shareListId.getDescription()+" : ");
+							customIndicesLabel.setFont(biggerFont);
+							marketRow(radioIdx, shareListId, shareListId.getSharesListCmdParam(), customIndices, new RadioAction() {
+
+								@Override
+								public void action() {
+									selectedMarketShareListId = shareListId;
+									selectedMarketListIndices = indicesChooserInput[fRadioIdx].getText().trim().toUpperCase();
+									selectedQuotationProvider = quotationSourceCombo[fRadioIdx].getText();
+								}
+								
+							});	
+							
+							//Custom form
+							indicesChooserInput[radioIdx] = new Text(this, SWT.NONE);
+							GridData inputIndicesLayouts = new GridData(GridData.FILL_HORIZONTAL);
+							inputIndicesLayouts.horizontalSpan = 2;
+							indicesChooserInput[radioIdx].setLayoutData(inputIndicesLayouts);
+							indicesChooserInput[radioIdx].setText(customIndices);
+							indicesChooserInput[radioIdx].setFont(MainGui.CONTENTFONT);
+							indicesChooserInput[radioIdx].addModifyListener(new ModifyListener() {
+								
+								public void modifyText(ModifyEvent e) {
+									shareListRadio[fRadioIdx].setSelection(true);
+									Event event = new Event();
+									event.type = SWT.MouseDown;
+									shareListRadio[fRadioIdx].notifyListeners(SWT.MouseDown, event);
 				
-				//Existing custom listings
-				Label existingIndicesLabel = new Label(this, SWT.NONE);
-				existingIndicesLabel.setLayoutData(titleLayoutData);
-				existingIndicesLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
-				existingIndicesLabel.setText("Already created share lists based on Yahoo indices in your database : ");
-				existingIndicesLabel.setFont(MainGui.DEFAULTFONT);
-				int i = 0;
-				for (String sharelistName : shareListNames) {
-					if (sharelistName.contains(SharesListId.YAHOOINDICES.name()))  {
-						marketRow(CUSTOMLISTRADIOPOSITION + ++i, SharesListId.YAHOOINDICES, SharesListId.YAHOOINDICES.getSharesListCmdParam(), sharelistName.replaceAll(SharesListId.YAHOOINDICES.name() + ",*", ""), sharelistName);
+								}
+								
+							});
+							indicesChooserInput[radioIdx].addFocusListener(new FocusListener() {
+								
+								@Override
+								public void focusLost(FocusEvent e) {
+									selectedMarketListIndices = indicesChooserInput[fRadioIdx].getText().trim().toUpperCase();
+									
+								}
+								
+								@Override
+								public void focusGained(FocusEvent e) {
+									selectedMarketListIndices = indicesChooserInput[fRadioIdx].getText().trim().toUpperCase();
+									
+								}
+							});
+							indicesChooserInput[radioIdx].addModifyListener(new ModifyListener() {
+								
+								@Override
+								public void modifyText(ModifyEvent e) {
+									selectedMarketListIndices = indicesChooserInput[fRadioIdx].getText().trim().toUpperCase();
+									
+								}
+							});
+							indicesChooserInput[radioIdx].setEnabled(shareListRadio[radioIdx].getSelection());
+							indicesChooserLabels[radioIdx] = new Label(this, SWT.NONE);
+							GridData desrcIndicesLayouts = new GridData(GridData.FILL_HORIZONTAL);
+							desrcIndicesLayouts.horizontalSpan = 2;
+							indicesChooserLabels[radioIdx].setLayoutData(desrcIndicesLayouts);
+							indicesChooserLabels[radioIdx].setText(shareListId.getComment());
+							indicesChooserLabels[radioIdx].setFont(MainGui.DEFAULTFONT);
+							indicesChooserLabels[radioIdx].setBackground(new Color(this.getDisplay(), 239, 203, 152));
+							indicesChooserLabels[radioIdx].setEnabled(shareListRadio[radioIdx].getSelection());
+						
+						
+							//Existing custom indices
+							Label existingIndicesLabel = new Label(this, SWT.NONE);
+							existingIndicesLabel.setLayoutData(titleLayoutData);
+							existingIndicesLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
+							existingIndicesLabel.setText("Existing composite share lists based on "+shareListId.getDescription()+" in your database : ");
+							existingIndicesLabel.setFont(biggerFont);
+							int cpt = 0;
+							for (String sharelistName : shareListNames) {
+								
+								if (sharelistName.contains(shareListId.name()))  {
+									
+									if (cpt ==0) radioIdx++;
+									final int findiceRadioIx = radioIdx;
+									//indice radio 
+									String[] split = sharelistName.split(",");
+									String existingIndices = (split.length > 1)?split[1]:"";
+									marketRow(radioIdx, shareListId, sharelistName, existingIndices, new RadioAction() {
+
+										@Override
+										public void action() {
+											selectedMarketShareListId = shareListId;
+											selectedMarketListIndices = shareListRadio[findiceRadioIx].getText().split(" ")[1].replace("(", "").replace(")", "");
+											selectedQuotationProvider = quotationSourceCombo[findiceRadioIx].getText();
+											
+										}
+										
+									});
+									radioIdx++;
+									cpt++;
+								}
+							}
+							if (cpt == 0) {
+								Label noneLabel = new Label(this, SWT.NONE);
+								noneLabel.setLayoutData(titleLayoutData);
+								noneLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
+								noneLabel.setText("None. You can create a list based on "+shareListId.getDescription()+" using the text box above.");
+								noneLabel.setFont(MainGui.DEFAULTFONT);
+							}
+							
 					} else {
-						sharesListSize --;
+						
+						//Other markets
+						Label otherSourcesLabel = new Label(this, SWT.NONE);
+						otherSourcesLabel.setLayoutData(titleLayoutData);
+						otherSourcesLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
+						otherSourcesLabel.setText("Predefined share list based on "+shareListId.getDescription()+" : ");
+						otherSourcesLabel.setFont(biggerFont);
+						
+						marketRow(radioIdx, shareListId, shareListId.getSharesListCmdParam(), "", new RadioAction() {
+
+							@Override
+							public void action() {
+								selectedMarketShareListId = shareListId;
+								selectedMarketListIndices = "";
+								selectedQuotationProvider = quotationSourceCombo[fRadioIdx].getText();
+								
+							}
+							
+						});
 					}
+					
+					radioIdx++;
 				}
 			}
-			
-			//Other markets
-			Label otherSourcesLabel = new Label(this, SWT.NONE);
-			otherSourcesLabel.setLayoutData(titleLayoutData);
-			otherSourcesLabel.setBackground(new Color(this.getDisplay(), 239, 203, 152));
-			otherSourcesLabel.setText("Other predefined share lists based on market places : ");
-			otherSourcesLabel.setFont(MainGui.DEFAULTFONT);
-			for (int i = 0; i < shareListIds.length - 1; i++) {
-				if (shareListIds[i + 1].equals(SharesListId.YAHOOINDICES)) continue;
-				marketRow(i, 
-						shareListIds[i + 1], 
-						shareListIds[i + 1].getSharesListCmdParam(), 
-						shareListIds[i + 1].getDescription(),
-						shareListIds[i + 1].getSharesListCmdParam());
-			}
-			
-			yahooIndicesChooserLabel.setEnabled(shareListRadio[CUSTOMLISTRADIOPOSITION].getSelection());
-			yahooIndicesChooserInput.setEnabled(shareListRadio[CUSTOMLISTRADIOPOSITION].getSelection());
 			
 		}
 		{
@@ -324,105 +425,129 @@ public class MarketsSettings extends Composite {
 							
 							final Button validate = ((Button) arg0.getSource());
 							validate.setEnabled(false);
-							//cancel.setEnabled(false);
-							for (int k = 0; k < sharesListSize; k++) {
-								if (shareListRadio[k].getSelection()) {
-									SharesListId shareList = SharesListId.UNKNOWN;
-									if (k < CUSTOMLISTRADIOPOSITION) {
-										shareList = SharesListId.valueOfCmd(shareListRadio[k].getText().split(" ")[0]);
-									} else if (k == CUSTOMLISTRADIOPOSITION) {
-										yahooProvider.addIndices(Indice.parseString(yahooIndicesChooserInput.getText()), true);
-										checkDefaultIndices();
-										shareList = SharesListId.YAHOOINDICES;
-									} else if (k > CUSTOMLISTRADIOPOSITION) {
-										try {
-											yahooProvider.addIndices(Indice.parseString(shareListRadio[k].getText().split(" ")[1].replace("(", "").replace(")", "")), true);
-											shareList = SharesListId.YAHOOINDICES;
-										} catch (ArrayIndexOutOfBoundsException e) {
-											LOGGER.debug("This is not an indices list. " + shareListRadio[k].getText());
-											shareList = SharesListId.valueOf(shareListRadio[k].getText().split(" ")[1].replace("(", "").replace(")", ""));
-										}
-									}
-									//TODO :several share lists ie use the share lists in db instead of props.
-									MainPMScmd.getPrefs().put("quotes.listprovider", shareList.getSharesListCmdParam());
-									MainPMScmd.getPrefs().put("quotes.listproviderindices", Indice.formatToString(yahooProvider.getIndices()));
-									MainPMScmd.getPrefs().put("quotes.provider", quotationSourceCombo[k].getText());
-									try {
-										MainPMScmd.getPrefs().flush();
-									} catch (BackingStoreException e) {
-										LOGGER.error(e,e);
-									}
+							
+							if (selectedMarketShareListId.getIsIndicesComposite()) {
+								if (selectedMarketListIndices.isEmpty()) {
+									selectedMarketListIndices = checkDefaultIndices(shareListNames, selectedMarketShareListId);
 								}
+								if (selectedMarketListIndices.isEmpty()) {
+									ErrorDialog dialog = new ErrorDialog(getShell(), 0, "You have selected a list based on "+selectedMarketShareListId.getDescription()+".\nYou must specify one or more indices to include.", null);
+									dialog.open();
+									validate.setEnabled(true);
+									return;
+								}
+								Providers provider = Providers.getInstance(selectedMarketShareListId.getSharesListCmdParam());
+								provider.addIndices(Indice.parseString(selectedMarketListIndices), true);
 							}
+							
+							updatePrefs(selectedMarketShareListId.getSharesListCmdParam(), selectedMarketListIndices,  selectedQuotationProvider);
+							
 							getShell().dispose();
 						}
+
+
 					});
 				}
 			}
 		}
 		getShell().pack();
 	}
+	
+	//TODO :several share lists ie use the share lists in db instead of props.
+	private void updatePrefs(String shareListName, String indices, String quotationProvider) {
+		MainPMScmd.getPrefs().put("quotes.listprovider", shareListName);
+		MainPMScmd.getPrefs().put("quotes.listproviderindices", indices);
+		MainPMScmd.getPrefs().put("quotes.provider", quotationProvider);
+		try {
+			MainPMScmd.getPrefs().flush();
+		} catch (BackingStoreException e) {
+			LOGGER.error(e,e);
+		}
+	}
+	
+	interface RadioAction {
+		
+		public void action();
+		
+	}
 
 	/**
-	 * @param shareListSource
+	 * @param shareListId
 	 * @param shareListRadio
 	 * @param quotationSourceCombo
-	 * @param currentMarketListProvider
+	 * @param currentMarketShareListId
 	 * @param currentQuotationProvider
 	 * @param i
-	 * @param shareListSource
+	 * @param shareListId
 	 * @param shareListName 
 	 * @param complement
 	 */
-	private void marketRow(int i, SharesListId shareListSource, String cmdParam, String comment, String shareListName) {
+	private void marketRow(int radioIdx, SharesListId shareListId, String shareListName, String indices, final RadioAction radioAction) {
 		
-		final int fi = i;
+		final int fRadioIdx = radioIdx;
 		
 		//Radios
-		shareListRadio[i] = new Button(this, SWT.RADIO);
-		shareListRadio[i].setText(cmdParam + " (" + comment + ")");
-		shareListRadio[i].setFont(MainGui.DEFAULTFONT);
-		shareListRadio[i].addSelectionListener(new SelectionAdapter() {
+		shareListRadio[radioIdx] = new Button(this, SWT.RADIO);
+		String[] sharelistNameSplit = shareListName.split(",");
+		shareListRadio[radioIdx].setText(shareListId.getSharesListCmdParam() + ((sharelistNameSplit.length > 1)?" (" + sharelistNameSplit[1] + ")":""));
+		shareListRadio[radioIdx].setFont(MainGui.DEFAULTFONT);
+		shareListRadio[radioIdx].addSelectionListener(new SelectionAdapter() {
+			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
+				
 				super.widgetSelected(arg0);
-				quotationSourceCombo[fi].setEnabled(((Button) arg0.getSource()).getSelection());
-				if (fi == CUSTOMLISTRADIOPOSITION) {
-					yahooIndicesChooserLabel.setEnabled(((Button) arg0.getSource()).getSelection());
-					yahooIndicesChooserInput.setEnabled(((Button) arg0.getSource()).getSelection());
+				quotationSourceCombo[fRadioIdx].setEnabled(((Button) arg0.getSource()).getSelection());
+				if (indicesChooserLabels[fRadioIdx] != null) {
+					indicesChooserLabels[fRadioIdx].setEnabled(((Button) arg0.getSource()).getSelection());
+					indicesChooserInput[fRadioIdx].setEnabled(((Button) arg0.getSource()).getSelection());
 				}
+				
+				if (((Button) arg0.getSource()).getSelection()) radioAction.action();
+			
 			}
 		});
 		
-		String nameExtension = Indice.formatName(yahooProvider.getIndices());
-		boolean isRadioCurrentShareList = 
-				(SharesListId.YAHOOINDICES.equals(currentMarketListProvider) && shareListName.equals(currentMarketListProvider.name()+nameExtension)) ||
-				!SharesListId.YAHOOINDICES.equals(currentMarketListProvider) && shareListSource.equals(currentMarketListProvider);
+		boolean isRadioCurrentShareList = currentMarketShareListId.equals(shareListId) && currentMarketListIndices.equals(indices);
 		
 		if (isRadioCurrentShareList) {
-			shareListRadio[i].setSelection(true);
-			shareListRadio[i].setFocus();
-			if (i != CUSTOMLISTRADIOPOSITION ) shareListRadio[CUSTOMLISTRADIOPOSITION].setSelection(false);
-		} else {
-			shareListRadio[i].setSelection(false);
+			shareListRadio[radioIdx].setFocus();
 		}
+		shareListRadio[radioIdx].setSelection(isRadioCurrentShareList);
 		
 		//Combos
-		quotationSourceCombo[i] = new CCombo(this, SWT.READ_ONLY);
-		for (int j = 0, n = MarketQuotationProviders.values().length; j < n; j++) {
-			quotationSourceCombo[i].add(MarketQuotationProviders.values()[j].getCmdParam());
-			quotationSourceCombo[i].select(0);
+		quotationSourceCombo[radioIdx] = new CCombo(this, SWT.READ_ONLY);
+		//for (int j = 0, n = MarketQuotationProviders.values().length; j < n; j++) {
+		for (int j = 0, n = 1; j < n; j++) {
+			quotationSourceCombo[radioIdx].add(MarketQuotationProviders.values()[j].getCmdParam());
+			quotationSourceCombo[radioIdx].select(0);
 		}
 		
 		if (isRadioCurrentShareList) {
-			for (int j = 0; j < MarketQuotationProviders.values().length; j++) {
+			//for (int j = 0; j < MarketQuotationProviders.values().length; j++) {
+			for (int j = 0; j < 1; j++) {
 				if (MarketQuotationProviders.values()[j].equals(currentQuotationProvider)) {
-					quotationSourceCombo[i].select(j);
+					quotationSourceCombo[radioIdx].select(j);
 				}
 			}
 		}
-		quotationSourceCombo[i].pack();
-		quotationSourceCombo[i].setEnabled(shareListRadio[i].getSelection());
+		quotationSourceCombo[radioIdx].pack();
+		quotationSourceCombo[radioIdx].setEnabled(isRadioCurrentShareList);
+		quotationSourceCombo[radioIdx].addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedQuotationProvider =  quotationSourceCombo[fRadioIdx].getText();
+				
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				selectedQuotationProvider =  quotationSourceCombo[fRadioIdx].getText();
+				
+			}
+		});
+		
 	}
 
 	/**

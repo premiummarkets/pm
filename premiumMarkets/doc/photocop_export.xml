@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project_export SYSTEM "http://sourceforge.net/export/sf_project_export_0.2.dtd">
+<document>
+<!-- Please excuse the fact that the referenced DTD is not yet available.  The data format of this feed may remain in flux until the full intended feature set has been implemented and retested.  Questions may be sent to moorman@sourceforge.net -->
+<!-- Support issues related to this feed should be directed to the SourceForge.net team per http://p.sf.net/sourceforge/support-->
+<!-- Data in this feed is subject to the Terms of Use specified at http://geeknetmedia.com/terms-of-use -->
+<!-- Project administrators should not provide raw feed saves to folks outside their immediate project team as hidden/deleted data may be exposed in this feed. -->
+<!-- If you are the administrator of a large project, you should limit your use of this XML export facility to once per week, at most.  This site feature is very data intensive. -->
+<!-- This feature has been launched as of 2004-09-27 on SourceForge.net as an Early Release feature for SourceForge.net site subscribers. Comments, questions, and requests for enhancement should be directed to SourceForge.net staff as per http://p.sf.net/sourceforge/support -->
+<!--
+Feature Options: * Default is to show all
+
+    &amp;show_projectsummary=1
+    &amp;show_projectresources=1
+    &amp;show_projectnews=1
+    &amp;show_filereleases=1
+    &amp;show_forums=1
+    &amp;show_trackers=1
+    &amp;show_tasks=1
+    &amp;show_projectadmin=1
+
+Option for show_forums=1: * To show a specific forum instead of all non-deleted
+
+    &amp;forum_to_show=FORUM_ID
+
+Option for show_trackers=1; * To show a specific Tracker instead of all
+    non-deleted
+
+    &amp;tracker_to_show=TRACKER_ID
+
+Option for show_filereleases, show_forums, show_projectnews, show_docmanager, show_trackers to show only items since a specific timestamp (UTC):
+
+    &amp;timestamp=EPOCH_TIME
+this way you can only export items changed since the last time found in your export details.
+
+--><export_details>
+<time>1357580154</time>
+<project_group_id>239589</project_group_id>
+<project_unix_name>photocop</project_unix_name>
+<exporter>guil</exporter>
+</export_details>
+<projectsummary>
+<url>http://sourceforge.net/projects/photocop/</url>
+<group_id>239589</group_id>
+<unix_name>photocop</unix_name>
+<descriptive_name>Photo Cop</descriptive_name>
+<description>Photo cop is a small set of command line utilities to help you manage your photos and movies.
+It provides :
+- multi folder duplicate detection
+- update copy to a storage folder
+- cdrom data original retrieval
+- multi set of folder comparison
+</description>
+<license>gpl</license>
+<home_page_url>http://photocop.sourceforge.net</home_page_url>
+<registration_description>Photo cop is a small set of command line utilities to help you manage your photos and movies.
+It provides :
+- multi folder duplicate detection
+- update copy to a storage folder
+- cdrom data original retrieval
+- multi set of folder comparison</registration_description>
+<registration_submitter>guil</registration_submitter>
+<register_time>1221418300</register_time>
+<projectmembers>
+<projectmember>
+<url>http://sourceforge.net/users/guil/</url>
+<user_id>9710</user_id>
+<user_name>guil</user_name>
+<public_name>guillaume T</public_name>
+<email>guil@users.sourceforge.net</email>
+<project_admin>Yes</project_admin>
+</projectmember>
+</projectmembers>
+</projectsummary>
+<projectresources>
+<feature_cvs>No</feature_cvs>
+<feature_mailinglists>Yes</feature_mailinglists>
+<feature_news>Yes</feature_news>
+<feature_forums>Yes</feature_forums>
+<feature_docman>No</feature_docman>
+<feature_tasks>Yes</feature_tasks>
+<forums>
+<forum>
+<forum_id>866793</forum_id>
+<forum_name>Open Discussion</forum_name>
+<description/>
+<is_public>Yes</is_public>
+</forum>
+<forum>
+<forum_id>866794</forum_id>
+<forum_name>Help</forum_name>
+<description/>
+<is_public>Yes</is_public>
+</forum>
+<forum>
+<forum_id>866795</forum_id>
+<forum_name>Developers</forum_name>
+<description/>
+<is_public>No</is_public>
+</forum>
+</forums>
+<trackers>
+<tracker>
+<tracker_id>1110502</tracker_id>
+<tracker_name>Bugs</tracker_name>
+<description>Bug Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+<tracker>
+<tracker_id>1110503</tracker_id>
+<tracker_name>Support Requests</tracker_name>
+<description>Tech Support Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+<tracker>
+<tracker_id>1110504</tracker_id>
+<tracker_name>Patches</tracker_name>
+<description>Patch Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+<tracker>
+<tracker_id>1110505</tracker_id>
+<tracker_name>Feature Requests</tracker_name>
+<description>Feature Request Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+</trackers>
+<mailinglists>
+</mailinglists>
+</projectresources>
+<project_admin_detail>
+<trove_details>
+<trove_category>User Interface :: Textual :: Command-line</trove_category>
+<trove_category>Topic :: System :: Storage :: Archiving :: Backup</trove_category>
+<trove_category>Programming Language :: Java</trove_category>
+<trove_category>Intended Audience :: by End-User Class :: End Users/Desktop</trove_category>
+<trove_category>Development Status :: 4 - Beta</trove_category>
+<trove_category>License :: OSI-Approved Open Source :: GNU General Public License version 2.0 (GPLv2)</trove_category>
+</trove_details>
+</project_admin_detail>
+<projectnews>
+</projectnews>
+<filereleases>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=239589&amp;package_id=291368&amp;release_id=626533</url>
+<filename>photocop.tgz</filename>
+<release_id>626533</release_id>
+<package_id>291368</package_id>
+<processor>Any</processor>
+<file_size>23013</file_size>
+<release_time>1221512923</release_time>
+<post_date>1221512889</post_date>
+</filerelease>
+</filereleases>
+<forums>
+<forum>
+<url>http://sourceforge.net/projects/photocop/forums/forum/866793</url>
+<forum_id>866793</forum_id>
+<forum_name>Open Discussion</forum_name>
+<is_public>Yes</is_public>
+<description/>
+<send_posts_to/>
+<anonymous_posting>No</anonymous_posting>
+<forum_posts>
+<forum_post>
+<url>http://sourceforge.net/projects/photocop/forums/forum/866793/topic/2244840?message=5272023</url>
+<msg_id>5272023</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>Welcome to Open Discussion</subject>
+<thread_id>2244840</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1221418301</date>
+<is_deleted>No</is_deleted>
+<body>Welcome to Open Discussion</body>
+</forum_post>
+</forum_posts>
+</forum>
+<forum>
+<url>http://sourceforge.net/projects/photocop/forums/forum/866794</url>
+<forum_id>866794</forum_id>
+<forum_name>Help</forum_name>
+<is_public>Yes</is_public>
+<description/>
+<send_posts_to/>
+<anonymous_posting>No</anonymous_posting>
+<forum_posts>
+<forum_post>
+<url>http://sourceforge.net/projects/photocop/forums/forum/866794/topic/2244841?message=5272024</url>
+<msg_id>5272024</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>Welcome to Help</subject>
+<thread_id>2244841</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1221418301</date>
+<is_deleted>No</is_deleted>
+<body>Welcome to Help</body>
+</forum_post>
+</forum_posts>
+</forum>
+<forum>
+<url>http://sourceforge.net/projects/photocop/forums/forum/866795</url>
+<forum_id>866795</forum_id>
+<forum_name>Developers</forum_name>
+<is_public>No</is_public>
+<description/>
+<send_posts_to/>
+<anonymous_posting>No</anonymous_posting>
+<forum_posts>
+<forum_post>
+<url>http://sourceforge.net/projects/photocop/forums/forum/866795/topic/2244842?message=5272025</url>
+<msg_id>5272025</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>Welcome to Developers</subject>
+<thread_id>2244842</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1221418301</date>
+<is_deleted>No</is_deleted>
+<body>Welcome to Developers</body>
+</forum_post>
+</forum_posts>
+</forum>
+</forums>
+<trackers>
+<tracker>
+<url>http://sourceforge.net/?group_id=239589&amp;atid=1110502</url>
+<tracker_id>1110502</tracker_id>
+<name>Bugs</name>
+<description>Bug Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>2592000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>1</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>880134</id>
+<group_name>v1.0 (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1146466</id>
+<category_name>Interface (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+<resolution>
+<id>1</id>
+<name>Fixed</name>
+</resolution>
+<resolution>
+<id>2</id>
+<name>Invalid</name>
+</resolution>
+<resolution>
+<id>3</id>
+<name>Wont Fix</name>
+</resolution>
+<resolution>
+<id>4</id>
+<name>Later</name>
+</resolution>
+<resolution>
+<id>5</id>
+<name>Remind</name>
+</resolution>
+<resolution>
+<id>6</id>
+<name>Works For Me</name>
+</resolution>
+<resolution>
+<id>100</id>
+<name>None</name>
+</resolution>
+<resolution>
+<id>101</id>
+<name>Duplicate</name>
+</resolution>
+<resolution>
+<id>102</id>
+<name>Accepted</name>
+</resolution>
+<resolution>
+<id>103</id>
+<name>Out of Date</name>
+</resolution>
+<resolution>
+<id>104</id>
+<name>Postponed</name>
+</resolution>
+<resolution>
+<id>105</id>
+<name>Rejected</name>
+</resolution>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+<tracker>
+<url>http://sourceforge.net/?group_id=239589&amp;atid=1110503</url>
+<tracker_id>1110503</tracker_id>
+<name>Support Requests</name>
+<description>Tech Support Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>1296000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>2</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>880135</id>
+<group_name>v1.0 (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1146467</id>
+<category_name>Install Problem (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+<tracker>
+<url>http://sourceforge.net/?group_id=239589&amp;atid=1110504</url>
+<tracker_id>1110504</tracker_id>
+<name>Patches</name>
+<description>Patch Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>1296000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>3</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>880136</id>
+<group_name>Unstable (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1146468</id>
+<category_name>Widget (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+<resolution>
+<id>1</id>
+<name>Fixed</name>
+</resolution>
+<resolution>
+<id>2</id>
+<name>Invalid</name>
+</resolution>
+<resolution>
+<id>3</id>
+<name>Wont Fix</name>
+</resolution>
+<resolution>
+<id>4</id>
+<name>Later</name>
+</resolution>
+<resolution>
+<id>5</id>
+<name>Remind</name>
+</resolution>
+<resolution>
+<id>6</id>
+<name>Works For Me</name>
+</resolution>
+<resolution>
+<id>100</id>
+<name>None</name>
+</resolution>
+<resolution>
+<id>101</id>
+<name>Duplicate</name>
+</resolution>
+<resolution>
+<id>102</id>
+<name>Accepted</name>
+</resolution>
+<resolution>
+<id>103</id>
+<name>Out of Date</name>
+</resolution>
+<resolution>
+<id>104</id>
+<name>Postponed</name>
+</resolution>
+<resolution>
+<id>105</id>
+<name>Rejected</name>
+</resolution>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+<tracker>
+<url>http://sourceforge.net/?group_id=239589&amp;atid=1110505</url>
+<tracker_id>1110505</tracker_id>
+<name>Feature Requests</name>
+<description>Feature Request Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>3888000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>4</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>880137</id>
+<group_name>Next Release (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1146469</id>
+<category_name>Interface Improvements (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+</trackers>
+<tasks>
+</tasks>
+<referenced_users>
+<user>
+<userid>9710</userid>
+<publicname>guillaume T</publicname>
+<username>guil</username>
+<email>guil@users.sourceforge.net</email>
+</user>
+</referenced_users>
+</document>

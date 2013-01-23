@@ -65,7 +65,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * For the display the symbol will preferably
  * being used so a fake one as to be produced form the isin code when non symbol
  * as been provided at download time (which could be the isin it self?).
- * An other matter is that every quotation provider uses its own symbol set.
+ * Another matter is that every quotation provider uses its own symbol set.
  * This symbol value should then be calculated when needed using the symbol, isin and the provider type.
  * Hence we need
  * - Market definition including :

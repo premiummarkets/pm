@@ -323,12 +323,15 @@ public abstract class HttpSource {
 							List<Validatable> validatables;
 							
 							try {
+								
 								validatables = formater.formatLine(line);
 								if (validatables != null) resultSet.addAll(validatables);
+								
 							} catch (StopParseFoundException e) {
 								
 								LOGGER.debug("Symbol : " + ((StopParseFoundException) e).getLastOne() + " Found");
 								resultSet.add((e.getLastOne()));
+								break;
 								
 							} catch (StopParseErrorException e) {
 								

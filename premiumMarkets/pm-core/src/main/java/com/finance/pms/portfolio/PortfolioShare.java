@@ -462,7 +462,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	@JoinColumn(name = "name", nullable = false)
 	@ForeignKey(name = "FK_PORTFOLIO_TO_PORTFOLIO_NAME")
 	@Id
-	//@NotFound(action=NotFoundAction.IGNORE)
 	public AbstractSharesList getPortfolio() {
 		return portfolio;
 	}
@@ -474,7 +473,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	@Override
 	public String toString() {
-		return "PortfolioShare [stock=" + stock.getName() + ", avgBuyPrice=" + this.getAvgBuyPrice() + ", cashin=" + cashin + ", cashout=" + cashout + ", quantity=" + quantity + "]";
+		return "PortfolioShare [stock=" + stock.getName() + ", cashin=" + cashin + ", cashout=" + cashout + ", quantity=" + quantity + "]";
 	}
 	
 	public void applyTransaction(Transaction transaction, boolean propagate) throws InvalidQuantityException {

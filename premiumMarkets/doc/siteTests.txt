@@ -1,0 +1,26 @@
+- run PmGWT.html :
+DJI - INTEL
+SB250 - FTE
+GDAXI - Commerzbank
+	-> register
+CNX 100 : Bank of india
+	-> register
+
+- run Sector.html :
+DJI - INTEL
+SB250 - FTE
+GDAXI - Commerzbank
+	-> register
+CNX 100 : Bank of india
+	-> register
+
+- run http://premiummarkets.elasticbeanstalk.com/adminGWT.html?notifyUsers
+	-> change BEARISH <-> BULLISH for my EMAIL.
+
+- run http://premiummarkets.elasticbeanstalk.com/GlobalForecast.html
+	-> check filters and sort
+- run http://premiummarkets.elasticbeanstalk.com/GlobalForecast.html?updateCache
+
+- run http://premiummarkets.elasticbeanstalk.com/adminGWT.html?updateShareLists
+
+ 

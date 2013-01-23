@@ -39,6 +39,7 @@ import org.apache.commons.httpclient.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.SimpleHttpClient;
 
@@ -59,20 +60,24 @@ public class HttpSourceBSEMarket extends HttpSourceMarket {
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
 		
-		//http://bseindia.com/bhavcopy/eq220109_csv.zip
-		String url = "http://bseindia.com/bhavcopy/eq";
+//0
+//		String url = "http://bseindia.com/bhavcopy/eq";
+//		url += simpleDateFormat.format(calendar.getTime())+"_csv.zip";
 		
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("ddMMyy");
+//2
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("IST"));
-		//calendar.set(Calendar.ZONE_OFFSET,19800000);
 		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-		if (	dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY || 
-				dayOfWeek == Calendar.MONDAY || dayOfWeek == Calendar.TUESDAY && calendar.get(Calendar.HOUR_OF_DAY) < 18) {
-			calendar.add(Calendar.DAY_OF_MONTH, -(dayOfWeek+1));
+		// dayOfWeek == Calendar.MONDAY || dayOfWeek == Calendar.TUESDAY && calendar.get(Calendar.HOUR_OF_DAY) < 18
+		boolean isWeekEnd = (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY || dayOfWeek == Calendar.MONDAY && calendar.get(Calendar.HOUR_OF_DAY) < 18);
+		if (isWeekEnd) {
+			//calendar.add(Calendar.DAY_OF_MONTH, -(dayOfWeek+1));
+			calendar.add(Calendar.DAY_OF_MONTH, -1);
+			calendar.setTime(QuotationsFactories.getFactory().getValidQuotationDateBefore(calendar.getTime()));
 		} else if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {
 			calendar.add(Calendar.DAY_OF_MONTH, -1);
 		}
-		url += simpleDateFormat.format(calendar.getTime())+"_csv.zip";
+		SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
+		String url = "http://www.bseindia.com/download/BhavCopy/Equity/eq"+dateFormat.format(calendar.getTime())+"_csv.zip";
 		
 		LOGGER.debug("BSE list url  :"+url);
 		
@@ -80,6 +85,7 @@ public class HttpSourceBSEMarket extends HttpSourceMarket {
 	}
 
 	@Override
+	//XXX scrip code don't work with yahoo ...
 	public String getStockInfoPageURL(String name) {
 		//http://www.bseindia.com/price_finder/stockreach.asp?scripcd=530133
 		//return "http://www.bseindia.com/price_finder/stockreach.asp?scripcd="+isin;

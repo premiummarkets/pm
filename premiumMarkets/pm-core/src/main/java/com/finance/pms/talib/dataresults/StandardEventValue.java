@@ -66,8 +66,8 @@ public class StandardEventValue extends EventValue {
 
 	}
 	
-	public StandardEventValue(Date date, Integer eventDefId, String eventtype, String message, String eventListName){
-		super(date,EventDefinition.valueOf(eventDefId),EventType.valueOf(eventtype.charAt(0)),message, eventListName);
+	public StandardEventValue(Date date, Integer eventDefId, String eventTypeChar, String message, String eventListName){
+		super(date,EventDefinition.valueOf(eventDefId),EventType.valueOf(eventTypeChar.charAt(0)),message, eventListName);
 
 	}
 

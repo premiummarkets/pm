@@ -30,16 +30,22 @@
  */
 package com.finance.pms.portfolio;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.dao.DataAccessException;
+import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -52,13 +58,27 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	protected static MyLogger LOGGER = MyLogger.getLogger(PortfolioDAOImpl.class);    
 
 	@SuppressWarnings("unchecked")
-	
 	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock) {
 	
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(PortfolioShare.class);
 		detachedCriteria.add(Restrictions.eq("stock",stock));
 		
 		return this.getHibernateTemplate().findByCriteria(detachedCriteria);
+		
+	}
+	
+	public PortfolioShare loadPortfolioShare(final String symbol, final String isin, final String portfolioName) {
+		
+		return this.getHibernateTemplate().execute(new HibernateCallback<PortfolioShare>() {
+					
+					public PortfolioShare doInHibernate(Session session) throws HibernateException, SQLException {
+						Criteria criteria = session.createCriteria(PortfolioShare.class);
+						criteria.add(Restrictions.eq("stock.symbol",symbol));
+						criteria.add(Restrictions.eq("stock.isin",isin));
+						criteria.add(Restrictions.eq("portfolio.name",portfolioName));
+						return (PortfolioShare) criteria.uniqueResult();
+					}
+		});
 		
 	}
 
@@ -114,18 +134,32 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 	
 	@SuppressWarnings("unchecked")
-	
 	public List<String> loadShareListNames() {
 		return this.getHibernateTemplate().find("select name from SharesList");
 	}
+	
+	@Override
+	public List<SharesList> loadShareList() {
+		return this.getHibernateTemplate().loadAll(SharesList.class);
+	}
 
 	@SuppressWarnings("unchecked")
+	@Override
+	public List<String> loadShareListNames(String[] include, String[] exclude) {
+		DetachedCriteria detachedCriteria= DetachedCriteria.forClass(SharesList.class);
+		detachedCriteria.setProjection(Projections.projectionList().add(Projections.property("name")));
+		if (include != null && include.length > 0) detachedCriteria.add(Restrictions.in("name", include));	
+		if (exclude != null && exclude.length > 0) detachedCriteria.add(Restrictions.not(Restrictions.in("name", exclude)));	
+		return this.getHibernateTemplate().findByCriteria(detachedCriteria);
+	}
 	
+	
+
+	@SuppressWarnings("unchecked")
 	public List<String> loadUserPortfolioNames() {
 		return this.getHibernateTemplate().find("select name from UserPortfolio");
 	}	
 	
-
 	
 	public void deletePortfolioShare(PortfolioShare portfolioShare) {		
 		this.getHibernateTemplate().delete(portfolioShare);
@@ -138,7 +172,6 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public SortedSet<TransactionElement> loadTransactionReportFor(Stock stock, String account, Date date) {
 		List<TransactionElement> trans = this.getHibernateTemplate().find("from TransactionElement where symbol = ? and isin = ? and account = ? and date <= ? order by date", stock.getSymbol(), stock.getIsin(), account, date);
 		return new TreeSet<TransactionElement>(trans);
@@ -148,8 +181,6 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	public void deleteTransactionReports() {
 		this.getHibernateTemplate().deleteAll(this.getHibernateTemplate().loadAll(TransactionElement.class));
 		
-	}
-	
-	
+	}	
 	
 }

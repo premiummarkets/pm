@@ -118,6 +118,26 @@ public class WeatherEventKey implements EventKey {
 	public String toString() {
 		return "WeatherEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + ", hint=" + hint + "]";
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public int compareTo(EventKey o) {
+		
+		int dateCompare = date.compareTo(o.getDate());
+		if (dateCompare == 0) {
+			int evtTypecompare = eventType.compareTo((EventType) o.getEvenType());
+			if (evtTypecompare == 0) {
+				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
+				if (evtDefCompare == 0) {
+					return getEventDefExtra().compareTo(o.getEventDefExtra());
+				}
+			}
+			return evtTypecompare;
+		}
+		
+		return dateCompare;
+		
+	}
 	
 
 }

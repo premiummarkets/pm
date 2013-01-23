@@ -148,7 +148,6 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);
 		stock.setLastQuote(lastQuote);
 		updateLastQuoteDateForShareInDB(lastQuote);
-		//DataSource.getInstance().getShareDAO().saveOrUpdateShare(stock);
 
 		LOGGER.guiInfo("Downloaded for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
 

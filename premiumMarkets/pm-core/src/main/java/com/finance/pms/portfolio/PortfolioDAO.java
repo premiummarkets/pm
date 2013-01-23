@@ -57,6 +57,8 @@ public interface PortfolioDAO {
 
 	public List<String> loadShareListNames();
 	
+	public List<String> loadShareListNames(String[] include, String[] exclude);
+	
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
 	
@@ -66,5 +68,9 @@ public interface PortfolioDAO {
 	public SortedSet<TransactionElement> loadTransactionReportFor(Stock stock, String account, Date date);
 
 	public void deleteTransactionReports();
+
+	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
+
+	List<SharesList> loadShareList();
 
 }

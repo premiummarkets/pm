@@ -30,6 +30,11 @@
  */
 package com.finance.pms.events.gui;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 
 // TODO: Auto-generated Javadoc
@@ -39,11 +44,10 @@ import com.finance.pms.events.pounderationrules.PonderationRule;
  * @author Guillaume Thoreton
  */
 public class EventsActionSort {
-	
-	/** The ponderation rule. */
+
 	private PonderationRule ponderationRule;
-	
 	private EventsActionSortEnum actionSortEnum;
+	private Set<EventDefinition> indicators;
 	
 	
 	public static enum EventsActionSortEnum {
@@ -74,9 +78,15 @@ public class EventsActionSort {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public EventsActionSort(EventsActionSortEnum actionSortEnum, PonderationRule ponderationRule) {
+	public EventsActionSort(EventsActionSortEnum actionSortEnum, PonderationRule ponderationRule, EventDefinition ...definitions) {
 		this.actionSortEnum = actionSortEnum;
 		this.ponderationRule = ponderationRule;
+		if (definitions != null && definitions.length > 0) {
+			indicators = new HashSet<EventDefinition>();
+			indicators.addAll(Arrays.asList(definitions));
+		} else {
+			indicators = null;
+		}
 	}
 
 	/**
@@ -91,8 +101,10 @@ public class EventsActionSort {
 	protected EventsActionSortEnum getActionSortEnum() {
 		return actionSortEnum;
 	}
+
+	public Set<EventDefinition> getIndicators() {
+		return indicators;
+	}
 	
-	
-	
-	
+
 }

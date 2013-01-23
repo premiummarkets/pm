@@ -37,6 +37,7 @@ import java.util.Date;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -48,6 +49,8 @@ import com.tictactec.ta.lib.RetCode;
 //XXX
 public class HouseAroon extends TalibIndicator {
 	
+	private static MyLogger LOGGER = MyLogger.getLogger(HouseAroon.class);
+	
 	private double[] outAroonDown;
 	private double[] outAroonUp;
 
@@ -57,16 +60,23 @@ public class HouseAroon extends TalibIndicator {
 
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams) {
 		
-		Integer perd = (Integer) indicatorParams[0];
-		
-		outBegIdx.value = startIdx + perd;
-		outNBElement.value = endIdx - outBegIdx.value;
-		outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
-		
-		for (int i = outBegIdx.value ; i <= endIdx; i++) {
-			int[] periodHighLowIdxs = periodHighLowIdxs(i, inData[1], inData[2], inData[0], perd);
-			outAroonUp[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[0]))/perd.doubleValue()) * 100;
-			outAroonDown[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[1]))/perd.doubleValue()) * 100;
+		try {
+			
+			Integer perd = (Integer) indicatorParams[0];
+			
+			outBegIdx.value = startIdx + perd;
+			outNBElement.value = endIdx - outBegIdx.value;
+			outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
+			
+			for (int i = outBegIdx.value ; i <= endIdx; i++) {
+				int[] periodHighLowIdxs = periodHighLowIdxs(i, inData[1], inData[2], inData[0], perd);
+				outAroonUp[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[0]))/perd.doubleValue()) * 100;
+				outAroonDown[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[1]))/perd.doubleValue()) * 100;
+			}
+			
+		} catch (Exception e) {
+			LOGGER.warn(e,e);
+			return RetCode.InternalError;
 		}
 		
 		return RetCode.Success;

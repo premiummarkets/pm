@@ -1,0 +1,2129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project_export SYSTEM "http://sourceforge.net/export/sf_project_export_0.2.dtd">
+<document>
+<!-- Please excuse the fact that the referenced DTD is not yet available.  The data format of this feed may remain in flux until the full intended feature set has been implemented and retested.  Questions may be sent to moorman@sourceforge.net -->
+<!-- Support issues related to this feed should be directed to the SourceForge.net team per http://p.sf.net/sourceforge/support-->
+<!-- Data in this feed is subject to the Terms of Use specified at http://geeknetmedia.com/terms-of-use -->
+<!-- Project administrators should not provide raw feed saves to folks outside their immediate project team as hidden/deleted data may be exposed in this feed. -->
+<!-- If you are the administrator of a large project, you should limit your use of this XML export facility to once per week, at most.  This site feature is very data intensive. -->
+<!-- This feature has been launched as of 2004-09-27 on SourceForge.net as an Early Release feature for SourceForge.net site subscribers. Comments, questions, and requests for enhancement should be directed to SourceForge.net staff as per http://p.sf.net/sourceforge/support -->
+<!--
+Feature Options: * Default is to show all
+
+    &amp;show_projectsummary=1
+    &amp;show_projectresources=1
+    &amp;show_projectnews=1
+    &amp;show_filereleases=1
+    &amp;show_forums=1
+    &amp;show_trackers=1
+    &amp;show_tasks=1
+    &amp;show_projectadmin=1
+
+Option for show_forums=1: * To show a specific forum instead of all non-deleted
+
+    &amp;forum_to_show=FORUM_ID
+
+Option for show_trackers=1; * To show a specific Tracker instead of all
+    non-deleted
+
+    &amp;tracker_to_show=TRACKER_ID
+
+Option for show_filereleases, show_forums, show_projectnews, show_docmanager, show_trackers to show only items since a specific timestamp (UTC):
+
+    &amp;timestamp=EPOCH_TIME
+this way you can only export items changed since the last time found in your export details.
+
+--><export_details>
+<time>1357580001</time>
+<project_group_id>214811</project_group_id>
+<project_unix_name>pmsqueak</project_unix_name>
+<exporter>guil</exporter>
+</export_details>
+<projectsummary>
+<url>http://sourceforge.net/projects/pmsqueak/</url>
+<group_id>214811</group_id>
+<unix_name>pmsqueak</unix_name>
+<descriptive_name>Premium Markets</descriptive_name>
+<description>Premium Markets is an automated financial technical analysis system. 
+It implements a graphical environment for monitoring financial technical analysis major indicators, portfolio management and quotations charting.
+I would also like to bring to your attention that Premium Markets annonces its NEW Forecast engine!
+See http://premiummarkets.elasticbeanstalk.com/ for documentation and a workable demo of the forecast engine.</description>
+<license>gpl</license>
+<home_page_url>http://premiummarkets.elasticbeanstalk.com/html/swtui.html</home_page_url>
+<registration_description>* Piggy Market Squeak is an easy to use, out of the box, stock trends alert system.
+* Piggy Market Squeak comes with a user friendly Graphical User Interface.
+* Piggy Market Squeak will highlight and sort the stocks and shares you should buy and sell, either from a selected market place, or a selected set of shares aggregated in a Portfolio.
+* Highly versatile, it can integrate any stocks and shares market trend indicators based on open, closed, high and low prices, and trade volumes.
+* Piggy Market Squeak also provides extensible interfaces to interact with third party indicator calculation tools, any market lists and quotations available on the Internet and any email server.
+* Pure java application using SWT, the more advanced features of JDK 1.5, multi threading, JMS queue, Spring and more. Highly versatile and customisable.</registration_description>
+<registration_submitter>guil</registration_submitter>
+<register_time>1200369962</register_time>
+<projectmembers>
+<projectmember>
+<url>http://sourceforge.net/users/guil/</url>
+<user_id>9710</user_id>
+<user_name>guil</user_name>
+<public_name>guillaume T</public_name>
+<email>guil@users.sourceforge.net</email>
+<project_admin>Yes</project_admin>
+</projectmember>
+</projectmembers>
+</projectsummary>
+<projectresources>
+<feature_cvs>No</feature_cvs>
+<feature_mailinglists>Yes</feature_mailinglists>
+<feature_news>Yes</feature_news>
+<feature_forums>Yes</feature_forums>
+<feature_docman>No</feature_docman>
+<feature_tasks>Yes</feature_tasks>
+<forums>
+<forum>
+<forum_id>774287</forum_id>
+<forum_name>Open Discussion</forum_name>
+<description/>
+<is_public>Deleted</is_public>
+</forum>
+<forum>
+<forum_id>774288</forum_id>
+<forum_name>Help and Discussion</forum_name>
+<description/>
+<is_public>Yes</is_public>
+</forum>
+<forum>
+<forum_id>774289</forum_id>
+<forum_name>Developers</forum_name>
+<description/>
+<is_public>No</is_public>
+</forum>
+</forums>
+<trackers>
+<tracker>
+<tracker_id>1031162</tracker_id>
+<tracker_name>Bugs</tracker_name>
+<description>Bug Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+<tracker>
+<tracker_id>1031163</tracker_id>
+<tracker_name>Support Requests</tracker_name>
+<description>Tech Support Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+<tracker>
+<tracker_id>1031164</tracker_id>
+<tracker_name>Patches</tracker_name>
+<description>Patch Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+<tracker>
+<tracker_id>1031165</tracker_id>
+<tracker_name>Feature Requests</tracker_name>
+<description>Feature Request Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anonymous>Yes</allow_anonymous>
+</tracker>
+</trackers>
+<mailinglists>
+</mailinglists>
+</projectresources>
+<project_admin_detail>
+<trove_details>
+<trove_category>User Interface :: Graphical :: Java SWT</trove_category>
+<trove_category>Topic :: Office/Business :: Financial :: Investment</trove_category>
+<trove_category>Programming Language :: Java</trove_category>
+<trove_category>Intended Audience :: by End-User Class :: End Users/Desktop</trove_category>
+<trove_category>Development Status :: 4 - Beta</trove_category>
+<trove_category>License :: OSI-Approved Open Source :: GNU General Public License version 2.0 (GPLv2)</trove_category>
+<trove_category>Intended Audience :: by Industry or Sector :: Financial and Insurance Industry</trove_category>
+<trove_category>Operating System :: Grouping and Descriptive Categories :: OS Portable (Source code to work with many OS platforms)</trove_category>
+<trove_category>User Interface :: Graphical :: Java Swing</trove_category>
+</trove_details>
+</project_admin_detail>
+<projectnews>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=240888</url>
+<id>240888</id>
+<submitter>guil</submitter>
+<date>1210268717</date>
+<summary>Huge improvement in installation and event processing</summary>
+<details>0.1.4 of Piggy Market Squeak is out.
+It comes with huge installation improvement as well as a better events update process.
+PMS is now ready to include new signals and new markets as required.</details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=241616</url>
+<id>241616</id>
+<submitter>guil</submitter>
+<date>1211156182</date>
+<summary>Nasdaq Market now available!</summary>
+<details>With the 0.1.5, the Nasdaq Market list is now available!
+Coming soon : an integrated chart viewer.</details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=242386</url>
+<id>242386</id>
+<submitter>guil</submitter>
+<date>1211939695</date>
+<summary>PMS now includes charts</summary>
+<details>0.2.0 is out and includes some charting to help in decision making.</details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=245416</url>
+<id>245416</id>
+<submitter>guil</submitter>
+<date>1215293271</date>
+<summary>Added an on threshold alert</summary>
+<details>This latest piggy market squeak release comes with :
+A new alert on threshold feature directly available from a right click in the portfolio.
+A massive amount of bugs fixes, especially in the graph feature.
+Coming soon : a simple ad hock algebra to define your own alerts based on thresholds, slops, volumes and indicators :)
+
+</details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=246624</url>
+<id>246624</id>
+<submitter>guil</submitter>
+<date>1216921927</date>
+<summary>Here is the first fonctional release</summary>
+<details>Yet an other piggy market squeak release including, 
+  A new indicator : Stochastic oscillators and
+  A massive amount of bugs fixes, especially on the signal generation system.
+Coming soon : 
+- A reference portfolio auto managed by PMS
+- Trend indicators per market and sectors
+- Filters of set of shares
+- A simple ad hock algebra to define your own alerts based on 
+  thresholds, slops, volumes and indicators :) </details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=248239</url>
+<id>248239</id>
+<submitter>guil</submitter>
+<date>1219101518</date>
+<summary>Auto managed portfolio</summary>
+<details>Hi,
+Just added an auto managed portfolio.
+Enjoy.
+
+Guillaume</details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=251512</url>
+<id>251512</id>
+<submitter>guil</submitter>
+<date>1223483975</date>
+<summary>Google finance brings us with the NYSE and AMEX markets</summary>
+<details>Added support for google finance API for quotations and market share list.
+Added NYSE and AMEX markets share lists.
+Bug fixes.</details>
+</newsitem>
+<newsitem>
+<url>http://sourceforge.net/news/group_id=214811&amp;id=260169</url>
+<id>260169</id>
+<submitter>guil</submitter>
+<date>1233783161</date>
+<summary>BSE, ASX markets are in!</summary>
+<details>This release comes with bug fixes of course
+But also :
+
+- RSI indicator addition
+
+- BSE and ASX markets
+
+In the cardboard : Canadian market. But I would need a link to the list of shares. If any body can help?</details>
+</newsitem>
+</projectnews>
+<filereleases>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=600232</url>
+<filename>pms-0.1.5.tar.gz</filename>
+<release_id>600232</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>36611620</file_size>
+<release_time>1211155851</release_time>
+<post_date>1211155765</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=600232</url>
+<filename>pms-0.1.5.zip</filename>
+<release_id>600232</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>36614470</file_size>
+<release_time>1211155886</release_time>
+<post_date>1211155766</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=602465</url>
+<filename>pms-0.2.0.tar.gz</filename>
+<release_id>602465</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>36614816</file_size>
+<release_time>1211940158</release_time>
+<post_date>1211940125</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=602465</url>
+<filename>pms-0.2.0.zip</filename>
+<release_id>602465</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>36617405</file_size>
+<release_time>1211940744</release_time>
+<post_date>1211940661</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=611456</url>
+<filename>pms-0.3.0.tar.gz</filename>
+<release_id>611456</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>41611846</file_size>
+<release_time>1215273924</release_time>
+<post_date>1215273804</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=611456</url>
+<filename>pms-0.3.0.zip</filename>
+<release_id>611456</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>41614697</file_size>
+<release_time>1215273945</release_time>
+<post_date>1215273804</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=615462</url>
+<filename>install-0.4.0.jar</filename>
+<release_id>615462</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>51707980</file_size>
+<release_time>1216921034</release_time>
+<post_date>1216920992</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=615462</url>
+<filename>PiggyMarketSqueak-0.4.0.jnlp</filename>
+<release_id>615462</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>1996</file_size>
+<release_time>1216921069</release_time>
+<post_date>1216920992</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=620551</url>
+<filename>PiggyMarketSqueak-0.6.0.jnlp</filename>
+<release_id>620551</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>1992</file_size>
+<release_time>1219099256</release_time>
+<post_date>1219099223</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=620551</url>
+<filename>pms-0.6.0.jar</filename>
+<release_id>620551</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>122974697</file_size>
+<release_time>1219099042</release_time>
+<post_date>1219098984</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=631421</url>
+<filename>PiggyMarketSqueak-0.7.0.jnlp</filename>
+<release_id>631421</release_id>
+<package_id>259039</package_id>
+<processor>Any</processor>
+<file_size>1992</file_size>
+<release_time>1223392939</release_time>
+<post_date>1223390096</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=631421</url>
+<filename>pms-0.7.0.jar</filename>
+<release_id>631421</release_id>
+<package_id>259039</package_id>
+<processor>None</processor>
+<file_size>124421926</file_size>
+<release_time>1223392913</release_time>
+<post_date>1223392913</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=647473</url>
+<filename>PiggyMarketSqueak-0.7.1.jnlp</filename>
+<release_id>647473</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>1987</file_size>
+<release_time>1229384792</release_time>
+<post_date>1229384733</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=647473</url>
+<filename>pms-0.7.1.jar</filename>
+<release_id>647473</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>124435400</file_size>
+<release_time>1229387240</release_time>
+<post_date>1229387222</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=658637</url>
+<filename>PiggyMarketSqueak-0.8.0.jnlp</filename>
+<release_id>658637</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>1987</file_size>
+<release_time>1233782286</release_time>
+<post_date>1233782209</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=259039&amp;release_id=658637</url>
+<filename>pms-0.8.0.jar</filename>
+<release_id>658637</release_id>
+<package_id>259039</package_id>
+<processor>Platform-Independent</processor>
+<file_size>124514418</file_size>
+<release_time>1233782071</release_time>
+<post_date>1233782034</post_date>
+</filerelease>
+<filerelease>
+<url>http://sourceforge.net/project/showfiles.php?group_id=214811&amp;package_id=276623&amp;release_id=615463</url>
+<filename>initialdb-nasdaq-yahoo.jar</filename>
+<release_id>615463</release_id>
+<package_id>276623</package_id>
+<processor>Platform-Independent</processor>
+<file_size>70910866</file_size>
+<release_time>1216921580</release_time>
+<post_date>1216921561</post_date>
+</filerelease>
+</filereleases>
+<forums>
+<forum>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288</url>
+<forum_id>774288</forum_id>
+<forum_name>Help and Discussion</forum_name>
+<is_public>Yes</is_public>
+<description/>
+<send_posts_to>piggymarketsqueak@googlemail.com</send_posts_to>
+<anonymous_posting>Yes</anonymous_posting>
+<forum_posts>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8786810</url>
+<msg_id>8786810</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1290126543</date>
+<is_deleted>No</is_deleted>
+<body>Yes that's exactly it. All you need is the indices name used by yahoo.
+Which means that if you specify ^AORD, the url that will be used is http://uk.old.finance.yahoo.com/d/quotes.csv?s=@^AORD&amp;f=sl1d1t1c1ohgv&amp;e=.csv
+I checked it so it should just work :)
+Let me know. Thanks</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8774009</url>
+<msg_id>8774009</msg_id>
+<poster_user/>
+<poster_name>maskiepop</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1289888722</date>
+<is_deleted>No</is_deleted>
+<body>Hi Guil,
+
+Let me see if I can explain this. It's difficult for me because I have very little understanding of the way these systems hang together. More so with pms. 
+
+First, there are a number of applications that I am using to download EOD data from Yahoo Finance. QTStalker, beancounter, Yahoo and Google Quotes Downloader (Win), etc. In most cases all I have to do is specify a list of symbols (with or without an .AX suffix i.e BHP.AX, RIO.AX, etc) and the software does the rest. 
+
+I can also go to the Yahoo website itself :  http://au.finance.yahoo.com and download the data manually. The url you have indicated above is meant only, it seems to me, for the ^AORD, the Australian All Ordinaries index. Is that basically the problem? PMS needs more than just the index, right?
+
+I am hoping we'd still be able to sort this out. In the meantime I will continue to familiarize myself with pms. I'll see if I get it to use the eod data I already have.
+
+Thanks.
+
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8773249</url>
+<msg_id>8773249</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1289850407</date>
+<is_deleted>No</is_deleted>
+<body>Hi maskiepop ,
+Yes you are right about the Yahoo share list. 
+pmsq also support yahoo indices In "Quotations" / "Select a maket .."  you can also choose to tick yahooIndices and fill the beneath  field with INDICE_NAME:MARKETNAME. 
+Unfortunately if believe the following url, http://finance.yahoo.com/intlindices?e=asia, yahoo doesn't look like providing such an indices for the ASX market?</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8772614</url>
+<msg_id>8772614</msg_id>
+<poster_user/>
+<poster_name>maskiepop</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1289830052</date>
+<is_deleted>No</is_deleted>
+<body>
+Hi Guil.
+
+Thanks for your prompt reply.
+
+I found these ASX links: 
+
+   1)  http://www.asx.com.au/asx/research/companyInfo.do?by=asxCode&amp;asxCode=RPX#closing_prices  
+   2) http://www.asx.com.au/asx/research/companyInfo.do?by=asxCode&amp;asxCode=RPX#price
+   3) http://www.asx.com.au/asx/markets/equityPrices.do
+
+I actually haven't pulled any data from these (don't know how) so I don't know if this is what you want. 
+
+ #2 are for delayed prices; #1 are for closing prices.
+ #3 I think is probably the correct one, because this allows one to specify multiple stock symbols.
+
+If the above aren't any good -- I'd be happy to just pull the data from Yahoo Finance:  http://au.finance.yahoo.com/ 
+How would you set that one up? I was under the impression pms can already pull data from that link, but it doesn't seem to be able to.
+
+
+Cheers,
+
+m
+
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8770872</url>
+<msg_id>8770872</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1289752415</date>
+<is_deleted>No</is_deleted>
+<body>Hi maskiepop,
+To run the UI you can double click on the icon that should be on your Desktop after install and if not, you can run the gui.bat in the shell folder.
+Actually A0S was available, You  would have to select it in "Quotations" than "choose market ..."
+From there, you would have to do a "Refresh stock list " form the same "Quotations" menu.
+After that, you  could have added a new portfolio and the ASX shares should have been available to be added.
+But I realise I am using that link : http://www.asx.com.au/asx/downloadCsv/ASXListedCompanies.csv which looks like a dead link now? If you have any suggestion for an other link, it would be welcome. Thank you.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8769940</url>
+<msg_id>8769940</msg_id>
+<poster_user/>
+<poster_name>maskiepop</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1289698591</date>
+<is_deleted>No</is_deleted>
+<body>Hi 
+
+I have just installed your pmsq software.  It is, as flashg above, says very interesting. 
+
+I am trading ASX shares, and keeping track of my portfolio with excel, and all sorts of tools. I think your pgms is a cut above the rest. Thank you very much.
+
+In one of the posts here -- elizabethann,  was inquiring about using this on Australian shares. You mentioned you needed to make a change to the code -- adding a url -- that you may have to do.  Can I have the change as well? 
+
+And can you please explain a bit more: the url is to download ASX stocks from YFin? EOD data? Intraday as well?
+
+And  once the url is in place? Run the service.bat? While pmsq is running? Do I need to set up a list of stocks to be downloaded? 
+
+Sorry about all these questions. 
+
+I can return the favor. I know very little about java and PC OS. Perhaps I can write some of your documentation?
+
+Thank you very much.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8551550</url>
+<msg_id>8551550</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1280955570</date>
+<is_deleted>No</is_deleted>
+<body>Hi David,
+It is a different error that you have here though.
+It say that an other instant of Derby (embedded data base used by Piggy MS) is already running.
+Just kill this other instant of piggy MS that is running or kill the java programs running in back ground.
+Try again and let me know :)
+Cheers.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3775287?message=8516224</url>
+<msg_id>8516224</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>not working on 64bit freebsd</subject>
+<thread_id>3775287</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1279404343</date>
+<is_deleted>No</is_deleted>
+<body>fails to run on freebsd amd 64bit 8.0 release.
+Added the -d32 to switch to gui.sh but get the following error:
+
+"Running a 32-bit JVM is not supported on this platform."
+
+Any ideas?</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8514446</url>
+<msg_id>8514446</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1279298593</date>
+<is_deleted>No</is_deleted>
+<body>Hi, mr. Guil,
+either on version 0.80 i get same kind of execution errors
+On 0.90 version over Ubuntu Lucid 64 
+I get this output:
+PiggyMarketSqueak/shell$ bash ./gui.sh
+Exception in thread "main" org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'portfolioMgr' defined in class path resource [swtclients.xml]: Instantiation of bean failed; nested exception is org.springframework.beans.BeanInstantiationException: Could not instantiate bean class [com.finance.pms.portfolio.PortfolioMgr]: Constructor threw exception; nested exception is org.springframework.transaction.CannotCreateTransactionException: Could not open Hibernate Session for transaction; nested exception is org.hibernate.exception.GenericJDBCException: Cannot open connection
+at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:254)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:925)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:835)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:440)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory$1.run(AbstractAutowireCapableBeanFactory.java:409)
+at java.security.AccessController.doPrivileged(Native Method)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:380)
+at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:264)
+at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:222)
+at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:261)
+at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:185)
+at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:164)
+at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:429)
+at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:728)
+at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:380)
+at com.finance.pms.MainGui.main(MainGui.java:537)
+Caused by: org.springframework.beans.BeanInstantiationException: Could not instantiate bean class [com.finance.pms.portfolio.PortfolioMgr]: Constructor threw exception; nested exception is org.springframework.transaction.CannotCreateTransactionException: Could not open Hibernate Session for transaction; nested exception is org.hibernate.exception.GenericJDBCException: Cannot open connection
+at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:115)
+at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:87)
+at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:248)
+... 15 more
+Caused by: org.springframework.transaction.CannotCreateTransactionException: Could not open Hibernate Session for transaction; nested exception is org.hibernate.exception.GenericJDBCException: Cannot open connection
+at org.springframework.orm.hibernate3.HibernateTransactionManager.doBegin(HibernateTransactionManager.java:599)
+at org.springframework.transaction.support.AbstractPlatformTransactionManager.getTransaction(AbstractPlatformTransactionManager.java:374)
+at org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary(TransactionAspectSupport.java:263)
+at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:101)
+at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:171)
+at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:204)
+at $Proxy34.loadPortfolios(Unknown Source)
+at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+at java.lang.reflect.Method.invoke(Method.java:616)
+at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:307)
+at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:182)
+at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:149)
+at org.springframework.aop.framework.adapter.MethodBeforeAdviceInterceptor.invoke(MethodBeforeAdviceInterceptor.java:50)
+at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:171)
+at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:89)
+at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:171)
+at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:204)
+at $Proxy34.loadPortfolios(Unknown Source)
+at com.finance.pms.portfolio.PortfolioMgr.&lt;init&gt;(PortfolioMgr.java:93)
+at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:57)
+at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+at java.lang.reflect.Constructor.newInstance(Constructor.java:532)
+at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:100)
+... 17 more
+Caused by: org.hibernate.exception.GenericJDBCException: Cannot open connection
+at org.hibernate.exception.SQLStateConverter.handledNonSpecificException(SQLStateConverter.java:103)
+at org.hibernate.exception.SQLStateConverter.convert(SQLStateConverter.java:91)
+at org.hibernate.exception.JDBCExceptionHelper.convert(JDBCExceptionHelper.java:43)
+at org.hibernate.exception.JDBCExceptionHelper.convert(JDBCExceptionHelper.java:29)
+at org.hibernate.jdbc.ConnectionManager.openConnection(ConnectionManager.java:426)
+at org.hibernate.jdbc.ConnectionManager.getConnection(ConnectionManager.java:144)
+at org.hibernate.jdbc.JDBCContext.connection(JDBCContext.java:119)
+at org.hibernate.transaction.JDBCTransaction.begin(JDBCTransaction.java:57)
+at org.hibernate.impl.SessionImpl.beginTransaction(SessionImpl.java:1326)
+at org.springframework.orm.hibernate3.HibernateTransactionManager.doBegin(HibernateTransactionManager.java:558)
+... 42 more
+Caused by: java.sql.SQLException: Failed to start database 'derby//piggymarketsqueak', see the next exception for details.
+at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+at org.apache.derby.impl.jdbc.Util.seeNextException(Unknown Source)
+at org.apache.derby.impl.jdbc.EmbedConnection.bootDatabase(Unknown Source)
+at org.apache.derby.impl.jdbc.EmbedConnection.&lt;init&gt;(Unknown Source)
+at org.apache.derby.impl.jdbc.EmbedConnection30.&lt;init&gt;(Unknown Source)
+at org.apache.derby.impl.jdbc.EmbedConnection40.&lt;init&gt;(Unknown Source)
+at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+at org.apache.derby.jdbc.AutoloadedDriver.connect(Unknown Source)
+at java.sql.DriverManager.getConnection(DriverManager.java:620)
+at java.sql.DriverManager.getConnection(DriverManager.java:169)
+at org.springframework.jdbc.datasource.DriverManagerDataSource.getConnectionFromDriverManager(DriverManagerDataSource.java:174)
+at org.springframework.jdbc.datasource.DriverManagerDataSource.getConnectionFromDriver(DriverManagerDataSource.java:165)
+at org.springframework.jdbc.datasource.AbstractDriverBasedDataSource.getConnectionFromDriver(AbstractDriverBasedDataSource.java:149)
+at org.springframework.jdbc.datasource.AbstractDriverBasedDataSource.getConnection(AbstractDriverBasedDataSource.java:119)
+at org.springframework.orm.hibernate3.LocalDataSourceConnectionProvider.getConnection(LocalDataSourceConnectionProvider.java:82)
+at org.hibernate.jdbc.ConnectionManager.openConnection(ConnectionManager.java:423)
+... 47 more
+Caused by: java.sql.SQLException: Failed to start database 'derby//piggymarketsqueak', see the next exception for details.
+at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+... 65 more
+Caused by: java.sql.SQLException: Another instance of Derby may have already booted the database /home/coredump/Modelli/PiggyMarketSqueak/derby/piggymarketsqueak.
+at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+... 62 more
+Caused by: ERROR XSDB6: Another instance of Derby may have already booted the database /home/coredump/Modelli/PiggyMarketSqueak/derby/piggymarketsqueak.
+at org.apache.derby.iapi.error.StandardException.newException(Unknown Source)
+at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.privGetJBMSLockOnDB(Unknown Source)
+at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.run(Unknown Source)
+at java.security.AccessController.doPrivileged(Native Method)
+at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.getJBMSLockOnDB(Unknown Source)
+at org.apache.derby.impl.store.raw.data.BaseDataFileFactory.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.startModule(Unknown Source)
+at org.apache.derby.iapi.services.monitor.Monitor.bootServiceModule(Unknown Source)
+at org.apache.derby.impl.store.raw.RawStore.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.startModule(Unknown Source)
+at org.apache.derby.iapi.services.monitor.Monitor.bootServiceModule(Unknown Source)
+at org.apache.derby.impl.store.access.RAMAccessManager.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.startModule(Unknown Source)
+at org.apache.derby.iapi.services.monitor.Monitor.bootServiceModule(Unknown Source)
+at org.apache.derby.impl.db.BasicDatabase.bootStore(Unknown Source)
+at org.apache.derby.impl.db.BasicDatabase.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.boot(Unknown Source)
+at org.apache.derby.impl.services.monitor.TopService.bootModule(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.bootService(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.startProviderService(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.findProviderAndStartService(Unknown Source)
+at org.apache.derby.impl.services.monitor.BaseMonitor.startPersistentService(Unknown Source)
+at org.apache.derby.iapi.services.monitor.Monitor.startPersistentService(Unknown Source)
+... 62 more
+
+Looking for Logger classes as you suggested gave me :
+
+[Loaded com.finance.pms.admin.install.logging.MyLogger from file:/home/coredump/Modelli/PiggyMarketSqueak/pms.jar]
+
+[Loaded com.finance.pms.admin.install.logging.MyLogger$1 from file:/home/coredump/Modelli/PiggyMarketSqueak/pms.jar]
+
+[Loaded org.apache.log4j.Logger from file:/home/coredump/Modelli/PiggyMarketSqueak/lib/log4j-1.2.14.jar]
+
+[Loaded org.apache.log4j.spi.RootLogger from file:/home/coredump/Modelli/PiggyMarketSqueak/lib/log4j-1.2.14.jar]
+[Loaded org.apache.log4j.spi.LoggerRepository from file:/home/coredump/Modelli/PiggyMarketSqueak/lib/log4j-1.2.14.jar]
+
+[Loaded org.apache.log4j.spi.LoggerFactory from file:/home/coredump/Modelli/PiggyMarketSqueak/lib/log4j-1.2.14.jar]
+
+[Loaded java.util.logging.Logger from /usr/lib/jvm/java-6-openjdk/jre/lib/rt.jar]
+
+[Loaded java.util.logging.LogManager$RootLogger from /usr/lib/jvm/java-6-openjdk/jre/lib/rt.jar]
+
+[Loaded com.sun.jmx.remote.util.ClassLogger from /usr/lib/jvm/java-6-openjdk/jre/lib/rt.jar]
+
+so I found log4j-1.2.14.jar in the right path and rt.jar  the last version and impossible to take it out of the path.(java machine doesn't start).
+Hope it could be useful. 
+Any further suggestion?
+
+Best regards
+David</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8497207</url>
+<msg_id>8497207</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1278491254</date>
+<is_deleted>No</is_deleted>
+<body>Hi all,
+
+I got the same problem on Ubuntu Lucid 64
+very annoying!
+I tried the suggested command 
+java -verbose:class -Djava.library.path=./lib -Dinstalldir=. -jar ./pms.jar ./db.properties &gt; ./vclass.txt
+but it hangs.
+(I don't know anything about java - better to say I hate it)
+How to check and change log4j in simple way ?
+
+Anyway thanks for the job
+David
+
+
+
+
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8418964</url>
+<msg_id>8418964</msg_id>
+<poster_user>cyberminotaure</poster_user>
+<poster_name>cyber minotaur</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274980799</date>
+<is_deleted>No</is_deleted>
+<body>No... there is nothing... it seems the application is hang...</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8416548</url>
+<msg_id>8416548</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274903048</date>
+<is_deleted>No</is_deleted>
+<body>Hi there,
+Can you see any error though?</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8416220</url>
+<msg_id>8416220</msg_id>
+<poster_user>cyberminotaure</poster_user>
+<poster_name>cyber minotaur</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274894046</date>
+<is_deleted>No</is_deleted>
+<body>Hello Guil!
+
+Still not working... no gui is showing... 
+
+I just added the -verbose flag to that same line in the gui.sh and here is the output (if it could help you):
+
+.
+.
+.
+[Loaded javax.swing.JComponent from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded javax.swing.JPanel from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded org.jfree.chart.ChartPanel from file:/Users/mlocas/Documents/F1/PiggyMarketSqueak/lib/jfreechart-1.0.9.jar]
+[Loaded com.finance.pms.portfolio.gui.charts.ChartsComposite$1 from file:/Users/mlocas/Documents/F1/PiggyMarketSqueak/pms.jar]
+[Loaded com.finance.pms.datasources.db.StripedCloseAbsoluteRelative from file:/Users/mlocas/Documents/F1/PiggyMarketSqueak/pms.jar]
+[Loaded org.eclipse.swt.awt.SWT_AWT from file:/Users/mlocas/Documents/F1/PiggyMarketSqueak/lib/my-osx-swt-0.1.jar]
+[Loaded java.awt.KeyEventDispatcher from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.awt.Window from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.awt.Frame from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.EmbeddedFrame from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded apple.awt.CEmbeddedFrame from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded apple.awt.CHIViewEmbeddedFrame from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded java.awt.Component$AWTTreeLock from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.DebugHelper from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.NativeLibLoader from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.WindowClosingSupport from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.WindowClosingListener from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.ComponentFactory from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.InputMethodSupport from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.awt.Toolkit from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.SunToolkit from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded apple.awt.CToolkit from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded java.awt.Toolkit$3 from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.util.CoreResourceBundleControl from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.resources.awt from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.awt.Toolkit$1 from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.awt.GraphicsEnvironment from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.awt.GraphicsEnvironment$1 from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.AWTAutoShutdown from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.AWTAutoShutdown$PeerMap from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded apple.awt.CToolkit$LookAndFeelChangeListener from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded apple.awt.RuntimeOptions from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded apple.awt.RuntimeOptions$1 from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded apple.awt.RuntimeOptions$MostRecentContextOptionsPair from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded java.awt.FontMetrics from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded apple.awt.CToolkit$1 from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar]
+[Loaded java.util.IdentityHashMap$Values from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.util.IdentityHashMap$IdentityHashMapIterator from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded java.util.IdentityHashMap$ValueIterator from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+[Loaded sun.awt.AppContext$PostShutdownEventRunnable from /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar]
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8416215</url>
+<msg_id>8416215</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274893781</date>
+<is_deleted>No</is_deleted>
+<body>Otherwise... without the -d32 flag, I get the following error:
+
+Mail Settings : log activated : true
+INFO  SpringContext                  - Refreshing com.finance.pms.SpringContext@3b75078b: display name [com.finance.pms.SpringContext@3b75078b]; startup date [Wed May 26 13:08:33 EDT 2010]; root of context hierarchy
+INFO  SpringContext                  - Bean factory for application context [com.finance.pms.SpringContext@3b75078b]: org.springframework.beans.factory.support.DefaultListableBeanFactory@663b1f38
+ Instancating aspect object : com.finance.pms.datasources.SetStringAspectJAdvisor@15e0a283
+Exception in thread "main" java.lang.UnsatisfiedLinkError: [b]Cannot load 32-bit SWT libraries on 64-bit JVM[/b]
+at org.eclipse.swt.internal.Library.loadLibrary(Unknown Source)
+at org.eclipse.swt.internal.Library.loadLibrary(Unknown Source)
+at org.eclipse.swt.internal.C.&lt;clinit&gt;(Unknown Source)
+at org.eclipse.swt.widgets.Display.createDisplay(Unknown Source)
+at org.eclipse.swt.widgets.Display.create(Unknown Source)
+at org.eclipse.swt.graphics.Device.&lt;init&gt;(Unknown Source)
+at org.eclipse.swt.widgets.Display.&lt;init&gt;(Unknown Source)
+at org.eclipse.swt.widgets.Display.&lt;init&gt;(Unknown Source)
+at org.eclipse.swt.widgets.Display.getDefault(Unknown Source)
+at com.finance.pms.MainGui.main(MainGui.java:389)
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8416212</url>
+<msg_id>8416212</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274893682</date>
+<is_deleted>No</is_deleted>
+<body>FYI... on both MAC or Linux, I had to add the "-d32" flag to the following line in gui.sh to avoid the following error:
+
+java [b]-d32[/b] -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path=$INSTALLDIR/lib -Dinstalldir=$INSTALLDIR -jar $INSTALLDIR/pms.jar $INSTALLDIR/db.properties
+
+instead of the original line:
+
+java -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path=$INSTALLDIR/lib -Dinstalldir=$INSTALLDIR -jar $INSTALLDIR/pms.jar $INSTALLDIR/db.properties
+
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8416210</url>
+<msg_id>8416210</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274893545</date>
+<is_deleted>No</is_deleted>
+<body>Sorry guil, but it is still not working...  Here is the output:
+
+HELLFIRE:shell mlocas$ bash gui.sh 
+install dir ..
+start  : .
+install dir :/Users/mlocas/Documents/F1/PiggyMarketSqueak/shell/..
+/opt/local/bin:/opt/local/sbin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin
+Mail Settings : log activated : true
+INFO  SpringContext                  - Refreshing com.finance.pms.SpringContext@181ed9e: display name [com.finance.pms.SpringContext@181ed9e]; startup date [Wed May 26 13:03:17 EDT 2010]; root of context hierarchy
+INFO  SpringContext                  - Bean factory for application context [com.finance.pms.SpringContext@181ed9e]: org.springframework.beans.factory.support.DefaultListableBeanFactory@1bc16f0
+ Instancating aspect object : com.finance.pms.datasources.SetStringAspectJAdvisor@16602cb
+
+
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8404990</url>
+<msg_id>8404990</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274386400</date>
+<is_deleted>No</is_deleted>
+<body>Hi there,
+I am not an expert in Mac but could you try the following on your Unix :
+[code]cd /"where ever the stuff is installed"/shell[/code]
+ie the equivalent folder to  /Users/mlocas/Documents/F1/PiggyMarketSqueak/ on your Mac /shell/
+Then run :
+[code]bash ./gui.sh[/code]
+
+That should do.
+cheers</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=8402314</url>
+<msg_id>8402314</msg_id>
+<poster_user>cyberminotaure</poster_user>
+<poster_name>cyber minotaur</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1274300242</date>
+<is_deleted>No</is_deleted>
+<body>Hello guys!
+
+I have the same problem on both Linux (Gentoo) &amp; Mac OS X 10.6 (Snow Leopard)
+
+Java info on the Linux system:
+
+java version "1.6.0_0"
+OpenJDK Runtime Environment (IcedTea6 1.4.1) (Gentoo-icedtea6-bin-1.4.1)
+OpenJDK 64-Bit Server VM (build 14.0-b08, mixed mode)
+
+--------
+
+Java info on the Mac OS X:
+
+java version "1.6.0_17"
+Java(TM) SE Runtime Environment (build 1.6.0_17-b04-248-10M3025)
+Java HotSpot(TM) 64-Bit Server VM (build 14.3-b01-101, mixed mode)
+
+-----------
+
+Here is the output after the first install (on the Mac)...
+
+.
+.
+.
+put(82,1274300061838L);
+put(89,1274300066871L);
+put(88,1274300066869L);
+Dialog return code is (0=Finish,1=Cancel,2=Error): 0
+OS like : Mac
+install dir /Users/mlocas/Documents/F1/PiggyMarketSqueak/shell/..
+start  : /
+install dir :/Users/mlocas/Documents/F1/PiggyMarketSqueak
+/opt/local/bin:/opt/local/sbin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin
+Mail Settings : log activated : true
+INFO  SpringContext                  - Refreshing com.finance.pms.SpringContext@538f1d7e: display name [com.finance.pms.SpringContext@538f1d7e]; startup date [Wed May 19 16:14:36 EDT 2010]; root of context hierarchy
+INFO  SpringContext                  - Bean factory for application context [com.finance.pms.SpringContext@538f1d7e]: org.springframework.beans.factory.support.DefaultListableBeanFactory@7a7c3885
+
+
+And there is nothing after... no GUI running... niet!  Any ideas?
+
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8282197</url>
+<msg_id>8282197</msg_id>
+<poster_user>flashg</poster_user>
+<poster_name>flashg</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1270893888</date>
+<is_deleted>No</is_deleted>
+<body>Hi Guil,
+
+Ha!  Yes indeed.  I'm the saviour of the Universe!  ;-)
+
+Looking forward to your release.
+
+Cheers
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8275791</url>
+<msg_id>8275791</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1270848498</date>
+<is_deleted>No</is_deleted>
+<body>Hi Flashg,
+You deserve your nickname :) 
+Well actually I am still working on it but close to finish :) . I still need to package it though!
+And that I'll probably do in the coming week or two.
+Cheers.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8271266</url>
+<msg_id>8271266</msg_id>
+<poster_user>flashg</poster_user>
+<poster_name>flashg</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1270814481</date>
+<is_deleted>No</is_deleted>
+<body>Any chance of getting a sneak preview of the next release?  I can help with the testing.  ;-)
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8190392</url>
+<msg_id>8190392</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1269202892</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+It is actually because these libs are not provided by the maven rep you are pointing to and may be any other repository.
+What you have to do is to load them by hand as it probably says in the error message.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8189179</url>
+<msg_id>8189179</msg_id>
+<poster_user>flashg</poster_user>
+<poster_name>flashg</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1269172524</date>
+<is_deleted>No</is_deleted>
+<body>
+Thank you for your direction.  I think I am getting a little bit further.
+
+First, tried "mvn eclipse:eclipse", but getting following error,
+
+D:\home\src\eclipse\v3.5.2j\pms\pms_100320&gt;mvn eclipse:eclipse
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[ERROR] FATAL ERROR
+[INFO] ------------------------------------------------------------------------
+[INFO] Error building POM (may not be this project's POM).
+
+
+Project ID: unknown
+
+Reason: Could not find the model file 'D:\home\src\eclipse\v3.5.2j\pms\pms_100320\pms_main'. for project unknown
+
+
+It is complaining about the POM, so tried a different POM,
+
+mvn -f pom_main.xml eclipse:eclipse
+
+But now it is complaining about missing following libraries,
+
+ta-lib-0.4.0.jar
+wizard-1.0.jar
+my-win32-swt-0.1.jar
+jms-1.1.jar
+my-unix-swt-0.1.jar
+my-osx-swt-0.1.jar
+
+Will try to fiddle with the classpath.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8187813</url>
+<msg_id>8187813</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1269133425</date>
+<is_deleted>No</is_deleted>
+<body>Try  mvn eclipse:eclipse
+You still may have to fiddle a bit with your classpath and missing libraries  afterward but this should do most of the job for you.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8187293</url>
+<msg_id>8187293</msg_id>
+<poster_user>flashg</poster_user>
+<poster_name>flashg</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1269122095</date>
+<is_deleted>No</is_deleted>
+<body>Thank you for your quick response.  Very happy to hear about a pending release in the coming weeks!  ;-)
+
+I'm trying to get a better understanding of the code and hope to contribute some time in the future if I may.
+
+I have downloaded the latest code from CVS and tried to compile using Eclipse v3.5.2 with Maven IAM plugin, but is running into some problems.  I tried to search the forum and FAQs for clues, but not much luck there.
+
+Is it possible to get some brief steps on how to set up the compile environment for a successful build?  I am happy to contribute to a FAQ if I may?
+
+Cheers
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8186513</url>
+<msg_id>8186513</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>-1</is_followup_to>
+<has_followups>0</has_followups>
+<date>1269106730</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+Thanks for your message.
+I am actually working on the next release which should be ready in the coming weeks.
+It includes a tuning feature which give the mean to replay signals in the past and optimize the strategy.
+I also implemented a scraping tool to fetch opinions from yahoo and others.
+
+cheers,</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3622884?message=8185781</url>
+<msg_id>8185781</msg_id>
+<poster_user>flashg</poster_user>
+<poster_name>flashg</poster_name>
+<subject>Latest beta release?</subject>
+<thread_id>3622884</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1269092631</date>
+<is_deleted>No</is_deleted>
+<body>
+Thank you for an interesting piece of software.
+
+It has been a while since v0.8.0 was released.  Is it possible to get the latest beta build?
+
+Thanks
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=7019819</url>
+<msg_id>7019819</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>6981137</is_followup_to>
+<has_followups>0</has_followups>
+<date>1238405800</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+The problem is definitely due to  an old version of log4j in the classpath that will be picked up by the class loader before the one provided by the PMS.
+To solve the problem you have to upgrade that log4j library to the latest on your system.
+If you don't know where it is you can do the following to find out :
+- go (cd) in the installation folder of PMS.
+- on the command line run the following : 
+java -verbose:class -Djava.library.path=./lib -Dinstalldir=. -jar ./pms.jar ./db.properties &amp;gt; ./vclass.txt
+or (for windows) something like
+java -verbose:class -Djava.library.path=.\lib -Dinstalldir=. -jar .\pms.jar .\db.properties &amp;gt; .\vclass.txt
+- when done look for &amp;quot;Logger&amp;quot; in the generated vclass.txt. Hence, you should find the path to the jar to be upgraded.
+- if it is log4j, you can then update that jar file to the latest.
+- if it is an other library, either try with the latest or just take it out of the path.
+
+Good luck.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=6981137</url>
+<msg_id>6981137</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>6951860</is_followup_to>
+<has_followups>1</has_followups>
+<date>1238147522</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+Actually all the dependencies should be included in the installation folder.
+Your problem looks like your are not using the right version of log4j.
+
+Could you please do the following :
+Go in &amp;lt;your install path&amp;gt;/PiggyMarketSqueak
+Open the archive pms.jar (on windows I think that you just have to right click and then open with a zip tool).
+View the content of following file :  pmsbuild.properties and send it to me.
+Thanks very much!
+
+Guillaume.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=6974122</url>
+<msg_id>6974122</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>6951860</is_followup_to>
+<has_followups>0</has_followups>
+<date>1238109994</date>
+<is_deleted>No</is_deleted>
+<body>Same error. Are there any special dependencies required ?</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=6966509</url>
+<msg_id>6966509</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>6951860</is_followup_to>
+<has_followups>0</has_followups>
+<date>1238068730</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+I just re run the installation on both Windows and Linux platform today and it seems to work fine.
+It looks like you have an older version of the application.
+I would recommend UN installing it (by deleting the folder where installed) and reinstalling it.
+At the time of writing, the latest can be found here :
+http://downloads.sourceforge.net/pmsqueak/PiggyMarketSqueak-0.8.0.jnlp?use_mirror=surfnet
+
+Cheers,
+Guillaume.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/3136492?message=6951860</url>
+<msg_id>6951860</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>execution errors</subject>
+<thread_id>3136492</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>1</has_followups>
+<date>1237977701</date>
+<is_deleted>No</is_deleted>
+<body>many error messages when attempting to start application:
+
+[adrian@adios shell]$ ./gui.sh 
+install dir ./..
+start  : .
+install dir :/home/adrian/data/PiggyMarketSqueak/shell/./..
+/usr/bin:/bin:/usr/local/bin:/usr/X11R6/bin/:/usr/games:/usr/lib/qt4/bin:/usr/bin:/opt/kde3/bin:.:/home/adrian/bin:/home/ke/bin
+Mail Settings : log activated : false
+INFO  SpringContext                  - Refreshing com.finance.pms.SpringContext@19da4fc: display name [com.finance.pms.SpringContext@19da4fc]; startup date [Wed Mar 25 21:38:52 EST 2009]; root of context hierarchy
+INFO  SpringContext                  - Bean factory for application context [com.finance.pms.SpringContext@19da4fc]: org.springframework.beans.factory.support.DefaultListableBeanFactory@908881
+ Instancating aspect object : com.finance.pms.datasources.SetStringAspectJAdvisor@1d652
+INFO  MasSource                      - All MAS Done ...
+WARN  DisposableBeanAdapter          - Invocation of destroy method 'stopThreads' failed on bean with name 'masSource': java.lang.NullPointerException
+INFO  DataSource                     - All Sql Done ... Bye
+Exception in thread &amp;quot;main&amp;quot; org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'portfolioMgr' defined in class path resource [swtclients.xml]: Instantiation of bean failed; nested exception is org.springframework.beans.BeanInstantiationException: Could not instantiate bean class [com.finance.pms.portfolio.PortfolioMgr]: Constructor threw exception; nested exception is java.lang.NoSuchMethodError: org.apache.log4j.Logger.trace(Ljava/lang/Object;)V
+at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:254)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:925)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:835)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:440)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory$1.run(AbstractAutowireCapableBeanFactory.java:409)
+at java.security.AccessController.doPrivileged(Native Method)
+at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:380)
+at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:264)
+at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:221)
+at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:261)
+at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:185)
+at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:164)
+at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:429)
+at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:729)
+at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:381)
+at com.finance.pms.MainGui.main(MainGui.java:387)
+Caused by: org.springframework.beans.BeanInstantiationException: Could not instantiate bean class [com.finance.pms.portfolio.PortfolioMgr]: Constructor threw exception; nested exception is java.lang.NoSuchMethodError: org.apache.log4j.Logger.trace(Ljava/lang/Object;)V
+at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:115)
+at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:87)
+at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:248)
+... 15 more
+Caused by: java.lang.NoSuchMethodError: org.apache.log4j.Logger.trace(Ljava/lang/Object;)V
+at com.finance.pms.admin.install.logging.MyLogger.trace(MyLogger.java:629)
+at com.finance.pms.datasources.db.DataSource.exectuteSelect(DataSource.java:1120)
+at com.finance.pms.datasources.db.DataSource.exectuteSelect(DataSource.java:1105)
+at com.finance.pms.datasources.db.DataSource.loadLastDayClosed(DataSource.java:751)
+at com.finance.pms.portfolio.PortfolioShare.getLastDayCloseValue(PortfolioShare.java:453)
+at com.finance.pms.portfolio.PortfolioShare.&amp;lt;init&amp;gt;(PortfolioShare.java:172)
+at com.finance.pms.portfolio.Portfolio.&amp;lt;init&amp;gt;(Portfolio.java:114)
+at com.finance.pms.portfolio.PortfolioMgr.resetOldPortfolioList(PortfolioMgr.java:126)
+at com.finance.pms.portfolio.PortfolioMgr.&amp;lt;init&amp;gt;(PortfolioMgr.java:100)
+at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:39)
+at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)
+at java.lang.reflect.Constructor.newInstance(Constructor.java:513)
+at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:100)
+... 17 more
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2733366?message=5898348</url>
+<msg_id>5898348</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Minimal usage help?</subject>
+<thread_id>2733366</thread_id>
+<is_followup_to>5873171</is_followup_to>
+<has_followups>0</has_followups>
+<date>1230290172</date>
+<is_deleted>No</is_deleted>
+<body>Hi there,
+Thank you for using PiggyMarketSqueak :) and sorry for the late response.
+Regarding your question, when you add  &amp;quot;New share ...&amp;quot; you can select multiple shares in the list and specify a common quantity.
+Than you can modify each line independently in your portfolio by clicking on the cell you want to modify. Click on the Quantity, Cash in or Cash out should pop up a form that would help you.
+In order to start the automated download, you probably will have to run a script in the back ground (Look in the shell folder, I provided service.bat to add the soft as a service and all.bat that should run the download).
+Buy/Sell/Neutral/All are tab thumbs that filters the buy and sell events and can present you with a list of share to buy and to sell.
+The only criterias available to customise your event window at the moment can be set in the top left corner of the event frame (any suggestion about what would should be customisable is by the way very well come).
+To monitor any progress, you can have a look in  the pmsjava.log file.
+
+Enjoy,
+Kind Regards,
+Guillaume.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2733366?message=5873171</url>
+<msg_id>5873171</msg_id>
+<poster_user>lexje</poster_user>
+<poster_name>Erwin Panen</poster_name>
+<subject>Minimal usage help?</subject>
+<thread_id>2733366</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>1</has_followups>
+<date>1230026421</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+
+As a newly interested in the stock market mechanism, I downloaded your software. It really looks very good to my limited knowledge! 
+Do you, or could you provide some minimal information as to how to use the program?
+E.g. I tried to add a new share to MyPortfolio, so there I can choose a share allright, I can also enter the Quantity, but how do I enter the BuyPrice??
+Next I don't see any change at all. (I left the system running overnight to allow for downloading whatever...) 
+
+In the upper brown region - Buy/Sell/Neutral/All
+What can I do there - how do I enter information or criteria?
+
+Is there some way I can monitor e.g. a *.txt file or a database or such where I can monitor the program actually doing something?
+
+I realize due to my native Dutch speech some financial 'terms' will somewhat hide their exact meaning to me...
+
+Thanks for helping out!!
+
+Best regards and best whishes!
+Erwin</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/1952361?message=5517307</url>
+<msg_id>5517307</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Australia data?</subject>
+<thread_id>1952361</thread_id>
+<is_followup_to>4803004</is_followup_to>
+<has_followups>0</has_followups>
+<date>1225130202</date>
+<is_deleted>No</is_deleted>
+<body>Hi there, 
+As I said earlier on, PMS just needs an url to fetch the list of stocks from the Ausy ASX market. 
+For now, it needs to be added in the source code(which I can do). 
+I think their is something like that available on google. I'll have a look when I have the time.
+
+If no such list is available and in the current state of the source code, you can still set a list of the stocks you want to monitor in your own Portofolio. 
+Which means that you'll have to setup a list of shares you are interested in by uploading them form an independent file.
+ 
+What is your aim using this tool? 
+ 
+Regards, 
+Guillaume.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/1952361?message=5515615</url>
+<msg_id>5515615</msg_id>
+<poster_user>dudeskeeroo</poster_user>
+<poster_name>Aaron</poster_name>
+<subject>RE: Australia data?</subject>
+<thread_id>1952361</thread_id>
+<is_followup_to>4803004</is_followup_to>
+<has_followups>0</has_followups>
+<date>1225113688</date>
+<is_deleted>No</is_deleted>
+<body>I'm gonna go +1 for Aussie data.
+
+In yahoo finance, the ticker codes have a &amp;quot;.ax&amp;quot; suffix.  E.g. TLS.ax, LEI.ax etc.
+
+Is it possible to use PMS with these kinds of codes?  Can PMS gather the historical ASX data (I'm a little afraid to experiment considering a wrong assumption will burn a couple of GB in my download quota!)?
+
+Cheers, and looking forward to your reply,
+
+A.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2046336?message=4992145</url>
+<msg_id>4992145</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Screen resolution requirements</subject>
+<thread_id>2046336</thread_id>
+<is_followup_to>4976620</is_followup_to>
+<has_followups>0</has_followups>
+<date>1211988987</date>
+<is_deleted>No</is_deleted>
+<body>Hi,
+This UI problem is now fixed in the release 0.2.
+Cheers.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2046336?message=4977646</url>
+<msg_id>4977646</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Screen resolution requirements</subject>
+<thread_id>2046336</thread_id>
+<is_followup_to>4976620</is_followup_to>
+<has_followups>0</has_followups>
+<date>1211414495</date>
+<is_deleted>No</is_deleted>
+<body>I tried it my self and yes this is a bug!
+I'll try and fix that for the next iteration.
+</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2046336?message=4977642</url>
+<msg_id>4977642</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Screen resolution requirements</subject>
+<thread_id>2046336</thread_id>
+<is_followup_to>4976620</is_followup_to>
+<has_followups>0</has_followups>
+<date>1211414285</date>
+<is_deleted>No</is_deleted>
+<body>Hi MMoon,
+Thanks for your feed back.
+Have you tried to resize or maximize the main window?
+I tried pms my self with your resolution under windows but could see all the controls without problem.
+You may be able to compare with the screen shoot.
+
+let me know.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2046336?message=4976620</url>
+<msg_id>4976620</msg_id>
+<poster_user>mmoon</poster_user>
+<poster_name>Maxwell Moon</poster_name>
+<subject>Screen resolution requirements</subject>
+<thread_id>2046336</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>1</has_followups>
+<date>1211380468</date>
+<is_deleted>No</is_deleted>
+<body>Just installed current release 0.1.5 on WinXP SP3.  My laptop maximum screen resolution is 1024x768 and at this resolution the entire pms main window is not visible.  I can't see how to adjust the size of the right hand control panel in the main window, so I'm not able to use this very interesting application.  Is there a means to adjust the size of the right panel that I'm just not seeing or is there an implicit requirement to run at a resolution greater than 1024?</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2002248?message=4937392</url>
+<msg_id>4937392</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: compiling from cvs</subject>
+<thread_id>2002248</thread_id>
+<is_followup_to>4894753</is_followup_to>
+<has_followups>0</has_followups>
+<date>1209577604</date>
+<is_deleted>No</is_deleted>
+<body>Hi again,  
+After thought, I think the better way is to write a maven pom.xml file. 
+Which I'm gone a do soon.  
+Cheers,  
+Guillaume </body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2002248?message=4937390</url>
+<msg_id>4937390</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: compiling from cvs</subject>
+<thread_id>2002248</thread_id>
+<is_followup_to>4894753</is_followup_to>
+<has_followups>0</has_followups>
+<date>1209577541</date>
+<is_deleted>No</is_deleted>
+<body>Hi again, 
+After thought, I think the better way is to right a maven pom.xml file.
+Which I'm gone a do soon. 
+Cheers, 
+Guillaume </body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2002248?message=4937388</url>
+<msg_id>4937388</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: compiling from cvs</subject>
+<thread_id>2002248</thread_id>
+<is_followup_to>4894753</is_followup_to>
+<has_followups>0</has_followups>
+<date>1209577476</date>
+<is_deleted>No</is_deleted>
+<body>Hi again,
+After thought, I think the better way is to right a maven pom.xml file which I'm gone a done soon.
+Cheers,
+Guillaume  </body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2002248?message=4912063</url>
+<msg_id>4912063</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: compiling from cvs</subject>
+<thread_id>2002248</thread_id>
+<is_followup_to>4894753</is_followup_to>
+<has_followups>0</has_followups>
+<date>1208473220</date>
+<is_deleted>No</is_deleted>
+<body>Hi Laurent,
+To compile from CVS, you will need the requiered libraries and to reference them in your eclipse project.
+
+Here is the list (here in a folder called lib) : lib/commons-logging.jar lib/commons-httpclient-3.0-rc2.jar lib/commons-codec-1.3.jar lib/postgresql-8.1-404.jdbc3.jar lib/hibernate3.jar lib/mail.jar lib/activation.jar lib/ta-lib-0.4.0.jar lib/spring.jar lib/log4j-1.2.12.jar lib/swt.jar lib/derby.jar lib/derbyclient.jar lib/javax.jms.jar
+
+I actually have not commited them yet.
+
+For the command line arguments, you can have a look at the .sh provided in the shell folder - hopefully up to date :).
+MainGui.java only need the path to db.properties file.
+MainPMScmd.java should give you a list off requiered paramaters when you run it.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/2002248?message=4894753</url>
+<msg_id>4894753</msg_id>
+<poster_user>geocoucou</poster_user>
+<poster_name>Laurent Vincelette</poster_name>
+<subject>compiling from cvs</subject>
+<thread_id>2002248</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>1</has_followups>
+<date>1207747402</date>
+<is_deleted>No</is_deleted>
+<body>Hello,
+I tried to compile the pms project but I'm having problem with MyLogger.java file. I have &amp;quot;cannot be resolbed error&amp;quot; on some property. 
+Is the cvs is up to date?
+I'm using eclypse 3.2
+Also what arguments I need to set when I start the application?
+Thanks
+Laurent</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/1952361?message=4803809</url>
+<msg_id>4803809</msg_id>
+<poster_user>guil</poster_user>
+<poster_name>guillaume T</poster_name>
+<subject>RE: Australia data?</subject>
+<thread_id>1952361</thread_id>
+<is_followup_to>4803004</is_followup_to>
+<has_followups>0</has_followups>
+<date>1204119308</date>
+<is_deleted>No</is_deleted>
+<body>Hi there,
+Yep could be done!
+All the Piggy Market Squeak need is an url to fetch the list of stocks from the Ausy ASX market.
+For now, it needs to be added in the source code(which I can do).
+If no such list is available, you can still set a list of the stock you want to monitor in your own Portofolio.
+
+What is your aim using this tool?
+
+Regards,
+Guillaume.</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/1952361?message=4803004</url>
+<msg_id>4803004</msg_id>
+<poster_user>elizabethann</poster_user>
+<poster_name>hotpuppy</poster_name>
+<subject>Australia data?</subject>
+<thread_id>1952361</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>1</has_followups>
+<date>1204084492</date>
+<is_deleted>No</is_deleted>
+<body>Is there a set of historical data for the Australian stock market, or can you give me the format that I have to use to set up the historical data for the Australian market. PMS sounds like a great tool for a novice (like me) to use to learn how the market operates &amp;amp; I'd like to give it a try.
+
+Elizabeth</body>
+</forum_post>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774288/topic/1914063?message=4721964</url>
+<msg_id>4721964</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>Welcome to Help</subject>
+<thread_id>1914063</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1200369963</date>
+<is_deleted>No</is_deleted>
+<body>Welcome to Help</body>
+</forum_post>
+</forum_posts>
+</forum>
+<forum>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774289</url>
+<forum_id>774289</forum_id>
+<forum_name>Developers</forum_name>
+<is_public>No</is_public>
+<description/>
+<send_posts_to>piggymarketsqueak@googlemail.com</send_posts_to>
+<anonymous_posting>No</anonymous_posting>
+<forum_posts>
+<forum_post>
+<url>http://sourceforge.net/projects/pmsqueak/forums/forum/774289/topic/1914064?message=4721965</url>
+<msg_id>4721965</msg_id>
+<poster_user>nobody</poster_user>
+<poster_name>Nobody/Anonymous</poster_name>
+<subject>Welcome to Developers</subject>
+<thread_id>1914064</thread_id>
+<is_followup_to>0</is_followup_to>
+<has_followups>0</has_followups>
+<date>1200369963</date>
+<is_deleted>No</is_deleted>
+<body>Welcome to Developers</body>
+</forum_post>
+</forum_posts>
+</forum>
+</forums>
+<trackers>
+<tracker>
+<url>http://sourceforge.net/?group_id=214811&amp;atid=1031162</url>
+<tracker_id>1031162</tracker_id>
+<name>Bugs</name>
+<description>Bug Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>2592000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>1</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>797562</id>
+<group_name>v1.0 (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1060089</id>
+<category_name>Interface (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+<resolution>
+<id>1</id>
+<name>Fixed</name>
+</resolution>
+<resolution>
+<id>2</id>
+<name>Invalid</name>
+</resolution>
+<resolution>
+<id>3</id>
+<name>Wont Fix</name>
+</resolution>
+<resolution>
+<id>4</id>
+<name>Later</name>
+</resolution>
+<resolution>
+<id>5</id>
+<name>Remind</name>
+</resolution>
+<resolution>
+<id>6</id>
+<name>Works For Me</name>
+</resolution>
+<resolution>
+<id>100</id>
+<name>None</name>
+</resolution>
+<resolution>
+<id>101</id>
+<name>Duplicate</name>
+</resolution>
+<resolution>
+<id>102</id>
+<name>Accepted</name>
+</resolution>
+<resolution>
+<id>103</id>
+<name>Out of Date</name>
+</resolution>
+<resolution>
+<id>104</id>
+<name>Postponed</name>
+</resolution>
+<resolution>
+<id>105</id>
+<name>Rejected</name>
+</resolution>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+<tracker_item>
+<url>http://sourceforge.net/support/tracker.php?aid=3031327</url>
+<id>3031327</id>
+<status_id>1</status_id>
+<category_id>100</category_id>
+<group_id>100</group_id>
+<resolution_id>100</resolution_id>
+<submitter>nobody</submitter>
+<assignee>nobody</assignee>
+<closer>nobody</closer>
+<submit_date>1279484486</submit_date>
+<close_date>0</close_date>
+<priority>5</priority>
+<summary>does not run on 64bit jvm</summary>
+<details>Exception in thread "main" java.lang.UnsatisfiedLinkError: Cannot load 32-bit SWT libraries on 64-bit JVM
+        at org.eclipse.swt.internal.Library.loadLibrary(Unknown Source)
+        at org.eclipse.swt.internal.Library.loadLibrary(Unknown Source)
+        at org.eclipse.swt.internal.C.&lt;clinit&gt;(Unknown Source)
+        at org.eclipse.swt.internal.Converter.wcsToMbcs(Unknown Source)
+        at org.eclipse.swt.internal.Converter.wcsToMbcs(Unknown Source)
+        at org.eclipse.swt.widgets.Display.&lt;clinit&gt;(Unknown Source)
+        at com.finance.pms.MainGui.main(MainGui.java:539)
+</details>
+<is_private>0</is_private>
+<followups>
+</followups>
+<attachments>
+</attachments>
+<history_entries>
+</history_entries>
+</tracker_item>
+<tracker_item>
+<url>http://sourceforge.net/support/tracker.php?aid=3391825</url>
+<id>3391825</id>
+<status_id>1</status_id>
+<category_id>100</category_id>
+<group_id>100</group_id>
+<resolution_id>100</resolution_id>
+<submitter>nobody</submitter>
+<assignee>nobody</assignee>
+<closer>nobody</closer>
+<submit_date>1313402728</submit_date>
+<close_date>0</close_date>
+<priority>5</priority>
+<summary>ASX Listed Companies URL is wrong</summary>
+<details>Gives 404 error.
+
+Should be:
+
+http://www.asx.com.au/asx/research/ASXListedCompanies.csv</details>
+<is_private>0</is_private>
+<followups>
+</followups>
+<attachments>
+</attachments>
+<history_entries>
+</history_entries>
+</tracker_item>
+</tracker_items>
+</tracker>
+<tracker>
+<url>http://sourceforge.net/?group_id=214811&amp;atid=1031163</url>
+<tracker_id>1031163</tracker_id>
+<name>Support Requests</name>
+<description>Tech Support Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>1296000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>2</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>797563</id>
+<group_name>v1.0 (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1060090</id>
+<category_name>Install Problem (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+<tracker>
+<url>http://sourceforge.net/?group_id=214811&amp;atid=1031164</url>
+<tracker_id>1031164</tracker_id>
+<name>Patches</name>
+<description>Patch Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>1296000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>3</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>797564</id>
+<group_name>Unstable (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1060091</id>
+<category_name>Widget (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+<resolution>
+<id>1</id>
+<name>Fixed</name>
+</resolution>
+<resolution>
+<id>2</id>
+<name>Invalid</name>
+</resolution>
+<resolution>
+<id>3</id>
+<name>Wont Fix</name>
+</resolution>
+<resolution>
+<id>4</id>
+<name>Later</name>
+</resolution>
+<resolution>
+<id>5</id>
+<name>Remind</name>
+</resolution>
+<resolution>
+<id>6</id>
+<name>Works For Me</name>
+</resolution>
+<resolution>
+<id>100</id>
+<name>None</name>
+</resolution>
+<resolution>
+<id>101</id>
+<name>Duplicate</name>
+</resolution>
+<resolution>
+<id>102</id>
+<name>Accepted</name>
+</resolution>
+<resolution>
+<id>103</id>
+<name>Out of Date</name>
+</resolution>
+<resolution>
+<id>104</id>
+<name>Postponed</name>
+</resolution>
+<resolution>
+<id>105</id>
+<name>Rejected</name>
+</resolution>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+<tracker>
+<url>http://sourceforge.net/?group_id=214811&amp;atid=1031165</url>
+<tracker_id>1031165</tracker_id>
+<name>Feature Requests</name>
+<description>Feature Request Tracking System</description>
+<is_public>All site users</is_public>
+<allow_anon>Yes</allow_anon>
+<email_updates>No</email_updates>
+<due_period>3888000</due_period>
+<submit_instructions/>
+<browse_instructions/>
+<status_timeout>1209600</status_timeout>
+<due_period_initial>0</due_period_initial>
+<due_period_update>0</due_period_update>
+<reopen_on_comment>4</reopen_on_comment>
+<canned_responses>
+</canned_responses>
+<groups>
+<group>
+<id>797565</id>
+<group_name>Next Release (example)</group_name>
+</group>
+</groups>
+<categories>
+<category>
+<id>1060092</id>
+<category_name>Interface Improvements (example)</category_name>
+<auto_assignee>nobody</auto_assignee>
+</category>
+</categories>
+<resolutions>
+</resolutions>
+<statuses>
+<status>
+<id>1</id>
+<name>Open</name>
+</status>
+<status>
+<id>2</id>
+<name>Closed</name>
+</status>
+<status>
+<id>3</id>
+<name>Deleted</name>
+</status>
+<status>
+<id>4</id>
+<name>Pending</name>
+</status>
+</statuses>
+<tracker_items>
+</tracker_items>
+</tracker>
+</trackers>
+<tasks>
+</tasks>
+<referenced_users>
+<user>
+<userid>9710</userid>
+<publicname>guillaume T</publicname>
+<username>guil</username>
+<email>guil@users.sourceforge.net</email>
+</user>
+<user>
+<userid>2854568</userid>
+<publicname>maskiepop</publicname>
+<openid_identifier>https://me.yahoo.com/a/cPEDQYk_htlJOzTjQRI4h9uAs66BZA--#85031</openid_identifier>
+</user>
+<user>
+<userid>2924803</userid>
+<publicname>cyber minotaur</publicname>
+<username>cyberminotaure</username>
+<email>cyberminotaure@users.sourceforge.net</email>
+</user>
+<user>
+<userid>1285545</userid>
+<publicname>flashg</publicname>
+<username>flashg</username>
+<email>flashg@users.sourceforge.net</email>
+</user>
+<user>
+<userid>307893</userid>
+<publicname>Erwin Panen</publicname>
+<username>lexje</username>
+<email>lexje@users.sourceforge.net</email>
+</user>
+<user>
+<userid>2013112</userid>
+<publicname>Aaron</publicname>
+<username>dudeskeeroo</username>
+<email>dudeskeeroo@users.sourceforge.net</email>
+</user>
+<user>
+<userid>14819</userid>
+<publicname>Maxwell Moon</publicname>
+<username>mmoon</username>
+<email>mmoon@users.sourceforge.net</email>
+</user>
+<user>
+<userid>872130</userid>
+<publicname>Laurent Vincelette</publicname>
+<username>geocoucou</username>
+<email>geocoucou@users.sourceforge.net</email>
+</user>
+<user>
+<userid>1053925</userid>
+<publicname>hotpuppy</publicname>
+<username>elizabethann</username>
+<email>elizabethann@users.sourceforge.net</email>
+</user>
+</referenced_users>
+</document>

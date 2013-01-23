@@ -115,10 +115,10 @@ public class TableLocker {
 	public enum LockMode { 
 		
 		/** The WRITINGLOCK. */
-		WRITINGLOCK (" IN ROW EXCLUSIVE MODE"), 
+		WRITINGLOCK ("IN ROW EXCLUSIVE MODE"), 
 		
 		/** The READINGLOCK. */
-		READINGLOCK (" IN SHARE MODE"), 
+		READINGLOCK ("IN SHARE MODE"), 
 		
 		/** The NOLOCK. */
 		NOLOCK ("");

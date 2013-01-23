@@ -121,6 +121,8 @@ public class ChartsComposite extends SashForm {
 	private PortfolioComposite composite;
 	private Composite cComposite;
 
+	public Group chartBoutonsGroup;
+
 
 	/**
 	 * Instantiates a new charts composite.
@@ -213,20 +215,21 @@ public class ChartsComposite extends SashForm {
 				updateChart(new ArrayList<SlidingPortfolioShare>());
 				chartFrame.setVisible(true);
 			}
+			
+			chartBoutonsGroup = new Group(this, SWT.NONE);
 			{
-				final Group portfolioBoutonsGroup = new Group(this, SWT.NONE);
-				portfolioBoutonsGroup.setBackground(innerBgColor);
+				chartBoutonsGroup.setBackground(innerBgColor);
 				GridLayout portfolioBoutonsGroupLayout = new GridLayout();
 				portfolioBoutonsGroupLayout.numColumns = 3;
 				portfolioBoutonsGroupLayout.makeColumnsEqualWidth=true;
-				portfolioBoutonsGroup.setLayout(portfolioBoutonsGroupLayout);
+				chartBoutonsGroup.setLayout(portfolioBoutonsGroupLayout);
 				
 				GridData portfolioBoutonsGroupLData = new GridData(GridData.FILL_HORIZONTAL);
-				portfolioBoutonsGroup.setLayoutData(portfolioBoutonsGroupLData);
+				chartBoutonsGroup.setLayoutData(portfolioBoutonsGroupLData);
 				
-				portfolioBoutonsGroup.setText("Portfolios charting : ");
-				portfolioBoutonsGroup.setFont(MainGui.DEFAULTFONT);
-				portfolioBoutonsGroup.setBackground(innerBgColor);
+				chartBoutonsGroup.setText("Portfolios charting : ");
+				chartBoutonsGroup.setFont(MainGui.DEFAULTFONT);
+				chartBoutonsGroup.setBackground(innerBgColor);
 				final Button addRefereeCheck;
 				final Button absoluteReferenceCheck;
 				final Button relativePriceCheck;
@@ -234,7 +237,7 @@ public class ChartsComposite extends SashForm {
 				final Button rootAtZero;
 				final Button selectRefereeButton;
 				{
-					relativePriceCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
+					relativePriceCheck = new Button(chartBoutonsGroup, SWT.RADIO | SWT.LEFT);
 					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					relativePriceCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
@@ -243,7 +246,7 @@ public class ChartsComposite extends SashForm {
 					relativePriceCheck.setSelection(false);
 				}
 				{
-					absoluteReferenceCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
+					absoluteReferenceCheck = new Button(chartBoutonsGroup, SWT.RADIO | SWT.LEFT);
 					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					absoluteReferenceCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
@@ -252,14 +255,13 @@ public class ChartsComposite extends SashForm {
 					absoluteReferenceCheck.setSelection(true);
 				}
 				{
-					houseDrvCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
+					houseDrvCheck = new Button(chartBoutonsGroup, SWT.RADIO | SWT.LEFT);
 					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
-					//portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					houseDrvCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
 					houseDrvCheck.setFont(MainGui.DEFAULTFONT);
 					houseDrvCheck.setText("Daily log ROC");
 					
-					rootAtZero = new Button(portfolioBoutonsGroup, SWT.CHECK | SWT.LEAD);
+					rootAtZero = new Button(chartBoutonsGroup, SWT.CHECK | SWT.LEAD);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioAddbuttonData.horizontalSpan=2;
 					rootAtZero.setLayoutData(portfolioAddbuttonData);
@@ -267,7 +269,7 @@ public class ChartsComposite extends SashForm {
 					rootAtZero.setText("Root at Zero");
 				}
 				{
-					addRefereeCheck = new Button(portfolioBoutonsGroup, SWT.RADIO | SWT.LEFT);
+					addRefereeCheck = new Button(chartBoutonsGroup, SWT.RADIO | SWT.LEFT);
 					GridData portfolioDeletePortfoliobuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioDeletePortfoliobuttonData.horizontalSpan=3;
 					addRefereeCheck.setLayoutData(portfolioDeletePortfoliobuttonData);
@@ -275,7 +277,7 @@ public class ChartsComposite extends SashForm {
 					addRefereeCheck.setText("Referee relative strenght");
 				}
 				{
-					selectRefereeButton = new Button(portfolioBoutonsGroup, SWT.PUSH | SWT.CENTER);
+					selectRefereeButton = new Button(chartBoutonsGroup, SWT.PUSH | SWT.CENTER);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					selectRefereeButton.setLayoutData(portfolioAddbuttonData);
 					selectRefereeButton.setText("Select referee ...");
@@ -283,18 +285,18 @@ public class ChartsComposite extends SashForm {
 					selectRefereeButton.addMouseListener(new MouseAdapter() {
 						@Override
 						public void mouseDown(MouseEvent evt) {
-							portfolioBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							chartBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 							try {
 								selectReferee(listShares);
 							} finally {
-								portfolioBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+								chartBoutonsGroup.getParent().getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 							}
 						}
 					});
 					selectRefereeButton.setEnabled(false);
 				}
 				{
-					selectReferreText = new Text(portfolioBoutonsGroup, SWT.CENTER);
+					selectReferreText = new Text(chartBoutonsGroup, SWT.CENTER);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioAddbuttonData.horizontalSpan=2;
 					selectReferreText.setLayoutData(portfolioAddbuttonData);
@@ -306,7 +308,7 @@ public class ChartsComposite extends SashForm {
 				final Slider sliderStartDate;
 				final Label startDateLabel;
 				{
-					startDateLabel = new Label(portfolioBoutonsGroup, SWT.RIGHT);
+					startDateLabel = new Label(chartBoutonsGroup, SWT.RIGHT);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					startDateLabel.setLayoutData(portfolioAddbuttonData);
 					startDateLabel.setText("Sliding period start : "+DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate)+"");
@@ -314,7 +316,7 @@ public class ChartsComposite extends SashForm {
 					startDateLabel.setFont(MainGui.DEFAULTFONT);
 				}
 				{
-					sliderStartDate = new Slider(portfolioBoutonsGroup, SWT.HORIZONTAL);
+					sliderStartDate = new Slider(chartBoutonsGroup, SWT.HORIZONTAL);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioAddbuttonData.horizontalSpan = 2;
 					sliderStartDate.setLayoutData(portfolioAddbuttonData);
@@ -333,7 +335,7 @@ public class ChartsComposite extends SashForm {
 				final Slider sliderEndDate;
 				final Label endDateLabel;
 				{
-					endDateLabel = new Label(portfolioBoutonsGroup, SWT.RIGHT);
+					endDateLabel = new Label(chartBoutonsGroup, SWT.RIGHT);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					endDateLabel.setLayoutData(portfolioAddbuttonData);
 					endDateLabel.setText("Sliding period end : "+DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
@@ -341,7 +343,7 @@ public class ChartsComposite extends SashForm {
 					endDateLabel.setFont(MainGui.DEFAULTFONT);
 				}
 				{
-					sliderEndDate = new Slider(portfolioBoutonsGroup, SWT.HORIZONTAL);
+					sliderEndDate = new Slider(chartBoutonsGroup, SWT.HORIZONTAL);
 					GridData portfolioAddbuttonData = new GridData(GridData.FILL_HORIZONTAL);
 					portfolioAddbuttonData.horizontalSpan=2;
 					sliderEndDate.setLayoutData(portfolioAddbuttonData);
@@ -386,7 +388,7 @@ public class ChartsComposite extends SashForm {
 				});
 				
 				{
-					Label firstDate = new Label(portfolioBoutonsGroup, SWT.RIGHT);
+					Label firstDate = new Label(chartBoutonsGroup, SWT.RIGHT);
 					GridData firstDateGrid = new GridData(GridData.FILL_HORIZONTAL);
 					firstDate.setLayoutData(firstDateGrid);
 					final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MMM-yyyy");
@@ -394,7 +396,7 @@ public class ChartsComposite extends SashForm {
 					firstDate.setBackground(innerBgColor);
 					firstDate.setFont(MainGui.DEFAULTFONT);
 					
-					final Text firstDateTxt = new Text(portfolioBoutonsGroup, SWT.LEFT);
+					final Text firstDateTxt = new Text(chartBoutonsGroup, SWT.LEFT);
 					GridData firstDateGridTxt = new GridData(GridData.FILL_HORIZONTAL);
 					firstDateGridTxt.horizontalSpan=2;
 					firstDateTxt.setLayoutData(firstDateGridTxt);
@@ -505,10 +507,8 @@ public class ChartsComposite extends SashForm {
 					}
 				});
 			}
-			
-			this.setWeights(new int[]{75,25});
-			
-			this.layout();
+
+			this.layout();	
 			
 			
 		} catch (Exception e) {
@@ -647,7 +647,6 @@ public class ChartsComposite extends SashForm {
 		if (arg0.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || arg0.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
 			
 			if (arg0.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
-				//awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.CROSSHAIR_CURSOR);
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
 			} else {
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);

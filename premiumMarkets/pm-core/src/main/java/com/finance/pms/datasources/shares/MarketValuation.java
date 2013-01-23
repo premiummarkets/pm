@@ -66,7 +66,6 @@ public class MarketValuation implements Serializable {
 		this.currencyFactor = currencyFactor;
 	}
 
-
 	public MarketValuation(Market market, BigDecimal currencyFactor, Currency currency) {
 		super();
 		this.market = market;

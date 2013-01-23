@@ -130,13 +130,13 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
         // TODO Recuperation de la liste des stocks sur yahoo
         LOGGER.error("retreiving ticker list is not implemented for yahoo");
-        throw new UnsupportedOperationException("Please use an other provider the share list holder for that.");
+        throw new UnsupportedOperationException("Please use another provider the share list holder for that.");
     }
     
     
     @Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks,StockList stockList, String quotationsProvider) {
-    	throw new UnsupportedOperationException("Please use an other share list holder provider for that.");
+    	throw new UnsupportedOperationException("Please use another share list holder provider for that.");
     }
 
     
@@ -194,31 +194,6 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException {
 		
 		MyUrl url;
-		
-//		Calendar endCal = Calendar.getInstance();
-//		endCal.setTime(end);
-//		endCal.set(Calendar.MINUTE, 0);
-//		endCal.set(Calendar.SECOND, 0);
-//		endCal.set(Calendar.MILLISECOND, 0);
-		
-		//Old try
-//		Calendar yesterday5PM = Calendar.getInstance();
-//		yesterday5PM.setTime(new Date());
-//		yesterday5PM.set(Calendar.HOUR_OF_DAY,17);
-//		yesterday5PM.set(Calendar.DAY_OF_YEAR,-1);
-//		if (endCal.getTime().after(yesterday5PM.getTime())) {
-//			endCal.add(Calendar.DAY_OF_YEAR, -1);
-//			end = endCal.getTime();
-//		}
-		
-		//New try
-//		Calendar today5PM = Calendar.getInstance();
-//		today5PM.setTime(new Date());
-//		today5PM.set(Calendar.HOUR_OF_DAY,17);
-//		if (endCal.getTime().before(today5PM.getTime())) {
-//			endCal.add(Calendar.DAY_OF_YEAR, -1);
-//			end = endCal.getTime();
-//		}
 			
 		Date today = EventSignalConfig.getNewDate();
 		Calendar todayCal = Calendar.getInstance();

@@ -222,7 +222,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					EventValue e = l.get(l.size() - 1);
 					message.setObjectProperty("Trend", e.getEventType().name());
 					
-					EventsResources.getInstance().storeEvents(event, true, "");
+					EventsResources.getInstance().crudCreateEvents(event, true, "");
 					return message;
 				}
 			});

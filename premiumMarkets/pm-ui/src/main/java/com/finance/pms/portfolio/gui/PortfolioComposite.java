@@ -55,6 +55,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -122,7 +123,7 @@ import com.finance.pms.threads.ObserverMsg;
  * 
  * @author Guillaume Thoreton
  */
-public class PortfolioComposite extends Composite implements RefreshableView {
+public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	/** The LOGGER. */
 	public static MyLogger LOGGER = MyLogger.getLogger(PortfolioComposite.class);
@@ -139,8 +140,8 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 	private Button portfolioAddPortFoliobutton;
 	private Text newPortfolioText;
 
-	private Group portfolioBoutonsGroup;
-	private Group portfolioInfosGroup;
+	public Group portfolioBoutonsGroup;
+	public Group portfolioInfosGroup;
 	private Group totalsGroup;
 
 	private final ChartsComposite chartsComposite;
@@ -151,7 +152,6 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 	private Text value;
 	private Text amountIn;
 	private Text amountOut;
-	//private Text historicalGain;
 	private Text currency;
 
 	private Button slidingEndAnchor;
@@ -273,6 +273,8 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 		});
 		
 		this.modelControler = new ModelController();
+		
+		this.setOrientation(SWT.VERTICAL);
 
 		initGUI();
 	}
@@ -285,9 +287,9 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 	private void initGUI() {
 		try {
 			
-			GridLayout compositeLayout = new GridLayout();
-			compositeLayout.numColumns = 2;
-			this.setLayout(compositeLayout);
+			//GridLayout compositeLayout = new GridLayout();
+			//compositeLayout.numColumns = 2;
+			//this.setLayout(compositeLayout);
 
 			this.setBackground(new Color(getDisplay(),115,147,250));
 			{
@@ -510,14 +512,7 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 						amountOut.setEditable(false);
 						amountOut.setText("");
 						amountOut.setFont(MainGui.CONTENTFONT);
-						
-//						Text historicalGainLab = new Text(totalsGroup, SWT.LEFT);
-//						historicalGainLab.setText("Historical gain :");
-//						historicalGainLab.setFont(MainGui.DEFAULTFONT);
-//						historicalGainLab.setBackground(new Color(getDisplay(),204,204,255));
-//						historicalGain = new Text(totalsGroup, SWT.LEFT);
-//						historicalGain.setText("");
-//						historicalGain.setFont(MainGui.CONTENTFONT);
+					
 					}
 					{
 						slidingEndAnchor = new Button(portfolioInfosGroup, SWT.CHECK);
@@ -540,7 +535,7 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 								sortColumn(Titles.UrProf.name());
 								
 							}
-							
+						
 						});
 						
 					}
@@ -572,7 +567,9 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 				
 			}
 			
-			this.layout();
+			//this.layout();
+			//this.pack();
+			
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
@@ -1535,7 +1532,8 @@ public class PortfolioComposite extends Composite implements RefreshableView {
 		try {
 			List<Stock> selectedStocks = pItemd.getSelectedStocks();
 
-			Collection<PortfolioShare> addedPortfolioShares = addListOfShareToModel(tabi, pItemd.getSelectedMonitorLevel(), pItemd.getSelectedQuantity(), selectedStocks);
+			//Collection<PortfolioShare> addedPortfolioShares = 
+					addListOfShareToModel(tabi, pItemd.getSelectedMonitorLevel(), pItemd.getSelectedQuantity(), selectedStocks);
 			//int tabSize = modelControler.tabSize(tabi);
 			//updatePortfolioTabItems(tabi, buildSlidingPortfolioShareList(addedPortfolioShares, tabSize), tabSize);
 			

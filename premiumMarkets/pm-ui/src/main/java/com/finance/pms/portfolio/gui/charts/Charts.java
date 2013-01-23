@@ -96,6 +96,8 @@ public class Charts {
 	
 	private JFreeChart jFreeChart;
 
+	private DateAxis xAxis;
+
 	
 	/**
 	 * Instantiates a new charts.
@@ -141,9 +143,10 @@ public class Charts {
 	 */
 	public JFreeChart initChart(StripedCloseFunction stripedCloseFunction, List<SlidingPortfolioShare> portfolioShares) {
 
-		DateAxis xAxis = new DateAxis();
+		xAxis = new DateAxis();
 		xAxis.setTimeline(tradingTimeLine());
-		verticalAxisSetup(xAxis);
+		int totDays  = QuotationsFactories.getFactory().nbOpenIncrementBetween(stripedCloseFunction.getArbitraryStartDate(), stripedCloseFunction.getArbitraryEndDate());
+		setXAxisRange(xAxis, 7*totDays/52);
 		
 		if (jFreeTimePeriod.equals(JFreeChartTimePeriod.DAY)) xAxis.setDateFormatOverride(new SimpleDateFormat("dd/MMM/yy"));
 		
@@ -172,7 +175,7 @@ public class Charts {
 		XYPlot combinedDomainXYPlot = new XYPlot(combinedDataset, xAxis, yAxis, lineRenderer);
 		
 		setYAxisRange(combinedDomainXYPlot);
-		
+	
 	    JFreeChart chart = new JFreeChart(combinedDomainXYPlot);
 	    chart.removeLegend();
 	    
@@ -263,8 +266,8 @@ public class Charts {
 	/**
 	 * @param dateAxis
 	 */
-	private void verticalAxisSetup(DateAxis dateAxis) {
-		dateAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY,7));
+	private void setXAxisRange(DateAxis dateAxis, int daySpan) {
+		dateAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, daySpan));
 		dateAxis.setVerticalTickLabels(true);
 	}
 
@@ -339,6 +342,8 @@ public class Charts {
 
 		XYPlot plot = (XYPlot) jFreeChart.getPlot();
 		XYDataset dataSet = getDataSet(stripedCloseFunction, listShares);
+		int totDays  = QuotationsFactories.getFactory().nbOpenIncrementBetween(stripedCloseFunction.getArbitraryStartDate(), stripedCloseFunction.getArbitraryEndDate());
+		xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, 7*totDays/52));
 		plot.setDataset(dataSet);
 		
 	}

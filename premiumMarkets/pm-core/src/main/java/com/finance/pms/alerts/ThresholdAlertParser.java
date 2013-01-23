@@ -88,7 +88,7 @@ public class ThresholdAlertParser extends EventCompostionCalculator {
 			} else {
 				LOGGER.debug("Can't parse alert on the " + getCalculatorQuotationData().get(quotationIndex).getDate() +
 						" cause either : the share was bought after on " + portfolioShare.getBuyDate() +
-						" or the share as been sold by an other thread and there is none left : quantity left is " + portfolioShare.getQuantity());
+						" or the share as been sold by another thread and there is none left : quantity left is " + portfolioShare.getQuantity());
 
 			}
 		}

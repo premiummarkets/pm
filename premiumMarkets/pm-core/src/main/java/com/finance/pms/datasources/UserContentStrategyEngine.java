@@ -83,7 +83,6 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		}
 		
 		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
-		//Collection<Stock> shareList = Arrays.asList((Stock[])viewStateParams);
 		@SuppressWarnings("rawtypes")
 		List shareList = Arrays.asList(viewStateParams);
 		
@@ -91,7 +90,6 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			
 			LOGGER.debug("running analysis for " + analysers[i]);
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
-			//analyzer.addObservers(engineObservers);
 			
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
@@ -106,14 +104,10 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			try {
 				actionThread.runIndicatorsCalculation(maxPass,true);
 			} catch (Exception e) {
-				LOGGER.error(e,e);
+				LOGGER.warn(e,e);
 			}
 		}
 	}
-
-	//protected abstract Collection<Stock> listOfShares();
-
-
 	
 	public void callbackForReco(Set<Observer> engineObservers) {
 		throw new NotImplementedException();

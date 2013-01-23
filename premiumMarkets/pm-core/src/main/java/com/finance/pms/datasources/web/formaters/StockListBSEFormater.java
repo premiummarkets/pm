@@ -67,8 +67,12 @@ public class StockListBSEFormater extends LineFormater {
 		List<Validatable> retour = new ArrayList<Validatable>();
 		
 		String columnDelim = ",";
-		
+		//0
 		//SC_CODE,SC_NAME,SC_GROUP,SC_TYPE,OPEN,HIGH,LOW,CLOSE,LAST,PREVCLOSE,NO_TRADES,NO_OF_SHRS,NET_TURNOV,TDCLOINDI
+		//1
+		//20,20MICRONS,EQ,INE144J01019,12.67,0.00,12.67,5.88,0.00,18.55
+		//2
+		//SC_CODE	SC_NAME	SC_GROUP	SC_TYPE	OPEN	HIGH	LOW	CLOSE	LAST	PREVCLOSE	NO_TRADES	NO_OF_SHRS	NET_TURNOV	TDCLOINDI
     	try {
 			String[] strArray = line.split(columnDelim);
 			if (strArray.length == 1) {
@@ -78,7 +82,7 @@ public class StockListBSEFormater extends LineFormater {
 			} else {
 				retour.add(new Stock(
 						strArray[0],
-						null, //removeTextDelim(strArray[1],textDelim)
+						strArray[0], 
 						strArray[1].trim(), 
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,YahooMarketExtentions.BSE.toString()),

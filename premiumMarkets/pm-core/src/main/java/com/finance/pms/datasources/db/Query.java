@@ -36,12 +36,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class Query.
- * 
- * @author Guillaume Thoreton
- */
 public class Query {
 	
 	/** The vl. */

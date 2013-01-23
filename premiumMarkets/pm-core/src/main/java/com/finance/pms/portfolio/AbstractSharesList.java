@@ -187,6 +187,18 @@ public abstract class AbstractSharesList extends Observable {
 		}
 		return null;
 	}
+	
+	@Transient
+	public PortfolioShare getShareForLienientRefs(String... refs) {
+		for (PortfolioShare portfolioShare : this.listShares.values()) {
+			for (String ref : refs) {
+				if (ref != null && (portfolioShare.getSymbol().equals(ref) || portfolioShare.getIsin().equals(ref))) {
+					return portfolioShare;
+				}
+			}
+		}
+		return null;
+	}
 
 	@Transient 
 	public PortfolioShare getShareForStock(Stock stock) {
