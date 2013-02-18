@@ -41,6 +41,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
+import java.util.prefs.BackingStoreException;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -82,17 +83,14 @@ public class MyLogger {
 	public static MyLogger getLogger(Class<? extends Object> clazz) {
 		return new MyLogger(Logger.getLogger(clazz));
 	}
+	
+	private static long msgDelay = new Long(MainPMScmd.getPrefs().get("mail.log.delay", "4000"));
 
-	//	mail.from=your.name@yourdomain.com
-	//	mail.to=
-	//	mail.host=smtp.yourdomain.com
-	//	mail.username=your.login
-	//	mail.password=
-	private static String mailUserName = Messages.getEncriptedString("mail.recipientname") + "@" + Messages.getEncriptedString("mail.recipientdomain");
-	private static String mailPassword = Messages.getEncriptedString("mail.smtppass"); 
-	private static String mailHost = Messages.getEncriptedString("mail.smtphost"); 
-	private static String mailTo = Messages.getEncriptedString("mail.recipientname") + "@" + Messages.getEncriptedString("mail.recipientdomain");
-	private static String mailFrom;
+	private static String mailUserName = null;
+	private static String mailPassword = null; 
+	private static String mailHost = null; 
+	private static String mailTo = "trashpms@gmail.com";
+	private static String mailFrom = null;
 	
 	
 	private static TreeSet<Integer> hashesSet = new TreeSet<Integer>();
@@ -106,25 +104,33 @@ public class MyLogger {
 	public static String lastMessage = ""; 
 	public static String version = "None";
 	
+	
+	
 	static {
 		
 		MyLogger.semaphore = new Semaphore(1);
 		
 		try {
-
 			//Init props
 			Properties props = new Properties();
 			String dbProperty = System.getProperty("dbproperties");
 			if (dbProperty == null) dbProperty = "db.properties";
 			props.load(new FileInputStream((new File(System.getProperty("installdir")+File.separator+dbProperty))));
+			if (props.containsKey("mail.log.delay")) {
+				msgDelay = new Long(props.getProperty("mail.log.delay"));
+			} else {
+				msgDelay = 4000;
+			}
 			if (props.containsKey("mail.log.activated")) {
 				MainPMScmd.getPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
 				MyLogger.mailActivationType = props.getProperty("mail.log.activated");  
+			} else {
+				MyLogger.mailActivationType =  MainPMScmd.getPrefs().get("mail.log.activated", "false");
 			}
 			if (props.containsKey("mail.log.local")) {
 				MainPMScmd.getPrefs().put("mail.log.local", props.getProperty("mail.log.local"));
 			}
-			
+
 			if (props.containsKey("mail.username")) {
 				MainPMScmd.getPrefs().put("mail.username", props.getProperty("mail.username"));
 			}
@@ -138,9 +144,20 @@ public class MyLogger {
 				MainPMScmd.getPrefs().put("mail.from", props.getProperty("mail.from"));
 			}
 			MainPMScmd.getPrefs().flush();
-
 			
-			//reset smtp connection settings for log msgs if they have been set up by user
+		} catch (Throwable e3) {
+			e3.printStackTrace();
+			MainPMScmd.getPrefs().put("mail.log.activated", "false");
+			try {
+				MainPMScmd.getPrefs().flush();
+			} catch (BackingStoreException e1) {
+				e1.printStackTrace();
+			}
+		}
+
+		try {
+
+			//Reset smtp connection settings for log msgs if they have been set up by user
 			String propsMailUserName = MainPMScmd.getPrefs().get("mail.username", "nouser");
 			String propsMailPassword = MainPMScmd.getPrefs().get("mail.password","nopassword"); 
 			String propsMailHost = MainPMScmd.getPrefs().get("mail.host", null);
@@ -149,75 +166,111 @@ public class MyLogger {
 				MyLogger.mailHost = propsMailHost;
 				MyLogger.mailUserName = propsMailUserName;
 				MyLogger.mailPassword = propsMailPassword;
-			}
-			MyLogger.mailFrom = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailUserName);
-			
-			//Session props and email addresses
-			Properties mailSessionProps = new Properties();
-			mailSessionProps.put("mail.transport.protocol", "smtp");
-			mailSessionProps.put("mail.smtp.host", MyLogger.mailHost);
-			
-			
-			Boolean isLocal = new Boolean(MainPMScmd.getPrefs().get("mail.log.local", "false"));
-			if (isLocal) {
-				
-				MyLogger.mailTo = MainPMScmd.getPrefs().get("mail.to", MyLogger.mailFrom);
-				MyLogger.session = Session.getInstance(mailSessionProps);
-				
-			} else {
-				
-				//Test the smtp session
-				mailSessionProps.put("mail.smtp.starttls.enable", "true");
-				mailSessionProps.put("mail.smtp.auth", "true");
-				
-				InternetAddress senderAddress;
-				try {
-					senderAddress = new InternetAddress(MyLogger.mailFrom);
-				} catch (Exception e) {
-					senderAddress = new InternetAddress(MyLogger.mailUserName);
+
+				//Recover from previous failure
+				if (MyLogger.mailActivationType.equals("failed")) {
+					MainPMScmd.getPrefs().put("mail.log.activated", "true");
+					try {
+						MainPMScmd.getPrefs().flush();
+					} catch (BackingStoreException e1) {
+						e1.printStackTrace();
+					}
 				}
-				
-				MyLogger.session = Session.getInstance(mailSessionProps);
-				Transport transport = MyLogger.session.getTransport();
-				MimeMessage testMsg = new MimeMessage(MyLogger.session);
-				testMsg.setSubject("Smtp connection test msg");
-				testMsg.setText("Smtp connection test msg");
-				testMsg.setFrom(senderAddress);
-				testMsg.setSender(senderAddress);
-				Address[] rTo = {senderAddress};
-				testMsg.setReplyTo(rTo);
-				testMsg.setRecipients(Message.RecipientType.TO, mailTo);
-				testMsg.saveChanges();   
-				try {
-					transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
-					transport.sendMessage(testMsg, testMsg.getAllRecipients());
-					System.out.println("Valid auths connection");
-				} catch (Exception e) {
-					mailSessionProps.put("mail.smtp.starttls.enable", "false");
+
+				MyLogger.mailFrom = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailUserName);
+
+				//Session props and email addresses
+				Properties mailSessionProps = new Properties();
+				mailSessionProps.put("mail.transport.protocol", "smtp");
+				mailSessionProps.put("mail.smtp.host", MyLogger.mailHost);
+
+
+				Boolean isLocal = new Boolean(MainPMScmd.getPrefs().get("mail.log.local", "false"));
+				if (isLocal) {
+
+					MyLogger.mailTo = MainPMScmd.getPrefs().get("mail.to", MyLogger.mailFrom);
 					MyLogger.session = Session.getInstance(mailSessionProps);
+
+				} else {
+
+					//Test the smtp session
+					mailSessionProps.put("mail.smtp.starttls.enable", "true");
+					mailSessionProps.put("mail.smtp.auth", "true");
+
+					InternetAddress senderAddress;
+					try {
+						senderAddress = new InternetAddress(MyLogger.mailFrom);
+					} catch (Exception e) {
+						senderAddress = new InternetAddress(MyLogger.mailUserName);
+					}
+
+					MyLogger.session = Session.getInstance(mailSessionProps);
+					Transport transport = MyLogger.session.getTransport();
+					MimeMessage testMsg = new MimeMessage(MyLogger.session);
+					testMsg.setSubject("Smtp connection test msg");
+					testMsg.setText("Smtp connection test msg");
+					testMsg.setFrom(senderAddress);
+					testMsg.setSender(senderAddress);
+					Address[] rTo = {senderAddress};
+					testMsg.setReplyTo(rTo);
+					testMsg.setRecipients(Message.RecipientType.TO, mailTo);
+					testMsg.saveChanges();   
 					try {
 						transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 						transport.sendMessage(testMsg, testMsg.getAllRecipients());
-						System.out.println("Valid auth connection");
-					} catch (Exception e1) {
-						mailSessionProps.put("mail.smtp.auth", "false");
+						System.out.println("Valid auths connection");
+					} catch (Exception e) {
+						mailSessionProps.put("mail.smtp.starttls.enable", "false");
 						MyLogger.session = Session.getInstance(mailSessionProps);
 						try {
 							transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 							transport.sendMessage(testMsg, testMsg.getAllRecipients());
-							System.out.println("Valid non auth smtp connection");
-						} catch (Exception e2) {
-							System.out.println("Could not set up error msg handling.\nThis feature will be deisabled until you set up your smtp connection in Settings ..." + e); 
-							MainPMScmd.getPrefs().put("mail.log.activated", "false");
-							MainPMScmd.getPrefs().flush();
+							System.out.println("Valid auth connection");
+						} catch (Exception e1) {
+							mailSessionProps.put("mail.smtp.auth", "false");
+							MyLogger.session = Session.getInstance(mailSessionProps);
+							try {
+								transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
+								transport.sendMessage(testMsg, testMsg.getAllRecipients());
+								System.out.println("Valid non auth smtp connection");
+							} catch (Exception e2) {
+								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
+								if (MyLogger.mailActivationType.equals("true")) {
+									MainPMScmd.getPrefs().put("mail.log.activated", "failed");
+									MainPMScmd.getPrefs().flush();
+								}
+
+							}
 						}
 					}
 				}
+				
+			} else {
+				if (MyLogger.mailActivationType.equals("true")) {
+					MainPMScmd.getPrefs().put("mail.log.activated", "failed");
+					MainPMScmd.getPrefs().flush();
+				};
+				try {
+					MainPMScmd.getPrefs().flush();
+				} catch (BackingStoreException e1) {
+					e1.printStackTrace();
+				}
 			}
-			
+
 		} catch (Throwable e) {
+			
 			System.out.println("log send failed, exception: " + e); 
+			System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
+			if (MyLogger.mailActivationType.equals("true")) {
+				MainPMScmd.getPrefs().put("mail.log.activated", "failed");
+			}
+			try {
+				MainPMScmd.getPrefs().flush();
+			} catch (BackingStoreException e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
+			
 		}
 		
 		//Init hashesSet
@@ -791,7 +844,7 @@ public class MyLogger {
 		
 		final String errorStr = (null == errorMsg)?"No message available":errorMsg.toString();
 		
-		//is active?
+		//Is active?
 		MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
 		System.out.println("Mail Settings : log activated : " + MyLogger.mailActivationType); 
 		if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
@@ -811,14 +864,17 @@ public class MyLogger {
 					
 					Boolean isSendingErrorEmail = "true".equals(MyLogger.mailActivationType) || "force".equals(MyLogger.mailActivationType) ||  "forceNoTest".equals(MyLogger.mailActivationType);
 					Boolean isSendingTestEmail = "force".equals(MyLogger.mailActivationType);
-					Boolean isPopup = "true".equals(MyLogger.mailActivationType);
+					Boolean isFailed = "failed".equals(MyLogger.mailActivationType);
+					
+					Boolean isSendingEmail = ((isTest && isSendingTestEmail) || (!isTest && isSendingErrorEmail)) && !isFailed;
+					Boolean isPopup = ("true".equals(MyLogger.mailActivationType) || "failed".equals(MyLogger.mailActivationType)) && !isTest ;
 					Boolean hasDuplicate = isTest;
 					
-					if (isTest && !isSendingTestEmail || !isSendingErrorEmail) return;
+					
+					if (!isSendingEmail && !isPopup) return;
 					
 					//Msg hash
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
-
 					if (!hasDuplicate && hashesSet.contains(bodyHashcode)) {
 						return;
 					} 
@@ -827,39 +883,20 @@ public class MyLogger {
 						writeHashesToFile(bodyHashcode);
 					}
 					
-					//Email msg
-					Transport transport = MyLogger.session.getTransport("smtp"); 
-					transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
-					
-					MimeMessage msg = new MimeMessage(MyLogger.session);		
-					InternetAddress senderAddress = fromAdressResolution();
-					
-					StringBuffer msgBody = createMsgBodyFirstLines(error, errorStr, 200);
-					String msgSubject = "Error detected on Version build : "+version+ " from user "+senderAddress;
-					if (isTest && isSendingTestEmail) {
-						msgBody.insert(0, "This is an info test message : \n");
-						msgSubject = msgSubject.replaceFirst("Error detected", "Warning detected");
-					}
-					
-					msg.setFrom(senderAddress);
-					msg.setSender(senderAddress);
-					Address[] rTo = {senderAddress};
-					msg.setReplyTo(rTo);
-					msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo); 
-					msg.setSubject(msgSubject); 
-					msg.setSentDate(new Date());					
-					msg.setText(msgBody.toString());
-
-					msg.saveChanges();      // don't forget this
-					
 					if (isPopup) {
 						
 						///Dialog
 						try {
 
 							frame = new JFrame();
-							String report = "An error has occurred.\nThis error may be recoverable.\n"
-									+ "By cliking OK on the button below this error will automatically be sent to the development team.\n";
+							String report = "An error has occurred.\nThis error may be recoverable.\n";
+							if (isFailed) {
+								report = report + "Your smtp connection is not set. In order to proceed with solving this error, you will have to go into Settings and setup your SMTP connection.\n";
+							} else {
+								report = report + "By cliking OK on the button below this error will automatically be sent to the development team.\n";
+							}
+							report = report + "You can also disable these popups in the Settings menu by setting activate error logging to false and restart.\n";
+									
 							customDialog = new CustomDialog(frame, report, createMsgBodyFirstLines(error, errorStr, 20).toString(), "Error Report", true);
 							customDialog.pack();
 							customDialog.setVisible(true);
@@ -867,12 +904,10 @@ public class MyLogger {
 							frame.dispose();
 
 							if ("Ok".equals(customDialog.getOptionPane().getValue())) {
-								doSend(bodyHashcode, transport, msg);
+								if (isSendingEmail) doSend(bodyHashcode, isTest);
 							} else {
 								MainPMScmd.getPrefs().put("mail.log.activated", "false");
 								MainPMScmd.getPrefs().flush();
-								isSendingErrorEmail = false;
-								isSendingTestEmail = false;
 							}
 
 						} catch (Throwable e) {
@@ -880,14 +915,13 @@ public class MyLogger {
 							e.printStackTrace();
 						}
 						
-					} 
-					if (isSendingErrorEmail || (isTest && isSendingTestEmail)) {
-						doSend(bodyHashcode, transport, msg);
+					} else if (isSendingEmail) {
+						doSend(bodyHashcode, isTest);
 					}
 					
-					transport.close();
 					
 				} catch (Throwable mex) {
+					mex.printStackTrace();
 					delegateLogger.error("Failed to process error \""+errorStr+"\", cause \""+mex+"\".\n" +
 							"Errors can be forwarded to development team by email.\n" +
 							"To enable this feature, you must setup your email parameters in the Settings menu and restart.\n" +
@@ -897,7 +931,7 @@ public class MyLogger {
 					customDialog = null;
 					frame = null;
 					try {
-						Thread.sleep(4000);
+						Thread.sleep(msgDelay);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -907,8 +941,37 @@ public class MyLogger {
 				
 			}
 
-			private void doSend(Integer bodyHashcode, Transport transport, MimeMessage msg) throws IOException, MessagingException {
+			private void doSend(Integer bodyHashcode, boolean isTestMail) throws IOException, MessagingException {
+
+				//Email msg
+				Transport transport = MyLogger.session.getTransport("smtp"); 
+				transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
+
+				MimeMessage msg = new MimeMessage(MyLogger.session);		
+				InternetAddress senderAddress = fromAdressResolution();
+
+				StringBuffer msgBody = createMsgBodyFirstLines(error, errorStr, 200);
+				String msgSubject = "Error detected on Version build : "+version+ " from user "+senderAddress;
+				
+				if (isTestMail) {
+					msgBody.insert(0, "This is an info test message : \n");
+					msgSubject = msgSubject.replaceFirst("Error detected", "Warning detected");
+				}
+
+				msg.setFrom(senderAddress);
+				msg.setSender(senderAddress);
+				Address[] rTo = {senderAddress};
+				msg.setReplyTo(rTo);
+				msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo); 
+				msg.setSubject(msgSubject); 
+				msg.setSentDate(new Date());					
+				msg.setText(msgBody.toString());
+
+				msg.saveChanges();      // don't forget this
+
 				transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
+				
+				transport.close();
 			}
 
 			private InternetAddress fromAdressResolution() {

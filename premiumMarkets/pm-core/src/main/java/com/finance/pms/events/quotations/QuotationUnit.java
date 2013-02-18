@@ -180,7 +180,7 @@ public class QuotationUnit implements Comparable<QuotationUnit>
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (date.compareTo(other.date) != 0)
 			return false;
 		return true;
 	}

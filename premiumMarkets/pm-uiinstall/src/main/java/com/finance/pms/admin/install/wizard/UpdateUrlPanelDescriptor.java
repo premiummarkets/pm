@@ -109,7 +109,6 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 		private WizardPanelDescriptor w;
 		Date lastReleaseDate;
 		Date currentBuildDate;
-		//private DateFormat sourceForgeDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 		private DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
 
 		Task(WizardPanelDescriptor w) {
@@ -138,7 +137,6 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 					updateUrl.downLoadLatest(versionNumber, observer);
 					
 				} else {
-					//System.out.print("You have latest : " + sourceForgeDateFormat.format(currentBuildDate));
 					System.out.print("You have latest : " + jnlpDateFormat.format(currentBuildDate)+"\n");
 					w.getWizard().setCurrentPanel(LicencePanelDescriptor.IDENTIFIER);
 				}
@@ -168,19 +166,12 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 				//This version : 2012/12/19 22:23:43 GMT
 				Pattern pattern = Pattern.compile("This version : ([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]*)");
 				Matcher fit;
-				//Matcher fit2;
 				while (null != (line = br.readLine())) {
-					//System.out.println(line);
 					fit = pattern.matcher(line);
-					//fit2 = pattern2.matcher(line);
 					if (fit.find()) {
 						checkFit(line, fit);
 						break;
 					} 
-//					else if (fit2.find()) {
-//						checkFit(line, fit2);
-//						break;
-//					}
 				}
 				
 			} catch (Exception e) {
@@ -192,11 +183,8 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 
 		private void checkFit(String line, Matcher fit) throws ParseException {
 			System.out.println("Found pattern in : "+line);
-			//versionNumber = fit.group(1).replace("-", "");
-			//lastReleaseDate = sourceForgeDateFormat.parse(fit.group(2));
 			versionNumber = fit.group(1).replaceAll("[ /:]", ".");
 			lastReleaseDate = jnlpDateFormat.parse(fit.group(1));
-			//if (lastReleaseDate.after(currentBuildDate)) {
 			Calendar lastReleaseCal = Calendar.getInstance();
 			lastReleaseCal.setTime(lastReleaseDate);
 			lastReleaseCal.set(Calendar.MILLISECOND, 0);
@@ -205,11 +193,7 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 			currentBuildCal.setTime(currentBuildDate);
 			currentBuildCal.set(Calendar.MILLISECOND, 0);
 			currentBuildCal.set(Calendar.SECOND, 0);
-//			if (	lastReleaseCal.get(Calendar.YEAR) > currentBuildCal.get(Calendar.YEAR) ||
-//					(lastReleaseCal.get(Calendar.YEAR) == currentBuildCal.get(Calendar.YEAR) && lastReleaseCal.get(Calendar.DAY_OF_YEAR) > currentBuildCal.get(Calendar.DAY_OF_YEAR))
-//				) {
-//				newestExist++;
-//			}
+
 			if (lastReleaseCal.getTime().after(currentBuildCal.getTime())) newestExist++;
 			System.out.println("Latest version is : "+versionNumber+" released on "+jnlpDateFormat.format(lastReleaseDate));
 			System.out.println("Your version was released on the "+jnlpDateFormat.format(currentBuildDate));

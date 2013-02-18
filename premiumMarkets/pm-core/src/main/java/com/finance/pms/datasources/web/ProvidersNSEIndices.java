@@ -70,7 +70,7 @@ public class ProvidersNSEIndices extends ProvidersList {
 	}
 	
 	@SuppressWarnings("unchecked") //TODO merge with yahoo indices => create market indices related Provider : probably add an interface alike MarketListProvider
-	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) {
+	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
 
 		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
 
@@ -84,9 +84,10 @@ public class ProvidersNSEIndices extends ProvidersList {
 			try {
 				listOfIndiceStocks = ((HttpSourceMarket) this.httpSource).readURL(nseFormater);
 			} catch (HttpException e) {
-				LOGGER.error("", e);
-			} finally {
-				if (listOfIndiceStocks.size() == 0) break;
+				LOGGER.error(e, e);
+				throw e;
+			} catch (Exception e) {
+				LOGGER.error(e, e);
 			}
 			listFromWeb.addAll(listOfIndiceStocks);
 		}
@@ -161,14 +162,14 @@ public class ProvidersNSEIndices extends ProvidersList {
 
 	@Override
 	public SharesList loadSharesListForThisListProvider() {
-		String extention = Indice.formatName(indices);
+		String extention = Indice.formatSet(indices);
 		return super.initSharesList(this.getSharesListIdEnum().name(),extention);
 	}
 
 	@Override
 	public void addIndice(Indice indice) {
 		this.indices.add(indice);
-		MainPMScmd.getPrefs().put("quotes.yahoo.indices",Indice.formatToString(indices));
+		MainPMScmd.getPrefs().put("quotes.listproviderindices",Indice.formatSet(indices));
 	}
 
 	@Override
@@ -181,7 +182,7 @@ public class ProvidersNSEIndices extends ProvidersList {
 			}
 		}
 		
-		MainPMScmd.getPrefs().put("quotes.yahoo.indices",Indice.formatToString(this.indices));
+		MainPMScmd.getPrefs().put("quotes.listproviderindices",Indice.formatSet(this.indices));
 	}
 	
 	@Override

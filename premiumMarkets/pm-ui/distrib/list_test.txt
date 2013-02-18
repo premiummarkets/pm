@@ -1,8 +1,52 @@
-MTP,LU0323134006,ARCELORMITTAL,ALL,euronext,yahoo
-ALO,FR0010220475,ALSTOM,ALL,euronext,yahoo
-GA,FR0000120164,CGG VERITAS (ex GEOPHYSIQUE),ALL,euronext,yahoo
-MLAMB,FR0010288480,AMBIO FRANCE,ALL,euronext,yahoo
-MLDUC,FR0010621664,DUCOT ET SARRAT,ALL,euronext,yahoo
-UBI,FR0000054470,UBISOFT ENTERTAIN,ALL,euronext,yahoo
+#Alternative Enegy
+EVX,EVX,Environmental Services,TRACKERS,NYSE,1,yahoo
+PKN,PKN,Global Nuclear Energy,TRACKERS,NYSE,1,yahoo
+FAN,FAN,Global Wind Energy,TRACKERS,NYSE,1,yahoo
+GRN,GRN,Global Carbon,TRACKERS,NYSE,1,yahoo
+TAN,TAN,Solar,TRACKERS,NYSE,1,yahoo
 
+#Consumer
+XHB,XHB,Homebuilders,TRACKERS,NYSE,1,yahoo
+BJK,BJK,Gaming,TRACKERS,NYSE,1,yahoo
+XRT,XRT,Retail,TRACKERS,NYSE,1,yahoo
+PBJ,PBJ,Food & Beverage,TRACKERS,NYSE,1,yahoo
+CARZ,CARZ,Global Auto Index,TRACKERS,NYSE,1,yahoo
 
+#Energy
+XOP,XOP,Oil & Gas Exploration & Production,TRACKERS,NYSE,1,yahoo
+XES,XES,Oil & Gas Equipment & Services,TRACKERS,NYSE,1,yahoo
+
+#Financial
+KME,KME,Mortgage Finance,TRACKERS,NYSE,1,yahoo
+PSP,PSP,Listed Private Equity,TRACKERS,NYSE,1,yahoo
+KBE,KBE,Bank,TRACKERS,NYSE,1,yahoo
+KCE,KCE,Capital Markets,TRACKERS,NYSE,1,yahoo
+KIE,KIE,Insurance,TRACKERS,NYSE,1,yahoo
+KRE,KRE,Regional Banking,TRACKERS,NYSE,1,yahoo
+IAI,IAI,Broker-Dealers,TRACKERS,NYSE,1,yahoo
+
+#HealthCare
+XBI,XBI,Biotech,TRACKERS,NYSE,1,yahoo
+IHI,IHI,Medical Devices,TRACKERS,NYSE,1,yahoo
+IHF,IHF,Healthcare Providers,TRACKERS,NYSE,1,yahoo
+XPH,XPH,Pharmaceuticals,TRACKERS,NYSE,1,yahoo
+
+#Industrials & Infrastructure
+FAA,FAA,Airline,TRACKERS,NYSE,1,yahoo
+PIO,PIO,Global Water,TRACKERS,NYSE,1,yahoo
+ITA,ITA,Aerospace & Defense,TRACKERS,NYSE,1,yahoo
+IYT,IYT,Transportation Average,TRACKERS,NYSE,1,yahoo
+GII,GII,Global Infrastructure,TRACKERS,NYSE,1,yahoo
+
+#Materials, Metals and Mining
+HAP,HAP,Hard Assets Producers,TRACKERS,NYSE,1,yahoo
+SLX,SLX,Steel,TRACKERS,NYSE,1,yahoo
+XME,XME,Metals and Mining,TRACKERS,NYSE,1,yahoo
+GDX,GDX,Gold Miners,TRACKERS,NYSE,1,yahoo
+GDXJ,GDXJ,Junior Gold Miners,TRACKERS,NYSE,1,yahoo
+KOL,KOL,Coal,TRACKERS,NYSE,1,yahoo
+
+#Technology
+IGV,IGV,Software,TRACKERS,NYSE,1,yahoo
+XSD,XSD,Semiconductor,TRACKERS,NYSE,1,yahoo
+IGN,IGN,Networking,TRACKERS,NYSE,1,yahoo

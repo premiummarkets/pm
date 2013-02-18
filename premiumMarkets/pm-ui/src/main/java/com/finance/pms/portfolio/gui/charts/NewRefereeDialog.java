@@ -30,16 +30,16 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import com.finance.pms.ErrorDialog;
 import com.finance.pms.MainGui;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 
 /**
@@ -48,6 +48,10 @@ import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
  * @author Guillaume Thoreton
  */
 public class NewRefereeDialog extends NewPortfolioItemDialog {
+	
+	private static NewPortfolioItemDialog runningInst = null;
+
+	private Set<Stock> selectedStocks;
 	
 	/**
 	 * Instantiates a new new referee dialog.
@@ -74,42 +78,43 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 */
 	public static NewPortfolioItemDialog showUI(Shell shell, Composite composite) {
 		
-		if (inst == null || inst.isDisposed()) {
+		if (NewRefereeDialog.runningInst != null && !NewRefereeDialog.runningInst.isDisposed()) {
+			NewRefereeDialog.runningInst.forceFocus();
+			return runningInst;
+		}
 
-			Shell piShell = new Shell(shell, SWT.RESIZE | SWT.DIALOG_TRIM);
+		NewRefereeDialog inst = null;
+		try {
+			Shell piShell = new Shell(shell, SWT.DIALOG_TRIM|SWT.RESIZE);
 			piShell.setText("Premium Markets - Referee selection.");
 			piShell.setFont(MainGui.DEFAULTFONT);
-			piShell.setLayout(new FillLayout());
-			
-			final ScrolledComposite scrollComposite = new ScrolledComposite(piShell,SWT.BORDER | SWT.RESIZE);
-			inst = new NewRefereeDialog(scrollComposite, SWT.NULL, composite);
-			inst.open();
-			scrollComposite.setContent(inst);
-		    scrollComposite.setExpandVertical(true);
-		    scrollComposite.setExpandHorizontal(true);
-		    scrollComposite.setMinSize(inst.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		    scrollComposite.addControlListener(new ControlAdapter() {
-		      public void controlResized(ControlEvent e) {
-		        Rectangle r = scrollComposite.getClientArea();
-		        scrollComposite.setMinSize(inst.computeSize(r.width, r.height));
-		      }
-		    });
-		    scrollComposite.pack();
-		    
-		    piShell.setSize(scrollComposite.computeSize(200, 500));
-		    Rectangle mainBounds = shell.getBounds();
-		    Rectangle marketShellBounds = piShell.getBounds();
-		    piShell.setLocation(mainBounds.x+mainBounds.width/4-marketShellBounds.x/2,mainBounds.y+mainBounds.y/4);
-		    piShell.open();
+			piShell.setLayout(new FillLayout(SWT.VERTICAL));
 
+			inst = new NewRefereeDialog(piShell, SWT.RESIZE, composite);
+			inst.initGui(SWT.SINGLE);
+
+			piShell.layout();
+			piShell.pack();
+			piShell.open();
+
+			runningInst = inst;
 			
 			try {
-				swtLoop();
+				inst.swtLoop();
 			} catch (Exception e) {
-				LOGGER.error("", e);
+				LOGGER.error(e, e);
+				throw e;
 			}
-		} else {
-			inst.forceFocus();
+
+		} catch (Exception e) {
+
+			try {
+				LOGGER.error(e,e);
+				if (inst != null) inst.dispose();
+			} finally {
+				inst = null;
+			}
+
 		}
 		
 		return inst;
@@ -117,21 +122,36 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 
 
 	@Override
-	public void open() {
-		super.open();
+	public void initGui(int selectionMode) {
+		super.initGui(selectionMode);
+		this.ctrlComposite.dispose();
 		
-		this.moniCombo.setVisible(false);
-		this.monitorLabel.setVisible(false);
-		this.quantityLabel.setVisible(false);
-		this.quantityText.setVisible(false);
-		this.newPortfollioAddButton.setVisible(false);
-		this.addShareManualGroup.dispose();
-		this.addFromFile.dispose();
-		
-		inst.layout();
-		inst.pack();
+		this.layout();
+		this.pack();
 		
 	}
-	
+
+	public Set<Stock> getSelectedStocks() {
+		return selectedStocks;
+	}
+
+
+	@Override
+	protected String addListLabel() {
+		return "Add List selection as Referee";
+	}
+	@Override
+	protected String addSearchSelectionLabel() {
+		return "Add Search selection as Referee";
+	}
+
+
+	@Override
+	protected void addSelection(Set<Stock> stocks) {
+		this.selectedStocks = stocks;
+		
+		ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Added referee : "+stocks, null);
+		inst.open();
+	}	
 	
 }

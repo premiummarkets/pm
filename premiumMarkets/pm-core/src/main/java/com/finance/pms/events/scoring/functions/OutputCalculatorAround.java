@@ -62,10 +62,10 @@ public class OutputCalculatorAround implements OutputCalculator {
 			QuotationsFactories.getFactory().incrementDate(nextDateShift, nbOpenIncrementBetween/2);
 		}
 		
-		if (currentTime.equals(prevExtremDate)) {
+		if (currentTime.compareTo(prevExtremDate) == 0) {
 			return prevValue;
 		} else 
-			if (currentTime.after(nextDateShift.getTime()) && ( currentTime.before(nextExtremDate) ||  currentTime.equals(nextExtremDate) )) {
+			if (currentTime.after(nextDateShift.getTime()) && ( currentTime.before(nextExtremDate) ||  currentTime.compareTo(nextExtremDate)  == 0)) {
 				return nextValue;
 			} else {
 				return Extremity.UNKNOWN.getExValue();

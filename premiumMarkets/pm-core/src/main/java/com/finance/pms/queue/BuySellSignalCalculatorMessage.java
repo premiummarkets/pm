@@ -380,12 +380,12 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 		if (startDate == null) {
 			if (other.startDate != null)
 				return false;
-		} else if (!startDate.equals(other.startDate))
+		} else if (startDate.compareTo(other.startDate) != 0)
 			return false;
 		if (endDate == null) {
 			if (other.endDate != null)
 				return false;
-		} else if (!endDate.equals(other.endDate))
+		} else if (endDate.compareTo(other.endDate) != 0)
 			return false;
 		if (signalProcessingName == null) {
 			if (other.signalProcessingName != null)

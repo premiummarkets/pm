@@ -68,13 +68,13 @@ PropertyChangeListener {
 		Object[] options = {btnString1, btnString2};
 
 		//Create the JOptionPane.
-		optionPane = new JOptionPane(array,JOptionPane.QUESTION_MESSAGE,JOptionPane.YES_NO_OPTION,null,options,options[0]);
+		optionPane = new JOptionPane(array, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION, null, options, options[0]);
 
 		//Make this dialog display it.
 		setContentPane(optionPane);
 
 		//Handle window closing correctly.
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
 				/*
@@ -110,8 +110,8 @@ PropertyChangeListener {
 			
 			public void dispose() throws InterruptedException {
 				while (isVisible()) {
-					Thread.sleep(10000);
-					setVisible(false);
+					Thread.sleep(30000);
+					optionPane.setValue(btnString1);
 				}
 			}
 			
@@ -129,10 +129,10 @@ PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent e) {
 		String prop = e.getPropertyName();
 
-		if (isVisible()
-				&& (e.getSource() == optionPane)
-				&& (JOptionPane.VALUE_PROPERTY.equals(prop) ||
-						JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) {
+		if (
+				isVisible() && (e.getSource() == optionPane)
+				&& (JOptionPane.VALUE_PROPERTY.equals(prop) || JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) {
+			
 			Object value = optionPane.getValue();
 
 			if (value == JOptionPane.UNINITIALIZED_VALUE) {

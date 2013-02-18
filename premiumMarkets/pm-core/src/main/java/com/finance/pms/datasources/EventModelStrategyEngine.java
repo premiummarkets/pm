@@ -32,8 +32,16 @@ package com.finance.pms.datasources;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedMap;
+
+import org.apache.commons.httpclient.HttpException;
+
+import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 
 
 // TODO: Auto-generated Javadoc
@@ -84,12 +92,9 @@ public interface EventModelStrategyEngine {
 	public abstract Date getLastAnalyse(Date oldLastAnalyse);
 
 
-	public abstract void callbackForlastListFetch(Set<Observer> engineObservers);
-	
+	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) throws HttpException;
+	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) throws StockNotFoundException;
+	public abstract Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams);
 	public abstract void  callbackForReco(Set<Observer> engineObservers);
-
-	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams);
-
-	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams);
 
 }

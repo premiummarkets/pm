@@ -194,7 +194,7 @@ public class MainPMScmd {
 						ProvidersInflation.SYMBOL,ProvidersInflation.SYMBOL,ProvidersInflation.SYMBOL,
 						new Boolean(false),StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
 						new SymbolMarketQuotationProvider(), new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
-				DataSource.getInstance().getShareDAO().saveOrUpdateShare(inflationStock);
+				DataSource.getInstance().getShareDAO().saveOrUpdateStock(inflationStock);
 				Providers.getInstance("inflation").getQuotes(inflationStock, null, null);
 			}
 			

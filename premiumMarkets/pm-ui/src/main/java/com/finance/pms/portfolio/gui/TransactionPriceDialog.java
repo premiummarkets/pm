@@ -347,7 +347,7 @@ public class TransactionPriceDialog {
 				});
 			}
 			{
-				cancelButton = new Button(dialogShell, SWT.BORDER);
+				cancelButton = new Button(dialogShell, SWT.PUSH);
 				GridData newPortfollioValidateButtonLData = new GridData();
 				newPortfollioValidateButtonLData.horizontalSpan = 1;
 				newPortfollioValidateButtonLData.horizontalAlignment = GridData.BEGINNING;
@@ -363,7 +363,7 @@ public class TransactionPriceDialog {
 				});
 			}
 			{
-				newPortfollioValidateButton = new Button(dialogShell, SWT.BORDER);
+				newPortfollioValidateButton = new Button(dialogShell, SWT.PUSH);
 				GridData newPortfollioValidateButtonLData = new GridData();
 				newPortfollioValidateButtonLData.horizontalSpan = 1;
 				newPortfollioValidateButtonLData.horizontalAlignment = GridData.END;

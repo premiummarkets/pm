@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +76,7 @@ public class StockList extends ArrayList<Stock> {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public StockList(String pathToList) {
+	public StockList(String pathToList) throws InputMismatchException {
 		super();
 		try {
 			File f = new File(pathToList);
@@ -144,8 +145,8 @@ public class StockList extends ArrayList<Stock> {
 			}
 			fileReader.close();
 		} catch (Exception e) {
-			LOGGER.error("ERROR, your ticker file properties is not valid : " + e,e);
-			LOGGER.debug("",e);
+			LOGGER.warn("ERROR, your ticker file properties is not valid : " + e,e);
+			throw new InputMismatchException();
 		}
 	}
 

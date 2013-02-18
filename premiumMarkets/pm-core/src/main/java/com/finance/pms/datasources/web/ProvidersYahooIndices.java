@@ -84,7 +84,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	
 	@Override
 	public SharesList loadSharesListForThisListProvider() {
-		String extention = Indice.formatName(indices);
+		String extention = Indice.formatSet(indices);
 		return super.initSharesList(this.getSharesListIdEnum().name(),extention);
 	}
 
@@ -164,10 +164,11 @@ public class ProvidersYahooIndices extends ProvidersList {
 	 * @param marketQuotationsProviders
 	 * @param passTheBucketList
 	 * @param sharesListStocks
+	 * @throws HttpException 
 	 */
 	@SuppressWarnings("unchecked")
 	@Override//TODO merge with nse indices => create market indices related Provider : probably add an interface alike MarketListProvider
-	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) {
+	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
 		
 		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
 		
@@ -182,10 +183,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 				try {
 					listOfIndiceStocks = ((HttpSourceMarket) this.httpSource).readURL(yahooIndiceFormater);
 				} catch (HttpException e) {
-					LOGGER.error("", e);
-				} finally {
-					if (listOfIndiceStocks.size() == 0) break;
+					LOGGER.error(e, e);
+					throw e;
+				} catch (Exception e) {
+					LOGGER.error(e, e);
 				}
+				if (listOfIndiceStocks.size() == 0) break;
 				listFromWeb.addAll(listOfIndiceStocks);
 			}
 		}
@@ -362,7 +365,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	@Override
 	public void addIndice(Indice indice) {
 		this.indices.add(indice);
-		MainPMScmd.getPrefs().put("quotes.yahoo.indices",Indice.formatToString(indices));
+		MainPMScmd.getPrefs().put("quotes.listproviderindices",Indice.formatSet(indices));
 	}
 
 	@Override
@@ -375,6 +378,6 @@ public class ProvidersYahooIndices extends ProvidersList {
 			}
 		}
 		
-		MainPMScmd.getPrefs().put("quotes.yahoo.indices",Indice.formatToString(this.indices));
+		MainPMScmd.getPrefs().put("quotes.listproviderindices",Indice.formatSet(this.indices));
 	}
 }

@@ -228,7 +228,7 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 		Date dMidle = rates.get(midle).getDate();
 		
 		//Stop conditions
-		if (date.equals(dMidle))
+		if (date.compareTo(dMidle) == 0)
 			return midle;
 		if (midle.equals(start)) {
 			if (date.before(rates.get(start).getDate()))

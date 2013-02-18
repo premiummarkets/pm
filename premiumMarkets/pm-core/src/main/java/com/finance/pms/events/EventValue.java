@@ -205,7 +205,7 @@ public class EventValue implements Serializable {
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (date.compareTo(other.date) != 0)
 			return false;
 		if (eventDef == null) {
 			if (other.eventDef != null)

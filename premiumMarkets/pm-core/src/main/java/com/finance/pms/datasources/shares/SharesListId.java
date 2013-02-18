@@ -33,7 +33,11 @@ package com.finance.pms.datasources.shares;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.prefs.BackingStoreException;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
@@ -46,29 +50,38 @@ import com.finance.pms.datasources.web.ProvidersTypes;
  * @author Guillaume Thoreton
  */
 public enum SharesListId {
-
-	UNKNOWN ("unknown",ProvidersTypes.NONE,"No comment","No market", false),
-	EURONEXT ("euronext",ProvidersTypes.EURONEXT,"No comment", "All EURONEXT shares from euronext.com", false),
-	BOURSORAMA ("boursorama",ProvidersTypes.BOURSORAMA,"No comment","All EURONEXT shares from boursorama.com", false),
-	NASDAQ ("nasdaq",ProvidersTypes.NASDAQ,"No comment","All NASDAQ from nasdaq.com", false),
-	ASX ("asx",ProvidersTypes.ASX,"No comment","All ASX from asx.com.au", false),
-	BSE ("bse",ProvidersTypes.BSE,"No comment","All BSE from bseindia.com", false),
-	GOOGLENYSE ("nyse",ProvidersTypes.GOOGLE,"No comment","All NYSE from google.com", false),
-	GOOGLEAMEX ("amex",ProvidersTypes.GOOGLE, "No comment","All AMEX from google.com", false),
-	NSEINDICES ("nseIndices",ProvidersTypes.NSEINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
-			"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +
-			"(these are nse indices you can find at nseindia.com)\n " +
-			"and MARKET ID  has to be "+Market.NSE+".\n" +
-			"(ex : NIFTY:NSE, CNX100:NSE, ... standing for cnx nifty, cnx 100 ...)\n" +
-			"You can specify several indices comma separeted and build you own composite list.\n" +
-			"If left blank, it will aggregate all the prexisting NSE indices available in your database.\n", "NSE INDICES components", true),
+	
+	ALLMARKETS ("allMarkets", ProvidersTypes.ALLMARKETS, 
+			"The format is as follow  ALL:<MARKET ID>.\n Where MARKET ID is like : "+ Arrays.asList(Market.values())+"\n", "Full market", true, SharesListId.sharesListIdOptionsForAllMarkets()),
 	YAHOOINDICES ("yahooIndices",ProvidersTypes.YAHOOINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
 			"Where INDICE ID like NDX, FTLC, SBF250 ...\n" +
 			"(these are yahoo indices like the one you can find at http://finance.yahoo.com/indices for instance.)\n " +
 			"and MARKET ID is like : "+ Arrays.asList(Market.values()) + ".\n" +
 			"(ex : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
 			"You can specify several indices comma separeted and build you own composite list.\n" +
-			"If left blank, it will aggregate all the prexisting YAHOO indices available in your database.\n", "YAHOO INDICES components", true);
+			"If left blank, it will aggregate all the prexisting YAHOO indices available in your database.\n", "YAHOO INDICES components", true,  SharesListId.sharesListIdOptionsForYahooIndices()),
+	NSEINDICES ("nseIndices",ProvidersTypes.NSEINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
+					"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +
+					"(these are nse indices you can find at nseindia.com)\n " +
+					"and MARKET ID  has to be "+Market.NSE+".\n" +
+					"(ex : NIFTY:NSE, CNX100:NSE, ... standing for cnx nifty, cnx 100 ...)\n" +
+					"You can specify several indices comma separeted and build you own composite list.\n" +
+					"If left blank, it will aggregate all the prexisting NSE indices available in your database.\n", "NSE INDICES components", true, 
+					new String[]{"NIFTY:NSE", "NIFTY:NSE", "JRNIFTYLISR:NSE", "CNX100:NSE", "CNX200:NSE", "CNX500:NSE", "NIFTYMIDCAP50:NSE", "CNXMIDCAP:NSE", "CNXSMALLCAP:NSE"}),
+	BSE ("bse",ProvidersTypes.BSE,"No comment","All BSE from bseindia.com", false, new String[0]),
+	
+	//Broken
+	GOOGLENYSE ("nyse",ProvidersTypes.GOOGLE,"No comment","All NYSE from google.com", false, new String[0]),
+	GOOGLEAMEX ("amex",ProvidersTypes.GOOGLE, "No comment","All AMEX from google.com", false, new String[0]),
+	EURONEXT ("euronext",ProvidersTypes.EURONEXT,"No comment", "All EURONEXT shares from euronext.com", false, new String[0]),
+	BOURSORAMA ("boursorama",ProvidersTypes.BOURSORAMA,"No comment","All EURONEXT shares from boursorama.com", false, new String[0]),
+	NASDAQ ("nasdaq",ProvidersTypes.NASDAQ,"No comment","All NASDAQ from nasdaq.com", false, new String[0]),
+	ASX ("asx",ProvidersTypes.ASX,"No comment","All ASX from asx.com.au", false, new String[0]),
+	
+	//Other
+	UNKNOWN ("unknown",ProvidersTypes.NONE,"No comment","No market", false, new String[0]);
+
+
 	
 
 	/** The LOGGER. */
@@ -80,6 +93,8 @@ public enum SharesListId {
 	private String comment;
 	private String description;
 	private Boolean isIndicesComposite;
+	
+	private String[] options;
 
 
 	/**
@@ -91,12 +106,13 @@ public enum SharesListId {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private SharesListId(String cmdParam, ProvidersTypes providersType, String comment, String description, Boolean isIndicesComposite) {
+	private SharesListId(String cmdParam, ProvidersTypes providersType, String comment, String description, Boolean isIndicesComposite, String[] options) {
 		this.providersType = providersType;
 		this.sharesListCmdParam = cmdParam;
 		this.comment = comment;
 		this.description=description;
 		this.isIndicesComposite = isIndicesComposite;
+		this.options = options;
 	}
 	
 	/**
@@ -195,6 +211,42 @@ public enum SharesListId {
 
 	public String getComment() {
 		return comment;
+	}
+	
+	//TODO :several share lists ie use the share lists in db instead of props.
+	public static void updatePrefs(String shareListName, String indices, String quotationProvider) {
+		MainPMScmd.getPrefs().put("quotes.listprovider", shareListName);
+		MainPMScmd.getPrefs().put("quotes.listproviderindices", indices);
+		MainPMScmd.getPrefs().put("quotes.provider", quotationProvider);
+		try {
+			MainPMScmd.getPrefs().flush();
+		} catch (BackingStoreException e) {
+			LOGGER.error(e,e);
+		}
+	}
+	
+	public static String[] sharesListIdOptionsForAllMarkets() {
+		SortedSet<String> ret = new TreeSet<String>();
+		for (Market market : Market.values()) {
+			if (market.getHasStaticAllMarket()) {
+				ret.add("ALL:" + market.name());
+			}
+		}
+		return ret.toArray(new String[0]);
+	}
+	
+	public static String[] sharesListIdOptionsForYahooIndices() {
+		SortedSet<String> ret = new TreeSet<String>();
+		for (Market market : Market.values()) {
+			for (String indice : market.getYahooIndices()) {
+				ret.add(indice+ ":" + market.name());
+			}
+		}
+		return ret.toArray(new String[0]);
+	}
+
+	public String[] getOptions() {
+		return options;
 	}
 
 

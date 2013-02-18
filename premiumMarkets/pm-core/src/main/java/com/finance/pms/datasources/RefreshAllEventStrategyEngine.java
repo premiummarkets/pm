@@ -34,8 +34,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedMap;
+
+import org.apache.commons.httpclient.HttpException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
@@ -46,8 +50,11 @@ import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.SharesListId;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.portfolio.SharesList;
@@ -69,17 +76,18 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 		
 	}
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers) {
+	public void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) throws HttpException {
 		
-		LOGGER.debug("Updating list of shares");
-		String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider", "euronext");
-		Providers provider = Providers.getInstance(listStProvider);
-		String marketQuotationsProviders = MainPMScmd.getPrefs().get("quotes.provider","yahoo");
-		MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);
-		
-		provider.addObservers(engineObservers);
-		provider.updateStockListFromWeb(marketQuotationProvider);
-		
+		LOGGER.debug("Updating list of shares  : "+viewStateParams);
+		for (Object shareList : viewStateParams) {
+			
+			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+			String marketQuotationsProviders = MainPMScmd.getPrefs().get("quotes.provider","yahoo");
+			MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);
+			
+			provider.addObservers(engineObservers);
+			provider.updateStockListFromWeb(marketQuotationProvider);
+		}
 		
 	}
 
@@ -90,46 +98,65 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 		
 		LOGGER.debug("Fetching all quotations");
 		quotationUpdate.addObservers(engineObservers);
+		for (Object shareList : viewStateParams) {
+			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+			quotationUpdate.getQuotesForSharesListInDB(provider.getSharesListIdEnum().getSharesListCmdParam(), provider.getIndices());
 
-		String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider", "euronext");
-		Providers provider = Providers.getInstance(listStProvider);
-		quotationUpdate.getQuotesForSharesListInDB(listStProvider, provider.getIndices());
+		}
 	}
 
 	
-	public void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
+	public Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
 		
-		Date datefin = EventSignalConfig.getNewDate();
-		Date datedeb = startAnalyseDate;
-		
-		String[] analysers = new String[analisysList.size()];
-		for (int j = 0; j < analysers.length; j++) {
-			analysers[j] = analisysList.get(j);
-		}
-		
-		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
-		Providers provider = Providers.getInstance(MainPMScmd.getPrefs().get("quotes.listprovider", SharesListId.YAHOOINDICES.getSharesListCmdParam()));
-		SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
-		for (int i = 0; i < analysers.length; i++) {
+		for (Object shareList : viewStateParams) {
+			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+			SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
 			
-			LOGGER.debug("running analysis for " + analysers[i]);
-			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+			//Dates check
+			Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 
-			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
-			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
-			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
+			//Init
+			String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
+			String[] analysers = new String[analisysList.size()];
+			for (int j = 0; j < analysers.length; j++) {
+				analysers[j] = analisysList.get(j);
+			}
+			for (int i = 0; i < analysers.length; i++) {
+
+				LOGGER.debug("running analysis for " + analysers[i]);
+				IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+
+//				//XXX ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig()); 
+//				//XXX The following should be in an other bean and systmaticly used instead of the Configs default constructors
+//				ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
+//				shareListMgr.initConfig();
+
+				ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
+
+				//Calculations
+				Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
+				IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 						SpringContext.getSingleton(),
 						analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, false, engineObservers.toArray(new Observer[0]));
-			
-			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
-			try {
-				actionThread.runIndicatorsCalculation(maxPass,true);
-			} catch (Exception e) {
-				LOGGER.error(e,e);
+						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, export, engineObservers.toArray(new Observer[0]));
+
+				Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+				try {
+					if (maxPass == 1) {
+						actionThread.runIndicatorsCalculationPassOne(true , "auto");
+					} else {
+						actionThread.runIndicatorsCalculationPassTwo(true);
+					}
+				} catch (IncompleteDataSetException e) {
+					LOGGER.warn(e,e);
+				} catch (Exception e) {
+					LOGGER.error(e,e);
+				}
 			}
 		}
-	
+		
+		return null;
 	}
 
 	

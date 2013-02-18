@@ -105,7 +105,7 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 	@Override
 	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, 
-			String analyseName,String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean p, Observer...observers) {
+			String analyseName,String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean p, String passOneCalcMode, Observer...observers) {
 
 		//		String dateDeb = "now - 30 day";
 		//		String dateFin = "now";

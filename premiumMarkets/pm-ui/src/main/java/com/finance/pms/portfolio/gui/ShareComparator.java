@@ -48,12 +48,8 @@ public class ShareComparator implements Comparator<SlidingPortfolioShare> {
 	 */
 	public ShareComparator() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(T, T)
-	 */
 	public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
 		SlidingPortfolioShare p1 = o1;
 		SlidingPortfolioShare p2 = o2;

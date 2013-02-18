@@ -67,7 +67,7 @@ public class InvHouseTrendSmoother extends Smoother {
 			//int indexOfStart = qKeys.indexOf(start);
 			int indexOfStart = -1;
 			for (indexOfStart = 0;indexOfStart < qKeys.size(); indexOfStart++) {
-				if (qKeys.get(indexOfStart).equals(start) || qKeys.get(indexOfStart).after(start)) {
+				if (qKeys.get(indexOfStart).compareTo(start)  == 0|| qKeys.get(indexOfStart).after(start)) {
 					start =  qKeys.get(indexOfStart);
 					break;
 				}

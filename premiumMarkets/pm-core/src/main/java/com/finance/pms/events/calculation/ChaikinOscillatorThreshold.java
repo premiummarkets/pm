@@ -75,16 +75,14 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalcul
 		
 		{
 			//BULL : Chaikin cross above zero
-			boolean isCrossingBelow = 
-					this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1] < 0 && 0 < this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
-			res.setBullishCrossOver(isCrossingBelow);
+			boolean isCrossingAbove = this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1] < 0 && 0 < this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
+			res.setBullishCrossOver(isCrossingAbove);
 			if (res.getBullishCrossOver()) return res;
 		} 
 		{
 			//BEAR : Chaikin cross below zero
-			boolean isCrossingAbove = 
-					this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1]  > 0 && 0 > this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
-			res.setBearishCrossBellow(isCrossingAbove);
+			boolean isCrossingBelow = this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1]  > 0 && 0 > this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
+			res.setBearishCrossBellow(isCrossingBelow);
 			
 			return res;
 		}
@@ -130,6 +128,17 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalcul
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinOscillator, calculatorIndex, chaikinQuotationStartDateIdx);
+		return new double[]
+				{
+				this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex],
+				0
+				};
 	}
 
 	@Override

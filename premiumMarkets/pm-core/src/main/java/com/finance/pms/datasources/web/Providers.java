@@ -35,6 +35,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Observer;
 import java.util.Set;
@@ -101,13 +102,6 @@ public abstract class Providers  implements MyBeanFactoryAware {
 		observers = new HashSet<Observer>();
 	}
 
-	/**
- * Gets the single instance of Providers.
- * 
- * @param sharesListName the provider
- * 
- * @return single instance of Providers
- */
 	public static Providers getInstance(String sharesListName) {
 		
 		String providerBeanName = sharesListName+"ProviderSource";
@@ -116,6 +110,26 @@ public abstract class Providers  implements MyBeanFactoryAware {
 		provider.addIndices(indices,false);
 		return provider;
 		
+	}
+	
+	public static Providers setupProvider(String item) {
+		int indexOfFirstComma = item.indexOf(",");
+		//extract and set base
+		String shareListBaseName = item;
+		Set<Indice> indices = new HashSet<Indice>();
+		if (indexOfFirstComma != -1) {
+			shareListBaseName = item.substring(0, indexOfFirstComma).trim();
+			//extract and set indices
+			indices = Indice.parseString(item.substring(indexOfFirstComma+1).trim());
+		}
+		SharesListId sharesListId = SharesListId.valueOf(shareListBaseName);
+		Providers provider = Providers.getInstance(sharesListId.getSharesListCmdParam());
+		provider.addIndices(indices, true);
+		return provider;
+	}
+	
+	public static String providerShareListName(Providers provider) {
+		return provider.getSharesListIdEnum().name()+Indice.formatSet(provider.getIndices());
 	}
 	
 
@@ -150,8 +164,9 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 * @return the stock list
 	 * 
 	 * @author Guillaume Thoreton
+	 * @throws HttpException 
 	 */
-	public abstract StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stocksInDB);
+	public abstract StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stocksInDB) throws HttpException;
 	
 	/**
 	 * Retreive stock list from cmd line.
@@ -188,28 +203,13 @@ public abstract class Providers  implements MyBeanFactoryAware {
      * @param marketQuotationsProviders the market quotations providers
      * 
      * @author Guillaume Thoreton
+     * @throws HttpException 
      */
-    public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) {
+    public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
     	
     	StockList existingDBStocks = new StockList();
     	this.retrieveStockListFromBase(existingDBStocks);
 		this.retrieveStockListFromWeb(marketQuotationsProviders, existingDBStocks);
-    }
-    
-    /**
-     * Update stock list from file.
-     * 
-     * @param pathToList the path to list
-     * 
-     * @return the stock list
-     * 
-     * @author Guillaume Thoreton
-     */
-    @Deprecated
-    public StockList updateStockListFromFile(String pathToList) {
-    	StockList stockList = new StockList();
-    	this.retrieveStockListFromBase(stockList);
-		return this.retreiveStockListFromFile(pathToList,stockList);
     }
     
     /**
@@ -284,7 +284,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public StockList retreiveStockListFromFile(String pathToList,StockList stockList) {
+	public StockList retreiveStockListFromFile(String pathToList, StockList stockList) throws InputMismatchException {
 		LOGGER.debug("From File : ");
 		//init des stocks fichier
 		StockList fileStockList = new StockList(pathToList);
@@ -310,7 +310,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 */
 	protected void updatingShareListInDB(SharesList shareList, final Set<Stock> sharesListStocks) {
 		for (Object stockLtmp : sharesListStocks) {
-			Stock ss  = DataSource.getInstance().getShareDAO().loadShareBy(((Stock)stockLtmp).getSymbol(), ((Stock)stockLtmp).getIsin());
+			Stock ss  = DataSource.getInstance().getShareDAO().loadStockBy(((Stock)stockLtmp).getSymbol(), ((Stock)stockLtmp).getIsin());
 			if (null != ss) {
 				shareList.addShare(ss);
 			} else {
@@ -323,7 +323,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	 * @return
 	 */
 	public SharesList loadSharesListForThisListProvider() {
-		return initSharesList(this.getSharesListIdEnum().name(), Indice.formatToString(this.getIndices()));
+		return initSharesList(this.getSharesListIdEnum().name(), Indice.formatSet(this.getIndices()));
 	}
 	
 	/**

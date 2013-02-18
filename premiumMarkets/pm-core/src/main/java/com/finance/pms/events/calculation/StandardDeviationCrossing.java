@@ -169,6 +169,17 @@ public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalcula
 		}
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		return new double[]
+				{
+					this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
+					this.standardDeviation.getStdDev()[getIndicatorIndexFromCalculatorQuotationIndex(this.standardDeviation, calculatorIndex, stddevQuotationStartDateIdx)],
+					
+				};
+	}
 
 	@Override
 	public EventDefinition getEventDefinition() {

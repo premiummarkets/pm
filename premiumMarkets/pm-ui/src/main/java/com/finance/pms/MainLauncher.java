@@ -65,7 +65,7 @@ public class MainLauncher {
 		String lastListFetch = MainPMScmd.getPrefs().get("quotes.lastlistfetch", "1970/01/01");
 		String lastFetch = MainPMScmd.getPrefs().get("quotes.lastfetch", "1970/01/01");
 		String lastAnalyse = MainPMScmd.getPrefs().get("quotes.lastanalyse","1970/01/01");
-		//String indiceList = MainPMScmd.prefs.get("quotes.yahoo.indices", "FCHI:EURONEXT");
+		//String indiceList = MainPMScmd.prefs.get("quotes.listproviderindices", "FCHI:EURONEXT");
 		
 		//-cmd or -all
 		String qmParam = args[0];

@@ -38,18 +38,13 @@ package com.finance.pms.datasources.shares;
  */
 public class YahooSymbolNameResolver extends SymbolNameResolver {
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.shares.SymbolNameResolver#resolveClueFromExtension(java.lang.String)
-	 */
+
 	@Override
 	public String resolveClueFromExtension(String extension) {
 		return YahooMarketExtentions.getExtensionClue(extension);
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.shares.SymbolNameResolver#resolveExtensionFromClue(java.lang.String)
-	 */
 	@Override
 	public String resolveExtensionFromClue(String extensionClue) {
 		return YahooMarketExtentions.getMarketExtension(extensionClue);

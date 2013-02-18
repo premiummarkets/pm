@@ -35,8 +35,6 @@ import java.util.Comparator;
 import com.finance.pms.events.EventValue;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DataResultComparator.
  * 
@@ -44,10 +42,7 @@ import com.finance.pms.events.EventValue;
  */
 public class DataResultReversedComparator implements Comparator<EventValue> {
 
-	
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-	 */
+
 	public int compare(EventValue o1, EventValue o2) {
 		EventValue se1 = o2;
 		EventValue se2 = o1;

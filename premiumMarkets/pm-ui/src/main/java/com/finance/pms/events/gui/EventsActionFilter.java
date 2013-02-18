@@ -39,14 +39,10 @@ package com.finance.pms.events.gui;
  */
 public enum EventsActionFilter {
 	
-	NONE ("No filter"),
-	FILTERMONITOREDTXT ("Non monitored"),
-	FILTERPORTFOLIOTXT ("Non portfolio content"),
-	FILTERINDICESTXT ("Non current market"),
-	FILTEROTHERTXT ("Other");
-	
-	/** The BOTH. */
-//	BOTH ("All Stocks");
+	ALL ("All"),
+	FILTERMONITOREDTXT ("Monitored"),
+	FILTERPORTFOLIOTXT ("Portfolio content"),
+	FILTERINDICESTXT ("Selected Markets");
 	
 	/** The text. */
 	private String text;

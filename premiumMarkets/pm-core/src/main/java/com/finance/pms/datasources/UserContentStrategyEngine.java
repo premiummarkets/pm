@@ -32,10 +32,14 @@ package com.finance.pms.datasources;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -46,21 +50,27 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public abstract class UserContentStrategyEngine implements EventModelStrategyEngine {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers) {
-		LOGGER.debug("No list update for monitored shares.");
+	public void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) {
+		LOGGER.debug("No list update available for this model.");
 	}
 
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) throws StockNotFoundException {
 		
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		
@@ -70,44 +80,90 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		updateQuotations(quotationUpdate, viewStateParams);
 	}
 
-	protected abstract void updateQuotations(QuotationUpdate quotationUpdate, Object...viewStateParams);
+	@SuppressWarnings("unchecked")
+	protected void updateQuotations(QuotationUpdate quotationUpdate, Object... viewStateParams) throws StockNotFoundException {
+		@SuppressWarnings("rawtypes")
+		List stockList = Arrays.asList(viewStateParams);
+		quotationUpdate.getQuotesFor(stockList);
+	}
 
-	public void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
+	public Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
 		
-		Date datefin = EventSignalConfig.getNewDate();
-		Date datedeb = startAnalyseDate;
-		
+		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
 		String[] analysers = new String[analisysList.size()];
 		for (int j = 0; j < analysers.length; j++) {
 			analysers[j] = analisysList.get(j);
 		}
+
+		Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+		Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 		
-		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
 		@SuppressWarnings("rawtypes")
-		List shareList = Arrays.asList(viewStateParams);
+		List stockList = Arrays.asList(viewStateParams);
+		for (Object stock : stockList) {
+			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(firstQuotationDateFromQuotations);
+			QuotationsFactories.getFactory().incrementDate(calendar, 50);
+			datedeb = (calendar.getTime().after(datedeb))?calendar.getTime():datedeb;
+		}
 		
+		Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> outputRet = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
 		for (int i = 0; i < analysers.length; i++) {
 			
 			LOGGER.debug("running analysis for " + analysers[i]);
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 			
-			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 			
+			Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
 			@SuppressWarnings("unchecked")
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 					SpringContext.getSingleton(), 
 					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-					shareList, datedeb, datefin, false, engineObservers.toArray(new Observer[0]));
+					stockList, datedeb, datefin, export, engineObservers.toArray(new Observer[0]));
 			
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+	
+			//Pass one
+			Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassOne = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
 			try {
-				actionThread.runIndicatorsCalculation(maxPass,true);
+				runPassOne = runPassOne(actionThread);
+			} catch (IncompleteDataSetException e) {
+				runPassOne = e.getCalculatedOutput();
 			} catch (Exception e) {
-				LOGGER.warn(e,e);
+				LOGGER.error(e,e);
 			}
+			if (runPassOne != null) outputRet.putAll(runPassOne);
+			
+			//Pass two
+			if (maxPass == 2) {
+				Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassTwo = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
+				try {
+					runPassTwo = runPassTwo(actionThread);
+				} catch (IncompleteDataSetException e) {
+					runPassTwo = e.getCalculatedOutput();
+				} catch (Exception e) {
+					LOGGER.error(e,e);
+				}
+				if (runPassTwo != null) {
+					for (Stock stock : runPassTwo.keySet()) {
+						Map<EventDefinition, SortedMap<Date, double[]>> map4Stock = outputRet.get(stock);
+						if (map4Stock == null) {
+							outputRet.put(stock, runPassTwo.get(stock));
+						} else {
+							map4Stock.putAll(runPassTwo.get(stock));
+						}
+					}
+				}
+			} 
 		}
+		
+		return outputRet;
 	}
+	
+	protected abstract Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException;
+	protected abstract Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException;
 	
 	public void callbackForReco(Set<Observer> engineObservers) {
 		throw new NotImplementedException();

@@ -103,18 +103,28 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 
 		for (int i = startDateQuotationIndex; i <= this.endDateQuotationIndex; i++) {
 
-			Date dq = this.stockQuotations.get(i).getDate();
-			QuotationUnit relQuotationUnit = relativeQuotations.get(relativeQuotations.getClosestIndexForDate(0,dq));
-
-			BigDecimal relativeQuotation = (relQuotationUnit.getClose().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot,10,BigDecimal.ROUND_DOWN);
-			BigDecimal quotation = this.stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot,10,BigDecimal.ROUND_DOWN);
-			BigDecimal relatedCloseValue = quotation.subtract(relativeQuotation);
+			BigDecimal relatedCloseValue = BigDecimal.ZERO;
+			
+			if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0 && relativeQuotationsRoot != null && relativeQuotationsRoot.compareTo(BigDecimal.ZERO) != 0 ) {
+				
+				Date dq = this.stockQuotations.get(i).getDate();
+				QuotationUnit relQuotationUnit = relativeQuotations.get(relativeQuotations.getClosestIndexForDate(0, dq));
+				BigDecimal relativeQuotation = (relQuotationUnit.getClose().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_DOWN);
+				BigDecimal quotation = this.stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
+				relatedCloseValue = quotation.subtract(relativeQuotation);
+				
+			}
 
 			retA.add(relatedCloseValue);
 		}
 
 		return  retA.toArray(new BigDecimal[0]);
 
+	}
+
+	@Override
+	public String lineToolTip() {
+		return "change to referee "+relativeQuotations.getStock().getFriendlyName();
 	}
 	
 

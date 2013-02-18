@@ -191,6 +191,15 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
 		
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		return new double[]
+				{
+				this.chaikin.getChaikinLine()[getIndicatorIndexFromCalculatorQuotationIndex(this.chaikin, calculatorIndex, chaikinQuotationStartDateIdx)]
+				};
+	}
 
 	@Override
 	protected int getDaysSpan() {

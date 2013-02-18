@@ -33,6 +33,7 @@ package com.finance.pms;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -54,54 +55,32 @@ import com.finance.pms.admin.install.logging.MyLogger;
  */
 public class ErrorDialog extends Dialog {
 	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(ErrorDialog.class);
-	
-	/** The Validerbutton1. */
-	protected Button valideButton1;
 
-	/** The Errorlabel1. */
+
 	private Label errorLabel1;
-	
 	private Text textArea;
-
-	/** The erreur. */
 	private String erreur;
 	private String addMessage;
+	protected Button valideButton1;
 	
 	private Boolean isOk = false;
 
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public static void main(String[] args) {
-		try {
-			Display display = Display.getDefault();
-			Shell shell = new Shell(display);
-			ErrorDialog inst = new ErrorDialog(shell, SWT.NULL, "Hi,\n This data update can take up to 20 minutes against several hours if no data base is pre selected.\n Cheers!\n", null);
-			inst.open();
-		} catch (Exception e) {
-			LOGGER.debug("",e);
-		}
-	}
 
-	/**
-	 * Instantiates a new error dialog.
-	 * 
-	 * @param parent the parent
-	 * @param style the style
-	 * @param erreur the erreur
-	 * @param addMessage TODO
-	 * @author Guillaume Thoreton
-	 */
 	public ErrorDialog(Shell parent, int style, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
+		this.getParent().setText("Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
+	}
+	
+	public ErrorDialog(Shell parent, int style, String title, String erreur, String addMessage) {
+		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
+		this.getParent().setText(title);
+		this.erreur = erreur;
+		this.addMessage = addMessage;
+	
 	}
 
 	/**
@@ -116,6 +95,7 @@ public class ErrorDialog extends Dialog {
 			dialogShellLayout.verticalSpacing = 20;
 			this.getParent().setLayout(dialogShellLayout);
 			this.getParent().setBackground(new Color(getParent().getDisplay(),239, 183,103));
+			if (erreur != null)
 			{
 				errorLabel1 = new Label(getParent(), SWT.WRAP);
 				errorLabel1.setText(this.erreur);
@@ -131,9 +111,6 @@ public class ErrorDialog extends Dialog {
 			}
 			if (addMessage != null) {
 				textArea = new Text(getParent(), SWT.WRAP|SWT.V_SCROLL);
-				textArea.setText(this.addMessage);
-				textArea.setFont(MainGui.DEFAULTFONT);
-			
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.verticalAlignment = GridData.FILL;
 				Errorlabel1LData.horizontalAlignment = GridData.FILL;
@@ -141,6 +118,8 @@ public class ErrorDialog extends Dialog {
 				Errorlabel1LData.grabExcessHorizontalSpace = true;
 				textArea.setLayoutData(Errorlabel1LData);
 				textArea.setBackground(new Color(getParent().getDisplay(),239, 183,103));
+				textArea.setText(this.addMessage);
+				textArea.setFont(MainGui.DEFAULTFONT);
 			}
 			{
 				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);
@@ -151,8 +130,9 @@ public class ErrorDialog extends Dialog {
 			}
 			getParent().pack();
 			getParent().open();
-			Display display = getParent().getDisplay();
+			valideButton1.setFocus();
 			
+			Display display = getParent().getDisplay();
 			while (!getParent().isDisposed()) {
 				try {
 					if (!display.readAndDispatch())
@@ -188,7 +168,7 @@ public class ErrorDialog extends Dialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	protected void validerbutton1MouseDown(MouseEvent evt) {
+	protected void validerbutton1MouseDown(TypedEvent evt) {
 		LOGGER.debug("Validerbutton1.mouseDown, event=" + evt);
 		isOk = true;
 		getParent().dispose();
@@ -197,7 +177,5 @@ public class ErrorDialog extends Dialog {
 	public Boolean getIsOk() {
 		return isOk;
 	}
-	
-	
 
 }

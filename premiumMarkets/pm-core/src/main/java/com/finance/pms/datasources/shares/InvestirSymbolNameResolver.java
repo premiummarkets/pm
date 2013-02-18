@@ -31,6 +31,7 @@
 package com.finance.pms.datasources.shares;
 
 public class InvestirSymbolNameResolver extends SymbolNameResolver {
+	
 	@Override
 	public String resolveExtensionFromClue(String extensionClue) {
 		return extensionClue;

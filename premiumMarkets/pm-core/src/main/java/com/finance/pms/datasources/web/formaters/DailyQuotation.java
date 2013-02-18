@@ -91,7 +91,7 @@ public class DailyQuotation extends Stock {
 		if (quoteDate == null) {
 			if (other.quoteDate != null)
 				return false;
-		} else if (!quoteDate.equals(other.quoteDate))
+		} else if (quoteDate.compareTo(other.quoteDate) != 0)
 			return false;
 		return true;
 	}

@@ -65,10 +65,7 @@ public class UpdateUrl extends JPanel {
  
     /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -6101824066434845051L;
-	
-    //private JEditorPane editorPane;
-   
-    
+
     /** The content panel. */
     private JPanel contentPanel;
     

@@ -37,6 +37,8 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
@@ -125,6 +127,7 @@ public class WeatherElement extends Validatable {
 	}
 	
 	@Id
+	@Temporal(TemporalType.DATE)
 	public Date getDate() {
 		return date;
 	}
@@ -164,7 +167,7 @@ public class WeatherElement extends Validatable {
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (date.compareTo(other.date) !=0)
 			return false;
 		return true;
 	}

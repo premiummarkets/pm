@@ -48,60 +48,58 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.CursorFactory;
+import com.finance.pms.ErrorDialog;
+import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DbSettings.
  * 
  * @author Guillaume Thoreton
  */
-public class DbSettings {
-	
-	/** The LOGGER. */
+public class DbSettings extends Dialog {
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(DbSettings.class);
-	
-	/** The shell. */
-	private Shell shell;
-	
-	/** The prop list. */
+
 	final private Properties propList;
 	
 	/** The path to props. */
 	final private String pathToProps;
 	
 	/** The config tab. */
-	private final String[] configTab = { "eMail Parameters", "Feeds performance and defaults", "Data Connection", 
-			"Mas", "Ta lib", "Http Connection" };
+	private final String[] configTab = { "EMail setting", "Feeds performance and defaults", "Data Connection", "Ta lib"};
+			//, "Http Connection" };
 	
 	/** The configtab comment. */
 	private final String[] configtabComment = {
-			"Email Parameters - Please fill in",
+			"Email setting - Please fill in",
 			"Feeds performance and defaults",
 			"Data Connection parameters - Change default data base connection",
-			"Mas - Touch only if know about it", "Ta lib - Indicator calculation tunning",
-			"Http Connection - Fill in only to change web market access defaults" };
+		    "Ta lib - Indicator calculation tunning"};
+			//"Http Connection - Fill in only to change web market access defaults" };
 	
 	/** The keys. */
 	private final String[][] keys = {
 			{ "mail.from", "mail.to", "mail.host", "mail.username", "mail.password", "mail.log.activated" },
-			{ //"quotes.lastfetch", //"quotes.lastlistfetch",
-				"quotes.listfile", "quotes.listprovider", "quotes.provider", "analyse.mas.enable", "semaphore.nbthread" },
+			{ "quotes.listfile", "quotes.listprovider", "quotes.provider", "analyse.mas.enable", "semaphore.nbthread" },
 			{ "software", "username", "password", "driver", "database", "dbpath", "db.poolsize" },
-			{ "mas.poolsize", "mas.semaphore.nbthread", "mas.ctimeout", "mas.daysbackwardday", "mas.logserver" },
-			{ "talib.daysbackwardday" }, { "http.login", "http.password", "http.poolsize" } };
+			//{ "mas.poolsize", "mas.semaphore.nbthread", "mas.ctimeout", "mas.daysbackwardday", "mas.logserver" },
+			{ "talib.daysbackwardday" }};
+			//, { "http.login", "http.password", "http.poolsize" } };
 	
 	/** The key comments. */
 	private final String[][] keyComments = {
@@ -111,9 +109,7 @@ public class DbSettings {
 					"Smtp server login password", "Activate email error logging" 
 			},
 			{ 		
-					//"Default date since when the quotation haven't been fetch for this session",
-					//"Default date since when the list of stock haven't been updated for this session",
-					"File name for a potential suplement of stocks",
+					"File name for a potential supplement of stocks",
 					"Default web provider where you will retrieve the stocks list from ",
 					"Default web provider where you will get the quotations from ",
 					"Toogle MAS analysis availability in the Events Window",
@@ -122,9 +118,9 @@ public class DbSettings {
 			{ "DataBase software name", "Server login name", "Server login password", 
 					"DataBase software driver full Class name",
 					"Database name", "Database path", "Number of simultaneous connections" },
-			{ "mas.poolsize", "mas.semaphore.nbthread", "mas.ctimeout", "mas.daysbackwardday", "mas.logserver" },
-			{ "Number of days the analysis should start before the choosen start date" },
-			{ "Server login name", "Server login password", "Number of simultaneous connections" } };
+			//{ "mas.poolsize", "mas.semaphore.nbthread", "mas.ctimeout", "mas.daysbackwardday", "mas.logserver" },
+			{ "Number of days the analysis should start before the choosen start date" }};
+			//{ "Server login name", "Server login password", "Number of simultaneous connections" } };
 	
 	
 	/** The hidden keys. */
@@ -139,13 +135,18 @@ public class DbSettings {
 	 * @param args the arguments
 	 * 
 	 * @author Guillaume Thoreton
+	 * @throws FileNotFoundException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		
 			Display display = Display.getDefault();
 			Shell shell = new Shell(display);
 			DbSettings dbSettings = new DbSettings(shell,"db.properties");
-			dbSettings.open();
+			try {
+				dbSettings.initGui();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
 			
 			while (!shell.isDisposed()) {
 				try {
@@ -169,8 +170,11 @@ public class DbSettings {
 	 * @param shell the shell
 	 * 
 	 * @author Guillaume Thoreton
+	 * @throws FileNotFoundException 
 	 */
-	public DbSettings(Shell shell, String pathToProps) {
+	public DbSettings(Shell shell, String pathToProps) throws FileNotFoundException {
+		
+		super(new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
 		
 		this.pathToProps = pathToProps;
 		this.propList = new Properties();
@@ -186,103 +190,71 @@ public class DbSettings {
 			LOGGER.error("Error accessing file s"+pathToProps,e);
 		}
 		
-		this.shell = new Shell(shell,SWT.RESIZE);
-		this.open();
-		this.shell.open();
+		this.initGui();
+		this.getParent().open();
 	}
 
-
-
-	/**
-	 * Open.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public void open() {
-		try {
-			GridLayout compositeLayout = new GridLayout();
-			compositeLayout.numColumns = 1;
-			compositeLayout.makeColumnsEqualWidth = true;
-			FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/icon.img"));
-			getShell().setImage(new Image(getShell().getDisplay(),iconImg));
-			getShell().setText("Premium Markets - Settings");
-			getShell().setBackground(new Color(getShell().getDisplay(),239,183,103));
-			getShell().setLayout(compositeLayout);
-			this.initData();
-			this.initGui();
-		
-		} catch (Exception e) {
-			LOGGER.error("",e);
-		}
-	}
-	
 	/**
 	 * Inits the gui.
 	 * 
 	 * @author Guillaume Thoreton
+	 * @throws FileNotFoundException 
 	 */
-	private void initGui() {
+	private void initGui() throws FileNotFoundException {
+		
+		FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/icon.img"));
+		getParent().setImage(new Image(getParent().getDisplay(),iconImg));
+		getParent().setText("Premium Markets - Settings");
+		getParent().setBackground(new Color(getParent().getDisplay(),239,183,103));
+		GridLayout layout = new GridLayout();
+		this.getParent().setLayout(layout);
 		
 		{
-			Group tabs = new Group(getShell(), SWT.NONE);
-			tabs.setBackground(new Color(getShell().getDisplay(),239, 203, 152));
-			GridData gridData = new GridData();
-	 		gridData.horizontalAlignment = GridData.FILL;
-	 		gridData.verticalAlignment = GridData.FILL;
-	 		gridData.grabExcessHorizontalSpace = true;
-	 		gridData.grabExcessVerticalSpace = true;
-	 		tabs.setLayoutData(gridData);
+			final Group tabs = new Group(this.getParent(), SWT.NONE);
+			tabs.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,false));
+			tabs.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
 			GridLayout grpLayout = new GridLayout();
 			tabs.setLayout(grpLayout);
 			{
-				CTabFolder tabF = new CTabFolder(tabs, SWT.BORDER);
-				GridData tabFLayout = new GridData();
-				tabFLayout.verticalAlignment = GridData.FILL;
-				tabFLayout.horizontalAlignment = GridData.FILL;
-				tabFLayout.grabExcessHorizontalSpace = true;
-				tabFLayout.grabExcessVerticalSpace = true;
+				final CTabFolder tabF = new CTabFolder(tabs, SWT.BORDER);
+				GridData tabFLayout = new GridData(SWT.FILL,SWT.FILL,true,false);
 				tabF.setLayoutData(tabFLayout);
-				tabF.setBackground(new Color(getShell().getDisplay(),239, 203, 152));
-				tabF.setSelectionBackground(new Color(getShell().getDisplay(),239,183,103));
-				tabF.setLayout(new GridLayout());
+				tabF.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+				tabF.setSelectionBackground(new Color(getParent().getDisplay(),239,183,103));
+				tabF.setLayout(new FillLayout());
+				tabF.setFont(MainGui.DEFAULTFONT);
 				CTabItem[] tabI = new CTabItem[configTab.length];
 				for (int j = 0; j < configTab.length; j++) {
 					tabI[j] = new CTabItem(tabF, SWT.NONE);
 					tabI[j].setText(configTab[j]);
 					{
 						Group tabGroup = new Group(tabF, SWT.SHADOW_NONE);
-						tabGroup.setBackground(new Color(getShell().getDisplay(),239, 203, 152));
-						GridLayout tabLayout = new GridLayout();
-						tabLayout.numColumns = 2;
-						tabLayout.makeColumnsEqualWidth = true;
+						tabGroup.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+						GridLayout tabLayout = new GridLayout(2,false);
 						tabGroup.setLayout(tabLayout);
 					
 						{
 							Label tabDescr = new Label(tabGroup,SWT.WRAP);
-							GridData gdDescr = new GridData();
-							gdDescr.horizontalAlignment = GridData.FILL;
-							gdDescr.grabExcessHorizontalSpace = true;
-							gdDescr.horizontalSpan = 2;
-							gdDescr.heightHint = 100;
+							GridData gdDescr = new GridData(SWT.FILL, SWT.FILL,true, false);
+							gdDescr.horizontalSpan=2;
 							tabDescr.setLayoutData(gdDescr);
-							tabDescr.setBackground(new Color(getShell().getDisplay(),239, 203, 152));
+							tabDescr.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+							tabDescr.setFont(MainGui.DEFAULTFONT);
 							tabDescr.setText("Description : \n\t" + configtabComment[j]);
 							
 							Label keyTxt[] = new Label[keys[j].length];
 							Text keyVal[] = new Text[keys[j].length];
-							GridData gdTxt = new GridData(GridData.FILL_BOTH);
-							gdTxt.grabExcessHorizontalSpace = true;
-							gdTxt.grabExcessVerticalSpace = true;
-							gdTxt.heightHint = 100;
-							GridData gdVal = new GridData(GridData.VERTICAL_ALIGN_BEGINNING|GridData.FILL_HORIZONTAL);
-							//gdVal.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
+							GridData gdTxt = new GridData(SWT.FILL, SWT.FILL,true, false);
+							GridData gdVal = new GridData(SWT.FILL, SWT.FILL,true, false);
 							for (int i = 0; i < keys[j].length; i++) {
 								{
-									keyTxt[i] = new Label(tabGroup,SWT.WRAP);
+									keyTxt[i] = new Label(tabGroup,SWT.NONE);
+									keyTxt[i].setFont(MainGui.DEFAULTFONT);
 									keyTxt[i].setText(keyComments[j][i] + " : ");
 									keyTxt[i].setLayoutData(gdTxt);
-									keyTxt[i].setBackground(new Color(getShell().getDisplay(),239, 203, 152));
+									keyTxt[i].setBackground(new Color(getParent().getDisplay(),239, 203, 152));
 									keyVal[i] = (hiddenKeysList.contains(keys[j][i]))?new Text(tabGroup, SWT.NONE|SWT.PASSWORD):new Text(tabGroup, SWT.NONE);
+									keyVal[i].setFont(MainGui.CONTENTFONT);
 									keyVal[i].setLayoutData(gdVal);
 									keyVal[i].setText((propList.containsKey(keys[j][i]))?propList.getProperty(keys[j][i]):"");
 									final String key = keys[j][i];
@@ -300,29 +272,34 @@ public class DbSettings {
 			}
 		}
 		{
-			Group buttons = new Group(getShell(), SWT.BOTTOM);
-			buttons.setBackground(new Color(getShell().getDisplay(),239, 203, 152));
-			buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			Group buttons = new Group(getParent(), SWT.NONE);
+			buttons.setLayoutData(new GridData(SWT.END,SWT.FILL,true,true));
+			buttons.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+			buttons.setFont(MainGui.DEFAULTFONT);
 			RowLayout buttonsLayout = new RowLayout(SWT.HORIZONTAL);
 			buttons.setLayout(buttonsLayout);
 			{
-				Button cancel = new Button(buttons, SWT.NONE);
+				Button cancel = new Button(buttons, SWT.PUSH);
+				cancel.setFont(MainGui.DEFAULTFONT);
 				cancel.setText("Cancel");
 				cancel.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent arg0) {
-							getShell().close();
-							getShell().dispose();
+							getParent().close();
+							getParent().dispose();
 					}
 				});
 				
-				Button save = new Button(buttons, SWT.NONE);
+				Button save = new Button(buttons, SWT.PUSH);
+				save.setFont(MainGui.DEFAULTFONT);
 				save.setText("Save");
 				save.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent arg0) {
-						LOGGER.debug("Saving settings ...");
+						
 						try {
+							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							
 							FileOutputStream fos = new FileOutputStream(pathToProps);
 							propList.store(fos,"File over written by the settings feature");
 						} catch (FileNotFoundException e) {
@@ -330,40 +307,27 @@ public class DbSettings {
 						} catch (IOException e) {
 							LOGGER.error("Can't access file "+pathToProps,e);
 						} finally {
+							
 							SpringContext ctx = new SpringContext();
 							ctx.setDataSource(pathToProps);
-							//ctx.setProvidersSource(pathToProps);
 							ctx.setMasSource(pathToProps,"false");
 							ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
 							ctx.refresh();
+							
+							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						}
 						
-						getShell().close();
-						getShell().dispose();
+						ErrorDialog dialog = new ErrorDialog(getParent(), SWT.NONE, "The new settings will take effect at next restart.", null);
+						dialog.open();
+						getParent().close();
+						getParent().dispose();
 					}
 				});
 			}
 		}
-	}
-	
-	/**
-	 * Inits the data.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public void initData() {
 		
+		getParent().layout();
+		getParent().pack();
 	}
-
-	/**
-	 * Gets the shell.
-	 * 
-	 * @return the shell
-	 */
-	public Shell getShell() {
-		return shell;
-	}
-	
-	
 	
 }

@@ -207,7 +207,7 @@ public abstract class TrendSupplementStockExporter extends Exporter<NavigableSet
 		currentDateCal.set(Calendar.MINUTE, 0);
 		currentDateCal.set(Calendar.SECOND, 0);
 		currentDateCal.set(Calendar.MILLISECOND,0);
-		if (previousEventValue.getDate().equals(currentDateCal.getTime())) throw new IgnoredEventDateException(previousEventValue);
+		if (previousEventValue.getDate().compareTo(currentDateCal.getTime()) == 0) throw new IgnoredEventDateException(previousEventValue);
 		
 		Integer previousRank = extractPreviousRankFromMessage(previousEventValue);
 		return previousRank;

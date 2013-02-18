@@ -31,6 +31,7 @@
 package com.finance.pms.datasources.web;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -51,7 +52,7 @@ import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuoteInflationFormater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 
-public class ProvidersInflation extends Providers {
+public class ProvidersInflation extends Providers implements QuotationProvider{
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
 
@@ -79,17 +80,23 @@ public class ProvidersInflation extends Providers {
 
 	@Override
 	public void getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
-
-		MyUrl url;
+		
+		
 		if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
 			throw new RuntimeException("Error : This should be used to retreive inflation historical only, not : "+stock.toString());
 		}
+		
+		long twoMonthAndHalf = (long) 1000*60*60*24*31*2 + 1000*60*60*24*15;
+		SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
+		if (stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime()) {//Inflation can be updated monthly only
+			throw new HttpException("Inflation data can be updated once in a month only.\nYou requested an update for the month preceeding "+sdf.format(end)+"\n and the last update was in the month following "+sdf.format(stock.getLastQuote()));
+		}
 
-		url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
+		MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
 
 		TreeSet<Validatable> queries = initValidatableSet();
 
-		LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name());
+		LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
 		List<Validatable> urlResults = this.httpSource.readURL(dsf);
 		for (Validatable validatable : urlResults) {
 			if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
@@ -130,6 +137,17 @@ public class ProvidersInflation extends Providers {
 	@Override
 	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
 		throw new UnsupportedOperationException("Please use a share list holder for that.");
+	}
+
+	@Override
+	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
+		throw new UnsupportedOperationException("Inflation can't be updated that way.");
 	}
 
 }

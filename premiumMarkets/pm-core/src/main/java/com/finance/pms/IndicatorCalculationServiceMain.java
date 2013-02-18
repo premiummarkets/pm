@@ -58,7 +58,6 @@ import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class IndicatorCalculationServiceMain.
  * 
@@ -150,10 +149,9 @@ public class IndicatorCalculationServiceMain {
 				List<Stock>  shareList = null;
 				if (mas || talib || alerts) {
 					if (monitoredOnly) {
-						shareList = DataSource.getInstance().getShareDAO().loadMonitoredShares();
+						shareList = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
 					}
-					AbstractAnalysisClientRunnableMessage runnableMessage = 
-							new IndicatorAnalysisCalculationRunnableMessage(SpringContext.getSingleton(), analyzers[0], AUTOPORTFOLIO, periodType, shareList, datedeb, datefin, false);
+					AbstractAnalysisClientRunnableMessage runnableMessage = new IndicatorAnalysisCalculationRunnableMessage(SpringContext.getSingleton(), analyzers[0], AUTOPORTFOLIO, periodType, shareList, datedeb, datefin, false);
 					Thread thread = new Thread(runnableMessage);
 					thread.start();
 					while (thread.isAlive());
@@ -180,7 +178,7 @@ public class IndicatorCalculationServiceMain {
 					//Analyse
 					List<Stock> shareList = new ArrayList<Stock>();
 					if (monitoredOnly) {
-						shareList = DataSource.getInstance().getShareDAO().loadMonitoredShares();
+						shareList = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
 					} else {	
 						for (int i = ++sdi; i < args.length; i++) {
 							Stock share = DataSource.getInstance().loadStockBySymbol(args[i].toUpperCase());
@@ -203,7 +201,7 @@ public class IndicatorCalculationServiceMain {
 					
 					IndicatorAnalysisCalculationRunnableMessage indicatorAnalyser = 
 						new IndicatorAnalysisCalculationRunnableMessage(springContext, analyzers[0], COMMAND_LINE_ANALYSIS, periodType, shareList, datedeb, datefin, true);
-					indicatorAnalyser.runIndicatorsCalculation(1, true);
+					indicatorAnalyser.runIndicatorsCalculationPassOne(true, "auto");
 					
 				} catch (Exception e) {
 					LOGGER.error("", e);

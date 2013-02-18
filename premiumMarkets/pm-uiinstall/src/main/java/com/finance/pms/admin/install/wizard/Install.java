@@ -30,6 +30,7 @@
  */
 package com.finance.pms.admin.install.wizard;
 
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -40,6 +41,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,12 +55,12 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
+import org.jdesktop.swingworker.SwingWorker;
 
 import com.finance.pms.admin.install.SystemTypes;
 import com.nexes.wizard.Wizard;
 import com.nexes.wizard.WizardPanelDescriptor;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Install.
  * 
@@ -66,31 +68,17 @@ import com.nexes.wizard.WizardPanelDescriptor;
  */
 public class Install {
 	
-	/** The Constant archName. */
 	public static final String archName = "PremiumMarkets.zip";
-	
-	/** The Constant iconFile. */
 	public static final String iconFile = "icons/icon";
-	
-	/** The Constant backGround. */
 	public static final String backGround = "icons/squeakyPig.jpg";
-	
-	/** The Constant license. */
 	public static final String license = "COPYING";
-	
-	/** The Constant dbName. */
 	public static final String dbName = "derby";
-	
-	/** The Constant piggyMarketSqueak. */
 	public static final String piggyMarketSqueak = "PremiumMarkets";
-	
-	/** The system type. */
 	public static SystemTypes systemType = SystemTypes.WINDOWS;
 	
-	/** The debug. */
 	public static Boolean debug;
-	
 	private static Wizard wizard;
+	private static Boolean stop = false;
 	
 
 	/**
@@ -101,22 +89,41 @@ public class Install {
 	 * @author Guillaume Thoreton
 	 */
 	public static void main(String[] args) {
+		
+		//Connection check
+		@SuppressWarnings("all")
+		final SwingWorker<Void, Void> connectionCheck = new SwingWorker<Void,Void>() {
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				try {
+					System.out.println("Connection check.");
+					Class<?> connectionCheker = Class.forName("com.finance.pm.ApacheConnectionChecker", false, this.getClass().getClassLoader());
+					Method method = connectionCheker.getMethod("checkBlindConnection", null);
+					method.invoke(null, null);
+				} catch (Throwable e) {
+					System.out.println("No Connection check available.");
+				} finally {
+					stop = true;
+				}
+				
+				return null;
+			}
+			
+		};
+		connectionCheck.execute();
 
 		try {
 			//Win management
 			try {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			} catch (ClassNotFoundException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (InstantiationException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (UnsupportedLookAndFeelException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			//debug
@@ -136,13 +143,13 @@ public class Install {
 
 			//Start wizard
 			Install.wizard = new Wizard();
+			
+			wizard.getDialog().setSize(500,200);
+			wizard.getDialog().setFont(new java.awt.Font("MS Sans Serif", Font.PLAIN, 14));
 
 			wizard.getDialog().addMouseMotionListener(new MouseMotionListener() {
-
 				public void mouseDragged(MouseEvent e) {
-
 				}
-
 				public void mouseMoved(MouseEvent e) {
 				}
 			});
@@ -150,14 +157,14 @@ public class Install {
 			wizard.getDialog().setTitle("Premium Markets");
 			WizardPanelDescriptor descriptor1 = new IntroPanelDescriptor();
 			wizard.registerWizardPanel(IntroPanelDescriptor.IDENTIFIER, descriptor1);
-			WizardPanelDescriptor descriptor11 = new UpdateUrlPanelDescriptor();
+			WizardPanelDescriptor descriptor11 = new UpdateUrlPanelDescriptor();//
 			wizard.registerWizardPanel(UpdateUrlPanelDescriptor.IDENTIFIER, descriptor11);
 			WizardPanelDescriptor descriptor2 = new LicencePanelDescriptor();
 			wizard.registerWizardPanel(LicencePanelDescriptor.IDENTIFIER, descriptor2);
 			WizardPanelDescriptor descriptor3 = new InstallFolderPanelDescriptor();
 			wizard.registerWizardPanel(InstallFolderPanelDescriptor.IDENTIFIER, descriptor3);
-			WizardPanelDescriptor descriptor31 = new BaseCheckPanelDescriptor();
-			wizard.registerWizardPanel(BaseCheckPanelDescriptor.IDENTIFIER, descriptor31);
+//			WizardPanelDescriptor descriptor31 = new BaseCheckPanelDescriptor();//
+//			wizard.registerWizardPanel(BaseCheckPanelDescriptor.IDENTIFIER, descriptor31);
 			WizardPanelDescriptor descriptor4 = new ProgressPanelDescriptor();
 			wizard.registerWizardPanel(ProgressPanelDescriptor.IDENTIFIER, descriptor4);
 			WizardPanelDescriptor descriptor5 = new SmtpPanelDescriptor();
@@ -214,7 +221,6 @@ public class Install {
 							try {
 								input.close();
 							} catch (IOException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 						}
@@ -236,16 +242,27 @@ public class Install {
 			}
 
 		} catch (Exception e) {
-			
 			e.printStackTrace();
 			
 		} finally {
-
-			Frame[] frames = Frame.getFrames();
-			for (Frame frame : frames) {
-				frame.dispose();
+			
+			try {
+				Frame[] frames = Frame.getFrames();
+				for (Frame frame : frames) {
+					frame.dispose();
+				}
+			} catch (Throwable e) {
+				e.printStackTrace();
 			}
-			Runtime.getRuntime().exit(0);
+			try {
+				//while (!connectionCheck.getState().equals(StateValue.DONE)) {
+				while (!stop) {
+					Thread.sleep(3000);
+				}
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+			//Runtime.getRuntime().exit(0);
 
 		}
 	}

@@ -52,22 +52,16 @@ import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class GetQuotation.
  * 
  * @author Guillaume Thoreton
  */
 public class GetQuotation  extends Observable implements Callable<GetQuotationResult> {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(GetQuotation.class);
 
-	/** The date fin. */
 	private Date dateFin;
-	
-	/** The stock. */
 	private Stock stock;
 
 	/**
@@ -96,47 +90,46 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	@Override
 	public GetQuotationResult call() {
 		
-		Date dateDeb=null;
+		Date lastQuoteDate=null;
 		GetQuotationResult ret = new GetQuotationResult(stock);
 		
 		try {
 			
-			dateDeb = DataSource.getInstance().getLastQuotationDateFromShares(stock);
+			lastQuoteDate = DataSource.getInstance().getLastQuotationDateFromShares(stock);
 
 			Calendar startDayMidNight = Calendar.getInstance();
-			startDayMidNight.setTime(dateDeb);
+			startDayMidNight.setTime(lastQuoteDate);
 			startDayMidNight.set(Calendar.HOUR_OF_DAY, 0);
 			startDayMidNight.set(Calendar.MINUTE, 0);
 			startDayMidNight.set(Calendar.SECOND, 0);
 			startDayMidNight.set(Calendar.MILLISECOND, 0);
 
 			startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-			dateDeb = startDayMidNight.getTime();
+			lastQuoteDate = startDayMidNight.getTime();
 
-			if (dateDeb.after(dateFin)) {
-				LOGGER.guiInfo(
-						"Quotation for "+stock.getSymbol()+ " are up to date "+
-								" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+			if (dateFin.before(lastQuoteDate)) {
+				LOGGER.guiInfo("Quotation for "+stock.getSymbol()+ " are up to date to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
 				ret.hasQuotations = true;
 				return ret;
 			}
 
 			LOGGER.guiInfo(
 					"Updating quotation for "+stock.getSymbol()+
-					" from the " +new SimpleDateFormat("yyyy/MM/dd").format(dateDeb)+ 
+					" from the " +new SimpleDateFormat("yyyy/MM/dd").format(lastQuoteDate)+ 
 					" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
 
 
-			LOGGER.guiInfo("Downloading for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin);
-			Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, dateDeb, dateFin);
+			LOGGER.guiInfo("Downloading for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + lastQuoteDate + " to " + dateFin);
+			Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, lastQuoteDate, dateFin);
 			
 		} catch (Exception e) {
 			
 			String scrapErrorMess = "Failed to update quotes for :" + stock.toString() +".\n" +
 					" 		Because "+e+".\n" +
-					" 		In update request from "+dateDeb+ " to "+ dateFin+ ".";
+					" 		In update request from "+lastQuoteDate+ " to "+ dateFin+ ".";
 			LOGGER.warn(scrapErrorMess);
-			LOGGER.debug(e,e);
+			ret.isSuccessfulUpdate = false;
+			ret.failureCause = e;
 			
 		} finally {
 			
@@ -149,9 +142,10 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		stock.setLastQuote(lastQuote);
 		updateLastQuoteDateForShareInDB(lastQuote);
 
-		LOGGER.guiInfo("Downloaded for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + dateDeb + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
+		LOGGER.guiInfo("Downloaded for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + lastQuoteDate + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
 
-		Quotations.removeCashedStock(stock);
+		//Quotations.removeCashedStock(stock);
+		Quotations.updateCachedStockKey(stock);
 		ret.hasQuotations = true;
 		
 		return ret;
@@ -168,7 +162,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 			return;
 		}
 		
-		// mise a jour de la date de derniere quote and name
+		//Mise a jour de la date de derniere quote and name
 		List<Validatable> updateLastQuotesQueries = new ArrayList<Validatable>();
 		final Query uQ = new Query();
 		final Stock s = stock;
@@ -199,10 +193,13 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 
 		Stock stock;
 		Boolean hasQuotations;
+		Boolean isSuccessfulUpdate;
+		Exception failureCause;
 		
 		public GetQuotationResult(Stock stock) {
 			this.stock = stock;
 			this.hasQuotations = false;
+			this.isSuccessfulUpdate = true;
 		}
 	}
 

@@ -48,6 +48,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.talib.indicators.ChaikinLine;
 import com.finance.pms.talib.indicators.ChaikinOscillator;
 import com.finance.pms.talib.indicators.MACD;
@@ -57,6 +58,7 @@ import com.finance.pms.talib.indicators.RSI;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.StandardDeviation;
 import com.finance.pms.talib.indicators.StochasticOscillator;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationThread {
@@ -90,8 +92,9 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 
 	
-	public FirstPassIndicatorCalculationThread(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
-											Set<Observer> observers, Boolean keepCache,Queue queue,JmsTemplate jmsTemplate, Boolean persistEvents) throws NotEnoughDataException {
+	public FirstPassIndicatorCalculationThread(
+				Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
+				Set<Observer> observers, Boolean keepCache,Queue queue,JmsTemplate jmsTemplate, Boolean persistEvents) throws NotEnoughDataException {
 		
 		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, false, keepCache, persistEvents, null, queue, jmsTemplate);
 	}
@@ -134,10 +137,10 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	@Override
 	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws IncompleteDataSetException {
 		
-		//List of Event Compositions to be calculated 
 		//TODO get formulas stored in DB or from spring config
 		Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
 		
+		//List of Event Compositions to be calculated
 		MACD macd = null;
 		SMA sma200 = null;
 		RSI rsi = null;
@@ -183,87 +186,147 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		if (mfiDivergenceWanted || zeroCrossMACDWanted || signalCrossMACDWanted || rsiThresholdCrossWanted || stddevCrossWanted) {
 			try {
 				sma200 = new SMA(stock, 200, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isSMA200Ok = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isSMA200Ok = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isSMA200Ok = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		
 		if (stochDivergenceWanted) {
 			try {
 				aroon = new HouseAroon(stock,  startDate, endDate, calculationCurrency, 25);
+			} catch (NoQuotationsException e) {
+				isAroonOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isAroonOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isAroonOk = false;
-				LOGGER.error(e);
+				LOGGER.warn(e,e);
 			}
 		}
 		
 		if (zeroCrossMACDWanted || signalCrossMACDWanted) {
 			try {
 				macd = new MACD(stock, macdFastPeriod, macdSlowPeriod, macdSignal, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isMACDOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isMACDOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isMACDOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		if (rsiThresholdCrossWanted || rsiDivergenceWanted) {
 			try {
 				rsi = new RSI(stock, rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isRSIOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isRSIOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isRSIOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		if (obvDivergenceWanted) {
 			try {
 				obv = new OBV(stock, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isOBVOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isOBVOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isOBVOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		if (mfiDivergenceWanted || mfiThresholdWanted) {
 			try {
 				mfi = new MFI(stock, mfiTimePeriod, mfiLowerThres, mfiUpperThres, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isMFIOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isMFIOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isMFIOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 	
 		if (stochDivergenceWanted || stochThresholdWanted) {
 			try {
 				stoch = new StochasticOscillator(stock, startDate, endDate, calculationCurrency, fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+			} catch (NoQuotationsException e) {
+				isStochOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isStochOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isStochOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		
 		if (accDistDivergenceWanted || obvDivergenceWanted) {
 			try {
 				chaikinLine = new ChaikinLine(stock, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isChaikinOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isChaikinOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isChaikinOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		
 		if (chaikinOscDivergenceWanted || chaikinOscThresholdWanted) {
 			try {
 				chaikinOscillator = new ChaikinOscillator(stock, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isChaikinOscOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isChaikinOscOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isChaikinOscOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		
 		if (stddevCrossWanted) {
 			try {
 				standardDeviation = new StandardDeviation(stock, 20, 1.0, startDate, endDate, calculationCurrency);
+			} catch (NoQuotationsException e) {
+				isStddevOk = false;
+				LOGGER.warn(e);
+			} catch (TalibException e) {
+				isStddevOk = false;
+				LOGGER.warn(e);
 			} catch (Exception e) {
 				isStddevOk = false;
-				LOGGER.error(e);
+				LOGGER.error(e,e);
 			}
 		}
 		
@@ -320,7 +383,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("SmaReversal",startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("SmaReversal",new Date(), new Date()), e);
+					LOGGER.warn("Failed calculation : "+warnMessage("SmaReversal",new Date(), new Date()), e);
 				}
 				smaReversalOk = false;
 			} 
@@ -464,7 +527,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				if (e.getShiftedStartDate() != null) {
 					LOGGER.warn(warnMessage("AroonTrend", startDate, endDate) + butMessage(simpleDateFormat, e));
 				} else {
-					LOGGER.error("Failed calculation : "+warnMessage("AroonTrend", new Date(), new Date()), e);
+					LOGGER.warn("Failed calculation : "+warnMessage("AroonTrend", new Date(), new Date()), e);
 				}
 				aroonTrendOk = false;
 			}
@@ -505,7 +568,9 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				!rsiDivergenceOk|| !zeroCrossMACDOk || !signalCrossMACDOk || !smaReversalOk || !rsiThresholdCrossOk ||
 				!obvDivergenceOk || !mfiDivergenceOk || !mfiThresholdOk || !varianceOk || 
 				!variationOk || !stddevCrossOk || !stockDivergenceOk ||
-				!chaikinDivergenceOk || !aroonTrendOk|| !chaikinOscDivergenceOk || !stochThresholdOk || !chaikinOscThresholdOk) {
+				!chaikinDivergenceOk || !aroonTrendOk|| !chaikinOscDivergenceOk || !stochThresholdOk || !chaikinOscThresholdOk
+				
+			) {
 			
 			String error = "One of the composite indicator calculation as failed for "+stock+"\n" +
 							" actual state is : " +
@@ -519,7 +584,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 							chaikinDivergenceOk+","+aroonTrendOk+","+chaikinOscDivergenceOk+","+stochThresholdOk+", "+chaikinOscThresholdOk;
 			LOGGER.warn(error);
 			
-			throw new IncompleteDataSetException(stock, error);
+			throw new IncompleteDataSetException(stock, eventCalculations, error);
 		}
 		
 		return eventCalculations;
@@ -543,7 +608,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 	@Override
 	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
-		// Nothing as Talib events are not clean but overriden
+		// Nothing as Talib events are not clean but overridden
 	}
 
 }

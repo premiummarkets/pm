@@ -19,6 +19,7 @@
  			<unpackOptions>
 				<excludes>
 					<exclude>**/META-INF/**</exclude>
+					<exclude>pm-forecast.jar</exclude>
 				</excludes>
 			</unpackOptions>	
 			<scope>runtime</scope>
@@ -38,6 +39,10 @@
 			</fileSet>
 			<fileSet>
 				<directory>target/lib</directory>
+				<excludes>
+					<exclude>PremiumMarketsForecast.zip</exclude>
+					<exclude>pm-forecast.jar</exclude>
+				</excludes>
 				<outputDirectory>lib</outputDirectory>
 			</fileSet>
 			<fileSet>

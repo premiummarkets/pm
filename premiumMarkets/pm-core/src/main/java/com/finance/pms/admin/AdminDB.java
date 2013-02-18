@@ -214,7 +214,7 @@ public class AdminDB {
 
 						//Check 
 						Date lastRegistered = DataSource.getInstance().getLastQuotationDateFromShares(stock);
-						if (!lastRegistered.equals(lastQuote)) {
+						if (lastRegistered.compareTo(lastQuote) != 0) {
 							System.out.println("Stock :" + stock.getIsin() + " is inconsistent : shares is  " 
 									+ lastRegistered + " and quotation is  " + lastQuote);
 						}

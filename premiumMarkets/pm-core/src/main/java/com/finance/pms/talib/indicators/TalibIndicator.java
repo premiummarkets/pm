@@ -76,18 +76,19 @@ public abstract class TalibIndicator extends Indicator {
 		
 		double[][] inData = getInputData();
 		
+		RetCode rc = RetCode.InternalError;
 		try {
-			RetCode rc = talibCall(startIdx, endIdx, inData, indicatorParams);
-				
-			if (!rc.equals(RetCode.Success)) {
-				LOGGER.warn(this.getClass().getName()+" Calculation error : " + rc + " for Quote :" + this.getStockName());
-				throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + rc + " for share :" + this.getStockName(), new Throwable());
-			} else {
-				outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
-			}
+			rc = talibCall(startIdx, endIdx, inData, indicatorParams);
+	
 		} catch (Exception e) {
 			LOGGER.error(this.getClass().getName()+" Calculation error for Quote :" + this.getStockName(), e);
 			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + this.getStockName(), e);
+		}
+		
+		if (!rc.equals(RetCode.Success)) {
+			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + rc + " for share :" + this.getStockName(), new Throwable());
+		} else {
+			outBegDate = this.getIndicatorQuotationData().getDate(outBegIdx.value);
 		}
 	
 	}

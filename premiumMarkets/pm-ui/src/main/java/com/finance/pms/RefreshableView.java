@@ -31,6 +31,7 @@
 package com.finance.pms;
 
 import java.util.Date;
+import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -38,11 +39,11 @@ public interface RefreshableView {
 
 	Display getDisplay();
 
-	void endRefreshAction();
+	void endRefreshAction(List<Exception> exceptions);
 	
 	void initRefreshAction();
 	
-	void refreshView();
+	void refreshView(List<Exception> exceptions);
 	
 	Date getAnalysisStartDate();
  	

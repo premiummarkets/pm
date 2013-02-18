@@ -98,8 +98,6 @@ public class ChaikinOscillatorDivergence extends TalibIndicatorsCompositionCalcu
 		double[] chaikinThreshCurve = new double[chaikinLookBackP.length];
 		
 		{
-//			Boolean isPriceDown = dataSlope(quotationLookBackP) < 0;
-//			Boolean isChaikinUp = dataSlope(chaikinLookBackP) > 0 && this.chaikinOscillator.getChaikinOsc()[chaikinIdx - getDaysSpan()] < 0;
 			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinUp = higherLow(chaikinLookBackP, chaikinThreshCurve);
 			res.setBullishCrossOver(isPriceDown && isChaikinUp); 
@@ -108,8 +106,6 @@ public class ChaikinOscillatorDivergence extends TalibIndicatorsCompositionCalcu
 
 		}
 		{
-//			Boolean isPriceUp = dataSlope(quotationLookBackP) > 0;
-//			Boolean isChaikinDown = dataSlope(chaikinLookBackP) < 0 && this.chaikinOscillator.getChaikinOsc()[chaikinIdx - getDaysSpan()] > 0;
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinDown = lowerHigh(chaikinLookBackP,  chaikinThreshCurve);
 			res.setBearishCrossBellow(isPriceUp && isChaikinDown);
@@ -158,6 +154,17 @@ public class ChaikinOscillatorDivergence extends TalibIndicatorsCompositionCalcu
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinOscillator, calculatorIndex, chaikinQuotationStartDateIdx);
+		return new double[]
+				{
+				this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex],
+				//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)]
+				};
 	}
 
 	@Override

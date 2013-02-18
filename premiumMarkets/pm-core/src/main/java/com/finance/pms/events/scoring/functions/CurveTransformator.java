@@ -103,7 +103,7 @@ public class CurveTransformator {
 			
 			Calendar current = Calendar.getInstance();
 			current.setTime(prevExtremDate);
-			while (current.getTime().before(extremDate) || current.getTime().equals(extremDate)) {
+			while (current.getTime().before(extremDate) || current.getTime().compareTo(extremDate) == 0) {
 				Double value = calculator.compute(prevExtremDate, extremsList.get(prevExtremDate).exValue, extremDate, extremsList.get(extremDate).exValue, current.getTime());
 				stockCurve.put(current.getTime(), new double[]{value});
 				QuotationsFactories.getFactory().incrementDate(current, 1);
@@ -124,7 +124,7 @@ public class CurveTransformator {
 		QuotationsFactories.getFactory().incrementDate(current, +2*band);
 
 		Date endCalculation = smoothedData.lastKey();
-		while (current.getTime().before(endCalculation) || current.getTime().equals(endCalculation)) {
+		while (current.getTime().before(endCalculation) || current.getTime().compareTo(endCalculation) == 0) {
 
 			Extremity extremity;
 			try {

@@ -48,7 +48,6 @@ public abstract class StripedCloseFunction {
 	protected Date arbitraryStartDate;
 	protected Date arbitraryEndDate;
 	
-	/** The stock quotations. */
 	protected Quotations stockQuotations;
 	
 	protected Integer startDateQuotationIndex;
@@ -64,23 +63,8 @@ public abstract class StripedCloseFunction {
 		this.arbitraryEndDate = arbitraryEndDate;
 	}
 
-	/**
-	 * Sets the internal ref.
-	 * 
-	 * @param stockDef the stock def
-	 * @param stockQuotations the stock quotations
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract void targetShareData(PortfolioShare ps, Quotations stockQuotations);
 	
-	/**
-	 * Related close.
-	 * 
-	 * @return the double[]
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract Number[] relativeCloses();
 
 	public void updateEndDate(Date date) {
@@ -101,9 +85,6 @@ public abstract class StripedCloseFunction {
 		return endDateQuotationIndex;
 	}
 
-	/**
-	 * @param stockQuotations
-	 */
 	protected Date getStartDate(Quotations stockQuotations) {
 		Date startDate = this.arbitraryStartDate;
 		startDate = (startDate.before(stockQuotations.getDate(0)))?stockQuotations.getDate(0):startDate;
@@ -112,9 +93,6 @@ public abstract class StripedCloseFunction {
 		return startDate;
 	}
 
-	/**
-	 * @param stockQuotations
-	 */
 	protected Date getEndDate(Quotations stockQuotations) {
 		Date endDate = this.arbitraryEndDate;
 		Integer lastQuoteI = stockQuotations.size()-1;
@@ -131,6 +109,6 @@ public abstract class StripedCloseFunction {
 		return arbitraryEndDate;
 	}
 	
-	
+	public abstract String lineToolTip();
 	
 }

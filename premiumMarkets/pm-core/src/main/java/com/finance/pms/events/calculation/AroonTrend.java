@@ -60,6 +60,10 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 //TODO this is not a TalibComposition if we use HouseAroon.
 //Add an extra layer under EventCompositionCalulator to deal with house indicators
 public class AroonTrend extends TalibIndicatorsCompositionCalculator {
+	
+	int upperThreshold = 90;
+	int lowerThreshold = 30;
+	int middleThreshold = 50;
 
 	private HouseAroon aroon;
 	private Integer aroonQuotationStartDateIdx;
@@ -93,14 +97,15 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
 		int aroonIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.aroon, calculatorIndex, aroonQuotationStartDateIdx);
+		
 		{
 			Boolean wasAroonUpCrossingAboveAroonDown = 
 					(aroon.getOutAroonUp()[aroonIndex - getDaysSpan()] < aroon.getOutAroonDown()[aroonIndex - getDaysSpan()]) &&
 					(aroon.getOutAroonUp()[aroonIndex] > aroon.getOutAroonDown()[aroonIndex]);
 	
-			Boolean wasAroonUpCrossingAbove50 = aroon.getOutAroonUp()[aroonIndex - getDaysSpan()] < 50 && 50 < aroon.getOutAroonUp()[aroonIndex] ;
-			Boolean isArronUpTo100 = 90 < aroon.getOutAroonUp()[aroonIndex];
-			Boolean isAroonDownBelow30 = 30 > aroon.getOutAroonDown()[aroonIndex];
+			Boolean wasAroonUpCrossingAbove50 = aroon.getOutAroonUp()[aroonIndex - getDaysSpan()] < middleThreshold && middleThreshold < aroon.getOutAroonUp()[aroonIndex] ;
+			Boolean isArronUpTo100 		= upperThreshold < aroon.getOutAroonUp()[aroonIndex];
+			Boolean isAroonDownBelow30 	= lowerThreshold > aroon.getOutAroonDown()[aroonIndex];
 			
 			res.setBullishCrossOver(wasAroonUpCrossingAboveAroonDown && wasAroonUpCrossingAbove50 && isArronUpTo100 && isAroonDownBelow30); 
 			if (res.getBullishCrossOver()) return res;
@@ -111,9 +116,9 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 					(aroon.getOutAroonDown()[aroonIndex - getDaysSpan()] < aroon.getOutAroonUp()[aroonIndex - getDaysSpan()]) &&
 					(aroon.getOutAroonDown()[aroonIndex] > aroon.getOutAroonUp()[aroonIndex]);
 	
-			Boolean wasAroonDownCrossingAbove50 = aroon.getOutAroonDown()[aroonIndex - getDaysSpan()] < 50 && 50 < aroon.getOutAroonDown()[aroonIndex] ;
-			Boolean isArronDownTo100 = 90 < aroon.getOutAroonDown()[aroonIndex];
-			Boolean isAroonUpBelow30 = 30 > aroon.getOutAroonUp()[aroonIndex];
+			Boolean wasAroonDownCrossingAbove50 = aroon.getOutAroonDown()[aroonIndex - getDaysSpan()] < middleThreshold && middleThreshold < aroon.getOutAroonDown()[aroonIndex] ;
+			Boolean isArronDownTo100 = upperThreshold < aroon.getOutAroonDown()[aroonIndex];
+			Boolean isAroonUpBelow30 = lowerThreshold > aroon.getOutAroonUp()[aroonIndex];
 			
 			res.setBearishCrossBellow(wasAroonDownCrossingAboveAroonUp && wasAroonDownCrossingAbove50 && isArronDownTo100 && isAroonUpBelow30);
 			return res;
@@ -171,6 +176,18 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.aroon, calculatorIndex, aroonQuotationStartDateIdx);
+		return new double[]
+				{
+				this.aroon.getOutAroonDown()[indicatorIndexFromCalculatorQuotationIndex],
+				this.aroon.getOutAroonUp()[indicatorIndexFromCalculatorQuotationIndex],
+				middleThreshold, lowerThreshold, upperThreshold
+				};
 	}
 	
 

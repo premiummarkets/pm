@@ -207,7 +207,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (date.compareTo(other.date) != 0)
 			return false;
 		if (id == null) {
 			if (other.id != null)

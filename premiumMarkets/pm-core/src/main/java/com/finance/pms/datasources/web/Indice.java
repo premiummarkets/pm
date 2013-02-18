@@ -37,6 +37,8 @@ import com.finance.pms.datasources.shares.Market;
 
 public class Indice implements Comparable<Indice> {
 	
+	
+	
 	private String name;
 	private Market market;
 	
@@ -52,7 +54,7 @@ public class Indice implements Comparable<Indice> {
 		this.market = Market.valueOf(market);
 	}
 	
-	public static String formatName(Set<Indice> indices) {
+	public static String formatSet(Set<Indice> indices) {
 		String extention = "";
 		for (Indice indice : indices) {
 			extention = extention+","+indice.getName()+":"+indice.getMarket();
@@ -60,13 +62,13 @@ public class Indice implements Comparable<Indice> {
 		return extention;
 	}
 
-	public static String formatToString(Set<Indice> indices) {
-		String txt = "";
-		for (Indice indice : indices) {
-			txt = txt+indice.toString();
-		}
-		return txt;
-	}
+//	public static String formatName(Set<Indice> indices) {
+//		String txt = "";
+//		for (Indice indice : indices) {
+//			txt = txt+indice.toString();
+//		}
+//		return txt;
+//	}
 	
 	
 	public static Set<Indice> parseString(String yahooIndices) {
@@ -106,10 +108,21 @@ public class Indice implements Comparable<Indice> {
 		return this.getName()+":"+this.getMarket()+",";
 	}
 
+
+
+	public int compareTo(Indice o) {
+		int nameCmp = name.compareTo(o.name);
+		if (nameCmp == 0) {
+			return market.compareTo(o.market);
+		}
+		return nameCmp;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((market == null) ? 0 : market.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -123,16 +136,14 @@ public class Indice implements Comparable<Indice> {
 		if (getClass() != obj.getClass())
 			return false;
 		Indice other = (Indice) obj;
+		if (market != other.market)
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
-	}
-
-	public int compareTo(Indice o) {
-		return name.compareTo(o.name);
 	}
 	
 	

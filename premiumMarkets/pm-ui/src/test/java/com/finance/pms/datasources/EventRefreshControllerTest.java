@@ -37,6 +37,7 @@ import java.util.Date;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import org.apache.commons.httpclient.HttpException;
 import org.easymock.EasyMock;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Display;
@@ -306,8 +307,9 @@ public class EventRefreshControllerTest extends TestCase {
 	 * Test mouse down list share all.
 	 * 
 	 * @author Guillaume Thoreton
+	 * @throws HttpException 
 	 */
-	public void testMouseDownListShareAll() {
+	public void testMouseDownListShareAll() throws HttpException {
 		
 		EventRefreshController eventRefreshController = initNotMonitored();
 		
@@ -340,8 +342,9 @@ public class EventRefreshControllerTest extends TestCase {
 	 * Check call for list share update.
 	 * 
 	 * @author Guillaume Thoreton
+	 * @throws HttpException 
 	 */
-	private void checkCallForListShareUpdate() {
+	private void checkCallForListShareUpdate() throws HttpException {
 		org.easymock.EasyMock.expect(springContext.getBean((String)org.easymock.EasyMock.anyObject())).andStubReturn(providers);
 		providers.updateStockListFromWeb((MarketQuotationProviders)org.easymock.EasyMock.anyObject());
 		org.easymock.EasyMock.expectLastCall().times(1);
@@ -395,7 +398,7 @@ private void checkCallForAnalyse() {
 
 	org.easymock.EasyMock.expect(springContext.getBean("talib")).andReturn(indicatorCalculationService);
 	try {
-		indicatorCalculationService.fullAnalyze((Date) EasyMock.anyObject(), (Date) EasyMock.anyObject(), Currency.EUR, "test", (String) EasyMock.anyObject(), false, 1);
+		indicatorCalculationService.fullAnalyze((Date) EasyMock.anyObject(), (Date) EasyMock.anyObject(), Currency.EUR, "test", (String) EasyMock.anyObject(), false, 1, "force");
 	} catch (InvalidAlgorithmParameterException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -464,8 +467,9 @@ private void threadMessWait() {
  * Test complete all.
  * 
  * @author Guillaume Thoreton
+ * @throws HttpException 
  */
-public void testCompleteAll() {
+public void testCompleteAll() throws HttpException {
 	
 	EasyMock.checkOrder(quotationUpdate, true);
 	
@@ -638,7 +642,7 @@ private void endTest() {
  * @author Guillaume Thoreton
  */
 private void mouseDown(EventRefreshController eventRefreshController) {
-	eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse,false);
+	eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse, false, 0l);
 	eventRefreshController.mouseDown((MouseEvent) org.easymock.EasyMock.anyObject());
 }
 

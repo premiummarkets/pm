@@ -1,13 +1,18 @@
 -- Fix tuned conf calculation dates
---select TUNEDCONF.lastcalculation,TUNEDCONF.CONFIGFILE, SHARES.*  from TUNEDCONF,SHARES where TUNEDCONF.symbol=SHARES.symbol and TUNEDCONF.isin=SHARES.isin and SHARES.lastquote < TUNEDCONF.lastcalculation; -- and  TUNEDCONF.CONFIGFILE='preTrainConfs.NEURAL.csv';
---select TUNEDCONF.* from TUNEDCONF where TUNEDCONF.lastcalculation > (select max(date) from EVENTS where EVENTS.eventdefid not in (503,507) and TUNEDCONF.symbol=EVENTS.symbol and TUNEDCONF.isin=EVENTS.isin);
-select TUNEDCONF.*, maxDate from TUNEDCONF join (select symbol,isin, max(date) maxDate from EVENTS where EVENTS.eventdefid not in (503,507) group by SYMBOL, ISIN) E on TUNEDCONF.symbol=E.symbol and TUNEDCONF.isin=E.isin  where TUNEDCONF.lastcalculation <> E.maxDate;
-update TUNEDCONF join (select symbol,isin, max(date) maxDate from EVENTS where EVENTS.eventdefid not in (503,507) group by SYMBOL, ISIN) E on TUNEDCONF.symbol=E.symbol and TUNEDCONF.isin=E.isin  set TUNEDCONF.lastcalculation=E.maxDate  where TUNEDCONF.lastcalculation <> E.maxDate;
+--select TUNEDCONF.lastcalculatedevent,TUNEDCONF.CONFIGFILE, SHARES.*  from TUNEDCONF,SHARES where TUNEDCONF.symbol=SHARES.symbol and TUNEDCONF.isin=SHARES.isin and SHARES.lastquote < TUNEDCONF.lastcalculatedevent; -- and  TUNEDCONF.CONFIGFILE='preTrainConfs.NEURAL.csv';
+--select TUNEDCONF.* from TUNEDCONF where TUNEDCONF.lastcalculatedevent > (select max(date) from EVENTS where EVENTS.eventdefid not in (503,507) and TUNEDCONF.symbol=EVENTS.symbol and TUNEDCONF.isin=EVENTS.isin);
+select TUNEDCONF.*, maxDate from TUNEDCONF join (select symbol,isin, max(date) maxDate from EVENTS where EVENTS.eventdefid not in (503,507,201,302,401) group by SYMBOL, ISIN) E on TUNEDCONF.symbol=E.symbol and TUNEDCONF.isin=E.isin  where TUNEDCONF.lastcalculatedevent <> E.maxDate;
+update TUNEDCONF join (select symbol,isin, max(date) maxDate from EVENTS where EVENTS.eventdefid not in (503,507,201,302,401) group by SYMBOL, ISIN) E on TUNEDCONF.symbol=E.symbol and TUNEDCONF.isin=E.isin  set TUNEDCONF.lastcalculatedevent=E.maxDate  where TUNEDCONF.lastcalculatedevent <> E.maxDate;
+-- derby  update TUNEDCONF set TUNEDCONF.lastcalculatedevent=(select date(max(date))from EVENTS where EVENTS.eventdefid not in (503,507,201,302,401) and EVENTS.symbol=tunedconf.symbol and events.isin= tunedconf.isin group by events.symbol,events.isin);
 -- !! run these updates below as well !! (no events confs and no confs events)
-select * from TUNEDCONF where LASTTUNING > LASTCALCULATION;
-update TUNEDCONF set LASTTUNING='1970-01-01', LASTCALCULATION='1970-01-01' where LASTTUNING > LASTCALCULATION;
-select EVENTS.symbol, EVENTS.isin, 'preTrainConfs.NEURAL.csv', 'NotUsed', B.minDate, C.maxDate , 1 from EVENTS join (select A.symbol, A.isin, min(A.date) minDate from EVENTS A group by A.symbol, A.isin) as B on B.symbol = EVENTS.symbol and EVENTS.isin = B.ISIN join (select A1.symbol, A1.isin, max(A1.date) maxDate from EVENTS A1 group by A1.symbol, A1.isin) as C on C.symbol = EVENTS.symbol and EVENTS.isin = C.ISIN left join TUNEDCONF on TUNEDCONF.SYMBOL = EVENTS.SYMBOL and TUNEDCONF.ISIN=EVENTS.ISIN where TUNEDCONF.SYMBOL is NULL and EVENTS.eventdefid not in (503,507) group by EVENTS.symbol, EVENTS.isin;
-insert into TUNEDCONF select EVENTS.symbol, EVENTS.isin, 'preTrainConfs.NEURAL.csv', 'NotUsed', B.minDate, C.maxDate , 1 from EVENTS join (select A.symbol, A.isin, min(A.date) minDate from EVENTS A group by A.symbol, A.isin) as B on B.symbol = EVENTS.symbol and EVENTS.isin = B.ISIN join (select A1.symbol, A1.isin, max(A1.date) maxDate from EVENTS A1 group by A1.symbol, A1.isin) as C on C.symbol = EVENTS.symbol and EVENTS.isin = C.ISIN left join TUNEDCONF on TUNEDCONF.SYMBOL = EVENTS.SYMBOL and TUNEDCONF.ISIN=EVENTS.ISIN where TUNEDCONF.SYMBOL is NULL and EVENTS.eventdefid not in (503,507) group by EVENTS.symbol, EVENTS.isin;
+select * from TUNEDCONF where lastcalculationstart > lastcalculatedevent;
+update TUNEDCONF set lastcalculationstart='1970-01-01', lastcalculatedevent=NULL, lastcalculationend='1970-01-01' where lastcalculationstart > lastcalculatedevent or lastcalculatedevent is NULL;
+select EVENTS.symbol, EVENTS.isin, 'preTrainConfs.NEURAL.csv', B.minDate, C.maxDate from EVENTS join (select A.symbol, A.isin, min(A.date) minDate from EVENTS A group by A.symbol, A.isin) as B on B.symbol = EVENTS.symbol and EVENTS.isin = B.ISIN join (select A1.symbol, A1.isin, max(A1.date) maxDate from EVENTS A1 group by A1.symbol, A1.isin) as C on C.symbol = EVENTS.symbol and EVENTS.isin = C.ISIN left join TUNEDCONF on TUNEDCONF.SYMBOL = EVENTS.SYMBOL and TUNEDCONF.ISIN=EVENTS.ISIN where TUNEDCONF.SYMBOL is NULL and EVENTS.eventdefid not in (503,507) group by EVENTS.symbol, EVENTS.isin;
+insert into TUNEDCONF select EVENTS.symbol, EVENTS.isin, 'preTrainConfs.NEURAL.csv', B.minDate, C.maxDate, C.maxDate from EVENTS join (select A.symbol, A.isin, min(A.date) minDate from EVENTS A group by A.symbol, A.isin) as B on B.symbol = EVENTS.symbol and EVENTS.isin = B.ISIN join (select A1.symbol, A1.isin, max(A1.date) maxDate from EVENTS A1 group by A1.symbol, A1.isin) as C on C.symbol = EVENTS.symbol and EVENTS.isin = C.ISIN left join TUNEDCONF on TUNEDCONF.SYMBOL = EVENTS.SYMBOL and TUNEDCONF.ISIN=EVENTS.ISIN where TUNEDCONF.SYMBOL is NULL and EVENTS.eventdefid not in (503,507) group by EVENTS.symbol, EVENTS.isin;
+update TUNEDCONF set lastcalculationend = lastcalculatedevent where lastcalculatedevent is not NULL;
+
+--TODO : foreign key tunedconf => shares
+delete from TUNEDCONF where not exists (select * from SHARES where  TUNEDCONF.symbol=SHARES.symbol and TUNEDCONF.isin = SHARES.isin );
 
 
 --Check no upper case in eventType  (should return 0)
@@ -30,7 +35,10 @@ select SHARES.lastquote, EVENTS.* from EVENTS, SHARES where SHARES.symbol=EVENTS
 --select PERF_SUPPLEMENT.* from PERF_SUPPLEMENT where  PERF_SUPPLEMENT.PERFDATE > (select max(DATE) from EVENTS where PERF_SUPPLEMENT.symbol = EVENTS.symbol and PERF_SUPPLEMENT.isin=EVENTS.isin);
 select PERF_SUPPLEMENT.* from PERF_SUPPLEMENT join SHARES on  PERF_SUPPLEMENT.symbol = SHARES.symbol and PERF_SUPPLEMENT.isin=SHARES.isin where PERF_SUPPLEMENT.PERFDATE > SHARES.LASTQUOTE;
 delete from PERF_SUPPLEMENT where PERF_SUPPLEMENT.PERFDATE > (select SHARES.LASTQUOTE FROM SHARES where PERF_SUPPLEMENT.symbol = SHARES.symbol and PERF_SUPPLEMENT.isin=SHARES.isin);
-delete from PERF_SUPPLEMENT where PERF_SUPPLEMENT.PERFDATE > (select TUNEDCONF.LASTCALCULATION FROM TUNEDCONF where PERF_SUPPLEMENT.symbol = TUNEDCONF.symbol and PERF_SUPPLEMENT.isin=TUNEDCONF.isin);
+delete from PERF_SUPPLEMENT where PERF_SUPPLEMENT.PERFDATE > (select TUNEDCONF.lastcalculatedevent FROM TUNEDCONF where PERF_SUPPLEMENT.symbol = TUNEDCONF.symbol and PERF_SUPPLEMENT.isin=TUNEDCONF.isin);
+delete from PERF_SUPPLEMENT where PERF_SUPPLEMENT.PERFDATE='0000-00-00';
+select * from PERF_SUPPLEMENT where PERF_SUPPLEMENT.PERFDATE <= DATE_SUB(NOW(), INTERVAL 1 MONTH);
+update PERF_SUPPLEMENT set latest=0 where PERF_SUPPLEMENT.PERFDATE <= DATE_SUB(NOW(), INTERVAL 1 MONTH) and latest=1;
 
 -- Fix Perf latest duplicates
 select SYMBOL,ISIN,NAME,LATEST, count(*) from PERF_SUPPLEMENT where LATEST=1 group by  SYMBOL,ISIN,NAME,LATEST  having count(*) > 1;

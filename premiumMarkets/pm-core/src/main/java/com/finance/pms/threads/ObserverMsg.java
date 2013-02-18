@@ -62,7 +62,7 @@ public class ObserverMsg {
 		}
 		
 	}
-	
+
 	public void addNameValue(String name, Object value) {
 		nameValuePairs.add(new NameValuePair(name, value));
 	}

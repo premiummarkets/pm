@@ -143,7 +143,6 @@ public class RSIDivergence extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		return "CALCULATOR DATE, CALCULATOR QUOTE, SMA DATE, SMA QUOTE, SMA50, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish\n";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -155,12 +154,9 @@ public class RSIDivergence extends TalibIndicatorsCompositionCalculator {
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSIDIVERGENCE,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSIDIVERGENCE,EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-//			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
 			+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
 			+ this.rsi.getLowerThreshold() + ","
 			+ this.rsi.getUpperThreshold() + ","
@@ -177,6 +173,18 @@ public class RSIDivergence extends TalibIndicatorsCompositionCalculator {
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		return new double[]
+				{
+				this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)],
+				//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
+				this.rsi.getLowerThreshold(),
+				this.rsi.getUpperThreshold(),
+				};
 	}
 
 

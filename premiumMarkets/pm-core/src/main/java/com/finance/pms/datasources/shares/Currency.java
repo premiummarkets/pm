@@ -34,7 +34,8 @@ import java.io.Serializable;
 
 public enum Currency  implements Serializable {
 
-	NAN("NAN"), EUR("Euro"), USD("U.S. Dollar"), AUD("Australian Dollar"), GBP("U.K. Pound Sterling"), INR("Indian Rupee"), CAD("Canadian Dollar");
+	NAN("NAN"), EUR("Euro"), USD("U.S. Dollar"), AUD("Australian Dollar"), GBP("U.K. Pound Sterling"), INR("Indian Rupee"), CAD("Canadian Dollar"), 
+	TWD("New Taiwan dollar"), NZD("New Zealand dollar"), ILS("Israeli new shekel"), HKD("Hong Kong dollar"), KRW("South Korean won"), SGD("Singapore dollar"), IDR("Indonesian rupiah"), CHF("Swiss franc");
 
 	private String imfCurrencyName;
 

@@ -31,31 +31,65 @@
 package com.finance.pms.events.calculation;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.SymbolEvents;
 
 public class IncompleteDataSetException extends Exception {
 
 	private static final long serialVersionUID = 8415012484395864898L;
 
 	private List<Stock> failingStocks;
-
-	public IncompleteDataSetException(Stock failingStock, String arg0) {
+	private Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> calculatedOutput;
+	private Set<EventCompostionCalculator> eventCalculations;
+	private List<SymbolEvents> symbolEvents;
+	
+	public IncompleteDataSetException(Stock failingStock, SymbolEvents symbolEventsForStock, String arg0) {
 		super(arg0);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
+		this.calculatedOutput = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
+		this.calculatedOutput.put(failingStock, symbolEventsForStock.getCalculationOutput());
+		this.symbolEvents = new ArrayList<SymbolEvents>();
+		this.symbolEvents.add(symbolEventsForStock);
 	}
 
-
-	public IncompleteDataSetException(List<Stock> failingStocks, String arg0) {
+	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> symbolEvents, Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> calculatedOutput, String arg0) {
 		super(arg0);
 		this.failingStocks = failingStocks;
+		this.calculatedOutput = calculatedOutput;
+		this.symbolEvents = symbolEvents;
 	}
 
+	public IncompleteDataSetException(Stock failingStock, Set<EventCompostionCalculator> eventCalculations, String error) {
+		super(error);
+		this.failingStocks = new ArrayList<Stock>();
+		this.failingStocks.add(failingStock);
+		this.eventCalculations = eventCalculations;
+	}
 
 	public List<Stock> getFailingStocks() {
 		return failingStocks;
 	}
+
+	public Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> getCalculatedOutput() {
+		return calculatedOutput;
+	}
+
+	public Set<EventCompostionCalculator> getEventCalculations() {
+		return eventCalculations;
+	}
+
+	public List<SymbolEvents> getSymbolEvents() {
+		return symbolEvents;
+	}
+
 
 }

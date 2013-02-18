@@ -58,7 +58,13 @@ public class StripedCloseAbsoluteRelative extends StripedCloseFunction {
 		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex).getClose();
 
 		for (int i = startDateQuotationIndex; i <= this.endDateQuotationIndex; i++) {
-			BigDecimal relatedCloseValue = this.stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot,10,BigDecimal.ROUND_DOWN);
+			
+			BigDecimal relatedCloseValue = BigDecimal.ZERO;
+			
+			if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0) {
+				relatedCloseValue = this.stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
+			}
+			
 			retA.add(relatedCloseValue);
 		}
 
@@ -76,6 +82,12 @@ public class StripedCloseAbsoluteRelative extends StripedCloseFunction {
 		Date endDate = getEndDate(stockQuotations);
 		endDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
 
+	}
+
+
+	@Override
+	public String lineToolTip() {
+		return "change to period start";
 	}
 
 

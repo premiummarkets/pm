@@ -32,7 +32,9 @@ package com.finance.pms.datasources;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Observer;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -43,12 +45,13 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
 import com.finance.pms.RefreshableView;
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.portfolio.ShareListMgr;
 import com.finance.pms.threads.ObserverMsg;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class EventRefreshController.
  * 
@@ -69,6 +72,8 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 	private Boolean doFetchQuotes;
 	private Boolean doAnalyse;
 	private Boolean doReco;
+	
+	private Long taskKey;
 	
 	
 	/**
@@ -103,38 +108,24 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 	 * @param doAnalyse the do analyse
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param viewStateParams 
 	 */
-	public void updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco) {
+	public void updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Long taskKey) {
 		
 		this.doFetchListStocks = dofetchListOfQuotes;
 		this.doFetchQuotes = dofetchQuotes;
 		this.doAnalyse = doAnalyse;
 		this.doReco = doReco;
-		//this.eventModel.setStateParams(viewStateParams);
-		
-	
+		this.taskKey = taskKey;
+
 	}
 	
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.events.MouseListener#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
-	 */
 	public void mouseDoubleClick(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.swt.events.MouseListener#mouseUp(org.eclipse.swt.events.MouseEvent)
-     */
     public void mouseUp(MouseEvent arg0) {
-    	// TODO Auto-generated method stub
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.events.MouseListener#mouseDown(org.eclipse.swt.events.MouseEvent)
-	 */
 	public void mouseDown(MouseEvent arg0) {
 		this.refreshAction(view.getAnalysisStartDate());
     	
@@ -146,19 +137,22 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 	 * @author Guillaume Thoreton
 	 */
 	private void refreshAction(final Date startAnalyseDate) {
-		
+	
 		 	final Queue<Runnable> tasks = new LinkedBlockingQueue<Runnable>();
 			
 			if (doFetchListStocks && isFetchListStocks()) {
 				
 				eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-				doFetchQuotes = true;
 				
 				//Add Fetch List to the queue
 				tasks.offer(new Runnable() {
 					public void run() {
-						eventModel.callbackForlastListFetch();
-						eventModel.setLastListFetch(currentDate);
+						try {
+							eventModel.callbackForlastListFetch();
+							eventModel.setLastListFetch(currentDate);
+						} catch (Exception e) {
+							throw new StockListRefreshException(e);
+						}
 					}
 				});
 				
@@ -168,7 +162,11 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 				//Add Fetch Reco to the queue
 				tasks.offer(new Runnable() {
 					public void run() {
-						eventModel.callbackForReco();
+						try {
+							eventModel.callbackForReco();
+						} catch (Exception e) {
+							throw new RecoRefreshException(e);
+						}
 					}
 				});
 				
@@ -179,9 +177,13 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 				//Add Fetch Quotations
 				tasks.offer(new Runnable() {
 					public void run() {
-						eventModel.callbackForlastQuotationFetch();
-						eventModel.setLastQuotationFetch(currentDate);
-						eventModel.resetLastAnalyse();
+						try {
+							eventModel.callbackForlastQuotationFetch();
+							eventModel.setLastQuotationFetch(currentDate);
+							eventModel.resetLastAnalyse();
+						} catch (Exception e) {
+							throw new QuotatationRefreshException(e);
+						}
 					}
 				});
 			}
@@ -193,39 +195,55 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 				//add Analysis
 				tasks.offer(new Runnable() {
 					public void run() {
-						eventModel.callbackForlastAnalyse(startAnalyseDate);
-						eventModel.setLastAnalyse(currentDate);
+						try {
+							eventModel.callbackForlastAnalyse(startAnalyseDate);
+							eventModel.setLastAnalyse(currentDate);
+						} catch (Exception e) {
+							throw new EventRefreshException(e);
+						}
 					}
 				});
 			}
 			
-			//Run tasks in serial mode and synchronise at the end
-			Thread t = new Thread() {
+			final List<Exception> exceptions = new ArrayList<Exception>();
+			Runnable runnable = new Runnable() {
 
-				
+				@Override
 				public void run() {
-					
+
 					Runnable r;
 					while ( (r = tasks.poll()) != null) {
-						r.run();
-					}
-					
-					//Update potential registered view when finished
-					view.getDisplay().syncExec(new Runnable() {
-						public void run() {
-							view.endRefreshAction();
+						try {
+							
+							//XXX ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig()); 
+							//XXX The following should be in an other bean and systematically used instead of the Configs default constructors
+							ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
+							shareListMgr.initConfig();
+							
+							r.run();
+						} catch (Exception e) {
+							LOGGER.warn(e,e);
+							exceptions.add(e);
 						}
-						
-					});
+					}
 					
 					//Notifiy observers
 					for (Observer obs : eventModel.getEngineObservers()) {
-						obs.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.DONE));
+						obs.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.DONE, taskKey));
 					}
+
+					//Update potential registered view when finished
+					view.getDisplay().syncExec(new Runnable() {
+						public void run() {
+							view.endRefreshAction(exceptions);
+						}
+
+					});
 				}
 			};
+			Thread thread = new Thread(runnable);
+			thread.start();
 			
-			t.start();
 	}
 	
 

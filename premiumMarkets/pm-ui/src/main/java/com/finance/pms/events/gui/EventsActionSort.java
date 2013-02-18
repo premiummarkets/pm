@@ -51,10 +51,10 @@ public class EventsActionSort {
 	
 	
 	public static enum EventsActionSortEnum {
-		DEFAULTWEIGTHTXT ("All Types"),
+		DEFAULTWEIGTHTXT ("All Events"),
 		TALIBWEIGHTTXT ("Premium Markets Indicators"),
 		LATESTEVENTSTXT ("Latest Events and Alerts"),
-		LATESTNOALERTSEVENTSTXT ("Latest Trend Only");
+		LATESTNOALERTSEVENTSTXT ("Latest Trend");
 		
 		/** The text. */
 		private String text;

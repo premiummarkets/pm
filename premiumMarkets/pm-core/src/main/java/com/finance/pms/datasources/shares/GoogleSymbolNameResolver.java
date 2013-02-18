@@ -37,9 +37,7 @@ public class GoogleSymbolNameResolver extends SymbolNameResolver {
 		return SymbolNameResolver.UNKNOWNEXTENSION;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.shares.SymbolNameResolver#resolveClueFromExtension(java.lang.String)
-	 */
+
 	@Override
 	public String resolveClueFromExtension(String extension) {
 		return SymbolNameResolver.UNKNOWNEXTENSIONCLUE;

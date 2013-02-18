@@ -44,7 +44,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
@@ -53,8 +52,6 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	private static PatternProperties PATTERNS;
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 	private NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.FRANCE);
-	//private NumberFormat quoteNumberFormat = new DecimalFormat("#0,000");
-	//private NumberFormat volumeNumberFormat = new DecimalFormat("0 000 000");
 	
 	private Pattern quotationPattern;
 	private Pattern datePattern;
@@ -71,7 +68,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	private Long volume;
 	
 	private List<Validatable> validatables;
-	private Currency currency;
+	//private Currency currency;
 	private Pattern endRow;
 	
 	
@@ -79,7 +76,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 		super(url);
 		params.add(stock);
 		params.add(currency);
-		this.currency = Currency.valueOf(currency);
+		//this.currency = Currency.valueOf(currency);
 		this.validatables = new ArrayList<Validatable>();
 		
 		try {

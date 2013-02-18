@@ -699,26 +699,11 @@ public class Stock extends Validatable {
 		return stockSimplifiedSymbol.equals(thisSimplifiedSymbol);
 	}
 
-//	@OneToMany(mappedBy="tunedConfId.stock",cascade = {CascadeType.ALL}, fetch = FetchType.EAGER, orphanRemoval=true)
-//	@MapKey
-//	public Map<TunedConfId, TunedConf> getStockTunedConf() {
-//		return stockTunedConf;
-//	}
-//
-//	public void setStockTunedConf(Map<TunedConfId, TunedConf> stockTunedConf) {
-//		this.stockTunedConf = stockTunedConf;
-//	}
+	@Transient
+	public String getFriendlyName() {
+		return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+	}
 
-//	public TunedConf whichTunedConfigForThisRuleSet(String configListFileName) {
-//		TunedConfId tunedConfId = new TunedConfId(this, configListFileName);
-//		TunedConf stockPrevTunedConf = this.getStockTunedConf().get(tunedConfId);
-//		
-//		if (stockPrevTunedConf == null) { //No prev conf : first tune for this config file
-//			stockPrevTunedConf = new TunedConf(this, configListFileName, "No config yet", DateFactory.dateAtZero(), false);
-//			this.getStockTunedConf().put(tunedConfId, stockPrevTunedConf);
-//		}
-//		return stockPrevTunedConf;
-//	}
 	
 }
 

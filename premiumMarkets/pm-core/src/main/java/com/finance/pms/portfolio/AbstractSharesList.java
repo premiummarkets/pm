@@ -280,6 +280,7 @@ public abstract class AbstractSharesList extends Observable {
 	 */
 	private void shareTransaction(PortfolioShare recipientPortfolioShare, BigDecimal quantity, Date buyDate, BigDecimal lastQuotation, TransactionType movement) throws InvalidQuantityException {
 		Transaction transaction = new Transaction(recipientPortfolioShare.getCashin(), recipientPortfolioShare.getCashout(), quantity, lastQuotation, movement, buyDate);
+		if (transaction.amount().compareTo(BigDecimal.ZERO) == 0 && movement.equals(TransactionType.AIN)) throw new InvalidQuantityException("Amounts too small are not supported. Amount must be >= 0.01 ", new Throwable());
 		recipientPortfolioShare.applyTransaction(transaction, true);
 		recipientPortfolioShare.setBuyDate(buyDate);
 	}

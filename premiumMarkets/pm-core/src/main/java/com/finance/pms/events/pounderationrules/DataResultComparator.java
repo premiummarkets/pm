@@ -35,8 +35,6 @@ import java.util.Comparator;
 import com.finance.pms.events.EventValue;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DataResultComparator.
  * 

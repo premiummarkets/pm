@@ -62,8 +62,7 @@ import com.finance.pms.datasources.web.google.MarketList;
 import com.finance.pms.portfolio.SharesList;
 
 public class ProvidersGoogle extends Providers implements QuotationProvider {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(ProvidersGoogle.class);
 
 	
@@ -216,7 +215,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		LOGGER.guiInfo("Number of tickers to be added : " + nbNew);
 		LOGGER.info("Tickers to be added : " + listReqIns);
 		
-		this.shareDAO.saveOrUpdatePortfolioShare(listNew);
+		this.shareDAO.saveOrUpdateStocks(listNew);
 		
 		//Share list
 		updatingShareListInDB(shareList, sharesListStocks);

@@ -266,5 +266,11 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 		return EventDefinition.VARIANCE;
 	}
 
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }

@@ -38,39 +38,22 @@ package com.finance.pms.datasources.web;
  */
 public enum ProvidersTypes {
 	
-	/** The NONE. */
 	NONE ("none","None"),
-	
-	/** The YAHOO. */
 	YAHOO ("yahoo","Yahoo"),
-	
-	/** The BOURSORAMA. */
 	BOURSORAMA ("boursorama","Boursorama"),
-	
-	/** The YAHOOFR. */
 	YAHOOFR ("yahoofr","YahooFR"),
-	
-	/** The EURONEXT. */
 	EURONEXT ("euronext","EuroNext"),
-	
-	/** The EURONEXT. */
 	NASDAQ ("nasdaq","NASDAQ"),
-	
 	ASX ("asx","ASX"),
-	
 	BSE ("bse","BSE"),
-	
-	/** The EURONEXT. */
 	GOOGLE ("google","Google"),
-	
 	NSEINDICES ("nseIndices","NseIndices"), 
-	
 	YAHOOINDICES ("yahooindex","YahooIndex"), 
+	ALLMARKETS ("allmarkets","AllMarkets"), 
+	INVESTIR("investir","Investir"),
+	INFLATION("inflation","Inflation");
 	
-	INVESTIR("investir","Investir");
 	
-	
-	/** The class name. */
 	private String className;
 	
 	

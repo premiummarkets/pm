@@ -73,17 +73,25 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		
 		Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
 		
+		Boolean isDataSetComplete = true;
 		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
 			if (checkWanted(eventDefinition)) {
 				try {
+					
 					EventCompostionCalculator instanciatedECC = instanciateECC(eventDefinition, availableSecondPassIndicatorCalculators.get(eventDefinition), observers);
 					eventCalculations.add(instanciatedECC);
+					
 				} catch (Exception e) {
-					//LOGGER.error(e,e);
-					throw new IncompleteDataSetException(stock, e.getMessage());
+					
+					LOGGER.warn(e,e);
+					//throw new IncompleteDataSetException(stock, new HashSet<EventCompostionCalculator>(), e.getMessage());
+					isDataSetComplete = false;
+					
 				}
 			}
 		}
+		
+		if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete.");
 		
 		return eventCalculations;
 	}
@@ -103,9 +111,9 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException) {
 				if (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException ) {
-					LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate),true);
+					LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate));
 				} else {
-					LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause(),true);
+					LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
 				}
 			} else if (e.getCause() instanceof ErrorException) {
 				LOGGER.error(stock+ " second pass calculation error ",e);

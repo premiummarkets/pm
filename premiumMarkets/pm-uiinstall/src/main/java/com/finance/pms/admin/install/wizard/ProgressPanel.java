@@ -78,7 +78,6 @@ public class ProgressPanel extends JPanel  implements PropertyChangeListener {
     private JLabel jLabel2;
     
     /** The j label3. */
-   // private JTextArea jTextAreaDescr;
     private JLabel jTextAreaDescr;
     
     /** The j panel1. */
@@ -134,12 +133,12 @@ public ProgressPanel() {
         titlePanel.setBackground(Color.gray);
         
         textLabel.setBackground(Color.gray);
-        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 20));
+        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
         textLabel.setText("Unpacking and copying files");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);
         
-        jTextArea = new JTextArea(15, 30);
+        jTextArea = new JTextArea(10, 30);
         textAreaStream = new TextAreaStream(jTextArea);
         jTextArea.setEditable(false);
         jScrollPane = new JScrollPane(jTextArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -203,17 +202,18 @@ public ProgressPanel() {
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
         jTextAreaDescr.setFocusable(true);
+        jTextAreaDescr.setFont(jTextAreaDescr.getFont().deriveFont(14f));
         jTextAreaDescr.setText(
         	"<html>"+
         	"<p>" +
 			"Premium Markets is an automated stock market analysis system.<br />"+
-			"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.<br />" +
+			"It implements a graphical environment for monitoring stock market technical analysis major indicators, <br />portfolio management and historical data charting.<br />" +
 			"<br />"+
 			"I also invite you for a preview of Premium Markets Forecast advanced features (not provided under this license) which includes : <br />"+
 			"<ul>" +
 				"<li>Screening of financial web sites to pick up the best market shares,</li>"+
 				"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
-				"<li>80% of predicted trades more profitable than buy and hold, leading to 4 times more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE,</li>"+
+				"<li>80% of predicted trades more profitable than buy and hold, leading to 4 times more profit, <br />while back testing over NYSE, NASDAQ, EURONEXT and LSE,</li>"+
 				"<li>Back testing,</li>"+
 				"<li>Buy sell email notifications on predictions with automated markets and user defined portfolios scanning.</li>" +
 			"</ul>" +
@@ -222,7 +222,6 @@ public ProgressPanel() {
 			"</html>"
         	);
         contentPanel1.add(jTextAreaDescr, java.awt.BorderLayout.NORTH);
-        //contentPanel1.add(jTextAreaDescr);
         
         try {
 			final URI uri = new URI("http://premiummarkets.elasticbeanstalk.com/");
@@ -235,6 +234,7 @@ public ProgressPanel() {
 			
 			JButton button = new JButton();
 			button.setText("<HTML><FONT color=\"red\">Click <FONT color=\"#000099\"><blink><U>http://premiummarkets.elasticbeanstalk.com/</U></blink></FONT> for a preview and a free workable demo of the <b>FORECAST</b> engine.</FONT></HTML>");
+			button.setFont(button.getFont().deriveFont(14f));
 			button.setHorizontalAlignment(SwingConstants.LEFT);
 			button.setBorderPainted(false);
 			button.setOpaque(false);
@@ -266,18 +266,17 @@ public ProgressPanel() {
         jPanel1.add(jLabel2);
 
         contentPanel1.add(jPanel1, java.awt.BorderLayout.SOUTH);
-        //contentPanel1.add(jPanel1);
         
         return contentPanel1;
     }
     
-    	static void open(URI uri) {
-        if (Desktop.isDesktopSupported()) {
-          try {
-            Desktop.getDesktop().browse(uri);
-          } catch (IOException e) { /* TODO: error handling */ }
-        } else { /* TODO: error handling */ }
-     }
+    static void open(URI uri) {
+    	if (Desktop.isDesktopSupported()) {
+    		try {
+    			Desktop.getDesktop().browse(uri);
+    		} catch (IOException e) { /* TODO: error handling */ }
+    	} else { /* TODO: error handling */ }
+    }
     
     
     /**

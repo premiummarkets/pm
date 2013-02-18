@@ -49,10 +49,10 @@ public class OutputCalculatorNull implements OutputCalculator {
 	@Override
 	public Double compute(Date prevExtremDate, Double prevValue, Date nextExtremDate, Double nextValue, Date currentTime) {
 
-		if (currentTime.equals(prevExtremDate)) {
+		if (currentTime.compareTo(prevExtremDate) == 0) {
 			return prevValue;
 		} else 
-			if (currentTime.equals(nextExtremDate)) {
+			if (currentTime.compareTo(nextExtremDate) == 0) {
 				return nextValue;
 			} else {
 				return Extremity.UNKNOWN.getExValue();

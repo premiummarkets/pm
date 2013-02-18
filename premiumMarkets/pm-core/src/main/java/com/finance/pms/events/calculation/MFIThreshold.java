@@ -117,11 +117,21 @@ public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 		
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		return new double[]
+				{
+					this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)],
+					this.mfi.getLowerThreshold(),
+					this.mfi.getUpperThreshold()
+				};
+	}
 
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		return "CALCULATOR DATE; CALCULATOR QUOTE; MFI DATE; MFI QUOTE; MFI ;bearish; bullish\n";	
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	

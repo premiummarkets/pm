@@ -111,7 +111,7 @@ public class InstallFolderPanel extends JPanel {
         titlePanel.setBackground(Color.gray);
         
         textLabel.setBackground(Color.gray);
-        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 20));
+        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
         textLabel.setText("Choose an installation folder ...");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);
@@ -196,7 +196,7 @@ public class InstallFolderPanel extends JPanel {
 	private void updateInstallPath(final JTextField jt) {
 		InstallFolderPanel.piggyMarketSqueakFolderName = jt.getText();
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
-		prefs.put("pm.default.install.folder",InstallFolderPanel.piggyMarketSqueakFolderName);
+		prefs.put("pm.default.install.folder", InstallFolderPanel.piggyMarketSqueakFolderName);
 		try {
 			prefs.flush();
 		} catch (BackingStoreException e) {

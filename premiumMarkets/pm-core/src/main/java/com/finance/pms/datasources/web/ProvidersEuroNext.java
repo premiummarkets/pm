@@ -129,11 +129,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 				stockList.get(stockList.indexOf(s)).setName(s.getName());
 			}
 			try {
-				//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-				DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
-//			} catch (SQLException e) {
-//				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :"
-//						+ e.getMessage() + " cause : " + e.getCause());
+				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -154,7 +150,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	//TODO Merge. One and only methods for all providers
-	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
+	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) throws HttpException {
 		LOGGER.info("From Web : ");
 		
 		//Share list
@@ -172,7 +168,8 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		try {
 			ltmp = ((HttpSourceEuroNext)this.httpSource).readURL(lsf);
 		} catch (HttpException e) {
-			LOGGER.error("",e);
+			LOGGER.error(e,e);
+			throw e;
 		}
 		listNew.addAll(ltmp);
 		
@@ -218,7 +215,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		LOGGER.guiInfo("Number of tickers to be added : " + nbNew);
 		LOGGER.info("Tickers to be added : " + listReqIns);
 		
-		this.shareDAO.saveOrUpdatePortfolioShare(listNew);
+		this.shareDAO.saveOrUpdateStocks(listNew);
 	
 		//Deletion of old stocks in DB
 		LOGGER.guiInfo("Number of tickers to be removed : " + listReqDel.size());

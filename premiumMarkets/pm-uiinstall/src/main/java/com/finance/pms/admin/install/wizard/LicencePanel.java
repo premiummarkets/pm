@@ -164,7 +164,7 @@ public class LicencePanel extends JPanel {
 		jpc.add(jsb, BorderLayout.NORTH);
 	
 		jCheckBox1 = new JCheckBox("Please agree the license condition first.");
-		jCheckBox1.setFont(new java.awt.Font("MS Sans Serif", Font.BOLD, 20));
+		jCheckBox1.setFont(new java.awt.Font("MS Sans Serif", Font.BOLD, 16));
 		jpc.add(jCheckBox1, BorderLayout.SOUTH);
 		
 		

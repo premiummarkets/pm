@@ -89,7 +89,7 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 			
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(message.getStartDate());
-			while (currentDate.getTime().before(message.getEndDate()) || currentDate.getTime().equals(message.getEndDate())) {
+			while (currentDate.getTime().before(message.getEndDate()) || currentDate.getTime().compareTo(message.getEndDate()) == 0) {
 				
 				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), message.getAdditionalEventListNames());
 				sendTransactionHistory(calculationTransactions);

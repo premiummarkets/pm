@@ -45,6 +45,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -101,12 +102,14 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 			}
 		}
 		
-		if (!edata.isEmpty()) {
-			calculationOutput.put(edata.lastKey().getDate(), new double[]{});
-		};
+		//		if (!edata.isEmpty()) {
+		//			calculationOutput.put(edata.lastKey().getDate(), new double[]{});
+		//		};
+		calculationOutput = buildOutput();
 		
+
 		return edata;
-		
+
 	}
 
 	protected abstract FormulatRes eventFormulaCalculation(Integer quotationIdx) throws InvalidAlgorithmParameterException;
@@ -119,8 +122,8 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	 * @param indicatorQuotationEndDateIdx
 	 * @throws NotEnoughDataException
 	 */
-	protected void isValidData(Stock stock, TalibIndicator indicator, Date startDate, Integer indicatorQuotationStartDateIdx, Integer indicatorQuotationEndDateIdx) 
-																																							throws NotEnoughDataException {
+	protected void isValidData(Stock stock, TalibIndicator indicator, Date startDate, Integer indicatorQuotationStartDateIdx, Integer indicatorQuotationEndDateIdx) throws NotEnoughDataException {
+		
 		if (indicator.getOutBegDate() == null) {
 			throw new NotEnoughDataException(null, null, indicator.toString(),new Throwable());
 		}
@@ -129,16 +132,17 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 				|| !isInDataRange(indicator,getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationStartIdx, indicatorQuotationStartDateIdx)) 
 				|| !isInDataRange(indicator,getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationEndIdx, indicatorQuotationStartDateIdx))) {
 			String message = "Not enought quotations for calculating indicator "+ indicator.getClass().getSimpleName() +" for calculator "+ this.getClass().getSimpleName() + " for " + stock.getName() + "!\n "
-					+ " \t\tCalculation start date requested from "+ new SimpleDateFormat("yyyy-MM-dd").format(startDate)+ ". Indicator first date availabe : "+indicator.getOutBegDate()+".\n"
-					+ " \t\tIndicator indexes may be out of range : from "+ this.getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationStartIdx, indicatorQuotationStartDateIdx)+ " to "+ this.getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationEndIdx, indicatorQuotationStartDateIdx)+".\n"
-					+ " \t\tNb indicator quotations requested : "+(indicatorQuotationEndDateIdx - indicatorQuotationStartDateIdx)+" And calculated "+ indicator.getOutNBElement().value+".\n"
-					+ " \t\tAvailable quotations for indicator init : "+  getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculationStartIdx, indicatorQuotationStartDateIdx)+".\n"
-					+ " \t\tIf you really want that one calculated, quotation data investigation is needed as there may be some gaps in the quotations data leading to insufficient amount of quotations for the indicator calculation.";
+					+ " \t\tCalculation start date requested from " + new SimpleDateFormat("yyyy-MM-dd").format(startDate)+ ". Indicator first date availabe : "+indicator.getOutBegDate() + ".\n"
+					+ " \t\tIndicator indexes may be out of range : from " + this.getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationStartIdx, indicatorQuotationStartDateIdx) + " to "+ this.getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationEndIdx, indicatorQuotationStartDateIdx) + ".\n"
+					+ " \t\tNb indicator quotations requested : " + (indicatorQuotationEndDateIdx - indicatorQuotationStartDateIdx)+" And calculated " + indicator.getOutNBElement().value + ".\n"
+					+ " \t\tAvailable quotations for indicator init : "+  getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculationStartIdx, indicatorQuotationStartDateIdx) + ".\n"
+					+ " \t\tIf you realy want that one calculated, quotation data investigation is needed as there may be some gaps in the quotations data leading to insufficient amount of quotations for the indicator calculation.";
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(indicator.getOutBegDate());
 			QuotationsFactories.getFactory().incrementDate(calendar, getDaysSpan());
-			throw new NotEnoughDataException(calendar.getTime(), stock.getLastQuote(), message,new Throwable());
+			throw new NotEnoughDataException(calendar.getTime(), stock.getLastQuote(), message, new Throwable());
 		}
+		
 	}
 	
 	
@@ -331,9 +335,27 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	}
 	
 	public  SortedMap<Date, double[]> calculationOutput() {
-		//return new TreeMap<Date, double[]>();
 		return calculationOutput;
 	}
+
+	protected SortedMap<Date, double[]> buildOutput() {
+		
+		Boolean returnOutput = Boolean.valueOf(MainPMScmd.getPrefs().get("indicators.returnoutput", "false"));
+
+		SortedMap<Date, double[]> outputMap = new TreeMap<Date, double[]>();
+		if (returnOutput) {
+			for (int i = calculationStartIdx; i <= calculationEndIdx; i++) {
+				Date calculatorDate = this.getCalculatorQuotationData().get(i).getDate();
+				double[] output = buildOneOutput(i);
+				outputMap.put(calculatorDate, output);
+			}
+		}
+
+		return outputMap;
+	}
+
+
+	protected abstract double[] buildOneOutput(int calculatorIndex);
 
 
 }

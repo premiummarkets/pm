@@ -58,10 +58,10 @@ public class StripedCloseDayToDay extends StripedCloseFunction {
 	@Override
 	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
 
-		startDate = getStartDate(stockQuotations);
+		Date startDate = getStartDate(stockQuotations);
 		endDate = getEndDate(stockQuotations);
 
-		startDateQuotationIndex = stockQuotations.getClosestIndexForDate(0,startDate);
+		int startDateQuotationIndex = stockQuotations.getClosestIndexForDate(0,startDate);
 		endDateQuotationIndex = stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
 
 		SortedMap<Date, double[]> data = new TreeMap<Date, double[]>();
@@ -75,6 +75,9 @@ public class StripedCloseDayToDay extends StripedCloseFunction {
 
 		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
 		houseDerivation = houseTrendSmoother.smooth(smoothed, false);
+		
+		this.startDate = (startDate.before(houseDerivation.firstKey()))? houseDerivation.firstKey() : startDate;
+		this.startDateQuotationIndex = stockQuotations.getClosestIndexForDate(0,this.startDate);
 
 	}
 
@@ -84,8 +87,7 @@ public class StripedCloseDayToDay extends StripedCloseFunction {
 		List<Double> ret = new ArrayList<Double>();
 		SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
 		
-	//	double root = tailMap.get(tailMap.firstKey())[0];
-		double root = (rootAtZero)?tailMap.get(tailMap.firstKey())[0]:0d;
+		double root = (rootAtZero)? tailMap.get(tailMap.firstKey())[0] : 0d;
 		Set<Date> keySet = tailMap.keySet();
 		for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
 			Date date = iterator.next();
@@ -94,6 +96,11 @@ public class StripedCloseDayToDay extends StripedCloseFunction {
 		}
 		
 		return ret.toArray(new Double[0]);
+	}
+
+	@Override
+	public String lineToolTip() {
+		return "change to previous day (log ROC)";
 	}
 
 }

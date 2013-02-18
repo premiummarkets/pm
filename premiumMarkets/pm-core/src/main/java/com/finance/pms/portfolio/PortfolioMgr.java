@@ -34,6 +34,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -146,7 +147,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		if (singleton != null) {
 			return singleton;
 		} else {
-			throw new RuntimeException("Portfolio manager should have bean injected by constructor");
+			throw new NotImplementedException("Portfolio manager should have bean injected by constructor");
 		}
 	}
 	

@@ -56,18 +56,11 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 	
-//	HouseAroon aroon;
-//	private Integer aroonQuotationStartDateIdx;
 	private StochasticOscillator stochasticOscillator;
 	private Integer stochQuotationStartDateIdx;
 
 	public StochasticThreshold(Stock stock, StochasticOscillator stochasticOscillator, HouseAroon aroon, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
-		
-//		this.aroon = sma;
-//		aroonQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-//		Integer aroonQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(aroonQuotationStartDateIdx, endDate);
-//		isValidData(stock, sma, startDate, aroonQuotationStartDateIdx, aroonQuotationEndDateIdx);
 		
 		this.stochasticOscillator = stochasticOscillator;
 		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
@@ -124,7 +117,6 @@ public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//return "CALCULATOR DATE; CALCULATOR QUOTE; STOCH DATE; STOCH SLOW K; STOCH SLOW D ; bearish; bullish\n";	
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, Upper Th, lower Th, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -160,6 +152,19 @@ public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		int stochIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.stochasticOscillator, calculatorIndex, stochQuotationStartDateIdx);
+		return new double[]
+				{
+				this.stochasticOscillator.getSlowK()[stochIndex],
+				this.stochasticOscillator.getSlowD()[stochIndex],
+				this.stochasticOscillator.getLowerThreshold(),
+				this.stochasticOscillator.getUpperThreshold()
+				};
 	}
 
 	@Override

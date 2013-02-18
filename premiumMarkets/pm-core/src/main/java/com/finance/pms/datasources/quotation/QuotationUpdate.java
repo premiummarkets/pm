@@ -34,9 +34,12 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +47,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.httpclient.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -71,12 +76,10 @@ import com.finance.pms.threads.ObserverMsg;
  */
 public class QuotationUpdate {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(QuotationUpdate.class);
-	//DEBUG
-	/** The dlance. */
-	public static long dlance;
 	
+	//DEBUG
+	public static long dlance;
 	private Set<Observer> observers = new HashSet<Observer>();
 
 	/**
@@ -100,7 +103,7 @@ public class QuotationUpdate {
 	}
 	
 
-	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, Set<Indice> indices) {
+	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, Set<Indice> indices) throws HttpException {
 		
 		Providers provider =  Providers.getInstance(sharesListName);
 		provider.addIndices(indices,false);
@@ -111,8 +114,9 @@ public class QuotationUpdate {
 	/**
 	 * @param provider
 	 * @param marketQuotationsProvider
+	 * @throws HttpException 
 	 */
-	private void getQuotesAndNewForShareListFromWeb(Providers provider, String marketQuotationsProvider) {
+	private void getQuotesAndNewForShareListFromWeb(Providers provider, String marketQuotationsProvider) throws HttpException {
 		
 		StockList existingDBStocks = new StockList();
 		provider.retrieveStockListFromBase(existingDBStocks);
@@ -122,7 +126,6 @@ public class QuotationUpdate {
 		
 		StockList shareListStocks = provider.retrieveStockListFromWeb(MarketQuotationProviders.valueOfCmd(marketQuotationsProvider), existingDBStocks);
 		
-		//stockList.removeAll(bdStockList);
 		try {
 			getQuotes(shareListStocks);
 		} catch (StockNotFoundException e) {
@@ -139,7 +142,7 @@ public class QuotationUpdate {
 	 * @return the quotes from file
 	 * @throws StockNotFoundException 
 	 */
-	public void getQuotesForListInFile(String pathToFileList, String sharesList) throws StockNotFoundException {
+	public void getQuotesForListInFile(String pathToFileList, String sharesList) throws StockNotFoundException, InputMismatchException {
 		
 		StockList dbStockList = new StockList();
 		Providers.getInstance(sharesList).retrieveStockListFromBase(dbStockList);
@@ -148,39 +151,49 @@ public class QuotationUpdate {
 		
 	}
 	
-	public void getQuotesForUi(
-			String sharesList, String isin, String symbol, String name, 
+	public List<Stock> getQuotesForListInFile(String pathToFileList, Providers sharesList) throws StockNotFoundException, InputMismatchException {
+		
+		StockList dbStockList = new StockList();
+		sharesList.retrieveStockListFromBase(dbStockList);
+		StockList retreivedStockListFromFile = sharesList.retreiveStockListFromFile(pathToFileList, dbStockList);
+		getQuotes(retreivedStockListFromFile);
+		
+		return retreivedStockListFromFile;
+		
+	}
+	
+	public Stock getQuotesForUi(
+			Providers sharesList, String isin, String symbol, String name, 
 			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException, StockNotFoundException {
 
 		StockList dbStockList = new StockList();
-		Providers.getInstance(sharesList).retrieveStockListFromBase(dbStockList);
+		sharesList.retrieveStockListFromBase(dbStockList);
 
 		Stock newStock = new Stock(
 				isin, symbol, name, false, category,
 				new SymbolMarketQuotationProvider(quoteProvider,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), market,
 				"",TradingMode.CONTINUOUS,0l);
-		Providers.getInstance(sharesList).retrieveAndCompleteStockInfo(newStock, dbStockList);
+		sharesList.retrieveAndCompleteStockInfo(newStock, dbStockList);
 
 		getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))));
+		
+		return newStock;
 
 	}
 	
-	public Collection<Stock> getQuotesFor(Collection<Stock> stocks) {
+	public Collection<Stock> getQuotesFor(Collection<Stock> stocks) throws StockNotFoundException {
 		StockList stockList = new StockList();
 		stockList.addAll(stocks);
-		try {
-			getQuotes(stockList);
-		} catch (StockNotFoundException e) {
-			LOGGER.warn(e);
-		}
-		
+		getQuotes(stockList);
+
 		return stocks;
 	}
 	
 	public Collection<Stock> getQuotesForMonitored() {
 		StockList stockList = new StockList();
-		Collection<Stock> symbols = DataSource.getInstance().getShareDAO().loadMonitoredShares();
+		Collection<Stock> symbols = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
 		stockList.addAll(symbols);
+		
 		try {
 			getQuotes(stockList);
 		} catch (StockNotFoundException e) {
@@ -194,7 +207,7 @@ public class QuotationUpdate {
 		
 		//load stocks for all user portfolios
 		StockList userPortoflioStocks = new StockList();
-		Collection<Stock> userPortoflioSymbols = DataSource.getInstance().getShareDAO().loadAllUserPortoflioShares();
+		Collection<Stock> userPortoflioSymbols = DataSource.getInstance().getShareDAO().loadAllUserPortoflioStocks();
 		userPortoflioStocks.addAll(userPortoflioSymbols);
 		try {
 			getQuotes(userPortoflioStocks);
@@ -204,7 +217,7 @@ public class QuotationUpdate {
 		
 		//return monitored
 		StockList monitoredStocks = new StockList();
-		Collection<Stock> monitoredSymbols = DataSource.getInstance().getShareDAO().loadMonitoredShares();
+		Collection<Stock> monitoredSymbols = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
 		monitoredStocks.addAll(monitoredSymbols);
 		return monitoredStocks;
 	}
@@ -233,7 +246,7 @@ public class QuotationUpdate {
 		
 		Providers provider =  Providers.getInstance(sharesListName);
 		provider.addIndices(indices, false);
-		sharesListName = sharesListName+Indice.formatName(provider.getIndices());
+		sharesListName = sharesListName+Indice.formatSet(provider.getIndices());
 		Collection<Stock> symbols = DataSource.getInstance().loadStocksList(sharesListName);
 		
 		stockList.addAll(symbols);
@@ -297,13 +310,16 @@ public class QuotationUpdate {
 				if (!getQuotationResult.hasQuotations) {
 					exceptions.invalidStocks.add(getQuotationResult.stock);
 				}
+				if (!getQuotationResult.isSuccessfulUpdate) {
+					exceptions.notUpdated.put(getQuotationResult.stock, getQuotationResult.failureCause);
+				}
 			} catch (InterruptedException e) {
 				LOGGER.error(e,e);
 			} catch (ExecutionException e) {
 				LOGGER.error(e,e);
 			}
 		}
-		if (!exceptions.invalidStocks.isEmpty()) {
+		if (!exceptions.invalidStocks.isEmpty() || !exceptions.notUpdated.isEmpty() ) {
 			throw exceptions;
 		}
 		
@@ -314,10 +330,12 @@ public class QuotationUpdate {
 	public class StockNotFoundException extends Exception {
 		private static final long serialVersionUID = 3632464675497253714L;
 		List<Stock> invalidStocks;
+		Map<Stock,Exception> notUpdated;
 		
 		public StockNotFoundException(String message) {
 			super(message);
 			this.invalidStocks = new ArrayList<Stock>();
+			this.notUpdated = new HashMap<Stock, Exception>();
 		}
 		
 		@Override
@@ -328,8 +346,17 @@ public class QuotationUpdate {
 		
 		public String toString() {
 			String ret = "";
-			for (Stock exp : invalidStocks) {
-				ret = ret + exp + "\n";
+			if (!invalidStocks.isEmpty()) {
+				ret = ret + "\nNo quotations found for : ";
+				for (Stock exp : invalidStocks) {
+					ret = ret + exp.getFriendlyName() + "\n";
+				}
+			}
+			if (!notUpdated.isEmpty()) {
+				ret = ret + "\nCan't update : ";
+				for (Stock exp : notUpdated.keySet()) {
+					ret = ret + exp.getFriendlyName() + " because "+ notUpdated.get(exp).getMessage() +"\n";
+				}
 			}
 			return ret;
 		}
@@ -337,26 +364,11 @@ public class QuotationUpdate {
 		public List<Stock> getInvalidStocks() {
 			return invalidStocks;
 		}
-	}
 
-	/**
-	 * Clean quotes.
-	 * 
-	 * @param pathToList the path to list
-	 * @param provider the provider
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	@Deprecated
-	public void cleanQuotes(String pathToList, String provider) {
-		StockList stockList = new StockList();
-		//init des stocks base
-		Providers.getInstance(provider).retrieveStockListFromBase(stockList);
-		//init stock fichier (insert les nouvelles en base)
-		Providers.getInstance(provider).retreiveStockListFromFile(pathToList,stockList);
-		//cleanObsoleteQuotes();
+		public Map<Stock, Exception> getNotUpdated() {
+			return notUpdated;
+		}
 	}
-
 
 	public void addObservers(Set<Observer> observers) {
 		if (observers != null) {

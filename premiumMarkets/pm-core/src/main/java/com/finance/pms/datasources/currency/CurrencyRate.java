@@ -38,6 +38,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -103,6 +105,7 @@ public class CurrencyRate extends Validatable {
 	}
 	
 	@Id
+	@Temporal(TemporalType.DATE)
 	public Date getDate() {
 		return date;
 	}

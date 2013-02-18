@@ -53,13 +53,21 @@ import javax.jms.Queue;
 import org.springframework.jms.core.JmsTemplate;
 
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
+import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
+import com.finance.pms.events.scoring.TunedConfMgr.CalculationBounds;
+import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
 
@@ -97,7 +105,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	@Override
 	protected Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents, Observer...observers) 
+			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents,  String passOneCalcMode, Observer...observers) 
 					throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
 		//TODO deal with the periodType
@@ -119,7 +127,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		}
 		
 		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
-		return this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, export, persistEvents, observers);
+		return this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, export, persistEvents, passOneCalcMode, observers);
 		
 	}
 
@@ -135,16 +143,17 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	 * @author Guillaume Thoreton
 	 * @param persistEvents 
 	 * @param observers 
+	 * @param passOneCalcMode 
 	 * @return 
 	 * @throws IncompleteDataSetException 
 	 */
 	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> allEventsCalculation(
-				Collection<Stock> stList, final Date startDate, final Date endDate, 
-				Currency calculationCurrency, final String eventListName, 
-				final Boolean keepCache, int passNumber, Boolean export, Boolean persistEvents, Observer... observers) 
+				Collection<Stock> stList, Date startDate, Date endDate, 
+				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean export, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
 				throws IncompleteDataSetException {
 		
-		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> ret =  new HashMap<Stock, Map<EventDefinition, SortedMap<Date, double[]>>>();
+		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventDefinition, SortedMap<Date, double[]>>>(1);
+		Map<Stock,TunedConf> tunedConfs = new HashMap<Stock, TunedConf>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
 		List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
@@ -162,21 +171,58 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				final Queue eventQueue = this.eventQueue;
 				final JmsTemplate jmsTemplate = this.jmsTemplate;
 
-				IndicatorsCalculationThread calculationRunnableTarget;
-				Currency stockCalcCurrency = (calculationCurrency == null)?stock.getMarketValuation().getCurrency():calculationCurrency;
-
-				if (passNumber == 2) {
+				IndicatorsCalculationThread calculationRunnableTarget = null;
+				Currency stockCalcCurrency = (calculationCurrency == null)? stock.getMarketValuation().getCurrency() : calculationCurrency;
+				
+				if (passNumber == 1) {//pass 1
+					
+					//Date bounds setting
+					TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName());
+					CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, startDate, endDate);
+					if (passOneCalcMode.equals("auto")) {
+						endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+						calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
+					}
+					if (passOneCalcMode.equals("reset")) {
+						endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+						tunedConf.setLastCalculationStart(startDate);
+						tunedConf.setLastCalculationEnd(endDate);
+						calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, startDate, endDate);
+					}
+					
+					//if We inc or reset, tuned conf last event will need update : We add it in the map
+					if (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
+						tunedConfs.put(stock, tunedConf);
+					}
+					
+					//Calculation
+					if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
+						
+						calculationRunnableTarget = new FirstPassIndicatorCalculationThread(
+								stock, calculationBounds.getPmStart(), calculationBounds.getPmEnd(), stockCalcCurrency, eventListName, obsSet,
+								keepCache, eventQueue, jmsTemplate, persistEvents);
+						
+					} else {
+						
+						LOGGER.info(
+								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
+								"No recalculation needed calculaiton bound is "+ calculationBounds.toString());
+					}
+					
+					
+				} else {// pass 2
+					
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
-																						stock, startDate, endDate, stockCalcCurrency, eventListName, obsSet,
-																						availSecondPIndCalculators, export, keepCache, eventQueue, jmsTemplate, persistEvents, true);
-				} else {
-					calculationRunnableTarget = new FirstPassIndicatorCalculationThread(
-																						stock, startDate, endDate, stockCalcCurrency, eventListName, obsSet,
-																						keepCache, eventQueue, jmsTemplate, persistEvents);
+							stock, startDate, endDate, stockCalcCurrency, eventListName, obsSet,
+							availSecondPIndCalculators, export, keepCache, eventQueue, jmsTemplate, persistEvents, true);
+					
+					
 				}
 				
-				Future<SymbolEvents> submitedRunnable = (Future<SymbolEvents>) executor.submit(calculationRunnableTarget);
-				futures.add(submitedRunnable);
+				if (calculationRunnableTarget != null) {
+					Future<SymbolEvents> submitedRunnable = (Future<SymbolEvents>) executor.submit(calculationRunnableTarget);
+					futures.add(submitedRunnable);
+				}
 
 			} catch (Throwable e) {
 				LOGGER.error(e,e);
@@ -201,38 +247,35 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 		List<Stock> failingStocks = new ArrayList<Stock>();
 		for (Future<SymbolEvents> future : futures) {
+
 			try {
-				
+
 				SymbolEvents se = future.get();
+				
+				//Events
 				allEvents.add(se);
+				
+				//Output
 				Map<EventDefinition, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutput();
 				if (calculationOutput == null) calculationOutput = new HashMap<EventDefinition, SortedMap<Date,double[]>>();
-				ret.put(se.getStock(), calculationOutput);
-				
-				try {
-					if (LOGGER.isInfoEnabled()) {
-						String outPutSize = "Nan";
-						String availOutputs = "Nan";
-						if (calculationOutput != null && calculationOutput.size() > 0) {
-							availOutputs = EventDefinition.getEventDefCollectionAsString(calculationOutput.keySet());
-							EventDefinition firstKey = calculationOutput.keySet().toArray(new EventDefinition[]{})[0];
-							SortedMap<Date, double[]> firstOutput = calculationOutput.get(firstKey);
-							outPutSize = firstOutput.size()+"";
-						}
-						LOGGER.info(
-								"Adding "+se.getDataResultList().size()+" events from "+se.getStock()+".  Available outputs "+availOutputs+". First calculation Ouput size is "+outPutSize+", pass num "+passNumber+", eventListName "+eventListName);
-					}
-				} catch (Exception e) {
-					LOGGER.warn(e,e);
+				calculatedOutputReturn.put(se.getStock(), calculationOutput);
+
+				//Save date bounds if exists
+				if (passNumber == 1 && se.getDataResultList().size() > 0) {
+					TunedConf tunedConf = tunedConfs.get(se.getStock());
+					if (tunedConf != null) TunedConfMgr.getInstance().updateConf(tunedConf, se.getStock(), se.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
 				}
-				
-			} catch (Exception e) {
-				if (e.getCause() instanceof IncompleteDataSetException) {
-					failingStocks.addAll(((IncompleteDataSetException) e.getCause()).getFailingStocks());
-				} else {
-					LOGGER.error(e,e);
-				}
+
+			} catch (Exception e1) {
+
 				isDataSetComplete = false;
+				if (e1.getCause() instanceof IncompleteDataSetException) {
+					failingStocks.addAll(((IncompleteDataSetException) e1.getCause()).getFailingStocks());
+					allEvents.addAll(((IncompleteDataSetException) e1.getCause()).getSymbolEvents());
+					calculatedOutputReturn.putAll(((IncompleteDataSetException) e1.getCause()).getCalculatedOutput());
+				} else {
+					LOGGER.error(e1,e1);
+				}
 			}
 		}
 		
@@ -241,9 +284,9 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		
 		
 		if (!isDataSetComplete) {
-			throw new IncompleteDataSetException(failingStocks, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage.");
+			throw new IncompleteDataSetException(failingStocks, allEvents, calculatedOutputReturn, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
 		}
 		
-		return ret;
+		return calculatedOutputReturn;
 	}
 }

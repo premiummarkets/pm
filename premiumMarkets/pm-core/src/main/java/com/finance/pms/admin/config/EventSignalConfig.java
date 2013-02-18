@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
@@ -95,7 +96,6 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalertguard", "0.1")).setScale(2);
 	private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getPrefs().get("event.expectedrate", "0.05")).setScale(2);
 	
-	//Alerts,ZeroCrossMACD,SignalCrossMACD,RSIThreshold,SMAReveversal,StochasticOscillator,ObvDivergence
 	private List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));
 	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
 	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getPrefs().get("event.buytrigger", "3"));
@@ -109,11 +109,13 @@ public class EventSignalConfig extends Config implements Cloneable {
 	
 	private String buyPonderationRule = MainPMScmd.getPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
+	private String configListFileName = IndicatorCalculationServiceMain.UI_ANALYSIS;
 
 	public EventSignalConfig() {
 		super();
 	}
 	
+	@Deprecated
 	public EventSignalConfig(
 			String analyse,
 			String buyEventTriggerThreshold,String sellEventTriggerThreshold,
@@ -138,7 +140,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	public EventSignalConfig(
 				String analyse, 
 				String buyPonderationRule, String sellPonderationRule, String backDaysSpan, 
-				String buyThreshold, String sellThreshold, String indicators) {
+				String buyThreshold, String sellThreshold, String indicators, String configListFileName) {
 		this();
 		this.analysis = analyse;
 		this.buyPonderationRule = buyPonderationRule;
@@ -151,6 +153,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 		this.indicators = Arrays.asList(indicatorsSplit);
 		this.buyIndicators =  Arrays.asList(indicatorsSplit);
 		this.sellIndicators =  Arrays.asList(indicatorsSplit);
+		this.configListFileName = configListFileName;
 		
 	}
 
@@ -488,6 +491,10 @@ public class EventSignalConfig extends Config implements Cloneable {
 			LOGGER.error(e);
 		}
 		return clone;
+	}
+
+	public String getConfigListFileName() {
+		return configListFileName;
 	}
 
 	

@@ -1,16 +1,19 @@
 package com.finance.pms;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Shell;
 
 public class ActionDialog extends ErrorDialog {
 	
-	ActionDialogAction action;
+	protected ActionDialogAction action;
 	String actionTxt;
 
-	public ActionDialog(Shell parent, int style, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
-		super(parent, style, erreur, addMessage);
+	public ActionDialog(Shell parent, int style, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
+		super(parent, style, title, erreur, addMessage);
 		this.actionTxt = actionTxt;
 		this.action = action;
 		
@@ -25,6 +28,15 @@ public class ActionDialog extends ErrorDialog {
 			public void mouseDown(MouseEvent evt) {
 				action.action(valideButton1);
 				validerbutton1MouseDown(evt);
+			}
+		});
+		valideButton1.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent evt) {
+				if (evt.keyCode == SWT.CR) {
+					action.action(valideButton1);
+					validerbutton1MouseDown(evt);
+				}
 			}
 		});
 	}

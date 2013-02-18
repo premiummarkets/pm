@@ -114,6 +114,12 @@ public class CrashGuard extends TalibIndicatorsCompositionCalculator {
 		return EventDefinition.CRASHGUARD;
 	}
 
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 	
 	

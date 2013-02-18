@@ -121,17 +121,6 @@ public class SmaReversal extends TalibIndicatorsCompositionCalculator {
 			
 		return res;
 	}
-
-
-//	/**
-//	 * @param index
-//	 * @return
-//	 */
-//	private double stdDev(Integer index) {
-//		//if (index - stdDevOutBegIdx.value > 0) return smaStdDevs[index-stdDevOutBegIdx.value];
-//		return 0;
-//		//return  1.0013;
-//	}
 	
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
@@ -147,10 +136,8 @@ public class SmaReversal extends TalibIndicatorsCompositionCalculator {
 		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)]; // +","
-//			+ stdDev(getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx));
-		
+			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," + this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
+			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)]; 		
 		if (bearsihEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
@@ -163,11 +150,20 @@ public class SmaReversal extends TalibIndicatorsCompositionCalculator {
 		
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		return new double[]
+				{
+				this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue(),
+				this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)]
+				};
+	}
 
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//return "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", STD DEV (alpha), bearish, bullish\n";
 		String head =  "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	

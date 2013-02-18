@@ -40,33 +40,30 @@ import com.finance.pms.screening.TrendSupplementedStock;
 
 public interface ShareDAO {
 	
-	public void saveOrUpdatePortfolioShare(List<Validatable> shares);
 	
 	public List<Stock> loadShares(ShareFilter shareFilter);
 	
-	public List<Stock> loadMonitoredShares();
+	public Stock loadStockBy(String symbol, String isin);
+	public Stock loadStockByIsin(String isin);
+	public Stock loadStockByIsinOrSymbol(String ref);
 
-	List<Stock> loadAllShares();
-	
-	Stock loadShareBy(String symbol, String isin);
-
-	Stock loadShareByIsin(String isin);
-	
-	Stock loadShareByIsinOrSymbol(String ref);
-
-	public void saveOrUpdateShareTrendInfo(Set<TrendSupplementedStock> listTrends);
-
+	public void saveOrUpdateStockTrendInfo(Set<TrendSupplementedStock> listTrends);
 	public TrendSupplementedStock loadTrendForStock(Stock stock);
 
-	void saveOrUpdateShare(Stock stock);
+	public void saveOrUpdateStock(Stock stock);
+	public void saveOrUpdateStocks(Set<Stock> listStocks);
+	public void saveOrUpdateStocks(List<Validatable> shares);
 
-	public void saveOrUpdateShare(Set<Stock> listStocks);
-	public void saveOrUpdateShare(List<Validatable> shares);
-
-	public Collection<Stock> loadAllUserPortoflioShares();
-
-	List<PortfolioShare> loadMonitoredPortfolioShares();
+	
+	public Collection<Stock> loadAllUserPortoflioStocks();
+	public Collection<Stock> loadAllPortoflioStocks();
+	public List<Stock> loadMonitoredStocks();
+	public List<Stock> loadAllStocks();
+	
+	public List<PortfolioShare> loadMonitoredPortfolioShares();
 	
 	public List<String> sectorHintList();
+
+	List<Stock> loadSharesLike(String like, int maxResults);
 	
 }

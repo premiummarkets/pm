@@ -114,7 +114,7 @@ public class DonePanel extends JPanel {
         titlePanel.setBackground(Color.gray);
         
         textLabel.setBackground(Color.gray);
-        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 20));
+        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
         textLabel.setText("Installation completed.");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);

@@ -44,9 +44,10 @@ public enum MarketQuotationProviders {
 	DEFAULT (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
 	YAHOO (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
 	GOOGLE (ProvidersTypes.GOOGLE,new GoogleSymbolNameResolver(),"google"),
-	INVESTIR (ProvidersTypes.INVESTIR,new InvestirSymbolNameResolver(),"investir");
+	INVESTIR (ProvidersTypes.INVESTIR,new InvestirSymbolNameResolver(),"investir"),
+	INFLATION (ProvidersTypes.INFLATION,new InvestirSymbolNameResolver(),"inflation");
 	
-	/** The LOGGER. */
+	
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);
 	
 	private SymbolNameResolver symbolNameResolver;

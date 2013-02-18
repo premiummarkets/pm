@@ -299,14 +299,17 @@ public abstract class HttpSource {
 			} else {
 
 				InputStream in;
-				if (httpget.getResponseHeader("Content-Encoding") != null && 
-						"gzip".equals(httpget.getResponseHeader("Content-Encoding").getValue())) {
+				if (
+						httpget.getResponseHeader("Content-Encoding") != null && "gzip".contains(httpget.getResponseHeader("Content-Encoding").getValue()) ||
+						httpget.getResponseHeader("Content-Type") != null && "application/x-gzip".equals(httpget.getResponseHeader("Content-Type").getValue())
+						) {
 					in = new GZIPInputStream(httpget.getResponseBodyAsStream());
 				}
 
 				else {
-					if (httpget.getResponseHeader("Content-Type") != null && 
-							"application/x-zip-compressed".equals(httpget.getResponseHeader("Content-Type").getValue())) {
+					if (
+							httpget.getResponseHeader("Content-Type") != null && "application/x-zip-compressed".equals(httpget.getResponseHeader("Content-Type").getValue())
+							) {
 						in = new ZipInputStream(httpget.getResponseBodyAsStream());
 						((ZipInputStream) in).getNextEntry();
 					}
@@ -406,7 +409,7 @@ public abstract class HttpSource {
 	 * 
 	 * @return the market stock list url
 	 */
-	public abstract String getCategoryStockListURL(StockCategories marche, String...params);
+	public abstract String getCategoryStockListURL(StockCategories category, String...params);
 
 	/**
 	 * Gets the thread pool.

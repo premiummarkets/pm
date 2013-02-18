@@ -68,7 +68,7 @@ public abstract class ShareListMgr {
 				provider.addIndices(indices, true);
 			}
 			
-			return provider.retrieveStockListFromWeb(MarketQuotationProviders.DEFAULT, new StockList(shareDAO.loadAllShares()));
+			return provider.retrieveStockListFromWeb(MarketQuotationProviders.DEFAULT, new StockList(shareDAO.loadAllStocks()));
 			
 		} catch (java.lang.IllegalArgumentException e) {
 			LOGGER.warn(sharesList.getName()+ " is not associated with any MarketListProvider and won't be updated.", true);
@@ -108,7 +108,8 @@ public abstract class ShareListMgr {
 
 	protected abstract void foreignKeysUpdate(PortfolioShare removedShare) throws InvalidQuantityException;
 	
-	protected abstract void initConfig();
+	//XXX this should be merge with the config loader in a separate bean  + creation of a factory factory for EventConfg and TuningConfg
+	public abstract void initConfig();
 
 
 }

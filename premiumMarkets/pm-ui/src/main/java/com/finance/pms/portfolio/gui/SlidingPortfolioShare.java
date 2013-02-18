@@ -41,25 +41,28 @@ import com.finance.pms.alerts.Alert;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.InvalidQuantityException;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.Transaction;
 
-public class SlidingPortfolioShare extends PortfolioShare { 
+public class SlidingPortfolioShare extends PortfolioShare implements InfoObject { 
 	
 	private static final long serialVersionUID = 7701345524631769605L;
 	private static MyLogger LOGGER = MyLogger.getLogger(SlidingPortfolioShare.class);
 	
 	private PortfolioShare underLyingPortfolioShare;
 	
+	Boolean displayOnChart;
+	Color color;
+	
 	Boolean slidingEnd;
 	Boolean slidingStart;
 	
 	Date start;
 	Date end;
-	
-	Color color;
+
 	
 	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color) {
 		super(portfolioShare);
@@ -69,6 +72,7 @@ public class SlidingPortfolioShare extends PortfolioShare {
 		this.slidingEnd = slidingEnd;
 		this.slidingStart = slidingStart;
 		this.color = color;
+		displayOnChart = true;
 	}
 
 	public BigDecimal getCashin() {
@@ -220,9 +224,23 @@ public class SlidingPortfolioShare extends PortfolioShare {
 	public void addWeigthedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
 		underLyingPortfolioShare.addWeigthedZeroProfitAlertGuardSetter(price, message);
 		super.addWeigthedZeroProfitAlertGuard(price, message);
+	}
+
+	@Override
+	public String info() {
+		return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+	}
+
+	public Boolean getDisplayOnChart() {
+		return displayOnChart;
+	}
+
+	public void setDisplayOnChart(Boolean displayOnChart) {
+		this.displayOnChart = displayOnChart;
+	}
+
+	public String getFreindlyName() {
+		return underLyingPortfolioShare.getStock().getFriendlyName();
 	}	
-	
-	
-	
 	
 }

@@ -33,11 +33,6 @@ package com.finance.pms.datasources.web;
 
 
 public class HttpSourceInflation extends HttpSourceQuotation {
-
-//	/** The LOGGER. */
-//	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceInflation.class);
-//	private DateFormat dateFormat = new SimpleDateFormat("yyyy");
-
 	
 	public HttpSourceInflation(String pathToprops, Providers beanFactory) {
 		super(pathToprops, beanFactory);
@@ -45,46 +40,9 @@ public class HttpSourceInflation extends HttpSourceQuotation {
 
 
 	@Override
-	public MyUrl getStockQuotationURL(String ticker, String startYear,
-			String startMonth, String startDay, String endYear,
-			String endMonth, String endDay) {
+	public MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay) {
 		
-		//return new MyUrl("http://inflationdata.com/inflation/Consumer_Price_Index/HistoricalCPI.aspx?rsCPI_currentPage=");
 		return new MyUrl("http://inflationdata.com/Inflation/Consumer_Price_Index/HistoricalCPI.aspx");
-	}
-
-	
-//	@Override
-//	public MyUrl getStockQuotationURL(String ticker, String startYear,
-//			String startMonth, String startDay, String endYear,
-//			String endMonth, String endDay) {
-//
-//		String[] dates ={"1913-1914","1915-1926","1927-1938","1939-1950","1951-1960","1961-1974","1975-1986","1987-1998","1999-2010"};
-//		int PageNum=0;
-//		Date startY;
-//		Date endY;
-//
-//		try {
-//			startY = dateFormat.parse(startYear);
-//			endY  = dateFormat.parse(endYear);
-//
-//			for (String date : dates) {
-//				String[] band = date.split("-");
-//
-//				Date first = dateFormat.parse(band[0]);
-//				Date last =  dateFormat.parse(band[1]);
-//				if (startY.compareTo(first) >=0 && startY.compareTo(last) <=0) {
-//					if (endY.compareTo(last) > 0) throw new InvalidParameterException();
-//					break;
-//				}
-//				PageNum++;
-//			}
-//
-//		} catch (ParseException e) {
-//			LOGGER.fatal("Shouldn't be here",e);
-//		}
-//		return new MyUrl("http://inflationdata.com/inflation/Consumer_Price_Index/HistoricalCPI.aspx?rsCPI_currentPage="+ (dates.length - PageNum));
-//	}
-	
+	}	
 
 }

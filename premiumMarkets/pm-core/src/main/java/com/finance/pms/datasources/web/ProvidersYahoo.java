@@ -55,7 +55,6 @@ import com.finance.pms.datasources.shares.YahooMarketExtentions;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ProvidersYahoo.
  * 
@@ -118,7 +117,6 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 			throw e;
 		}
 
-		//return extractLastDateFrom(queries);
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
@@ -164,10 +162,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 				stockList.get(stockList.indexOf(s)).setName(s.getName());
 			}
 			try {
-//				DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-				DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
-//			} catch (SQLException e) {
-//				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :" + e.getMessage() + " cause : "+ e.getCause());
+				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -187,8 +182,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 
 	@Override
 	public void addIndices(Set<Indice> indices, Boolean replace) {
-		// TODO Auto-generated method stub
-		
+		//Nothing
 	}
 
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException {
@@ -204,7 +198,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		todayCal.set(Calendar.MILLISECOND, 0);
 		today = todayCal.getTime();
 		
-		if (start.after(end) || ( start.equals(end) && end.equals(today) ) ) throw new InvalidAlgorithmParameterException();
+		if (start.after(end) || ( start.compareTo(end) == 0 && end.compareTo(today) == 0 ) ) throw new InvalidAlgorithmParameterException();
 		
 
 		Calendar gcStart = Calendar.getInstance();

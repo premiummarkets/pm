@@ -57,15 +57,13 @@ import org.apache.commons.lang.NotImplementedException;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.StockToDB;
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.portfolio.SharesList;
 
 
 // TODO: Auto-generated Javadoc
@@ -120,7 +118,7 @@ public class EventsResources {
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
 			result = prime * result + ((eventKey.getDate() == null) ? 0 : eventKey.getDate().hashCode());
-			result = prime * result + ((eventKey.getEventDefExtra() == null) ? 0 : eventKey.getEventDefExtra().hashCode());
+			result = prime * result + ((eventKey.getEventDefExtra().toString() == null) ? 0 : eventKey.getEventDefExtra().toString().hashCode());
 			result = prime * result + ((eventValue.getEventDef() == null) ? 0 : eventValue.getEventDef().hashCode());
 			return result;
 		}
@@ -140,8 +138,8 @@ public class EventsResources {
 				if (other.eventKey != null) return false;
 			} else if (
 					other.eventKey == null || 
-					!eventKey.getDate().equals(other.eventKey.getDate()) || 
-					!eventKey.getEventDefExtra().equals(other.eventKey.getEventDefExtra())) {
+					eventKey.getDate().compareTo(other.eventKey.getDate()) != 0 || 
+					!eventKey.getEventDefExtra().toString().equals(other.eventKey.getEventDefExtra().toString())) {
 				return false;
 			}
 			
@@ -169,7 +167,6 @@ public class EventsResources {
 	
 	private class EventCacheEntryComparator implements Comparator<EventCacheEntry> {
 
-		@SuppressWarnings("unchecked")
 		public int compare(EventCacheEntry o1, EventCacheEntry o2) {
 			EventCacheEntry se1 = o1;
 			EventCacheEntry se2 = o2;
@@ -183,7 +180,7 @@ public class EventsResources {
 				if (eventdef != 0) {
 					retour = eventdef;
 				} else {
-					int eventExtraType = (se1.getEventKey().getEventDefExtra()).compareTo(se2.getEventKey().getEventDefExtra());
+					int eventExtraType = (se1.getEventKey().getEventDefExtra().toString()).compareTo(se2.getEventKey().getEventDefExtra().toString());
 					retour = eventExtraType;
 				}
 			}
@@ -412,7 +409,7 @@ public class EventsResources {
 					try {
 						retVal = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions);
 					} catch (Exception e) {
-						LOGGER.error("Stock "+stock+" event retreival pb : "+e,e);
+						LOGGER.error("Stock "+stock+" event retreival pb : "+e, e);
 					}
 				}
 			}
@@ -500,7 +497,7 @@ public class EventsResources {
 				SortedSet<EventCacheEntry> eventSubSet = eventsForStockAndName.subSet(startInfEvent, endSupEvent);
 				subSymbolEvents = buildSymbolEventsFromCacheEntries(stock, eventSubSet, eventDefinitions);
 			} catch (IllegalArgumentException e) {
-				LOGGER.error("No events in cache for "+stock+" and "+eventListName+" from "+startDate+" to "+endDate+". Available first, last events : "+eventsForStockAndName.first()+" to "+eventsForStockAndName.last(), e);
+				LOGGER.warn("No events in cache for "+stock+" and "+eventListName+" from "+startDate+" to "+endDate+". Available first, last events : "+eventsForStockAndName.first()+" to "+eventsForStockAndName.last(), e);
 			} 
 		} 
 		return subSymbolEvents;
@@ -760,7 +757,6 @@ public class EventsResources {
 	 */
 	public void loadEventsByCriteriaAndDate(Date date, Integer inf, Integer sup, PonderationRule pr, Set<EventDefinition> indicators, String eventListNames) throws InvalidAlgorithmParameterException {
 		
-		//List<SymbolEvents> all = SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), true, null, eventListNames), pr);
 		List<SymbolEvents> all = SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), true, indicators, eventListNames), pr);
 		int indexSup = 0;
 		int indexInf = all.size() - 1;
@@ -806,33 +802,10 @@ public class EventsResources {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public void filterNonMonitoredEvents() {
+	public void filterOutNonMonitoredEvents() {
 		
-		List<SymbolEvents> dl = new ArrayList<SymbolEvents>(); 
-		List<SymbolEvents> fl = new ArrayList<SymbolEvents>();
-		List<SymbolEvents> ml = new ArrayList<SymbolEvents>();
-		List<SymbolEvents> sl = new ArrayList<SymbolEvents>();
-		
-		for (Object o: this.getDebList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (se.isMonitored()) dl.add(se);
-		}
-		this.setDebList(dl);
-		for (Object o: this.getFinList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (se.isMonitored()) fl.add(se);
-		}
-		this.setFinList(fl);
-		for (Object o: this.getMidleList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (se.isMonitored()) ml.add(se);
-		}
-		this.setMidleList(ml);
-		for (Object o: this.getSortedList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (se.isMonitored()) sl.add(se);
-		}
-		this.setSortedList(sl);
+		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
+		dispatch(portfolioStocks);
 		
 	}
 	
@@ -841,71 +814,34 @@ public class EventsResources {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public void filterCurrentMarketEvents() {
+	public void filterOutCurrentMarketEvents(Object... shareLists) {
 		
-		Providers provider = Providers.getInstance(MainPMScmd.getPrefs().get("quotes.listprovider", SharesListId.YAHOOINDICES.getSharesListCmdParam()));
-		SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
-		Collection<Stock> currentMarketStock = sharesListForThisListProvider.getListShares().keySet();
+		Collection<Stock> selectedSharelists = new ArrayList<Stock>();
+		for (Object shareList : shareLists) {
+			Set<Stock> stocksList = DataSource.getInstance().loadStocksList(((ShareListInfo) shareList).info());
+			selectedSharelists.addAll(stocksList);
+		}
 		
-		filterOtherThen(currentMarketStock);
+		dispatch(selectedSharelists);
 		
 	}
 	
-	public void filterNonPortofolioEvents() {
+	public void filterOutNonPortofolioEvents() {
 		
-		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadAllUserPortoflioShares();
+		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadAllPortoflioStocks();
+		dispatch(portfolioStocks);
 		
-		filterOtherThen(portfolioStocks);
-		
-	}
-
-	@SuppressWarnings("unused")
-	private void filterCollection(Collection<Stock> stocksToFilterOut) {
-		
-		List<SymbolEvents> dl = new ArrayList<SymbolEvents>(); 
-		List<SymbolEvents> fl = new ArrayList<SymbolEvents>();
-		List<SymbolEvents> ml = new ArrayList<SymbolEvents>();
-		List<SymbolEvents> sl = new ArrayList<SymbolEvents>();
-		
-		for (Object o: this.getDebList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (!stocksToFilterOut.contains(se.getStock())) dl.add(se);
-		}
-		this.setDebList(dl);
-		for (Object o: this.getFinList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (!stocksToFilterOut.contains(se.getStock())) fl.add(se);
-		}
-		this.setFinList(fl);
-		for (Object o: this.getMidleList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (!stocksToFilterOut.contains(se.getStock())) ml.add(se);
-		}
-		this.setMidleList(ml);
-		for (Object o: this.getSortedList()) {
-			SymbolEvents se = (SymbolEvents) o;
-			if (!stocksToFilterOut.contains(se.getStock())) sl.add(se);
-		}
-		this.setSortedList(sl);
 	}
 	
-	public void filterOtherEvents() {
+	public void filterOutNone() {
 		
-		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadAllUserPortoflioShares();
-		
-		Providers provider = Providers.getInstance(MainPMScmd.getPrefs().get("quotes.listprovider", SharesListId.YAHOOINDICES.getSharesListCmdParam()));
-		SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
-		Collection<Stock> currentMarketStock = sharesListForThisListProvider.getListShares().keySet();
-		
-		Collection<Stock> otherEventsComplement = new ArrayList<Stock>();
-		otherEventsComplement.addAll(portfolioStocks);
-		otherEventsComplement.addAll(currentMarketStock);
-		
-		filterOtherThen(otherEventsComplement);
+		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadAllStocks();
+		dispatch(portfolioStocks);
 		
 	}
+	
 
-	private void filterOtherThen(Collection<Stock> stocksToKeep) {
+	private void dispatch(Collection<Stock> stocksToKeep) {
 		
 		List<SymbolEvents> dl = new ArrayList<SymbolEvents>(); 
 		List<SymbolEvents> fl = new ArrayList<SymbolEvents>();

@@ -42,6 +42,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.finance.pms.MainPMScmd;
+import com.finance.pms.portfolio.InfoObject;
+
 
 // TODO: Auto-generated Javadoc
 /**
@@ -49,63 +52,63 @@ import java.util.TreeSet;
  * 
  * @author Guillaume Thoreton
  */
-public enum EventDefinition implements Serializable {
+public enum EventDefinition implements Serializable, InfoObject {
 	
-	ZERO(0,"Zero"),
+	ZERO(0,"Zero", false, null),
 
-	MACDBUY(2, "MAS MACD Crossover (Buy)"),
-	MACDSELL (3,"MAS MACD Crossover (Sell)"),
-	STOCHASTICBUY(4,"MAS Stochastic %D Crossover (Buy)"),
-	STOCHASTICSELL (5,"MAS Stochastic %D Crossover (Sell)"),
-	SLOPEMACDBUY (6,"MAS Slope of MACD Signal Line Cross Above 0 (Buy)"),
-	SLOPEMACDSELL (7,"MAS Slope of MACD Signal Line Cross Above 0 (Sell)"),
-	SLOPESLOPEMACDBUY (8,"MAS Slope of Slope of MACD Signal Line Cross Above 0 (Buy)"),
-	SLOPESLOPEMACDSELL (9,"MAS Slope of Slope of MACD Signal Line Cross Below 0 (Sell)"),
-	VOLUMEINCREASE (10,"MAS Volume > Yesterday's Volume EMA (5) * 3.5"),
-	MACDCROSSOVERSTOCHBUY (11,"MAS MACD Crossover and Stochastic %D Crossover (Buy)"),
-	MACDCROSSOVERSTOCHSELL (12,"MAS MACD Crossover and Stochastic %D Crossover (Sell)"),
-	SLOPEMACDDOWNTREND (13,"MAS Slope of MACD Signal Line Downtrend"),
-	SLOPEMACDUPTREND (14,"MAS Slope of MACD Signal Line Uptrend"),
-	SLOPEMACDSIDEWAYSPOS (15,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0"),
-	SLOPEMACDSIDEWAYSNEG (16,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0"),
-	CCIABOVE (17,"MAS CCI Crossed above x"),
-	CCIBELOW (18,"MAS CCI Crossed below -x"),
-	UNKNOWN99 (99,"Miscellaneous"),
+	MACDBUY(2, "MAS MACD Crossover (Buy)", false, null),
+	MACDSELL (3,"MAS MACD Crossover (Sell)", false, null),
+	STOCHASTICBUY(4,"MAS Stochastic %D Crossover (Buy)", false, null),
+	STOCHASTICSELL (5,"MAS Stochastic %D Crossover (Sell)", false, null),
+	SLOPEMACDBUY (6,"MAS Slope of MACD Signal Line Cross Above 0 (Buy)", false, null),
+	SLOPEMACDSELL (7,"MAS Slope of MACD Signal Line Cross Above 0 (Sell)", false, null),
+	SLOPESLOPEMACDBUY (8,"MAS Slope of Slope of MACD Signal Line Cross Above 0 (Buy)", false, null),
+	SLOPESLOPEMACDSELL (9,"MAS Slope of Slope of MACD Signal Line Cross Below 0 (Sell)", false, null),
+	VOLUMEINCREASE (10,"MAS Volume > Yesterday's Volume EMA (5) * 3.5", false, null),
+	MACDCROSSOVERSTOCHBUY (11,"MAS MACD Crossover and Stochastic %D Crossover (Buy)", false, null),
+	MACDCROSSOVERSTOCHSELL (12,"MAS MACD Crossover and Stochastic %D Crossover (Sell)", false, null),
+	SLOPEMACDDOWNTREND (13,"MAS Slope of MACD Signal Line Downtrend", false, null),
+	SLOPEMACDUPTREND (14,"MAS Slope of MACD Signal Line Uptrend", false, null),
+	SLOPEMACDSIDEWAYSPOS (15,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0", false, null),
+	SLOPEMACDSIDEWAYSNEG (16,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0", false, null),
+	CCIABOVE (17,"MAS CCI Crossed above x", false, null),
+	CCIBELOW (18,"MAS CCI Crossed below -x", false, null),
+	UNKNOWN99 (99,"Miscellaneous", false, null),
 	
-	PMSMAREVERSAL (101,"PM SMA Reversal"),//
-	PMMACDZEROCROSS (102,"PM MACD Cross Zero"), //
-	PMMACDSIGNALCROSS (103,"PM MACD Cross Signal"),//
-	PMAROONTREND (104,"PM Aroon Divergence"), //
-	PMZLAGMACDZCROSS(155,"PM Zero Lag MACD Cross Signal"),
+	PMSMAREVERSAL (101,"SMA Reversal", false, new  EventDefDescriptor("Close",null,null,"Sma",null,null, "Sma is down and Close < Sma", "Sma is up and Close > Sma")),//
+	PMMACDZEROCROSS (102,"MACD Cross Zero", false, new  EventDefDescriptor("Macd",null,null,"Signal line","Zero line",null,"Macd < Signal and Macd crosses below 0","Macd > Signal and Macd crosses above 0")), //
+	PMMACDSIGNALCROSS (103,"MACD Signal Cross", false, new  EventDefDescriptor("Macd",null,null,"Signal line",null,null,"Macd > 0  and Macd crosses below Signal","Macd < 0  and Macd crosses above Signal")),//
+	PMAROONTREND (104,"Aroon Divergence", false, new  EventDefDescriptor(null,"Down","Up","Middle line","Lower threshold","Upper threshold","Aroon down crosses above Aroon up and Aroon down > Upper Threshold and Aroon up < Lower Threshold","Aroon up crosses above Aroon down and Aroon up > Upper Threshold and Aroon down < Lower Threshold")), //
+	PMZLAGMACDZCROSS(155,"Zero Lag MACD Signal Cross", false,  null),
 	
-	PMRSITHRESHOLD (110,"PM RSI Threshold Cross"),//
-	PMMFITHRESHOLD (111,"PM MFI Threshold Cross"),//
-	PMSSTOCHTHRESHOLD (112,"PM Stochastic Threshold Cross"),//
-	PMCHAIKINOSCTHRESHOLD (113,"PM Chaikin Oscillator Threshold"),//
+	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  new  EventDefDescriptor("Rsi",null,null,null,"Lower threshold","Upper threshold","Rsi crosses above Upper threshold","Rsi crosses below Lower threshold")),//
+	PMMFITHRESHOLD (111,"MFI Threshold Cross", false, new  EventDefDescriptor("Mfi",null,null,null,"Lower threshold","Upper threshold","Mfi crosses above Upper threshold","Mfi crosses below Lower threshold")),//
+	PMSSTOCHTHRESHOLD (112,"Stochastic Threshold Cross", false, new  EventDefDescriptor("Slow K",null,null,"Slow D","Lower threshold","Upper threshold","Slow D crosses above Upper threshold","Slow D crosses below Lower threshold")),//
+	PMCHAIKINOSCTHRESHOLD (113,"Chaikin Oscillator Threshold", false, new  EventDefDescriptor("Oscillator",null,null,"Zero line",null,null,"Chaikin crosses below 0","Chaikin crosses above 0")),//
 
-	PMRSIDIVERGENCE (120,"PM RSI Divergence"), //
-	PMMFIDIVERGENCE (121,"PM MFI Divergence"), //
-	PMSSTOCHDIVERGENCE (122,"PM Stochastic Divergence"), // 
-	PMCHAIKINOSCDIVERGENCE (123,"PM Chaikin Oscillator Divergence"), //
+	PMRSIDIVERGENCE (120,"RSI Divergence", false, new  EventDefDescriptor("Rsi",null,null,null,"Lower threshold","Upper threshold","Price higher high and Rsi lower high","Price lower low and Rsi higher low")), //
+	PMMFIDIVERGENCE (121,"MFI Divergence", false, new  EventDefDescriptor("Mfi",null,null,null,"Lower threshold","Upper threshold","Price higher high and Mfi lower high","Price lower low and Mfi higher low")), //
+	PMSSTOCHDIVERGENCE (122,"Stochastic Divergence", false, new  EventDefDescriptor("Slow K",null,null,"Slow D","Lower threshold","Upper threshold","Price higher high and Stochastic lower high","Price lower low and Stochastic higher low")), // 
+	PMCHAIKINOSCDIVERGENCE (123,"Chaikin Oscillator Divergence", false, new  EventDefDescriptor("Oscillator",null,null,null,null,null,"Price higher high and Chaikin lower high","Price lower low and Chaikin higher low")), //
 	
-	PMOBVDIVERGENCE (151,"PM OBV Divergence"),
-	PMACCDISTDIVERGENCE (152,"PM Acc Dist Divergence"),
-	STDDEV (154,"PM Standard Deviation"),
+	PMOBVDIVERGENCE (151,"OBV Divergence", false, null),
+	PMACCDISTDIVERGENCE (152,"Acc Dist Divergence", false, null),
+	STDDEV (154,"Standard Deviation", false, null),
 	
 	//Attention!! Event of type threshold crossing or Forced Sell must be cleaned (or invalidated) after each signal check?? ToTest.
-	ALERTTHRESHOLD (201,"Alert on Threshold cross"),//Not discardable??
+	ALERTTHRESHOLD (201,"Alert on Threshold cross", false, null),//Not discardable??
 	
-	SCREENER (302,"Screener Alert"), //Not discardable
-	WEATHER (401,"Temperature"),  //Not discardable
+	SCREENER (302,"Screener Alert", false, null), //Not discardable
+	WEATHER (401,"Temperature", false, new EventDefDescriptor(null,null,null,null,null,null,"Bearish Temperature reversal","Bullish Temperature reversal")),  //Not discardable
 	
-	CRASHGUARD (502,"Crash"),
-	NEURAL (503,"Neural"),
-	VARIATION (504,"Variation"),
-	VARIANCE (505,"Variance"),
-	HOUSETREND(506,"HouseTrend"),
-	SECTOR(507,"SectorRanksTrend"),
+	CRASHGUARD (502,"Crash", false, null),
+	NEURAL (503,"Neural", true, new  EventDefDescriptor("Neural output", null, null, null, null, null,"Neural signal is down","Neural signal is up")),
+	VARIATION (504,"Variation", false, null),
+	VARIANCE (505,"Variance", false, null),
+	HOUSETREND(506,"HouseTrend", false, null),
+	SECTOR(507,"Sector Ranks Trend", true, new  EventDefDescriptor("Sector output", null, null, null, null, null,"Neural signal is down","Neural signal is up")),
 	
-	INFINITE (999,"Infinite");
+	INFINITE (999,"Add All", false, null);
 
 	private static final int FIRSTPMTECHEVENT = 100;
 	private static final int LASTPMTECHEVENT = 150;
@@ -118,13 +121,11 @@ public enum EventDefinition implements Serializable {
 		}
 	}
 
-	//private static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
-	
-	/** The event def. */
+
 	private final String eventDef;
-	
-	/** The event def id. */
 	private final Integer eventDefId;
+	private Boolean isContinous;
+	private EventDefDescriptor eventDefDescriptor;
 	
 	/**
 	 * Instantiates a new event definition.
@@ -134,9 +135,11 @@ public enum EventDefinition implements Serializable {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private EventDefinition(Integer order,String value) {
+	private EventDefinition(Integer order,String value, Boolean isContinous, EventDefDescriptor eventDefDescriptor) {
 		this.eventDef = value;
 		this.eventDefId = order;
+		this.isContinous = isContinous;
+		this.eventDefDescriptor = eventDefDescriptor;
 	}
 	
 	/**
@@ -264,6 +267,10 @@ public enum EventDefinition implements Serializable {
 		return subEventList(FIRSTPMTECHEVENT, LASTPMTECHEVENT);
 	}
 	
+	public static Set<EventDefinition> getPMEventDefinitionsSet() {
+		return new HashSet<EventDefinition>(subEventList(FIRSTPMTECHEVENT, LASTPMTECHEVENT));
+	}
+	
 	public static List<EventDefinition> getEventDefinitionsListFor(EventDefinition eventDef) {
 		return subEventList(eventDef.eventDefId-1, eventDef.eventDefId+1);
 	}
@@ -296,6 +303,45 @@ public enum EventDefinition implements Serializable {
 
 	public static String getEventDefCollectionAsString(Set<EventDefinition> definitions) {
 		return EventDefinition.getEventDefArrayAsString(definitions.toArray(new EventDefinition[]{}));
+	}
+
+	@Override
+	public String info() {
+		return getEventDef();
+	}
+	
+	public static Set<EventDefinition> loadPassPrefsEventDefinitions() {
+		
+		List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));
+		
+		SortedSet<EventDefinition> eventDefinitions = new  TreeSet<EventDefinition>(new Comparator<EventDefinition>() {
+			public int compare(EventDefinition o1, EventDefinition o2) {
+				return o1.getEventDefId().compareTo(o2.getEventDefId());
+			}
+		});
+		
+		for (String eventDefinitionsName : indicators) {
+			eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
+		}
+
+		Integer maxPass = Integer.valueOf(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+		if (maxPass > 1) {
+			List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
+			for (String eventDefinitionsName : indepIndicators) {
+				eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
+			}
+		}
+		
+		
+		return eventDefinitions;
+	}
+
+	public Boolean getIsContinous() {
+		return isContinous;
+	}
+
+	public EventDefDescriptor getEventDefDescriptor() {
+		return eventDefDescriptor;
 	}
 	
 }

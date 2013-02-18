@@ -87,12 +87,16 @@ public class StripedCloseInitPriceRelative extends StripedCloseFunction {
 
 		for (int i = startDateQuotationIndex; i <= endDateQuotationIndex; i++) {
 			
-			BigDecimal value = (buyPrice.compareTo(BigDecimal.ZERO) == 0)? 
-					BigDecimal.ZERO : (stockQuotations.get(i).getClose().divide(buyPrice,10,BigDecimal.ROUND_DOWN)).subtract(BigDecimal.ONE);
+			BigDecimal value = (buyPrice.compareTo(BigDecimal.ZERO) == 0)? BigDecimal.ZERO : (stockQuotations.get(i).getClose().divide(buyPrice,10,BigDecimal.ROUND_DOWN)).subtract(BigDecimal.ONE);
 			retA.add(value);
 		}
 
 		return  retA.toArray(new BigDecimal[0]);
+	}
+
+	@Override
+	public String lineToolTip() {
+		return "change to buy price";
 	}
 
 

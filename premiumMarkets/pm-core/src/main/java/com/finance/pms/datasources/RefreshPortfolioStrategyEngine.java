@@ -30,20 +30,27 @@
  */
 package com.finance.pms.datasources;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Date;
+import java.util.Map;
+import java.util.SortedMap;
 
-import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.calculation.IncompleteDataSetException;
+import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
+
 
 
 public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
+	
+	protected Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException {
+		 actionThread.runIndicatorsCalculationPassTwo(true);
+		 return null;
+	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void updateQuotations(QuotationUpdate quotationUpdate, Object... viewStateParams) {
-		@SuppressWarnings("rawtypes")
-		List stockList = Arrays.asList(viewStateParams);
-		quotationUpdate.getQuotesFor(stockList);
+	protected Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException {
+		actionThread.runIndicatorsCalculationPassOne(true , "auto");
+		return null;
 	}
 
 }

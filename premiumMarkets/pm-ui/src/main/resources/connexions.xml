@@ -11,6 +11,8 @@
 			<value>file:${installdir}/db.properties</value>
 		</property>
 	</bean>
+	
+	<context:component-scan base-package="com.finance.pms"/>
 
 	<bean id="eventqueue" class="com.finance.pms.queue.InnerQueue">
 	</bean>
@@ -59,7 +61,7 @@
 				<value>com.finance.pms.datasources.currency.CurrencyRate</value>
 				<value>com.finance.pms.weather.WeatherElement</value>
 				<value>com.finance.pms.datasources.files.TransactionElement</value>
-				<!-- <value>com.finance.pms.neural.TunedConf</value> -->
+				<value>com.finance.pms.events.scoring.TunedConf</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">

@@ -125,25 +125,7 @@
 		</dependency>
   </dependencies>
    <build>
-	<resources>
-		<resource>
-			<directory>src/main/resources</directory>
-			<filtering>false</filtering>
-			<excludes>
-				<exclude>db.properties</exclude>
-				<exclude>log4j.properties</exclude>
-				<exclude>**/*pmsjava*.*</exclude>
-				<exclude>**/*pmserror*.*</exclude>
-				<exclude>pmsbuild.properties</exclude>
-			</excludes>
-		</resource>
-		<resource>
-			<directory>distrib</directory>
-			<filtering>false</filtering>
-			<includes>
-				<include>log4j.properties</include>
-			</includes>
-		</resource>
+   	<resources>
 		<resource>
 			<directory>src/main/resources</directory>
 			<filtering>true</filtering>
@@ -160,21 +142,6 @@
 			<configuration>
 				<source>1.6</source>
 				<target>1.6</target>
-			</configuration>
-		</plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-jar-plugin</artifactId>
-			<version>2.4</version>
-			<configuration>
-				<finalName>pm</finalName>
-				<archive>
-					<manifest>
-						<mainClass>com.finance.pms.MainGui</mainClass>
-						<addClasspath>true</addClasspath>
-						<classpathPrefix>lib/</classpathPrefix>
-					</manifest>
-				</archive>
 			</configuration>
 		</plugin>
 		<plugin>
@@ -214,7 +181,42 @@
 					 <activeByDefault>true</activeByDefault>
 			</activation>
 			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>false</filtering>
+						<excludes>
+							<exclude>db.properties</exclude>
+							<exclude>log4j.properties</exclude>
+							<exclude>**/*pmsjava*.*</exclude>
+							<exclude>**/*pmserror*.*</exclude>
+							<exclude>pmsbuild.properties</exclude>
+						</excludes>
+					</resource>
+					<resource>
+						<directory>distrib</directory>
+						<filtering>false</filtering>
+						<includes>
+							<include>log4j.properties</include>
+						</includes>
+					</resource>
+				</resources>
 				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.4</version>
+						<configuration>
+							<finalName>pm</finalName>
+							<archive>
+								<manifest>
+									<mainClass>com.finance.pms.MainGui</mainClass>
+									<addClasspath>true</addClasspath>
+									<classpathPrefix>lib/</classpathPrefix>
+								</manifest>
+							</archive>
+						</configuration>
+					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<executions>
@@ -246,15 +248,76 @@
 				</property>
 			</activation>
 			<dependencies>
-			  	<dependency>
+				<dependency>
 					<groupId>com.finance.pm</groupId>
 					<artifactId>pm-forecast</artifactId>
 					<type>zip</type>
 					<version>0.0.1-SNAPSHOT</version>
+					<scope>runtime</scope>
+				</dependency>
+				<dependency>
+					<groupId>com.finance.pm</groupId>
+					<artifactId>pm-forecast</artifactId>
+					<type>jar</type>
+					<version>0.0.1-SNAPSHOT</version>
+					<scope>provided</scope>
 				</dependency>
 			</dependencies>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>unpack-forecast-dependencies</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>unpack-dependencies</goal>
+								</goals>
+								<configuration>
+									<includeArtifactIds>pm-forecast</includeArtifactIds>
+									<includeTypes>jar</includeTypes>
+									<includes>**/*.*</includes>
+									<outputDirectory>${project.build.directory}/classes</outputDirectory>
+									<overWriteIfNewer>true</overWriteIfNewer>
+								</configuration>
+							</execution>
+							<execution>
+								<id>resolve-sources</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>sources</goal>
+								</goals>
+								<configuration>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<execution>
+								<id>build-jar</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<finalName>pm</finalName>
+									<archive>
+										<manifest>
+											<mainClass>com.finance.pms.MainGui</mainClass>
+											<addClasspath>true</addClasspath>
+											<classpathPrefix>lib/</classpathPrefix>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<executions>

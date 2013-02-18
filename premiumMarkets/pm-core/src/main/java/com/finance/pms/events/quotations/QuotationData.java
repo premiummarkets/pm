@@ -168,7 +168,7 @@ class QuotationData implements List<QuotationUnit> {
 		Integer midle = (end - start) / 2 + start;
 		Date dMidle = this.get(midle).getDate();
 		//Stop conditions
-		if (date.equals(dMidle))
+		if (date.compareTo(dMidle) == 0)
 			return midle;
 		if (midle.equals(start)) {
 			if (date.before(this.get(start).getDate()))

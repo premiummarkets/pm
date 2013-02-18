@@ -105,7 +105,7 @@ public class BaseCheckPanel extends JPanel implements HyperlinkListener {
         if (icon != null)  iconLabel.setIcon(icon);
         
         textLabel.setBackground(Color.gray);
-        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 20));
+        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
         textLabel.setText("Missing sample data base");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);
@@ -130,7 +130,6 @@ public class BaseCheckPanel extends JPanel implements HyperlinkListener {
 		JPanel ed = new JPanel();
 		
 		ed.setLayout(new BorderLayout());
-		//JEditorPane jep = new JEditorPane();
 		jep.setEditable(false);
 		jep.setEditorKit(new HTMLEditorKit());
 		StringBuffer sb = new StringBuffer();
@@ -139,23 +138,17 @@ public class BaseCheckPanel extends JPanel implements HyperlinkListener {
 		sb.append("A more straight forward way to install Premium Markets is to follow this link : ");
 		sb.append("<a href='http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp'>http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp</a><br>");
 		sb.append("</p>");
-		//sb.append("<br><br>");
 		sb.append("<p>");
 		sb.append("However, if you want to carry on with this installation, <br>");
 		sb.append("Please download the sample data base from : ");
 		sb.append("<a href='http://sourceforge.net/project/showfiles.php?group_id=214811'>http://sourceforge.net/project/showfiles.php?group_id=214811</a><br>");
 		sb.append("Copy it in the \"lib\" folder of this unpacked archive ");
-		//sb.append("<br><br>");
 		sb.append("and run thins install again :).<br>");
 		sb.append("</p>");
-//		sb.append("<p align='right'>");
-//		sb.append("<b>Thank you!</b>");
-//		sb.append("</p>");
 		Reader r = new StringReader(sb.toString());
 		try {
 			jep.read(r, new HTMLDocument());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		ed.add(jep,BorderLayout.CENTER);
@@ -172,17 +165,12 @@ public class BaseCheckPanel extends JPanel implements HyperlinkListener {
 
     }
 
-	/* (non-Javadoc)
-	 * @see javax.swing.event.HyperlinkListener#hyperlinkUpdate(javax.swing.event.HyperlinkEvent)
-	 */
+
 	public void hyperlinkUpdate(HyperlinkEvent event) {
 	    if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 	        try {
 	          jep.setPage(event.getURL());
-	          //urlField.setText(event.getURL().toExternalForm());
 	        } catch(IOException ioe) {
-//	          warnUser("Can't follow link to " 
-//	                   + event.getURL().toExternalForm() + ": " + ioe);
 	        	ioe.printStackTrace();
 	        }
 	      }

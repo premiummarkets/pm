@@ -60,10 +60,6 @@ import com.finance.pms.alerts.AlertType;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.portfolio.PortfolioShare;
 
-
-
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class NewPortfolioDialog.
  * 
@@ -142,31 +138,29 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 			Shell parent = getParent();
 			dialogShell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
 			dialogShell.setLocation(xpos,ypos);
-
-			GridLayout dialogShellLayout = new GridLayout();
+			GridLayout dialogShellLayout = new GridLayout(2, false);
 			dialogShellLayout.verticalSpacing = 8;
-			dialogShellLayout.numColumns = 2;
-			dialogShell.layout();			
 			dialogShell.setLayout(dialogShellLayout);
-			//dialogShell.setMinimumSize(900,300);
-			dialogShell.pack();
-			dialogShell.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
-			{
-				alertSettingLabel = new Label(dialogShell, SWT.BORDER);
-				alertSettingLabel.setText("Add an alert on threshold crossing ");
-				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
-				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
-				newPortfoliolabelLData.horizontalSpan = 2;
-				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
-				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
-			}
+	
+			dialogShell.setText("Add an alert on threshold crossing");
+			dialogShell.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
+//			{
+//				alertSettingLabel = new Label(dialogShell, SWT.BORDER);
+//				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
+//				newPortfoliolabelLData.horizontalSpan = 2;
+//				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
+//				
+//				alertSettingLabel.setText("Add an alert on threshold crossing");
+//				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
+//				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
+//			}
 			{
 				alertSettingLabel = new Label(dialogShell, SWT.NONE);
 				alertSettingLabel.setText("Threshold price ");
 				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
-				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
 			}
 			{
 				sharePriceText = new Text(dialogShell, SWT.BORDER);
@@ -189,7 +183,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
-				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
 			}
 			{
 				combo = new Combo(dialogShell, SWT.READ_ONLY);
@@ -207,7 +201,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				combo.select(0);
 			}
 			{
-				alertValidationButon = new Button(dialogShell, SWT.BORDER);
+				alertValidationButon = new Button(dialogShell, SWT.PUSH);
 				GridData newPortfollioValidateButtonLData = new GridData();
 				newPortfollioValidateButtonLData.horizontalSpan = 2;
 				newPortfollioValidateButtonLData.horizontalAlignment = GridData.END;
@@ -248,7 +242,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				alertTableUp = new Table(dialogShell, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
 				alertTableUp.setFont(MainGui.DEFAULTFONT);
 				alertTableUp.setHeaderVisible(true);
-				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
+				GridData newPortfoliolabelLData = new GridData(SWT.FILL, SWT.FILL, true, true);
 				newPortfoliolabelLData.horizontalSpan = 2;
 				alertTableUp.setLayoutData(newPortfoliolabelLData);
 				TableColumn column = new TableColumn(alertTableUp, SWT.NONE);
@@ -261,7 +255,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				alertTableDown = new Table(dialogShell, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
 				alertTableDown.setFont(MainGui.DEFAULTFONT);
 				alertTableDown.setHeaderVisible(true);
-				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
+				GridData newPortfoliolabelLData = new GridData(SWT.FILL, SWT.FILL, true, true);
 				newPortfoliolabelLData.horizontalSpan = 2;
 				alertTableDown.setLayoutData(newPortfoliolabelLData);
 				TableColumn column = new TableColumn(alertTableDown, SWT.NONE);
@@ -302,6 +296,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 	 * 
 	 */
 	private void updateDownTable() {
+		
 		alertTableDown.removeAll();
 		for (Alert alert : portfolioShare.getAlertsDown()) {
 			TableItem item = new TableItem(alertTableDown, SWT.NONE);
@@ -312,9 +307,12 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 		alertTableDown.addListener(SWT.MouseDoubleClick, new Listener() {
 			
 			public void handleEvent(Event arg0) {
-				TableItem tableItem = alertTableDown.getSelection()[0];
-				portfolioShare.removeAlert((Alert)tableItem.getData());
-				tableItem.dispose();
+				TableItem[] selection = alertTableDown.getSelection();
+				if (selection != null && selection.length > 0) {
+					TableItem tableItem = selection[0];
+					portfolioShare.removeAlert((Alert)tableItem.getData());
+					tableItem.dispose();
+				}
 			}
 		});
 
@@ -327,6 +325,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 	 * 
 	 */
 	private void updateUpTable() {
+		
 		alertTableUp.removeAll();
 		for (Alert alert : portfolioShare.getAlertsUp()) {
 			TableItem item = new TableItem(alertTableUp, SWT.NONE);
@@ -338,7 +337,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 			
 			public void handleEvent(Event arg0) {
 				TableItem[] selection = alertTableUp.getSelection();
-				if (selection.length > 0) {
+				if (selection != null && selection.length > 0) {
 					TableItem tableItem = selection[0];
 					portfolioShare.removeAlert((Alert)tableItem.getData());
 					tableItem.dispose();

@@ -54,6 +54,14 @@ public class WeatherEventKey implements EventKey {
 		this.hint = hint;
 	}
 
+	public WeatherEventKey(Date date, int eventdefId, String eventType, String hint) {
+		super();
+		this.date = date;
+		this.eventdef = EventDefinition.valueOf(eventdefId);
+		this.eventType = EventType.valueOf(eventType.charAt(0));
+		this.hint = hint;
+	}
+
 	@Override
 	public Date getDate() {
 		return date;
@@ -100,7 +108,7 @@ public class WeatherEventKey implements EventKey {
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (date.compareTo(other.date) != 0)
 			return false;
 		if (eventType != other.eventType)
 			return false;
@@ -119,7 +127,6 @@ public class WeatherEventKey implements EventKey {
 		return "WeatherEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + ", hint=" + hint + "]";
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(EventKey o) {
 		
@@ -129,7 +136,7 @@ public class WeatherEventKey implements EventKey {
 			if (evtTypecompare == 0) {
 				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
 				if (evtDefCompare == 0) {
-					return getEventDefExtra().compareTo(o.getEventDefExtra());
+					return getEventDefExtra().toString().compareTo(o.getEventDefExtra().toString());
 				}
 			}
 			return evtTypecompare;

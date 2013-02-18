@@ -157,9 +157,7 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMOBVDIVERGENCE, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMOBVDIVERGENCE, EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		
-//		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
-		
+
 		int chaikinIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinLine, calculatorIndex, chaikinQuotationStartDateIdx);
 		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
 		
@@ -186,11 +184,21 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 		
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		int obvIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.obv, calculatorIndex, obvQuotationStartDateIdx);
+		
+		return new double[]
+				{
+					this.obv.getObv()[obvIndex]
+				};
+	}
 
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		return "CALCULATOR DATE; CALCULATOR QUOTE; SMA; OBV SMA DATE; OBV SMA CalcQ; OBV SMA ;OBV DATE; OBV; bearish; bullish\n";	
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chaikin Date, Chaikin, OBV SMA DATE, OBV SMA, OBV DATE, OBV, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	

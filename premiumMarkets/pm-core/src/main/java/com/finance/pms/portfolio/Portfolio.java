@@ -111,7 +111,7 @@ public class Portfolio extends AbstractSharesList {
 	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException  {
 		
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock,currentDate,true,transactionCurrency);
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate,true,transactionCurrency);
 			BigDecimal valueAtDate = quotations.getCloseForDate(currentDate);
 			
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);

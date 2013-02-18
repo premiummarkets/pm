@@ -121,7 +121,7 @@ public class StandardEventKey implements EventKey {
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (date.compareTo(other.date) != 0)
 			return false;
 		if (eventType == null) {
 			if (other.eventType != null)
@@ -137,7 +137,6 @@ public class StandardEventKey implements EventKey {
 	}
 
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(EventKey o) {
 		
@@ -147,7 +146,7 @@ public class StandardEventKey implements EventKey {
 			if (evtTypecompare == 0) {
 				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
 				if (evtDefCompare == 0) {
-					return getEventDefExtra().compareTo(o.getEventDefExtra());
+					return getEventDefExtra().toString().compareTo(o.getEventDefExtra().toString());
 				}
 			}
 			return evtTypecompare;

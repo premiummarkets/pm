@@ -31,6 +31,7 @@
 package com.finance.pms.events.calculation;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
 											Set<Observer> observers, Boolean export, Boolean keepCache, Boolean persistEvents, Boolean persistTrainingEvents, 
 											Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
+		
 		super(startDate, endDate, eventListName, calculationCurrency, observers, keepCache, eventQueue, jmsTemplate);
 		
 		this.stock = stock;
@@ -79,7 +81,8 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 	public SymbolEvents call() throws IncompleteDataSetException {
 		
-		SymbolEvents ret = new SymbolEvents(stock);
+		SymbolEvents symbolEventsForStock = new SymbolEvents(stock);
+		List<IncompleteDataSetException> dataSetExceptions = new ArrayList<IncompleteDataSetException>();
 		
 		try {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
@@ -88,7 +91,15 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
 			
 			setCalculationParameters();
-			Set<EventCompostionCalculator> eventsCalculators = initIndicatorsAndCalculators(observers.toArray(new Observer[]{}));
+			Set<EventCompostionCalculator> eventsCalculators;
+			
+			try {
+				eventsCalculators = initIndicatorsAndCalculators(observers.toArray(new Observer[]{}));
+			} catch (IncompleteDataSetException e) {
+				dataSetExceptions.add(e);
+				eventsCalculators = e.getEventCalculations();
+			}
+			
 			Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(eventsCalculators, startDate, endDate, persistEvents);
 
 			for (EventValue eventValue : eventDataAggregation.values()) {
@@ -96,27 +107,26 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 				this.sendEvent(stock, eventListName, eventValue, source);
 			}
 			
-			ret.addEventResultElement(eventDataAggregation, EventDefinition.getEventDefList());
+			symbolEventsForStock.addEventResultElement(eventDataAggregation, EventDefinition.getEventDefList());
 			
 			for (EventCompostionCalculator eventCompostionCalculator : eventsCalculators) {
-				ret.addCalculationOutput(eventCompostionCalculator.getEventDefinition(), eventCompostionCalculator.calculationOutput());
+				symbolEventsForStock.addCalculationOutput(eventCompostionCalculator.getEventDefinition(), eventCompostionCalculator.calculationOutput());
 			}
 			
 			LOGGER.debug("end analyse "+stock+" from "+startDate+" to "+endDate);
 			
-		} catch (IncompleteDataSetException e) {
-			throw e;
-			
 		} catch (Exception e) {
-			LOGGER.error("ERROR : While calcuting Events for "+stock+", analysis "+this.eventListName+" and dates "+startDate+" to "+endDate, e);
-			throw new IncompleteDataSetException(stock, e.getMessage());
+			LOGGER.error("ERROR : While calcuting Events for "+stock+", analysis "+eventListName+" and dates "+startDate+" to "+endDate, e);
+			throw new IncompleteDataSetException(stock, symbolEventsForStock, e.getMessage());
 			
 		} finally {
 			this.setChanged();
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
 		}
 		
-		return ret;
+		if (dataSetExceptions.size() > 0) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid dataset may invalidate further usage.");
+		
+		return symbolEventsForStock;
 		
 	}
 

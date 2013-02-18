@@ -87,7 +87,7 @@ public class HttpSourceGooglePastIntraDay extends HttpSourceGoogleIntraDay {
 						if (validatables != null) {
 							for (Validatable validatable : validatables) {
 								Date date = ((ValidatableQuotationUnit) validatable).getQuotationUnit().getDate();
-								if (date.before(endDate) || date.equals(endDate)) {
+								if (date.before(endDate) || date.compareTo(endDate) == 0) {
 									resultSet.add(validatable);
 								}
 							}

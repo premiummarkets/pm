@@ -139,6 +139,17 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositio
 		
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx);
+		return new double[]
+				{
+				this.macd.getMacd()[indicatorIndexFromCalculatorQuotationIndex],
+				this.macd.getSignal()[indicatorIndexFromCalculatorQuotationIndex]
+				};
+	}
 
 	@Override
 	protected int getDaysSpan() {

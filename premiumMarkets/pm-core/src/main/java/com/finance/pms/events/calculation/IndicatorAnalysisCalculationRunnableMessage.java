@@ -64,13 +64,17 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private final Date datedeb;
 	
 	private Collection<Stock> shareList;
+	
 	private Integer passNumber;
+	private String passOneRecalculationMode;
+	
 	private Boolean export;
 	private Currency calculationCurrency;
 	private Boolean persistEvents;
 	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
 	private Observer[] observers;
-	
+
+
 	private IncompleteDataSetException exception;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
@@ -85,6 +89,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.export = export;
 		//calculationCurrency is null the stock currency will be used
 		this.observers = observers;
+		
 	}
 	
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
@@ -94,11 +99,20 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.calculationCurrency = calculationCurrency;
 		this.observers = observers;
 	}
-
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents) throws InterruptedException, IncompleteDataSetException {
+	
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
+		return this.runIndicatorsCalculation(1, persistEvents, passOneRecalculationMode);
+	}
+	
+	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationPassTwo(Boolean persistEvents) throws InterruptedException, IncompleteDataSetException {
+		return this.runIndicatorsCalculation(2, persistEvents, null);
+	}
+	
+	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
 		
 		this.passNumber = passNumber;
 		this.persistEvents = persistEvents;
+		this.passOneRecalculationMode = passOneRecalculationMode;
 		
 		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
 		synchronized (syncObject) {
@@ -120,9 +134,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(
-					shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, 
-					periodType, passNumber, export, persistEvents, observers);
+			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, export, persistEvents, passOneRecalculationMode, observers);
 			
 		} catch (IncompleteDataSetException e) {
 			exception = e;

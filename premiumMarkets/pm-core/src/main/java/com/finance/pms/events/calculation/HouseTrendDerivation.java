@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.SortedMap;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
@@ -60,8 +62,6 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator {
-	
-	//private static MyLogger LOGGER = MyLogger.getLogger(HouseTrendDerivation.class);
 	
 	private SMA sma;
 	private Integer smaQuotationStartDateIdx;
@@ -160,6 +160,18 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 		
 		return line;
 	}
+	
+
+	@Override
+	protected SortedMap<Date, double[]> buildOutput() {
+		return smoothedHouseTrend;
+	}
+	
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		throw new NotImplementedException();
+	}
 
 	@Override
 	protected int getDaysSpan() {
@@ -175,5 +187,6 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 	public SortedMap<Date, double[]> calculationOutput() {
 		return smoothedHouseTrend;
 	}
+
 
 }

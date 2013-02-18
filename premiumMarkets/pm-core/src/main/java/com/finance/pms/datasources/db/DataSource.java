@@ -81,6 +81,7 @@ import com.finance.pms.events.EventState;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.mas.RestartServerException;
@@ -260,8 +261,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				MainPMScmd.getPrefs().put("analyse.mas.enable", props.getProperty("analyse.mas.enable"));
 			if (props.containsKey("quotes.sendeventfromui"))
 				MainPMScmd.getPrefs().put("quotes.sendeventfromui", props.getProperty("quotes.sendeventfromui"));
-			if (props.containsKey("quotes.yahoo.indices"))
-				MainPMScmd.getPrefs().put("quotes.yahoo.indices", props.getProperty("quotes.yahoo.indices"));
+			if (props.containsKey("quotes.listproviderindices"))
+				MainPMScmd.getPrefs().put("quotes.listproviderindices", props.getProperty("quotes.listproviderindices"));
 			
 			//Events
 			if (props.containsKey("event.stoploss"))
@@ -291,7 +292,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				MainPMScmd.getPrefs().put("event.expectedrate", props.getProperty("event.expectedrate"));
 			putInPrefs("event.nbPassMax",props);
 			
-			
 			//Neural
 			if (props.containsKey("event.buyponderationrule"))
 				MainPMScmd.getPrefs().put("event.buyponderationrule", props.getProperty("event.buyponderationrule"));
@@ -304,7 +304,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			putInPrefs("perceptron.trainingNbSlices",props);
 			putInPrefs("perceptron.maxNbOfTrainingYears",props);
 			putInPrefs("perceptron.minNbOfTrainingYears",props);
-			putInPrefs("perceptron.expectedSmothingSMAPeriod",props);
 			putInPrefs("perceptron.perceptronMinMonthEvents",props);
 			putInPrefs("perceptron.stampoutput",props);
 			putInPrefs("perceptron.exportoutput",props);
@@ -313,16 +312,25 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			} else {
 				putInPrefs("neural.nbTrainingIter",props);
 			}
+			putInPrefs("perceptron.trainingPMEventOccLowerSpan",props);
+			putInPrefs("perceptron.expectedSmothingSMAPeriod",props);
+			putInPrefs("perceptron.trainOutNbDaysAhead",props);
+			putInPrefs("perceptron.outputGeneratorInst",props);
+			putInPrefs("perceptron.expectedSmothingSMALag",props);
 			
 			//Sector
-			//sector.nbTrainingIter
 			if (System.getProperty("sector.nbTrainingIter") != null) {
 				MainPMScmd.getPrefs().put("sector.nbTrainingIter", System.getProperty("sector.nbTrainingIter"));
 			} else {
 				putInPrefs("sector.nbTrainingIter",props);
 			}
+			putInPrefs("sectors.nbStepsForward",props);
+			putInPrefs("sectors.isTrainingConstrained",props);
+			putInPrefs("sectors.refHTSmoothSMA",props);
+			putInPrefs("sectors.sectorsHTSmoothSMA",props);
+			putInPrefs("sectors.supportStocks",props);
 			
-			//tune 
+			//Tune 
 			putInPrefs("perceptron.retuneSpan", props);
 			putInPrefs("neural.retuneFreq", props);
 			putInPrefs("sector.retuneFreq", props);
@@ -348,6 +356,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			putInPrefs("indicators.variance.period",props);
 			putInPrefs("indicators.variance.spandiff",props);
 			putInPrefs("indicators.variance.minvalid",props);
+			
+			putInPrefs("indicators.returnoutput", props);
 			
 			//Screnner Trend
 			if (props.containsKey("trend.sellthreshold"))
@@ -592,7 +602,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public Set<Stock> loadStocksForCurrentShareList() {
 		String currentMarket =  MainPMScmd.getPrefs().get("quotes.listprovider", "euronext");
 		Providers provider = Providers.getInstance(currentMarket);
-		return loadStocksList(currentMarket + Indice.formatName(provider.getIndices()));
+		return loadStocksList(currentMarket + Indice.formatSet(provider.getIndices()));
 	}
 
 	public  Set<Stock> loadStocksList(String shareList) {
@@ -606,7 +616,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	}
 	
 	public Collection<Stock> loadAllStocks() {
-		return shareDAO.loadAllShares();
+		return shareDAO.loadAllStocks();
 	}
 
 	/**
@@ -965,6 +975,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		} else if (EventDefinition.SCREENER.equals(EventDefinition.valueOf(eventType))) {
 			eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD));
 			eventValue = new AlertEventValue(rs.getDate(EVENTS.DATE_FIELD), 
+					rs.getInt(EVENTS.EVENTDEFID_FIELD),
+					rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
+					rs.getString(EVENTS.MESSAGE_FIELD),
+					rs.getString(EVENTS.ANALYSE_NAME));
+		} else if (EventDefinition.WEATHER.equals(EventDefinition.valueOf(eventType))) {
+			eventKey = new WeatherEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD), rs.getString(EVENTS.EVENTDEFEXTENSION_FIELD));
+			eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
 					rs.getInt(EVENTS.EVENTDEFID_FIELD),
 					rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
 					rs.getString(EVENTS.MESSAGE_FIELD),

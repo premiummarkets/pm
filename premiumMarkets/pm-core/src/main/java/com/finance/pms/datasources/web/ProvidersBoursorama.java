@@ -404,7 +404,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		}
 		try {
 			//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-			DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+			DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 //		} catch (SQLException e) {
 //			LOGGER.warn("Warning, this ticker may already be in database. If true, only quotations will be updated :" + e.getMessage() + " cause : " + e.getCause());
 		} catch (Exception e) {
@@ -502,7 +502,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		}
 		try {
 			//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-			DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+			DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 //		} catch (SQLException e) {
 //			LOGGER.warn("@d. Warning, this ticker is already in database. Only quotations will be updated :"
 //					+ e.getMessage() + " cause : " + e.getCause());

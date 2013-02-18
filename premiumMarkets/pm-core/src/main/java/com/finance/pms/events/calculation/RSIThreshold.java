@@ -52,20 +52,14 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 	
-//	SMA sma;
-//	private Integer smaQuotationStartDateIdx;
+
 	RSI rsi;
 	private Integer rsiQuotationStartDateIdx;
 	
 	public RSIThreshold(Stock stock, SMA sma, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
-//		this.sma = sma;
 		this.rsi = rsi;
-		
-//		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-//		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
-//		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-		
+	
 		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
 		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(rsiQuotationStartDateIdx, endDate);
 		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
@@ -77,22 +71,19 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 		
 		FormulatRes res = new FormulatRes(EventDefinition.PMRSITHRESHOLD);
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
-		
-//		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
+
 		Integer rsiIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx);
 
 		
 		{
 			//BULL : RSI cross below low threshold (over sold) with an up trend (above sma)
 			boolean isRSICrossingBelow = this.rsi.getRsi()[rsiIndicatorIndex-1] > rsi.getLowerThreshold() && rsi.getLowerThreshold() > this.rsi.getRsi()[rsiIndicatorIndex]; // 1rst rsi > 30 > last rsi 
-//			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			res.setBullishCrossOver(isRSICrossingBelow);
 			if (res.getBullishCrossOver()) return res;
 		} 
 		{
 			//BEAR : RSI cross above upper threshold (over bought) with a down trend (under sma)
 			boolean isRSICrossingAbove = this.rsi.getRsi()[rsiIndicatorIndex-1]  < rsi.getUpperThreshold()  && rsi.getUpperThreshold() < this.rsi.getRsi()[rsiIndicatorIndex];// 1rst rsi < 70 <  last rsi 
-//			boolean isPriceBelowSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() < sma.getSma()[smaIndicatorIndex];
 			res.setBearishCrossBellow(isRSICrossingAbove);
 		}
 		
@@ -116,7 +107,6 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		return "CALCULATOR DATE, CALCULATOR QUOTE, SMA DATE, SMA QUOTE, SMA50, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish\n";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -128,12 +118,9 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-//			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
 			+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
 			+ this.rsi.getLowerThreshold() + ","
 			+ this.rsi.getUpperThreshold() + ","
@@ -150,6 +137,17 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+
+		return new double[]
+				{
+				this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)],
+				this.rsi.getLowerThreshold(),
+				this.rsi.getUpperThreshold()
+				};
 	}
 
 

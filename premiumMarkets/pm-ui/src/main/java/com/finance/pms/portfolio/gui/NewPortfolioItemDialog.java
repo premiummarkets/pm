@@ -31,40 +31,43 @@
 package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
-import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -74,23 +77,16 @@ import org.eclipse.swt.widgets.Text;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.ErrorDialog;
 import com.finance.pms.MainGui;
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
-import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
-import com.finance.pms.datasources.shares.Market;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
+import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.portfolio.MonitorLevel;
+import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class NewPortfolioItemDialog.
  * 
@@ -99,36 +95,26 @@ import com.finance.pms.portfolio.PortfolioShare;
 public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	
 	/** The LOGGER. */
-	protected static MyLogger LOGGER = MyLogger.getLogger(NewPortfolioDialog.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(ActionDialogForm.class);
 	
+	private static NewPortfolioItemDialog runningInst = null;
+	private static Font biggerFont;
+	enum Titles {Symbol,Isin,Name,Category};
+	
+	private Composite caller;
 
-	protected static NewPortfolioItemDialog inst;
 	
-	private Composite composite;
+	private Providers selectedProvider;
+	private Composite listCmp;
+	private Table symbolTable;
 
-	private Group shareListGroup;
-	protected Group addShareManualGroup;
-	protected Button addFromFile;
-	private String ext;
 	
-	private Label symbolLabel;
-	protected Table symbolTable;
-	protected Label quantityLabel;
-	protected Text quantityText;
-	
-	enum Titles {Symbol,Name,Category};
-	
-	private StockList stockList;
-	
-	private List<Stock> selectedStocks;
-	private BigDecimal selectedQuantity;
-	protected Label monitorLabel;
-	protected CCombo moniCombo;
-	private MonitorLevel selectedMonitorLevel;
+	private CCombo moniCombo;
+	private Text quantityText;
 
-	private Button newPortfollioValidateButton;
-	protected Button newPortfollioAddButton;
-	
+	protected StockList stockList;
+	protected Composite ctrlComposite;
+
 
 	/**
 	 * Instantiates a new new portfolio item dialog.
@@ -141,12 +127,15 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @param composite 
 	 */
 	public NewPortfolioItemDialog(Composite parent, int style, Composite composite) {
-		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
-		this.selectedMonitorLevel = MonitorLevel.BEARISH;
-		this.selectedQuantity = BigDecimal.ONE;
-		this.selectedStocks = new ArrayList<Stock>();
 		
-		this.composite = composite;
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
+		
+		this.stockList = new StockList();
+		this.caller = composite;
+		
+		FontData[] defaultFontData = MainGui.DEFAULTFONT.getFontData();
+		defaultFontData[0].setHeight(11);
+		biggerFont = new Font(this.getParent().getDisplay(), defaultFontData);
 	}
 
 	/**
@@ -162,6 +151,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
 		ctx.refresh();
 		showUI(new ArrayList<PortfolioShare>(), new Shell(), null);
+		
 	}
 
 	/**
@@ -175,44 +165,45 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 */
 	public static NewPortfolioItemDialog showUI(Collection<PortfolioShare> alreadyScanned, Shell shell, PortfolioComposite composite) {
 		
-		if (inst == null || inst.isDisposed()) {
-			
-			Shell piShell = new Shell(shell,SWT.DIALOG_TRIM|SWT.RESIZE);
+		if (NewPortfolioItemDialog.runningInst != null && !NewPortfolioItemDialog.runningInst.isDisposed()) {
+			NewPortfolioItemDialog.runningInst.forceFocus();
+			return runningInst;
+		}
+
+		NewPortfolioItemDialog inst = null;
+		try {
+			Shell piShell = new Shell(shell, SWT.DIALOG_TRIM|SWT.RESIZE);
 			piShell.setText("Premium Markets - Share selection.");
 			piShell.setFont(MainGui.DEFAULTFONT);
-			piShell.setLayout(new FillLayout());
-			
-			final ScrolledComposite scrollComposite = new ScrolledComposite(piShell,SWT.BORDER | SWT.RESIZE);
-			inst = new NewPortfolioItemDialog(scrollComposite, SWT.RESIZE, composite);
-			inst.open();
-			scrollComposite.setContent(inst);
-		    scrollComposite.setExpandVertical(true);
-		    scrollComposite.setExpandHorizontal(true);
-		    scrollComposite.setMinSize(inst.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		    scrollComposite.addControlListener(new ControlAdapter() {
-		      public void controlResized(ControlEvent e) {
-		        Rectangle r = scrollComposite.getClientArea();
-		        scrollComposite.setMinSize(inst.computeSize(r.width, r.height));
-		      }
-		    });
-		    scrollComposite.pack();
-		    
-		    piShell.setSize(scrollComposite.computeSize(200, 500));
-		    Rectangle mainBounds = shell.getBounds();
-		    Rectangle marketShellBounds = piShell.getBounds();
-		    piShell.setLocation(mainBounds.x+mainBounds.width/4-marketShellBounds.x/2,mainBounds.y+mainBounds.y/4);
-		    piShell.open();
+			piShell.setLayout(new FillLayout(SWT.VERTICAL));
 
+			inst = new NewPortfolioItemDialog(piShell, SWT.RESIZE, composite);
+			inst.initGui(SWT.MULTI);
+
+			piShell.layout();
+			piShell.pack();				
+			piShell.open();
 			
+			runningInst = inst;
+
 			try {
-				//inst.open();
-				swtLoop();
+				inst.swtLoop();
 			} catch (Exception e) {
-				LOGGER.error("", e);
+				LOGGER.error(e, e);
+				throw e;
 			}
-		} else {
-			inst.forceFocus();
+
+		} catch (Exception e) {
+
+			try {
+				LOGGER.error(e,e);
+				if (inst != null) inst.dispose();
+			} finally {
+				inst = null;
+			}
+
 		}
+		
 		return inst;
 	}
 
@@ -222,19 +213,12 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @param inst the inst
 	 * @param display the display
 	 */
-	public static void swtLoop() {
+	public void swtLoop() {
 		
-		inst.layout();
-		inst.pack();
-		
-		inst.getShell().layout();
-		inst.getShell().pack();
-		inst.getShell().open();
-		
-		while (!inst.isDisposed() && !inst.getShell().isDisposed()) {
+		while (!this.isDisposed() && !this.getShell().isDisposed()) {
 			try {
-				if (!inst.getDisplay().readAndDispatch())
-					inst.getDisplay().sleep();
+				if (!this.getDisplay().readAndDispatch())
+					this.getDisplay().sleep();
 			} catch (RuntimeException e) {
 				LOGGER.error("Error in New Portfolio Item Gui : " + e.getMessage(),e);
 				LOGGER.debug("Error in New Portfolio Item Gui : ", e);
@@ -246,393 +230,389 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	}
 
 	/**
-	 * Open.
+	 * Open.sharelistSelectionGroup
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param stockSelectionMode 
 	 */
-	public void open() {
+	public void initGui(int stockSelectionMode) {
 		
-		GridLayout dialogShellLayout = new GridLayout();
-		dialogShellLayout.verticalSpacing = 15;
-		this.setLayout(dialogShellLayout);
-		this.setBackground(new Color(getDisplay(), 204, 204, 255));
-		//this.getShell().setText("Premium Markets - Share selection.");
+		this.setLayout(new GridLayout());
+		this.setBackground(new Color(getDisplay(),239, 183,103));
 		
+		//Auto complete
 		{
-			addFromFile = new Button(this, SWT.NONE);
-			addFromFile.setText("Add new shares to list from a file ...");
-			addFromFile.setFont(MainGui.DEFAULTFONT);
-			addFromFile.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent evt) {
-					getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-					try {
-						portfolioAddSharesFromFileMouseDown(evt);
-					} finally {
-						getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			final Group autocompleteGroup = new Group(this, SWT.NONE);
+			autocompleteGroup.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,true));
+			autocompleteGroup.setLayout(new GridLayout());
+			
+			autocompleteGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+			autocompleteGroup.setFont(biggerFont);
+			autocompleteGroup.setText("Find a share");
+			autocompleteGroup.setToolTipText("Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
+			
+			
+			final Text text = new Text(autocompleteGroup, SWT.SINGLE | SWT.BORDER);
+			text.setLayoutData(new GridData(SWT.FILL,SWT.TOP, true, false));
+			
+			text.setToolTipText("Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
+			text.setFont(MainGui.CONTENTFONT);
+			{
+				final Shell popupShell = new Shell(getShell(), SWT.ON_TOP);
+				getShell().addListener(SWT.Traverse, new Listener() {
+					public void handleEvent(Event event) {
+						switch (event.detail) {
+						case SWT.TRAVERSE_ESCAPE:
+							event.detail = SWT.TRAVERSE_NONE;
+							event.doit = false;
+							break;
+						}
 					}
-				}
-			});
-		}
-		{
-			addShareManualGroup = new Group(this, SWT.NONE);
-			GridLayout portfolioBoutonsGroupLayout = new GridLayout();
-			portfolioBoutonsGroupLayout.numColumns=8;
-			addShareManualGroup.setLayout(portfolioBoutonsGroupLayout);
-			addShareManualGroup.setText("Add new share manually");
-			addShareManualGroup.setFont(MainGui.DEFAULTFONT);
-			//FR0000172124.WMORN,FR0000172124,AXA EURO 7-10 (C),SICAV,EURONEXT,investir
-			
-			Label symbolLab = new Label(addShareManualGroup, SWT.NONE);
-			symbolLab.setText("Ext. symbol");
-			symbolLab.setFont(MainGui.DEFAULTFONT);
-			Label isinLab = new Label(addShareManualGroup, SWT.NONE);
-			isinLab.setText("Isin");
-			isinLab.setFont(MainGui.DEFAULTFONT);
-			Label nameLab = new Label(addShareManualGroup, SWT.NONE);
-			nameLab.setText("Name");
-			nameLab.setFont(MainGui.DEFAULTFONT);
-			Label typeLab = new Label(addShareManualGroup, SWT.NONE);
-			typeLab.setText("Type");
-			typeLab.setFont(MainGui.DEFAULTFONT);
-			Label marketLab = new Label(addShareManualGroup, SWT.NONE);
-			marketLab.setText("Market");
-			marketLab.setFont(MainGui.DEFAULTFONT);
-			Label currencyFactorLab = new Label(addShareManualGroup, SWT.NONE);
-			currencyFactorLab.setText("Unit factor");
-			currencyFactorLab.setFont(MainGui.DEFAULTFONT);
-			Label providerLab = new Label(addShareManualGroup, SWT.NONE);
-			providerLab.setText("Provider");
-			providerLab.setFont(MainGui.DEFAULTFONT);
-			Label extLab = new Label(addShareManualGroup, SWT.NONE);
-			extLab.setText("Symbol extension");
-			extLab.setFont(MainGui.DEFAULTFONT);
-			
-			final Text symbolTxt = new Text(addShareManualGroup, SWT.NONE);
-			symbolTxt.setEditable(true);
-			symbolTxt.setFont(MainGui.CONTENTFONT);
-			final Text isinTxt = new Text(addShareManualGroup, SWT.NONE);
-			isinTxt.setEditable(true);
-			isinTxt.setFont(MainGui.CONTENTFONT);
-			final Text nameTxt = new Text(addShareManualGroup, SWT.NONE);
-			nameTxt.setEditable(true);
-			nameTxt.setFont(MainGui.CONTENTFONT);
-			final CCombo typeCombo = new CCombo(addShareManualGroup, SWT.NONE);
-			typeCombo.setFont(MainGui.DEFAULTFONT);
-			for (int j = 0, n = StockCategories.values().length; j < n; j++) {
-				typeCombo.add(StockCategories.values()[j].name());
-			}
-			typeCombo.setEditable(false);
-			final CCombo marketCombo = new CCombo(addShareManualGroup, SWT.NONE);
-			marketCombo.setFont(MainGui.DEFAULTFONT);
-			for (int j = 0, n = Market.values().length; j < n; j++) {
-				marketCombo.add(Market.values()[j].name());
-			}
-			marketCombo.setEditable(false);
-			final Text currencyFactorTxt = new Text(addShareManualGroup, SWT.NONE);
-			currencyFactorTxt.setEditable(true);
-			currencyFactorTxt.setFont(MainGui.CONTENTFONT);
-			currencyFactorTxt.setToolTipText(
-					"This is to deal with quotations available in fractions of the main currency.\n" +
-					"For instance for quotations in Pence, we use GBP as currency but specify a unit factor 100 here for conversion purpose.");
-			final CCombo provCombo = new CCombo(addShareManualGroup, SWT.NONE);
-			provCombo.setFont(MainGui.DEFAULTFONT);
-			final CCombo symbolExtTxt = new CCombo(addShareManualGroup, SWT.NONE);
-			ext = "NONE";
-			for (int j = 0, n = MarketQuotationProviders.values().length; j < n; j++) {
-				provCombo.add(MarketQuotationProviders.values()[j].name());
-			}
-			provCombo.setEditable(false);
-			provCombo.addSelectionListener(new SelectionListener() {
+				});
+				getShell().addShellListener(new ShellAdapter() {
+					@Override
+					public void shellClosed(ShellEvent evt) {
+						if (!popupShell.isDisposed()) popupShell.dispose();
+					}
+				});
+				popupShell.setLayout(new FillLayout());
+				final Table table = new Table(popupShell, SWT.SINGLE);
+				table.setFont(MainGui.CONTENTFONT);
 				
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					symbolExtTxt.removeAll();
-					ext = "NONE";
-				}
-				
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					symbolExtTxt.removeAll();
-					ext = "NONE";
-				}
-			});
-			symbolExtTxt.setEditable(true);
-			symbolExtTxt.setToolTipText(
-					"The extention is specific to the quotation provider.\n" +
-					"This will be part of the url to retreive the stock quotations (usually as an extension of the symbol or isin).\n" +
-					"Every provider as its own set of extentions.");
-			symbolExtTxt.setFont(MainGui.CONTENTFONT);
-			symbolExtTxt.addFocusListener(new FocusListener() {
-				
-				@Override
-				public void focusLost(FocusEvent e) {
-					//symbolExtTxt.removeAll();
-				}
-				
-				@Override
-				public void focusGained(FocusEvent e) {
-					symbolExtTxt.add("NONE");
-
-					String provStr = provCombo.getText();
-					if (provStr != null && !provStr.isEmpty()) {
-						try {
-							MarketQuotationProviders provider = MarketQuotationProviders.valueOf(provStr);
-							Set<String> extensionsForMarket = Market.getExtensionFor(provider);
-							for (String ext : extensionsForMarket) {
-								symbolExtTxt.add(ext);
+				text.addListener(SWT.KeyDown, new Listener() {
+					public void handleEvent(Event event) {
+						switch (event.keyCode) {
+							case SWT.ARROW_DOWN:
+								int index = (table.getSelectionIndex() + 1) % table.getItemCount();
+								table.setSelection(index);
+								event.doit = false;
+								break;
+							case SWT.ARROW_UP:
+								index = table.getSelectionIndex() - 1;
+								if (index < 0) index = table.getItemCount() - 1;
+								table.setSelection(index);
+								event.doit = false;
+								break;
+							case SWT.CR:
+								if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
+									text.setText(table.getSelection()[0].getText());
+									popupShell.setVisible(false);
+								}
+								break;
+							case SWT.ESC:
+								popupShell.setVisible(false);
+								break;
+						}
+					}
+				});
+				text.addListener(SWT.Modify, new Listener() {
+					public void handleEvent(Event event) {
+						final String string = text.getText();
+						if (string.length() == 0) {
+							popupShell.setVisible(false);
+						} else {
+							List<Stock> likeShares = DataSource.getInstance().getShareDAO().loadSharesLike(string, 50);
+							
+							TableItem[] items = table.getItems();
+							for (int i = 0; i < likeShares.size(); i++) {
+								if(i < items.length) {
+									items[i].setText(likeShares.get(i).getFriendlyName());
+								} else {
+									TableItem tableItem = new TableItem(table, SWT.NONE);
+									tableItem.setText(likeShares.get(i).getFriendlyName());
+								}
 							}
-							symbolExtTxt.pack();
-						} catch (Exception e1) {
-							LOGGER.error("Invalid quotation provider market? : "+provStr,e1);
+							table.remove(likeShares.size(), table.getItems().length-1);
+							
+							if (table.getItems().length > 0) {
+								table.select(0);
+							}
+							
+							Rectangle textBounds = getDisplay().map(autocompleteGroup, null, text.getBounds());
+							popupShell.setBounds(textBounds.x, textBounds.y + textBounds.height, textBounds.width, 150);
+							popupShell.setVisible(true);
 						}
 					}
-				}
-			});
-			symbolExtTxt.addSelectionListener(new SelectionListener() {
-				
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					ext = symbolExtTxt.getText();
-				}
-				
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					ext = symbolExtTxt.getText();
-				}
-			});
-			symbolExtTxt.addModifyListener(new ModifyListener() {
-				
-				@Override
-				public void modifyText(ModifyEvent e) {
-					ext = symbolExtTxt.getText();	
-				}
-			});
-			
-			Button manualAddOkButton = new Button(addShareManualGroup, SWT.BORDER);
-			GridData newShareValidateButtonLData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			newShareValidateButtonLData.horizontalSpan = 8;
-			manualAddOkButton.setLayoutData(newShareValidateButtonLData);
-			manualAddOkButton.setText("Add new share to list");
-			manualAddOkButton.setFont(MainGui.DEFAULTFONT);
-			manualAddOkButton.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseDown(MouseEvent evt) {
-					validateNewManualShare(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
-				}
-			});
-			manualAddOkButton.addKeyListener(new KeyAdapter() {
+				});
 
-				@Override
-				public void keyReleased(KeyEvent e) {
-					if (e.keyCode == SWT.CR) {
-						validateNewManualShare(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
+				table.addListener(SWT.DefaultSelection, new Listener() {
+					public void handleEvent(Event event) {
+						text.setText(table.getSelection()[0].getText());
+						popupShell.setVisible(false);
 					}
-				}
-				
-			});
+				});
+				table.addListener(SWT.KeyDown, new Listener() {
+					public void handleEvent(Event event) {
+						if (event.keyCode == SWT.ESC) {
+							popupShell.setVisible(false);
+						}
+					}
+				});
+
+				Listener focusOutListener = new Listener() {
+					public void handleEvent(Event event) {
+						/* async is needed to wait until focus reaches its new Control */
+						getDisplay().asyncExec(new Runnable() {
+							public void run() {
+								if (popupShell.isDisposed() || getDisplay().isDisposed()) return;
+								Control control = getDisplay().getFocusControl();
+								if (control == null || (control != text && control != table) && control != popupShell) {
+									popupShell.setVisible(false);
+								}
+							}
+						});
+					}
+				};
+				table.addListener(SWT.FocusOut, focusOutListener);
+				text.addListener(SWT.FocusOut, focusOutListener);
+
+				getShell().addListener(SWT.Move, new Listener() {
+					public void handleEvent(Event event) {
+						popupShell.setVisible(false);
+					}
+				});
+			}
+
+			{
+				Button autoCompletAddBut = new Button(autocompleteGroup, SWT.PUSH);
+				autoCompletAddBut.setLayoutData(new GridData(SWT.END,SWT.TOP,false,false));
+
+				String addSearchLabel = addSearchSelectionLabel();
+				autoCompletAddBut.setText(addSearchLabel);
+				autoCompletAddBut.setFont(MainGui.DEFAULTFONT);
+				autoCompletAddBut.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseDown(MouseEvent evt) {
+
+						addSearchSelection(text);
+					}
+
+				});
+			}
 		}
 		
+		//List selection
+		List<String> loadShareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames();
 		{
-			shareListGroup = new Group(this, SWT.NONE);
-			GridLayout portfolioBoutonsGroupLayout = new GridLayout();
-			portfolioBoutonsGroupLayout.numColumns = 2;
-			shareListGroup.setLayout(portfolioBoutonsGroupLayout);
-			GridData portfolioBoutonsGroupLData = new GridData(GridData.FILL_BOTH);
-			shareListGroup.setLayoutData(portfolioBoutonsGroupLData);
-			shareListGroup.setText("Select your shares");
-			shareListGroup.setFont(MainGui.DEFAULTFONT);
+			Group sharelistSelectionGroup = new Group(this, SWT.NONE);
+			sharelistSelectionGroup.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
+			sharelistSelectionGroup.setLayout(new GridLayout());
+			
+			sharelistSelectionGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+			sharelistSelectionGroup.setFont(biggerFont);
+			sharelistSelectionGroup.setText("Or use your selection lists");
+			sharelistSelectionGroup.setToolTipText("Select stocks in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
+			
 			{
-				symbolLabel = new Label(shareListGroup, SWT.BORDER);
-				symbolLabel.setText("Stock :");
-				symbolLabel.setFont(MainGui.DEFAULTFONT);
-				GridData newPortfoliolabelLData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-				symbolLabel.setLayoutData(newPortfoliolabelLData);
-			}
-			{
-				symbolTable = new Table(shareListGroup, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
-				symbolTable.setFont(MainGui.DEFAULTFONT);
-				symbolTable.setHeaderVisible(true);
-				for (int j = 0; j < Titles.values().length; j++) {
-					TableColumn column = new TableColumn(symbolTable, SWT.NONE);
-					column.setText(Titles.values()[j].toString());
-				}
+				final CCombo existingCCombo = new CCombo(sharelistSelectionGroup, SWT.NONE);
+				existingCCombo.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true, false));
 				
-				initShareScrollList();
-				//symbolTable.setBounds(0, 0, 175, 100);
-				GridData newPortfoliolabelLData = new GridData(GridData.FILL_BOTH);
-				newPortfoliolabelLData.heightHint = 500;
-				newPortfoliolabelLData.widthHint = 600;
-				symbolTable.setLayoutData(newPortfoliolabelLData);
-			}
-			{
-				quantityLabel = new Label(shareListGroup, SWT.BORDER);
-				quantityLabel.setText("Quantity :");
-				quantityLabel.setFont(MainGui.DEFAULTFONT);
-				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
-				quantityLabel.setLayoutData(newPortfoliolabelLData);
-			}
-			{
-				quantityText = new Text(shareListGroup, SWT.BORDER);
-				GridData newShareTextLData = new GridData(GridData.FILL_HORIZONTAL);
-				quantityText.setLayoutData(newShareTextLData);
-				quantityText.setFont(MainGui.CONTENTFONT);
-				quantityText.setText(this.selectedQuantity.toString());
-			}
-			{
-				monitorLabel = new Label(shareListGroup, SWT.BORDER);
-				monitorLabel.setText("Monitor level :");
-				monitorLabel.setFont(MainGui.DEFAULTFONT);
-				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
-				monitorLabel.setLayoutData(newPortfoliolabelLData);
-			}
-			{
-				moniCombo = new CCombo(shareListGroup, SWT.READ_ONLY);
-				moniCombo.setFont(MainGui.DEFAULTFONT);
-				for (int j = 0, n = MonitorLevel.values().length; j < n; j++) {
-					moniCombo.add(MonitorLevel.values()[j].getMonitorLevel());
+				existingCCombo.setToolTipText("Select stocks in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
+				existingCCombo.setFont(MainGui.CONTENTFONT);
+				for (String shareListName : loadShareListNames) {
+					existingCCombo.add(shareListName);
 				}
-				moniCombo.select(moniCombo.indexOf(MonitorLevel.BEARISH.getMonitorLevel()));
-			}
-			{
-				newPortfollioAddButton = new Button(shareListGroup, SWT.BORDER);
-				GridData newShareValidateButtonLData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				newShareValidateButtonLData.horizontalSpan = 1;
-				newPortfollioAddButton.setLayoutData(newShareValidateButtonLData);
-				newPortfollioAddButton.setText("Add");
-				newPortfollioAddButton.setFont(MainGui.DEFAULTFONT);
-				final NewPortfolioItemDialog pC = this;
-				newPortfollioAddButton.addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseDown(MouseEvent evt) {
-						newPortfollioItemAddButtonMouseDown();
-						try {
-							((PortfolioComposite)composite).addShares(pC);
-						} catch (Exception e) {
-							LOGGER.error(e,e);
-							ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
-							inst.open();
-						}
-						symbolTable.deselectAll();
-						selectedStocks = new ArrayList<Stock>();
-					}
-				});
-			}
-			{
-				newPortfollioValidateButton = new Button(shareListGroup, SWT.BORDER);
-				GridData newShareValidateButtonLData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				newShareValidateButtonLData.horizontalSpan = 1;
-				newPortfollioValidateButton.setLayoutData(newShareValidateButtonLData);
-				newPortfollioValidateButton.setText("Ok");
-				newPortfollioValidateButton.setFont(MainGui.DEFAULTFONT);
-				newPortfollioValidateButton.addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseDown(MouseEvent evt) {
-						newPortfollioItemValidateButtonMouseDown();
-					}
-				});
-				newPortfollioValidateButton.addKeyListener(new KeyAdapter() {
 
+				final Group shareListGroup = new Group(sharelistSelectionGroup, SWT.NONE);
+				shareListGroup.setLayoutData(new GridData(SWT.FILL,SWT.FILL, true, true));
+				shareListGroup.setLayout(new GridLayout());
+				
+				shareListGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+				shareListGroup.setText("Select your shares");
+				shareListGroup.setToolTipText("Double click on the headers then CTRL F to search. You can update these lists using the 'Stock lists and Markets' menu");
+				shareListGroup.setFont(biggerFont);
+				{
+					listCmp = new Composite(shareListGroup, SWT.NONE);
+					GridData listCmpL = new GridData(SWT.FILL,SWT.FILL, true, true);
+					listCmpL.heightHint = 200;
+					listCmp.setLayoutData(listCmpL);
+					listCmp.setLayout(new GridLayout());
+					
+					symbolTable = new Table(listCmp, SWT.V_SCROLL | stockSelectionMode | SWT.FULL_SELECTION);
+					GridData symbolTableL = new GridData(SWT.FILL, SWT.FILL, true, true);
+					symbolTableL.exclude=true;
+					symbolTable.setLayoutData(symbolTableL); 
+					
+					symbolTable.setFont(MainGui.DEFAULTFONT);
+					symbolTable.setHeaderVisible(true);	
+					for (int j = 0; j < Titles.values().length; j++) {
+						TableColumn column = new TableColumn(symbolTable, SWT.NONE);
+						column.setText(Titles.values()[j].toString());
+					}
+					symbolTable.getVerticalBar().setVisible(true);
+					symbolTable.setToolTipText("Columns can be sorted by double clicking on the header. Order one column and do CTRL F to search.");
+					
+				}
+				shareListGroup.addControlListener(new ControlListener() {
+					
 					@Override
-					public void keyReleased(KeyEvent e) {
-						if (e.keyCode == SWT.CR) {
-							newPortfollioItemValidateButtonMouseDown();
-						}
+					public void controlResized(ControlEvent e) {
+						updateTableSize();
 					}
 					
+					@Override
+					public void controlMoved(ControlEvent e) {
+						updateTableSize();
+						
+					}
+				});
+				
+				existingCCombo.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						handle();
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handle();
+					}
+
+					private void handle() {
+
+						String item = existingCCombo.getItem(existingCCombo.getSelectionIndex());
+						try {
+
+							selectedProvider = Providers.setupProvider(item);
+							shareListGroup.setText("Select shares in "+selectedProvider.getSharesListIdEnum().getDescription());
+
+							getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							try {
+								stockList= new StockList(PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(item).toSortedStocksSet());
+								initShareScrollList();
+							} finally {
+								getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							}
+							
+					
+						} catch (java.lang.IllegalArgumentException e) {
+							ErrorDialog dialog = new ErrorDialog(NewPortfolioItemDialog.this.getShell(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
+							dialog.open();
+
+						}
+					}
+
+				});	
+				
+			}
+			{
+				Button toListSelectAddBut = new Button(sharelistSelectionGroup, SWT.PUSH);
+				toListSelectAddBut.setLayoutData(new GridData(SWT.END, SWT.TOP, false, false));
+				
+				toListSelectAddBut.setText(addListLabel());
+				toListSelectAddBut.setFont(MainGui.DEFAULTFONT);
+				toListSelectAddBut.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseDown(MouseEvent evt) {
+						
+						addListSelection();
+					}
+
 				});
 			}
 			
-			shareListGroup.pack();
 		}
+		
+		
+		//Add ctrl composite
+		{
+		    
+			ctrlComposite = new Composite(this, SWT.NONE);
+			ctrlComposite.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
+			GridLayout ctrlCompositeL = new GridLayout();
+			ctrlCompositeL.marginHeight=0;
+			ctrlCompositeL.marginWidth=0;
+			ctrlComposite.setLayout(ctrlCompositeL);
+			
+			ctrlComposite.setBackground(new Color(getDisplay(),239, 183,103));
+			{
+				Group optionsGrp = new Group(ctrlComposite, SWT.NONE);
+				optionsGrp.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
+				
+				optionsGrp.setBackground(new Color(getDisplay(), 239, 203, 152));
+				optionsGrp.setText("Options");
+				optionsGrp.setFont(biggerFont);
+				RowLayout addOptGroupL = new RowLayout(SWT.HORIZONTAL);
+				addOptGroupL.justify=true;
+				optionsGrp.setLayout(addOptGroupL);
+				{
+					Label quantityLabel = new Label(optionsGrp, SWT.NONE);
+					quantityLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					quantityLabel.setText("Quantity :");
+					quantityLabel.setFont(MainGui.DEFAULTFONT);
+				}
+				{
+					quantityText = new Text(optionsGrp, SWT.BORDER);
+					RowData rowData = new RowData(100,SWT.DEFAULT);
+					quantityText.setLayoutData(rowData);
+					quantityText.setFont(MainGui.CONTENTFONT);
+					quantityText.setText(BigDecimal.ONE.toString());
+				}
+				{
+					Label monitorLabel = new Label(optionsGrp, SWT.NONE);
+					monitorLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					monitorLabel.setText("Monitor level :");
+					monitorLabel.setFont(MainGui.DEFAULTFONT);
+				}
+				{
+					moniCombo = new CCombo(optionsGrp, SWT.READ_ONLY|SWT.BORDER);
+					moniCombo.setFont(MainGui.DEFAULTFONT);
+					for (int j = 0, n = MonitorLevel.values().length; j < n; j++) {
+						moniCombo.add(MonitorLevel.values()[j].getMonitorLevel());
+					}
+					moniCombo.select(moniCombo.indexOf(MonitorLevel.BEARISH.getMonitorLevel()));
+				}
+			}
+			
+		}
+
+		this.pack();
+		
+		initShareScrollList();
 	}
-	
-	private void validateNewManualShare(Text symbolTxt,  Text isinTxt,  Text nameTxt,  CCombo typeCombo, CCombo marketCombo,  Text  currencyFactorTxt, CCombo provCombo) {
-		getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-		try {
-			portfolioAddShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
-		} catch (Exception e) {
-			LOGGER.warn(e, e);
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
-			inst.open();
-		} finally {
-			getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-		}
+
+	protected String addSearchSelectionLabel() {
+		return "Add Search selection to Current Portfolio";
+	}
+
+	protected String addListLabel() {
+		return "Add List selection to Current Portfolio";
 	}
 
 	private void initShareScrollList() {
-		
-		stockList = new StockList();
-		stockList.addAll(DataSource.getInstance().loadAllStocks());
-		
-//		for (PortfolioShare portfolioShare : alreadyBought) {
-//			stockList.remove(portfolioShare.getStock());
-//		}
 		
 		symbolTable.removeAll();
 		updateTableDisplay();
 		for (int j = 0; j < Titles.values().length; j++) {
 			symbolTable.getColumn(j).addSelectionListener(new SelectionListener() {
+				
 				public void widgetDefaultSelected(SelectionEvent arg0) {
+					handle(arg0);
+				}
+
+				private void handle(SelectionEvent arg0) {
 					LOGGER.debug("Column selected" + ((TableColumn) arg0.getSource()).getText());
-					sortColumn(((TableColumn) arg0.getSource()).getText());
+					getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+					try {
+						sortColumn(((TableColumn) arg0.getSource()).getText());
+					} finally {
+						getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+					}
+					
 				}
 
 				public void widgetSelected(SelectionEvent arg0) {
-					// TODO Auto-generated method stub
+					handle(arg0);
 				}
+				
 			});
 		}
+		
+		updateTableSize();
 	}
 	
-	private void portfolioAddShareFromForm(Text symbolTxt, Text isinTxt, Text nameTxt, CCombo typeCombo, CCombo marketCombo,Text currencyFactor, CCombo provCombo) 
-																																		throws InvalidAlgorithmParameterException {
-		QuotationUpdate quotationUpdate = new QuotationUpdate();
-		String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider","euronext");
 
-		boolean isExtSet = ext != null && !ext.isEmpty() && !ext.equals("NONE");
-		String symbol = symbolTxt.getText()+(isExtSet?"."+ext:"");
-
-		try {
-			quotationUpdate.getQuotesForUi(
-					listStProvider, 
-					isinTxt.getText(), symbol, nameTxt.getText(), 
-					StockCategories.valueOf(typeCombo.getText()), 
-					MarketQuotationProviders.valueOf(provCombo.getText()), new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText())));
-		} catch (StockNotFoundException e) {
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
-			inst.open();
-		}
-
-		initShareScrollList();
-	}
-	
-	private void portfolioAddSharesFromFileMouseDown(SelectionEvent event) {
-		
-		//Update share list
-		String[] filterExtensions = {"*.txt"};
-		FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
-		fileDialog.setText("Choose a file containing the list of new shares");
-
-		fileDialog.setFilterExtensions(filterExtensions);
-		String selectedFile = fileDialog.open();
-
-		if (null != selectedFile) {
-			String listStProvider = MainPMScmd.getPrefs().get("quotes.listprovider","euronext");
-			QuotationUpdate quotationUpdate = new QuotationUpdate();
-			try {
-				quotationUpdate.getQuotesForListInFile(selectedFile, listStProvider);
-			} catch (StockNotFoundException e) {
-				ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
-				inst.open();
-			}
-			
-			initShareScrollList();
-		}
-		
-		
-	
-	}
 
 	/**
 	 * Update table display.
@@ -645,13 +625,19 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 			TableItem item = new TableItem(symbolTable, SWT.NONE);
 			item.setFont(MainGui.CONTENTFONT);
-			item.setText(0, s.getRefName());
-			item.setText(1, s.getName());
-			item.setText(2, s.getCategory().getCategory());
+			item.setText(0, s.getSymbol());
+			item.setText(1, s.getIsin());
+			item.setText(2, s.getName());
+			item.setText(3, s.getCategory().getCategory());
 		}
 
 		for (int j = 0; j < Titles.values().length; j++) {
-			symbolTable.getColumn(j).pack();
+			
+			if (Titles.values()[j].equals(Titles.Name)) {
+				symbolTable.getColumn(j).setWidth(100);
+			} else {
+				symbolTable.getColumn(j).pack();
+			}
 		}
 	}
 	
@@ -667,20 +653,20 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		int colNum = Titles.valueOf(colStr).ordinal();
 		
 		switch (colNum) {
-		case 1:
+		case 0:
 			Collections.sort(stockList,new Comparator<Stock>() {
 				public int compare(Stock o1, Stock o2) {
-					int ret = o1.getName().trim().toLowerCase().compareTo(o2.getName().trim().toLowerCase());
-					ret = (ret == 0)? o1.getRefName().trim().toLowerCase().compareTo(o2.getRefName().trim().toLowerCase()):ret;
+					int ret = o1.getSymbol().trim().toLowerCase().compareTo(o2.getSymbol().trim().toLowerCase());
+					ret = (ret == 0)? o1.getName().trim().toLowerCase().compareTo(o2.getName().trim().toLowerCase()):ret;
 					ret = (ret == 0)? o1.getCategory().getCategory().compareTo(o2.getCategory().getCategory()):ret;
 					return ret;
 				}						
 			});
 			break;
-		case 0:
+		case 1:
 			Collections.sort(stockList,new Comparator<Stock>() {
 				public int compare(Stock o1, Stock o2) {
-					int ret = o1.getRefName().trim().toLowerCase().compareTo(o2.getRefName().trim().toLowerCase());
+					int ret = o1.getIsin().trim().toLowerCase().compareTo(o2.getIsin().trim().toLowerCase());
 					ret = (ret == 0)? o1.getName().trim().toLowerCase().compareTo(o2.getName().trim().toLowerCase()):ret;
 					ret = (ret == 0)? o1.getCategory().getCategory().compareTo(o2.getCategory().getCategory()):ret;
 					return ret;
@@ -690,9 +676,19 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		case 2:
 			Collections.sort(stockList,new Comparator<Stock>() {
 				public int compare(Stock o1, Stock o2) {
+					int ret = o1.getName().trim().toLowerCase().compareTo(o2.getName().trim().toLowerCase());
+					ret = (ret == 0)? o1.getSymbol().trim().toLowerCase().compareTo(o2.getSymbol().trim().toLowerCase()):ret;
+					ret = (ret == 0)? o1.getCategory().getCategory().compareTo(o2.getCategory().getCategory()):ret;
+					return ret;
+				}						
+			});
+			break;
+		case 3:
+			Collections.sort(stockList,new Comparator<Stock>() {
+				public int compare(Stock o1, Stock o2) {
 					int ret = o1.getCategory().getCategory().compareTo(o2.getCategory().getCategory());
 					ret = (ret == 0)? o1.getName().trim().toLowerCase().compareTo(o2.getName().trim().toLowerCase()):ret;
-					ret = (ret == 0)? o1.getRefName().trim().toLowerCase().compareTo(o2.getRefName().trim().toLowerCase()):ret;
+					ret = (ret == 0)? o1.getSymbol().trim().toLowerCase().compareTo(o2.getSymbol().trim().toLowerCase()):ret;
 					return ret;
 				}						
 			});
@@ -704,69 +700,79 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		symbolTable.removeAll();
 		updateTableDisplay();
 	}
+
+	private void addSearchSelection(final Text text) {
+		try {
+			try {
+				getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+				String autoCompleteTxt = text.getText();
+				Pattern pattern = Pattern.compile(".*\\((.*) / (.*)\\)");
+				Matcher matcher = pattern.matcher(autoCompleteTxt);
+				matcher.matches();
+				Stock stock = DataSource.getInstance().getShareDAO().loadStockBy(matcher.group(1), matcher.group(2));
+				Set<Stock> stocks = new HashSet<Stock>();
+				stocks.add(stock);
+				addSelection(stocks);
+			} finally {
+				getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			}
+			
+		} catch (IllegalStateException e) {
+			LOGGER.warn(e,e);
+			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,
+					"Invalid share description\n" +
+					"To search for a share, type the first letters of its name, symbol or isin and select it in the drop down box.\n" +
+					"If the share you are looking for is not present, use the 'Stock lists and Markets' menu to add it.", null);
+			inst.open();
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share.\nInvalid share description\n"+e, null);
+			inst.open();
+		}
+	}
 	
-	/**
-	 * New portfollio item validate button mouse down.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	private void newPortfollioItemAddButtonMouseDown() {
-		
-		selectedStocks = new ArrayList<Stock>();
-		int[] selections = symbolTable.getSelectionIndices();
-		for (int i = 0; i < selections.length; i++) {
-			selectedStocks.add(stockList.get(selections[i]));
-		}
-		selectedQuantity = new BigDecimal(quantityText.getText());
-		selectedMonitorLevel = MonitorLevel.valueOfString(moniCombo.getText());
+	protected void addSelection(Set<Stock> stocks) {
+		addAction(stocks, new BigDecimal(quantityText.getText()), MonitorLevel.valueOfString(moniCombo.getText()));
 		
 	}
 
-	/**
-	 * New portfollio item validate button mouse down.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	private void newPortfollioItemValidateButtonMouseDown() {
-		
-		selectedStocks = new ArrayList<Stock>();
+	private void addListSelection() {
+		try {
+			try {
+				getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+				addSelection(selection());
+			} finally {
+				getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			}
+			
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+			inst.open();
+		}
+		symbolTable.deselectAll();
+	}
+
+
+	private void addAction(Set<Stock> stocks, BigDecimal quantity, MonitorLevel monitorLevel) {
+		((PortfolioComposite) caller).addShares(stocks, quantity, monitorLevel);
+	}
+	
+
+
+	private Set<Stock> selection() {
+		Set<Stock> selectedStocks = new HashSet<Stock>();
 		int[] selections = symbolTable.getSelectionIndices();
 		for (int i = 0; i < selections.length; i++) {
 			selectedStocks.add(stockList.get(selections[i]));
-		}
-		selectedQuantity = new BigDecimal(quantityText.getText());
-		selectedMonitorLevel = MonitorLevel.valueOfString(moniCombo.getText());
-		getShell().dispose();
-	}
-
-	/**
-	 * Gets the selected stocks.
-	 * 
-	 * @return the selected stocks
-	 */
-	public List<Stock> getSelectedStocks() {
+		}	
+		symbolTable.deselectAll();
 		return selectedStocks;
 	}
 
-	/**
-	 * Gets the selected quantity.
-	 * 
-	 * @return the selected quantity
-	 */
-	public BigDecimal getSelectedQuantity() {
-		return selectedQuantity;
-	}
-
-	/**
-	 * Gets the selected monitor level.
-	 * 
-	 * @return the selected monitor level
-	 */
-	public MonitorLevel getSelectedMonitorLevel() {
-		return selectedMonitorLevel;
+	private void updateTableSize() {
+		Point computedSize = listCmp.getSize();
+		symbolTable.setSize(computedSize.x, computedSize.y);
+		symbolTable.layout();
 	}
 }

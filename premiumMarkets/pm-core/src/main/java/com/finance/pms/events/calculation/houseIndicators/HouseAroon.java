@@ -76,7 +76,7 @@ public class HouseAroon extends TalibIndicator {
 			
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
-			return RetCode.InternalError;
+			return RetCode.OutOfRangeStartIndex;
 		}
 		
 		return RetCode.Success;

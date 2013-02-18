@@ -11,7 +11,14 @@ GROUP BY PERF_SUPPLEMENT.SYMBOL, PERF_SUPPLEMENT.ISIN, PERF_SUPPLEMENT.NAME;
 
 ALTER TABLE  PERF_SUPPLEMENT  ADD CONSTRAINT `FK_PERF_SUPPLEMENT_TO_PORTFOLIO` FOREIGN KEY (`SYMBOL`, `ISIN`, `NAME`) REFERENCES `PORTFOLIO` (`SYMBOL`, `ISIN`, `NAME`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
+insert into PORTFOLIO (SYMBOL, ISIN, NAME, QUANTITY, CASHIN, CASHOUT, MONITOR, BUYDATE, AVGBUYPRICE, TRANSACTIONCURRENCY) \
+select shares.symbol, shares.isin, 'UNKNOWN', 1.00000, 1.00, 0.00, 0, '1970-01-01',0.00,'NAN'\
+from shares left join (select symbol, isin from portfolio join portfolio_name on portfolio_name.name = portfolio.name where portfolio_name.type='ShareList') T on shares.symbol = T.symbol and shares.isin = T.isin where T.symbol is null;
+
 --NSE Indices
 update PORTFOLIO_NAME set NAME='NSEINDICES,CNX100:NSE' where name='YAHOOINDICES,BSESN:BSE';
+
+
+
 
 

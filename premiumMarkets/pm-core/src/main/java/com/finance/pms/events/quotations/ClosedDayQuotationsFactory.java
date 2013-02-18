@@ -191,7 +191,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			Calendar current = Calendar.getInstance();
 			current.setTime(firstRefStockQuote);
 			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
-			while (current.getTime().before(lastRefStockQuote) || current.getTime().equals(lastRefStockQuote)) {
+			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
 				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getCloseForDate(current.getTime()).doubleValue()} );
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
@@ -212,7 +212,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			Calendar current = Calendar.getInstance();
 			current.setTime(firstRefStockQuote);
 			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
-			while (current.getTime().before(lastRefStockQuote) || current.getTime().equals(lastRefStockQuote)) {
+			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
 				fullRefSQuotationsMap.put(current.getTime(), quotations.getCloseForDate(current.getTime()).doubleValue() );
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}

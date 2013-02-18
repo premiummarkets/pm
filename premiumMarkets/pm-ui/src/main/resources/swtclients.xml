@@ -126,9 +126,17 @@
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOOINDICES" />
 	</bean>
+	<bean id="allMarketsProviderSource" class="com.finance.pms.datasources.web.ProvidersListStaticList" parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="ALLMARKETS" />
+	</bean>
         
     <bean id="inflationProviderSource" class="com.finance.pms.datasources.web.ProvidersInflation"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
 	

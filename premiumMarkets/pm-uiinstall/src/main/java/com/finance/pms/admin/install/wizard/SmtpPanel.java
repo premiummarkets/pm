@@ -122,7 +122,7 @@ public class SmtpPanel extends JPanel {
         titlePanel.setBackground(Color.gray);
         
         textLabel.setBackground(Color.gray);
-        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 20));
+        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
         textLabel.setText("Please setup your email address and ISP smtp access parameters");
         //textLabel.setToolTipText("You can get these from your email client account set up or webmail provider. This will be used for buy and sell and errors notifications.");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));

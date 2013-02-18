@@ -39,7 +39,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -96,110 +95,113 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		private static final long serialVersionUID = 1L;
 		//Nb to easily get a new time list TextAreaStream.updateTextArea should be sync
 		{
-			put(0,1L);
-			put(1,2256L);
-			put(2,2595L);
-			put(3,2607L);
-			put(4,2608L);
-			put(5,2614L);
-			put(6,2617L);
-			put(7,2619L);
-			put(8,2620L);
-			put(9,2641L);
-			put(10,2641L);
-			put(11,2643L);
-			put(12,2644L);
-			put(13,2644L);
-			put(14,2646L);
-			put(17,2647L);
-			put(16,2647L);
-			put(19,2649L);
-			put(18,2649L);
-			put(21,2650L);
-			put(20,2649L);
-			put(23,2650L);
-			put(22,2650L);
-			put(25,2658L);
-			put(24,2653L);
-			put(27,2661L);
-			put(26,2658L);
-			put(29,2662L);
-			put(28,2662L);
-			put(31,2667L);
-			put(30,2664L);
-			put(34,2700L);
-			put(35,2701L);
-			put(32,2698L);
-			put(33,2700L);
-			put(38,2706L);
-			put(39,2706L);
-			put(36,2704L);
-			put(37,2704L);
-			put(42,2707L);
-			put(43,2707L);
-			put(41,2707L);
-			put(46,2710L);
-			put(47,2712L);
-			put(44,2709L);
-			put(45,2709L);
-			put(51,2713L);
-			put(49,2712L);
-			put(48,2712L);
-			put(55,2716L);
-			put(54,2715L);
-			put(53,2715L);
-			put(52,2715L);
-			put(59,2718L);
-			put(58,2718L);
-			put(57,2716L);
-			put(56,2716L);
-			put(63,2728L);
-			put(61,2721L);
-			put(60,2721L);
-			put(68,2734L);
-			put(69,2736L);
-			put(70,2736L);
-			put(71,2736L);
-			put(64,2731L);
-			put(65,2731L);
-			put(66,2733L);
-			put(67,2733L);
-			put(76,2976L);
-			put(77,2976L);
-			put(78,2976L);
-			put(79,2977L);
-			put(72,2737L);
-			put(73,2737L);
-			put(74,2739L);
-			put(75,2739L);
-			put(85,39052L);
-			put(84,2994L);
-			put(87,39058L);
-			put(86,39058L);
-			put(81,2977L);
-			put(80,2977L);
-			put(83,2994L);
-			put(82,2983L);
-			put(93,41868L);
-			put(92,41493L);
-			put(95,42880L);
-			put(94,42243L);
-			put(89,39058L);
-			put(88,39058L);
-			put(91,40660L);
-			put(90,39060L);
-			put(102,192555L);
-			put(103,192681L);
-			put(100,145993L);
-			put(101,190848L);
+			put(0,0L);
+			put(1,20269L);
+			put(2,20460L);
+			put(3,20460L);
+			put(4,20460L);
+			put(5,20470L);
+			put(6,20470L);
+			put(7,20470L);
+			put(8,20470L);
+			put(9,20540L);
+			put(10,20550L);
+			put(11,20550L);
+			put(12,20550L);
+			put(13,20550L);
+			put(14,20550L);
+			put(15,20560L);
+			put(16,20560L);
+			put(17,20560L);
+			put(18,20560L);
+			put(19,20560L);
+			put(20,20560L);
+			put(21,20570L);
+			put(22,20570L);
+			put(23,20570L);
+			put(24,20570L);
+			put(25,20570L);
+			put(26,20570L);
+			put(27,20590L);
+			put(28,20590L);
+			put(29,20590L);
+			put(30,20590L);
+			put(31,20590L);
+			put(32,20610L);
+			put(33,20620L);
+			put(34,20630L);
+			put(35,20640L);
+			put(36,20650L);
+			put(37,20660L);
+			put(38,20740L);
+			put(39,20740L);
+			put(40,20750L);
+			put(41,20750L);
+			put(42,20760L);
+			put(43,20770L);
+			put(44,20770L);
+			put(45,20770L);
+			put(46,20770L);
+			put(47,20770L);
+			put(48,20770L);
+			put(49,20780L);
+			put(50,20780L);
+			put(51,20780L);
+			put(52,20780L);
+			put(53,20780L);
+			put(54,20780L);
+			put(55,20790L);
+			put(56,20790L);
+			put(57,20790L);
+			put(58,20790L);
+			put(59,20790L);
+			put(60,20790L);
+			put(61,20800L);
+			put(62,20800L);
+			put(63,20810L);
+			put(64,20810L);
+			put(65,20810L);
+			put(66,20820L);
+			put(67,20820L);
+			put(68,20820L);
+			put(69,20820L);
+			put(70,20830L);
+			put(71,20830L);
+			put(72,20840L);
+			put(73,20840L);
+			put(74,20850L);
+			put(75,20910L);
+			put(76,21070L);
+			put(77,21070L);
+			put(78,21081L);
+			put(79,21091L);
+			put(80,21181L);
+			put(81,21181L);
+			put(82,34289L);
+			put(83,34300L);
+			put(84,34310L);
+			put(85,34310L);
+			put(86,34310L);
+			put(87,34310L);
+			put(88,36372L);
+			put(89,38275L);
+			put(90,38496L);
+			put(91,38566L);
+			put(92,59005L);
+			put(93,59065L);
+			put(94,79024L);
+			put(95,96950L);
+			put(96,97010L);
+			put(97,97450L);
 			put(98,91974L);
 			put(99,92361L);
-			put(96,44544L);
-			put(97,44893L);
+			put(100,145993L);
+			put(101,190848L);
+			put(102,192555L);
+			put(103,192681L);
 		}
 	};
 	static {
-		//T_REF = TIME_TABLE.get(TIME_TABLE.size() -1);
 		T_REF = TIME_TABLE.get(TIME_TABLE.lastKey());
 	}
 
@@ -218,9 +220,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
         
     }
 
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getNextPanelDescriptor()
-     */
+
     @Override
 	public Object getNextPanelDescriptor() {
         return SmtpPanelDescriptor.IDENTIFIER;
@@ -252,26 +252,6 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     	task = new Task(InstallFolderPanel.piggyMarketSqueakFolder, this, panel3);
 		task.execute();
 		
-		@SuppressWarnings("all")
-		final SwingWorker<Void, Void> connectionCheck = new SwingWorker<Void,Void>() {
-
-			@Override
-			protected Void doInBackground() throws Exception {
-				try {
-					System.out.println("Connection check.");
-					//ApacheConnectionChecker.checkBlindConnection();
-					Class<?> connectionCheker = Class.forName("com.finance.pm.ApacheConnectionChecker", false, this.getClass().getClassLoader());
-					Method method = connectionCheker.getMethod("checkBlindConnection", null);
-					method.invoke(null, null);
-				} catch (Throwable e) {
-					System.out.println("No Connection check available.");
-				}
-				return null;
-			}
-			
-		};
-		connectionCheck.execute();
-		
 		SwingWorker<Void, Void> deltaPrg = new SwingWorker<Void,Void>() {
 
 			@Override
@@ -288,7 +268,6 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						}
 					}
 				}
-				connectionCheck.cancel(true);
 				return null;
 			}
 			
@@ -382,7 +361,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					try {
 						dbInstaller.extractDB(initialdb, BaseCheckPanelDescriptor.initdbName, piggyMarketSqueakFolder);
 					} catch (NoPreparedDbException e) {
-						wizardPanelDescriptor.getWizard().setCurrentPanel(BaseCheckPanelDescriptor.IDENTIFIER);
+						//wizardPanelDescriptor.getWizard().setCurrentPanel(BaseCheckPanelDescriptor.IDENTIFIER);
 						e.printStackTrace();
 					}
 

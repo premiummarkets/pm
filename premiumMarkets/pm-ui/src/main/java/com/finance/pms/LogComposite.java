@@ -31,6 +31,7 @@
 package com.finance.pms;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -61,9 +62,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 	private Integer nbIterDone;
 	private Integer totalIter;
 	private RefreshableView view;
-
-	//private Group logGroup;
-	
 
 	public LogComposite(Composite arg0, int arg1) {
 		super(arg0, arg1);
@@ -130,7 +128,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 	}
 
 	
-	public void endJob() {
+	public void endJob(List<Exception> exceptions) {
 		progressBarLabel.setText("-");
 		progressBar.setSelection(0);
 		logDisplay.setText("");
@@ -138,7 +136,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		progressBarLabel.pack();
 		logDisplay.pack();
 		
-		view.refreshView();
+		view.refreshView(exceptions);
 	}
 
 	/**
@@ -155,20 +153,16 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 	public void update(Observable o, Object arg) {
 		
 		ObserverMsg observerMsg = (ObserverMsg) arg;
-		
-		//String[] argSplit;
-		//if (arg != null && arg instanceof String && (argSplit = ((String) arg).split(" "))[0].equals("init")) {
+	
 		if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.INITMSG)) { //Logger init
 			
 			try {
-				//totalIter = new Integer(argSplit[1]);
 				totalIter = (Integer) observerMsg.getNameValuePairs().get(0).value;
 				nbIterDone = 0;
 			} catch (Exception e) {
 				LOGGER.warn("Unhandeled logger notication : "+arg);
 			}
-		
-		//} else if (arg != null && arg.equals("done")) {
+	
 		} else if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) { //Logger end
 			
 			//refresh is done in endJob()
@@ -186,7 +180,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				}
 				
 			});
-			
 		}	
 	}
 

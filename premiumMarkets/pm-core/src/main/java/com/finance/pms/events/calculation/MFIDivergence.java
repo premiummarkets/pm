@@ -145,12 +145,9 @@ public class MFIDivergence extends TalibIndicatorsCompositionCalculator {
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFIDIVERGENCE,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFIDIVERGENCE,EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-//			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
 			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
 			+ this.mfi.getLowerThreshold() + ","
 			+ this.mfi.getUpperThreshold() + ","
@@ -168,11 +165,22 @@ public class MFIDivergence extends TalibIndicatorsCompositionCalculator {
 		
 		return line;
 	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+		
+		return new double[]
+				{
+					this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)],
+					//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
+					this.mfi.getLowerThreshold(),
+					this.mfi.getUpperThreshold()
+				};
+	}
 
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//return "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA50, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI ,bearish, bullish\n";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI ,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	

@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.prefs.BackingStoreException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -207,7 +206,7 @@ public class MarketsSettings extends Composite {
 			} 
 		}
 		
-		return Indice.formatToString(indices);
+		return Indice.formatSet(indices);
 
 	}
 
@@ -397,7 +396,7 @@ public class MarketsSettings extends Composite {
 		{
 			{
 				{
-					final Button cancel = new Button(this, SWT.BORDER);
+					final Button cancel = new Button(this, SWT.PUSH);
 					GridData newPortfollioValidateButtonLData = new GridData();
 					newPortfollioValidateButtonLData.horizontalSpan = 1;
 					newPortfollioValidateButtonLData.horizontalAlignment = GridData.END;
@@ -412,7 +411,7 @@ public class MarketsSettings extends Composite {
 					});
 				}
 				{
-					Button save = new Button(this, SWT.BORDER);
+					Button save = new Button(this, SWT.PUSH);
 					GridData newPortfollioValidateButtonLData = new GridData();
 					newPortfollioValidateButtonLData.horizontalSpan = 1;
 					newPortfollioValidateButtonLData.horizontalAlignment = GridData.END;
@@ -440,7 +439,7 @@ public class MarketsSettings extends Composite {
 								provider.addIndices(Indice.parseString(selectedMarketListIndices), true);
 							}
 							
-							updatePrefs(selectedMarketShareListId.getSharesListCmdParam(), selectedMarketListIndices,  selectedQuotationProvider);
+							SharesListId.updatePrefs(selectedMarketShareListId.getSharesListCmdParam(), selectedMarketListIndices,  selectedQuotationProvider);
 							
 							getShell().dispose();
 						}
@@ -451,18 +450,6 @@ public class MarketsSettings extends Composite {
 			}
 		}
 		getShell().pack();
-	}
-	
-	//TODO :several share lists ie use the share lists in db instead of props.
-	private void updatePrefs(String shareListName, String indices, String quotationProvider) {
-		MainPMScmd.getPrefs().put("quotes.listprovider", shareListName);
-		MainPMScmd.getPrefs().put("quotes.listproviderindices", indices);
-		MainPMScmd.getPrefs().put("quotes.provider", quotationProvider);
-		try {
-			MainPMScmd.getPrefs().flush();
-		} catch (BackingStoreException e) {
-			LOGGER.error(e,e);
-		}
 	}
 	
 	interface RadioAction {
@@ -487,7 +474,7 @@ public class MarketsSettings extends Composite {
 		final int fRadioIdx = radioIdx;
 		
 		//Radios
-		shareListRadio[radioIdx] = new Button(this, SWT.RADIO);
+		shareListRadio[radioIdx] = new Button(this, SWT.RADIO | SWT.LEAD);
 		String[] sharelistNameSplit = shareListName.split(",");
 		shareListRadio[radioIdx].setText(shareListId.getSharesListCmdParam() + ((sharelistNameSplit.length > 1)?" (" + sharelistNameSplit[1] + ")":""));
 		shareListRadio[radioIdx].setFont(MainGui.DEFAULTFONT);

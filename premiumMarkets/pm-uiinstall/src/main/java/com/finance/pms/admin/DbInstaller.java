@@ -62,9 +62,6 @@ import org.apache.tools.tar.TarInputStream;
  */
 public class DbInstaller extends Observable {
 	
-	/** The LOGGER. */
-	//protected static MyLogger LOGGER = MyLogger.getLogger(DbInstaller.class);
-	
 	private InputStream fis;
 	
 	/** The extract dir. */
@@ -126,7 +123,6 @@ public class DbInstaller extends Observable {
 					
 					this.setChanged();
 					this.notifyObservers("extracting "+destPath.getAbsolutePath());
-					//displayTime("extracting "+destPath.getAbsolutePath());
 					
 				} else {
 					System.out.println("Creating directory " + destPath.getAbsoluteFile());
@@ -136,12 +132,10 @@ public class DbInstaller extends Observable {
 			}
 			tis.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		} 
 		catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
@@ -174,7 +168,6 @@ public class DbInstaller extends Observable {
 				ze = zI.getNextEntry();
 			}
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
 			throw new NoPreparedDbException();
@@ -251,7 +244,8 @@ public class DbInstaller extends Observable {
 				psQuotation.setString(1, null);
 				psQuotation.setString(2, fnNoExt.toUpperCase());
 				psQuotation.setString(3, lsdat[i].getAbsolutePath());
-				psQuotation.setString(4, ";");
+				//psQuotation.setString(4, ";");
+				psQuotation.setString(4, null);
 				psQuotation.setString(5, null);
 				psQuotation.setString(6, null);
 				psQuotation.setString(7, "1");

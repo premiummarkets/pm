@@ -54,16 +54,9 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 	
 	private MACD macd;
 	private Integer macdQuotationStartDateIdx;
-//	private SMA sma;
-//	private Integer smaQuotationStartDateIdx;
 	
 	public ZeroCrossMACDEventCalculator(Stock stock, MACD macd, SMA sma, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
-		
-//		this.sma = sma;
-//		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-//		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
-//		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 		
 		this.macd = macd;
 		macdQuotationStartDateIdx = macd.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
@@ -77,12 +70,10 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 		FormulatRes res = new FormulatRes(EventDefinition.PMMACDZEROCROSS);
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
-//		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
 		Integer macdIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx);
 		
 		{
 			//BULL : MACD above its signal line over 2 days cross over 0
-//			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			boolean isMacdAboveSignal = (macd.getSignal()[macdIndicatorIndex] < macd.getMacd()[macdIndicatorIndex]);	// 1rst macd > 1rst signal
 			boolean isMacdCrossingAboveZero = ( macd.getMacd()[macdIndicatorIndex-1] < 0) && (0 < macd.getMacd()[macdIndicatorIndex]); //masc crossed over 0
 			res.setBullishCrossOver(isMacdAboveSignal && isMacdCrossingAboveZero); 
@@ -91,7 +82,6 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 		
 		{
 			//BEAR : MACD below its signal line over 2 days cross below 0
-//			boolean isPriceBelowSMA = this.getCalculatorQuotationData().get(calculatorIndex).getClose().doubleValue() < sma.getSma()[smaIndicatorIndex];
 			boolean isMacdBelowSignal = (macd.getSignal()[macdIndicatorIndex] >  macd.getMacd()[macdIndicatorIndex]); 	// 1rst macd < 1rst signal
 			boolean isMacdCrossingBelowZero = ( macd.getMacd()[macdIndicatorIndex-1] > 0) && (0 > macd.getMacd()[macdIndicatorIndex]); //masc crossed bellow 0
 			res.setBearishCrossBellow(isMacdBelowSignal && isMacdCrossingBelowZero); 		
@@ -118,8 +108,7 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//return "CALCULATOR DATE, CALCULATOR QUOTE, SMA DATE, SMA QUOTE, SMA "+sma.getPeriod()+", MACD DATE, MACD QUOTE, MACD, SIGNAL,bearish, bullish\n";
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MACD DATE, MACD QUOTE, MACD, SIGNAL,bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MACD DATE, MACD QUOTE, MACD, SIGNAL, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
 	}
@@ -130,12 +119,9 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDZEROCROSS, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDZEROCROSS, EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,macdQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
-//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-//			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)] +","
 			+ this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
 			+ this.macd.getMacd()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100+"," 
 			+ this.macd.getSignal()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100;
@@ -151,6 +137,18 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx);
+		return new double[]
+				{
+				this.macd.getMacd()[indicatorIndexFromCalculatorQuotationIndex],
+				this.macd.getSignal()[indicatorIndexFromCalculatorQuotationIndex],
+				0
+				};
 	}
 
 	@Override

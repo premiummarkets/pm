@@ -47,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.httpclient.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -150,7 +151,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			}
 			try {
 				
-				DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -164,7 +165,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	}
 
 	@Override
-	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList dbStocks) {
+	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList dbStocks) throws HttpException {
 		
 		String shareListDescrTxt = this.getSharesListIdEnum()+" with indices "+this.getIndices();
 		LOGGER.warn("From Web - "+this.getClass().getSimpleName()+" ( "+shareListDescrTxt+") : ", true);
@@ -284,10 +285,10 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					}
 					
 				}
-				LOGGER.guiInfo("Number of new tickers added to the list : " + inDBNewInList.size() + newStockRequestsSet.size());
+				LOGGER.guiInfo("Number of new tickers added to the list : " + (inDBNewInList.size() + newStockRequestsSet.size()));
 			
-				shareDAO.saveOrUpdateShare(newStockRequestsSet);
-				shareDAO.saveOrUpdateShareTrendInfo(supplementedStockFromWeb);
+				shareDAO.saveOrUpdateStocks(newStockRequestsSet);
+				shareDAO.saveOrUpdateStockTrendInfo(supplementedStockFromWeb);
 			}
 		} catch (Exception e) {
 			LOGGER.error("Can't update stock info for "+existingSharesList.getName()+". new supplemented Stocks : "+supplementedStockFromWeb,e);
@@ -341,7 +342,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	protected abstract LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders);
 
 	
-	protected abstract Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders);
+	protected abstract Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException;
 
 	public abstract void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock);
 	
@@ -389,7 +390,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			LOGGER.error(shutdownNow,e);
 		}
 		
-		shareDAO.saveOrUpdateShareTrendInfo(listTrendIns);
+		shareDAO.saveOrUpdateStockTrendInfo(listTrendIns);
 
 	}
 	

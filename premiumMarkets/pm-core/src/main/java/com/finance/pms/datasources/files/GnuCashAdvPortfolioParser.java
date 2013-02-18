@@ -334,7 +334,7 @@ public class GnuCashAdvPortfolioParser {
 		
 		try {
 			Stock stock;
-			if ((stock = shareDAO.loadShareByIsinOrSymbol(ref)) != null ) {
+			if ((stock = shareDAO.loadStockByIsinOrSymbol(ref)) != null ) {
 				return  stock;
 			}
 		} catch (DataAccessException e) {

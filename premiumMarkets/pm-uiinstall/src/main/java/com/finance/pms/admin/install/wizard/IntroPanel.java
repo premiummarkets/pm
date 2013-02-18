@@ -53,8 +53,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.Document;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class IntroPanel.
  * 
@@ -189,7 +187,7 @@ public class IntroPanel extends JPanel {
 
         contentPanel1.setLayout(new java.awt.BorderLayout());
 
-        welcomeTitle.setFont(new java.awt.Font("MS Sans Serif", Font.BOLD, 20));
+        welcomeTitle.setFont(new java.awt.Font("MS Sans Serif", Font.BOLD, 16));
         welcomeTitle.setText("Welcome to Premium Markets!");
         contentPanel1.add(welcomeTitle, java.awt.BorderLayout.NORTH);
 

@@ -108,24 +108,23 @@ public class Quotations {
 			requestedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
 		} else {
 			synchronized (Quotations.object) {
-				if (!this.isAllCached(stock, firstDate, lastDate, firstIndexShift)) {
+				requestedQuotationsData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
+				if (requestedQuotationsData == null) {
 					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
-					//QuotationData existingQuotationData = Quotations.QUOTATIONS_CACHE.get(stock);
 					QuotationData existingQuotationData = Quotations.getCashedStock(stock);
 					if (existingQuotationData == null) {
-						//Quotations.QUOTATIONS_CACHE.put(stock, retreivedQuotationsData);
+						requestedQuotationsData = retreivedQuotationsData;
 						Quotations.putCashedStock(stock, retreivedQuotationsData);
 					} else {
 						SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
 						quotationUnits.addAll(existingQuotationData);
 						quotationUnits.addAll(retreivedQuotationsData);
-						//Quotations.QUOTATIONS_CACHE.put(stock, new QuotationData(quotationUnits));
-						Quotations.putCashedStock(stock, new QuotationData(quotationUnits));
+						requestedQuotationsData = new QuotationData(quotationUnits);
+						Quotations.putCashedStock(stock, requestedQuotationsData);
 					}
 				}
 			}
-			//requestedQuotationsData = Quotations.QUOTATIONS_CACHE.get(stock);
-			requestedQuotationsData = Quotations.getCashedStock(stock);
+			//requestedQuotationsData = Quotations.getCashedStock(stock);
 		}
 		this.setQuotationData(requestedQuotationsData);
 
@@ -140,17 +139,21 @@ public class Quotations {
 	}
 
 
-	protected boolean isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
-		//QuotationData cachedQuotationData = Quotations.QUOTATIONS_CACHE.get(stock);
+	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
 		QuotationData cachedQuotationData = Quotations.getCashedStock(stock);
 	
 		QuotationUnit lastQU;
-		return Quotations.QUOTATIONS_CACHE.containsKey(stock)
+		boolean isCached = Quotations.QUOTATIONS_CACHE.containsKey(stock)
 									&& cachedQuotationData != null
 									&& !cachedQuotationData.isEmpty()
 									&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0
 									&& ( (lastQU = cachedQuotationData.get(cachedQuotationData.size()-1)).getDate().compareTo(lastDate) >= 0 || lastQU.getDate().compareTo(stock.getLastQuote()) == 0 )
 									&& cachedQuotationData.getClosestIndexForDate(0, firstDate) >= indexShift;
+		if (isCached) {
+			return cachedQuotationData;
+		} else {
+			return null;
+		}
 	}
 
 
@@ -544,13 +547,15 @@ public class Quotations {
 		return quotationData;
 	}
 
-	public static void removeCashedStock(Stock stock) {
+	public static void updateCachedStockKey(Stock stock) {
 
-		//Quotations.QUOTATIONS_CACHE.remove(stock);
-		SoftReference<QuotationData> softRef = Quotations.QUOTATIONS_CACHE.remove(stock);
-		if (softRef!=null) {
-			softRef.clear();
-		}
+		//		SoftReference<QuotationData> softRef = Quotations.QUOTATIONS_CACHE.remove(stock);
+		//		if (softRef!=null) {
+		//			softRef.clear();
+		//		}
+		SoftReference<QuotationData> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
+		if (softReference != null) Quotations.QUOTATIONS_CACHE.put(stock, softReference);
+
 	}
 	
 	public static void putCashedStock(Stock stock, QuotationData quotationData) {

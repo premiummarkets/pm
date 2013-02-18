@@ -43,6 +43,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -717,6 +719,7 @@ public class TrendSupplementedStock extends Validatable {
 	}
 
 	@Id
+	@Temporal(TemporalType.DATE)
 	public Date getTrendDate() {
 		return trendDate;
 	}
@@ -751,7 +754,7 @@ public class TrendSupplementedStock extends Validatable {
 		if (trendDate == null) {
 			if (other.trendDate != null)
 				return false;
-		} else if (!trendDate.equals(other.trendDate))
+		} else if (trendDate.compareTo(other.trendDate) != 0)
 			return false;
 		return true;
 	}

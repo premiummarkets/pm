@@ -131,7 +131,7 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 			}
 			try {
 				//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
-				DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReq);
+				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 //			} catch (SQLException e) {
 //				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :"
 //						+ e.getMessage() + " cause : " + e.getCause());
@@ -215,7 +215,7 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 		LOGGER.info("Tickers to be added : " + listReqIns);
 		try {
 //			DataSource.getInstance().executeBlock(listReqIns, DataSource.SHARES.getINSERT());
-			DataSource.getInstance().getShareDAO().saveOrUpdateShare(listReqIns);
+			DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReqIns);
 //		} catch (SQLException e) {
 //			LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated :"
 //					+ e.getMessage() + " cause : " + e.getCause());

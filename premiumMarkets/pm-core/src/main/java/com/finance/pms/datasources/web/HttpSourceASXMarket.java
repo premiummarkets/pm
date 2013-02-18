@@ -53,7 +53,7 @@ public class HttpSourceASXMarket extends HttpSourceMarket {
 	
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String...params) {
-		return "http://www.asx.com.au/asx/downloadCsv/ASXListedCompanies.csv";
+		return "http://www.asx.com.au/asx/research/ASXListedCompanies.csv";
 	}
 
 	@Override

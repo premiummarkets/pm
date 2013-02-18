@@ -59,8 +59,6 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 	
-//	HouseAroon aroon;
-//	private Integer aroonQuotationStartDateIdx;
 	private StochasticOscillator stochOsc;
 	private Integer stochQuotationStartDateIdx;
 	
@@ -69,11 +67,6 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 
 	public StochasticDivergence(Stock stock, StochasticOscillator stochasticOscillator, HouseAroon aroon, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
-		
-//		this.aroon = sma;
-//		aroonQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-//		Integer aroonQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(aroonQuotationStartDateIdx, endDate);
-//		isValidData(stock, sma, startDate, aroonQuotationStartDateIdx, aroonQuotationEndDateIdx);
 		
 		this.stochOsc = stochasticOscillator;
 		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
@@ -96,10 +89,7 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
-
-//		Boolean isAroonBullish = false;
-//		Boolean isAroonBearish = false;
-//		
+	
 		FormulatRes res = new FormulatRes(EventDefinition.PMSSTOCHDIVERGENCE);
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
@@ -123,9 +113,6 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 		}
 		
 		{
-//			Boolean isPriceDown = dataSlope(quotationLookBackP) < 0;
-//			boolean isStochStartingBelowThreshold = this.stochOsc.getSlowK()[stochIdx - getDaysSpan()] < this.stochOsc.getLowerThreshold();
-//			Boolean isStochUp = dataSlope(chaikinLookBackP) > 0 && isStochStartingBelowThreshold;
 			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isStochUp = higherLow(stochLookBackP, lowThreshLookBackP);
 			res.setBullishCrossOver(isPriceDown && isStochUp); 
@@ -134,8 +121,6 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 
 		}
 		{
-//			Boolean isPriceUp = dataSlope(quotationLookBackP) > 0;
-//			Boolean isStochDown = dataSlope(stochLookBackP) < 0 && this.stochOsc.getSlowK()[stochIdx - getDaysSpan()] > this.stochOsc.getUpperThreshold();
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isStochDown = lowerHigh(stochLookBackP, upperThreshLookBackP);
 			res.setBearishCrossBellow(isPriceUp && isStochDown);
@@ -168,7 +153,6 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//return "CALCULATOR DATE; CALCULATOR QUOTE; STOCH DATE; STOCH SLOW K; STOCH SLOW D ; bearish; bullish\n";	
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, LOW TH, UP TH, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -204,6 +188,19 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
 		
 		return line;
+	}
+	
+	@Override
+	protected double[] buildOneOutput(int calculatorIndex) {
+			
+		int stochIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.stochOsc, calculatorIndex, stochQuotationStartDateIdx);
+		return new double[]
+				{
+				this.stochOsc.getSlowK()[stochIndex],
+				this.stochOsc.getSlowD()[stochIndex],
+				this.stochOsc.getLowerThreshold(),
+				this.stochOsc.getUpperThreshold(),
+				};
 	}
 
 	@Override

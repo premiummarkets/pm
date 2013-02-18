@@ -214,7 +214,7 @@ public class GnuCashTransactionReportParser {
 			
 			BigDecimal amount =  gnuCashParserHelper.calculateBigDecimal(amountString[0].trim());
 			String symbol = amountString[1].trim();
-			Stock stock = DataSource.getInstance().getShareDAO().loadShareByIsinOrSymbol(symbol);
+			Stock stock = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(symbol);
 			
 			if (stock == null) {
 				LOGGER.warn("No stock for symbol or isin : "+symbol);

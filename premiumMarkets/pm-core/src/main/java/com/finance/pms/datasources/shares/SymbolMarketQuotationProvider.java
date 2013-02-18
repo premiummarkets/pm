@@ -53,11 +53,9 @@ public class SymbolMarketQuotationProvider implements Serializable {
 	
 	private static final long serialVersionUID = 2005494963121200376L;
 
-	/** The market quotation providers list. */
 	@Enumerated(EnumType.STRING)
 	private MarketQuotationProviders marketQuotationProvider;
-	
-	/** The extention clue. */
+
 	@Transient
 	private String extentionClue;
 	

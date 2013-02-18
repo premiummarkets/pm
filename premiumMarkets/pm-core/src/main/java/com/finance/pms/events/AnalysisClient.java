@@ -192,15 +192,14 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     	//All Buy and Sell signals from auto portfolios and monitored user portfolios
     	//Sell signal from sell only monitored portfolios
     	Boolean isValidPmUserEvent = source.equals(EventSource.PMUserBuySell) && symbolEvents.getStock().equals(ANY_STOCK);
-		Boolean isValidAutoBuySellSignal = source.equals(EventSource.PMAutoBuySell) || ( source.equals(EventSource.PMUserBuySell)  && isMonitoredForPortfolio );
-		Boolean isSellMonitoredForPortfolio = PortfolioMgr.getInstance().isSellMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
-		Boolean isValidMonitoredSellOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isSellMonitoredForPortfolio && (eventType.equals(EventType.BEARISH) || eventType.equals(EventType.INFO));
-		Boolean isBuyMonitoredForPortfolio = PortfolioMgr.getInstance().isBuyMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
-		Boolean isValidMonitoredBuyOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isBuyMonitoredForPortfolio && (eventType.equals(EventType.BULLISH) || eventType.equals(EventType.INFO));
+		//Boolean isValidAutoBuySellSignal = source.equals(EventSource.PMAutoBuySell) || ( source.equals(EventSource.PMUserBuySell)  && isMonitoredForPortfolio );
+		//Boolean isSellMonitoredForPortfolio = PortfolioMgr.getInstance().isSellMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
+		//Boolean isValidMonitoredSellOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isSellMonitoredForPortfolio && (eventType.equals(EventType.BEARISH) || eventType.equals(EventType.INFO));
+		//Boolean isBuyMonitoredForPortfolio = PortfolioMgr.getInstance().isBuyMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
+		//Boolean isValidMonitoredBuyOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isBuyMonitoredForPortfolio && (eventType.equals(EventType.BULLISH) || eventType.equals(EventType.INFO));
 		
-		Boolean isValidEventSource = 
-				isValidAlertEvent || isValidScreeningEvent || isValidScreeningMessage || isValidWeatherEvent || 
-				isValidPmUserEvent || isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
+		Boolean isValidEventSource = isValidAlertEvent || isValidScreeningEvent || isValidScreeningMessage || isValidWeatherEvent || isValidPmUserEvent ; 
+									//|| isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
 		if 	( sendMailEnabled && isValidEventSource ) {
 			LOGGER.info(
 	    			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
