@@ -16,6 +16,10 @@ CNX 100 : Bank of india
 
 - run http://premiummarkets.elasticbeanstalk.com/adminGWT.html?notifyUsers
 	-> change BEARISH <-> BULLISH for my EMAIL.
+	select EMAIL, SYMBOL,ISIN,NAME,REGISTRATIONDATE,REGISTRATIONFORECAST,ISACTIVE,EVENTDEFINITION,STOCKPARAMS from USERS where EMAIL='guillaume.thoreton@gmail.com';
+	update USERS set REGISTRATIONFORECAST='TOTO' where EMAIL='guillaume.thoreton@gmail.com' and REGISTRATIONFORECAST='BULLISH';
+	update USERS set REGISTRATIONFORECAST='BULLISH'  where EMAIL='guillaume.thoreton@gmail.com' and REGISTRATIONFORECAST='BEARISH';
+	update USERS set REGISTRATIONFORECAST='BEARISH' where EMAIL='guillaume.thoreton@gmail.com' and REGISTRATIONFORECAST='TOTO';
 
 - run http://premiummarkets.elasticbeanstalk.com/GlobalForecast.html
 	-> check filters and sort
