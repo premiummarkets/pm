@@ -103,7 +103,6 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries),tablet2lock);
 		
-		//return extractLastDateFrom(queries);
 	}
 
 	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {

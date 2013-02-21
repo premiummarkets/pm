@@ -42,9 +42,7 @@ import com.finance.pms.datasources.shares.Currency;
 
 public class CurrencyDAOImpl extends HibernateDaoSupport implements CurrencyDAO {
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.currency.CurrencyDao#storeCurrencyRates(java.util.List)
-	 */
+
 	public void storeCurrencyRates(List<CurrencyRate> currencyRates) {
 		for (CurrencyRate currencyRate : currencyRates) {
 			this.getHibernateTemplate().merge(currencyRate);
@@ -52,10 +50,10 @@ public class CurrencyDAOImpl extends HibernateDaoSupport implements CurrencyDAO 
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<CurrencyRate> getRates(Currency formCurrency,Currency toCurrency) {
+	public List<CurrencyRate> getRates(Currency fromCurrency,Currency toCurrency) {
 		
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(CurrencyRate.class).addOrder(Order.asc("date"));
-		detachedCriteria.add(Restrictions.eq("fromCurrency", formCurrency));	
+		detachedCriteria.add(Restrictions.eq("fromCurrency", fromCurrency));	
 		detachedCriteria.add(Restrictions.eq("toCurrency", toCurrency));	
 		
 		return this.getHibernateTemplate().findByCriteria(detachedCriteria);

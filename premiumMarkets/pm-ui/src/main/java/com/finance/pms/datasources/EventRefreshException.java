@@ -8,10 +8,6 @@ public class EventRefreshException extends RuntimeException {
 		super();
 	}
 
-	public EventRefreshException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 	public EventRefreshException(String message, Throwable cause) {
 		super(message, cause);
 	}

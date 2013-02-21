@@ -56,7 +56,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TreeEvent;
 import org.eclipse.swt.events.TreeListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -114,7 +113,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
  */
 @SuppressWarnings("unchecked")
 public class EventsComposite extends Composite implements RefreshableView {
-	/** The LOGGER. */
+
 	public static MyLogger LOGGER = MyLogger.getLogger(EventsComposite.class);
 	/** The events c tab folder. */
 	private CTabFolder eventsCTabFolder;
@@ -275,9 +274,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 			
 			GridLayout thisLayout = new GridLayout();
 			thisLayout.numColumns = 2;
+			thisLayout.verticalSpacing = 0;
+			thisLayout.horizontalSpacing=0;
+			thisLayout.marginHeight=0;
+			thisLayout.marginWidth=0;
 			this.setLayout(thisLayout);
 			
-			this.setBackground(new Color(getDisplay(), 239, 183, 103));
+			this.setBackground(MainGui.eVENTS_DARKER);
 			{
 				eventsCTabFolder = new CTabFolder(this, SWT.NONE);
 				GridData cTabFolder1LData = new GridData();
@@ -288,8 +291,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 				cTabFolder1LData.grabExcessVerticalSpace = true;
 				cTabFolder1LData.heightHint = 500;
 				eventsCTabFolder.setLayoutData(cTabFolder1LData);
-				eventsCTabFolder.setBackground(new Color(getDisplay(), 239, 203, 152));
-				eventsCTabFolder.setSelectionBackground(new Color(getDisplay(), 239, 183, 103));
+				eventsCTabFolder.setBackground(MainGui.eVENTS_LIGHT);
+				eventsCTabFolder.setSelectionBackground(MainGui.tAB_SELECTION);
 				buildEventsTab();
 				eventsCTabFolder.setSelection(0);
 			}
@@ -302,10 +305,10 @@ public class EventsComposite extends Composite implements RefreshableView {
 				criteriasgroup.setLayout(group1Layout2);
 				criteriasgroup.setText("Trend sorting criteria :");
 				criteriasgroup.setFont(MainGui.DEFAULTFONT);
-				criteriasgroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+				criteriasgroup.setBackground(MainGui.eVENTS_LIGHT);
 				{
 					buyWeigthCritLabel = new Label(criteriasgroup, SWT.PUSH | SWT.CENTER);
-					buyWeigthCritLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					buyWeigthCritLabel.setBackground(MainGui.eVENTS_LIGHT);
 					buyWeigthCritLabel.setText("Buy weigth is >= ");
 					buyWeigthCritLabel.setFont(MainGui.DEFAULTFONT);
 				}
@@ -323,7 +326,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 				}
 				{
 					sellCriteriaWeigthLabel = new Label(criteriasgroup, SWT.CENTER);
-					sellCriteriaWeigthLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					sellCriteriaWeigthLabel.setBackground(MainGui.eVENTS_LIGHT);
 					sellCriteriaWeigthLabel.setText("Sell weigth is <= ");
 					sellCriteriaWeigthLabel.setFont(MainGui.DEFAULTFONT);
 				}
@@ -341,7 +344,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 				}
 				{
 					dateCriteriaLabel = new Label(criteriasgroup, SWT.PUSH | SWT.CENTER);
-					dateCriteriaLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					dateCriteriaLabel.setBackground(MainGui.eVENTS_LIGHT);
 					dateCriteriaLabel.setText("Start on the");
 					dateCriteriaLabel.setToolTipText("This is the start date you wish to see the events from. Date format is dd MMM yyyy");
 					dateCriteriaLabel.setFont(MainGui.DEFAULTFONT);
@@ -382,7 +385,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 				sortButtonGroup.setLayout(group1Layout1);
 				sortButtonGroup.setText("Event weight filters :");
 				sortButtonGroup.setFont(MainGui.DEFAULTFONT);
-				sortButtonGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+				sortButtonGroup.setBackground(MainGui.eVENTS_LIGHT);
 				{
 					final Combo combo = new Combo(sortButtonGroup, SWT.NONE);
 					GridData group1LData = new GridData(SWT.BEGINNING,SWT.TOP,true,false);
@@ -422,13 +425,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 			}
 			{
 				filterButtonGroup = new Group(this, SWT.NONE);
-				GridData group1LData1 = new GridData(SWT.FILL,SWT.TOP,true,false);
+				GridData group1LData1 = new GridData(SWT.FILL,SWT.FILL,true,true);
 				filterButtonGroup.setLayoutData(group1LData1);
 				GridLayout group1Layout1 = new GridLayout();
 				filterButtonGroup.setLayout(group1Layout1);
 				filterButtonGroup.setText("Show Only :");
 				filterButtonGroup.setFont(MainGui.DEFAULTFONT);
-				filterButtonGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+				filterButtonGroup.setBackground(MainGui.eVENTS_LIGHT);
 				{
 					moniteredFilterbutton = new Button(filterButtonGroup, SWT.RADIO | SWT.LEAD);
 					moniteredFilterbutton.setText(EventsActionFilter.FILTERMONITOREDTXT.getText());
@@ -521,7 +524,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 				refreshButtonGroup.setLayout(group1Layout1);
 				refreshButtonGroup.setText("Compute Events for :");
 				refreshButtonGroup.setFont(MainGui.DEFAULTFONT);
-				refreshButtonGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+				refreshButtonGroup.setBackground(MainGui.eVENTS_LIGHT);
 				{
 					quotationBox = new Button(refreshButtonGroup, SWT.CHECK);
 					GridData group1LData2 =  new GridData(SWT.FILL, SWT.TOP,true,false);

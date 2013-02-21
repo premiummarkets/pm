@@ -34,7 +34,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -122,7 +121,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 			dialogShellLayout.verticalSpacing = 20;
 			dialogShellLayout.numColumns = 2;
 			dialogShell.setLayout(dialogShellLayout);
-			dialogShell.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+			dialogShell.setBackground(MainGui.pOPUP_BG);
 			{
 				Errorlabel1 = new Label(dialogShell, SWT.NONE);
 				Errorlabel1.setText("Warning!");
@@ -134,7 +133,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				Errorlabel1LData.grabExcessHorizontalSpace = true;
 				Errorlabel1.setLayoutData(Errorlabel1LData);
 				Errorlabel1.setAlignment(SWT.CENTER);
-				Errorlabel1.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				Errorlabel1.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				StyledText text = new StyledText(dialogShell, SWT.NONE);
@@ -144,7 +143,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				text.setText("Ticking the following box, will sell the share at the current price and apply the transaction to the portfolio.\n" +
 							"Otherwise, the raw amounts in and out will be substracted from the total amounts as they are (ie all transactions on that line are canceled.)");
 				text.setFont(MainGui.DEFAULTFONT);
-				text.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				text.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				applyToAmount = new Button(dialogShell, SWT.CHECK);

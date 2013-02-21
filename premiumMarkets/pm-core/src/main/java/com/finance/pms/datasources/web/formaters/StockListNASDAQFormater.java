@@ -46,7 +46,6 @@ import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.MyUrl;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class StockListNASDAQFormater.
  * 
@@ -54,11 +53,8 @@ import com.finance.pms.datasources.web.MyUrl;
  */
 public class StockListNASDAQFormater extends LineFormater {
 	
-	
-	/** The stock categorie. */
+
 	StockCategories stockCategorie;
-	
-	/** The providers types. */
 	MarketQuotationProviders marketQuotationsProviders;
 	
 	/**
@@ -76,10 +72,6 @@ public class StockListNASDAQFormater extends LineFormater {
 		this.marketQuotationsProviders = marketQuotationsProviders;
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.formaters.LineFormater#formatLine(java.lang.String)
-	 */
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		List<Validatable> retour = new ArrayList<Validatable>();
@@ -103,7 +95,7 @@ public class StockListNASDAQFormater extends LineFormater {
 						removeTextDelim(strArray[0],textDelim), 
 						true,
 						this.stockCategorie,
-						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
+						new SymbolMarketQuotationProvider(this.marketQuotationsProviders, SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						new MarketValuation(Market.NASDAQ),
 						"",TradingMode.CONTINUOUS,0l));
 			}

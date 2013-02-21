@@ -8,10 +8,6 @@ public class StockListRefreshException extends RuntimeException {
 		super();
 	}
 
-	public StockListRefreshException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 	public StockListRefreshException(String message, Throwable cause) {
 		super(message, cause);
 	}

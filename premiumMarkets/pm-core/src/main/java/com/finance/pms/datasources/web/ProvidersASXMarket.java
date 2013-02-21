@@ -33,8 +33,6 @@ package com.finance.pms.datasources.web;
 import java.util.Comparator;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
@@ -89,7 +87,7 @@ public class ProvidersASXMarket extends ProvidersMarket {
 
 	@Override
 	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
-		throw new NotImplementedException();
+		//throw new NotImplementedException();
 		
 	}
 	

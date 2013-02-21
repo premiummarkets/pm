@@ -30,7 +30,6 @@
  */
 package com.finance.pms.datasources.shares;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BoursoramaSymbolNameResolver.
  * 
@@ -38,27 +37,14 @@ package com.finance.pms.datasources.shares;
  */
 public class BoursoramaSymbolNameResolver extends SymbolNameResolver {
 	
-	/** The LOGGER. */
-	//private static MyLogger LOGGER = MyLogger.getLogger(BoursoramaSymbolNameResolver.class);
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.shares.SymbolNameResolver#resolveExtensionFromClue(java.lang.String)
-	 */
 	@Override
 	public String resolveExtensionFromClue(String extensionClue) {
 		return SymbolNameResolver.UNKNOWNEXTENSION;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.shares.SymbolNameResolver#resolveClueFromExtension(java.lang.String)
-	 */
 	@Override
 	public String resolveClueFromExtension(String extension) {
 		return SymbolNameResolver.UNKNOWNEXTENSIONCLUE;
 	}
 	
-	
-	
-	
-
 }

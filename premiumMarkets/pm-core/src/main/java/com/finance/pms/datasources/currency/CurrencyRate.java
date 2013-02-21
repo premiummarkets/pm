@@ -63,6 +63,13 @@ public class CurrencyRate extends Validatable {
 	private CurrencyRate() {
 		
 	}
+	
+	public CurrencyRate(CurrencyRate other) {
+		this.fromCurrency = other.fromCurrency;
+		this.toCurrency = other.toCurrency;
+		this.date = other.date;
+		this.rate = other.rate;
+	}
 
 	public CurrencyRate(Currency fromCurrency, Currency toCurrency, Date date, BigDecimal rate) {
 		super();
@@ -80,9 +87,10 @@ public class CurrencyRate extends Validatable {
 		this.rate = new BigDecimal(rate).setScale(4,BigDecimal.ROUND_DOWN);
 	}
 
+	
 	@Override
 	public Query toDataBase() {
-		 throw new NotImplementedException();
+		throw new NotImplementedException();
 	}
 
 	public int compareTo(Validatable otherCurrency) {

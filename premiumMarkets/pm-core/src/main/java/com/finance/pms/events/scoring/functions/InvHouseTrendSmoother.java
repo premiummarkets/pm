@@ -64,7 +64,6 @@ public class InvHouseTrendSmoother extends Smoother {
 			List<Date> qKeys = new ArrayList<Date>(pQs.keySet());
 			start = (houseTrend.firstKey().before(qKeys.get(period)))?qKeys.get(period):houseTrend.firstKey();
 	
-			//int indexOfStart = qKeys.indexOf(start);
 			int indexOfStart = -1;
 			for (indexOfStart = 0;indexOfStart < qKeys.size(); indexOfStart++) {
 				if (qKeys.get(indexOfStart).compareTo(start)  == 0|| qKeys.get(indexOfStart).after(start)) {

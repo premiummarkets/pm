@@ -82,9 +82,7 @@ public enum SharesListId {
 	UNKNOWN ("unknown",ProvidersTypes.NONE,"No comment","No market", false, new String[0]);
 
 
-	
 
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);
 
 	private String sharesListCmdParam;

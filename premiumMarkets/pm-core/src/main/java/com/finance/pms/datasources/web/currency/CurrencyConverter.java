@@ -28,11 +28,13 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.web;
+package com.finance.pms.datasources.web.currency;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
+import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.MarketValuation;
 
@@ -41,4 +43,6 @@ public interface CurrencyConverter {
 	BigDecimal convert(Currency fromCurrency, Currency toCurrency, BigDecimal amount, Date date);
 	
 	BigDecimal convert(MarketValuation fromCurrency, Currency toCurrency, BigDecimal amount, Date date);
+	
+	List<CurrencyRate> fetchRateHistoryUpTo(Currency fromCurrency, Currency toCurrency, Date date);
 }

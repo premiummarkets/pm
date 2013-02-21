@@ -59,9 +59,6 @@ public class DayQuoteInflationFormater extends LineFormater {
 	
 	private Calendar startDate;
 
-//	<td align="center" style="font-size:X-Small;white-space:nowrap;">2011</td><td align="right" style="font-size:X-Small;white-space:nowrap;">220.223</td><td align="right" style="font-size:X-Small;white-space:nowrap;">221.309</td><td align="right" style="font-size:X-Small;white-space:nowrap;">223.467</td><td align="right" style="font-size:X-Small;white-space:nowrap;">224.906</td><td align="right" style="font-size:X-Small;white-space:nowrap;">225.964</td><td align="right" style="font-size:X-Small;white-space:nowrap;">225.722</td><td align="right" style="font-size:X-Small;white-space:nowrap;">225.922</td><td align="right" style="font-size:X-Small;white-space:nowrap;">226.545</td><td align="right" style="font-size:X-Small;white-space:nowrap;">226.889</td><td align="right" style="font-size:X-Small;white-space:nowrap;">226.421</td><td align="right" style="font-size:X-Small;white-space:nowrap;">226.230</td><td align="right" style="font-size:X-Small;white-space:nowrap;">&nbsp;</td><td align="right" style="font-size:X-Small;white-space:nowrap;">&nbsp;</td>
-
-    
 	public DayQuoteInflationFormater(MyUrl url, Stock stock, String currency, Date startDate) {
 		super(url);
 		params.add(stock);

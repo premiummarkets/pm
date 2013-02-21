@@ -144,7 +144,6 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 
 		LOGGER.guiInfo("Downloaded for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + lastQuoteDate + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
 
-		//Quotations.removeCashedStock(stock);
 		Quotations.updateCachedStockKey(stock);
 		ret.hasQuotations = true;
 		

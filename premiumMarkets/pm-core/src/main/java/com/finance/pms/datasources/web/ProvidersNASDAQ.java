@@ -88,25 +88,16 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 		// Nothing
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#getStockRefName(com.finance.pms.datasources.shares.Stock)
-	 */
 	@Override
 	public String getStockRefName(Stock stock) {
 		return stock.getSymbol();
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#getQuotes(com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date)
-	 */
+
 	@Override
 	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
 		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveAndCompleteStockInfo(com.finance.pms.datasources.shares.Stock, com.finance.pms.datasources.shares.StockList)
-	 */
 	@Override
 	public void retrieveAndCompleteStockInfo(Stock s, StockList stockList) {
 		
@@ -130,28 +121,18 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 				stockList.get(stockList.indexOf(s)).setName(s.getName());
 			}
 			try {
-				//DataSource.getInstance().executeBlock(listReq, DataSource.SHARES.getINSERT());
 				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
-//			} catch (SQLException e) {
-//				LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated. Sql :"
-//						+ e.getMessage() + " cause : " + e.getCause());
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveStockListFromCmdLine(java.util.List)
-	 */
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks,StockList stockList, String quotationsProvider) {
 		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveStockListFromWeb(com.finance.pms.datasources.shares.MarketQuotationProviders, com.finance.pms.datasources.shares.StockList)
-	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	//TODO Merge. One and only methods for all providers
@@ -214,11 +195,7 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 		LOGGER.guiInfo("Number of tickers to be added : " + listReqIns.size());
 		LOGGER.info("Tickers to be added : " + listReqIns);
 		try {
-//			DataSource.getInstance().executeBlock(listReqIns, DataSource.SHARES.getINSERT());
 			DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReqIns);
-//		} catch (SQLException e) {
-//			LOGGER.warn("Warning, this ticker is already in database. Only quotations will be updated :"
-//					+ e.getMessage() + " cause : " + e.getCause());
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}

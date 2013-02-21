@@ -58,7 +58,7 @@ import org.hibernate.annotations.FetchMode;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.web.CurrencyConverter;
+import com.finance.pms.datasources.web.currency.CurrencyConverter;
 import com.finance.pms.portfolio.Transaction.TransactionType;
 
 

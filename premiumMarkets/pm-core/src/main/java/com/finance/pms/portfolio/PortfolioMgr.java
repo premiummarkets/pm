@@ -42,8 +42,8 @@ import org.springframework.context.ApplicationContextAware;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.web.Converter;
-import com.finance.pms.datasources.web.CurrencyConverter;
+import com.finance.pms.datasources.web.currency.CurrencyConverter;
+import com.finance.pms.datasources.web.currency.CurrencyConverterImpl;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.SilentPonderationRule;
 
@@ -68,7 +68,7 @@ public class PortfolioMgr implements ApplicationContextAware {
  	private List<Portfolio> oldPortfolios;
 
 	private PortfolioDAO portfolioDAO;
-	private Converter currencyConverter;
+	private CurrencyConverterImpl currencyConverter;
 
 	ApplicationContext applicationContext;
 	
@@ -77,7 +77,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public PortfolioMgr(PortfolioDAO portfolioDAO,Converter currencyConverter) {
+	public PortfolioMgr(PortfolioDAO portfolioDAO,CurrencyConverterImpl currencyConverter) {
 		
 		this.portfolioDAO = portfolioDAO;
 		this.portfolios = portfolioDAO.loadVisiblePortfolios();

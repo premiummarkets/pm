@@ -31,36 +31,36 @@
 package com.finance.pms.datasources.web;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.httpclient.HttpException;
 
-import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.web.formaters.DailyQuotation;
-import com.finance.pms.datasources.web.formaters.DayQuoteInflationFormater;
-import com.finance.pms.datasources.web.formaters.LineFormater;
+import com.finance.pms.portfolio.PortfolioMgr;
 
-public class ProvidersInflation extends Providers implements QuotationProvider{
+public class ProvidersCurrency extends Providers implements QuotationProvider {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
+	//private static MyLogger LOGGER = MyLogger.getLogger(ProvidersCurrency.class);
 
 	public static final String SYMBOL = "Inflation";
 
-	public ProvidersInflation(String pathToProps) {
+	public ProvidersCurrency(String pathToProps) {
 		super();
-		this.httpSource = new HttpSourceInflation(pathToProps, this);
 	}
 
 	@Override
@@ -79,36 +79,55 @@ public class ProvidersInflation extends Providers implements QuotationProvider{
 	}
 
 	@Override
-	public void getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
+	public void getQuotes(final Stock currencyStock, Date start, Date end) throws SQLException, HttpException {
 		
 		
-		if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
-			throw new RuntimeException("Error : This should be used to retreive inflation historical only, not : "+stock.toString());
+		if (!currencyStock.getCategory().equals(StockCategories.CURRENCY_RATE)) {
+			throw new RuntimeException("Error : This should be used to retreive currency historical only, not : "+currencyStock.toString());
 		}
 		
-		long twoMonthAndHalf = (long) 1000*60*60*24*31*2 + 1000*60*60*24*15;
-		SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
-		if (stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime()) {//Inflation can be updated monthly only
-			throw new HttpException("Inflation data can be updated once in a month only.\nYou requested an update for the month preceeding "+sdf.format(end)+"\n and the last update was in the month following "+sdf.format(stock.getLastQuote()));
-		}
-
-		MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
-
-		TreeSet<Validatable> queries = initValidatableSet();
-
-		LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
-		List<Validatable> urlResults = this.httpSource.readURL(dsf);
-		for (Validatable validatable : urlResults) {
-			if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
-				queries.add(validatable);
+		TreeSet<Validatable> queries = new TreeSet<Validatable>();
+		
+		String[] symbolIsinSplit = currencyStock.getSymbol().split("Per");
+		Currency referee = Currency.valueOf(symbolIsinSplit[1]);
+		Currency target = Currency.valueOf(symbolIsinSplit[0]);
+		
+		List<CurrencyRate> rates = PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end);
+		if (rates != null && !rates.isEmpty()) {
+			for (CurrencyRate rate : rates) {
+				
+					Validatable currencyStockQuotation = new CurrencyRate(rate) {
+						private static final long serialVersionUID = 1L;
+	
+						@Override
+						public Query toDataBase() {
+							
+							LinkedList<Comparable<?>> mainQuery = new LinkedList<Comparable<?>>();
+							
+							mainQuery.add(getDate());
+							mainQuery.add(getRate());
+							mainQuery.add(getRate());
+							mainQuery.add(getRate());
+							mainQuery.add(getRate());
+							mainQuery.add(new Long(0));
+							
+							Query iq = new Query();
+							iq.addValuesList(mainQuery);
+							iq.addValue(Currency.NAN.name());
+							iq.addValue(currencyStock.getSymbol());
+							iq.addValue(currencyStock.getIsin());	
+							return iq;
+						}
+					};
+					queries.add(currencyStockQuotation);
 			}
+			
+			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
+			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			
+			currencyStock.setLastQuote(rates.get(rates.size()-1).getDate());
 		}
-
-		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" : "+queries.size());
-		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
-		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
-
 	}
 
 	@Override

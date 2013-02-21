@@ -5,6 +5,7 @@ alter table USERS add column `NAME` VARCHAR(255) NOT NULL;
 alter table USERS change column NAME NAME  varchar(255) NOT NULL after ISIN;
 
 update USERS join (select PORTFOLIO.name, PORTFOLIO.symbol, PORTFOLIO.isin from PORTFOLIO) as A on A.symbol = USERS.symbol and A.isin = USERS.isin set USERS.NAME = A.name;
+
 update PORTFOLIO set  NAME='UNKNOWN' where NAME='Sample Portfolio';
 update USERS set NAME='UNKNOWN' where NAME='Sample Portfolio';
 

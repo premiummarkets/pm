@@ -8,10 +8,6 @@ public class QuotatationRefreshException extends RuntimeException {
 		super();
 	}
 
-	public QuotatationRefreshException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 	public QuotatationRefreshException(String message, Throwable cause) {
 		super(message, cause);
 	}

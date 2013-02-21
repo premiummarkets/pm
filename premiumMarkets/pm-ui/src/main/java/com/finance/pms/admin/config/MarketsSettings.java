@@ -183,7 +183,7 @@ public class MarketsSettings extends Composite {
 			compositeLayout.numColumns = 2;
 			compositeLayout.verticalSpacing = 15;
 			
-			this.setBackground(new Color(getDisplay(), 239, 183, 103));
+			this.setBackground(MainGui.eVENTS_LIGHT);
 			this.setLayout(compositeLayout);
 
 			this.initGui();

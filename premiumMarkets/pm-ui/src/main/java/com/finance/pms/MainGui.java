@@ -158,6 +158,16 @@ public class MainGui extends SashForm implements RefreshableView {
 	private EventModel<RefreshMonitoredStrategyEngine> monitoredStocksEventModel;
 	private EventModel<RefreshPortfolioStrategyEngine> portfolioStocksEventModel;
 	private EventModel<RefreshFourToutStrategyEngine> fourToutStrategyEventModel;
+
+	public static Color eVENTS_LIGHT;
+	public static Color eVENTS_DARKER;
+	public static Color cHART_LIGHT;
+	public static Color cHART_DARKER;
+	public static Color pORTFOLIO_DARKER;
+	public static Color pORTFOLIO_LIGHT;
+	public static Color pOPUP_BG;
+	public static Color pOPUP_GRP;
+	public static Color tAB_SELECTION;
 	
 
 	public MainGui(Composite parent, String dbFilePath) {
@@ -266,7 +276,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			getShell().setImage(new Image(getDisplay(),iconImg));
 			getShell().setText("Premium Markets");
 			getShell().setFont(MainGui.DEFAULTFONT);
-			this.setBackground(new Color(getDisplay(), 239, 203, 152));
+			this.setBackground(MainGui.eVENTS_DARKER);
 			final MainGui mainwin = this;
 
 			getShell().addShellListener(new ShellAdapter() {
@@ -652,6 +662,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			shell.setLayout(new FillLayout());
 			
 			setupAppDefaultFont(display, shell);
+			setupAppDefaultColors(display);
 			
 			final MainGui inst = new MainGui(shell,dbfile);
 			
@@ -743,6 +754,27 @@ public class MainGui extends SashForm implements RefreshableView {
 		} finally {
 			Runtime.getRuntime().exit(1);
 		}
+		
+	}
+
+	private static void setupAppDefaultColors(Display display) {
+		
+		eVENTS_LIGHT = new Color(display, 229,205,177);
+		//eVENTS_DARKER =  new Color(display, 239, 183, 103);
+		eVENTS_DARKER =  new Color(display, 0, 0, 0);
+		
+		cHART_LIGHT = new Color(display, 229,205,177);
+		//cHART_DARKER = new Color(display, 239, 183, 103);
+		cHART_DARKER = new Color(display, 0, 0, 0);
+		
+		pORTFOLIO_LIGHT = new Color(display, 229,205,177);
+		//pORTFOLIO_DARKER = new Color(display, 239, 183, 103);
+		pORTFOLIO_DARKER = new Color(display, 0, 0, 0);
+		
+		pOPUP_BG = new Color(display, 239, 183,103);
+		pOPUP_GRP = new Color(display, 239, 203, 152);
+		
+		tAB_SELECTION = new Color(display, 239, 183,103);
 		
 	}
 

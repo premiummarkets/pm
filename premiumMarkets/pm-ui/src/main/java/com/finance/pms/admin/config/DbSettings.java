@@ -46,7 +46,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -205,22 +204,22 @@ public class DbSettings extends Dialog {
 		FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/icon.img"));
 		getParent().setImage(new Image(getParent().getDisplay(),iconImg));
 		getParent().setText("Premium Markets - Settings");
-		getParent().setBackground(new Color(getParent().getDisplay(),239,183,103));
+		getParent().setBackground(MainGui.pOPUP_BG);
 		GridLayout layout = new GridLayout();
 		this.getParent().setLayout(layout);
 		
 		{
 			final Group tabs = new Group(this.getParent(), SWT.NONE);
 			tabs.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,false));
-			tabs.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+			tabs.setBackground(MainGui.pOPUP_GRP);
 			GridLayout grpLayout = new GridLayout();
 			tabs.setLayout(grpLayout);
 			{
 				final CTabFolder tabF = new CTabFolder(tabs, SWT.BORDER);
 				GridData tabFLayout = new GridData(SWT.FILL,SWT.FILL,true,false);
 				tabF.setLayoutData(tabFLayout);
-				tabF.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
-				tabF.setSelectionBackground(new Color(getParent().getDisplay(),239,183,103));
+				tabF.setBackground(MainGui.pOPUP_GRP);
+				tabF.setSelectionBackground(MainGui.tAB_SELECTION);
 				tabF.setLayout(new FillLayout());
 				tabF.setFont(MainGui.DEFAULTFONT);
 				CTabItem[] tabI = new CTabItem[configTab.length];
@@ -229,7 +228,7 @@ public class DbSettings extends Dialog {
 					tabI[j].setText(configTab[j]);
 					{
 						Group tabGroup = new Group(tabF, SWT.SHADOW_NONE);
-						tabGroup.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+						tabGroup.setBackground(MainGui.pOPUP_GRP);
 						GridLayout tabLayout = new GridLayout(2,false);
 						tabGroup.setLayout(tabLayout);
 					
@@ -238,7 +237,7 @@ public class DbSettings extends Dialog {
 							GridData gdDescr = new GridData(SWT.FILL, SWT.FILL,true, false);
 							gdDescr.horizontalSpan=2;
 							tabDescr.setLayoutData(gdDescr);
-							tabDescr.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+							tabDescr.setBackground(MainGui.pOPUP_GRP);
 							tabDescr.setFont(MainGui.DEFAULTFONT);
 							tabDescr.setText("Description : \n\t" + configtabComment[j]);
 							
@@ -252,7 +251,7 @@ public class DbSettings extends Dialog {
 									keyTxt[i].setFont(MainGui.DEFAULTFONT);
 									keyTxt[i].setText(keyComments[j][i] + " : ");
 									keyTxt[i].setLayoutData(gdTxt);
-									keyTxt[i].setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+									keyTxt[i].setBackground(MainGui.pOPUP_GRP);
 									keyVal[i] = (hiddenKeysList.contains(keys[j][i]))?new Text(tabGroup, SWT.NONE|SWT.PASSWORD):new Text(tabGroup, SWT.NONE);
 									keyVal[i].setFont(MainGui.CONTENTFONT);
 									keyVal[i].setLayoutData(gdVal);
@@ -274,7 +273,7 @@ public class DbSettings extends Dialog {
 		{
 			Group buttons = new Group(getParent(), SWT.NONE);
 			buttons.setLayoutData(new GridData(SWT.END,SWT.FILL,true,true));
-			buttons.setBackground(new Color(getParent().getDisplay(),239, 203, 152));
+			buttons.setBackground(MainGui.pOPUP_GRP);
 			buttons.setFont(MainGui.DEFAULTFONT);
 			RowLayout buttonsLayout = new RowLayout(SWT.HORIZONTAL);
 			buttons.setLayout(buttonsLayout);

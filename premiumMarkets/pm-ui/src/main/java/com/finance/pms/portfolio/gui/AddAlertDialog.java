@@ -35,7 +35,6 @@ import java.math.BigDecimal;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -143,24 +142,14 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 			dialogShell.setLayout(dialogShellLayout);
 	
 			dialogShell.setText("Add an alert on threshold crossing");
-			dialogShell.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
-//			{
-//				alertSettingLabel = new Label(dialogShell, SWT.BORDER);
-//				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
-//				newPortfoliolabelLData.horizontalSpan = 2;
-//				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
-//				
-//				alertSettingLabel.setText("Add an alert on threshold crossing");
-//				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
-//				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
-//			}
+			dialogShell.setBackground(MainGui.pOPUP_BG);
 			{
 				alertSettingLabel = new Label(dialogShell, SWT.NONE);
 				alertSettingLabel.setText("Threshold price ");
 				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
-				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
+				alertSettingLabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				sharePriceText = new Text(dialogShell, SWT.BORDER);
@@ -183,7 +172,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				alertSettingLabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				alertSettingLabel.setLayoutData(newPortfoliolabelLData);
-				alertSettingLabel.setBackground(new Color(dialogShell.getDisplay(),239,183,103));
+				alertSettingLabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				combo = new Combo(dialogShell, SWT.READ_ONLY);

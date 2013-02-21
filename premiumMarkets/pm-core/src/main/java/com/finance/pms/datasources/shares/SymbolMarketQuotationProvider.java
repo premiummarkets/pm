@@ -41,7 +41,6 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.AccessType;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class SymbolMarketQuotationProvider.
  * 
@@ -124,14 +123,6 @@ public class SymbolMarketQuotationProvider implements Serializable {
 		return marketQuotationProvider.getCmdParam();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return this.marketQuotationProvider.toString();
-	}
-
 	/**
 	 * Gets the market quotation providers list.
 	 * 
@@ -139,6 +130,11 @@ public class SymbolMarketQuotationProvider implements Serializable {
 	 */
 	public MarketQuotationProviders getMarketQuotationProvider() {
 		return marketQuotationProvider;
+	}
+
+	@Override
+	public String toString() {
+		return this.marketQuotationProvider.toString();
 	}
 	
 }

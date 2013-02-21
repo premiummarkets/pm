@@ -94,13 +94,13 @@ public class ShareListUpdateDialog extends Dialog {
 		
 		GridLayout layout = new GridLayout();
 		getParent().setLayout(layout);
-		getParent().setBackground(new Color(getParent().getDisplay(),239, 183,103));
+		getParent().setBackground(MainGui.pOPUP_BG);
 		
 		List<String> loadShareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames();
 		{//Update existing
 			Group existingGroup = new Group(getParent(), SWT.NONE);
 			
-			existingGroup.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			existingGroup.setBackground(MainGui.pOPUP_GRP);
 			existingGroup.setFont(biggerFont);
 			existingGroup.setText("Select an exising list to update in your database - then click Ok to proceed");
 
@@ -153,7 +153,7 @@ public class ShareListUpdateDialog extends Dialog {
 			});	
 			existDersc = new Label(existingGroup, SWT.NONE);
 			existDersc.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true, false));
-			existDersc.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			existDersc.setBackground(MainGui.pOPUP_GRP);
 			existDersc.setFont(MainGui.DEFAULTFONT);
 			existDersc.setVisible(true);
 		}
@@ -164,7 +164,7 @@ public class ShareListUpdateDialog extends Dialog {
 			newGroup.setLayoutData(gridData);
 			
 			newGroup.setFont(biggerFont);
-			newGroup.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			newGroup.setBackground(MainGui.pOPUP_GRP);
 			newGroup.setText("Or load a new list from the internet - then click Ok to proceed");
 			
 
@@ -188,11 +188,11 @@ public class ShareListUpdateDialog extends Dialog {
 			newDersc.setLayoutData(newDerscDL);
 			
 			newDersc.setFont(MainGui.DEFAULTFONT);
-			newDersc.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			newDersc.setBackground(MainGui.pOPUP_GRP);
 			newDersc.setVisible(false);
 			
 			paramsGroup = new Group(newGroup, SWT.NONE);
-			paramsGroup.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			paramsGroup.setBackground(MainGui.pOPUP_GRP);
 			paramsGroup.setFont(biggerFont);
 			paramsGroup.setText("Choose your indices");
 			GridData paramGL = new GridData(SWT.FILL,SWT.FILL,true, true);
@@ -203,7 +203,7 @@ public class ShareListUpdateDialog extends Dialog {
 			
 			Label paramsLabel = new Label(paramsGroup, SWT.NONE);
 			paramsLabel.setText("You have selected parametrisable list. You must parametrise it using the list below.\nYou can also directly type in a comma separated combination in the blank field.\nUse Ctrl F to search and Ctrl click for multi selection.");
-			paramsLabel.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			paramsLabel.setBackground(MainGui.pOPUP_GRP);
 			paramsLabel.setFont(MainGui.CONTENTFONT);
 			
 			paramsForm = new Text(paramsGroup, SWT.NONE);
@@ -306,7 +306,7 @@ public class ShareListUpdateDialog extends Dialog {
 		{//Manual addition
 			Group userFeedGroup = new Group(getParent(), SWT.NONE);
 
-			userFeedGroup.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+			userFeedGroup.setBackground(MainGui.pOPUP_GRP);
 			GridData gridData = new GridData(SWT.FILL,SWT.FILL,true, true);
 			userFeedGroup.setLayoutData(gridData);
 			userFeedGroup.setLayout(new GridLayout());
@@ -322,24 +322,24 @@ public class ShareListUpdateDialog extends Dialog {
 				addShareManualGroupL.makeColumnsEqualWidth=true;
 				insertManualGroup.setLayout(addShareManualGroupL);
 
-				insertManualGroup.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				insertManualGroup.setBackground(MainGui.pOPUP_GRP);
 				insertManualGroup.setText("Insert Manually");
 				insertManualGroup.setFont(biggerFont);
 
 				Label symbolLab = new Label(insertManualGroup, SWT.NONE);
-				symbolLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				symbolLab.setBackground(MainGui.pOPUP_GRP);
 				symbolLab.setText("Symbol");
 				symbolLab.setFont(MainGui.DEFAULTFONT);
 				Label isinLab = new Label(insertManualGroup, SWT.NONE);
-				isinLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				isinLab.setBackground(MainGui.pOPUP_GRP);
 				isinLab.setText("Isin");
 				isinLab.setFont(MainGui.DEFAULTFONT);
 				Label nameLab = new Label(insertManualGroup, SWT.NONE);
-				nameLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				nameLab.setBackground(MainGui.pOPUP_GRP);
 				nameLab.setText("Name");
 				nameLab.setFont(MainGui.DEFAULTFONT);
 				Label typeLab = new Label(insertManualGroup, SWT.NONE);
-				typeLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				typeLab.setBackground(MainGui.pOPUP_GRP);
 				typeLab.setText("Type");
 				typeLab.setFont(MainGui.DEFAULTFONT);
 
@@ -365,19 +365,19 @@ public class ShareListUpdateDialog extends Dialog {
 
 
 				Label marketLab = new Label(insertManualGroup, SWT.NONE);
-				marketLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				marketLab.setBackground(MainGui.pOPUP_GRP);
 				marketLab.setText("Market");
 				marketLab.setFont(MainGui.DEFAULTFONT);
 				Label currencyFactorLab = new Label(insertManualGroup, SWT.NONE);
-				currencyFactorLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				currencyFactorLab.setBackground(MainGui.pOPUP_GRP);
 				currencyFactorLab.setText("Currency Unit factor");
 				currencyFactorLab.setFont(MainGui.DEFAULTFONT);
 				Label providerLab = new Label(insertManualGroup, SWT.NONE);
-				providerLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				providerLab.setBackground(MainGui.pOPUP_GRP);
 				providerLab.setText("Quotations provider");
 				providerLab.setFont(MainGui.DEFAULTFONT);
 				Label extLab = new Label(insertManualGroup, SWT.NONE);
-				extLab.setBackground(new Color(getParent().getDisplay(), 239, 203, 152));
+				extLab.setBackground(MainGui.pOPUP_GRP);
 				extLab.setText("Symbol extension");
 				extLab.setFont(MainGui.DEFAULTFONT);
 

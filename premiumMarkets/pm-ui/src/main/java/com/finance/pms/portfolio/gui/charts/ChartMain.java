@@ -172,7 +172,7 @@ public class ChartMain extends Chart {
 						"Variation : "+ y + " " + stripedCloseFunction.lineToolTip() +
 						"</html>" ;
 					} catch (Exception e) {
-						LOGGER.error(e,e);
+						LOGGER.debug(e,e);
 					}
 					return "NaN";
 
@@ -310,7 +310,7 @@ public class ChartMain extends Chart {
 						"Descr&nbsp;&nbsp;&nbsp;: "+((serieDef.getId() % 2 == 0)?valueOf.getEventDefDescriptor().getHtmlBullishDescription():valueOf.getEventDefDescriptor().getHtmlBearishDescription())+"<br>" +
 						"</html>" ;
 					} catch (Exception e) {
-						LOGGER.error(e,e);
+						LOGGER.debug(e,e);
 					}
 					return "NaN";
 
@@ -416,7 +416,7 @@ public class ChartMain extends Chart {
 									"Value : "+ y  +
 									"</html>";
 						} catch (Exception e) {
-							LOGGER.error(e,e);
+							LOGGER.debug(e,e);
 						}
 						return "NaN";
 

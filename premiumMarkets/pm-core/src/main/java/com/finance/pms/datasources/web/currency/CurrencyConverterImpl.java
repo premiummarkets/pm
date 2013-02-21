@@ -28,7 +28,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.web;
+package com.finance.pms.datasources.web.currency;
 
 import java.math.BigDecimal;
 import java.security.InvalidParameterException;
@@ -56,25 +56,27 @@ import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.MarketValuation;
+import com.finance.pms.datasources.web.HttpSourceExchange;
+import com.finance.pms.datasources.web.MyBeanFactoryAware;
 import com.finance.pms.datasources.web.formaters.ImfCurrencyHistoryFormater;
 
-public class Converter implements CurrencyConverter, MyBeanFactoryAware {
+public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAware {
 	
-	private final MyLogger LOGGER = MyLogger.getLogger(Converter.class);
+	private final MyLogger LOGGER = MyLogger.getLogger(CurrencyConverterImpl.class);
 	
 	private HttpSourceExchange httpSource;
 	private CurrencyDAO currencyDao;	
 	private NumberFormat numberFormater = NumberFormat.getNumberInstance();
-	private Map<Currency,Map<Currency,List<CurrencyRate>>> map;
+	private Map<Currency,Map<Currency,List<CurrencyRate>>> cache;
 	
 	private Semaphore currencyDBAccessSemaphore;
 	private BeanFactory beanFactory;
 	
-	public Converter(String pathToProps, CurrencyDAO currencyDao) {
+	public CurrencyConverterImpl(String pathToProps, CurrencyDAO currencyDao) {
 		super();
 		this.httpSource =  new HttpSourceExchange(pathToProps, this);
 		this.numberFormater.setMaximumFractionDigits(2);
-		this.map = new ConcurrentHashMap<Currency, Map<Currency,List<CurrencyRate>>>();
+		this.cache = new ConcurrentHashMap<Currency, Map<Currency,List<CurrencyRate>>>();
 		this.currencyDao=currencyDao;
 		this.currencyDBAccessSemaphore = new Semaphore(1);
 	}
@@ -89,7 +91,6 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 			dbRates.addAll(currencyDao.getRates(fromCurrency,toCurrency));
 			
 			Calendar todayCal = Calendar.getInstance();
-			//if (calendar.get(Calendar.HOUR_OF_DAY) < 18) { calendar.add(Calendar.DAY_OF_YEAR, -1); };
 			todayCal.set(Calendar.HOUR_OF_DAY, 0);
 			todayCal.set(Calendar.MINUTE, 0);
 			todayCal.set(Calendar.SECOND, 0);
@@ -115,13 +116,11 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 				}
 				dbRates.addAll(webRates);
 
-			} else {
-				//dbRates.addAll(dbRates);
 			}
 			
 			Map<Currency, List<CurrencyRate>> toMap = new ConcurrentHashMap<Currency, List<CurrencyRate>>();
 			toMap.put(toCurrency, new ArrayList<CurrencyRate>(dbRates));
-			map.put(fromCurrency,toMap);
+			cache.put(fromCurrency,toMap);
 			
 		} catch (InterruptedException e) {
 			LOGGER.error("",e);
@@ -155,13 +154,13 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 		
 		BigDecimal exchangeRate = BigDecimal.ONE;
 		if (convertable){
-			exchangeRate = fetchRate(fromCurrency, toCurrency, date);
+			exchangeRate = fetchRateForDate(fromCurrency, toCurrency, date);
 		}
 		
 		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 
-	private BigDecimal fetchRate(Currency fromCurrency, Currency toCurrency, Date date) {
+	private BigDecimal fetchRateForDate(Currency fromCurrency, Currency toCurrency, Date date) {
 		
 		if (isCacheEmptyFor(fromCurrency, toCurrency) || isCacheOutOfDate(fromCurrency, toCurrency, date) ) {		
 			fetchHistoricalRatesAvailable(fromCurrency, toCurrency);
@@ -169,13 +168,28 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 		
 		BigDecimal exchangeRate;
 		try {
-			exchangeRate = extractRatefromCache(map.get(fromCurrency).get(toCurrency), date);
+			exchangeRate = extractRatefromCache(cache.get(fromCurrency).get(toCurrency), date);
 		} catch (Exception e) {
 			LOGGER.warn("Cant get rate for "+fromCurrency,e);
 			exchangeRate = BigDecimal.ONE;
 		}
 		
 		return exchangeRate;
+	}
+	
+	public List<CurrencyRate> fetchRateHistoryUpTo(Currency fromCurrency, Currency toCurrency, Date date) {
+		
+		if (isCacheEmptyFor(fromCurrency, toCurrency) || isCacheOutOfDate(fromCurrency, toCurrency, date) ) {		
+			fetchHistoricalRatesAvailable(fromCurrency, toCurrency);
+		}
+		
+		try {
+			return cache.get(fromCurrency).get(toCurrency);
+		} catch (Exception e) {
+			LOGGER.warn("Cant get rate for "+fromCurrency,e);
+			return new ArrayList<CurrencyRate>();
+		}
+	
 	}
 
 	/**
@@ -191,7 +205,7 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 		yesterday.setTime(EventSignalConfig.getNewDate());
 		yesterday.add(Calendar.DATE,-1);
 		
-		List<CurrencyRate> rateList = map.get(fromCurrency).get(toCurrency);
+		List<CurrencyRate> rateList = cache.get(fromCurrency).get(toCurrency);
 		Boolean noCurrentData = rateList.get(rateList.size()-1).getDate().before(date);
 		Boolean lastUpdateWasNotYeasterday = rateList.get(rateList.size()-1).getDate().before(yesterday.getTime()); //IMF is one day late
 		Boolean yesterdayWasNotBank = yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY;
@@ -204,7 +218,7 @@ public class Converter implements CurrencyConverter, MyBeanFactoryAware {
 	 * @return
 	 */
 	private boolean isCacheEmptyFor(Currency fromCurrency, Currency toCurrency) {
-		return (!map.containsKey(fromCurrency) || !map.get(fromCurrency).containsKey(toCurrency) || map.get(fromCurrency).get(toCurrency).isEmpty());
+		return (!cache.containsKey(fromCurrency) || !cache.get(fromCurrency).containsKey(toCurrency) || cache.get(fromCurrency).get(toCurrency).isEmpty());
 	}
 
 	private BigDecimal extractRatefromCache(List<CurrencyRate> currencyRates, Date date) {

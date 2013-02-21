@@ -51,7 +51,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
@@ -94,7 +93,6 @@ import com.finance.pms.portfolio.PortfolioShare;
  */
 public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(ActionDialogForm.class);
 	
 	private static NewPortfolioItemDialog runningInst = null;
@@ -238,7 +236,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	public void initGui(int stockSelectionMode) {
 		
 		this.setLayout(new GridLayout());
-		this.setBackground(new Color(getDisplay(),239, 183,103));
+		this.setBackground(MainGui.pOPUP_BG);
 		
 		//Auto complete
 		{
@@ -246,7 +244,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			autocompleteGroup.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,true));
 			autocompleteGroup.setLayout(new GridLayout());
 			
-			autocompleteGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+			autocompleteGroup.setBackground(MainGui.pOPUP_GRP);
 			autocompleteGroup.setFont(biggerFont);
 			autocompleteGroup.setText("Find a share");
 			autocompleteGroup.setToolTipText("Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
@@ -383,7 +381,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				autoCompletAddBut.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-
 						addSearchSelection(text);
 					}
 
@@ -398,7 +395,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			sharelistSelectionGroup.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 			sharelistSelectionGroup.setLayout(new GridLayout());
 			
-			sharelistSelectionGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+			sharelistSelectionGroup.setBackground(MainGui.pOPUP_GRP);
 			sharelistSelectionGroup.setFont(biggerFont);
 			sharelistSelectionGroup.setText("Or use your selection lists");
 			sharelistSelectionGroup.setToolTipText("Select stocks in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
@@ -417,7 +414,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				shareListGroup.setLayoutData(new GridData(SWT.FILL,SWT.FILL, true, true));
 				shareListGroup.setLayout(new GridLayout());
 				
-				shareListGroup.setBackground(new Color(getDisplay(), 239, 203, 152));
+				shareListGroup.setBackground(MainGui.pOPUP_GRP);
 				shareListGroup.setText("Select your shares");
 				shareListGroup.setToolTipText("Double click on the headers then CTRL F to search. You can update these lists using the 'Stock lists and Markets' menu");
 				shareListGroup.setFont(biggerFont);
@@ -505,7 +502,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				toListSelectAddBut.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-						
 						addListSelection();
 					}
 
@@ -525,12 +521,12 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			ctrlCompositeL.marginWidth=0;
 			ctrlComposite.setLayout(ctrlCompositeL);
 			
-			ctrlComposite.setBackground(new Color(getDisplay(),239, 183,103));
+			ctrlComposite.setBackground(MainGui.pOPUP_BG);
 			{
 				Group optionsGrp = new Group(ctrlComposite, SWT.NONE);
 				optionsGrp.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 				
-				optionsGrp.setBackground(new Color(getDisplay(), 239, 203, 152));
+				optionsGrp.setBackground(MainGui.pOPUP_GRP);
 				optionsGrp.setText("Options");
 				optionsGrp.setFont(biggerFont);
 				RowLayout addOptGroupL = new RowLayout(SWT.HORIZONTAL);
@@ -538,7 +534,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				optionsGrp.setLayout(addOptGroupL);
 				{
 					Label quantityLabel = new Label(optionsGrp, SWT.NONE);
-					quantityLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					quantityLabel.setBackground(MainGui.pOPUP_GRP);
 					quantityLabel.setText("Quantity :");
 					quantityLabel.setFont(MainGui.DEFAULTFONT);
 				}
@@ -551,7 +547,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				}
 				{
 					Label monitorLabel = new Label(optionsGrp, SWT.NONE);
-					monitorLabel.setBackground(new Color(getDisplay(), 239, 203, 152));
+					monitorLabel.setBackground(MainGui.pOPUP_GRP);
 					monitorLabel.setText("Monitor level :");
 					monitorLabel.setFont(MainGui.DEFAULTFONT);
 				}

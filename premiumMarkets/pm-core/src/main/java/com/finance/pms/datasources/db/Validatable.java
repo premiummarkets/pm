@@ -41,34 +41,17 @@ import java.io.Serializable;
  */
 public abstract class Validatable implements Serializable, Comparable<Validatable> {
 	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6963504463049602627L;
 	
-	/** The Constant VALID. */
-	public static final int VALID=0;
-	
-	/** The Constant TOUPDATENAME. */
-	public static final int TOUPDATENAME =1;
-	
-	/** The Constant TOUPDATESYMBOL. */
-	public static final int TOUPDATESYMBOL =2;
-	
-	/** The Constant TOUPDATEISIN. */
-	public static final int TOUPDATEISIN =3;
-	
-	/** The Constant INVALIDE. */
-	public static final int INVALIDE=4;
-	
-	/** The state. */
-	private int state;
 
-	/**
-	 * Instantiates a new validatable.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+	public static final int VALID=0;
+	public static final int TOUPDATENAME =1;
+	public static final int TOUPDATESYMBOL =2;
+	public static final int TOUPDATEISIN =3;
+	public static final int INVALIDE=4;
+	private int state;
+	
 	public Validatable() {
 		super();
 	}

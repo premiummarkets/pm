@@ -39,26 +39,15 @@ package com.finance.pms.datasources.shares;
  */
 public enum StockCategories {
 	
-	/** The DEFAUL t_ category. */
 	DEFAULT_CATEGORY ("ALL","TOUT_ACT"),
-	
-	/** The INDICE s_ euronext. */
 	INDICES_EURONEXT ("INDICES","1007"),
-	
-	/** The SICAV. */
 	SICAV ("SICAV","TOUT_ACT"),
-	
-	/** The TRACKERS. */
 	TRACKERS ("TRACKERS","2210"),
-	
-	INDICES_OTHER ("INDICES_Y","");
-	
-	/** The category. */
-	private String category;
-	
-	/** The boursorama url marche. */
-	private String boursoramaUrlCatHint;
+	INDICES_OTHER ("INDICES_Y",""), 
+	CURRENCY_RATE ("CurrencyRate","");
 
+	private String category;
+	private String boursoramaUrlCatHint;
 	
 	/**
 	 * Instantiates a new stock categories.

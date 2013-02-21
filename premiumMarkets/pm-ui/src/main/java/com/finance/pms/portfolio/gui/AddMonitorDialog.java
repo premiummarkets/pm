@@ -36,7 +36,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -120,17 +119,11 @@ public class AddMonitorDialog extends org.eclipse.swt.widgets.Dialog {
 			Shell parent = getParent();
 			dialogShell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
 
-			{
-				// Register as a resource user - SWTResourceManager will
-				// handle the obtaining and disposing of resources
-				//SWTResourceManager.registerResourceUser(dialogShell);
-			}
-
 			GridLayout dialogShellLayout = new GridLayout();
 			dialogShellLayout.verticalSpacing = 20;
 			dialogShellLayout.numColumns = 2;
 			dialogShell.setLayout(dialogShellLayout);
-			dialogShell.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+			dialogShell.setBackground(MainGui.pOPUP_BG);
 			{
 				Errorlabel1 = new Label(dialogShell, SWT.NONE);
 				Errorlabel1.setText("Warning!");
@@ -142,7 +135,7 @@ public class AddMonitorDialog extends org.eclipse.swt.widgets.Dialog {
 				Errorlabel1LData.grabExcessHorizontalSpace = true;
 				Errorlabel1.setLayoutData(Errorlabel1LData);
 				Errorlabel1.setAlignment(SWT.CENTER);
-				Errorlabel1.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				Errorlabel1.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				StyledText text = new StyledText(dialogShell, SWT.NONE);
@@ -151,7 +144,7 @@ public class AddMonitorDialog extends org.eclipse.swt.widgets.Dialog {
 				text.setLayoutData(Errorlabel1LData);
 				text.setText("You can add this share for monitoring by filling up the following.");
 				text.setFont(MainGui.DEFAULTFONT);
-				text.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				text.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				monitoringPortfolio = new Label(dialogShell, SWT.CHECK);
@@ -159,7 +152,7 @@ public class AddMonitorDialog extends org.eclipse.swt.widgets.Dialog {
 				monitoringPortfolio.setFont(MainGui.DEFAULTFONT);
 				
 				monitoringPortfolioTxt = new Text(dialogShell, SWT.CHECK);
-				monitoringPortfolioTxt.setText("monitorBuy");
+				monitoringPortfolioTxt.setText("MonitorBuy");
 				monitoringPortfolioTxt.setFont(MainGui.CONTENTFONT);
 			}
 			{
@@ -203,7 +196,7 @@ public class AddMonitorDialog extends org.eclipse.swt.widgets.Dialog {
 					}
 				});
 			}
-			// dialogShell.layout();
+			
 			dialogShell.pack();
 			dialogShell.open();
 			Display display = dialogShell.getDisplay();

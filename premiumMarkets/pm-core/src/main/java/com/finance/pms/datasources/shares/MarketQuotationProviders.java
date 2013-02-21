@@ -33,7 +33,6 @@ package com.finance.pms.datasources.shares;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum MarketQuotationProviders.
  * 
@@ -45,7 +44,8 @@ public enum MarketQuotationProviders {
 	YAHOO (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
 	GOOGLE (ProvidersTypes.GOOGLE,new GoogleSymbolNameResolver(),"google"),
 	INVESTIR (ProvidersTypes.INVESTIR,new InvestirSymbolNameResolver(),"investir"),
-	INFLATION (ProvidersTypes.INFLATION,new InvestirSymbolNameResolver(),"inflation");
+	INFLATION (ProvidersTypes.INFLATION,new InvestirSymbolNameResolver(),"inflation"),
+	CURRENCY (ProvidersTypes.CURRENCY,new InvestirSymbolNameResolver(),"currency");
 	
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);

@@ -46,14 +46,14 @@
 		</property>
 	</bean>
 	
-	<bean id="currencyConverter" class="com.finance.pms.datasources.web.Converter">
+	<bean id="currencyConverter" class="com.finance.pms.datasources.web.currency.CurrencyConverterImpl">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<constructor-arg type="com.finance.pms.datasources.currency.CurrencyDAO" ref="currencyDao" />
 	</bean>
 	
 	<bean id="portfolioMgr" class="com.finance.pms.portfolio.PortfolioMgr">
 		<constructor-arg type="com.finance.pms.portfolio.PortfolioDAO"  ref="portfolioDAO"/>
-		<constructor-arg type="com.finance.pms.datasources.web.Converter" ref="currencyConverter"/>
+		<constructor-arg type="com.finance.pms.datasources.web.currency.CurrencyConverterImpl" ref="currencyConverter"/>
 	</bean>
 	
 	<bean id="shareDAO" parent="txProxyTemplate">
@@ -136,6 +136,10 @@
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
 	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	<bean id="currencyProviderSource" class="com.finance.pms.datasources.web.ProvidersCurrency"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>

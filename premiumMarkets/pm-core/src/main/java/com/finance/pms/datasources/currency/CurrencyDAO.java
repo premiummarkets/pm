@@ -35,10 +35,8 @@ import java.util.List;
 import com.finance.pms.datasources.shares.Currency;
 
 public interface CurrencyDAO {
-	
-	//CurrencyRate getLastRateFor(Currency currency, Currency toCurrency);
 
 	void storeCurrencyRates(List<CurrencyRate> currencyRates);
 
-	List<CurrencyRate> getRates(Currency currency, Currency toCurrency);
+	List<CurrencyRate> getRates(Currency fromCurrency, Currency toCurrency);
 }

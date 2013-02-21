@@ -71,7 +71,8 @@ import com.finance.pms.portfolio.SharesList;
  * @author Guillaume Thoreton
  */
 public abstract class Providers  implements MyBeanFactoryAware {
-	
+
+
 	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(Providers.class);
 	

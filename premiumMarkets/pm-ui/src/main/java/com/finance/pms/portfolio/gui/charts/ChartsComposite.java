@@ -500,8 +500,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			
 			this.setOrientation(SWT.VERTICAL);
 			
-			this.setBackground(new Color(getDisplay(),239,120,103));
-			Color innerBgColor = new Color(getDisplay(),241,200,195);
+			this.setBackground(MainGui.cHART_DARKER);
+			Color innerBgColor = MainGui.cHART_LIGHT;
 		
 			this.addDisposeListener(new DisposeListener() {
 				
@@ -774,11 +774,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								closeFunctionBut.setToolTipText("Current comparison mode is "+stripedCloseFunction.lineToolTip());
 								popusGroup.setSize(popusGroup.getBounds().width, popusGroup.getBounds().height);
 								popusGroup.layout();
-								
-//								Object[] viewStateParams = hightlitedEventModel.getViewStateParams();
-//								if (viewStateParams != null && viewStateParams.length == 1) {
-//									highLight(highligtedId, (Stock) viewStateParams[0], true);
-//								}
 
 							}
 

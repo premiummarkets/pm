@@ -34,7 +34,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.TypedEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -94,7 +93,7 @@ public class ErrorDialog extends Dialog {
 			GridLayout dialogShellLayout = new GridLayout();
 			dialogShellLayout.verticalSpacing = 20;
 			this.getParent().setLayout(dialogShellLayout);
-			this.getParent().setBackground(new Color(getParent().getDisplay(),239, 183,103));
+			this.getParent().setBackground(MainGui.pOPUP_BG);
 			if (erreur != null)
 			{
 				errorLabel1 = new Label(getParent(), SWT.WRAP);
@@ -107,7 +106,7 @@ public class ErrorDialog extends Dialog {
 				Errorlabel1LData.grabExcessHorizontalSpace = true;
 				errorLabel1.setLayoutData(Errorlabel1LData);
 				errorLabel1.setAlignment(SWT.CENTER);
-				errorLabel1.setBackground(new Color(getParent().getDisplay(),239, 183,103));
+				errorLabel1.setBackground(MainGui.pOPUP_BG);
 			}
 			if (addMessage != null) {
 				textArea = new Text(getParent(), SWT.WRAP|SWT.V_SCROLL);
@@ -117,7 +116,7 @@ public class ErrorDialog extends Dialog {
 				Errorlabel1LData.grabExcessVerticalSpace = true;
 				Errorlabel1LData.grabExcessHorizontalSpace = true;
 				textArea.setLayoutData(Errorlabel1LData);
-				textArea.setBackground(new Color(getParent().getDisplay(),239, 183,103));
+				textArea.setBackground(MainGui.pOPUP_BG);
 				textArea.setText(this.addMessage);
 				textArea.setFont(MainGui.DEFAULTFONT);
 			}

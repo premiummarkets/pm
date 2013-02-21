@@ -30,7 +30,6 @@
  */
 package com.finance.pms.datasources.web;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum ProvidersTypes.
  * 
@@ -51,7 +50,8 @@ public enum ProvidersTypes {
 	YAHOOINDICES ("yahooindex","YahooIndex"), 
 	ALLMARKETS ("allmarkets","AllMarkets"), 
 	INVESTIR("investir","Investir"),
-	INFLATION("inflation","Inflation");
+	INFLATION("inflation","Inflation"),
+	CURRENCY("currency","Currency");
 	
 	
 	private String className;

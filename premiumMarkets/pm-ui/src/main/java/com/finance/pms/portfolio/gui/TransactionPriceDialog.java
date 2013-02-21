@@ -43,7 +43,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -176,7 +175,7 @@ public class TransactionPriceDialog {
 			dialogShell.setLayout(dialogShellLayout);
 			dialogShell.pack();
 			dialogShell.setSize(400,400);
-			dialogShell.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+			dialogShell.setBackground(MainGui.pOPUP_BG);
 			
 			{
 				newPortfoliolabel = new Label(dialogShell, SWT.BORDER);
@@ -185,7 +184,7 @@ public class TransactionPriceDialog {
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabelLData.horizontalSpan = 2;
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
-				newPortfoliolabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			//if (transaction.getModtype().equals(TransactionType.NULL)) 
 			{
@@ -224,7 +223,7 @@ public class TransactionPriceDialog {
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
-				newPortfoliolabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				sharePriceText = new Text(dialogShell, SWT.BORDER);
@@ -248,7 +247,7 @@ public class TransactionPriceDialog {
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
-				newPortfoliolabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				transactionAmountText = new Text(dialogShell, SWT.BORDER);
@@ -272,7 +271,7 @@ public class TransactionPriceDialog {
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
-				newPortfoliolabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				quantityText = new Text(dialogShell, SWT.BORDER);
@@ -298,7 +297,7 @@ public class TransactionPriceDialog {
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
-				newPortfoliolabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				amountInText = new Text(dialogShell, SWT.BORDER);
@@ -315,7 +314,7 @@ public class TransactionPriceDialog {
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
-				newPortfoliolabel.setBackground(new Color(dialogShell.getDisplay(),239, 183,103));
+				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				amountOutText = new Text(dialogShell, SWT.BORDER);
