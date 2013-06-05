@@ -35,8 +35,6 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class IndicatorPonderationRule.
  * 
@@ -44,12 +42,9 @@ import com.finance.pms.threads.ConfigThreadLocal;
  */
 public class IndicatorPonderationRule extends DefaultPonderationRule {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 9176346568918514376L;
-	/** The indicator. */
-	Integer indicator;
+
+	String indicator;
 
 	/**
 	 * Instantiates a new indicator ponderation rule.
@@ -58,7 +53,7 @@ public class IndicatorPonderationRule extends DefaultPonderationRule {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public IndicatorPonderationRule(Integer indicator) {
+	public IndicatorPonderationRule(String indicator) {
 		super(
 				((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold(), 
 				((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold());
@@ -70,9 +65,6 @@ public class IndicatorPonderationRule extends DefaultPonderationRule {
 		return new IndicatorSignal(this.indicator,symbolEvents.getEventDefList());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.events.pounderationrules.DefaultPonderationRule#compare(com.finance.pms.events.SymbolEvents, com.finance.pms.events.SymbolEvents)
-	 */
 	@Override
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
 		SymbolEvents se1 = o1;

@@ -33,10 +33,13 @@ package com.finance.pms.datasources.shares;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
 
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.events.EventKey;
+import com.finance.pms.events.EventValue;
 import com.finance.pms.portfolio.PortfolioShare;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public interface ShareDAO {
 	
@@ -47,8 +50,8 @@ public interface ShareDAO {
 	public Stock loadStockByIsin(String isin);
 	public Stock loadStockByIsinOrSymbol(String ref);
 
-	public void saveOrUpdateStockTrendInfo(Set<TrendSupplementedStock> listTrends);
-	public TrendSupplementedStock loadTrendForStock(Stock stock);
+	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> listTrends);
+	public ScreeningSupplementedStock loadTrendForStock(Stock stock);
 
 	public void saveOrUpdateStock(Stock stock);
 	public void saveOrUpdateStocks(Set<Stock> listStocks);
@@ -64,6 +67,8 @@ public interface ShareDAO {
 	
 	public List<String> sectorHintList();
 
-	List<Stock> loadSharesLike(String like, int maxResults);
+	public List<Stock> loadSharesLike(String like, int maxResults);
+
+	public List<PortfolioShare> loadMonitoredWithAOE(Stock stock, SortedMap<EventKey, EventValue> sortedDataResultMap);
 	
 }

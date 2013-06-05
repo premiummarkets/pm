@@ -37,6 +37,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -45,8 +47,11 @@ import java.util.TreeSet;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.pounderationrules.LatestEventsIndicatorOnlyPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
@@ -83,6 +88,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 		}
 	}
 	
+	private static ParameterizedIndicatorsBuilder PARAMETERIZEDINDICATORSBUILDER;
+	
 	
 	private String analysis = "";
 	
@@ -95,9 +102,15 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private BigDecimal sellLimitToPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalert", "0.2")).setScale(2);
 	private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalertguard", "0.1")).setScale(2);
 	private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getPrefs().get("event.expectedrate", "0.05")).setScale(2);
+	//private Boolean sendAnalysisEventMsg = new Boolean(MainPMScmd.getPrefs().get("event.sendAnalysisEventMsg", "false"));
 	
 	private List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));
+	private SortedSet<EventInfo> indicatorSortedCache = null;
 	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
+	private SortedSet<EventInfo> allTechIndicatorsSortedCache= null;
+	private SortedSet<EventInfo> allEventInfos = null;
+
+	
 	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getPrefs().get("event.buytrigger", "3"));
 	private Integer sellEventTriggerThreshold = new Integer(MainPMScmd.getPrefs().get("event.selltrigger", "-1"));
 	private List<String> sellIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.sellindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
@@ -110,6 +123,12 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private String buyPonderationRule = MainPMScmd.getPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
 	private String configListFileName = IndicatorCalculationServiceMain.UI_ANALYSIS;
+	
+	//Roc
+	private int rocNNeuralHouseTrendPeriod = new Integer(MainPMScmd.getPrefs().get("rocnneural.houseTrendPeriod", "21"));
+	private int rocNNeuralQuoteSmthPeriod = new Integer(MainPMScmd.getPrefs().get("rocnneural.quoteSmthPeriod", "1"));
+	
+	
 
 	public EventSignalConfig() {
 		super();
@@ -137,7 +156,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 		
 	}
 	
-	public EventSignalConfig(
+	protected EventSignalConfig(
 				String analyse, 
 				String buyPonderationRule, String sellPonderationRule, String backDaysSpan, 
 				String buyThreshold, String sellThreshold, String indicators, String configListFileName) {
@@ -157,25 +176,112 @@ public class EventSignalConfig extends Config implements Cloneable {
 		
 	}
 
-	public List<EventDefinition> indicatorsStringToEventDefs(List<String> eventDefinitionsNames) {
-		SortedSet<EventDefinition> eventDefinitions = new  TreeSet<EventDefinition>(new Comparator<EventDefinition>() {
+	public List<EventInfo> indicatorsStringToEventDefs(List<String> eventDefinitionsNames) {
+		SortedSet<EventInfo> eventDefinitions = new  TreeSet<EventInfo>(new Comparator<EventInfo>() {
 			
-			public int compare(EventDefinition o1, EventDefinition o2) {
+			public int compare(EventInfo o1, EventInfo o2) {
 				return o1.getEventDefId().compareTo(o2.getEventDefId());
 			}
 		});
 		for (String eventDefinitionsName : eventDefinitionsNames) {
 			eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
 		}
-		return new ArrayList<EventDefinition>(eventDefinitions);
+		return new ArrayList<EventInfo>(eventDefinitions);
 	}
 
-	public List<EventDefinition> getIndicators() {
+	public List<EventInfo> getIndicators() {
 		return this.indicatorsStringToEventDefs(this.indicators);
 	}
 	
-	public List<EventDefinition> getIndepIndicators() {
+	public SortedSet<EventInfo> getIndicatorsSorted() {
+		
+		if (indicatorSortedCache == null) {
+			
+			SortedSet<EventInfo> indicatorSortedCacheTmp = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
+				@Override
+				public int compare(EventInfo o1, EventInfo o2) {
+					return o1.getEventDefinitionRef().compareTo(o2.getEventDefinitionRef());
+				}
+			});
+			indicatorSortedCacheTmp.addAll(this.getIndicators());
+			
+			indicatorSortedCache = Collections.unmodifiableSortedSet(indicatorSortedCacheTmp);
+			
+		}
+		
+		return indicatorSortedCache;
+		
+	}
+	
+	public List<EventInfo> getIndepIndicators() {
 		return this.indicatorsStringToEventDefs(this.indepIndicators);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public SortedSet<EventInfo> getAllTechIndicatorsSorted(Boolean refreshCache) {
+		
+		if (allTechIndicatorsSortedCache == null || refreshCache) {
+		
+			synchronized (LOGGER) {
+				
+				this.allEventInfos = null;
+				
+				
+				SortedSet<EventInfo> allTechIndicatorsSortedCacheTmp = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
+					@Override
+					public int compare(EventInfo o1, EventInfo o2) {
+						return o1.getEventDefinitionRef().compareTo(o2.getEventDefinitionRef());
+					}
+				});
+
+				allTechIndicatorsSortedCacheTmp.addAll(EventDefinition.loadFirstPassPrefEventDefinitions());
+
+				Integer maxPass = Integer.valueOf(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+				if (maxPass > 1) {
+
+					List<EventInfo> indepIndicators = this.getIndepIndicators();
+					if (PARAMETERIZEDINDICATORSBUILDER == null) PARAMETERIZEDINDICATORSBUILDER = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
+					for (EventInfo eventDefinition : indepIndicators) {
+
+						if (eventDefinition.getEventDefinitionRef().equals(EventDefinition.PARAMETERIZED.name())) {
+							@SuppressWarnings("rawtypes")
+							Collection values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
+							allTechIndicatorsSortedCacheTmp.remove(EventDefinition.PARAMETERIZED);
+							allTechIndicatorsSortedCacheTmp.addAll(values);
+
+						} else {
+							allTechIndicatorsSortedCacheTmp.add(eventDefinition);
+						}
+
+					}
+				}
+				allTechIndicatorsSortedCache = Collections.unmodifiableSortedSet(allTechIndicatorsSortedCacheTmp);
+			}
+		}
+		
+		return allTechIndicatorsSortedCache;
+	}
+	
+	public SortedSet<EventInfo> getAllEventInfos() {
+
+		if (allEventInfos == null) {
+			
+			synchronized (LOGGER) {
+				
+				SortedSet<EventInfo> allEventInfotmp = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
+					@Override
+					public int compare(EventInfo o1, EventInfo o2) {
+						return o1.getEventDefinitionRef().compareTo(o2.getEventDefinitionRef());
+					}
+				});
+				allEventInfotmp.addAll(getAllTechIndicatorsSorted(false));
+				allEventInfotmp.addAll(EventDefinition.nonTechEventDef());
+				allEventInfos = Collections.unmodifiableSortedSet(allEventInfotmp);
+				
+			}
+		}
+		
+		return allEventInfos;
 	}
 
 	public Integer getBuyEventTriggerThreshold() {
@@ -317,6 +423,9 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public void setIndicators(List<String> indicators) {
 		this.indicators = indicators;
+		this.indicatorSortedCache = null;
+		this.allTechIndicatorsSortedCache = null;
+		this.allEventInfos = null;
 	}
 
 	public void setAnalysis(String analysis) {
@@ -442,10 +551,12 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public void setIndepIndicators(List<String> indepIndicators) {
 		this.indepIndicators = indepIndicators;
+		this.allTechIndicatorsSortedCache = null;
+		this.allEventInfos = null;
 	}
 	
 	public void setIndepIndicators(String... indepIndicators) {
-		this.indepIndicators = Arrays.asList(indepIndicators);
+		this.setIndepIndicators(Arrays.asList(indepIndicators));
 	}
 
 	protected Boolean compareLists(List<? extends Object> list1, List<? extends Object> list2) {
@@ -497,5 +608,20 @@ public class EventSignalConfig extends Config implements Cloneable {
 		return configListFileName;
 	}
 
-	
+	public int getRocNNeuralHouseTrendPeriod() {
+		return rocNNeuralHouseTrendPeriod;
+	}
+
+	public int getRocNNeuralQuoteSmthPeriod() {
+		return rocNNeuralQuoteSmthPeriod;
+	}
+
+	public void setRocNNeuralHouseTrendPeriod(int rocNNeuralHouseTrendPeriod) {
+		this.rocNNeuralHouseTrendPeriod = rocNNeuralHouseTrendPeriod;
+	}
+
+	public void setRocNNeuralQuoteSmthPeriod(int rocNNeuralQuoteSmthPeriod) {
+		this.rocNNeuralQuoteSmthPeriod = rocNNeuralQuoteSmthPeriod;
+	}
+
 }

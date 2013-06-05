@@ -33,24 +33,22 @@ package com.finance.pms.talib.dataresults;
 import java.util.Date;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class IndicatorEventKey.
  * 
  * @author Guillaume Thoreton
  */
-public class StandardEventKey implements EventKey {
+public class StandardEventKey extends EventKey {
 	
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -6078591017314398119L;
 	
 	private Date date;
-	private EventDefinition eventdef;
+	private EventInfo eventdef;
 	private EventType eventType;
 	
 	/**
@@ -60,7 +58,7 @@ public class StandardEventKey implements EventKey {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public StandardEventKey(Date eventDate, EventDefinition eventDef, EventType eventType) {
+	public StandardEventKey(Date eventDate, EventInfo eventDef, EventType eventType) {
 		super();
 		this.date = eventDate;
 		this.eventdef = eventDef;
@@ -68,10 +66,11 @@ public class StandardEventKey implements EventKey {
 	}
 	
 	
-	public StandardEventKey(Date date,Integer eventdefId, String eventTypeChar) {
+	public StandardEventKey(Date date, String eventInfoReference, String eventTypeChar) throws NoSuchFieldException {
 		super();
 		this.date = date;
-		this.eventdef = EventDefinition.valueOf(eventdefId);
+		//this.eventdef = EventDefinition.valueOfEventInfo(eventInfoReference);
+		this.eventdef = EventDefinition.valueOf(eventInfoReference);
 		this.eventType = EventType.valueOf(eventTypeChar.charAt(0));
 	}
 
@@ -81,17 +80,17 @@ public class StandardEventKey implements EventKey {
 	}
 
 	
-	public Comparable<?> getEvenType() {
+	public EventType getEventType() {
 		return eventType;
 	}
 
-	public Comparable<?> getEventDefId() {
+	public EventInfo getEventInfo() {
 		return eventdef;
 	}
 	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEventDefExtra() {
-		return eventdef;
+	//@SuppressWarnings("rawtypes")
+	public String getEventInfoExtra() {
+		return eventdef.getEventDefinitionRef();
 	}
 
 	
@@ -99,60 +98,5 @@ public class StandardEventKey implements EventKey {
 	public String toString() {
 		return "StandardEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + "]";
 	}
-	
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
-		result = prime * result + ((eventdef == null) ? 0 : eventdef.hashCode());
-		return result;
-	}
-
-
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		StandardEventKey other = (StandardEventKey) obj;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (date.compareTo(other.date) != 0)
-			return false;
-		if (eventType == null) {
-			if (other.eventType != null)
-				return false;
-		} else if (!eventType.equals(other.eventType))
-			return false;
-		if (eventdef == null) {
-			if (other.eventdef != null)
-				return false;
-		} else if (!eventdef.equals(other.eventdef))
-			return false;
-		return true;
-	}
-
-
-	@Override
-	public int compareTo(EventKey o) {
-		
-		int dateCompare = date.compareTo(o.getDate());
-		if (dateCompare == 0) {
-			int evtTypecompare = eventType.compareTo((EventType) o.getEvenType());
-			if (evtTypecompare == 0) {
-				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
-				if (evtDefCompare == 0) {
-					return getEventDefExtra().toString().compareTo(o.getEventDefExtra().toString());
-				}
-			}
-			return evtTypecompare;
-		}
-		
-		return dateCompare;
-	}	
 
 }

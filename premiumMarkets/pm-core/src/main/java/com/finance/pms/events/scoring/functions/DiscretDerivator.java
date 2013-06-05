@@ -33,6 +33,10 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Date;
 import java.util.SortedMap;
 
+
+/**
+ * Make a discret output (0/1) from the input
+ */
 public interface DiscretDerivator {
 
 	public SortedMap<Date, double[]> derivateDiscret(SortedMap<Date, double[]> data);

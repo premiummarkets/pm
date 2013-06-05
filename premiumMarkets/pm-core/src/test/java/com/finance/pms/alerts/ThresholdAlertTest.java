@@ -45,7 +45,7 @@ import com.finance.pms.portfolio.PortfolioShare;
 
 public class ThresholdAlertTest {
 	
-	ThresholdAlertParser thresholdAlert;
+	AlertOnThresholdParser thresholdAlert;
 	Stock stock;
 	PortfolioMgr portfolioMgr;
 	List<PortfolioShare> portfolioShareList;

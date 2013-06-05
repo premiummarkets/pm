@@ -62,8 +62,6 @@ public interface QuotationsFactory {
 
 	public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency) throws NoQuotationsException;
 
-//	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift) throws NoQuotationsException;
-
 	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException;
 
 	int nbOpenIncrementBetween(Date firstDate, Date secondDate);
@@ -75,11 +73,9 @@ public interface QuotationsFactory {
 	SortedMap<Date, double[]> buildMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
 	
 	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
-	
-	
-	
-//	public Stack<OnTheFlyTuningPeriod> onTheFlyRetunDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq);
 
-//	Date getTrainingStartDate(Stock stock, Date endDate) throws NotEnoughDataException;
+	public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Stock stock);
 
+	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field) throws NotEnoughDataException;
+	
 }

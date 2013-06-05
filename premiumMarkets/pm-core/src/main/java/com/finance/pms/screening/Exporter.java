@@ -46,12 +46,15 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.EventSource;
+import com.finance.pms.events.AnalysisClient;
+import com.finance.pms.events.EmailFilterEventSource;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.queue.SymbolEventsMessage;
+import com.finance.pms.threads.ConfigThreadLocal;
 
 public abstract class Exporter<T> {
 	
@@ -95,29 +98,34 @@ public abstract class Exporter<T> {
 		}
 	}
 	
-	protected void sendScreeningEvents(Collection<SymbolEvents> screeningEvents, EventSource eventSource, String eventListName) {
+	protected void storeAndSendScreeningEvents(Collection<SymbolEvents> screeningEvents, EmailFilterEventSource eventSource, String eventListName) {
+		
 		for (SymbolEvents event : screeningEvents) {
 			sendScreeningEvent(event, eventSource, eventListName);
+			EventsResources.getInstance().crudCreateEvents(event, true, eventListName);
 		} 
 	}
 
-	private void sendScreeningEvent(final SymbolEvents symbolEvent,final EventSource eventSource, final String eventListName) {					
-		jmsTemplate.send(eventQueue, new MessageCreator() {
+	private void sendScreeningEvent(final SymbolEvents symbolEvent,final EmailFilterEventSource eventSource, final String eventListName) {	
+		
+		if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
+			jmsTemplate.send(eventQueue, new MessageCreator() {
 
-			public Message createMessage(Session session) throws JMSException {
+				public Message createMessage(Session session) throws JMSException {
 
-				SymbolEventsMessage message = new SymbolEventsMessage(symbolEvent);
-				message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource);
-				message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-				
-				List<EventValue> eventValues = symbolEvent.getSortedDataResultList();
-				EventValue eventValue = eventValues.get(eventValues.size()-1);
-				message.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name());
-				
-				EventsResources.getInstance().crudCreateEvents(message.getSymbolEvents(), true, eventListName);
-				return message;
-			}
-		});
+					SymbolEventsMessage message = new SymbolEventsMessage(eventListName, symbolEvent, ConfigThreadLocal.getAll());
+					message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource);
+					message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+					message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), EventDefinition.SCREENER.getEventReadableDef());
+
+					List<EventValue> eventValues = symbolEvent.getSortedDataResultList();
+					EventValue eventValue = eventValues.get(eventValues.size()-1);
+					message.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name());
+					//EventsResources.getInstance().crudCreateEvents(message.getSymbolEvents(), true, eventListName);
+					return message;
+				}
+			});
+		}
 	}
 	
 	public abstract void  buildAndSendScreeningEvents(T screened,String eventListName);

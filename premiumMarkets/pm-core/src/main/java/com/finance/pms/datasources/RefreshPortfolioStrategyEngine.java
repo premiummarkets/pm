@@ -30,27 +30,79 @@
  */
 package com.finance.pms.datasources;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
-import java.util.SortedMap;
+import java.util.Observer;
+import java.util.Set;
 
+import com.finance.pms.IndicatorCalculationServiceMain;
+import com.finance.pms.SpringContext;
+import com.finance.pms.admin.config.EventSignalConfig;
+import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
+import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.AlertCalculationRunnableMessage;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
+import com.finance.pms.portfolio.UserPortfolio;
 
 
 
 public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 	
-	protected Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException {
-		 actionThread.runIndicatorsCalculationPassTwo(true);
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
+		 try {
+			actionThread.runIndicatorsCalculationPassTwo(true);
+		} catch (IncompleteDataSetException e) {
+		}
 		 return null;
 	}
 
-	protected Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException {
-		actionThread.runIndicatorsCalculationPassOne(true , "auto");
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
+		try {
+			actionThread.runIndicatorsCalculationPassOne(true , "auto");
+		} catch (IncompleteDataSetException e) {
+		}
 		return null;
+	}
+
+	@Override
+	public void callbackForAlerts(Set<Observer> engineObservers, Object... viewStateParams) throws InterruptedException {
+		
+		Date endDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+		
+		UserPortfolio[] userPortfolios = Arrays.copyOf(((Object[])viewStateParams[1]),((Object[])viewStateParams[1]).length,(new UserPortfolio[0]).getClass());
+		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), IndicatorCalculationServiceMain.UI_ANALYSIS, endDate, userPortfolios);
+		alertOnThresholdAnalyser.runAlertsOnThresholdCalculation();
+	}
+
+	@Override
+	public void callbackForlastListFetch(Set<Observer> engineObservers, Object... viewStateParams) {
+		//Object[] stocks = Arrays.copyOf(((Object[])viewStateParams[0]),((Object[])viewStateParams[0]).length,(new Stock[0]).getClass());
+		Object[] stocks = (Object[]) viewStateParams[0];
+		super.callbackForlastListFetch(engineObservers, stocks);
+	}
+
+	@Override
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object... viewStateParams) throws StockNotFoundException {
+		Object[] stocks = (Object[]) viewStateParams[0];
+		super.callbackForlastQuotationFetch(engineObservers, stocks);
+	}
+
+	@Override
+	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object... viewStateParams) {
+		Object[] stocks = (Object[]) viewStateParams[0];
+		return super.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, stocks);
+	}
+
+	@Override
+	public Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object... viewStateParams) {
+		Object[] stocks = (Object[]) viewStateParams[0];
+		return super.callbackForAnalysisClean(engineObservers, stocks);
 	}
 
 }

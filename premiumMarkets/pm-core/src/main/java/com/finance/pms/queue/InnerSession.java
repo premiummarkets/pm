@@ -51,6 +51,8 @@ import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.jms.TopicSubscriber;
 
+import com.finance.pms.threads.ConfigThreadLocal;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class InnerSession.
@@ -162,11 +164,8 @@ public class InnerSession implements Session {
 		//return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.jms.Session#createObjectMessage(java.io.Serializable)
-	 */
 	public ObjectMessage createObjectMessage(Serializable arg0) throws JMSException {
-		SingleEventMessage myMess  = new SingleEventMessage(arg0);
+		SingleEventMessage myMess  = new SingleEventMessage(arg0, ConfigThreadLocal.getAll());
 		return myMess;
 		//throw new UnsupportedOperationException();
 	}

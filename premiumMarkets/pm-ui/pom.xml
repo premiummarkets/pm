@@ -19,10 +19,16 @@
 	<pm.buildtime>${timestamp}</pm.buildtime>
   </properties>
   <dependencies>
-  	<dependency>
+    <dependency>
 		<groupId>com.finance.pm</groupId>
 		<artifactId>pm-core</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
+	</dependency>
+  	<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
 	</dependency>
 	<dependency>
 		<groupId>swt</groupId>
@@ -99,30 +105,35 @@
 		<artifactId>swt-3.7.2-win32-win32-x86</artifactId>
 		<version>0.0.1</version>
 	</dependency>
-		<dependency>
-			<groupId>org.dbunit</groupId>
-			<artifactId>dbunit</artifactId>
-			<version>2.2.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>3.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>1.4.12</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-easymock</artifactId>
-			<version>1.4.12</version>
-			<scope>test</scope>
-		</dependency>
+	<dependency>
+		<groupId>org.dbunit</groupId>
+		<artifactId>dbunit</artifactId>
+		<version>2.2.3</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.easymock</groupId>
+		<artifactId>easymock</artifactId>
+		<version>3.1</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.powermock</groupId>
+		<artifactId>powermock-module-junit4</artifactId>
+		<version>1.4.12</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.powermock</groupId>
+		<artifactId>powermock-api-easymock</artifactId>
+		<version>1.4.12</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.derby</groupId>
+		<artifactId>derby</artifactId>
+		<version>10.9.1.0</version>
+	</dependency>
   </dependencies>
    <build>
    	<resources>

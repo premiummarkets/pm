@@ -95,8 +95,8 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		private static final long serialVersionUID = 1L;
 		//Nb to easily get a new time list TextAreaStream.updateTextArea should be sync
 		{
-			put(0,0L);
-			put(1,20269L);
+			put(0,22L);
+			put(1,2447L);
 			put(2,20460L);
 			put(3,20460L);
 			put(4,20460L);
@@ -249,7 +249,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     @Override
 	public void displayingPanel() {
     	
-    	task = new Task(InstallFolderPanel.piggyMarketSqueakFolder, this, panel3);
+    	task = new Task(InstallFolderPanel.getPmFolder(), this, panel3);
 		task.execute();
 		
 		SwingWorker<Void, Void> deltaPrg = new SwingWorker<Void,Void>() {

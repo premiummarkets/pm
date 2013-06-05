@@ -1,0 +1,1120 @@
+package com.finance.pms.events.gui;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Caret;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+
+import com.finance.pms.ActionDialog;
+import com.finance.pms.ActionDialogAction;
+import com.finance.pms.ErrorDialog;
+import com.finance.pms.MainGui;
+import com.finance.pms.SpringContext;
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventRefreshController;
+import com.finance.pms.events.calculation.FormulaUtils;
+import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
+import com.finance.pms.events.calculation.antlr.ANTLRParserHelper;
+import com.finance.pms.events.calculation.antlr.Alternative;
+import com.finance.pms.events.calculation.antlr.EditorLexerDelegate;
+import com.finance.pms.events.calculation.antlr.EditorOpsLexerDelegate;
+import com.finance.pms.events.calculation.antlr.NextToken;
+import com.finance.pms.events.calculation.antlr.NextToken.TokenType;
+import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
+import com.finance.pms.events.operations.Operation;
+
+public class OperationBuilderComposite extends Composite {
+	
+	public static MyLogger LOGGER = MyLogger.getLogger(OperationBuilderComposite.class);
+
+	protected ParameterizedBuilder parameterizedBuilder;
+	private MainGui mainGuiParent;
+	
+	private Label errorLabel;
+	protected CCombo formulaReference;
+	protected StyledText editor;
+	Boolean isSaved;
+	Boolean savingAttemptStarted;
+
+	private Table tokenAltsTable;
+	private Shell popupShell;
+	private TableColumn[] tokenAltsColumns;
+	
+	private ComboUpdateMonitor comboUpdateMonitor = new ComboUpdateMonitor();
+
+	private Map<Class<? extends Object>, Object> editorListeners;
+
+	
+	public static void main(String ... args) {
+		
+		SpringContext springContext = new SpringContext(args[0]);
+		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
+		springContext.refresh();
+
+		final Shell shell = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM | SWT.RESIZE);
+		shell.setText("Parameterise and Create indicators ...");
+		shell.setLayout(new GridLayout());
+		
+		IndicatorBuilderComposite  builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());
+		builderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		builderComposite.parameterizedBuilder.updateEditableOperationLists();
+		
+		shell.addShellListener(new ShellAdapter() {
+			@Override
+			public void shellClosed(ShellEvent evt) {
+				shell.dispose();
+			}
+		});
+
+		shell.layout();
+		shell.open();
+		Display display = shell.getDisplay();
+		while (!shell.isDisposed()) {
+			try {
+				if (!display.readAndDispatch()) display.sleep();
+			} catch (RuntimeException e) {
+				e.printStackTrace();
+			} catch (Error e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
+
+	public OperationBuilderComposite(Composite parent, MainGui mainGui) {
+		
+		super(parent, SWT.NONE);
+		parameterizedBuilder = initParameterizedBuilder();
+		this.mainGuiParent = mainGui;
+		initGui();
+		
+		this.addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				//TODO warning on unsaved?
+			}
+			
+		});
+		
+	}
+
+	protected ParameterizedBuilder initParameterizedBuilder() {
+		return (ParameterizedBuilder) SpringContext.getSingleton().getBean("parameterizedOperationBuilder");
+	}
+	
+	private void initGui() {
+		
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 2;
+		this.setLayout(layout);
+
+		{
+			Label formulaReferenceLabel = new Label(this, SWT.NONE);
+			GridData labelLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			labelLayoutData.horizontalSpan = 2;
+			formulaReferenceLabel.setLayoutData(labelLayoutData);
+			formulaReferenceLabel.setText(formulaReferenceLabelTxt());
+			formulaReferenceLabel.setFont(MainGui.DEFAULTFONT);
+			formulaReferenceLabel.setBackground(MainGui.pOPUP_BG);
+			
+			formulaReference = new CCombo(this, SWT.SINGLE);
+			GridData refLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			refLayoutData.horizontalSpan = 2;
+			formulaReference.setLayoutData(refLayoutData);
+			formulaReference.setFont(MainGui.CONTENTFONT);
+			formulaReference.addMouseListener(new MouseListener() {
+				
+				@Override
+				public void mouseUp(MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseDown(MouseEvent e) {
+					if (!savingAttemptStarted) handleSaveAndSelection();	
+				}
+
+				@Override
+				public void mouseDoubleClick(MouseEvent e) {
+					formulaReference.clearSelection();
+				}
+			});
+			formulaReference.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+				
+				private void handle() {
+					changeEditorText(getFormatedReferenceTxt());
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			formulaReference.addKeyListener(new KeyListener() {
+				
+				@Override
+				public void keyReleased(KeyEvent event) {
+					switch (event.keyCode) {
+					case SWT.ARROW_DOWN:
+						break;
+					case SWT.ARROW_UP:
+						break;
+					case SWT.ESC:
+						break;
+					case SWT.CR :
+						handleSaveAndSelection();
+						editor.setFocus();
+						break;
+					default :
+						if (isSaved) {
+							clearEditor();
+						}
+					}
+				}
+		
+				@Override
+				public void keyPressed(KeyEvent e) {
+				}
+			});
+		}
+
+		{
+			Label editorLabel = new Label(this, SWT.NONE);
+			GridData labelLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			labelLayoutData.horizontalSpan = 2;
+			editorLabel.setLayoutData(labelLayoutData);
+			editorLabel.setText("Type in your formula");
+			editorLabel.setFont(MainGui.DEFAULTFONT);
+			editorLabel.setBackground(MainGui.pOPUP_BG);
+			
+			errorLabel = new Label(this, SWT.WRAP);
+			GridData errorLabelLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			errorLabelLayoutData.horizontalSpan = 2;
+			errorLabelLayoutData.widthHint = 100;
+			errorLabel.setLayoutData(errorLabelLayoutData);
+			errorLabel.setText("");
+			errorLabel.setFont(MainGui.CONTENTFONT);
+			errorLabel.setForeground(getDisplay().getSystemColor(SWT.COLOR_RED));
+			
+			editor = new StyledText(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+			GridData editorLayoutData = new GridData(SWT.FILL,SWT.FILL,true,true);
+			editorLayoutData.horizontalSpan = 2;
+			editor.setLayoutData(editorLayoutData);
+			editor.setFont(MainGui.CONTENTFONT);
+			{
+				editorListeners = new HashMap<Class<? extends Object>, Object>();
+				
+				initPopup();	
+				
+				editor.addModifyListener(new ModifyListener() {
+					
+					@Override
+					public void modifyText(ModifyEvent e) {
+						if (!editor.getText().isEmpty()) {
+							isSaved = !hasChanged(getFormatedReferenceTxt());
+						}
+					}
+				});
+	
+			}
+		}
+		
+		addExtratButtons();
+		{
+
+			Button deleteFormula = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING,SWT.TOP,true,false);
+			deleteFormula.setLayoutData(layoutData);
+			deleteFormula.setText("Delete "+builderLabel());
+			deleteFormula.setFont(MainGui.DEFAULTFONT);
+			deleteFormula.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					int selectionIndex = formulaReference.getSelectionIndex();
+					
+					deleteFormula(getFormatedReferenceTxt());
+			
+					formulaReference.removeAll();
+					updateCombo();
+					if (formulaReference.getItemCount() > 0) {
+						forceSelection(selectionIndex % formulaReference.getItemCount());
+					}
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+		}
+		{
+
+			Button saveFormula = new Button(this, SWT.NONE);
+			saveFormula.setLayoutData(new GridData(SWT.END,SWT.TOP,true,false));
+			saveFormula.setText(saveButtonTxt());
+			saveFormula.setFont(MainGui.DEFAULTFONT);
+			saveFormula.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					handleSaveAndSelection();
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+		}
+		
+		updateCombo();
+		isSaved = true;
+		savingAttemptStarted = false;
+		if (formulaReference.getItemCount() > 0) {
+			forceSelection(0);
+		}
+		
+		this.layout();
+	}
+
+	protected void initPopup() {
+		
+		popupShell = new Shell(getShell(), SWT.ON_TOP);
+		getShell().addListener(SWT.Traverse, new Listener() {
+			public void handleEvent(Event event) {
+				switch (event.detail) {
+				case SWT.TRAVERSE_ESCAPE:
+					event.detail = SWT.TRAVERSE_NONE;
+					event.doit = false;
+					break;
+				}
+			}
+		});
+		getShell().addShellListener(new ShellAdapter() {
+			@Override
+			public void shellClosed(ShellEvent evt) {
+				if (!popupShell.isDisposed()) popupShell.dispose();
+			}
+		});
+		popupShell.setLayout(new FillLayout());
+		popupShell.setText("Hello");
+
+		tokenAltsTable = new Table(popupShell, SWT.SINGLE);
+		tokenAltsTable.setFont(MainGui.CONTENTFONT);
+		tokenAltsTable.setHeaderVisible(true);
+		tokenAltsColumns = new TableColumn[3];
+		tokenAltsColumns[0] = new TableColumn(tokenAltsTable, SWT.LEFT);
+		tokenAltsColumns[0].setWidth(50);
+		tokenAltsColumns[1] = new TableColumn(tokenAltsTable, SWT.LEFT);
+		tokenAltsColumns[1].setText("description");
+		tokenAltsColumns[1].setWidth(50);
+		tokenAltsColumns[2] = new TableColumn(tokenAltsTable, SWT.LEFT);
+		tokenAltsColumns[2].setText("synoptic and defaults");
+		tokenAltsColumns[2].setWidth(50);
+		
+		
+		if (editorListeners.get(VerifyKeyListener.class) != null) editor.removeVerifyKeyListener((VerifyKeyListener) editorListeners.get(VerifyKeyListener.class));  
+		VerifyKeyListener vkListener = new VerifyKeyListener() {
+			
+			@Override
+			public void verifyKey(VerifyEvent event) {
+				if (popupShell.isVisible()) {
+					switch (event.keyCode) {
+					case SWT.ARROW_DOWN:
+						int index = (tokenAltsTable.getSelectionIndex() + 1) % tokenAltsTable.getItemCount();
+						tokenAltsTable.setSelection(index);
+						event.doit = false;
+						break;
+					case SWT.ARROW_UP:
+						index = tokenAltsTable.getSelectionIndex() - 1;
+						if (index < 0) index = tokenAltsTable.getItemCount() - 1;
+						tokenAltsTable.setSelection(index);
+						event.doit = false;
+						break;
+					case SWT.CR:
+						if (popupShell.isVisible() && tokenAltsTable.getSelectionIndex() != -1) {
+							applyAutoCompleteSelection(tokenAltsTable);
+							event.doit = false;
+						}
+						break;
+					case SWT.ESC:
+						popupShell.setVisible(false);
+						break;
+					default :
+					}
+				}
+			}
+		};
+		editorListeners.put(VerifyKeyListener.class,vkListener);
+		editor.addVerifyKeyListener(vkListener);
+		
+		if (editorListeners.get(KeyListener.class) != null) editor.removeKeyListener((KeyListener) editorListeners.get(KeyListener.class));
+		KeyListener keyListener = new KeyListener() {
+			
+			@Override
+			public void keyReleased(KeyEvent event) {
+				if (!popupShell.isDisposed() && popupShell.isVisible()) {
+					switch (event.keyCode) {
+					case SWT.ARROW_DOWN:
+					case SWT.ARROW_UP:
+					case SWT.CR:
+					case SWT.ESC:
+						break;
+					default :
+						LOGGER.info("buildPopupAlternatives key released popup visible");
+						buildPopupAlternatives();
+					}
+				} else {
+					LOGGER.info("buildPopupAlternatives key released popup hidden");
+					if (event.keyCode != SWT.ESC) buildPopupAlternatives();
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+		};
+		editorListeners.put(KeyListener.class, keyListener);
+		editor.addKeyListener(keyListener);
+		
+		if (editorListeners.get(MouseListener.class) != null) editor.removeMouseListener((MouseListener) editorListeners.get(MouseListener.class));
+		MouseListener mouseListener = new MouseListener() {
+			
+			@Override
+			public void mouseUp(MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseDown(MouseEvent e) {
+				LOGGER.info("buildPopupAlternatives mouseDown");
+				buildPopupAlternatives();
+			}
+			
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				LOGGER.info("buildPopupAlternatives mouseDoubleClick");
+				buildPopupAlternatives();
+			}
+		};
+		editorListeners.put(MouseListener.class, mouseListener);
+		editor.addMouseListener(mouseListener);
+		
+		tokenAltsTable.addListener(SWT.DefaultSelection, new Listener() {
+			public void handleEvent(Event event) {
+				applyAutoCompleteSelection(tokenAltsTable);
+			}
+		});
+		tokenAltsTable.addListener(SWT.KeyDown, new Listener() {
+			public void handleEvent(Event event) {
+				switch (event.keyCode) {
+				case SWT.ESC:
+					popupShell.setVisible(false);
+					break;
+				case SWT.CR:
+					applyAutoCompleteSelection(tokenAltsTable);
+					event.doit = false;
+					break;
+				case SWT.ARROW_DOWN:
+				case SWT.ARROW_UP:
+					break;
+				default :
+					event.doit = false;
+				}
+			}
+		});
+
+		if (editorListeners.get(FocusListener.class) != null) editor.removeFocusListener((FocusListener) editorListeners.get(FocusListener.class));
+		Listener focusOutListener = new Listener() {
+			public void handleEvent(Event event) {
+				/* async is needed to wait until focus reaches its new Control */
+				getParent().getDisplay().asyncExec(new Runnable() {
+					public void run() {
+						if (popupShell.isDisposed() || getParent().getDisplay().isDisposed()) return;
+						Control control = getParent().getDisplay().getFocusControl();
+						if (control == null || (control != editor && control != tokenAltsTable) && control != popupShell) {
+							popupShell.setVisible(false);
+						}
+					}
+				});
+			}
+		};
+		editorListeners.put(FocusListener.class,focusOutListener);
+		editor.addListener(SWT.FocusOut, focusOutListener);
+		
+		tokenAltsTable.addListener(SWT.FocusOut, focusOutListener);
+
+		getShell().addListener(SWT.Move, new Listener() {
+			public void handleEvent(Event event) {
+				popupShell.setVisible(false);
+			}
+		});
+		
+	}
+	
+	protected void clearEditor() {
+		editor.setText("");
+		errorLabel.setText("");
+	}
+	
+	protected void handleSaveAndSelection() {
+		
+		int selectionIndex = formulaReference.getSelectionIndex();
+		String id = getFormatedReferenceTxt();
+		
+		if (!isSaved) {
+
+			savingAttemptStarted = true;
+			
+			if (isValidId(id)) {
+				isSaved = saveOrUpdateFormula(id, true);
+			}
+			
+			if (isSaved) {
+				
+				savingAttemptStarted = false;
+
+				formulaReference.removeAll();
+				updateCombo();
+				if (selectionIndex == -1) {
+					String[] items = formulaReference.getItems();
+					for (int i = 0; i <items.length; i++) {
+						if (id.equals(items[i])) {
+							selectionIndex = i;
+							break;
+						}
+					}
+				}
+				forceSelection(selectionIndex);
+			}
+		}
+	}
+
+	protected void addExtratButtons() {
+	
+	}
+	
+	private void deleteFormula(String identifier) {
+		
+		if (!isValidId(identifier)) return;
+		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+		if(isNativeOp(identifier, existingOp)) return;
+		
+		try {
+			parameterizedBuilder.removeFormula(identifier);
+		} catch (IOException e) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Formula can't be deleted.", e.toString());
+			LOGGER.warn(e,e);
+			dialog.open();
+			return;
+		} catch (Exception e) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			LOGGER.warn(e,e);
+			dialog.open();
+		}
+		
+		clearPreviousCalcsWarning();
+		
+	}
+
+	protected void clearPreviousCalcsWarning() {
+		ActionDialog actionDialog = 
+				new ActionDialog(getShell(), SWT.NONE, "You have changed some "+builderLabel()+" formulas.", 
+				"You have changed some "+builderLabel()+" formulas.\nYou may want to clear.",
+				"Don't forget to click Refresh calculations after clearing!", 
+				"Clear calculations", new ActionDialogAction() {
+					@Override
+					public void action(Button targetButton) {
+						EventRefreshController clearPreviousCalculationsControler = mainGuiParent.clearPreviousCalculationsControler();
+						clearPreviousCalculationsControler.widgetSelected(null);
+					}
+		});
+		actionDialog.open();
+	}
+
+	protected String saveButtonTxt() {
+		return "Save "+builderLabel()+" Formula";
+	}
+
+	protected String formulaReferenceLabelTxt() {
+		return builderLabel()+" Formula Identifier";
+	}
+	
+	protected String builderLabel() {
+		return "Indicator";
+	}
+
+	protected void changeEditorText(String newId) {
+		if (newId != null && !newId.isEmpty()) {
+			int indexOf = formulaReference.indexOf(newId);
+			if (indexOf != -1) {
+				forceSelection(indexOf);
+			} else {
+				//editor.setText("");
+				clearEditor();
+			}
+		} else {
+			//editor.setText("");
+			clearEditor();
+		}
+		errorLabel.setText("");
+	}
+
+	protected Boolean hasChanged(String oldId) {
+		
+		Boolean hasChanged = false;
+		Map<String, Operation> currentOperations = parameterizedBuilder.getUserCurrentOperations();
+		if (oldId !=null && !oldId.isEmpty()) {
+			Operation oldOp = currentOperations.get(oldId);
+			if (oldOp != null) {
+				String oldFormula = oldOp.getFormula();
+				if (oldFormula == null || !oldFormula.equals(formatedEditorTxt())) {
+					hasChanged = true;
+				}
+			} else {
+				hasChanged=true;
+			}
+		}
+		return hasChanged;
+	}
+	
+	private Boolean saveOrUpdateFormula(String identifier, Boolean checkOverWrite) {
+		
+		String formula = formatedEditorTxt();
+		if (formula == null || formula.isEmpty()) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Please fill in a valid formula", null);
+			dialog.open();
+			return true;
+		}
+		
+		//Changes checks		
+		if (!hasChanged(identifier)) return true;
+		
+		//Already exist warning
+		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+		if (existingOp != null && checkOverWrite) {
+			ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "Identifier already exists", "Identifier "+existingOp.getReference()+" already exists", null, "Write over", new ActionDialogAction() {
+				@Override
+				public void action(Button targetButton) {
+					formulaReference.forceFocus();
+				}
+			});
+			dialog.open();
+			if (!dialog.getIsOk()) {
+				return false;
+			}
+		}
+		
+		//Save formula
+		try {
+			//Sanity check
+			NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
+			if (checkNextToken != null) {
+				ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Error in formula", "Formula "+formula+" can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
+				dialog.open();
+				return false;
+			} else {
+				//Save
+				parameterizedBuilder.addFormula(identifier, formula);
+			}
+
+		} catch (IOException e) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Formula can't be saved.\n Please fill in a valid formula", e.toString());
+			LOGGER.warn(e,e);
+			dialog.open();
+			return false;
+			
+		} catch (Exception e) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			LOGGER.warn(e,e);
+			dialog.open();
+			//return true;
+		} 
+		
+		clearPreviousCalcsWarning();
+		return true;
+		
+	}
+
+	protected Boolean isNativeOp(String identifier, Operation existingOp) {
+		Boolean isNativeOp = false;
+		if ((existingOp != null && existingOp.isNative()) ||(existingOp = parameterizedBuilder.getNativeOperations().get(identifier)) != null) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", 
+					"The identifier you have chosen clashes with a native identifier :\n" +
+					existingOp.getReference()+", "+existingOp.getDescription()+".\n" +
+					"Use an other one, for instance "+identifier+"1 or my"+identifier+" and save again.", null);
+			dialog.open();
+			isNativeOp = true;
+		}
+		return isNativeOp;
+	}
+
+	protected Boolean isValidId(String identifier) {
+		
+		Boolean isIdEmpty = false;
+		if (identifier == null || identifier.length() <2 || EditorLexerDelegate.HISTORICALDATA_TOKENS.contains(identifier)) {
+			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", 
+					"The identifier must contain at least two characters or number,\n" +
+					"Must not be already taken.\n" +
+					"And must not be on of the key words : "+ EditorLexerDelegate.HISTORICALDATA_TOKENS+" ...");
+			dialog.open();
+			isIdEmpty = true;
+		}
+		
+		Boolean isValid = true;
+		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+		if (isNativeOp(identifier, existingOp)) {
+			isValid = false;
+		}
+		
+		return !isIdEmpty && isValid;
+	}
+
+	private String formatedEditorTxt() {
+		return format(editor.getText());
+	}
+
+	protected String format(String string) {
+		return string.replaceAll("\n", "").replaceAll(" +", " ").trim();
+	}
+	
+	String getFormatedReferenceTxt() {
+		return format(formulaReference.getText());
+	}
+
+	protected NextToken expectedTokens(String formula) {
+		LOGGER.info("Checking formula : "+formula);
+		NextToken nextToken = parameterizedBuilder.checkNextToken(formula);
+		return nextToken;
+	}
+
+	
+	private void filterOutExistingSyntax(String formula, NextToken nextToken) {
+		List<Alternative> filteredAlts = new ArrayList<Alternative>();
+		for (Alternative alternative : nextToken.getAlternatives()) {
+			if (alternative.getHighLighPosition()[0] != -1 && alternative.getHighLighPosition()[1] != -1) {
+				int tokenPosition = ANTLROperationsParserHelper.translatePositionToCaret(editor.getText(), alternative.getHighLighPosition()[0], alternative.getHighLighPosition()[1]);
+				if (tokenPosition < formula.length() && (alternative.getTokenType().equals(TokenType.SYNTAX) || alternative.getTokenType().equals(TokenType.KEYWORDS)))  {
+					String trimedF = formula.substring(tokenPosition).trim();
+					String nt = trimedF.replaceFirst(" .*", " ");
+					if (nt.startsWith(alternative.getAltString().replaceFirst(" *", ""))) {
+						//Don't add
+					} else {
+						filteredAlts.add(alternative);
+					}
+				} else {
+					filteredAlts.add(alternative);
+				}
+			} else {
+				filteredAlts.add(alternative);
+			}
+		}
+		nextToken.setAlternatives(filteredAlts);
+		
+	}
+	
+
+	private void filterOutWrongPosition(NextToken nextToken, int caretPosition) {
+		List<Alternative> filteredAlts = new ArrayList<Alternative>();
+		for (Alternative alternative : nextToken.getAlternatives()) {
+			if (alternative.getHighLighPosition()[0] != -1 && alternative.getHighLighPosition()[1] != -1) {
+				int tokenPosition = ANTLROperationsParserHelper.translatePositionToCaret(editor.getText(),alternative.getHighLighPosition()[0], alternative.getHighLighPosition()[1]);
+				if (tokenPosition == caretPosition) filteredAlts.add(alternative);
+			} else {
+				filteredAlts.add(alternative);
+			}
+		}
+		nextToken.setAlternatives(filteredAlts);
+	}
+
+	void updateCombo() {
+		
+		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
+		SortedSet<String> itemSet = new TreeSet<String>();
+		for (String id : allOps.keySet()) {
+			if (allOps.get(id).getFormula() != null) {
+				itemSet.add(id);
+			}
+		}
+		formulaReference.setItems(itemSet.toArray(new String[0]));
+		
+		updateEditableOperationLists();
+		
+		comboUpdateMonitor.notifyObservers();
+		
+	}	
+	
+	protected void updateEditableOperationLists() {
+		parameterizedBuilder.updateEditableOperationLists();
+	}
+
+
+	private void forceSelection(int selected) {
+		
+		if (selected != -1 && selected < formulaReference.getItemCount()) {
+			formulaReference.select(selected);
+			editor.setText(parameterizedBuilder.getUserCurrentOperations().get(getFormatedReferenceTxt()).getFormula());
+			checkBoxDisabled();
+		}
+		
+	}
+
+	protected void checkBoxDisabled() {
+		//Nothing
+	}
+
+	private void applyAutoCompleteSelection(Table table) {
+		
+		//Split existing at caret
+		int caretPosition = editor.getCaretOffset();
+		String rawEditorTxt = editor.getText();
+		
+		String preCaretUnTrimed = rawEditorTxt.substring(0, Math.min(rawEditorTxt.length(), caretPosition));
+		String preCaret = trimPartialFormula(preCaretUnTrimed);
+		String postCaret = "";
+		if (caretPosition < rawEditorTxt.length()) {
+			String postCaretUnTrimed = rawEditorTxt.substring(caretPosition);
+			postCaret = trimPartialFormula(postCaretUnTrimed);
+		}
+		
+		//Replace
+		TableItem tableItem = table.getSelection()[0];
+		Alternative alt = (Alternative) tableItem.getData();
+		
+		String replaced = preCaret;
+		String preCaretAfterRepalcement = preCaret;
+		switch(alt.getTokenType()) {
+		case CONSTANT:
+			{
+				String replacement = (alt.getDefaultValue() != null)?alt.getDefaultValue():"0";
+				int startOfInstert = startOfInsert(preCaret, replacement);	
+				String keptPreCaret = preCaret.substring(0,startOfInstert);
+				int endOfInsert = endOfInsertToNextStop(postCaret, syntaxTokens());
+				String keptPostCaret = postCaret.substring(endOfInsert);
+				preCaretAfterRepalcement = keptPreCaret+replacement;
+				replaced = preCaretAfterRepalcement+keptPostCaret;
+			}
+			break;
+		case SYNTAX:
+			{
+				String replacement  = tableItem.getText();
+				String keptPostCaret = (!postCaret.isEmpty() && postCaret.charAt(0) == replacement.charAt(0))?postCaret.substring(1):postCaret;
+				preCaretAfterRepalcement = preCaret+replacement;
+				replaced = preCaret+replacement+keptPostCaret;
+			}
+			break;	
+		case DATA:
+		case KEYWORDS:
+			{
+				String replacement  = tableItem.getText();
+				int startOfInstert = startOfInsert(preCaret, replacement);	
+				String keptPreCaret = preCaret.substring(0,startOfInstert);
+				int endOfInsert = endOfInsertToNextStop(postCaret, syntaxTokens());
+				String keptPostCaret = postCaret.substring(endOfInsert);
+				preCaretAfterRepalcement = keptPreCaret+replacement;
+				replaced = preCaretAfterRepalcement+keptPostCaret;
+			}
+			break;	
+		case DELETE:
+			{
+				String toDelete = tableItem.getText();
+				preCaretAfterRepalcement = preCaret.substring(0, preCaret.length()-toDelete.length());
+				replaced = preCaretAfterRepalcement+postCaret;
+			}
+			break;
+		}
+		
+		//Finally
+		String newFormula = replaced;
+		editor.setText(newFormula);
+		int caretOffset = preCaretAfterRepalcement.length();
+		
+//		String[] indent = indent(replaced, preCaretAfterRepalcement.length());
+//		String newFormula = indent[0]+indent[1];
+//		editor.setText(newFormula);
+//		int caretOffset = indent[0].length();
+
+		editor.setCaretOffset(caretOffset);
+		
+		LOGGER.info("editor caret position after apply :"+editor.getCaretOffset());
+		
+		LOGGER.info("buildPopupAlternatives rerun after apply. Aka similar to new typing");
+		buildPopupAlternatives();
+	}
+	
+
+	protected List<String> syntaxTokens() {
+		return EditorOpsLexerDelegate.SYNTAX_TOKENS;
+	}
+
+	protected String trimPartialFormula(String preCaretUnTrimed) {
+		return preCaretUnTrimed.trim();
+	}
+
+	private int endOfInsertToNextStop(String postCaret, List<String> replaceStops) {
+		int endIndexOf = 0;
+		for (; endIndexOf < postCaret.length() && !replaceStops.contains(postCaret.charAt(endIndexOf)+""); endIndexOf++) {
+		}
+		return endIndexOf;
+	}
+
+	private int startOfInsert(String preCaret, String replacement) {
+
+		int firstIndexOf = preCaret.length();
+
+		for (int i = replacement.length(); i > 0; i--) {
+			String toMatch = replacement.substring(0,i);
+			Boolean match = true;
+			for (int j = toMatch.length()-1; j>=0; j--) {
+				int index = preCaret.length()-toMatch.length()+j;
+				if (index < 0 || toMatch.charAt(j) != preCaret.charAt(index)) {
+					match = false;
+					break;
+				}
+			}
+			if (match) {
+				firstIndexOf = preCaret.length()-toMatch.length();
+				break;
+			}
+		}
+
+		return firstIndexOf;
+	}
+
+	private synchronized void buildPopupAlternatives() {
+		
+		errorLabel.setText("");
+		editor.setStyleRange(null);
+		this.layout();
+
+		int caretPosition = editor.getCaretOffset();
+		String rawEditorTxt = editor.getText();
+		String preCaretString = rawEditorTxt.substring(0, Math.min(rawEditorTxt.length(), caretPosition));
+
+		
+		//Check the pre caret for suggestions
+		NextToken nextToken = expectedTokens(preCaretString);
+		if (nextToken != null && nextToken.getAlternatives().size() > 0) {
+			filterOutWrongPosition(nextToken, caretPosition);
+			filterOutExistingSyntax(rawEditorTxt, nextToken);
+		}
+		
+		//Check the whole expression for errors and display
+		NextToken errorToken = expectedTokens(rawEditorTxt);
+		if (errorToken != null && errorToken.getAlternatives().size() > 0 && nextToken != null && nextToken.getAlternatives().size() > 0) {
+			filterOutUnWantedDeletes(errorToken, nextToken);
+		} 
+		
+		//Highligt and msgs
+		if (errorToken != null && errorToken.getAlternatives().size() > 0) {
+			editorStylingsAndErrorLabel(errorToken.getAlternatives());
+		}
+		
+		//build suggestion
+		if (nextToken != null && nextToken.getAlternatives().size() > 0) {
+			if (nextToken.getAlternatives().size() > 0) {
+				buildPopupAlternativesFor(nextToken);
+			} else {
+				getPopupShell().setVisible(false);
+			}
+			
+		} else {
+			getPopupShell().setVisible(false);
+		}
+		
+	}
+
+	protected void filterOutUnWantedDeletes(NextToken errorToken, NextToken nextToken) {
+		List<Alternative> filteredErrorAlts = new ArrayList<Alternative>(errorToken.getAlternatives());
+		for (Alternative errorAlt : errorToken.getAlternatives()) {
+			boolean isDataOrConstSuggs = errorAlt.getTokenType().equals(TokenType.DATA) || errorAlt.getTokenType().equals(TokenType.CONSTANT);//TODO add an other AltType to avoid filtering here
+			if (isDataOrConstSuggs) {
+				filteredErrorAlts.remove(errorAlt); 
+			} else {
+				for (Alternative nextAlt : nextToken.getAlternatives()) {
+
+					boolean isDeleteRedondantWithNonDeleteSuggs = !nextAlt.getTokenType().equals(TokenType.DELETE) && errorAlt.getTokenType().equals(TokenType.DELETE);
+					boolean isSameAltAsSuggs = nextAlt.getAltString().startsWith(errorAlt.getAltString());
+					boolean isSamePositionAsSuggs = errorAlt.getHighLighPosition()[0]==nextAlt.getHighLighPosition()[0] && errorAlt.getHighLighPosition()[1]==nextAlt.getHighLighPosition()[1];
+
+					if ((isDeleteRedondantWithNonDeleteSuggs && isSameAltAsSuggs && isSamePositionAsSuggs) ) {
+						filteredErrorAlts.remove(errorAlt); 
+					}
+				}
+			}
+		}
+		errorToken.setAlternatives(filteredErrorAlts);
+	}
+
+
+	private void buildPopupAlternativesFor(NextToken nextToken) {
+		
+			//Process Alts
+			List<Alternative> alternatives = nextToken.getAlternatives();		
+			TableItem[] items = tokenAltsTable.getItems();
+			for (int i = 0; i < alternatives.size(); i++) {
+				Alternative data = alternatives.get(i);
+				
+				String token = data.getAltString();
+				String description = (data.getDescription() != null)?data.getDescription():"";
+				String synoptic = (data.getSynoptic() != null && data.getDefaultValue() == null)?data.getSynoptic():((data.getDefaultValue() != null)?data.getDefaultValue():"");
+				
+				if(i < items.length) {
+					items[i].setData(data);
+					items[i].setText(0, token);
+					items[i].setText(1, description);
+					items[i].setText(2, synoptic);
+				} else {
+					TableItem tableItem = new TableItem(tokenAltsTable, SWT.WRAP);
+					tableItem.setData(data);
+					tableItem.setText(0, token);
+					tableItem.setText(1, description);
+					tableItem.setText(2, synoptic);
+				}
+			}
+			tokenAltsTable.remove(alternatives.size(), tokenAltsTable.getItems().length-1);
+			
+			LOGGER.info("Alternatives size "+alternatives.size()+". Alternatives : "+alternatives);
+
+			if (tokenAltsTable.getItems().length > 0) {
+				tokenAltsTable.select(0);
+			}
+			
+			int[] position = ANTLROperationsParserHelper.translateCaretToPosition(editor.getText(), editor.getCaretOffset());
+			tokenAltsColumns[0].setText("entry @ line "+position[0]+", column "+position[1]);
+			for (TableColumn tableColumn : tokenAltsColumns) {
+				tableColumn.pack();
+			}
+
+			Point tableDefaultSize = tokenAltsTable.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			Caret caret = editor.getCaret();
+			Rectangle caretLocation = caret.getBounds();
+			Rectangle eventBounds = getParent().getDisplay().map(editor, null, caretLocation);
+			getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, tableDefaultSize.x, 200);
+			getPopupShell().setVisible(true);
+			
+			LOGGER.info("Items : "+tokenAltsTable.getItems());
+			if (LOGGER.isInfoEnabled()) {
+				String itemsStr = "";
+				for (TableItem tableItem : tokenAltsTable.getItems()) {
+					itemsStr = itemsStr + tableItem.getText(0) + ":" + tableItem.getText(1) + " , "; 
+				}
+				LOGGER.info("ItemStr size "+tokenAltsTable.getItems().length+". Items str : "+itemsStr);
+			}
+			
+	}
+
+	private Boolean editorStylingsAndErrorLabel(List<Alternative> alternatives) {
+		
+		for (Alternative alternative : alternatives) {
+			
+			if (alternative.getTokenType().equals(TokenType.DATA)) continue;
+
+			int lineNum = alternative.getHighLighPosition()[0];
+			int endLineOffset = alternative.getHighLighPosition()[1];
+			if (alternative.getAltType().equals(ANTLRParserHelper.AltType.SUGGESTION)) {
+				endLineOffset++;
+			}
+
+			int endCaretOffset = ANTLROperationsParserHelper.translatePositionToCaret(editor.getText(), lineNum, endLineOffset);
+			endCaretOffset = Math.min(endCaretOffset, editor.getText().length());
+			
+			//Style
+			LOGGER.info("Style attempt @ line " + lineNum + ", start column "+ endLineOffset + ". Alternative : "+alternative);
+
+			int length = alternative.getAltType().equals(ANTLRParserHelper.AltType.DELETE)?alternative.getAltString().length():1;
+			if (endCaretOffset <= editor.getText().length() && endCaretOffset - length >=0) {
+				StyleRange styleRange = new StyleRange();
+				styleRange.start = endCaretOffset - length;
+				styleRange.length = length;
+				if (alternative.getAltType().equals(ANTLRParserHelper.AltType.DELETE)) {
+					styleRange.strikeout = true;
+				} else {
+					styleRange.strikeout = false;
+				}
+				styleRange.underline = true;
+				styleRange.underlineColor = getDisplay().getSystemColor(SWT.COLOR_RED);
+				editor.setStyleRange(styleRange);
+			} else {
+				LOGGER.warn("Style out of range @ line " + lineNum + ", start column "+ endLineOffset + ". Alternative : "+alternative);
+			}
+
+			//error Msg
+			String syno = (alternative.getSynoptic() == null)?"":" : "+ alternative.getSynoptic();
+			String addErrorTxt = "@ line " + lineNum + ", start column " + endLineOffset + " : " + alternative.getAltString() + "\n" + alternative.getDescription() + syno;
+			errorLabel.setText(addErrorTxt.replace(". ", ".\n"));
+			this.layout();
+			return true; //TODO several highlight alts??!
+
+		}
+		
+		//No highlight
+		return false;
+	}
+	
+	private String[] indent(String formula, int previousCaretPosition) {
+		return FormulaUtils.indentOperationFormula(formula, previousCaretPosition);
+	}
+
+	public ComboUpdateMonitor getComboUpdateMonitor() {
+		return comboUpdateMonitor;
+	}
+
+	private Shell getPopupShell() {
+		if (popupShell.isDisposed()) initPopup();
+		return popupShell;
+	}
+
+}

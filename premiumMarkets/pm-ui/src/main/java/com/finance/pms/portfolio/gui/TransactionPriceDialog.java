@@ -113,8 +113,8 @@ public class TransactionPriceDialog {
 	//		Display display = Display.getDefault();
 			//Shell shell = new Shell(display);
 			String dbfile = args[0];
-			SpringContext ctx = new SpringContext();
-			ctx.setDataSource(dbfile);
+			SpringContext ctx = new SpringContext(dbfile);
+			//ctx.setDataSource(dbfile);
 			//ctx.setProvidersSource(dbfile);
 			ctx.setMasSource(dbfile,"false");
 			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
@@ -179,7 +179,7 @@ public class TransactionPriceDialog {
 			
 			{
 				newPortfoliolabel = new Label(dialogShell, SWT.BORDER);
-				newPortfoliolabel.setText((transaction.getModtype().equals(TransactionType.AIN))?"Buy details : ":"Sell details : ");
+				newPortfoliolabel.setText(((transaction.getModtype().equals(TransactionType.AIN))?"Buy details : ":"Sell details : ")+ " Please edit ");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabelLData.horizontalSpan = 2;
@@ -219,7 +219,7 @@ public class TransactionPriceDialog {
 			}
 			{
 				newPortfoliolabel = new Label(dialogShell, SWT.NONE);
-				newPortfoliolabel.setText("Transaction share price : ");
+				newPortfoliolabel.setText("Unit price : ");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
@@ -267,7 +267,7 @@ public class TransactionPriceDialog {
 			}
 			{
 				newPortfoliolabel = new Label(dialogShell, SWT.NONE);
-				newPortfoliolabel.setText("Transaction quantity : ");
+				newPortfoliolabel.setText("Quantity : ");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
@@ -293,7 +293,7 @@ public class TransactionPriceDialog {
 			}
 			{
 				newPortfoliolabel = new Label(dialogShell, SWT.NONE);
-				newPortfoliolabel.setText("Total amount in for the line : ");
+				newPortfoliolabel.setText("Total money in for the line : ");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
@@ -310,7 +310,7 @@ public class TransactionPriceDialog {
 			}
 			{
 				newPortfoliolabel = new Label(dialogShell, SWT.NONE);
-				newPortfoliolabel.setText("Total amount out for the line : ");
+				newPortfoliolabel.setText("Total money out for the line : ");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
@@ -383,8 +383,7 @@ public class TransactionPriceDialog {
 			Display display = dialogShell.getDisplay();
 			while (!dialogShell.isDisposed()) {
 				try {
-					if (!display.readAndDispatch())
-						display.sleep();
+					if (!display.readAndDispatch()) display.sleep();
 				} catch (RuntimeException e) {
 					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);

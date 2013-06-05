@@ -14,8 +14,8 @@ public class ShareListMgrTest {
 	@Before
 	public void setUp() {
 		
-		SpringContext springContext = new SpringContext();
-		springContext.setDataSource(System.getProperty("installdir") + File.separator +"dbcopy.properties");
+		SpringContext springContext = new SpringContext(System.getProperty("installdir") + File.separator +"dbcopy.properties");
+		//springContext.setDataSource(System.getProperty("installdir") + File.separator +"dbcopy.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
 		

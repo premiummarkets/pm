@@ -42,7 +42,6 @@ import org.easymock.EasyMock;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Display;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -92,7 +91,9 @@ public class EventRefreshControllerTest extends TestCase {
 	EventModelStrategyEngine monitoredOnly = new RefreshAllEventStrategyEngine();
 	
 	/** The start analyse date. */
-	Date startAnalyseDate = IndicatorCalculationServiceMain.getDateMoinsNJours(EventSignalConfig.getNewDate(),15);
+	//Date startAnalyseDate = IndicatorCalculationServiceMain.getDateMoinsNJours(EventSignalConfig.getNewDate(),15);
+	//FIXME
+	Date startAnalyseDate = EventSignalConfig.getNewDate();
 	
 	/** The dofetch list of quotes. */
 	Boolean dofetchListOfQuotes = true;
@@ -224,7 +225,7 @@ public class EventRefreshControllerTest extends TestCase {
 		monitoredOnly = new RefreshMonitoredStrategyEngine();
 		//FIXME
 		//refreshModel = new EventModel<EventModelStrategyEngine>(startAnalyseDate, null);
-		EventRefreshController eventRefreshController = new EventRefreshController(refreshModel, eventsComposite);
+		EventRefreshController eventRefreshController = new EventRefreshController(refreshModel, eventsComposite, null);
 		return eventRefreshController;
 	}
 	
@@ -360,7 +361,9 @@ public void testMouseDownChangeDateAll() {
 		////Monitored test
 		EventRefreshController eventRefreshController = initNotMonitored();
 		
-		startAnalyseDate = IndicatorCalculationServiceMain.getDateMoinsNJours(new Date(),16);
+		//startAnalyseDate = IndicatorCalculationServiceMain.getDateMoinsNJours(new Date(),16);
+		//FIXME
+		startAnalyseDate = EventSignalConfig.getNewDate();
 		dofetchListOfQuotes = false;
 		dofetchQuotes = false;
 		doAnalyse = false;
@@ -430,7 +433,7 @@ private EventRefreshController initNotMonitored() {
 	monitoredOnly = new RefreshAllEventStrategyEngine();
 	//FIXME
 	//refreshModel = new EventModel<EventModelStrategyEngine>(startAnalyseDate, null);
-	EventRefreshController eventRefreshController = new EventRefreshController(refreshModel,eventsComposite);
+	EventRefreshController eventRefreshController = new EventRefreshController(refreshModel,eventsComposite, null);
 	return eventRefreshController;
 }
 
@@ -476,7 +479,7 @@ public void testCompleteAll() throws HttpException {
 	////Monitored test
 	//FIXME
 	//refreshModel = new EventModel<EventModelStrategyEngine>(startAnalyseDate, null);
-	EventRefreshController eventRefreshController = new EventRefreshController(refreshModel,eventsComposite);
+	EventRefreshController eventRefreshController = new EventRefreshController(refreshModel,eventsComposite, null);
 	
 	//Nothing
 	checkDisplayRefresh();
@@ -642,7 +645,7 @@ private void endTest() {
  * @author Guillaume Thoreton
  */
 private void mouseDown(EventRefreshController eventRefreshController) {
-	eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse, false, 0l);
+	eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse, false, false, false, 0l);
 	eventRefreshController.mouseDown((MouseEvent) org.easymock.EasyMock.anyObject());
 }
 

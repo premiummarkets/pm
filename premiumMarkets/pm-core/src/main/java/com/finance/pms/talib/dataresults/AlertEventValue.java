@@ -35,20 +35,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
-import com.finance.pms.screening.PerfsExporter;
+import com.finance.pms.screening.ScreeningSupplementExporter;
 
 
 public class AlertEventValue extends StandardEventValue {
 
 	private static final long serialVersionUID = 1L;
-	public static final Integer TOP_ADDITIONAL_WEIGHT = PerfsExporter.TOP_RANK*10;
+	public static final Integer TOP_ADDITIONAL_WEIGHT = ScreeningSupplementExporter.TOP_RANK*10;
 
-	public AlertEventValue(Date date, Integer eventDefId, String eventtype, String message, String eventListName) {
-		super(date, eventDefId, eventtype, message, eventListName);
+	public AlertEventValue(Date date, String eventDef, String eventtype, String message, String eventListName) throws NoSuchFieldException {
+		super(date, eventDef, eventtype, message, eventListName);
 	}
 
-	public AlertEventValue(Date date, EventDefinition eventDef, EventType eventtype, String message, String eventListName) {
+	public AlertEventValue(Date date, EventInfo eventDef, EventType eventtype, String message, String eventListName) {
 		super(date, eventtype, eventDef, message, eventListName);
 	}
 	

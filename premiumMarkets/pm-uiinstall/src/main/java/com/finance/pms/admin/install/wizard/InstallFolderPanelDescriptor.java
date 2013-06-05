@@ -30,6 +30,8 @@
  */
 package com.finance.pms.admin.install.wizard;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 
 import com.nexes.wizard.WizardPanelDescriptor;
@@ -41,7 +43,7 @@ import com.nexes.wizard.WizardPanelDescriptor;
  * 
  * @author Guillaume Thoreton
  */
-public class InstallFolderPanelDescriptor extends WizardPanelDescriptor {
+public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implements KeyListener {
     
     /** The Constant IDENTIFIER. */
     public static final String IDENTIFIER = "INSTALL_FOLDER_PANEL";
@@ -57,17 +59,17 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor {
     public InstallFolderPanelDescriptor() {
         
         panel3 = new InstallFolderPanel();
+        panel3.addTextFieldReturn(this);
+        
         setPanelDescriptorIdentifier(IDENTIFIER);
         setPanelComponent(panel3);
         
     }
 
     @Override
-	public Object getNextPanelDescriptor() {
-
-			return ProgressPanelDescriptor.IDENTIFIER;
-
-	}
+    public Object getNextPanelDescriptor() {
+    	return ProgressPanelDescriptor.IDENTIFIER;
+    }
     
     @Override
 	public Object getBackPanelDescriptor() {
@@ -76,12 +78,18 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor {
 
 	@Override
 	public void aboutToHidePanel() {
-		super.aboutToHidePanel();
-		//TODO check release and do as per
-		InstallFolderPanel.piggyMarketSqueakFolder = checkInstallFolder(new File(InstallFolderPanel.piggyMarketSqueakFolderName));
 		
-		getWizard().setNextFinishButtonEnabled(true);
-		Install.selectNextButton();
+		super.aboutToHidePanel();
+		
+		//TODO check release and do as per
+		String instFolderName = panel3.getJt().getText();
+		if (panel3.checkInstallPath(instFolderName)) {
+			File pmFolder = InstallFolderPanel.setPmFolder(instFolderName);
+			updateInstallFolder(pmFolder);
+			
+			getWizard().setNextFinishButtonEnabled(true);
+			Install.selectNextButton();
+		}
 	}
 	   
 	/**
@@ -93,15 +101,40 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private File checkInstallFolder(File installationFolder) {
+	private void updateInstallFolder(File pmFolder) {
 		//New install??
-		File pmFolder = new File(installationFolder.getAbsoluteFile() + File.separator + Install.piggyMarketSqueak);
 		if (pmFolder != null && pmFolder.exists()) {
-			//TODO all ready installed
+			//TODO already installed
 			System.out.println("Install folder already exists : "+pmFolder.getAbsolutePath());
 		} else {
+			System.out.println("Install folder will be created : "+pmFolder.getAbsolutePath());
 			pmFolder.mkdirs();
 		}
-		return pmFolder;
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+			
+			String instFolderName = panel3.getJt().getText();
+			if (panel3.checkInstallPath(instFolderName)) {
+				File pmFolder = InstallFolderPanel.setPmFolder(instFolderName);
+				updateInstallFolder(pmFolder);
+				
+				getWizard().setNextFinishButtonEnabled(true);
+				Install.selectNextButton();
+				Install.pressNextButton();
+				
+			}
+			
+		}
 	}	
 }

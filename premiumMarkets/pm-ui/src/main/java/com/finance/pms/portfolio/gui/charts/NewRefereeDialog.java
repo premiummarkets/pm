@@ -61,9 +61,10 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param composite 
+	 * @param tabIx 
 	 */
 	public NewRefereeDialog(Composite parent,int style, Composite composite) {
-		super(parent,style, composite);
+		super(-1, parent,style, composite);
 	}
 	
 	

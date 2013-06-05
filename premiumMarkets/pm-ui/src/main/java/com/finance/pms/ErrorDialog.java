@@ -31,6 +31,8 @@
 package com.finance.pms;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.TypedEvent;
@@ -96,28 +98,19 @@ public class ErrorDialog extends Dialog {
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 			if (erreur != null)
 			{
-				errorLabel1 = new Label(getParent(), SWT.WRAP);
+				errorLabel1 = new Label(getParent(), SWT.FILL);
 				errorLabel1.setText(this.erreur);
 				errorLabel1.setFont(MainGui.DEFAULTFONT);
-				GridData Errorlabel1LData = new GridData();
-				Errorlabel1LData.verticalAlignment = GridData.FILL;
-				Errorlabel1LData.horizontalAlignment = GridData.FILL;
-				Errorlabel1LData.grabExcessVerticalSpace = true;
-				Errorlabel1LData.grabExcessHorizontalSpace = true;
-				errorLabel1.setLayoutData(Errorlabel1LData);
-				errorLabel1.setAlignment(SWT.CENTER);
+				errorLabel1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+				errorLabel1.setAlignment(SWT.LEFT);
 				errorLabel1.setBackground(MainGui.pOPUP_BG);
 			}
 			if (addMessage != null) {
-				textArea = new Text(getParent(), SWT.WRAP|SWT.V_SCROLL);
-				GridData Errorlabel1LData = new GridData();
-				Errorlabel1LData.verticalAlignment = GridData.FILL;
-				Errorlabel1LData.horizontalAlignment = GridData.FILL;
-				Errorlabel1LData.grabExcessVerticalSpace = true;
-				Errorlabel1LData.grabExcessHorizontalSpace = true;
-				textArea.setLayoutData(Errorlabel1LData);
+				textArea = new Text(getParent(), SWT.V_SCROLL);
+				textArea.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
 				textArea.setBackground(MainGui.pOPUP_BG);
-				textArea.setText(this.addMessage);
+				textArea.setText(cleanMsg(this.addMessage));
+				textArea.setEditable(false);
 				textArea.setFont(MainGui.DEFAULTFONT);
 			}
 			{
@@ -127,15 +120,17 @@ public class ErrorDialog extends Dialog {
 				valideButton1.setLayoutData(Validerbutton1LData);
 				validationButtonTxtAndAction();
 			}
+			
+			getParent().layout();
 			getParent().pack();
 			getParent().open();
+			getParent().forceFocus();
 			valideButton1.setFocus();
 			
 			Display display = getParent().getDisplay();
 			while (!getParent().isDisposed()) {
 				try {
-					if (!display.readAndDispatch())
-						display.sleep();
+					if (!display.readAndDispatch()) display.sleep();
 				} catch (RuntimeException e) {
 					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in Error Dialog Gui : ",e);
@@ -149,6 +144,14 @@ public class ErrorDialog extends Dialog {
 		}
 	}
 
+	private String cleanMsg(String message) {
+	
+		String cleanMessage = message.replaceAll("\\. ", ".\n");
+		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
+		
+		return cleanMessage;
+	}
+
 	protected void validationButtonTxtAndAction() {
 		valideButton1.setText("Ok");
 		valideButton1.setFont(MainGui.DEFAULTFONT);
@@ -158,6 +161,27 @@ public class ErrorDialog extends Dialog {
 				validerbutton1MouseDown(evt);
 			}
 		});
+		valideButton1.addKeyListener(new KeyAdapter() {
+			
+			Boolean pressed = false;
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.keyCode == SWT.CR  && pressed) {
+					validerbutton1MouseDown(e);
+				}
+				pressed = true;
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.keyCode == SWT.CR) {
+					pressed = true;
+				}
+			}
+		
+		});
+			
 	}
 
 	/**
@@ -168,7 +192,6 @@ public class ErrorDialog extends Dialog {
 	 * @author Guillaume Thoreton
 	 */
 	protected void validerbutton1MouseDown(TypedEvent evt) {
-		LOGGER.debug("Validerbutton1.mouseDown, event=" + evt);
 		isOk = true;
 		getParent().dispose();
 	}

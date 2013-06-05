@@ -67,8 +67,6 @@ import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.threads.ObserverMsg;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class QuotationUpdate.
  * 

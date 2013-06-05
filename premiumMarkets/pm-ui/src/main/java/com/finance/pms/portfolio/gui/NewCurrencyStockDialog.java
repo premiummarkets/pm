@@ -36,14 +36,17 @@ public class NewCurrencyStockDialog extends Dialog {
 
 	private Currency fromCurrency;
 	private Currency toCurrency;
+	private int tabIx;
 
 
-	public NewCurrencyStockDialog(Shell parent, int style, PortfolioComposite caller) {
+
+	public NewCurrencyStockDialog(int tabIdx, Shell parent, int style, PortfolioComposite caller) {
 		
 		super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.SHELL_TRIM), style);
 		getParent().setText("Add a currency");
 		
 		this.caller = caller;
+		this.tabIx = tabIdx;
 				
 	}
 	
@@ -116,7 +119,7 @@ public class NewCurrencyStockDialog extends Dialog {
 		Button validateButton = new Button(getParent(), SWT.PUSH);
 		validateButton.setText("Ok");
 		validateButton.addSelectionListener(new SelectionListener() {
-			
+		
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				handle();
@@ -135,7 +138,7 @@ public class NewCurrencyStockDialog extends Dialog {
 					Stock currencyStock = currencyToStockBuilder.buildStock();
 					Set<Stock> stocks = new TreeSet<Stock>();
 					stocks.add(currencyStock);
-					((PortfolioComposite) caller).addShares(stocks, BigDecimal.ONE , MonitorLevel.BEARISH);
+					((PortfolioComposite) caller).addShares(tabIx, stocks, BigDecimal.ONE , MonitorLevel.BEARISH);
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 
@@ -154,8 +157,7 @@ public class NewCurrencyStockDialog extends Dialog {
 		Display display = getParent().getDisplay();
 		while (!getParent().isDisposed()) {
 			try {
-				if (!display.readAndDispatch())
-					display.sleep();
+				if (!display.readAndDispatch()) display.sleep();
 			} catch (RuntimeException e) {
 				LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
 				LOGGER.debug("Error in Error Dialog Gui : ",e);

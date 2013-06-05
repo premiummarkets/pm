@@ -36,13 +36,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
@@ -79,8 +78,8 @@ public class VariationCalculator extends EventCompostionCalculator {
 	}
 
 	@Override
-	public Map<EventKey, EventValue> calculateEventsFor(String eventListName) {
-		Map<EventKey, EventValue> eventData = new HashMap<EventKey, EventValue>();
+	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName) {
+		SortedMap<EventKey, EventValue> eventData = new TreeMap<EventKey, EventValue>();
 
 		EventType resType;
 		for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx ; quotationIndex++) {
@@ -179,6 +178,11 @@ public class VariationCalculator extends EventCompostionCalculator {
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.VARIATION;
+	}
+	
+	@Override
+	public EmailFilterEventSource getSource() {
+		return EmailFilterEventSource.PMTAEvents;
 	}
 
 

@@ -171,13 +171,11 @@ public class HouseAroon extends TalibIndicator {
 
 	@Override
 	protected String getHeader() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected String getLine(int indicator, int quotation) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

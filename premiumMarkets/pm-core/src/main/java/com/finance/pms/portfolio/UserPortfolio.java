@@ -32,6 +32,7 @@ package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -41,12 +42,12 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -116,7 +117,12 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	private List<SymbolEvents> loadEventsForCalculation(Date currentDate, String... eventListName) {
-		Date dateStart = IndicatorCalculationServiceMain.getDateMoinsNJours(currentDate,((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBackwardDaySpan());
+		
+		//Date dateStart = IndicatorCalculationServiceMain.getDateMoinsNJours(currentDate,((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBackwardDaySpan());
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(currentDate);
+		Calendar nDaysAgoAtCurrentDate = QuotationsFactories.getFactory().incrementDate(calendar, -((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBackwardDaySpan());
+		Date dateStart = nDaysAgoAtCurrentDate.getTime();
 		
 		String[] fullEventListNames = Arrays.copyOf(eventListName, eventListName.length+1);
 		fullEventListNames[eventListName.length] = this.getName();

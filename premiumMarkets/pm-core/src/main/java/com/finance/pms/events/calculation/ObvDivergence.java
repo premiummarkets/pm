@@ -84,9 +84,9 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 			this.obvSma = new SMA(obv, SMOOTHING);
 			this.sma = new SMA(stock, SMOOTHING, startDate, endDate, calculationCurrency, Math.max(SMOOTHING, getDaysSpan()), 0);
 		} catch (TalibException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
 		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);

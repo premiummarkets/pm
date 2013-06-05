@@ -32,11 +32,13 @@ package com.finance.pms.queue;
 
 import java.io.Serializable;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
 
+import com.finance.pms.admin.config.Config;
 import com.finance.pms.events.SymbolEvents;
 
 
@@ -49,11 +51,9 @@ import com.finance.pms.events.SymbolEvents;
  */
 public class SymbolEventsMessage extends EmailMessage {
 	
-	/** The event in mess. */
 	SymbolEvents symbolEvents;
-	
-	/** The p. */
 	Properties properties = new Properties();
+	private String eventListName;
 	
 
 	/**
@@ -62,9 +62,10 @@ public class SymbolEventsMessage extends EmailMessage {
 	 * @param eventInMess the event in mess
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param ptc 
 	 */
-	private SymbolEventsMessage(SymbolEvents eventInMess) {
-		super(eventInMess.hashCode()+eventInMess.getDataResultList().hashCode());
+	private SymbolEventsMessage(SymbolEvents eventInMess, Map<String, Config> ptc) {
+		super(eventInMess.hashCode()+eventInMess.getDataResultMap().hashCode(), ptc);
 		this.symbolEvents = eventInMess;
 	}
 	
@@ -74,9 +75,11 @@ public class SymbolEventsMessage extends EmailMessage {
 	 * @param eventInMess the event in mess
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param ptc 
 	 */
-	public SymbolEventsMessage(Serializable eventInMess) {
-		this((SymbolEvents) eventInMess);
+	public SymbolEventsMessage(String eventListName, Serializable eventInMess, Map<String, Config> ptc) {
+		this((SymbolEvents) eventInMess, ptc);
+		this.eventListName = eventListName;
 	}
 	
 	
@@ -446,7 +449,7 @@ public class SymbolEventsMessage extends EmailMessage {
 		int result = 1;
 		result = prime * result + ((symbolEvents == null) ? 0 : symbolEvents.hashCode());
 		//result = prime * result + ((symbolEvents.getEventListName() == null) ? 0 : symbolEvents.getEventListName().hashCode());
-		result = prime * result + ((symbolEvents.getDataResultList() == null) ? 0 : symbolEvents.getDataResultList().hashCode());
+		result = prime * result + ((symbolEvents.getDataResultMap() == null) ? 0 : symbolEvents.getDataResultMap().hashCode());
 		return result;
 	}
 
@@ -464,18 +467,21 @@ public class SymbolEventsMessage extends EmailMessage {
 				return false;
 		} else if (!symbolEvents.equals(other.symbolEvents))
 			return false;
-		if (symbolEvents.getDataResultList() == null || symbolEvents.getDataResultList().isEmpty()) {
-			if (other.symbolEvents.getDataResultList() != null && !other.symbolEvents.getDataResultList().isEmpty())
+		if (symbolEvents.getDataResultMap() == null || symbolEvents.getDataResultMap().isEmpty()) {
+			if (other.symbolEvents.getDataResultMap() != null && !other.symbolEvents.getDataResultMap().isEmpty())
 				return false;
-		} else if (!symbolEvents.getDataResultList().equals(other.symbolEvents.getDataResultList()))
+		} else if (!symbolEvents.getDataResultMap().equals(other.symbolEvents.getDataResultMap()))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "SymbolEventsMessage [properties=" + properties + ", symbolEvents=" + symbolEvents + ", messageKey=" + messageKey
-				+ "]";
+		return "SymbolEventsMessage [properties=" + properties + ", symbolEvents=" + symbolEvents + ", messageKey=" + messageKey+ "]";
+	}
+
+	public String getEventListName() {
+		return eventListName;
 	}
 		
 }

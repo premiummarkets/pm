@@ -69,22 +69,6 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-			<!--  <plugin>
-				<groupId>com.keyboardsamurais.maven</groupId>
-				<artifactId>maven-timestamp-plugin</artifactId>
-				<version>1.0</version>
-				<configuration>
-					<propertyName>timestamp</propertyName>
-					<timestampPattern>yyyy/MM/dd HH:mm:ss z</timestampPattern>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>-->
 			<plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

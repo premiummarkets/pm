@@ -46,7 +46,6 @@ public class StripedCloseAbsoluteRelative extends StripedCloseFunction {
 	public StripedCloseAbsoluteRelative(Date arbitraryStartDate, Date arbitraryEndDate) {
 		super(arbitraryEndDate);
 		this.arbitraryStartDate = arbitraryStartDate;
-		LOGGER.debug("The arbitrary date is : "+arbitraryStartDate);
 	}
 
 

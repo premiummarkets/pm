@@ -306,8 +306,8 @@ public class GnuCashTransactionReportParser {
 
 	public static void main(String... arg) throws IOException, InvalidAlgorithmParameterException {
 		
-		SpringContext springContext = new SpringContext();
-		springContext.setDataSource(arg[0]);
+		SpringContext springContext = new SpringContext(arg[0]);
+		//springContext.setDataSource(arg[0]);
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 		springContext.refresh();
 		

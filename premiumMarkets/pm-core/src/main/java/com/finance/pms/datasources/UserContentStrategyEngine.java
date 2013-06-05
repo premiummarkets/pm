@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
-import java.util.SortedMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -50,16 +49,19 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public abstract class UserContentStrategyEngine implements EventModelStrategyEngine {
@@ -81,34 +83,44 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void updateQuotations(QuotationUpdate quotationUpdate, Object... viewStateParams) throws StockNotFoundException {
+	private void updateQuotations(QuotationUpdate quotationUpdate, Object... viewStateParams) throws StockNotFoundException {
 		@SuppressWarnings("rawtypes")
 		List stockList = Arrays.asList(viewStateParams);
 		quotationUpdate.getQuotesFor(stockList);
 	}
 
-	public Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
+	@SuppressWarnings("unchecked")
+	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
+		
+		if (viewStateParams == null || viewStateParams.length == 0) throw new java.lang.UnsupportedOperationException("You  must select a stock before running an analysis.");
 		
 		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
-		String[] analysers = new String[analisysList.size()];
+		String[] analysers = new String[analysisList.size()];
 		for (int j = 0; j < analysers.length; j++) {
-			analysers[j] = analisysList.get(j);
+			analysers[j] = analysisList.get(j);
 		}
 
 		Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 		Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 		
 		@SuppressWarnings("rawtypes")
-		List stockList = Arrays.asList(viewStateParams);
-		for (Object stock : stockList) {
+		List stockList = new ArrayList(Arrays.asList(viewStateParams));
+		
+		@SuppressWarnings("rawtypes")
+		List invalid = new ArrayList<Stock>();
+ 		for (Object stock : stockList) {
 			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(firstQuotationDateFromQuotations);
 			QuotationsFactories.getFactory().incrementDate(calendar, 50);
-			datedeb = (calendar.getTime().after(datedeb))?calendar.getTime():datedeb;
+			if (calendar.getTime().after(datedeb)) {
+				LOGGER.warn("Not enough quotations to compute over the requested period, lease adjust for Stock "+stock);
+				invalid.add(stock);
+			}
 		}
+ 		stockList.removeAll(invalid);
 		
-		Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> outputRet = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
+		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 		for (int i = 0; i < analysers.length; i++) {
 			
 			LOGGER.debug("running analysis for " + analysers[i]);
@@ -117,7 +129,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 			
 			Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
-			@SuppressWarnings("unchecked")
+	
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 					SpringContext.getSingleton(), 
 					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
@@ -126,11 +138,9 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
 	
 			//Pass one
-			Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassOne = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
+			Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 			try {
 				runPassOne = runPassOne(actionThread);
-			} catch (IncompleteDataSetException e) {
-				runPassOne = e.getCalculatedOutput();
 			} catch (Exception e) {
 				LOGGER.error(e,e);
 			}
@@ -138,17 +148,15 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			
 			//Pass two
 			if (maxPass == 2) {
-				Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassTwo = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
+				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 				try {
 					runPassTwo = runPassTwo(actionThread);
-				} catch (IncompleteDataSetException e) {
-					runPassTwo = e.getCalculatedOutput();
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 				}
 				if (runPassTwo != null) {
 					for (Stock stock : runPassTwo.keySet()) {
-						Map<EventDefinition, SortedMap<Date, double[]>> map4Stock = outputRet.get(stock);
+						Map<EventInfo, EventDefCacheEntry> map4Stock = outputRet.get(stock);
 						if (map4Stock == null) {
 							outputRet.put(stock, runPassTwo.get(stock));
 						} else {
@@ -162,8 +170,8 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		return outputRet;
 	}
 	
-	protected abstract Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException;
-	protected abstract Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException, IncompleteDataSetException;
+	protected abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException;
+	protected abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException;
 	
 	public void callbackForReco(Set<Observer> engineObservers) {
 		throw new NotImplementedException();
@@ -197,6 +205,19 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 	
 	public Date getLastAnalyse(Date oldLastAnalyse) {
 		return (oldLastAnalyse == null)?EventModel.DEFAULT_DATE:oldLastAnalyse;
+	}
+
+	@Override
+	public Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object... viewStateParams) {
+		
+		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+		for (Object stock : viewStateParams) {
+			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
+			TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
+		}
+		
+		return false;
+		
 	}
 
 }

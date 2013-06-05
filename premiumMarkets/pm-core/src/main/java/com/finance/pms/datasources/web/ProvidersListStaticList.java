@@ -22,7 +22,7 @@ import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.datasources.web.formaters.StockComplementSectorYahooFormater;
 import com.finance.pms.datasources.web.formaters.StockComplementYahooFormater;
 import com.finance.pms.datasources.web.formaters.StockListStaticListFormater;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class ProvidersListStaticList extends ProvidersList {
 	
@@ -117,7 +117,7 @@ public class ProvidersListStaticList extends ProvidersList {
 		for (Indice indice : indices) {
 
 				String url = this.httpSource.getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY, indice.getMarket().getFriendlyName());
-				LOGGER.info("All market Url : " + url);
+				LOGGER.info("List Static Url : " + url);
 				LineFormater staticListFormater = this.getFormater(url, indice.getMarket(), marketQuotationsProviders);
 				@SuppressWarnings("rawtypes")
 				List listOfIndiceStocks = new ArrayList();
@@ -136,7 +136,7 @@ public class ProvidersListStaticList extends ProvidersList {
 	}
 
 	@Override
-	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
+	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
 		//throw new NotImplementedException();
 
 	}

@@ -39,7 +39,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.datasources.web.formaters.StockListASXFormater;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class ProvidersASXMarket extends ProvidersMarket {
 	
@@ -86,7 +86,7 @@ public class ProvidersASXMarket extends ProvidersMarket {
 	}
 
 	@Override
-	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
+	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
 		//throw new NotImplementedException();
 		
 	}

@@ -62,9 +62,6 @@ public class DefaultPonderationRule extends PonderationRule  { //Every event is 
 		return new DefaultSignal(symbolEvents.getEventDefList());
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-	 */
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;

@@ -32,27 +32,25 @@ package com.finance.pms.events;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.pounderationrules.DataResultComparator;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class SymbolEvents.
  * 
@@ -62,28 +60,26 @@ public class SymbolEvents implements Serializable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(SymbolEvents.class);
 	
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4488655947887964613L;
 	
 	private Stock stock;
-	private Map<EventKey, EventValue> dataResultList;
-	private Map<Integer, String> eventDefList;
+	private SortedMap<EventKey, EventValue> dataResultMap;
+	private Set<String> eventDefList;
 	private EventState eventsState;
 	
 	private Date latestRelevantEventDate;
-	private Boolean isMonitored;
 	
-	private Set<EventDefinition> buyTriggeringEvents;
-	private Set<EventDefinition> sellTriggeringEvents;
+	private Set<EventInfo> buyTriggeringEvents;
+	private Set<EventInfo> sellTriggeringEvents;
 	private Float triggeringFinalWeight;
 	
-	private Map<EventDefinition, SortedMap<Date, double[]>> calculationOutput;
+	private Map<EventInfo, SortedMap<Date, double[]>> calculationOutput;
 
 	public SymbolEvents(Stock stock) {
 		super();
 		this.stock = stock;
-		this.dataResultList= new HashMap<EventKey, EventValue>();
-		this.eventDefList = new HashMap<Integer,String>();
+		this.dataResultMap= new TreeMap<EventKey, EventValue>();
+		this.eventDefList = new HashSet<String>();
 		this.eventsState = EventState.STATE_TERMINATED;
 	}
 
@@ -96,12 +92,37 @@ public class SymbolEvents implements Serializable {
 	 * @param datatResultList the datat result list
 	 * @author Guillaume Thoreton
 	 */
-	public SymbolEvents(Stock stock, Map<EventKey, EventValue> dataResultList, Map<Integer, String> eventDefList, EventState state) {	
+//	public SymbolEvents(Stock stock, SortedMap<EventKey, EventValue> dataResultList,List<String> eventDefList, EventState state) {	
+//		this.stock =stock;
+//		this.dataResultMap = dataResultList;
+//		this.eventDefList = eventDefList;
+//		this.eventsState = state;
+//	}
+//	
+//	public SymbolEvents(Stock stock, SortedMap<EventKey, EventValue> dataResultList,Set<EventInfo> eventDefList, EventState state) {	
+//		this.stock =stock;
+//		this.dataResultMap = dataResultList;
+//		this.eventDefList = new ArrayList<String>();
+//		for (EventInfo eventInfo : eventDefList) {
+//			this.eventDefList.add(eventInfo.getEventDefinitionRef());
+//		}
+//		this.eventsState = state;
+//	}
+	
+	public SymbolEvents(Stock stock, SortedMap<EventKey, EventValue> dataResultList,Collection<?> eventDefList, EventState state) {	
 		this.stock =stock;
-		this.dataResultList = dataResultList;
-		this.eventDefList = eventDefList;
+		this.dataResultMap = dataResultList;
+		this.eventDefList = new HashSet<String>();
+		for (Object eventInfo : eventDefList) {
+			if (eventInfo instanceof EventInfo) {
+				this.eventDefList.add(((EventInfo) eventInfo).getEventDefinitionRef());
+			} else {
+				this.eventDefList.add((String) eventInfo);
+			}
+		}
 		this.eventsState = state;
 	}
+	
 	
 	/**
 	 * Instantiates a new symbol events.
@@ -112,21 +133,21 @@ public class SymbolEvents implements Serializable {
 	 */
 	public SymbolEvents(Stock stock,EventState eState) {
 		this.stock = stock;
-		this.dataResultList = new HashMap<EventKey, EventValue>();
-		this.eventDefList = new HashMap<Integer,String>();
+		this.dataResultMap = new TreeMap<EventKey, EventValue>();
+		this.eventDefList = new HashSet<String>();
 		this.eventsState= eState;
 	}
 	
-	public SymbolEvents(EventMessageObject eventMessageObject) {
+	public SymbolEvents(EventMessageObject eventMessageObject) throws NoSuchFieldException {
 		
-		Map<EventKey, EventValue> map= new HashMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> map= new TreeMap<EventKey, EventValue>();
 		EventValue eventValue = eventMessageObject.getEventValue();
-		StandardEventKey key = new StandardEventKey(eventValue.getDate(), eventValue.getEventDefId(), eventValue.getEventType().getEventTypeChar().toString());
+		StandardEventKey key = new StandardEventKey(eventValue.getDate(), eventValue.getEventDef().getEventDefinitionRef(), eventValue.getEventType().getEventTypeChar().toString());
 		map.put(key, eventValue);
 		
 		this.stock = eventMessageObject.getStock();
-		this.dataResultList = map;
-		this.eventDefList = EventDefinition.getEventDefList();
+		this.dataResultMap = map;
+		this.eventDefList = new HashSet<String>();
 		this.eventsState= EventState.STATE_TERMINATED;
 		
 	}
@@ -136,8 +157,18 @@ public class SymbolEvents implements Serializable {
 	 * 
 	 * @return the datat result list
 	 */
-	public Map<EventKey, EventValue> getDataResultList() {
-		return dataResultList;
+	public SortedMap<EventKey, EventValue> getDataResultMap() {
+		return dataResultMap;
+	}
+	
+	public SortedMap<EventKey, EventValue> getSortedDataResultMap() {
+		return dataResultMap;
+	}
+	
+	public SortedMap<EventKey, EventValue> getSortedDataResultMap(Comparator<EventKey> comparator) {
+		TreeMap<EventKey, EventValue> sortedList = new TreeMap<EventKey, EventValue>(comparator);
+		sortedList.putAll(dataResultMap);
+		return sortedList;
 	}
 	
 	/**
@@ -147,15 +178,16 @@ public class SymbolEvents implements Serializable {
 	 */
 	public ArrayList<EventValue> getSortedDataResultList() {
 		
-		DataResultComparator drcomp = new DataResultComparator();
-		ArrayList<EventValue> sortedList = new ArrayList<EventValue>(dataResultList.values());
-		Collections.sort(sortedList,drcomp);
-		return sortedList;
+//		DataResultComparator drcomp = new DataResultComparator();
+//		ArrayList<EventValue> sortedList = new ArrayList<EventValue>(dataResultMap.values());
+//		Collections.sort(sortedList,drcomp);
+//		return sortedList;
+		return new ArrayList<EventValue>(dataResultMap.values());
 	}
 	
 	public ArrayList<EventValue> getSortedDataResultList(Comparator<EventValue> comparator) {
 		
-		ArrayList<EventValue> sortedList = new ArrayList<EventValue>(dataResultList.values());
+		ArrayList<EventValue> sortedList = new ArrayList<EventValue>(dataResultMap.values());
 		Collections.sort(sortedList,comparator);
 		return sortedList;
 	}
@@ -183,7 +215,7 @@ public class SymbolEvents implements Serializable {
 	 * 
 	 * @return the event def list
 	 */
-	public Map<Integer,String> getEventDefList() {
+	public Set<String> getEventDefList() {
 		return eventDefList;
 	}
 	
@@ -198,9 +230,7 @@ public class SymbolEvents implements Serializable {
 			return ponderationRule.finalWeight(this);
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+
 	@Override
 	public String toString() {
 		StringBuffer retour = new StringBuffer();
@@ -234,13 +264,14 @@ public class SymbolEvents implements Serializable {
 	 */
 	public String toEMail() {
 		StringBuffer retour = new StringBuffer();
-		Collection<EventValue> drl = this.getSortedDataResultList();
+		List<EventValue> drl = new ArrayList<EventValue>(getSortedDataResultList());
 		if (drl.size() > 0 ) {
+			Collections.reverse(drl);
 			for (EventValue eventValue : drl) {
-				retour.append(eventValue.toEmail()+"\n\n");
+				retour.append(eventValue.toEmail()+"\n");
 			}
 		} else {
-			retour.append("No signal events ?!\n");
+			retour.append("No events !?\n");
 			retour.append("Event state :"+this.eventsState);
 		}
 		return retour.toString();
@@ -321,17 +352,29 @@ public class SymbolEvents implements Serializable {
 	 * @author Guillaume Thoreton
 	 */
 	public void addEventResultElement(EventKey eventKey, EventValue eventValue, String eventDefinition) {
-		this.eventDefList.put(eventValue.getEventDefId(), eventDefinition);
-		this.dataResultList.put(eventKey, eventValue);
+		this.eventDefList.add(eventDefinition);
+		this.dataResultMap.put(eventKey, eventValue);
 	}
 	
-	public void addEventResultElement(Map<EventKey,EventValue> evl, Map<Integer, String> edefl) {
-		this.eventDefList.putAll(edefl);
-		this.dataResultList.putAll(evl);
+
+	public void addEventResultElement(SortedMap<EventKey,EventValue> evl, Collection<?> edefl) {
+		for (Object eventInfo : edefl) {
+			if (eventInfo instanceof EventInfo) {
+				eventDefList.add(((EventInfo) eventInfo).getEventDefinitionRef());
+			} else {
+				eventDefList.add((String) eventInfo);
+			}
+		}
+		this.dataResultMap.putAll(evl);
+	}
+	
+	public void addEventResultElement(SortedMap<EventKey,EventValue> evl,  EventInfo eventDefinition) {
+		this.eventDefList.add(eventDefinition.getEventDefinitionRef());
+		this.dataResultMap.putAll(evl);
 	}
 	
 	public void addEventResultElement(SymbolEvents symbolEvents) {
-		this.addEventResultElement(symbolEvents.getDataResultList(),symbolEvents.getEventDefList());
+		this.addEventResultElement(symbolEvents.getDataResultMap(),symbolEvents.getEventDefList());
 	}
 	
 	/**
@@ -357,18 +400,6 @@ public class SymbolEvents implements Serializable {
 	 */
 	public String getSymbolName() {
 		return this.stock.getName();
-	}
-
-	/**
-	 * Gets the monitor level.
-	 * 
-	 * @return the monitor level
-	 */
-	public Boolean isMonitored() {
-		if (isMonitored == null) {
-			isMonitored = PortfolioMgr.getInstance().isMonitored(stock);
-		}
-		return isMonitored;
 	}
 
 	/**
@@ -418,51 +449,18 @@ public class SymbolEvents implements Serializable {
 	}
 	
 	public Date getLastDate() {
-		Integer nbEvents = this.getDataResultList().size();
-		return getDateForResIndex(nbEvents-1);
+//		Integer nbEvents = this.getDataResultMap().size();
+//		return getDateForResIndex(nbEvents-1);
+		return dataResultMap.lastKey().getDate();
 	}
 	
 	public Date getFirstDate() {
-		return getDateForResIndex(0);
-	}
-
-	/**
-	 * @return
-	 */
-	private Date getDateForResIndex(Integer index) {
-		Integer nbEvents = this.getDataResultList().size();
-		if (nbEvents > 0) {
-			Date date = this.getSortedDataResultList().get(index).getDate();
-			Date updatedDate = setHoursMinAndCo(date);
-			return updatedDate;
-		} else {
-			return new Date();
-		}
-	}
-
-	/**
-	 * @param date
-	 * @return
-	 */
-	private Date setHoursMinAndCo(Date date) {
-		
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(new Date());
-		int hour = calendar.get(Calendar.HOUR_OF_DAY);
-		int minute = calendar.get(Calendar.MINUTE);
-		int sec = calendar.get(Calendar.SECOND);
-		int millisec = calendar.get(Calendar.MILLISECOND);
-		calendar.setTime(date);
-		calendar.set(Calendar.HOUR_OF_DAY, hour);
-		calendar.set(Calendar.MINUTE, minute);
-		calendar.set(Calendar.SECOND, sec);
-		calendar.set(Calendar.MILLISECOND, millisec);
-
-		return  calendar.getTime();
+//		return getDateForResIndex(0);
+		return dataResultMap.firstKey().getDate();
 	}
 
 	//AutoPortfolio stuff //TODO implement a sub class to Symbol Events
-	public void setTriggeringInfo(Float finalWeight, Set<EventDefinition> parsedEventDefs, Integer sellEventTriggerThreshold, Integer buyEventTriggerThreshold) {
+	public void setTriggeringInfo(Float finalWeight, Set<EventInfo> parsedEventDefs, Integer sellEventTriggerThreshold, Integer buyEventTriggerThreshold) {
 		
 		this.triggeringFinalWeight = finalWeight;
 		
@@ -475,7 +473,7 @@ public class SymbolEvents implements Serializable {
 		}
 	}
 
-	public Set<EventDefinition> getBuyTriggeringEvents() {
+	public Set<EventInfo> getBuyTriggeringEvents() {
 		return buyTriggeringEvents;
 	}
 
@@ -483,20 +481,20 @@ public class SymbolEvents implements Serializable {
 		return triggeringFinalWeight;
 	}
 
-	public Set<EventDefinition> getSellTriggeringEvents() {
+	public Set<EventInfo> getSellTriggeringEvents() {
 		return sellTriggeringEvents;
 	}
 	//End Auto portfolio stuff
 
-	public Map<EventDefinition, SortedMap<Date, double[]>> getCalculationOutput() {
+	public Map<EventInfo, SortedMap<Date, double[]>> getCalculationOutput() {
 		return calculationOutput;
 	}
 
-	public void addCalculationOutput(EventDefinition eventDefinition, SortedMap<Date, double[]> calculationOutput) {
+	public void addCalculationOutput(EventInfo eventInfo, SortedMap<Date, double[]> calculationOutput) {
 		if (this.calculationOutput == null) {
-			this.calculationOutput = new HashMap<EventDefinition, SortedMap<Date,double[]>>();
+			this.calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 		}
-		this.calculationOutput.put(eventDefinition, calculationOutput);
+		this.calculationOutput.put(eventInfo, calculationOutput);
 		
 	}
 

@@ -1,10 +1,60 @@
-----------------------------------------------------------------
-Mon Jun 25 02:57:34 BST 2012:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.1.2 - (1095077): instance a816c00e-0138-215b-b3e2-000003347fd8 
-on database directory /home/guil/Documents/Comptes/Gestion/PMS/piggymarketsqueak  with class loader sun.misc.Launcher$AppClassLoader@5a8a7e 
-Loaded from file:/home/guil/.m2/repository/org/apache/derby/derby/10.8.1.2/derby-10.8.1.2.jar
-java.vendor=Oracle Corporation
-java.runtime.version=1.7.0_03-b04
-user.dir=/home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-uiinstall
-derby.system.home=null
-Database Class Loader started - derby.database.classpath=''
+Wed Apr 17 15:05:27 BST 2013 Thread[SwingWorker-pool-5143025-thread-3,5,main] Cleanup action starting
+java.sql.SQLException: Database '/home/guil/Developpement/tmp/tata/PremiumMarkets/derby/premiummarkets' not found.
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.newSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.handleDBNotFound(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection30.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source)
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+	at org.apache.derby.jdbc.AutoloadedDriver.connect(Unknown Source)
+	at java.sql.DriverManager.getConnection(DriverManager.java:582)
+	at java.sql.DriverManager.getConnection(DriverManager.java:207)
+	at com.finance.pms.admin.install.wizard.ProgressPanelDescriptor$Task.connect(ProgressPanelDescriptor.java:540)
+	at com.finance.pms.admin.install.wizard.ProgressPanelDescriptor$Task.doInBackground(ProgressPanelDescriptor.java:372)
+	at com.finance.pms.admin.install.wizard.ProgressPanelDescriptor$Task.doInBackground(ProgressPanelDescriptor.java:1)
+	at org.jdesktop.swingworker.SwingWorker$1.call(Unknown Source)
+	at java.util.concurrent.FutureTask$Sync.innerRun(FutureTask.java:303)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:138)
+	at org.jdesktop.swingworker.SwingWorker.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:662)
+Caused by: java.sql.SQLException: Database '/home/guil/Developpement/tmp/tata/PremiumMarkets/derby/premiummarkets' not found.
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+	... 24 more
+============= begin nested exception, level (1) ===========
+java.sql.SQLException: Database '/home/guil/Developpement/tmp/tata/PremiumMarkets/derby/premiummarkets' not found.
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.newSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.handleDBNotFound(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection30.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source)
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+	at org.apache.derby.jdbc.AutoloadedDriver.connect(Unknown Source)
+	at java.sql.DriverManager.getConnection(DriverManager.java:582)
+	at java.sql.DriverManager.getConnection(DriverManager.java:207)
+	at com.finance.pms.admin.install.wizard.ProgressPanelDescriptor$Task.connect(ProgressPanelDescriptor.java:540)
+	at com.finance.pms.admin.install.wizard.ProgressPanelDescriptor$Task.doInBackground(ProgressPanelDescriptor.java:372)
+	at com.finance.pms.admin.install.wizard.ProgressPanelDescriptor$Task.doInBackground(ProgressPanelDescriptor.java:1)
+	at org.jdesktop.swingworker.SwingWorker$1.call(Unknown Source)
+	at java.util.concurrent.FutureTask$Sync.innerRun(FutureTask.java:303)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:138)
+	at org.jdesktop.swingworker.SwingWorker.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:662)
+============= end nested exception, level (1) ===========
+Cleanup action completed

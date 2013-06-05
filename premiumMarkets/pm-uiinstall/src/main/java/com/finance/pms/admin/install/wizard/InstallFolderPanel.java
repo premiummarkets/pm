@@ -35,21 +35,25 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.MouseInfo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 
 import com.finance.pms.admin.install.FolderSelect;
 
@@ -82,11 +86,8 @@ public class InstallFolderPanel extends JPanel {
     /** The title panel. */
     private JPanel titlePanel;
     
-    /** The piggy market squeak folder. */
-    static protected File piggyMarketSqueakFolder;
-    
-    /** The piggy market squeak folder name. */
-    static protected String piggyMarketSqueakFolderName;
+    static private File piggyMarketSqueakFolder;
+	private JTextField jt;
         
     /**
      * Instantiates a new install folder panel.
@@ -96,7 +97,7 @@ public class InstallFolderPanel extends JPanel {
     public InstallFolderPanel() {
         
         super();
-                
+        
         contentPanel = getContentPanel();
         ImageIcon icon = getImageIcon();
         
@@ -144,42 +145,42 @@ public class InstallFolderPanel extends JPanel {
    
         contentPanel1.setLayout(new FlowLayout());
         
-        Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
-        InstallFolderPanel.piggyMarketSqueakFolderName = prefs.get("pm.default.install.folder", System.getProperty("user.dir"));
-        final JTextField jt = new JTextField(InstallFolderPanel.piggyMarketSqueakFolderName, 40);
         
-        jt.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				updateInstallPath(jt);
+        jt = new JTextField(initDefaultInstallFolder().getAbsolutePath(), 40);
+        jt.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				super.keyReleased(e);
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					if (checkInstallPath(jt.getText())) {
+					}
+				}
 			}
-        });
-        jt.addCaretListener(new CaretListener() {
-			public void caretUpdate(CaretEvent e) {
-				updateInstallPath(jt);
-			}
-        });
+		});
 
         contentPanel1.add(jt);
         
 		JButton jb = new JButton("Browse ...");
 		jb.addActionListener(new ActionListener() {
-		
+
 			public void actionPerformed(ActionEvent e) {
-				//Installation folder
-				File installationFolder = null;
-				
+
 				FolderSelect fs = new FolderSelect();
+				fs.setCurrentDirectory(new File(jt.getText()));
 				fs.showOpenDialog((JButton)e.getSource());
-				installationFolder = fs.getSelectedFile();
-				
-				if (installationFolder != null && !fs.getCanceled()) {
-					jt.setText(installationFolder.getAbsolutePath());
+				File selectedFile = fs.getSelectedFile();
+
+				if (selectedFile != null && !fs.getCanceled()) {
+					if (checkInstallPath(selectedFile.getAbsolutePath())) {
+						jt.setText(selectedFile.getAbsolutePath());
+						Install.selectNextButton();
+					}
 				}
-				
-				updateInstallPath(jt);
 			}
 			
 		});		
+		
 		contentPanel1.add(jb);   
 		
 		
@@ -192,16 +193,72 @@ public class InstallFolderPanel extends JPanel {
 		
         return contentPanel;
     }
-    
-	private void updateInstallPath(final JTextField jt) {
-		InstallFolderPanel.piggyMarketSqueakFolderName = jt.getText();
+
+	protected File initDefaultInstallFolder() {
+		
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
-		prefs.put("pm.default.install.folder", InstallFolderPanel.piggyMarketSqueakFolderName);
-		try {
-			prefs.flush();
-		} catch (BackingStoreException e) {
-			e.printStackTrace();
+        File path = new File(prefs.get("pm.default.install.folder", System.getProperty("user.dir")));
+        
+		//if (path != null &&  path.getParentFile() != null && path.getParentFile().exists()) {
+        if (path != null && path.exists()) {
+			System.out.println("Prefs install folder name is valid : "+ path.getAbsolutePath());
+			//path = path.getParentFile();
+		} else {
+			System.out.println("Prefs install folder name is invalid : "+ path+ ". Setting back to "+System.getProperty("user.dir"));
+			path = new File(System.getProperty("user.dir"));
 		}
+		
+		return path;
+		
+	}
+    
+	protected Boolean checkInstallPath(String instFolderName) {
+		
+//		if (instFolderName.matches("[A-Za-z0-9/\\\\:_\\-+=.\\[\\]{}()~]+")) {
+//			return true;
+//		} else {
+//			errorPathDialog();
+//			return false;
+//		}
+		
+		File file = new File(instFolderName);
+		try {
+			file.getCanonicalPath();
+		} catch (IOException e) {
+			System.out.println("Invalid path "+instFolderName +" : "+e);
+			errorPathDialog(instFolderName);
+			return false;
+		}
+		if (file.exists()) {
+			if (file.isDirectory()) {
+				return true;
+			} else {
+				errorPathDialog(instFolderName);
+				return false;
+			}
+		} else {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				System.out.println("Invalid path "+instFolderName +" : "+e);
+				errorPathDialog(instFolderName);
+				return false;
+			}
+			file.delete();
+		}
+		
+		return true;
+	}
+
+	protected void errorPathDialog(String instFolderName) {
+		JDialog errorPopup = new JDialog(Install.getWizard().getDialog(), "Invalid path", true);
+		errorPopup.setLocation(MouseInfo.getPointerInfo().getLocation());
+		JPanel contentPane = new JPanel();
+		contentPane.add(new JLabel("Invalid installation path : "+instFolderName));
+		errorPopup.setContentPane(contentPane);
+		errorPopup.pack();
+		errorPopup.setVisible(true);
+		errorPopup.toFront();
 	}
     
     /**
@@ -212,5 +269,29 @@ public class InstallFolderPanel extends JPanel {
     private ImageIcon getImageIcon() {        
         return null;
     }
+
+	public void addTextFieldReturn(KeyListener installFolderPanelDescriptor) {
+		jt.addKeyListener(installFolderPanelDescriptor);
+	}
+	
+	protected static File setPmFolder(String updatedName) {
+		piggyMarketSqueakFolder = new File(updatedName + File.separator + Install.piggyMarketSqueak);
+		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
+		prefs.put("pm.default.install.folder", updatedName);
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			e.printStackTrace();
+		}
+		return piggyMarketSqueakFolder;
+	}
+
+	public static File getPmFolder() {
+		return piggyMarketSqueakFolder;
+	}
+
+	public JTextField getJt() {
+		return jt;
+	}
     
 }

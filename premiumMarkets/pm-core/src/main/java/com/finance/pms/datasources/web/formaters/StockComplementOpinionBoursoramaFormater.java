@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.MyUrl;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 	
@@ -54,7 +54,7 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 	private Boolean isEmpty = false;
 
 	
-	public StockComplementOpinionBoursoramaFormater(String url, TrendSupplementedStock stockPart) {
+	public StockComplementOpinionBoursoramaFormater(String url, ScreeningSupplementedStock stockPart) {
 		super(new MyUrl(url));
 		params.add(stockPart);
 
@@ -78,7 +78,7 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 
 		LOGGER.trace(line);
 
-		TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
+		ScreeningSupplementedStock stockPart = (ScreeningSupplementedStock) params.get(0);
 
 		if (stockPart.isNOTSetBoursoMeanRecommendations() && 100 <= lineNumber && lineNumber <= 500) {
 			Matcher mRec = meanRec.matcher(line);
@@ -115,7 +115,7 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 	 * @param stockPart
 	 * @throws StopParseFoundException
 	 */
-	private void endScrapping(TrendSupplementedStock stockPart) throws StopParseFoundException {
+	private void endScrapping(ScreeningSupplementedStock stockPart) throws StopParseFoundException {
 		
 		if (!stockPart.isNOTSetBoursoMeanRecommendations() && !stockPart.isNOTSetBoursoTargetPrice()) {
 			Validatable v = stockPart;

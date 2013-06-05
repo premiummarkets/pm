@@ -31,8 +31,9 @@
 package com.finance.pms.mas;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -64,7 +65,7 @@ import com.finance.pms.threads.ThreadSemaphore;
 public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 	
 	/** The LOGGER. */
- protected static MyLogger LOGGER = MyLogger.getLogger(MasEventFetchingThread.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(MasEventFetchingThread.class);
 	
 	/** The period. */
 	private String period;
@@ -143,32 +144,32 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					if (nbretry == 3) {
 						symbolResults = 
 							new SymbolEvents(stock,
-									new HashMap<EventKey, EventValue>(),
-									new HashMap<Integer, String>(),
+									new TreeMap<EventKey, EventValue>(),
+									new ArrayList<String>(),
 									EventState.STATE_ABORTEDRETRIED);
 						LOGGER.debug("Aborted after "+nbretry+ " retry "+stock+". On server port "+ c.get_portNumber());
 						throw new RuntimeException("Aborted after "+nbretry+ " retry "+stock+". On server port "+ c.get_portNumber());
 					}
 				} catch (ApplicativeException e) { //MAS : applicative non recoverable
 					symbolResults = new SymbolEvents(stock,
-							new HashMap<EventKey, EventValue>(),
-							new HashMap<Integer, String>(),
+							new TreeMap<EventKey, EventValue>(),
+							new ArrayList<String>(),
 							EventState.STATE_ABORTED);
 					LOGGER.debug("Aborted (MAS applicative) "+stock+". On server port "+ c.get_portNumber());
 				}
 			}
 		} catch (IOException e) { //unrecoverable
 			symbolResults = new SymbolEvents(stock,
-					new HashMap<EventKey, EventValue>(),
-					new HashMap<Integer, String>(), 
+					new TreeMap<EventKey, EventValue>(),
+					new ArrayList<String>(), 
 					EventState.STATE_ABORTED);
 			LOGGER.debug("Aborted "+stock+". On server port "+ c.get_portNumber(),e);
 			throw new RuntimeException(e);
 		} finally {
 			MasSource.realesePoolConnection(c);
 			//this.threadSemaphore.release();
-			if (null != symbolResults && null != symbolResults.getDataResultList() 
-					&& symbolResults.getDataResultList().size() != 0) {
+			if (null != symbolResults && null != symbolResults.getDataResultMap() 
+					&& symbolResults.getDataResultMap().size() != 0) {
 				this.sendEvent(symbolResults);
 			}
 		}

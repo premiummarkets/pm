@@ -39,15 +39,13 @@ import java.util.Map;
 import com.finance.pms.admin.install.logging.MyLogger;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ResultsParser.
  * 
  * @author Guillaume Thoreton
  */
 public class ResultsParser {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(ResultsParser.class);
 	
 	/**

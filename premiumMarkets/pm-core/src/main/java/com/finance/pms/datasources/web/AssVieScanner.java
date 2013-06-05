@@ -122,8 +122,8 @@ public class AssVieScanner implements MyBeanFactoryAware {
 
 		SpringContext springContext = null;
 		try {
-			springContext = new SpringContext();
-			springContext.setDataSource(pathToprops);
+			springContext = new SpringContext(pathToprops);
+			//springContext.setDataSource(pathToprops);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 			springContext.refresh();
 			

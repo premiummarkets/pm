@@ -1,0 +1,104 @@
+/**
+ * Premium Markets is an automated stock market analysis system.
+ * It implements a graphical environment for monitoring stock market technical analysis
+ * major indicators, portfolio management and historical data charting.
+ * In its advanced packaging, not provided under this license, it also includes :
+ * Screening of financial web sites to pick up the best market shares, 
+ * Price trend prediction based on stock market technical analysis and indexes rotation,
+ * Around 80% of predicted trades more profitable than buy and hold, leading to 4 times 
+ * more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testing, 
+ * Automated buy sell email notifications on trend change signals calculated over markets 
+ * and user defined portfolios. See Premium Markets FORECAST web portal at 
+ * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * 
+ * Copyright (C) 2008-2012 Guillaume Thoreton
+ * 
+ * This file is part of Premium Markets.
+ * 
+ * Premium Markets is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.finance.pms.events.operations.conditional;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
+import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+
+@XmlSeeAlso({SupDoubleMapCondition.class})
+public abstract class CmpDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
+
+	
+	@SuppressWarnings("unused")
+	private CmpDoubleMapCondition() {
+		super();
+	}
+
+	protected CmpDoubleMapCondition(String reference, String description) {
+		super(reference, description, new DoubleMapOperation(reference+ " left operand"), new DoubleMapOperation(reference+ " right operand"));
+	}
+
+	public CmpDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
+		this(reference, description);
+		this.setOperands(operands);
+	}
+
+	@Override
+	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		
+		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(0)).getValue(targetStock);
+		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
+		
+		SortedSet<Date> fullKeySet = new TreeSet<Date>();
+		fullKeySet.addAll(firstOp.keySet());
+		fullKeySet.addAll(secondOp.keySet());
+		
+		BooleanMapValue outputs = new  BooleanMapValue();
+
+		for (Date date : fullKeySet) {
+			Double firstV = firstOp.get(date);
+			Double secondV = secondOp.get(date);
+			if (firstV != null && !firstV.isNaN() && secondV != null && !secondV.isNaN()) {
+				@SuppressWarnings("unchecked")
+				Boolean conditionCheck = conditionCheck(firstV, secondV);
+				if (conditionCheck != null) {
+					outputs.getValue(targetStock).put(date, conditionCheck);
+				}
+			}
+		}
+		
+		return outputs;
+	}
+
+	@Override
+	public int signalPosition() {
+		return 1;
+	}
+	
+	@Override
+	public int mainPosition() {
+		return 0;
+	}
+	
+	
+}

@@ -72,9 +72,9 @@ public class ChaikinOscillatorDivergence extends TalibIndicatorsCompositionCalcu
 		try {
 			this.sma = new SMA(stock, 2, startDate, endDate, calculationCurrency, Math.max(20, getDaysSpan()), 0);
 		} catch (TalibException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
 		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);

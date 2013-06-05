@@ -117,7 +117,7 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
 	 */
 	public static Boolean checkAvailability() {
     	InputStream fis = BaseCheckPanelDescriptor.class.getClassLoader().getResourceAsStream(BaseCheckPanelDescriptor.initdbName);
-    	return (fis != null || ProgressPanelDescriptor.isDbExists(InstallFolderPanel.piggyMarketSqueakFolder));
+    	return (fis != null || ProgressPanelDescriptor.isDbExists(InstallFolderPanel.getPmFolder()));
     }
        
     

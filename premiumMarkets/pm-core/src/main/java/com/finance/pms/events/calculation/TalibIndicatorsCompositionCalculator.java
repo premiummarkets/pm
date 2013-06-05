@@ -49,6 +49,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -75,7 +76,7 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	}
 
 	@Override
-	public Map<EventKey, EventValue> calculateEventsFor(String eventListName) {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName) {
 		
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		
@@ -102,9 +103,6 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 			}
 		}
 		
-		//		if (!edata.isEmpty()) {
-		//			calculationOutput.put(edata.lastKey().getDate(), new double[]{});
-		//		};
 		calculationOutput = buildOutput();
 		
 
@@ -125,7 +123,7 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	protected void isValidData(Stock stock, TalibIndicator indicator, Date startDate, Integer indicatorQuotationStartDateIdx, Integer indicatorQuotationEndDateIdx) throws NotEnoughDataException {
 		
 		if (indicator.getOutBegDate() == null) {
-			throw new NotEnoughDataException(null, null, indicator.toString(),new Throwable());
+			throw new NotEnoughDataException(stock, indicator.toString(),new Throwable());
 		}
 		if ((indicatorQuotationEndDateIdx - indicatorQuotationStartDateIdx) > indicator.getOutNBElement().value 
 				|| indicator.getOutBegDate().after(startDate) 
@@ -140,7 +138,7 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(indicator.getOutBegDate());
 			QuotationsFactories.getFactory().incrementDate(calendar, getDaysSpan());
-			throw new NotEnoughDataException(calendar.getTime(), stock.getLastQuote(), message, new Throwable());
+			throw new NotEnoughDataException(stock, calendar.getTime(), stock.getLastQuote(), message, new Throwable());
 		}
 		
 	}
@@ -356,6 +354,11 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 
 
 	protected abstract double[] buildOneOutput(int calculatorIndex);
+
+	@Override
+	public EmailFilterEventSource getSource() {
+		return EmailFilterEventSource.PMTAEvents;
+	}
 
 
 }

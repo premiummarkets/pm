@@ -50,7 +50,7 @@ import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.datasources.web.formaters.StockComplementBSEFormater;
 import com.finance.pms.datasources.web.formaters.StockListNSEFormater;
 import com.finance.pms.portfolio.SharesList;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class ProvidersNSEIndices extends ProvidersList {
 	
@@ -77,7 +77,7 @@ public class ProvidersNSEIndices extends ProvidersList {
 		for (Indice indice : indices) {
 
 			String url = this.httpSource.getCategoryStockListURL(StockCategories.INDICES_OTHER, indice.getName());
-			LOGGER.info("Indice Url : " + url);
+			LOGGER.info("NSE Url : " + url);
 			LineFormater nseFormater = this.getFormater(url, indice.getMarket(), marketQuotationsProviders);
 			@SuppressWarnings("rawtypes")
 			List listOfIndiceStocks = new ArrayList();
@@ -192,7 +192,7 @@ public class ProvidersNSEIndices extends ProvidersList {
 
 
 	@Override
-	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
+	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
 		//throw new NotImplementedException();
 	}
 	

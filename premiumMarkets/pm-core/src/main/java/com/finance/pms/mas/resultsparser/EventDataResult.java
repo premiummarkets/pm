@@ -46,19 +46,11 @@ import com.finance.pms.mas.dataresults.DataResultValue;
  * @author Guillaume Thoreton
  */
 public class EventDataResult implements Result {
-	
-	/** The Constant dfevent. */
-	//public static final DateFormat dfevent = new SimpleDateFormat("yyyyMMdd");
-	
-	/** The date. */
+
 	private Date date;
-	
-	/** The eventdef. */
 	private Integer eventdef;
-	//private Integer eventtype;
-	/** The eventtype. */
 	private char eventtype;
-	
+
 	/**
 	 * Instantiates a new event data result.
 	 * 
@@ -79,30 +71,16 @@ public class EventDataResult implements Result {
 		this.eventtype = eventtype.charAt(0);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.mas.resultsparser.Result#getKey()
-	 */
 	public Object getKey() {
-		//return new DataResultKey(date,eventtype);
 		return new DataResultKey(date,eventdef);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.mas.resultsparser.Result#getValue()
-	 */
+
 	public Object getValue() {
 		return new DataResultValue(date,eventdef, eventtype);
 	}
-	
-//	public static char[] getEventTypes() {
-//		Arrays.sort(eventTypes);
-//		return eventTypes;
-//	}
-	
-	/* (non-Javadoc)
- * @see java.lang.Object#toString()
- */
-@Override
+
+
+	@Override
 	public String toString() {
 		return date.toString()+" ; "+eventdef+" ; "+eventtype;
 	}

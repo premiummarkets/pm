@@ -123,4 +123,10 @@ public class EventMessageObject implements Serializable {
 		return true;
 	}
 
+
+	@Override
+	public String toString() {
+		return "EventMessageObject [stock=" + stock + ", eventValue=" + eventValue + ", eventListName=" + eventListName + ", calculationDate="+ calculationDate + "]";
+	}
+	
 }

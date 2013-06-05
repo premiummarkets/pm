@@ -30,16 +30,20 @@
  */
 package com.finance.pms.portfolio.gui;
 
+import java.math.BigDecimal;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -53,22 +57,24 @@ import com.finance.pms.admin.install.logging.MyLogger;
  */
 public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(RemoveConfirmationDialog.class);
 
-	/** The dialog shell. */
 	private Shell dialogShell;
-
-	/** The Validerbutton1. */
 	private Button Validerbutton1;
-
-	/** The Errorlabel1. */
 	private Label Errorlabel1;
 	
-	private Button applyToAmount;
-	
+	private Boolean ask4Apply;
+	private Button applyToAmountCheck;
 	private Boolean apply = false;
 	private Boolean canceled = false;
+
+	private Button monitorCheck;
+	private Text monitoringPortfolioTxt;
+	private Text alertPercentageTxt;
+	private String monitroPortfolioName;
+	private BigDecimal percentageFall;
+
+	private boolean monitor;
 
 	/**
 	 * The main method.
@@ -81,7 +87,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 		try {
 			Display display = Display.getDefault();
 			Shell shell = new Shell(display);
-			RemoveConfirmationDialog inst = new RemoveConfirmationDialog(shell);
+			RemoveConfirmationDialog inst = new RemoveConfirmationDialog(shell, true);
 			inst.open();
 		} catch (Exception e) {
 			LOGGER.debug("",e);
@@ -97,8 +103,9 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public RemoveConfirmationDialog(Shell parent) {
+	public RemoveConfirmationDialog(Shell parent, Boolean ask4Apply) {
 		super(parent, SWT.NULL);
+		this.ask4Apply = ask4Apply;
 	}
 
 	/**
@@ -110,12 +117,6 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 		try {
 			Shell parent = getParent();
 			dialogShell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
-
-			{
-				// Register as a resource user - SWTResourceManager will
-				// handle the obtaining and disposing of resources
-				//SWTResourceManager.registerResourceUser(dialogShell);
-			}
 
 			GridLayout dialogShellLayout = new GridLayout();
 			dialogShellLayout.verticalSpacing = 20;
@@ -135,23 +136,72 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				Errorlabel1.setAlignment(SWT.CENTER);
 				Errorlabel1.setBackground(MainGui.pOPUP_BG);
 			}
-			{
-				StyledText text = new StyledText(dialogShell, SWT.NONE);
+//			{
+//				StyledText text = new StyledText(dialogShell, SWT.NONE);
+//				GridData Errorlabel1LData = new GridData();
+//				Errorlabel1LData.horizontalSpan = 2;
+//				text.setLayoutData(Errorlabel1LData);
+//				text.setText("Ticking the following box, will sell the share at the current price and apply the transaction to the portfolio.\n" +
+//							"Otherwise, the raw amounts in and out will be substracted from the total amounts as they are (ie all transactions on that line are canceled.)");
+//				text.setFont(MainGui.DEFAULTFONT);
+//				text.setBackground(MainGui.pOPUP_BG);
+//			}
+			if (ask4Apply){
+				applyToAmountCheck = new Button(dialogShell, SWT.CHECK);
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.horizontalSpan = 2;
-				text.setLayoutData(Errorlabel1LData);
-				text.setText("Ticking the following box, will sell the share at the current price and apply the transaction to the portfolio.\n" +
-							"Otherwise, the raw amounts in and out will be substracted from the total amounts as they are (ie all transactions on that line are canceled.)");
-				text.setFont(MainGui.DEFAULTFONT);
-				text.setBackground(MainGui.pOPUP_BG);
+				applyToAmountCheck.setLayoutData(Errorlabel1LData);
+				applyToAmountCheck.setText("Apply line transactions amounts (money in and out) to portfolio totals.");
+				applyToAmountCheck.setFont(MainGui.DEFAULTFONT);
+				applyToAmountCheck.setToolTipText(
+						"Ticking this box, will sell the share at the current price and apply the transaction to the portfolio totals. Aka we sell the line.\n" +
+						"If the box is left ticked off, the line transactions amounts (money in and out) will be subtracted from the total amounts as they are. " +
+						"All transactions on that line are then cancelled. Aka we delete the line.");
 			}
 			{
-				applyToAmount = new Button(dialogShell, SWT.CHECK);
+				monitorCheck = new Button(dialogShell, SWT.CHECK);
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.horizontalSpan = 2;
-				applyToAmount.setLayoutData(Errorlabel1LData);
-				applyToAmount.setText("Apply amount in and out to total portfolio profit?");
-				applyToAmount.setFont(MainGui.DEFAULTFONT);
+				monitorCheck.setLayoutData(Errorlabel1LData);
+				monitorCheck.setFont(MainGui.DEFAULTFONT);
+				monitorCheck.setText("Add for monitoring");
+				monitorCheck.setToolTipText("You can add this share for monitoring the next buy event by filling up the following.");
+				monitorCheck.addSelectionListener(new SelectionListener() {
+					
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						handle();
+					}
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handle();
+					}
+					
+					private void handle() {
+						monitoringPortfolioTxt.setEnabled(true);
+						alertPercentageTxt.setEnabled(true);
+					}
+				});
+			}
+			{
+				Label monitoringPortfolio = new Label(dialogShell, SWT.NONE);
+				monitoringPortfolio.setText("Monitoring portfolio");
+				monitoringPortfolio.setFont(MainGui.DEFAULTFONT);
+				
+				monitoringPortfolioTxt = new Text(dialogShell, SWT.NONE);
+				monitoringPortfolioTxt.setText("MonitorBuy");
+				monitoringPortfolioTxt.setFont(MainGui.CONTENTFONT);
+				monitoringPortfolioTxt.setEnabled(false);
+			}
+			{
+				Label alertPercentage = new Label(dialogShell, SWT.NONE);
+				alertPercentage.setText("% fall before alert :");
+				alertPercentage.setFont(MainGui.DEFAULTFONT);
+				
+				alertPercentageTxt = new Text(dialogShell, SWT.NONE);
+				alertPercentageTxt.setText("5");
+				alertPercentageTxt.setFont(MainGui.CONTENTFONT);
+				alertPercentageTxt.setEnabled(false);
 			}
 			{
 				Validerbutton1 = new Button(dialogShell, SWT.PUSH);
@@ -164,7 +214,12 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 					@Override
 					public void mouseDown(MouseEvent evt) {
 						canceled = false;
-						apply=applyToAmount.getSelection();
+						apply= ask4Apply && applyToAmountCheck.getSelection();
+						monitor = monitorCheck.getSelection();
+						if (monitor) {
+							monitroPortfolioName = monitoringPortfolioTxt.getText();
+							percentageFall = BigDecimal.valueOf(Double.valueOf(alertPercentageTxt.getText()));
+						}
 						closeMouseDown(evt);
 					}
 				});
@@ -184,14 +239,13 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 					}
 				});
 			}
-			// dialogShell.layout();
+
 			dialogShell.pack();
 			dialogShell.open();
 			Display display = dialogShell.getDisplay();
 			while (!dialogShell.isDisposed()) {
 				try {
-					if (!display.readAndDispatch())
-						display.sleep();
+					if (!display.readAndDispatch()) display.sleep();
 				} catch (RuntimeException e) {
 					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in Error Dialog Gui : ",e);
@@ -213,7 +267,6 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	 * @author Guillaume Thoreton
 	 */
 	private void closeMouseDown(MouseEvent evt) {
-		//LOGGER.debug("Validerbutton1.mouseDown, event=" + evt);
 		dialogShell.dispose();
 	}
 
@@ -223,6 +276,18 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	
 	public Boolean getApply() {
 		return apply;
+	}
+	
+	public String getMonitorPortfolioName() {
+		return monitroPortfolioName;
+	}
+
+	public BigDecimal getPercentageFall() {
+		return percentageFall;
+	}
+
+	public Boolean getMonitorCheck() {
+		return monitor;
 	}
 
 }

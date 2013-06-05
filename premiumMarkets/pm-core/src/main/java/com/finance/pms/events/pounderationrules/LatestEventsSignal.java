@@ -30,12 +30,14 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.talib.dataresults.AlertEventValue;
@@ -50,13 +52,13 @@ public class LatestEventsSignal extends Signal {
 	private Boolean indicators;
 
 	public LatestEventsSignal(Boolean alerts, Boolean indicators) {
-		super(new HashMap<Integer, String>());
+		super(new ArrayList<String>());
 		this.alerts = alerts;
 		this.indicators = indicators;
 	}
 
 	@Override
-	public Integer addEvent(EventValue eventValue) {
+	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 
 		if (isFilteredEvent(eventValue)) {//Filtered
 			return addFilteredEvent(eventValue);
@@ -136,19 +138,19 @@ public class LatestEventsSignal extends Signal {
 	 * @param currentEventDef
 	 * @return
 	 */
-	protected void listTriggeringEvent(EventValue eventValue, EventType eventType, EventDefinition eventDefinition) {
+	protected void listTriggeringEvent(EventValue eventValue, EventType eventType, EventInfo eventDefinition) {
 			if (this.latestEventDate == null) this.latestEventDate = eventValue.getDate();
 			this.lastParsedEventType = eventType;
 			this.parsedEventDefs.add(eventDefinition);
 	}
 	
-	private void resetTriggeringEvent(EventValue eventValue, EventType eventType, EventDefinition eventDefinition) {
+	private void resetTriggeringEvent(EventValue eventValue, EventType eventType, EventInfo eventDefinition) {
 		
 		signalWeight = 0;
 		
 		this.latestEventDate = eventValue.getDate();
 		this.lastParsedEventType = eventValue.getEventType();
-		this.parsedEventDefs = new HashSet<EventDefinition>();
+		this.parsedEventDefs = new HashSet<EventInfo>();
 		this.parsedEventDefs.add(eventValue.getEventDef());
 }
 
@@ -170,12 +172,12 @@ public class LatestEventsSignal extends Signal {
 		Boolean isOkEvent = false;
 		if (indicators && eventValue.getEventType().equals(EventType.BEARISH)) {
 			for (String si : ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellIndicators()) {
-				isOkEvent  = eventValue.getEventDef().name().equals(si);
+				isOkEvent  = eventValue.getEventDef().getEventDefinitionRef().equals(si);
 				if (isOkEvent) return true;
 			}
 		} else if (indicators && eventValue.getEventType().equals(EventType.BULLISH)) {
 			for (String si : ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyIndicators()) {
-				isOkEvent = eventValue.getEventDef().name().equals(si);
+				isOkEvent = eventValue.getEventDef().getEventDefinitionRef().equals(si);
 				if (isOkEvent) return true;
 			}
 		}
@@ -186,7 +188,7 @@ public class LatestEventsSignal extends Signal {
 	 * @param eventValue
 	 * @return
 	 */
-	private boolean isAlert(EventValue eventValue) {
+	protected boolean isAlert(EventValue eventValue) {
 		return (eventValue.getEventDef().equals(EventDefinition.ALERTTHRESHOLD) || eventValue.getEventDef().equals(EventDefinition.SCREENER));
 	}
 

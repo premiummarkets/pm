@@ -45,10 +45,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
 import com.finance.pms.RefreshableView;
-import com.finance.pms.SpringContext;
+import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.portfolio.ShareListMgr;
+import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
 
@@ -57,14 +57,14 @@ import com.finance.pms.threads.ObserverMsg;
  * 
  * @author Guillaume Thoreton
  */
-public class EventRefreshController implements  MouseListener, SelectionListener {
+public class EventRefreshController implements MouseListener, SelectionListener {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventRefreshController.class);
 	
 	protected EventModel<? extends EventModelStrategyEngine> eventModel;
-	
 	private RefreshableView view;
+	private Config config;
+
 
 	private Date currentDate;
 	
@@ -72,8 +72,11 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 	private Boolean doFetchQuotes;
 	private Boolean doAnalyse;
 	private Boolean doReco;
+	private Boolean doAnalysisClean;
+	private Boolean doAlerts;
 	
 	private Long taskKey;
+
 	
 	
 	/**
@@ -84,8 +87,9 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public EventRefreshController(EventModel<? extends EventModelStrategyEngine> refreshModel, RefreshableView view) {
+	public EventRefreshController(EventModel<? extends EventModelStrategyEngine> refreshModel, RefreshableView view, Config config) {
 		
+		this.config = config;
 		this.view = view;
 		this.eventModel = refreshModel;
 		try {
@@ -95,8 +99,31 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 		}
 	}
 	
+	@Override
+	public void mouseDoubleClick(MouseEvent arg0) {
+	}
+
+	@Override
+    public void mouseUp(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mouseDown(MouseEvent arg0) {
+		this.refreshAction(view.getAnalysisStartDate());
+	}
 	
-	/**eventModel
+	@Override
+	public void widgetDefaultSelected(SelectionEvent arg0) {
+		this.refreshAction(view.getAnalysisStartDate());
+	}
+
+	@Override
+	public void widgetSelected(SelectionEvent arg0) {
+		this.refreshAction(view.getAnalysisStartDate());
+	}
+	
+	
+	/**
 	 * Update event refresh model state.
 	 * 
 	 * @param eventModelEngine the event model engine
@@ -104,31 +131,23 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 	 * @param masSelected the mas selected
 	 * @param startAnalyseDate the start analyse date
 	 * @param dofetchListOfQuotes the dofetch list of quotes
-	 * @param dofetchQuotes the dofetch quotes
+	 * @param dofetchQuotes the dofetch quotestaskKey
 	 * @param doAnalyse the do analyse
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param viewStateParams 
 	 */
-	public void updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Long taskKey) {
+	public void updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey) {
 		
 		this.doFetchListStocks = dofetchListOfQuotes;
 		this.doFetchQuotes = dofetchQuotes;
 		this.doAnalyse = doAnalyse;
 		this.doReco = doReco;
+		this.doAnalysisClean = doAnalysisClean;
+		this.doAlerts = doAlerts;
 		this.taskKey = taskKey;
+		
 
-	}
-	
-	public void mouseDoubleClick(MouseEvent arg0) {
-	}
-
-    public void mouseUp(MouseEvent arg0) {
-	}
-
-	public void mouseDown(MouseEvent arg0) {
-		this.refreshAction(view.getAnalysisStartDate());
-    	
 	}
 
 	/**
@@ -188,11 +207,28 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 				});
 			}
 			
+			if (doAnalysisClean) {
+				eventModel.resetAnalisysList();
+				eventModel.getAnalysisList().add("talib");
+				
+				//Add clear Analysis
+				tasks.offer(new Runnable() {
+					public void run() {
+						try {
+							eventModel.callbackForAnalysisClean();
+							eventModel.resetLastAnalyse();
+						} catch (Exception e) {
+							throw new EventRefreshException(e);
+						}
+					}
+				});
+			}
+			
 			if (doAnalyse) {
 				eventModel.resetAnalisysList();
 				eventModel.getAnalysisList().add("talib");
 				
-				//add Analysis
+				//Add Analysis
 				tasks.offer(new Runnable() {
 					public void run() {
 						try {
@@ -205,6 +241,24 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 				});
 			}
 			
+			if (doAlerts) {
+				//Add Alerts calc
+				tasks.offer(new Runnable() {
+					public void run() {
+						try {
+							eventModel.callbackForAlerts();
+						} catch (Exception e) {
+							throw new EventRefreshException(e);
+						}
+					}
+				});
+			}
+			
+//			//XXX ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig()); 
+//			//XXX The following should be in an other bean and systematically used instead of the Configs default constructors
+//			ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
+//			final EventSignalConfig config = shareListMgr.propagateConfig();
+			
 			final List<Exception> exceptions = new ArrayList<Exception>();
 			Runnable runnable = new Runnable() {
 
@@ -214,12 +268,7 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 					Runnable r;
 					while ( (r = tasks.poll()) != null) {
 						try {
-							
-							//XXX ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig()); 
-							//XXX The following should be in an other bean and systematically used instead of the Configs default constructors
-							ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
-							shareListMgr.initConfig();
-							
+							ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 							r.run();
 						} catch (Exception e) {
 							LOGGER.warn(e,e);
@@ -276,20 +325,6 @@ public class EventRefreshController implements  MouseListener, SelectionListener
 		LOGGER.debug("Last quotation asked from event composite window was on the : " + lastFetch);
 		return lastFetch.before(currentDate);
 
-	}
-
-
-	
-	public void widgetDefaultSelected(SelectionEvent arg0) {
-		this.refreshAction(view.getAnalysisStartDate());
-		
-	}
-
-
-	
-	public void widgetSelected(SelectionEvent arg0) {
-		this.refreshAction(view.getAnalysisStartDate());
-		
 	}
 	
 	

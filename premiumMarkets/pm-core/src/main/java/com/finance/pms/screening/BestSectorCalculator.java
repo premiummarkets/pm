@@ -41,9 +41,9 @@ import java.util.TreeSet;
 
 public class BestSectorCalculator implements ScreenerCalculator<NavigableSet<Sector>> {
 	
-	Collection<TrendSupplementedStock> listOShares;
+	Collection<ScreeningSupplementedStock> listOShares;
 
-	public BestSectorCalculator(Collection<TrendSupplementedStock> listOShares) {
+	public BestSectorCalculator(Collection<ScreeningSupplementedStock> listOShares) {
 		super();
 		this.listOShares = listOShares;
 	}
@@ -131,7 +131,7 @@ public class BestSectorCalculator implements ScreenerCalculator<NavigableSet<Sec
 			}		
 		};
 		
-		for (TrendSupplementedStock stockPerf : listOShares) {
+		for (ScreeningSupplementedStock stockPerf : listOShares) {
 			if (mapped.containsKey(stockPerf.getSectorHint())) {
 				mapped.get(stockPerf.getSectorHint()).addStock(stockPerf);
 			} else {

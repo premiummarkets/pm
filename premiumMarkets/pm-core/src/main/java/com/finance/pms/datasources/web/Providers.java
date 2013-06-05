@@ -305,10 +305,7 @@ public abstract class Providers  implements MyBeanFactoryAware {
 	public void setSharesListId(String shareListId) {
 		this.sharesListId = shareListId;
 	}
-	/**
-	 * @param shareList
-	 * @param sharesListStocks
-	 */
+
 	protected void updatingShareListInDB(SharesList shareList, final Set<Stock> sharesListStocks) {
 		for (Object stockLtmp : sharesListStocks) {
 			Stock ss  = DataSource.getInstance().getShareDAO().loadStockBy(((Stock)stockLtmp).getSymbol(), ((Stock)stockLtmp).getIsin());
@@ -320,25 +317,17 @@ public abstract class Providers  implements MyBeanFactoryAware {
 		}
 		portfolioDAO.saveOrUpdatePortfolio(shareList);
 	}
-	/**
-	 * @return
-	 */
+	
 	public SharesList loadSharesListForThisListProvider() {
 		return initSharesList(this.getSharesListIdEnum().name(), Indice.formatSet(this.getIndices()));
 	}
-	
-	/**
-	 * @param nameExtention 
-	 * @return
-	 */
+
 	protected SharesList initSharesList(String sharesListName, String nameExtention) {
 		SharesList shareList = portfolioDAO.loadShareList(sharesListName+nameExtention);
 		if (shareList == null) shareList = new SharesList(sharesListName+nameExtention);
 		return shareList;
 	}
-	/**
-	 * @param start
-	 */
+	
 	protected Boolean isStartAfterTodaysClose(Date start) {
 		Calendar endOffTradingDay = Calendar.getInstance();
 		endOffTradingDay.setTime(start);

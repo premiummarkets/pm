@@ -48,8 +48,9 @@ public class Normalizer {
 	private Date end;
 	private double maxNorm;
 	private double minNorm;
-	
-	
+
+	private double max;
+	private double min;
 
 	public Normalizer(Date start, Date end, double minNorm, double maxNorm) {
 		super();
@@ -75,14 +76,16 @@ public class Normalizer {
 		if (data.get(data.firstKey()).length > 1) throw new NotImplementedException();
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
-		double max = -Double.MAX_VALUE;
-		double min = Double.MAX_VALUE;
+		max = -Double.MAX_VALUE;
+		min = Double.MAX_VALUE;
 		SortedMap<Date, double[]> subD = data.subMap(start, end);
 		for (Date date : subD.keySet()) {
 			double value = data.get(date)[0];
 			if (value >= max) max = value;
 			if (value <= min) min = value;
 		}
+		
+		
 		for (Date date : subD.keySet()) {
 			double value = data.get(date)[0];
 			ret.put(date, new double[]{ ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm});
@@ -92,5 +95,40 @@ public class Normalizer {
 		
 	}
 	
+	public SortedMap<Date, Double> sNormalised(SortedMap<Date, Double> data) {
 
+		//b = [(a - minA) / (maxA - minA)] * (maxNorm - minNorm) + minNorm 
+		//with maxNorm = 1 and minNorm = 0
+		//b = [(a - minA) / (maxA - minA)]
+
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		max = -Double.MAX_VALUE;
+		min = Double.MAX_VALUE;
+		SortedMap<Date, Double> subD = data.subMap(start, end);
+		for (Date date : subD.keySet()) {
+			double value = data.get(date);
+			if (value >= max) max = value;
+			if (value <= min) min = value;
+		}
+
+		for (Date date : subD.keySet()) {
+			double value = data.get(date);
+			ret.put(date, ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm);
+		}
+
+		return ret;
+
+	}
+
+
+	public double getNormalizedZero() {
+		if (max == 0 && min == 0) throw new RuntimeException("Uninitialized normalizer", new Exception());
+		return (-min/(max-min)) * (maxNorm - minNorm) + minNorm;
+	}
+	
+	public double getNormalizedValue(Double value) {
+		if (max == 0 && min == 0) throw new RuntimeException("Uninitialized normalizer", new Exception());
+		return (value-min/(max-min)) * (maxNorm - minNorm) + minNorm;
+	}
+	
 }

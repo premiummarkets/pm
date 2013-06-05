@@ -30,44 +30,45 @@
  */
 package com.finance.pms.events.pounderationrules;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 
 public abstract class Signal {
 	
 	protected Integer signalWeight;
-	protected Map<Integer,String> eventDefList;
+	protected Collection<String> eventDefList;
 	protected Date latestEventDate;
-	protected Set<EventDefinition> parsedEventDefs;
+	protected Set<EventInfo> parsedEventDefs;
 
-	public Signal(Map<Integer, String> eventDefList) {
+	public Signal(Collection<String> eventDefList) {
 		this.signalWeight = 0;
 		this.eventDefList = eventDefList;
-		this.parsedEventDefs = new HashSet<EventDefinition>();
+		this.parsedEventDefs = new HashSet<EventInfo>();
 	}
 
 	public Signal() {
 		this.signalWeight = 0;
-		this.eventDefList = new HashMap<Integer, String>();
+		this.eventDefList = new ArrayList<String>();
 	}
 
 	public Integer getSignalWeight() {
 		return signalWeight;
 	}
 	
-	public abstract Integer addEvent(EventValue eventValue);
+	public abstract Integer addEvent(EventKey eventKey, EventValue eventValue);
 
 	public Date getLatestEventDate() {
 		return latestEventDate;
 	}
 
-	public Set<EventDefinition> getParsedEventDefs() {
+	public Set<EventInfo> getParsedEventDefs() {
 		return parsedEventDefs;
 	}
 

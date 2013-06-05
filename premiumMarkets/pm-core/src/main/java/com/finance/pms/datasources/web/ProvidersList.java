@@ -48,8 +48,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.httpclient.HttpException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -65,12 +63,12 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.ShareListMgr;
 import com.finance.pms.portfolio.SharesList;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 import com.finance.pms.threads.ObserverMsg;
 
 public abstract class ProvidersList extends Providers implements MarketListProvider {
 
-	private class StockSupplementRunnable extends Observable implements Callable<TrendSupplementedStock>{
+	private class StockSupplementRunnable extends Observable implements Callable<ScreeningSupplementedStock>{
 
 		private final Stock stockFromWeb;
 		private boolean trendSuppNeeded;
@@ -82,7 +80,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		}
 
 		@Override
-		public TrendSupplementedStock call() {
+		public ScreeningSupplementedStock call() {
 
 			try {
 
@@ -93,7 +91,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					LOGGER.info("Supplemented Ticker " + stockFromWebCompleted.toString());
 					
 					//Add trend info
-					TrendSupplementedStock trendStock = new TrendSupplementedStock((Stock) stockFromWebCompleted);
+					ScreeningSupplementedStock trendStock = new ScreeningSupplementedStock((Stock) stockFromWebCompleted);
 					if (trendSuppNeeded) retrieveScreeningInfoForShare(trendStock);
 					
 					return trendStock;
@@ -111,9 +109,9 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersList.class);
 	
-	@Autowired()
-	@Qualifier("shareListMgr")
-	ShareListMgr shareListMgr;
+//	@Autowired()
+//	@Qualifier("shareListMgr")
+//	ShareListMgr shareListMgr;
 	
 	protected ProvidersList() {
 		super();
@@ -165,6 +163,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	}
 
 	@Override
+	//@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx") => lock time out perf_supp V portfolio ??? + proxy interface error
 	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList dbStocks) throws HttpException {
 		
 		String shareListDescrTxt = this.getSharesListIdEnum()+" with indices "+this.getIndices();
@@ -176,15 +175,15 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		//Fetch		
 		Set<Stock> listAsFromWeb  = fetchStockList(marketQuotationsProviders);
 		
-		LOGGER.guiInfo("Number of stocks retreived from web for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + listAsFromWeb.size());
+		LOGGER.guiInfo("Number of stocks retrieved from web for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + listAsFromWeb.size());
 		LOGGER.guiInfo("Number of stocks in the list " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + existingSharesList.getListShares().size());
-		LOGGER.guiInfo("Number of stocks in the database " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + dbStocks.size());
+		LOGGER.guiInfo("All stocks in the database - updating " + shareListDescrTxt + " - on the " + EventSignalConfig.getNewDate() + " : " + dbStocks.size());
 		LOGGER.warn(
 				"Before update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
-				", inital in "+shareListDescrTxt+" share list : " +existingSharesList.getListShares().size(), true);
+				", initial in "+shareListDescrTxt+" share list : " +existingSharesList.getListShares().size(), true);
 		
 		//Completing and adding new from web
-		Set<TrendSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<TrendSupplementedStock>();
+		Set<ScreeningSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 
 		Boolean trendSuppNeeded = new Boolean(MainPMScmd.getPrefs().get("marketlistretrieval.trendSuppNeeded","false"));
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("marketlistretrieval.semaphore.nbthread","20")));
@@ -193,7 +192,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		}
 		
 		
-		List<Future<TrendSupplementedStock>> completedTrendSuppStocksFutures = new ArrayList<Future<TrendSupplementedStock>>();	
+		List<Future<ScreeningSupplementedStock>> completedTrendSuppStocksFutures = new ArrayList<Future<ScreeningSupplementedStock>>();	
 		List<Stock> inDBNewInList = new ArrayList<Stock>();
 		for (final Stock stockFromWeb : listAsFromWeb) {
 			
@@ -211,6 +210,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					
 					//Completion of new stock, only if the stock requires supplement of info or is not complete
 					if (supplementRequiered(stockFromWeb) || trendSuppNeeded) {
+						LOGGER.info("Ticker from web not in data base needs supplement and to be added to the market list ("+shareListDescrTxt+") : " + stockFromWeb);
 						StockSupplementRunnable stockSupRunnable = new StockSupplementRunnable(stockFromWeb, trendSuppNeeded);
 						for (Observer observer : observers) {
 							stockSupRunnable.addObserver(observer);
@@ -218,14 +218,15 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 						completedTrendSuppStocksFutures.add(executor.submit(stockSupRunnable));
 					
 					}  else {//We add it as is
-						
-						supplementedStockFromWeb.add(new TrendSupplementedStock(stockFromWeb));//We will need to add it in db as well
+						LOGGER.info("Valid ticker from web not in data base needs to be added to the market list ("+shareListDescrTxt+") : " + stockFromWeb);
+						supplementedStockFromWeb.add(new ScreeningSupplementedStock(stockFromWeb));//We will need to add it in db as well
 						existingSharesList.addShare(stockFromWeb);
-						inDBNewInList.add(foundStock);
+						//inDBNewInList.add(foundStock);
 						
 					}
 					
-				} else {//The stock is in the db We add to the share list	
+				} else {//The stock is in the db We add to the share list
+					LOGGER.info("Valid ticker is in the data base but needs to be added to the market list ("+shareListDescrTxt+") : " + foundStock);
 					existingSharesList.addShare(foundStock);
 					inDBNewInList.add(foundStock);
 				} 
@@ -246,9 +247,9 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			LOGGER.error(shutdownNow,e);
 		}
 		
-		for (Future<TrendSupplementedStock> future : completedTrendSuppStocksFutures) {
+		for (Future<ScreeningSupplementedStock> future : completedTrendSuppStocksFutures) {
 			try {
-				TrendSupplementedStock trendSupplementedStock = future.get();
+				ScreeningSupplementedStock trendSupplementedStock = future.get();
 				supplementedStockFromWeb.add(trendSupplementedStock);
 			} catch (Exception e) {
 				LOGGER.error(e,e);
@@ -262,14 +263,14 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			if (supplementedStockFromWeb.size() > 0) {
 				Set<Stock> newStockRequestsSet = new ConcurrentSkipListSet<Stock>();
 				
-				for (TrendSupplementedStock trendSuppStock : supplementedStockFromWeb) {
+				for (ScreeningSupplementedStock trendSuppStock : supplementedStockFromWeb) {
 					
 					Stock stock = trendSuppStock.getStock();
 					
 					//Update last quotation
 					Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);//Is there any quotation from a removed share?
 					if (formerQuotationDate.after(DateFactory.dateAtZero())) {
-						LOGGER.warn("Adding stock "+stock+" in db but it has already quotations until "+formerQuotationDate);
+						LOGGER.warn("Adding Supplemented stock "+stock+" in data base but it has already quotations until "+formerQuotationDate);
 					}
 					stock.setLastQuote(formerQuotationDate);
 					
@@ -279,7 +280,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					//Add stocks to shares list (double check that no already ther after completion)
 					PortfolioShare shareForStock = existingSharesList.getShareForLienientSymbol(stock.getSymbol());
 					if (shareForStock == null) {
-						LOGGER.info("This ticker is in the data base but needs to be added to the market list ("+shareListDescrTxt+") : " + stock);
+						LOGGER.info("Supplemented ticker is in the data base but needs to be added to the market list ("+shareListDescrTxt+") : " + stock);
 						existingSharesList.addShare(stock);
 						
 					}
@@ -297,22 +298,43 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		//Remove obsolete stocks from list
 		Set<PortfolioShare> tobeRemovedFromList = new HashSet<PortfolioShare>();
 		if (!listAsFromWeb.isEmpty()) {
-			for (PortfolioShare shareListElement : existingSharesList.getListShares().values()) {
-				if (!listAsFromWeb.contains(shareListElement.getStock())) {
-					LOGGER.info(shareListElement.getStock() + " is not in " + shareListDescrTxt + " and will be removed from the list");
-					tobeRemovedFromList.add(shareListElement);
+			for (PortfolioShare existingInList : existingSharesList.getListShares().values()) {
+				Boolean found=false;
+				for (Stock stockFromWeb : listAsFromWeb) {
+					//this is the lenient match
+					if (stockFromWeb.getIsin().equals(existingInList.getIsin()) || stockFromWeb.getSymbol().equals(existingInList.getSymbol()) || stockFromWeb.getSymbol().equals(existingInList.getIsin()) || stockFromWeb.getIsin().equals(existingInList.getSymbol())) {
+						found=true;
+						break;
+					}
+				}
+				if (!found) {
+					LOGGER.info(existingInList.getStock() + " is not in " + shareListDescrTxt + " and will be removed from the list");
+					tobeRemovedFromList.add(existingInList);
 				}
 			}
+			
 			LOGGER.guiInfo("Number of old tickers removed from the list : " + tobeRemovedFromList.size());
 			if (tobeRemovedFromList.size() > 0) {
-				shareListMgr.removeSharesFromList(existingSharesList, shareListDescrTxt, tobeRemovedFromList, listAsFromWeb.size());
+				if (new Double(tobeRemovedFromList.size()) <= (ShareListMgr.PERCENT_THRESHOLD/100d)*(new Double(existingSharesList.getListShares().size()))) {
+					existingSharesList.removeShares(tobeRemovedFromList);
+				} else {
+					LOGGER.error(
+						//"The number of tickers retrieved for "+listProviderDescr+" is "+listFromWebSize +
+						"The number of old tickers to be removed from "+existingSharesList.getName()+" : " + tobeRemovedFromList.size()+ " is more than "+ShareListMgr.PERCENT_THRESHOLD+"% of the existing list size "+existingSharesList.getListShares().size()+".\n" +
+						"Maybe the list is faulty and no remove will be done. Please check the log for urls used for that list.\n" +
+						"Tickers to be removed are : "+tobeRemovedFromList);
+				}
 			}
 			
 		}
 		
 		
 		//Share list
-		portfolioDAO.saveOrUpdatePortfolio(existingSharesList);
+		try {
+			portfolioDAO.saveOrUpdatePortfolio(existingSharesList);
+		} catch (Exception e) {
+			LOGGER.error("Can't save share list : "+existingSharesList.getName(), e);
+		}
 		LOGGER.guiInfo("Number of stocks in the list after update for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + existingSharesList.getListShares().size());
 		LOGGER.warn(
 				"After update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
@@ -344,7 +366,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	
 	protected abstract Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException;
 
-	public abstract void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock);
+	public abstract void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock);
 	
 	
 	@Override
@@ -353,7 +375,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		//Adding new from web
 		int cpt = 0;
 		int nbShares = shareList.size();
-		final Set<TrendSupplementedStock> listTrendIns = new ConcurrentSkipListSet<TrendSupplementedStock>();
+		final Set<ScreeningSupplementedStock> listTrendIns = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("screeninginforetrieval.semaphore.nbthread","20")));
 		for (final Stock stock : shareList) {
@@ -363,7 +385,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				public void run() {
 					try {
 						//Add trend info
-						TrendSupplementedStock trendStock = new TrendSupplementedStock(stock);
+						ScreeningSupplementedStock trendStock = new ScreeningSupplementedStock(stock);
 						LOGGER.guiInfo("Updating screening info : updating opinions for "+stock.getSymbol());
 						retrieveScreeningInfoForShare(trendStock);
 						listTrendIns.add(trendStock);

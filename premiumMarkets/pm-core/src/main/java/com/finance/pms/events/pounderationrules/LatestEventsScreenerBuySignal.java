@@ -33,6 +33,7 @@ package com.finance.pms.events.pounderationrules;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.talib.dataresults.AlertEventValue;
@@ -49,13 +50,13 @@ public class LatestEventsScreenerBuySignal extends LatestEventsSignal {
 	}
 	
 	@Override
-	public Integer addEvent(EventValue eventValue) {
+	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		if (isBullishTrend() && EventDefinition.SCREENER.equals(eventValue.getEventDef()) && eventValue.getEventType().equals(EventType.NONE)) {
 				listTriggeringEvent(eventValue, EventType.BULLISH, EventDefinition.SCREENER);
 				this.additionalRankWeight =  ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold() + ((AlertEventValue) eventValue).extractAdditionalRankWeight();
 				return 1;
 		} else {
-			return super.addEvent(eventValue);
+			return super.addEvent(eventKey, eventValue);
 		}
 	}
 	

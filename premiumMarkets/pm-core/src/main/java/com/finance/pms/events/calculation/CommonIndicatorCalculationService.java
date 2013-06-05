@@ -31,6 +31,7 @@
 package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -59,6 +60,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
@@ -103,7 +105,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 
 	@Override
-	protected Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
+	protected Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents,  String passOneCalcMode, Observer...observers) 
 					throws InvalidAlgorithmParameterException, IncompleteDataSetException {
@@ -147,12 +149,12 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	 * @return 
 	 * @throws IncompleteDataSetException 
 	 */
-	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> allEventsCalculation(
+	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
 				Collection<Stock> stList, Date startDate, Date endDate, 
 				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean export, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
 				throws IncompleteDataSetException {
 		
-		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventDefinition, SortedMap<Date, double[]>>>(1);
+		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
 		Map<Stock,TunedConf> tunedConfs = new HashMap<Stock, TunedConf>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
@@ -206,7 +208,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 						
 						LOGGER.info(
 								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
-								"No recalculation needed calculaiton bound is "+ calculationBounds.toString());
+								"No recalculation needed calculation bound is "+ calculationBounds.toString());
 					}
 					
 					
@@ -256,12 +258,12 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				allEvents.add(se);
 				
 				//Output
-				Map<EventDefinition, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutput();
-				if (calculationOutput == null) calculationOutput = new HashMap<EventDefinition, SortedMap<Date,double[]>>();
+				Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutput();
+				if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 				calculatedOutputReturn.put(se.getStock(), calculationOutput);
 
 				//Save date bounds if exists
-				if (passNumber == 1 && se.getDataResultList().size() > 0) {
+				if (passNumber == 1 && se.getDataResultMap().size() > 0) {
 					TunedConf tunedConf = tunedConfs.get(se.getStock());
 					if (tunedConf != null) TunedConfMgr.getInstance().updateConf(tunedConf, se.getStock(), se.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
 				}
@@ -269,7 +271,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			} catch (Exception e1) {
 
 				isDataSetComplete = false;
-				if (e1.getCause() instanceof IncompleteDataSetException) {
+				if (e1.getCause() != null && e1.getCause() instanceof IncompleteDataSetException) {
 					failingStocks.addAll(((IncompleteDataSetException) e1.getCause()).getFailingStocks());
 					allEvents.addAll(((IncompleteDataSetException) e1.getCause()).getSymbolEvents());
 					calculatedOutputReturn.putAll(((IncompleteDataSetException) e1.getCause()).getCalculatedOutput());
@@ -279,8 +281,17 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			}
 		}
 		
-		LOGGER.info("Storing "+allEvents.size()+" sets of events, from "+startDate+" to "+endDate);
-		EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
+		try {
+			
+			LOGGER.info("Storing "+allEvents.size()+" sets of events, from "+startDate+" to "+endDate);
+			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
+			
+		} catch (Exception e) {
+			isDataSetComplete = false;
+			if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+				LOGGER.warn("Intercepted : "+e+" -> IncompleteDataset");
+			}
+		}
 		
 		
 		if (!isDataSetComplete) {

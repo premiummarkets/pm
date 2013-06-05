@@ -31,10 +31,14 @@
 package com.finance.pms.datasources.shares;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeSet;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -47,14 +51,20 @@ import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.events.EventKey;
+import com.finance.pms.events.EventType;
+import com.finance.pms.events.EventValue;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.UserPortfolio;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
+@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	
 	
@@ -64,7 +74,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 
 	@SuppressWarnings("unchecked")
-	
+	@Transactional(readOnly=true)
 	public List<Stock> loadShares(ShareFilter shareFilter) {
 		
 		DetachedCriteria criteria = DetachedCriteria.forClass(Stock.class);
@@ -82,7 +92,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 	
 	
-	
+	@Transactional(readOnly=true)
 	public Stock loadStockByIsin(final String isin) {
 
 		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
@@ -96,13 +106,13 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		});	
 	}
 	
-	
+	@Transactional(readOnly=true)
 	public List<Stock> loadAllStocks() {
 		return this.getHibernateTemplate().loadAll(Stock.class);
 	}
 
 	@SuppressWarnings("unchecked")
-	
+	@Transactional(readOnly=true)
 	public List<Stock> loadMonitoredStocks() {
 		
 		return (List<Stock>) this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
@@ -119,11 +129,12 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 	
 	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
 	public List<PortfolioShare> loadMonitoredPortfolioShares() {
 			return this.getHibernateTemplate().find("from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> ?", MonitorLevel.NONE);
 	}
 	
-	
+	@Transactional(readOnly=true)
 	public Stock loadStockBy(final String symbol,final String isin) {
 		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
 			
@@ -135,7 +146,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		});
 	}
 
-	
+	@Transactional(readOnly=true)
 	public Stock loadStockByIsinOrSymbol(final String ref) {
 		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
 			
@@ -151,7 +162,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 
 	
-	public void saveOrUpdateStockTrendInfo(Set<TrendSupplementedStock> listTrend) {
+	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> listTrend) {
 		this.getHibernateTemplate().saveOrUpdateAll(listTrend);
 	}
 	
@@ -161,18 +172,17 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 	
 	
-
-	
-	public TrendSupplementedStock loadTrendForStock(Stock stock) {
+	@Transactional(readOnly=true)
+	public ScreeningSupplementedStock loadTrendForStock(Stock stock) {
 		
 		org.hibernate.classic.Session currentSession = this.getHibernateTemplate().getSessionFactory().getCurrentSession();
-		Criteria criteria = currentSession.createCriteria(TrendSupplementedStock.class);
+		Criteria criteria = currentSession.createCriteria(ScreeningSupplementedStock.class);
 		criteria.add(Restrictions.eq("stock", stock));
 		criteria.addOrder(Order.desc("trendDate"));
 		criteria.setMaxResults(1);
 		
 		@SuppressWarnings("unchecked")
-		List<TrendSupplementedStock> results = criteria.list();
+		List<ScreeningSupplementedStock> results = criteria.list();
 		
 		return (results == null || results.isEmpty() || results.get(0) == null)? null : results.get(0);
 				
@@ -185,6 +195,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 	
 	@Override
+	@Transactional(readOnly=true)
 	public Collection<Stock> loadAllUserPortoflioStocks() {
 		Collection<Stock> stocks = new HashSet<Stock>();
 		List<UserPortfolio> userPortfolios = this.getHibernateTemplate().loadAll(UserPortfolio.class);
@@ -196,7 +207,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		return stocks;
 	}
 
-	
+	@Transactional(readOnly=true)
 	public Collection<Stock> loadAllPortoflioStocks() {
 		Collection<Stock> stocks = new HashSet<Stock>();
 		List<Portfolio> userPortfolios = this.getHibernateTemplate().loadAll(Portfolio.class);
@@ -209,6 +220,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 
 	@Override
+	@Transactional(readOnly=true)
 	public List<String> sectorHintList() {
 		Criteria criteria = this.getHibernateTemplate().getSessionFactory().getCurrentSession().createCriteria( Stock.class );
 		criteria.setProjection(Projections.distinct(Projections.property( "sectorHint" )));
@@ -220,15 +232,8 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	@SuppressWarnings("unchecked")
 	@Override
+	@Transactional(readOnly=true)
 	public List<Stock> loadSharesLike(String like, int maxResults) {
-		
-//		HibernateTemplate hibernateTemplate = new HibernateTemplate(getSessionFactory());
-//		hibernateTemplate.setMaxResults(maxResults);
-//		
-//		return hibernateTemplate.find(
-//				"from Stock as stock where " +
-//				" stock.symbol like ? or stock.isin like ? or stock.name like ? " +
-//				" order by symbol, isin, name", like+"%", like+"%", like+"%");
 		
 		Criteria crit = getSession().createCriteria(Stock.class);
 		crit.setMaxResults(maxResults);
@@ -236,6 +241,58 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		crit.addOrder(Property.forName("symbol").asc()).addOrder(Property.forName("name").asc()).addOrder(Property.forName("isin").asc());
 		
 		return crit.list();
+		
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
+	public List<PortfolioShare> loadMonitoredWithAOE(Stock stock, SortedMap<EventKey, EventValue> sortedDataResultMap) {
+		
+		List<PortfolioShare> ret = new ArrayList<PortfolioShare>();
+		
+		Query query = this.getHibernateTemplate().getSessionFactory().getCurrentSession()
+				.createQuery(
+						"from PortfolioShare as P join P.alertsOnEvent as A " +
+						"where P.stock = :stock and A.eventInfoReference = :eventInfoReference and ( A.monitorLevel = :eventTypeM or A.monitorLevel = :anyMLevel ) and ( P.monitorLevel = :eventTypeM or P.monitorLevel = :anyMLevel ) ");
+		
+		Set<EventKey> eventKeyTally = new TreeSet<EventKey>(new Comparator<EventKey>() {
+
+			@Override
+			public int compare(EventKey o1, EventKey o2) {
+				int compareTo = o1.getEventInfo().compareTo(o2.getEventInfo());
+				if (compareTo == 0) compareTo = o1.getEventInfoExtra().compareTo(o2.getEventInfoExtra());
+				return compareTo;
+			}
+			
+		});
+		
+		for (EventKey eventKey : sortedDataResultMap.keySet()) {
+
+			if (!eventKeyTally.contains(eventKey)) {
+				query.setParameter("stock", stock);
+				EventType eventType = (EventType) eventKey.getEventType();
+				MonitorLevel eventTypeM;
+				switch(eventType) {
+				case BEARISH : 
+					eventTypeM = MonitorLevel.BEARISH;
+					break;
+				case BULLISH :
+					eventTypeM = MonitorLevel.BULLISH;
+					break;
+				default :
+					eventTypeM = MonitorLevel.NONE;
+				};
+				query.setParameter("eventTypeM", eventTypeM);
+				query.setParameter("anyMLevel", MonitorLevel.ANY);
+				query.setParameter("eventInfoReference", eventKey.getEventInfoExtra());
+				ret.addAll(query.list());
+
+				eventKeyTally.add(eventKey);
+			}
+		}
+	
+		return ret;
 		
 	}
 

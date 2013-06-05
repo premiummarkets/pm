@@ -98,7 +98,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			Date today = todayCal.getTime();
 			
 			Date lastCurrencyRateDate = (!dbRates.isEmpty())?dbRates.last().getDate():new Date(1104537600000L); //date -d"01 January 2005" +%s
-			todayCal.add(Calendar.DAY_OF_YEAR, getAvailableDayShift(todayCal));
+			//todayCal.add(Calendar.DAY_OF_YEAR, getAvailableDayShift(todayCal));
 			Date lastAvail = todayCal.getTime();
 			if (dbRates.isEmpty() || lastCurrencyRateDate.before(lastAvail)) {
 
@@ -130,12 +130,12 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	}
 
-	private int getAvailableDayShift(Calendar calendar) {
-		if (calendar.get(Calendar.DAY_OF_WEEK) == 7 || calendar.get(Calendar.DAY_OF_WEEK) == 1) {
-			return -4;
-		}
-		return -2;
-	}
+//	private int getAvailableDayShift(Calendar calendar) {
+//		if (calendar.get(Calendar.DAY_OF_WEEK) == 7 || calendar.get(Calendar.DAY_OF_WEEK) == 1) {
+//			return -4;
+//		}
+//		return -2;
+//	}
 
 	//We can convert only toward Base Unit not toward sub unit like pence for pound
 	public BigDecimal convert(MarketValuation fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
@@ -209,7 +209,12 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		Boolean noCurrentData = rateList.get(rateList.size()-1).getDate().before(date);
 		Boolean lastUpdateWasNotYeasterday = rateList.get(rateList.size()-1).getDate().before(yesterday.getTime()); //IMF is one day late
 		Boolean yesterdayWasNotBank = yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY;
-		return (noCurrentData && lastUpdateWasNotYeasterday && yesterdayWasNotBank);
+		
+		yesterday.add(Calendar.DATE,-1);
+		Boolean lastUpdateWasNotTheDayBeforeYeasterday =  rateList.get(rateList.size()-1).getDate().before(yesterday.getTime());//IMF is two days late ??
+		Boolean theDayBeforeYesterdayWasNotBank = yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY;
+		
+		return (noCurrentData && lastUpdateWasNotYeasterday && yesterdayWasNotBank && lastUpdateWasNotTheDayBeforeYeasterday && theDayBeforeYesterdayWasNotBank);
 	}
 
 	/**

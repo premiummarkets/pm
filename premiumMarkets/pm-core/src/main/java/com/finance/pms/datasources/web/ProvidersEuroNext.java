@@ -163,6 +163,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		List<Validatable> listReqDelS = new ArrayList<Validatable>();
 		
 		String url = ((HttpSourceEuroNext) this.httpSource).getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY);
+		LOGGER.info("Euronext Url : " + url);
 		StockListEuroNextFormater lsf = new StockListEuroNextFormater(url, StockCategories.DEFAULT_CATEGORY, marketQuotationsProviders);
 		List<? extends Validatable> ltmp  = new ArrayList<Validatable>();
 		try {

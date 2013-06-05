@@ -36,7 +36,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -51,7 +50,6 @@ import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMe
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsScreennerBuyAlertOnlyPonderationRule;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.AutoPortfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
@@ -81,7 +79,7 @@ public class IndicatorCalculationServiceMain {
 	 */
 	public static void main(String[] args) {
 
-		SpringContext springContext = new SpringContext();
+		SpringContext springContext = new SpringContext(args[0]);
 		try { 
 			final IndicatorsCalculationService[] analyzers = new IndicatorsCalculationService[2];
 			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
@@ -106,14 +104,14 @@ public class IndicatorCalculationServiceMain {
 
 			String periodType = MainPMScmd.getPrefs().get("events.periodtype","daily");
 			if (!cmds && !specDates && !defaultCal) {
-				LOGGER.error("Invalid commande line parameters "+args);
+				LOGGER.error("Invalid command line parameters "+args);
 				Runtime.getRuntime().exit(0);
 			}
 			
 			ConfigThreadLocal.set("eventSignal", new EventSignalConfig());
 			ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
 
-			springContext.setDataSource(args[0]);
+			//springContext.setDataSource(args[0]);
 			ArrayList<String> springconf = new ArrayList<String>(Arrays.asList(new String[] { "/connexions.xml", "/swtclients.xml" }));
 			
 			//Analyse Ctx
@@ -191,7 +189,7 @@ public class IndicatorCalculationServiceMain {
 					Integer buyEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
 					AutoPortfolio autoPortfolio = PortfolioMgr.getInstance().getOrCreateAutoPortfolio(
 							COMMAND_LINE_ANALYSIS, new LatestEventsScreennerBuyAlertOnlyPonderationRule(COMMAND_LINE_ANALYSIS),
-							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold), new EventSignalConfig());
+							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold));
 					
 					try {
 						PortfolioMgr.getInstance().addPortfolio(autoPortfolio);
@@ -215,18 +213,18 @@ public class IndicatorCalculationServiceMain {
 		}
 	}
 
-	/**
-	 * Gets the date moins n jours.
-	 * 
-	 * @param now the now
-	 * @param days the days
-	 * 
-	 * @return the date moins n jours
-	 */
-	public static Date getDateMoinsNJours(Date now, Integer days) {
-		GregorianCalendar gcal = new GregorianCalendar();
-		gcal.setTime(now);
-		QuotationsFactories.getFactory().incrementDate(gcal, -days);
-		return gcal.getTime();
-	}
+//	/**
+//	 * Gets the date moins n jours.
+//	 * 
+//	 * @param now the now
+//	 * @param days the days
+//	 * 
+//	 * @return the date moins n jours
+//	 */
+//	public static Date getDateMoinsNJours(Date now, Integer days) {
+//		GregorianCalendar gcal = new GregorianCalendar();
+//		gcal.setTime(now);
+//		QuotationsFactories.getFactory().incrementDate(gcal, -days);
+//		return gcal.getTime();
+//	}
 }

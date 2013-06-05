@@ -21,6 +21,7 @@ public class ActionDialog extends ErrorDialog {
 
 	@Override
 	protected void validationButtonTxtAndAction() {
+		
 		valideButton1.setText(actionTxt);
 		valideButton1.setFont(MainGui.DEFAULTFONT);
 		valideButton1.addMouseListener(new MouseAdapter() {
@@ -39,6 +40,7 @@ public class ActionDialog extends ErrorDialog {
 				}
 			}
 		});
+		valideButton1.setFocus();
 	}
 	
 

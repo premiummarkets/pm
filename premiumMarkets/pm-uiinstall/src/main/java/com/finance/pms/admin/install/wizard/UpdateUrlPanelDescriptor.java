@@ -137,7 +137,11 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 					updateUrl.downLoadLatest(versionNumber, observer);
 					
 				} else {
-					System.out.print("You have latest : " + jnlpDateFormat.format(currentBuildDate)+"\n");
+					if (currentBuildDate != null) {
+						System.out.print("You have latest : " + jnlpDateFormat.format(currentBuildDate)+"\n");
+					} else {
+						System.out.print("No build date found in your install, currentBuildDate == " + currentBuildDate+"\n");
+					}
 					w.getWizard().setCurrentPanel(LicencePanelDescriptor.IDENTIFIER);
 				}
 				

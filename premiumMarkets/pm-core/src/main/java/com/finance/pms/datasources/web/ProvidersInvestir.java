@@ -67,7 +67,6 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		//TODO scrapeLast();
 		
 		MyUrl url = resolveUrlFor(stock, start, end);
-		
 		TreeSet<Validatable> queries = initValidatableSet();
 		
 		for (int i = 1; i <= url.getNbPages(); i++) {

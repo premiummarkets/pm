@@ -93,7 +93,7 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
 		p = new Properties();
 		
 		try {
-			pfile = new File(InstallFolderPanel.piggyMarketSqueakFolder.getAbsoluteFile() + File.separator + "db.properties");
+			pfile = new File(InstallFolderPanel.getPmFolder().getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
 			p.load(propFileIS);
 

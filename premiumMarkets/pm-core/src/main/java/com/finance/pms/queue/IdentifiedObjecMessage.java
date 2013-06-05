@@ -30,15 +30,21 @@
  */
 package com.finance.pms.queue;
 
+import java.util.Map;
+
 import javax.jms.ObjectMessage;
+
+import com.finance.pms.admin.config.Config;
 
 public abstract class IdentifiedObjecMessage implements ObjectMessage {
 
 	protected Integer messageKey;
+	private Map<String,Config> passedThroughConfigs;
 	
-	protected IdentifiedObjecMessage(Integer messageKey) {
+	protected IdentifiedObjecMessage(Integer messageKey, Map<String,Config> passedThroughConfigs) {
 		super();
 		this.messageKey = messageKey;
+		this.passedThroughConfigs = passedThroughConfigs;
 	}
 
 	public Integer getMessageKey() {
@@ -47,6 +53,10 @@ public abstract class IdentifiedObjecMessage implements ObjectMessage {
 
 	public void setMessageKey(Integer messageKey) {
 		this.messageKey = messageKey;
+	}
+
+	public Map<String, Config> getPassedThroughConfigs() {
+		return passedThroughConfigs;
 	}
 	
 	

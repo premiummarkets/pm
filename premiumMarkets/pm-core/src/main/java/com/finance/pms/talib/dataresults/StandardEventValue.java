@@ -33,6 +33,7 @@ package com.finance.pms.talib.dataresults;
 import java.util.Date;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 
@@ -46,8 +47,9 @@ import com.finance.pms.events.EventValue;
  */
 public class StandardEventValue extends EventValue {
 	
-	/** The Constant serialVersionUID. */
+	
 	private static final long serialVersionUID = -5855030085997834992L;
+	
 	/**
 	 * Instantiates a new indicator event value.
 	 * 
@@ -56,28 +58,23 @@ public class StandardEventValue extends EventValue {
 	 * @param eventtype the eventtype
 	 * @author Guillaume Thoreton
 	 */
-	public StandardEventValue(Date date,EventDefinition eventDef, EventType eventtype, String eventListName){
+	public StandardEventValue(Date date, EventInfo eventDef, EventType eventtype, String eventListName){
 		super(date,eventDef,eventtype, eventListName);
 		
 	}
 	
-	public StandardEventValue(Date date,EventType eventtype, EventDefinition eventDef, String message, String eventListName){
+	public StandardEventValue(Date date, EventType eventtype, EventInfo eventDef, String message, String eventListName){
 		super(date,eventDef,eventtype,message,eventListName);
 
 	}
 	
-	public StandardEventValue(Date date, Integer eventDefId, String eventTypeChar, String message, String eventListName){
-		super(date,EventDefinition.valueOf(eventDefId),EventType.valueOf(eventTypeChar.charAt(0)),message, eventListName);
+	public StandardEventValue(Date date, String eventInfoReference, String eventTypeChar, String message, String eventListName) throws NoSuchFieldException{
+		super(date,EventDefinition.valueOfEventInfo(eventInfoReference),EventType.valueOf(eventTypeChar.charAt(0)),message, eventListName);
 
 	}
 
 	public StandardEventValue(StandardEventKey eventKey, String message, String eventListName) {
-		super(eventKey.getDate(), (EventDefinition)eventKey.getEventDefId(), (EventType)eventKey.getEvenType(), message,eventListName);
+		super(eventKey.getDate(), (EventDefinition)eventKey.getEventInfo(), (EventType)eventKey.getEventType(), message,eventListName);
 	}
-	
-	
-
-	
-	
 
 }

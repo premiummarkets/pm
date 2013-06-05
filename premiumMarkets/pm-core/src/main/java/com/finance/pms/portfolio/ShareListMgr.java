@@ -1,13 +1,11 @@
 package com.finance.pms.portfolio;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -16,12 +14,11 @@ import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
-import com.finance.pms.portfolio.Transaction.TransactionType;
 
 
 public abstract class ShareListMgr {
 	
-	private static final double PERCENT_THRESHO = 20d;
+	public static final double PERCENT_THRESHOLD = 30d;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ShareListMgr.class);
 	
@@ -32,13 +29,14 @@ public abstract class ShareListMgr {
 	@Autowired
 	ShareDAO shareDAO;
 	
-	@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class)
+	public static ShareListMgr getInstance() {
+		return (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
+	}
+	
 	public synchronized void updateShareLists() throws Exception {
 		
-		initConfig();
-
 		try {
-			List<String> shareListNames = portfolioDAO.loadShareListNames(null, new String[]{SharesListId.UNKNOWN.getSharesListCmdParam()});
+			List<String> shareListNames = portfolioDAO.loadShareListNames(null, new String[]{SharesListId.UNKNOWN.getSharesListCmdParam().toUpperCase()});
 
 			for (String shareListName : shareListNames) {
 				Set<Indice> indices = Indice.parseString(shareListName);
@@ -70,7 +68,7 @@ public abstract class ShareListMgr {
 			
 			return provider.retrieveStockListFromWeb(MarketQuotationProviders.DEFAULT, new StockList(shareDAO.loadAllStocks()));
 			
-		} catch (java.lang.IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			LOGGER.warn(sharesList.getName()+ " is not associated with any MarketListProvider and won't be updated.", true);
 			return null;
 		} catch (Exception e) {
@@ -79,37 +77,13 @@ public abstract class ShareListMgr {
 		}
 		 
 	}
-	
-	@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class)
-	public void removeSharesFromList(SharesList existingSharesList,  String listProviderDescr,  Set<PortfolioShare> tobeRemovedFromList, int listFromWebSize) {
-		
-		if (new Double(tobeRemovedFromList.size()) <= (PERCENT_THRESHO/100d)*(new Double(existingSharesList.listShares.size()))) {
-			
-			LOGGER.guiInfo("Number of old tickers to be removed from "+listProviderDescr+" : " + tobeRemovedFromList.size());
-			LOGGER.warn("Old tickers to be removed from "+listProviderDescr+" : " + tobeRemovedFromList, true);
-			for (PortfolioShare removedShare : tobeRemovedFromList) {
-				try {
-					foreignKeysUpdate(removedShare);
-					existingSharesList.removeOrUpdateShare(removedShare, removedShare.getQuantity(), EventSignalConfig.getNewDate(), BigDecimal.ZERO, TransactionType.AOUT);
-				} catch (InvalidQuantityException e) {
-					LOGGER.warn(e,e);
-				}
-			}
-			
-		} else {
-			LOGGER.error(
-					"The number of tickes retrieved for "+listProviderDescr+" is "+listFromWebSize +
-					"And the number of old tickers to be removed from "+listProviderDescr+" : " + tobeRemovedFromList.size()+ " is more than "+PERCENT_THRESHO+"% of the existing list size "+existingSharesList.listShares.size()+".\n" +
-					"Maybe the list is faulty and no remove will be done. Please check the log for urls used for that list.\n" +
-					"Tickers to be removed are : "+tobeRemovedFromList);
-		}
-	}
-	
 
-	protected abstract void foreignKeysUpdate(PortfolioShare removedShare) throws InvalidQuantityException;
+	protected abstract void removeForeignKeysUpdate(PortfolioShare removedShare);
+
+	protected abstract void addForeignKeysUpdate(PortfolioShare newPortfolioShare);
 	
 	//XXX this should be merge with the config loader in a separate bean  + creation of a factory factory for EventConfg and TuningConfg
-	public abstract void initConfig();
+	public abstract EventSignalConfig initPkgDependentConfig();
 
 
 }

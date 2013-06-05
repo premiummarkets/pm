@@ -149,6 +149,8 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 		List<Validatable> listReqDelS = new ArrayList<Validatable>();
 		
 		String url = ((HttpSourceNASDAQ) this.httpSource).getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY);
+		LOGGER.info("NASDAQ Url : " + url);
+
 		StockListNASDAQFormater lsf = new StockListNASDAQFormater(url, StockCategories.DEFAULT_CATEGORY, marketQuotationsProviders);
 		List<? extends Validatable> ltmp= new ArrayList<Validatable>();
 		try {

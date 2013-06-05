@@ -45,8 +45,8 @@ import org.springframework.jms.core.MessageCreator;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.AnalysisClient;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.EventSource;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -119,47 +119,53 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 	}
 
 	private void sendTransactionSummary(final AutoPortfolioWays portfolio, final String logAnalysisMsg) {
-		jmsTemplate.send(eventQueue, new MessageCreator() {
-			
-			public Message createMessage(Session session) throws JMSException {
-				
-				EventValue eventValue = new EventValue(message.getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
-				SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), message.getEndDate(), AnalysisClient.ANY_STOCK, eventValue);
-				infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), EventSource.PMAutoBuySell); //Source (event calculator)
-				infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
-				infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-				
-				return infoMessage;
-			}
-		});
+		
+		if (AnalysisClient.getEmailMsgQeueingFilter().contains(EmailFilterEventSource.Metrics)) {
+			jmsTemplate.send(eventQueue, new MessageCreator() {
+
+				public Message createMessage(Session session) throws JMSException {
+
+					EventValue eventValue = new EventValue(message.getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
+					SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), message.getEndDate(), AnalysisClient.ANY_STOCK, eventValue, ConfigThreadLocal.getAll());
+					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), EmailFilterEventSource.Summary); //Source (event calculator)
+					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
+					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+
+					return infoMessage;
+				}
+			});
+		}
 	}
 	
 	private void sendTransactionHistory(TransactionHistory transactionHistory) {
 		
 		for (final TransactionRecord record : transactionHistory) {
 			
-			jmsTemplate.send(eventQueue, new MessageCreator() {
-				
-				public Message createMessage(Session session) throws JMSException {
-					
-					EventType eventType = EventType.INFO;
-					if (record.getMovement().equals("buy")) {
-						eventType = EventType.BULLISH;
-					} else 
-					if (record.getMovement().equals("sell")) {
-						eventType = EventType.BEARISH;
+			if (AnalysisClient.getEmailMsgQeueingFilter().contains(record.getSource())) {
+				jmsTemplate.send(eventQueue, new MessageCreator() {
+
+					public Message createMessage(Session session) throws JMSException {
+
+						EventType eventType = EventType.INFO;
+						if (record.getMovement().equals("buy")) {
+							eventType = EventType.BULLISH;
+						} 
+						else if (record.getMovement().equals("sell")) {
+							eventType = EventType.BEARISH;
+						}
+
+						String message = record.toString()+"\n\n"+ BuySellSignalCalculatorMessageRunnable.messageLinks("*", record.getStock());
+						EventValue eventValue = new EventValue(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, eventType, message, record.getPortfolioName());
+						SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventValue, ConfigThreadLocal.getAll());			
+						infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
+						infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
+						infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+
+						return infoMessage;
+						
 					}
-					
-					String message = record.toString()+"\n\n"+ BuySellSignalCalculatorMessageRunnable.messageLinks("*", record.getStock());
-					EventValue eventValue = new EventValue(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, eventType, message, record.getPortfolioName());
-					SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventValue);			
-					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
-					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
-					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-					
-					return infoMessage;
-				}
-			});
+				});
+			}
 		}
 		
 	}
@@ -172,8 +178,8 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 	
 	public static String messageLinks(String analysisName, Stock stock) {
 		return 
-				"Generated file :\n"+
-				"file:// "+System.getProperty("installdir") + File.separator + "autoPortfolioLogs"+ File.separator +analysisName+stock.getSymbol()+"_BuyAndSellRecords*.csv\n" +
+				"Generated files :\n"+
+				"file:// "+System.getProperty("installdir") + File.separator + "autoPortfolioLogs"+ File.separator +analysisName+stock.getSymbol()+ "_*_BuyAndSellRecords*.csv\n" +
 				"file:// "+System.getProperty("installdir") + File.separator + "tmp" + File.separator + "nr_"+stock.getSymbol()+"_cf"+analysisName+"*.csv\n";
 	}
 

@@ -197,10 +197,11 @@ public class CurveTransformator {
 		
 		//error mgt
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		throw new NotEnoughDataException(firstDate, lastDate,
+		throw new NotEnoughDataException(
+				null,
+				firstDate, lastDate,
 				"Date "+ sdf.format(date) + " is out of range with lower date  :" + 
-						sdf.format(prevLowBandDate.getTimeInMillis()) + " < " + sdf.format(firstDate) + 
-						" or " + sdf.format(highBandDate.getTimeInMillis()) + " > " + sdf.format(lastDate)
+				sdf.format(prevLowBandDate.getTimeInMillis()) + " < " + sdf.format(firstDate) + " or " + sdf.format(highBandDate.getTimeInMillis()) + " > " + sdf.format(lastDate)
 				, new Throwable());
 		
 	}

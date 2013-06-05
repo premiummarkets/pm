@@ -70,9 +70,9 @@ public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalcula
 			Integer smaPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getStdDevSmaPeriod();
 			this.sma = new SMA(stock, smaPeriod, startDate, endDate, calculationCurrency);
 		} catch (TalibException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
 		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);

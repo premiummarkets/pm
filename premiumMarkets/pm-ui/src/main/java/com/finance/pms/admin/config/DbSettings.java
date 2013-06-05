@@ -149,8 +149,7 @@ public class DbSettings extends Dialog {
 			
 			while (!shell.isDisposed()) {
 				try {
-					if (!shell.getDisplay().readAndDispatch())
-						shell.getDisplay().sleep();
+					if (!shell.getDisplay().readAndDispatch()) shell.getDisplay().sleep();
 				} catch (RuntimeException e) {
 					LOGGER.error("Error in MarketSettings Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in MarketSettings Gui : ",e);
@@ -307,8 +306,8 @@ public class DbSettings extends Dialog {
 							LOGGER.error("Can't access file "+pathToProps,e);
 						} finally {
 							
-							SpringContext ctx = new SpringContext();
-							ctx.setDataSource(pathToProps);
+							SpringContext ctx = new SpringContext(pathToProps);
+							//ctx.setDataSource(pathToProps);
 							ctx.setMasSource(pathToProps,"false");
 							ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
 							ctx.refresh();

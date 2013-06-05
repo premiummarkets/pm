@@ -8,6 +8,13 @@
 	<includeBaseDirectory>false</includeBaseDirectory>	
 		<fileSets>
 			<fileSet>
+				<directory>userParameterized</directory>
+				<includes>
+					<include>**/sample*</include>
+				</includes>
+				<outputDirectory>userParameterized</outputDirectory>
+			</fileSet>
+			<fileSet>
 				<directory>distrib</directory>
 				<includes>
 					<include>db.properties</include>
@@ -15,6 +22,14 @@
 					<include>COPYING</include>
 					<include>README</include>
 					<include>licenses.txt</include>
+				</includes>
+				<outputDirectory></outputDirectory>
+			</fileSet>
+			<fileSet>
+				<directory></directory>
+				<includes>
+					<include>nativeOps.xml</include>
+					<include>nativeIndicators.xml</include>
 				</includes>
 				<outputDirectory></outputDirectory>
 			</fileSet>
@@ -31,9 +46,17 @@
 			</fileSet>
 			<fileSet>
 				<directory>shell</directory>
+				<fileMode>0776</fileMode>
 			</fileSet>
 			<fileSet>
 				<directory>icons</directory>
+			</fileSet>
+			<fileSet>
+				<directory></directory>
+				<excludes>
+					<exclude>**/*</exclude>
+				</excludes>
+				<outputDirectory>autoPortfolioLogs</outputDirectory>
 			</fileSet>
 		</fileSets>
 </assembly>

@@ -42,7 +42,7 @@ import java.util.TreeMap;
 
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public class LeftShifter {
+public class LeftShifter<T> {
 	
 	private int nbDaysAhead;
 	private Boolean fixSameDayOTW;
@@ -55,9 +55,9 @@ public class LeftShifter {
 		this.noDataLoss = noDataLoss;
 	}
 
-	public SortedMap<Date, double[]> shift(SortedMap<Date, double[]> data) {
+	public SortedMap<Date, T> shift(SortedMap<Date, T> data) {
 
-		SortedMap<Date, double[]> shiftedOuptput = new TreeMap<Date, double[]>();
+		SortedMap<Date, T> shiftedOuptput = new TreeMap<Date, T>();
 
 		int fixedNbDaysAhead = fixSameDayOTW(data);
 
@@ -90,7 +90,7 @@ public class LeftShifter {
 
 	}
 
-	private int fixSameDayOTW(SortedMap<Date, double[]> data) {
+	private int fixSameDayOTW(SortedMap<Date, T> data) {
 		int fixedNbDaysAhead = nbDaysAhead;
 		if (fixSameDayOTW) {
 			Calendar calendar = Calendar.getInstance();

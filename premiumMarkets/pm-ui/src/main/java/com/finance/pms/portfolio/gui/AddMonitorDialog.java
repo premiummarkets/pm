@@ -202,8 +202,7 @@ public class AddMonitorDialog extends org.eclipse.swt.widgets.Dialog {
 			Display display = dialogShell.getDisplay();
 			while (!dialogShell.isDisposed()) {
 				try {
-					if (!display.readAndDispatch())
-						display.sleep();
+					if (!display.readAndDispatch()) display.sleep();
 				} catch (RuntimeException e) {
 					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in Error Dialog Gui : ",e);

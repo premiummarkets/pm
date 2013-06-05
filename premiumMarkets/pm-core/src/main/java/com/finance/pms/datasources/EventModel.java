@@ -38,22 +38,27 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
 
 import org.apache.commons.httpclient.HttpException;
 
+import com.finance.pms.IndicatorCalculationServiceMain;
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.scoring.OTFTuningFinalizer;
+import com.finance.pms.events.scoring.dto.TuningResDTO;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class EventRefreshModel.
  * 
@@ -63,13 +68,32 @@ public class EventModel<T extends EventModelStrategyEngine> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PropertyChangeListener.class);
 	
+
+	private OTFTuningFinalizer tuningFinalizer;
+	private Observer tuningResObs;
+	
 	private ArrayList<String> analysisList;
 	private T eventRefreshStrategyEngine;
 	private Set<Observer> engineObservers;
 	private Object[] viewStateParams;
 	
-	private static Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> outputCache = new HashMap<Stock, Map<EventDefinition, SortedMap<Date, double[]>>>();
+	protected static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	private static Map<Stock, UpdateStamp> cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
+	
+	
+	static class EventDefCacheEntry {
+		
+		SortedMap<Date, double[]> outputMap;
+		
+		public EventDefCacheEntry(SortedMap<Date, double[]> outputMap) {
+			super();
+			this.outputMap = outputMap;
+		}
+
+		public SortedMap<Date, double[]> getOutputMap() {
+			return outputMap;
+		}
+	}
 	
 	static class UpdateStamp {
 		private Date start;
@@ -112,8 +136,6 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		}
 	}
 
-
-	/** The DEFAUL t_ date. */
 	public static Date DEFAULT_DATE;
 	static {
 		DEFAULT_DATE = new Date();
@@ -125,6 +147,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	}
 	
 	public static Map<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine>> models = new HashMap<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine>>();
+
 	
 	@SuppressWarnings("unchecked")
 	public static <T extends EventModelStrategyEngine> EventModel<T> getInstance(T modelStrategyEngine, Observer... modelObserver)  {
@@ -160,6 +183,14 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	 * @param modelStrategyEngine 
 	 */
 	private EventModel(T modelStrategyEngine) {
+		
+		tuningFinalizer = (OTFTuningFinalizer) SpringContext.getSingleton().getBean("tuningFinalizer");
+		tuningResObs = new Observer() {
+			@Override
+			public void update(Observable o, Object arg) {
+				//TODO?
+			}
+		};
 
 		this.analysisList = new ArrayList<String>();	
 		this.eventRefreshStrategyEngine = modelStrategyEngine;
@@ -185,12 +216,12 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	 * @author Guillaume Thoreton
 	 * @throws IncompleteDataSetException 
 	 */
-	//Output can still be available is all events have not been calculated successfully
+	//Output can still be available if all events have not been calculated successfully
 	//However bounds date won't be valid and recorded until all events are successfully calculated.
 	//Hence the user will systematically be asked for recalculation if all events are not valid.
 	public synchronized void callbackForlastAnalyse(Date startAnalyseDate) {
 		
-		Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> callbackForlastAnalyseOutput = eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams);
+		Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput = eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams);
 		
 		if (callbackForlastAnalyseOutput != null) {
 			
@@ -198,24 +229,35 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			outputCache.putAll(callbackForlastAnalyseOutput);
 			
 			//Update cache bounds records
-			Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
-			Set<EventDefinition> indicators = EventDefinition.loadPassPrefsEventDefinitions();
+			Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+			Set<EventInfo> indicators = EventDefinition.loadMaxPassPrefsEventInfo();
 			
+			Boolean isAllEventsOk = true;
+			String msg = "";
 			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
 				//Check if the calculation was complete
-				Boolean isAllEventsOk = true;
-				for (EventDefinition eventDefinition : indicators) {
-					SortedMap<Date, double[]> evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
+				Boolean isAllEventsOkForStock = true;
+				for (EventInfo eventDefinition : indicators) {
+					EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
 					if (evtDefRes == null) {
-						isAllEventsOk = false;
+						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' is failing for " + stock.getFriendlyName() + "\n";
+						isAllEventsOkForStock = false;
 						break;
 					}
 				}
-				if (isAllEventsOk) cacheTimeStamps.put(stock, new  UpdateStamp(datedeb, datefin));
+				if (isAllEventsOkForStock) cacheTimeStamps.put(stock, new UpdateStamp(datedeb, datefin));
+				isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
 			}
 			
+			if (!isAllEventsOk) throw new RuntimeException("\nCause : "+msg);
+			
 		}
+	}
+	
+	public void callbackForAlerts() throws InterruptedException {
+		eventRefreshStrategyEngine.callbackForAlerts(engineObservers, viewStateParams);
+		
 	}
 
 	/**
@@ -242,6 +284,20 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	public synchronized void callbackForlastQuotationFetch() throws StockNotFoundException {
 		eventRefreshStrategyEngine.callbackForlastQuotationFetch(engineObservers, viewStateParams);
 
+	}
+	
+	public void callbackForAnalysisClean() {
+		Boolean deleteAll = eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, viewStateParams);
+		if (deleteAll) {
+			outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+			cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
+		} else {
+			for (Object stock : viewStateParams) {
+				outputCache.remove((Stock)stock);
+				cacheTimeStamps.remove((Stock)stock);
+			}
+		}
+		
 	}
 
 	/**
@@ -354,15 +410,31 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		return viewStateParams;
 	}
 	
-	public SortedMap<Date, double[]> getOutputCache(Stock stock, EventDefinition eventDefinition) {
-		Map<EventDefinition, SortedMap<Date, double[]>> stockMap = outputCache.get(stock);
+	public SortedMap<Date, double[]> getOutputCache(Stock stock, EventInfo eventDefinition) {
+		Map<EventInfo, EventDefCacheEntry> stockMap = outputCache.get(stock);
 		if (stockMap != null) {
-			return stockMap.get(eventDefinition);
+			EventDefCacheEntry stockNeventDefCacheEntry = stockMap.get(eventDefinition);
+			if (stockNeventDefCacheEntry != null) return stockNeventDefCacheEntry.getOutputMap();
 		}
 		return null;
 	}
 	
-	public Boolean needsUpdate(Stock stock, Date start, Date end) {
+	public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, Date start, Date end) {
+		Map<EventInfo, EventDefCacheEntry> stockMap = outputCache.get(stock);
+		EventDefCacheEntry eventDefCacheEntry = null;
+		if (stockMap != null && (eventDefCacheEntry = stockMap.get(eventDefinition)) != null) {
+			try {
+				return tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefCacheEntry.getOutputMap(), false, eventDefinition, tuningResObs, true);
+			} catch (NotEnoughDataException e) {
+				LOGGER.warn(e,e);
+				return null;
+			}
+		}
+		return null;
+		
+	}
+	
+	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end) {
 		UpdateStamp updateStamp = cacheTimeStamps.get(stock);
 		if (updateStamp == null || start.before(updateStamp.start) || end.after(updateStamp.end)) {
 			return true;
@@ -370,4 +442,6 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			return false;
 		}
 	}
-}
+
+	
+} 

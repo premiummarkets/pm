@@ -38,15 +38,14 @@ import com.finance.pms.events.EventValue;
 
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class DataResultValue.
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class DataResultValue extends EventValue {
 	
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 5951473865983343309L;
 
 	/**
@@ -58,25 +57,9 @@ public class DataResultValue extends EventValue {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
+	@Deprecated
 	public DataResultValue(Date date, Integer eventdef, char eventtype){
-		
 		super(date, EventDefinition.valueOf(eventdef), EventType.valueOf(eventtype),"");
-		
-	}
-	
-	/**
-	 * Instantiates a new data result value.
-	 * 
-	 * @param date the date
-	 * @param eventdef the eventdef
-	 * @param eventtypeChar the eventtype
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public DataResultValue(Date date, Integer eventdef, String eventtypeChar){
-		
-		super(date, EventDefinition.valueOf(eventdef), EventType.valueOf(eventtypeChar.charAt(0)),"");
-		
 	}
 
 }

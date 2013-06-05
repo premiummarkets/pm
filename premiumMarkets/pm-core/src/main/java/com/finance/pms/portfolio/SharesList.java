@@ -53,7 +53,6 @@ import com.finance.pms.datasources.shares.Stock;
 @DiscriminatorValue("ShareList")
 public class SharesList extends AbstractSharesList {
 	
-
 	@SuppressWarnings("unused")
 	private SharesList() {
 		super();
@@ -63,14 +62,27 @@ public class SharesList extends AbstractSharesList {
 		super(name);
 	}
 	
-	public void addShares(Collection<Stock> listStocks) {
-		for (Stock stock:listStocks) {
-			this.rawAddShare(stock);
+	public void addShares(Collection<Stock> pssToAdd) {
+		for (Stock stock : pssToAdd) {
+			addShare(stock);
 		}
 	}
 	
 	public void addShare(Stock stock) {
-			this.rawAddShare(stock);
+		PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
+		addShareToList(newPortfolioShare);
+		ShareListMgr.getInstance().addForeignKeysUpdate(newPortfolioShare);
+	}
+	
+	public void removeShare(PortfolioShare portfolioShare) {
+		ShareListMgr.getInstance().removeForeignKeysUpdate(portfolioShare);
+		removeShareFromList(portfolioShare);
+	}
+	
+	public void removeShares(Set<PortfolioShare> pssToRemove) {
+		for (PortfolioShare ps : pssToRemove) {
+			removeShare(ps);
+		}
 	}
 	
 	public Set<Stock> toStocksSet() {
@@ -93,12 +105,6 @@ public class SharesList extends AbstractSharesList {
 		}
 		
 		return retSet;
-	}
-
-	private PortfolioShare rawAddShare(Stock stock) {
-		PortfolioShare portfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
-		listShares.put(stock,portfolioShare);
-		return portfolioShare;
 	}
 
 }

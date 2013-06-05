@@ -19,7 +19,12 @@
 	<pm.buildtime>${timestamp}</pm.buildtime>
   </properties>
   <dependencies>
-    <dependency>
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr-runtime</artifactId>
+			<version>3.5</version>
+		</dependency>
+	    <dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 			<version>2.4</version>
@@ -29,26 +34,7 @@
 			<artifactId>commons-logging</artifactId>
 			<version>4.0.6</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derby</artifactId>
-			<version>10.9.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.21</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.aspectj</groupId>
-		    <artifactId>com.springsource.org.aspectj.weaver</artifactId>
-		    <version>1.6.5.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>com.springsource.org.aspectj.runtime</artifactId>
-			<version>1.6.5.RELEASE</version>
-		</dependency>
+		
 		<!--
 			Core utilities used by other modules. Define this if you use Spring
 			Utility APIs (org.springframework.core.*/org.springframework.util.*)
@@ -58,7 +44,6 @@
 			<artifactId>org.springframework.core</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			Expression Language (depends on core) Define this if you use Spring
 			Expression APIs (org.springframework.expression.*)
@@ -68,7 +53,6 @@
 			<artifactId>org.springframework.expression</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			Bean Factory and JavaBeans utilities (depends on core) Define this if
 			you use Spring Bean APIs (org.springframework.beans.*)
@@ -78,7 +62,6 @@
 			<artifactId>org.springframework.beans</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			Aspect Oriented Programming (AOP) Framework (depends on core, beans)
 			Define this if you use Spring AOP APIs (org.springframework.aop.*)
@@ -88,7 +71,6 @@
 			<artifactId>org.springframework.aop</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			Application Context (depends on core, expression, aop, beans) This is
 			the central artifact for Spring's Dependency Injection Container and
@@ -122,7 +104,6 @@
 			<artifactId>org.springframework.transaction</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			JDBC Data Access Library (depends on core, beans, context,
 			transaction) Define this if you use Spring's JdbcTemplate API
@@ -133,7 +114,6 @@
 			<artifactId>org.springframework.jdbc</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			Object-to-Relation-Mapping (ORM) integration with Hibernate, JPA, and
 			iBatis. (depends on core, beans, context, transaction) Define this if
@@ -144,7 +124,6 @@
 			<artifactId>org.springframework.orm</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
 		<!--
 			Object-to-XML Mapping (OXM) abstraction and integration with JAXB,
 			JiBX, Castor, XStream, and XML Beans. (depends on core, beans,
@@ -155,52 +134,7 @@
 			<artifactId>org.springframework.oxm</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-
-		<!--
-			Web app development utilities common across Servlet/Portlet
-			environments (depends on core, beans, context) Define this if you use
-			Spring MVC, or wish to use Struts, JSF, or another web framework with
-			Spring (org.springframework.web.*)
-		-->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.web</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>
-
-		<!--
-			Spring MVC for Servlet Environments (depends on core, beans, context,
-			web) Define this if you use Spring MVC with a Servlet Container such
-			as Apache Tomcat (org.springframework.web.servlet.*)
-		-->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.web.servlet</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>
-
-		<!--
-			Spring MVC for Portlet Environments (depends on core, beans, context,
-			web) Define this if you use Spring MVC with a Portlet Container
-			(org.springframework.web.portlet.*)
-		-->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.web.portlet</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>
-
-		<!--
-			Support for testing Spring applications with tools such as JUnit and
-			TestNG This artifact is generally always defined with a 'test' scope
-			for the integration testing framework and unit testing stubs
-		-->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.test</artifactId>
-			<version>${org.springframework.version}</version>
-			<scope>test</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>org.springframework.jms</artifactId>
@@ -216,10 +150,23 @@
 			<artifactId>org.springframework.aspects</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
+		<!--<dependency>
+		    <groupId>org.aspectj</groupId>
+		    <artifactId>com.springsource.org.aspectj.weaver</artifactId>
+		    <version>1.6.5.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>com.springsource.org.aspectj.runtime</artifactId>
+			<version>1.6.5.RELEASE</version>
+		</dependency>-->
+		
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.2</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
@@ -234,7 +181,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
+			<version>1.2.17</version>
 		</dependency>
 		<dependency>
 			<groupId>ta-lib</groupId>
@@ -254,33 +201,13 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.5.2</version>
+			<version>1.7.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-nop</artifactId>
-			<version>1.4.3</version>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.5</version>
 		</dependency>
-		<dependency>
-			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
-			<version>1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.10.0.GA</version>
-		</dependency>
-		<dependency>
-			<groupId>dom4j</groupId>
-			<artifactId>dom4j</artifactId>
-			<version>1.6.1</version>
-		</dependency>
-	<!--  	<dependency>
-			<groupId>jfree</groupId>
-			<artifactId>jfreechart</artifactId>
-			<version>1.0.13</version>
-		</dependency>-->
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreechart</artifactId>
@@ -296,11 +223,6 @@
 			<artifactId>aopalliance</artifactId>
 			<version>1.0</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jms</artifactId>
-			<version>2.5.6</version>
-		</dependency> -->
 		<dependency>
 			<groupId>org.dbunit</groupId>
 			<artifactId>dbunit</artifactId>
@@ -324,11 +246,6 @@
 			<artifactId>powermock-api-easymock</artifactId>
 			<version>1.4.12</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.objenesis</groupId>
-			<artifactId>objenesis</artifactId>
-			<version>1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -396,6 +313,18 @@
 				</execution>
 			</executions>
 		</plugin>
+		 <plugin>
+	       <groupId>org.antlr</groupId>
+	        <artifactId>antlr3-maven-plugin</artifactId>
+	        <version>3.5</version>
+	        <executions>
+	          <execution>
+	            <goals>
+	              <goal>antlr</goal>
+	            </goals>
+	          </execution>
+	        </executions>
+	      </plugin>
 	</plugins>
 </build>
 	<repositories>

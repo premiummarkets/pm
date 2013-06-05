@@ -32,20 +32,20 @@ package com.finance.pms.events.calculation;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Observer;
-import java.util.Set;
+import java.util.SortedMap;
 
 import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
 import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.alerts.ThresholdAlertParser;
+import com.finance.pms.alerts.AlertOnThresholdParser;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventSource;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
@@ -75,28 +75,37 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		
 		SymbolEvents ret = new SymbolEvents(portfolioShare.getStock());
 		
-		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, this.configs.get(Config.EVENT_SIGNAL_NAME));
+		EventSignalConfig config = (EventSignalConfig) this.configs.get(Config.EVENT_SIGNAL_NAME);
+		//config.setSendAnalysisAlertEmails(true);
+		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 		
 		try {
 				LOGGER.debug("Analysing events for portfolio share "+portfolioShare+", starting at "+startDate);
 				
-				ThresholdAlertParser thresholdAlertIndicator =  new ThresholdAlertParser(portfolioShare, startDate, endDate, calculationCurrency);
-				Set<EventCompostionCalculator> evtCalculators = new HashSet<EventCompostionCalculator>();
-				evtCalculators.add(thresholdAlertIndicator);
-				Map<EventKey, EventValue> eventDataAggregation = calculateEventsForEachDateAndIndicatorComp(evtCalculators, startDate, endDate, true);
-				
-				for (EventValue eventValue : eventDataAggregation.values()) {
-					//Here eventListName must be = to portfolio name for alerts
-					EventSource msalert = (isUserPortfolio)?EventSource.PMUserAlert:EventSource.PMAlert;
-					this.sendEvent(portfolioShare.getStock(), eventListName, eventValue, msalert);
+				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, startDate, endDate, calculationCurrency);
+
+				try {
+					cleanEventsFor(this.eventListName, startDate, endDate, true);
+				} catch (Exception e) {
+					LOGGER.error(e,e);
 				}
-				
-				ret.addEventResultElement(eventDataAggregation, EventDefinition.getEventDefList());
+
+				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(this.eventListName);
+
+				for (EventValue eventValue : calculatedEventsForCalculator.values()) {
+					//Here eventListName must be = to portfolio name for alerts
+					EmailFilterEventSource msalert = (isUserPortfolio)? EmailFilterEventSource.PMUserAlert : EmailFilterEventSource.PMAutoAlert;
+					this.sendEvent(portfolioShare.getStock(), eventListName, eventValue, msalert, EventDefinition.ALERTTHRESHOLD);
+				}
+
+				ret.addEventResultElement(calculatedEventsForCalculator, EventDefinition.ALERTTHRESHOLD);
 				LOGGER.debug("end analyse " + portfolioShare + " from " + startDate + " to " + endDate);
+				
 			
+				
 		} catch (Exception e) {
 			// Oops
-			LOGGER.error("ERROR : While calcuting Events for " + portfolioShare,e);
+			LOGGER.error("ERROR : While calculating Events for " + portfolioShare,e);
 		}
 		
 		return ret;

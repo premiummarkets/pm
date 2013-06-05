@@ -62,11 +62,11 @@ public class Quotations {
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 	
 	private static ConcurrentHashMap<Stock, SoftReference<QuotationData>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<QuotationData>>(1000,0.90f);
-	private static Object object = new Object();
+	private static ConcurrentHashMap<Stock, LastUpdateStampChecker> UPDATESTAMP_CACHE = new ConcurrentHashMap<Stock, LastUpdateStampChecker>();
+	
+	//private static Object object = new Object();
 
-	/** The stock. */
 	protected Stock stock;
-	/** The quotation data. */
 	private QuotationData quotationData;
 	protected Integer firstDateShiftedIdx;
 	protected Integer lastDateIdx;
@@ -107,7 +107,8 @@ public class Quotations {
 		if (!keepCache) {
 			requestedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
 		} else {
-			synchronized (Quotations.object) {
+			//synchronized (Quotations.object) {
+			synchronized(stock) {
 				requestedQuotationsData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
 				if (requestedQuotationsData == null) {
 					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
@@ -124,7 +125,6 @@ public class Quotations {
 					}
 				}
 			}
-			//requestedQuotationsData = Quotations.getCashedStock(stock);
 		}
 		this.setQuotationData(requestedQuotationsData);
 
@@ -329,6 +329,14 @@ public class Quotations {
 
 	public BigDecimal getCloseForDate(Date date) throws InvalidAlgorithmParameterException {
 		return convert(getQuotationData().getClosestCloseForDate(date),date);
+	}
+	
+	public Number getFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+		if (field.equals(QuotationDataType.VOLUME)) {
+			return getQuotationData().getClosestFieldForDate(date, field);
+		} else {
+			return convert((BigDecimal) getQuotationData().getClosestFieldForDate(date, field), date);
+		}
 	}
 
 	public double[] getCloseValues() {
@@ -549,10 +557,6 @@ public class Quotations {
 
 	public static void updateCachedStockKey(Stock stock) {
 
-		//		SoftReference<QuotationData> softRef = Quotations.QUOTATIONS_CACHE.remove(stock);
-		//		if (softRef!=null) {
-		//			softRef.clear();
-		//		}
 		SoftReference<QuotationData> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
 		if (softReference != null) Quotations.QUOTATIONS_CACHE.put(stock, softReference);
 
@@ -574,6 +578,15 @@ public class Quotations {
 		} else {
 			return softRef.get();
 		}
+	}
+
+	public static LastUpdateStampChecker checkLastQuotationUpdateFor(Stock stock) {
+		LastUpdateStampChecker lastUpdateStamp = UPDATESTAMP_CACHE.get(stock);
+		if (lastUpdateStamp == null) {
+			lastUpdateStamp = new LastUpdateStampChecker();
+			UPDATESTAMP_CACHE.put(stock, lastUpdateStamp);
+		}
+		return lastUpdateStamp;
 	}
 
 }

@@ -24,7 +24,7 @@
 
 	<bean id="portfolioDAO" parent="txProxyTemplate">
 		<property name="target">
-			<bean  id="portfolioDAOTarget" class="com.finance.pms.portfolio.PortfolioDAOImpl">
+			<bean  id="portfolioDAOTarget" class="com.finance.pms.portfolio.PortfolioDAOImpl"  destroy-method="close">
 				<property name="sessionFactory" ref="sessionFactory" />
 			</bean>
 		</property>
@@ -173,6 +173,15 @@
 	</bean>
 	
 	<bean id="closedDayQuotationssFactory" class="com.finance.pms.events.quotations.ClosedDayQuotationsFactory">
+	</bean>
+	
+	<bean id="nativesXmlManager" class="com.finance.pms.events.NativesXmlManager">
+		<constructor-arg type="java.lang.String" value="nativeOps"/>
+	</bean>
+	
+	<bean id="parameterizedOperationBuilder" class="com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder">
+		<constructor-arg type="com.finance.pms.events.NativesXmlManager" ref="nativesXmlManager"/>
+		<constructor-arg type="com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator" ref="talibOperationGenerator"/>
 	</bean>
 
 </beans>

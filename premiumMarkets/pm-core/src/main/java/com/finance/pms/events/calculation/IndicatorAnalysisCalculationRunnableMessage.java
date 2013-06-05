@@ -42,12 +42,10 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class IClalcThread.
  * 
@@ -71,7 +69,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Boolean export;
 	private Currency calculationCurrency;
 	private Boolean persistEvents;
-	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
+	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
 	private Observer[] observers;
 
 
@@ -100,15 +98,15 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.observers = observers;
 	}
 	
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
 		return this.runIndicatorsCalculation(1, persistEvents, passOneRecalculationMode);
 	}
 	
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculationPassTwo(Boolean persistEvents) throws InterruptedException, IncompleteDataSetException {
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassTwo(Boolean persistEvents) throws InterruptedException, IncompleteDataSetException {
 		return this.runIndicatorsCalculation(2, persistEvents, null);
 	}
 	
-	private Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
+	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
 		
 		this.passNumber = passNumber;
 		this.persistEvents = persistEvents;
@@ -130,9 +128,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 
 		try {
 
-
-			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
-			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
+			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,getConfigs().get(Config.INDICATOR_PARAMS_NAME));
 
 			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, export, persistEvents, passOneRecalculationMode, observers);
 			
@@ -152,6 +149,10 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	@Override
 	public String toString() {
 		return "IndicatorAnalysisCalculationRunnableMessage [datedeb=" + datedeb + ", datefin=" + datefin + ", shareList=" + shareList + ", toString()=" + super.toString() + "]";
+	}
+
+	public Collection<Stock> getShareList() {
+		return shareList;
 	}
 	
 	

@@ -89,9 +89,9 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 			Integer smaPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVarianceSmaPeriod();
 			this.sma = new SMA(stock, smaPeriod, startDate, endDate, transactionCurrency);
 		} catch (TalibException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
 		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);

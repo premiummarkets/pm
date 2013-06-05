@@ -37,7 +37,7 @@ import org.eclipse.swt.graphics.Color;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.alerts.Alert;
+import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -112,6 +112,10 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return super.getUnrealizedProfit(calcCurrentDate());
 	}
 
+	public BigDecimal getProfit() {
+		return super.getProfit(EventSignalConfig.getNewDate());
+	}
+
 	public BigDecimal getWeightedUnrealizedProfit() {
 		return super.getWeightedUnrealizedProfit(EventSignalConfig.getNewDate());
 	}
@@ -173,6 +177,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	public BigDecimal getUnrealizedGain() {
 		return super.getUnrealizedGain(calcCurrentDate());
 	}
+	
 
 	public BigDecimal getRealizedGain() {
 		return super.calculateGain(EventSignalConfig.getNewDate());
@@ -203,15 +208,15 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
-	public void removeAlert(Alert alert) {
-		underLyingPortfolioShare.removeAlert(alert);
-		super.removeAlert(alert);
+	public void removeAlertOnThreshold(AlertOnThreshold alert) {
+		underLyingPortfolioShare.removeAlertOnThreshold(alert);
+		super.removeAlertOnThreshold(alert);
 	}
 
 	@Override
-	public void addSimpleAlert(ThresholdType threshold, BigDecimal value, String message) {
-		underLyingPortfolioShare.addSimpleAlert(threshold, value, message);
-		super.addSimpleAlert(threshold, value, message);
+	public void addSimpleAlertOnThreshold(ThresholdType threshold, BigDecimal value, String message) {
+		underLyingPortfolioShare.addSimpleAlertOnThreshold(threshold, value, message);
+		super.addSimpleAlertOnThreshold(threshold, value, message);
 	}
 
 	@Override
@@ -241,6 +246,33 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 
 	public String getFreindlyName() {
 		return underLyingPortfolioShare.getStock().getFriendlyName();
-	}	
-	
+	}
+
+	@Override
+	public String toString() {
+		return "SlidingPortfolioShare [underLyingPortfolioShare=" + underLyingPortfolioShare + ", displayOnChart=" + displayOnChart + "]";
+	}
+
+	@Override
+	public void addAlertOnEvent(String eventInfoReference, MonitorLevel monitorLevel, String optionalMessage) {
+		underLyingPortfolioShare.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
+		super.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
+	}
+
+	@Override
+	public void clearAlertOnEvent() {
+		underLyingPortfolioShare.clearAlertOnEvent();
+		super.clearAlertOnEvent();
+	}
+
+	public PortfolioShare getUnderLyingPortfolioShare() {
+		return underLyingPortfolioShare;
+	}
+
+	@Override
+	public String tootTip() {
+		//return info();
+		return "";
+	}
+
 }

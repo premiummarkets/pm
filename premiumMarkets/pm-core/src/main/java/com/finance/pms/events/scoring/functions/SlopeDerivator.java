@@ -71,7 +71,6 @@ public class SlopeDerivator implements DiscretDerivator, SDiscretDerivator {
 			double prev = values.get(i-period)[0];
 			double current = values.get(i)[0];
 			double percentDiff = (current - prev)/Math.abs(prev);
-			//double percentDiff = (current - prev);
 			
 			boolean isBuySlope = (buyCrossTowardCenter)? percentDiff > (slope * new Double(period)) :  percentDiff < (-slope * new Double(period));
 			if ( isBuySlope ) {

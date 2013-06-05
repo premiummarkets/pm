@@ -36,7 +36,8 @@ public enum MessageProperties {
 	TREND ("Trend"),
 	ANALYSE_SOURCE ("AnalyseSource"),
 	MONITOR_LEVEL ("MonitorLevel"),
-	SEND_EMAIL ("SendEmail");
+	SEND_EMAIL ("SendEmail"),
+	EVENT_INFO ("EventInfo");
 	
 	private String key;
 	

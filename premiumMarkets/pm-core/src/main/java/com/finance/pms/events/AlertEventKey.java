@@ -32,18 +32,18 @@ package com.finance.pms.events;
 
 import java.util.Date;
 
-import com.finance.pms.alerts.AlertType;
+import com.finance.pms.alerts.AlertOnThresholdType;
 
-public class AlertEventKey implements EventKey {
+public class AlertEventKey extends EventKey {
 	
 	private static final long serialVersionUID = -2973299473993380525L;
 	
 	private Date date;
-	private EventDefinition eventdef;
+	private EventInfo eventdef;
 	private EventType eventType;
-	private AlertType alertType;
+	private AlertOnThresholdType alertType;
 	
-	public AlertEventKey(Date date, EventDefinition eventdef, EventType eventType, AlertType alertType) {
+	public AlertEventKey(Date date, EventInfo eventdef, EventType eventType, AlertOnThresholdType alertType) {
 		super();
 		this.date = date;
 		this.eventdef = eventdef;
@@ -51,12 +51,13 @@ public class AlertEventKey implements EventKey {
 		this.alertType = alertType;
 	}
 	
-	public AlertEventKey(Date date,Integer eventdefId, String eventType, String alertType) {
+	public AlertEventKey(Date date, String eventInfoReference, String eventType, String alertType) throws NoSuchFieldException {
 		super();
 		this.date = date;
-		this.eventdef = EventDefinition.valueOf(eventdefId);
+		//this.eventdef = EventDefinition.valueOfEventInfo(eventInfoReference);
+		this.eventdef = EventDefinition.valueOf(eventInfoReference);
 		this.eventType = EventType.valueOf(eventType.charAt(0));
-		this.alertType = AlertType.valueOf(alertType);
+		this.alertType = AlertOnThresholdType.valueOf(alertType);
 	}
 
 	
@@ -65,82 +66,27 @@ public class AlertEventKey implements EventKey {
 	}
 
 	
-	public Comparable<?> getEventDefId() {
+	public EventInfo getEventInfo() {
 		return eventdef;
 	}
 
 	
-	public Comparable<?> getEvenType() {
+	public EventType getEventType() {
 		return eventType;
 	}
 	
-	public AlertType getAlertType() {
+	public AlertOnThresholdType getAlertType() {
 		return alertType;
 	}
 
 	
 	public String toString() {
-		return "AlertEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + ", alertType=" + alertType
-				+ "]";
+		return "AlertEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + ", alertType=" + alertType + "]";
 	}
 
-	
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((alertType == null) ? 0 : alertType.hashCode());
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
-		result = prime * result + ((eventdef == null) ? 0 : eventdef.hashCode());
-		return result;
-	}
-
-	
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		AlertEventKey other = (AlertEventKey) obj;
-		if (alertType != other.alertType)
-			return false;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (date.compareTo(other.date) != 0)
-			return false;
-		if (eventType != other.eventType)
-			return false;
-		if (eventdef != other.eventdef)
-			return false;
-		return true;
-	}
-
-	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEventDefExtra() {
-		return alertType;
-	}
-
-	
 	@Override
-	public int compareTo(EventKey o) {
-		
-		int dateCompare = date.compareTo(o.getDate());
-		if (dateCompare == 0) {
-			int evtTypecompare = eventType.compareTo((EventType) o.getEvenType());
-			if (evtTypecompare == 0) {
-				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
-				if (evtDefCompare == 0) {
-					return getEventDefExtra().toString().compareTo(o.getEventDefExtra().toString());
-				}
-			}
-			return evtTypecompare;
-		}
-		
-		return dateCompare;
+	public String getEventInfoExtra() {
+		return alertType.name();
 	}
-	
+
 }

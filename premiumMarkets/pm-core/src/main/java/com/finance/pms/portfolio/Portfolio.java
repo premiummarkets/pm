@@ -43,8 +43,8 @@ import javax.persistence.Lob;
 import javax.persistence.Transient;
 
 import com.finance.pms.admin.config.EventSignalConfig;
-import com.finance.pms.alerts.Alert;
-import com.finance.pms.alerts.AlertType;
+import com.finance.pms.alerts.AlertOnThreshold;
+import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.pounderationrules.PonderationRule;
@@ -101,12 +101,35 @@ public class Portfolio extends AbstractSharesList {
 		
 		PortfolioShare oldPortfolioShare;
 		if (sourcePortfolio != null && (oldPortfolioShare = sourcePortfolio.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin())) != null) {
-			for (Alert alert: oldPortfolioShare.getAlertsForType(AlertType.MANUAL)) {
-				portfolioShare.addAlert(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
+			for (AlertOnThreshold alert: oldPortfolioShare.getAlertsOnThresholdFor(AlertOnThresholdType.MANUAL)) {
+				portfolioShare.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
 			}
 		}
 		
 	}
+	
+	
+	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException {
+		
+		if (quantity.compareTo(BigDecimal.ZERO) == 0 || buyPrice.compareTo(BigDecimal.ZERO) == 0) {
+			throw new InvalidQuantityException("Invalid Quantity : "+quantity+"; or buy price : "+buyPrice+" for "+stock, new Exception());
+		}
+		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, currentDate, mLevel, trCurrency);
+		shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
+		portfolioShare.addBuyAlerts(buyPrice, currentDate);
+		
+		return portfolioShare;
+
+	}
+	
+
+	private void shareTransaction(PortfolioShare recipientPortfolioShare, BigDecimal quantity, Date buyDate, BigDecimal lastQuotation, TransactionType movement) throws InvalidQuantityException {
+		Transaction transaction = new Transaction(recipientPortfolioShare.getCashin(), recipientPortfolioShare.getCashout(), quantity, lastQuotation, movement, buyDate);
+		if (transaction.amount().compareTo(BigDecimal.ZERO) == 0 && movement.equals(TransactionType.AIN)) throw new InvalidQuantityException("Amounts too small are not supported. Amount must be >= 0.01 ", new Throwable());
+		recipientPortfolioShare.applyTransaction(transaction, true);
+		recipientPortfolioShare.setBuyDate(buyDate);
+	}
+
 
 	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException  {
 		
@@ -159,6 +182,23 @@ public class Portfolio extends AbstractSharesList {
 	private void addNewAmounts(PortfolioShare recipientPortfolioShare, BigDecimal quantity, BigDecimal cashIn , BigDecimal cashOut, Date currentDate) {
 		recipientPortfolioShare.newAmounts(quantity,cashIn,cashOut,currentDate);
 		recipientPortfolioShare.setBuyDate(currentDate);
+	}
+	
+
+	public void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
+		
+		if (this.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin()) == null) {
+			throw new InvalidQuantityException("The share "+portfolioShare+" is not in the portfolio "+this, new Throwable());
+		}
+		
+		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
+		
+		if (portfolioShare.getQuantity().compareTo(BigDecimal.ZERO) == 0) {
+			this.removeShareFromList(portfolioShare);
+		} else {
+			portfolioShare.addBuyAlerts(trPrice, currentDate);
+		}
+		
 	}
 
 
@@ -229,14 +269,19 @@ public class Portfolio extends AbstractSharesList {
 	private void setPortfolioCurrency(Currency portfolioCurrency) {
 		this.portfolioCurrency = portfolioCurrency;
 	}
-
-
-	@Override
+	
 	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, Date currentDate, MonitorLevel mLevel, Currency transactionCurrency) {
 		if (this.portfolioCurrency != null && !this.portfolioCurrency.equals(transactionCurrency)) {
 			throw new RuntimeException("Currency is inconsistent : portfolio currency is " + this.portfolioCurrency + " and " + stock.getSymbol() + " is " + transactionCurrency);
 		}
-		return super.getOrCreatePortfolioShare(stock, currentDate, mLevel, transactionCurrency);
+		//return super.getOrCreatePortfolioShare(stock, currentDate, mLevel, transactionCurrency);
+		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());
+		if (portfolioShare == null) {
+			portfolioShare = new PortfolioShare(this, stock, currentDate, mLevel, transactionCurrency);
+			//listShares.put(stock, portfolioShare);
+			addShareToList(portfolioShare);
+		}
+		return portfolioShare;
 	}
 
 
@@ -287,7 +332,7 @@ public class Portfolio extends AbstractSharesList {
 
 	public Currency inferPortfolioCurrency() {
 		Currency currency;
-		if (this.portfolioCurrency == null) {  //Portfolio potentially hosting multiple transaction : we convert the total to EUR
+		if (this.portfolioCurrency == null) {//Portfolio potentially hosting multiple transaction : we convert the total to EUR
 			currency = Currency.EUR;
 		} else {// One currency portfolio
 			currency = this.portfolioCurrency;
@@ -325,7 +370,7 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public BigDecimal getGain(Date currentDate) {
 		BigDecimal gainAmount = BigDecimal.ZERO;
-		for (PortfolioShare portfolioShare : this.listShares.values()) {
+		for (PortfolioShare portfolioShare : this.getListShares().values()) {
 			gainAmount = gainAmount.add(portfolioShare.calculateGain(currentDate));
 		}
 		return gainAmount;
@@ -333,7 +378,7 @@ public class Portfolio extends AbstractSharesList {
 
 	public void rawRemoveShare(PortfolioShare portfolioShare) {
 		this.removeAmountFromTotalAmount(portfolioShare);
-		listShares.remove(portfolioShare.getStock());
+		removeShareFromList(portfolioShare);
 		
 	}
 

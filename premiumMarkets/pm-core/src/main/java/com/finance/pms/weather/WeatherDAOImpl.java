@@ -37,8 +37,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-
+@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class WeatherDAOImpl extends HibernateDaoSupport implements WeatherDAO {
 	
 	private static WeatherDAO singleton; 
@@ -53,7 +55,7 @@ public class WeatherDAOImpl extends HibernateDaoSupport implements WeatherDAO {
 	}
 
 	@SuppressWarnings("unchecked")
-	
+	@Transactional(readOnly=true)
 	public SortedSet<WeatherElement> getMonthlyWeatherUntil(Date endDate, Comparator<WeatherElement> weatherComparator) {
 		@SuppressWarnings("rawtypes")
 		List weatherElements = this.getHibernateTemplate().find("from WeatherElement as weatherElement where weatherElement.date <= ? ",endDate);

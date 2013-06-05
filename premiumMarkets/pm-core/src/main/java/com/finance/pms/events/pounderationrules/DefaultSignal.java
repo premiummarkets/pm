@@ -30,43 +30,45 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 
 public class DefaultSignal extends Signal {
 	
-	public static Map<Integer, String> getFilteredEventDefs(EventDefinition...eventDefinitions) {
-		Map<Integer,String> map = new HashMap<Integer, String>();
-		for (EventDefinition eventDefinition : eventDefinitions) {
-			map.put(eventDefinition.getEventDefId(), eventDefinition.getEventDef());
+	public static List<String> getFilteredEventDefs(EventInfo...eventDefinitions) {
+		List<String> list = new ArrayList<String>();
+		for (EventInfo eventDefinition : eventDefinitions) {
+			list.add(eventDefinition.getEventDefinitionRef());
 		}	
-		return map;
+		return list;
 	}
 
-	public DefaultSignal(Map<Integer, String> eventDefList) {
+	public DefaultSignal(Collection<String> eventDefList) {
 		super(eventDefList);
 	}
 	
 	@Override
-	public Integer addEvent(EventValue eventValue) {
-		if (isFilteredEvent(eventValue)) {
+	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
+		if (isFilteredEvent(eventKey)) {
 			latestEventDate = eventValue.getDate();
 			parsedEventDefs.add(eventValue.getEventDef());
 			this.signalWeight = this.signalWeight + 
 								this.eventTypeWeigth(eventValue.getEventType().getEventTypeChar()) * 
-								this.eventWeigth(eventDefList, eventValue.getEventDefId());
+								this.eventWeigth(eventDefList, eventKey.getEventInfoExtra());
 		}
 		return 0;
 	}
 	
 
-	protected Integer eventWeigth(Map<Integer,String> eventDefList, Integer eventId){
+	protected Integer eventWeigth(Collection<String> eventDefList, String eventDef){
 		Integer retour;
 		
-		if (eventDefList.containsKey(eventId)){
+		if (eventDefList.contains(eventDef)){
 			retour = 1;
 		} else {
 			retour = 0;
@@ -92,8 +94,8 @@ public class DefaultSignal extends Signal {
 		return retour;
 	}
 
-	protected boolean isFilteredEvent(EventValue eventValue) {
-		return eventDefList.containsKey(eventValue.getEventDefId());
+	protected boolean isFilteredEvent(EventKey eventKey) {
+		return eventDefList.contains(eventKey.getEventInfoExtra());
 	}
 
 }

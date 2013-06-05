@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!--<jnlp spec="1.6+" codebase="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/target" 
-	href="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/src/main/resources/PremiumMarkets.jnlp"> -->
+<!--<jnlp spec="1.6+" codebase="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/target" href="file:///home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/src/main/resources/PremiumMarkets.jnlp"> -->
 <!--<jnlp spec="1.6+" codebase="file:///C:" href="file:///C:/PremiumMarkets.jnlp"> -->
 <!--<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets-0.10.0.jnlp">-->
 

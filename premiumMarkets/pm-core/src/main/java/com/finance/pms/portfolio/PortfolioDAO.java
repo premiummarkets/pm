@@ -50,6 +50,8 @@ public interface PortfolioDAO {
 	
 	public List<String> loadUserPortfolioNames();
 	
+	public void saveOrUpdatePortfolioShare(PortfolioShare portfolioShare);
+	
 	//Share lists
 	public void delete(AbstractSharesList portfolio);
 
@@ -71,6 +73,5 @@ public interface PortfolioDAO {
 
 	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
 
-	List<SharesList> loadShareList();
 
 }

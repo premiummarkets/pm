@@ -61,7 +61,7 @@ import com.finance.pms.datasources.web.formaters.StockComplementSummaryYahooForm
 import com.finance.pms.datasources.web.formaters.StockComplementYahooFormater;
 import com.finance.pms.datasources.web.formaters.StockListYahooIncideHtmlScrapFormater;
 import com.finance.pms.portfolio.SharesList;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 //TODO move that out to create a list provider as this is not a market => multi urls
 public class ProvidersYahooIndices extends ProvidersList {
@@ -176,7 +176,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 			
 			for (Integer i = 0; i < 50; i++) {
 				String url = this.httpSource.getCategoryStockListURL(StockCategories.INDICES_OTHER, "^" + indice.getName(), i.toString());
-				LOGGER.info("Indice Url : " + url);
+				LOGGER.info("Yahoo Indice Url : " + url);
 				LineFormater yahooIndiceFormater = this.getFormater(url, indice.getMarket(), marketQuotationsProviders);
 				@SuppressWarnings("rawtypes")
 				List listOfIndiceStocks = new ArrayList();
@@ -197,7 +197,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	}
 
 	@Override
-	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
+	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
 		
 		//XXX yahoo must before reuters and bourso last for the dividend setting
 		yahooSummary(trendSupStock);
@@ -212,12 +212,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 		
 	}
 
-	private void yahooSummary(TrendSupplementedStock trendSupStock) {
+	private void yahooSummary(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : yahoo Dividendes for "+trendSupStock.getStock());
 			String url = this.httpSource.getStockInfoPageURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementSummaryYahooFormater(url, trendSupStock);
-			TrendSupplementedStock completedStock = (TrendSupplementedStock) this.httpSource.readURL(dsf).get(0);
+			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
 			trendSupStock.resetStock(completedStock);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement dividend and PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
@@ -228,7 +228,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		}
 	}
 
-	private void yahooEstimates(TrendSupplementedStock trendSupStock) {
+	private void yahooEstimates(ScreeningSupplementedStock trendSupStock) {
 
 		try {
 			LOGGER.guiInfo("Updating screening info : yahoo PEG for "+trendSupStock.getStock());
@@ -242,7 +242,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 				dsf = new StockComplementEstimatesYahooFormater(url, trendSupStock);
 			}
 			
-			TrendSupplementedStock completedStock = (TrendSupplementedStock) this.httpSource.readURL(dsf).get(0);
+			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
 			trendSupStock.resetStock(completedStock);		
 			
 		} catch (UnsupportedEncodingException e) {
@@ -254,12 +254,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 		}	
 	}
 	
-	private void boursoSummary(TrendSupplementedStock trendSupStock) {
+	private void boursoSummary(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : bourso PEG and DIV for "+trendSupStock.getStock());
 			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageBOResumeURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementSummaryBoursoramaFormater(url, trendSupStock);
-			TrendSupplementedStock completedStock = (TrendSupplementedStock) this.httpSource.readURL(dsf).get(0);
+			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
 			trendSupStock.resetStock(completedStock);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement bourso PEG or DIV for symbol : "+trendSupStock.getStock().getSymbol(),e);
@@ -272,12 +272,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 	}
 	
 	
-	private void reutersFinancials(TrendSupplementedStock trendSupStock) {
+	private void reutersFinancials(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : reuters PEG for "+trendSupStock.getStock());
 			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageReutersFinancialsURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementFinancialsReutersFormater(url, trendSupStock);
-			TrendSupplementedStock completedStock = (TrendSupplementedStock) this.httpSource.readURL(dsf).get(0);
+			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
 			trendSupStock.resetStock(completedStock);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement Reuters PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
@@ -290,12 +290,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 		}
 	}
 	
-	private void reutersSummary(TrendSupplementedStock trendSupStock) {
+	private void reutersSummary(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : reuters PEG for "+trendSupStock.getStock());
 			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageReutersOverViewURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementSummaryReutersFormater(url, trendSupStock);
-			TrendSupplementedStock completedStock = (TrendSupplementedStock) this.httpSource.readURL(dsf).get(0);
+			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
 			trendSupStock.resetStock(completedStock);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement Reuters PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
@@ -306,17 +306,17 @@ public class ProvidersYahooIndices extends ProvidersList {
 		}
 	}
 
-	private void boursoramaOpinions(TrendSupplementedStock trendSupStock) {
+	private void boursoramaOpinions(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : Boursorama opinions for "+trendSupStock.getStock());
 			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageBOpinionsURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementOpinionBoursoramaFormater(url, trendSupStock);
-			TrendSupplementedStock completedStock = trendSupStock;
+			ScreeningSupplementedStock completedStock = trendSupStock;
 			try {
-				completedStock = (TrendSupplementedStock) httpSource.readURL(dsf).get(0);
+				completedStock = (ScreeningSupplementedStock) httpSource.readURL(dsf).get(0);
 			} catch (HttpException e) {
 				try {
-					completedStock = (TrendSupplementedStock) httpSource.readURL(dsf).get(0);
+					completedStock = (ScreeningSupplementedStock) httpSource.readURL(dsf).get(0);
 					LOGGER.info("Supplement done at second try for "+trendSupStock.getStock().getSymbol());
 				} catch (Exception e1) {
 					LOGGER.debug("Can't supplement symbol with bourso opinions : "+trendSupStock.getStock().getSymbol(),e);
@@ -335,12 +335,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 		}
 	}
 
-	private void yahooOpinions(TrendSupplementedStock trendSupStock) {
+	private void yahooOpinions(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : Yahoo opinions for "+trendSupStock.getStock());
 			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageOpinionsURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementOpinionYahooFormater(url, trendSupStock);
-			TrendSupplementedStock completedStock = (TrendSupplementedStock) this.httpSource.readURL(dsf).get(0);
+			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
 			trendSupStock.resetStock(completedStock);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement yahoo opinions symbol : "+trendSupStock.getStock().getSymbol(),e);

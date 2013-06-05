@@ -33,7 +33,7 @@ package com.finance.pms.portfolio;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import com.finance.pms.events.EventSource;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.SymbolEvents;
 
 public class UserPortfolioDelegate extends AutoPortfolioDelegate {
@@ -45,7 +45,7 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	@Override
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount, PortfolioShare portfolioShare) {
 		TransactionRecord transactionRecord = 
-				new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "sell", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EventSource.PMUserBuySell);
+				new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "sell", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
 		getTransactionHistory().add(transactionRecord);
 		return transactionRecord;
 	}
@@ -54,7 +54,7 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) {
 		if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
 			TransactionRecord transactionRecord = 
-					new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "buy", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EventSource.PMUserBuySell);
+					new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "buy", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
 			getTransactionHistory().add(transactionRecord);
 			return transactionRecord;
 		}

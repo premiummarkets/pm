@@ -79,7 +79,7 @@ public class DonePanelDescriptor extends WizardPanelDescriptor {
     	SystemTypes systemType = Install.systemType;
     	if (systemType == null) systemType = SystemTypes.WINDOWS;
     	
-		String installDir = InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath() + File.separator + "shell";
+		String installDir = InstallFolderPanel.getPmFolder().getAbsolutePath() + File.separator + "shell";
 		String guiShell = installDir + File.separator + "gui" + systemType.getShext();
 	
 		panel3.endInstall.append("Installation completed.\n" +

@@ -75,15 +75,15 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalc
 		{
 			//BULL : MACD above its signal line over 2 days cross over 0
 			boolean isMacdAboveSignal = (macd.getSignal()[macdIndicatorIndex] < macd.getMacd()[macdIndicatorIndex]);	// 1rst macd > 1rst signal
-			boolean isMacdCrossingAboveZero = ( macd.getMacd()[macdIndicatorIndex-1] < 0) && (0 < macd.getMacd()[macdIndicatorIndex]); //masc crossed over 0
+			boolean isMacdCrossingAboveZero = (macd.getMacd()[macdIndicatorIndex-1] <= 0) && (0 < macd.getMacd()[macdIndicatorIndex]); //masc crossed over 0
 			res.setBullishCrossOver(isMacdAboveSignal && isMacdCrossingAboveZero); 
 			if (res.getBullishCrossOver()) return res;
 		}
 		
 		{
 			//BEAR : MACD below its signal line over 2 days cross below 0
-			boolean isMacdBelowSignal = (macd.getSignal()[macdIndicatorIndex] >  macd.getMacd()[macdIndicatorIndex]); 	// 1rst macd < 1rst signal
-			boolean isMacdCrossingBelowZero = ( macd.getMacd()[macdIndicatorIndex-1] > 0) && (0 > macd.getMacd()[macdIndicatorIndex]); //masc crossed bellow 0
+			boolean isMacdBelowSignal = (macd.getSignal()[macdIndicatorIndex] >  macd.getMacd()[macdIndicatorIndex]); 	// 1rst signal > 1rst macd
+			boolean isMacdCrossingBelowZero = (macd.getMacd()[macdIndicatorIndex-1] >= 0) && (0 > macd.getMacd()[macdIndicatorIndex]); //masc crossed bellow 0
 			res.setBearishCrossBellow(isMacdBelowSignal && isMacdCrossingBelowZero); 		
 		}
 		

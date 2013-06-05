@@ -35,18 +35,18 @@ package com.finance.pms.events;
 
 import java.util.Date;
 
-public class WeatherEventKey implements EventKey {
+public class WeatherEventKey extends EventKey {
 
 	private static final long serialVersionUID = 1806331274610032030L;
 
 	private Date date;
-	private EventDefinition eventdef;
+	private EventInfo eventdef;
 	private EventType eventType;
 	private String hint;
 	
 	
 
-	public WeatherEventKey(Date date, EventDefinition eventdef, EventType eventType, String hint) {
+	public WeatherEventKey(Date date, EventInfo eventdef, EventType eventType, String hint) {
 		super();
 		this.date = date;
 		this.eventdef = eventdef;
@@ -54,10 +54,11 @@ public class WeatherEventKey implements EventKey {
 		this.hint = hint;
 	}
 
-	public WeatherEventKey(Date date, int eventdefId, String eventType, String hint) {
+	public WeatherEventKey(Date date, String eventInfoReference, String eventType, String hint) throws NoSuchFieldException {
 		super();
 		this.date = date;
-		this.eventdef = EventDefinition.valueOf(eventdefId);
+		//this.eventdef = EventDefinition.valueOfEventInfo(eventInfoReference);
+		this.eventdef = EventDefinition.valueOf(eventInfoReference);
 		this.eventType = EventType.valueOf(eventType.charAt(0));
 		this.hint = hint;
 	}
@@ -67,84 +68,24 @@ public class WeatherEventKey implements EventKey {
 		return date;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Comparable getEventDefId() {
+	public EventInfo getEventInfo() {
 		return eventdef;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Comparable getEvenType() {
+	public EventType getEventType() {
 		return eventType;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Comparable getEventDefExtra() {
+	public String getEventInfoExtra() {
 		return hint;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
-		result = prime * result + ((eventdef == null) ? 0 : eventdef.hashCode());
-		result = prime * result + ((hint == null) ? 0 : hint.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		WeatherEventKey other = (WeatherEventKey) obj;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (date.compareTo(other.date) != 0)
-			return false;
-		if (eventType != other.eventType)
-			return false;
-		if (eventdef != other.eventdef)
-			return false;
-		if (hint == null) {
-			if (other.hint != null)
-				return false;
-		} else if (!hint.equals(other.hint))
-			return false;
-		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "WeatherEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + ", hint=" + hint + "]";
 	}
-
-	@Override
-	public int compareTo(EventKey o) {
-		
-		int dateCompare = date.compareTo(o.getDate());
-		if (dateCompare == 0) {
-			int evtTypecompare = eventType.compareTo((EventType) o.getEvenType());
-			if (evtTypecompare == 0) {
-				int evtDefCompare = eventdef.compareTo((EventDefinition) o.getEventDefId());
-				if (evtDefCompare == 0) {
-					return getEventDefExtra().toString().compareTo(o.getEventDefExtra().toString());
-				}
-			}
-			return evtTypecompare;
-		}
-		
-		return dateCompare;
-		
-	}
-	
 
 }

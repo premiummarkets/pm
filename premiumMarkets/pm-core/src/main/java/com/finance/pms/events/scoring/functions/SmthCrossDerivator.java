@@ -70,10 +70,10 @@ public class SmthCrossDerivator implements DiscretDerivator {
 			double[] ctl = control.get(keys.get(i));
 			
 			if (smth != null && prevSmth != null && prevCtl != null && ctl != null) {
-				boolean isCtlUp = prevCtl[0] < ctl[0];
+			
 				boolean isCrossingAboveSmth = values.get(i-1)[0] < prevSmth[0] && smth[0] <= values.get(i)[0];
 				boolean isBelowLowThr = lowThreshold >= values.get(i)[0];
-				boolean isBelowCenter = 0.5 >= values.get(i)[0];
+				
 				if ( isCrossingAboveSmth && isBelowLowThr ) {
 					drv = 0.0;
 				} else {

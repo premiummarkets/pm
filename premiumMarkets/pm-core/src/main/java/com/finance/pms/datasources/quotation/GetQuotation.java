@@ -46,6 +46,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.events.quotations.LastUpdateStampChecker;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ObserverMsg;
@@ -77,6 +78,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		super();
 		this.stock = stock;
 		
+		//Fix date time fields
 		Calendar endDayMidNight = Calendar.getInstance();
 		endDayMidNight.setTime(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
 		endDayMidNight.set(Calendar.HOUR_OF_DAY, 0);
@@ -84,16 +86,19 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		endDayMidNight.set(Calendar.SECOND, 0);
 		endDayMidNight.set(Calendar.MILLISECOND, 0);
 		this.dateFin = endDayMidNight.getTime();
+		
+		
 	
 	}
 
 	@Override
 	public GetQuotationResult call() {
 		
-		Date lastQuoteDate=null;
+		Date lastQuoteDate = null;
 		GetQuotationResult ret = new GetQuotationResult(stock);
 		
 		try {
+			
 			
 			lastQuoteDate = DataSource.getInstance().getLastQuotationDateFromShares(stock);
 
@@ -113,14 +118,25 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 				return ret;
 			}
 
-			LOGGER.guiInfo(
-					"Updating quotation for "+stock.getSymbol()+
-					" from the " +new SimpleDateFormat("yyyy/MM/dd").format(lastQuoteDate)+ 
-					" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+			
+			//Check last quote update
+			LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(stock);
+			if (lastUpdateChecker.isUpdateGranted()) {
 
-
-			LOGGER.guiInfo("Downloading for "+stock.getSymbol()+" / "+stock.getIsin()+" from the " + lastQuoteDate + " to " + dateFin);
-			Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, lastQuoteDate, dateFin);
+				//Update
+				LOGGER.guiInfo(	"Updating quotation for "+stock.getFriendlyName()+
+								" from the " +new SimpleDateFormat("yyyy/MM/dd").format(lastQuoteDate)+ 
+								" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+	
+				LOGGER.guiInfo("Downloading for "+stock.getFriendlyName()+" from the " + lastQuoteDate + " to " + dateFin);
+				Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, lastQuoteDate, dateFin);
+				
+			} else {
+				
+				//No Update
+				LOGGER.guiInfo("Request for updating "+stock.getFriendlyName()+" from the " + lastQuoteDate + " to " + dateFin + " : nothing to do as last update was on the "+lastUpdateChecker);
+				
+			}
 			
 		} catch (Exception e) {
 			

@@ -46,14 +46,6 @@ public class ValidatedLatestEventsSignal extends LatestEventsSignal {
 	@Override
 	public Integer addFilteredEvent(EventValue eventValue) {
 		
-//		boolean isSameTrend = isSameTrend(eventValue);
-//		if (!isSameTrend) {
-//			if (eventValue.getEventType().equals(EventType.BEARISH) || eventValue.getEventType().equals(EventType.NONE)) {//Change from bearish to bullish as we parse from the latest (inv. chronological)
-//				this.signalWeight++;
-//			} else if (eventValue.getEventType().equals(EventType.BULLISH) || eventValue.getEventType().equals(EventType.NONE)) { //vice versa
-//				this.signalWeight--;
-//			} 
-//		}
 		if (eventValue.getEventType().equals(EventType.BEARISH)) {
 			this.signalWeight--;
 		} else if (eventValue.getEventType().equals(EventType.BULLISH)) {
@@ -69,11 +61,5 @@ public class ValidatedLatestEventsSignal extends LatestEventsSignal {
 	protected Boolean isFilteredEvent(EventValue eventValue) {
 		return eventValue.getEventDef().equals(filteredEventDef);
 	}
-
-//	@Override
-//	protected boolean isSameTrend(EventValue eventValue) {
-//		if (this.lastParsedEventType == null || this.lastParsedEventType.equals(EventType.NONE)) return false;
-//		return  this.lastParsedEventType.equals(eventValue.getEventType());
-//	}
 
 }

@@ -49,13 +49,8 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(LogComposite.class);
 	
-	/** The log display. */
 	public Label logDisplay;
-	
-	/** The progress bar. */
 	public ProgressBar progressBar;
-	
-	/** The progress bar label. */
 	public Label progressBarLabel;
 
 	private long startTime;
@@ -63,34 +58,42 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 	private Integer totalIter;
 	private RefreshableView view;
 
-	public LogComposite(Composite arg0, int arg1) {
-		super(arg0, arg1);
+	public LogComposite(Composite parent) {
+		super(parent, SWT.NONE);
 		
 		{
 			GridLayout group1Layout = new GridLayout();
-			group1Layout.numColumns = 8;
+			group1Layout.numColumns = 10;
 			group1Layout.marginHeight = 0;
+			group1Layout.verticalSpacing = 0;
 			group1Layout.makeColumnsEqualWidth = true;
 			this.setLayout(group1Layout);
+			
+			this.setBackgroundMode(SWT.INHERIT_DEFAULT);
 			{
-			    logDisplay = new Label(this,SWT.SHADOW_NONE);
-			    GridData logDisplayGD = new GridData(GridData.FILL_BOTH);
+				logDisplay = new Label(this,SWT.NONE);
+			    GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
 			    logDisplayGD.horizontalSpan=4;
-			    logDisplayGD.grabExcessHorizontalSpace=false;
 			    logDisplay.setLayoutData(logDisplayGD);
+			   
 				logDisplay.setFont(MainGui.DEFAULTFONT);
 			}
 			{
 				progressBar = new ProgressBar(this, SWT.SMOOTH);
-				GridData logDisplayGD = new GridData(GridData.FILL_BOTH);
-				logDisplayGD.horizontalSpan = 3;
+				GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
+				logDisplayGD.horizontalSpan=4;
 				progressBar.setLayoutData(logDisplayGD);
+				
 				progressBar.setFont(MainGui.DEFAULTFONT);
 				progressBar.setMaximum(100);
 				progressBar.setSelection(0);
 				progressBar.setVisible(true);
-				
+			}
+			{
 				progressBarLabel = new Label(this, SWT.LEFT|SWT.HORIZONTAL);
+				GridData prgLabelGD = new GridData(SWT.FILL,SWT.FILL,true,true);
+				prgLabelGD.horizontalSpan=2;
+				progressBarLabel.setLayoutData(prgLabelGD);
 				progressBarLabel.setText("-");
 				progressBarLabel.setSize(40, SWT.DEFAULT);
 				progressBarLabel.setFont(MainGui.DEFAULTFONT);
@@ -113,29 +116,35 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 
 		long currentTime = (new Date()).getTime();
 		
-		long timeElapsed = (nbIterDone == 0)?0:(currentTime - startTime);
-		String timeElapsedStr = timeElapsed/(1000*60) + " minutes "+ (timeElapsed - (1000*60)*(timeElapsed/(1000*60)))/1000 + " secondes.";
+		long timeElapsed = (nbIterDone == 0)? 0 : (currentTime - startTime);
+		String timeElapsedStr = timeElapsed/(1000*60) + " minutes "+ (timeElapsed - (1000*60)*(timeElapsed/(1000*60)))/1000 + " seconds.";
 		
 		progressBarLabel.setText("Time elapsed : "+timeElapsedStr);
-		double percentDone = (totalIter == 0)?0:new Double(nbIterDone)/new Double(totalIter);
-		progressBar.setSelection((int) Math.rint(percentDone*100));
-		logDisplay.setText(MyLogger.lastMessage);
-		
 		progressBarLabel.pack();
+		
+		//logDisplay.setText(MyLogger.lastMessage.substring(0, 100) + ((MyLogger.lastMessage.length() > 100)?" ...":""));
+		logDisplay.setText(MyLogger.lastMessage);
+		logDisplay.setToolTipText(MyLogger.lastMessage);
 		logDisplay.pack();
 		
+		double percentDone = (totalIter == 0)? 0 : new Double(nbIterDone)/new Double(totalIter);
+		progressBar.setSelection((int) Math.rint(percentDone*100));
 		
+		this.layout();
+
 	}
 
 	
 	public void endJob(List<Exception> exceptions) {
-		progressBarLabel.setText("-");
+		progressBarLabel.setText("_ _ _");
 		progressBar.setSelection(0);
 		logDisplay.setText("");
 		
 		progressBarLabel.pack();
 		logDisplay.pack();
 		
+		this.layout();
+
 		view.refreshView(exceptions);
 	}
 
@@ -160,7 +169,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				totalIter = (Integer) observerMsg.getNameValuePairs().get(0).value;
 				nbIterDone = 0;
 			} catch (Exception e) {
-				LOGGER.warn("Unhandeled logger notication : "+arg);
+				LOGGER.warn("Unhandled logger notification : "+arg);
 			}
 	
 		} else if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) { //Logger end

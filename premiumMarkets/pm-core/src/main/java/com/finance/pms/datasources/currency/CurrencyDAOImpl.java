@@ -37,9 +37,12 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.finance.pms.datasources.shares.Currency;
 
+@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class CurrencyDAOImpl extends HibernateDaoSupport implements CurrencyDAO {
 
 
@@ -50,6 +53,7 @@ public class CurrencyDAOImpl extends HibernateDaoSupport implements CurrencyDAO 
 	}
 
 	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
 	public List<CurrencyRate> getRates(Currency fromCurrency,Currency toCurrency) {
 		
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(CurrencyRate.class).addOrder(Order.asc("date"));

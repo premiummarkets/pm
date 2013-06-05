@@ -35,20 +35,20 @@ import java.util.Date;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
-import com.finance.pms.screening.TrendSupplementedStock.MyBigDec;
+import com.finance.pms.screening.ScreeningSupplementedStock.MyBigDec;
 
 public class InfoOrdinator extends FullRatingOrdinator {
 
-	public InfoOrdinator(Collection<TrendSupplementedStock> listOfShares, Date end) {
+	public InfoOrdinator(Collection<ScreeningSupplementedStock> listOfShares, Date end) {
 		super(listOfShares, end);
 	}
 	
 	@Override
-	public NavigableSet<TrendSupplementedStock> filterCredible() {
+	public NavigableSet<ScreeningSupplementedStock> filterCredible() {
 		
-		NavigableSet<TrendSupplementedStock> ret = new TreeSet<TrendSupplementedStock>(new FullRatingCompartor());
+		NavigableSet<ScreeningSupplementedStock> ret = new TreeSet<ScreeningSupplementedStock>(new FullRatingCompartor());
 		
-		for (TrendSupplementedStock trendedStock : listOfShares) {
+		for (ScreeningSupplementedStock trendedStock : listOfShares) {
 			MyBigDec fullRating = trendedStock.fullRating();
 			if (fullRating.isValid() && fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) < 0) {
 				ret.add(trendedStock);

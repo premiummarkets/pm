@@ -45,7 +45,10 @@ public class ShareListInfo implements InfoObject {
 	public String toString() {
 		return "ShareListInfo [shareListName=" + shareListName + "]";
 	}
-	
-	
+
+	@Override
+	public String tootTip() {
+		return info();
+	}	
 	
 }

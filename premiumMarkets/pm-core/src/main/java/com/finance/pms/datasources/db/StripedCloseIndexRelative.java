@@ -50,7 +50,6 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseIndexRelative.class);
 
-	/** The relative quotations. */
 	Quotations relativeQuotations;
 
 	Date startDate;

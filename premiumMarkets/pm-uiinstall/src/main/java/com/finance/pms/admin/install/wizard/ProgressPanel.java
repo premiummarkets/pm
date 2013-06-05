@@ -196,8 +196,6 @@ public ProgressPanel() {
         jLabel2 = new JLabel();
         
         contentPanel1.setLayout(new BorderLayout());
-        //contentPanel1.add(blankSpace, BorderLayout.NORTH);
-       // contentPanel1.add(blankSpace);
         
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
@@ -244,7 +242,6 @@ public ProgressPanel() {
 			button.setFocusable(true);
 			
 			contentPanel1.add(button, java.awt.BorderLayout.CENTER);
-			//contentPanel1.add(button);
 			
 		} catch (URISyntaxException e) {
 			e.printStackTrace();

@@ -132,8 +132,8 @@ public class MarketsSettings extends Composite {
 	public static void main(String[] args) {
 		
 		
-		SpringContext springContext = new SpringContext();
-		springContext.setDataSource(args[0]);
+		SpringContext springContext = new SpringContext(args[0]);
+		//springContext.setDataSource(args[0]);
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml", "/talibanalysisservices.xml");
 		springContext.refresh();
 		
@@ -144,8 +144,7 @@ public class MarketsSettings extends Composite {
 		
 		while (!shell.isDisposed()) {
 			try {
-				if (!shell.isDisposed() && !shell.getDisplay().readAndDispatch())
-					shell.getDisplay().sleep();
+				if (!shell.isDisposed() && !shell.getDisplay().readAndDispatch()) shell.getDisplay().sleep();
 			} catch (RuntimeException e) {
 				LOGGER.error("Error in Market Settings Gui : " + e.getMessage(), e);
 				LOGGER.debug("Error in Market Settings Gui : ", e);

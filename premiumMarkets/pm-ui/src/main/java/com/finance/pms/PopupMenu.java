@@ -1,6 +1,8 @@
 package com.finance.pms;
 
+import java.util.Comparator;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -20,17 +22,28 @@ public class PopupMenu<T extends InfoObject>  {
 
 	private final Control root;
 	private int style;
-	private Set<T> buttonInfoList;
-	private Set<T> selectionList;
+	private Set<T> availableOptSet;
+	private Set<T> selectionSet;
 	private Control parent;
+	
+	private Boolean unableSelectAll;
 
-	public PopupMenu(Control parent, Control root, Set<T> buttonInfoList, Set<T> selectionList, int style) {
+	public PopupMenu(Control parent, Control root, Set<T> availableOptSet, Set<T> selectionList, Boolean unableSelectAll, int style) {
 		super();
 		this.root = root;
 		this.style = style;
-		this.buttonInfoList = buttonInfoList;
-		this.selectionList = selectionList;
+		
+		this.availableOptSet = new TreeSet<T>(new Comparator<T>() {
+			@Override
+			public int compare(T o1, T o2) {
+				return o1.info().compareTo(o2.info());
+			}
+		});
+		this.availableOptSet.addAll(availableOptSet);
+		
+		this.selectionSet = selectionList;
 		this.parent = parent;
+		this.unableSelectAll = unableSelectAll;
 	}
 
 	public void open() {
@@ -45,12 +58,49 @@ public class PopupMenu<T extends InfoObject>  {
 				selectionShell.setVisible(false);
 			}
 		});
+		
+		if (unableSelectAll) {
+			final Button selectAllBut = new Button(selectionShell, style);
+			selectAllBut.setText("Select/Deselect all");
+			selectAllBut.setFont(MainGui.DEFAULTFONT);
+			selectAllBut.addSelectionListener(new SelectionListener() {
 
-		for (final T buttonInfo : buttonInfoList) {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+				
+				private void handle() {
+					if (selectAllBut.getSelection()) {
+						for (Control button : selectionShell.getChildren()) {
+							((Button)button).setSelection(true);
+							@SuppressWarnings("unchecked")
+							T data = (T) ((Button)button).getData();
+							if (data != null) selectionSet.add(data);
+						}
+					} else {
+						for (Control button : selectionShell.getChildren()) {
+							((Button)button).setSelection(false);
+						}
+						selectionSet.clear();
+					}
+				}
+				
+			});
+		}
+
+		for (final T buttonInfo : availableOptSet) {
 			
 			final Button button = new Button(selectionShell, style);
 			button.setText(buttonInfo.info());
+			button.setData(buttonInfo);
 			button.setFont(MainGui.DEFAULTFONT);
+			button.setToolTipText(buttonInfo.tootTip());
 			button.addSelectionListener(new SelectionListener() {
 				
 				@Override
@@ -66,15 +116,15 @@ public class PopupMenu<T extends InfoObject>  {
 				
 				private void handleSelection(T buttonInfo, final Button button) {
 					if (button.getSelection()) {
-						selectionList.add(buttonInfo);
+						selectionSet.add(buttonInfo);
 					} else {
-						selectionList.remove(buttonInfo);
+						selectionSet.remove(buttonInfo);
 					}
 				}
 				
 			});
 			
-			if (selectionList.contains(buttonInfo)) button.setSelection(true);
+			if (selectionSet.contains(buttonInfo)) button.setSelection(true);
 			button.setVisible(true);
 		}
 		
@@ -89,7 +139,6 @@ public class PopupMenu<T extends InfoObject>  {
 				selectionShell.getBounds().width, selectionShell.getBounds().height);
 		
 		selectionShell.open();
-		
 		selectionShell.setFocus();
 		
 		Display display = selectionShell.getDisplay();

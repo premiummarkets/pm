@@ -73,12 +73,12 @@ public class SectorExporter extends Exporter<NavigableSet<Sector>> {
 
 	private String getAllSharesFromSector(Sector sector) {
 		
-		NavigableSet<TrendSupplementedStock> listOfShares = sector.getListOfShares();
+		NavigableSet<ScreeningSupplementedStock> listOfShares = sector.getListOfShares();
 		Integer listOfSharesSize = listOfShares.size();
 		String allShares = listOfSharesSize.toString().concat(SEPARATOR);
 		
 		allShares.concat(BLANK);
-		for (TrendSupplementedStock share : listOfShares) {
+		for (ScreeningSupplementedStock share : listOfShares) {
 			allShares = allShares.concat(share.getName().replace("&amp;", "&")).concat(" (").concat(share.getSectorHint().replace("&amp;", "&")).concat(") ").concat(BLANK);
 		}
 		return allShares;

@@ -50,7 +50,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 
 
@@ -103,7 +103,7 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 	 * @see com.finance.pms.events.calculation.IndicatorCalculationService#analyseSymbolCollection(java.lang.String, java.util.Date, java.util.Date, java.util.Collection)
 	 */
 	@Override
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, 
 			String analyseName,String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean p, String passOneCalcMode, Observer...observers) {
 

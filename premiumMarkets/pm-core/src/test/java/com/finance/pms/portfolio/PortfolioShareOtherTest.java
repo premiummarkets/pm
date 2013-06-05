@@ -69,8 +69,8 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Before
 	public void setUp() {
 		
-		SpringContext springContext = new SpringContext();
-		springContext.setDataSource(System.getProperty("installdir") + File.separator +"db.properties");
+		SpringContext springContext = new SpringContext(System.getProperty("installdir") + File.separator +"db.properties");
+		//springContext.setDataSource(System.getProperty("installdir") + File.separator +"db.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
 		

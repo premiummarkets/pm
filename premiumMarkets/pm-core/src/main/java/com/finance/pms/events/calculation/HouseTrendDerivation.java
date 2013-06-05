@@ -44,9 +44,12 @@ import java.util.SortedMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -54,44 +57,46 @@ import com.finance.pms.events.quotations.CalculationQuotations;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
-import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
+import com.finance.pms.threads.ConfigThreadLocal;
 
 public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator {
 	
+	//public static final int HOUSETRENDPERIOD = 1;
+	//public static final int QUOTESMTHPERIOD = 21;
 	private SMA sma;
 	private Integer smaQuotationStartDateIdx;
 
-	private int htSmthPeriod = 500;
 	private SortedMap<Date, double[]> houseTrend;
-	private SortedMap<Date, double[]> smoothedHouseTrend;
+	private int houseTrendPeriod;
+	private int houseTrendQuoteSmthPeriod;
 	
 	
-	public HouseTrendDerivation(Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency, Integer smaPeriod) throws NotEnoughDataException, TalibException, NoQuotationsException  {
+	public HouseTrendDerivation(EventInfo eventInfo, Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency) throws NotEnoughDataException, TalibException, NoQuotationsException  {
 		super(stock, firstDate, lastDate, calculationCurrency);
-	
-		sma = new SMA(stock, smaPeriod, firstDate, lastDate, calculationCurrency, 2*(7*htSmthPeriod/5), 0);
+		
+		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+		this.houseTrendPeriod = eventSignalConfig.getRocNNeuralHouseTrendPeriod();
+		this.houseTrendQuoteSmthPeriod = eventSignalConfig.getRocNNeuralQuoteSmthPeriod();
+
+		sma = new SMA(stock, houseTrendQuoteSmthPeriod, firstDate, lastDate, calculationCurrency,  2*(7*Math.max(houseTrendQuoteSmthPeriod,houseTrendPeriod)/5), 0);
 		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, firstDate);
 		
 		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, lastDate);
 		isValidData(stock, sma, firstDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 		
-		HouseTrendSmoother  houseTrendSmoother = new HouseTrendSmoother();
+		HouseTrendSmoother  houseTrendSmoother = new HouseTrendSmoother(houseTrendPeriod);
 		SortedMap<Date, double[]> mapFromSma = QuotationsFactories.getFactory().buildMapFromQuotations(new CalculationQuotations(stock, sma.getStripedData(0), calculationCurrency));
 		houseTrend = houseTrendSmoother.smooth(mapFromSma, false);
 		
-		
-		TalibSmaSmoother outputSmoother = new TalibSmaSmoother(htSmthPeriod);
-		smoothedHouseTrend = outputSmoother.smooth(houseTrend, false);
-		
 	}
 	
-	public HouseTrendDerivation(Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
-		this(stock,firstDate,lastDate,calculationCurrency, 84);
+	public HouseTrendDerivation(EventInfo eventInfo, Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
+		this(eventInfo, stock,firstDate,lastDate,calculationCurrency);
 	}
 
 	@Override
@@ -101,15 +106,19 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 		Date prevDate = this.getCalculatorQuotationData().getDate(calculatorIndex-1);
 		Date date = this.getCalculatorQuotationData().getDate(calculatorIndex);
 		res.setCurrentDate(date);
-
+		
+		double[] prevHt = houseTrend.get(prevDate);
+		double[] currentHt = houseTrend.get(date);
+		if (prevHt == null || currentHt == null) return res;
+		
 		{
-			Boolean isHTCrossingUpZero = smoothedHouseTrend.get(prevDate)[0] < 0 && 0 < smoothedHouseTrend.get(date)[0];
+			Boolean isHTCrossingUpZero = prevHt[0] <= 0 && 0 < currentHt[0];
 			res.setBullishCrossOver(isHTCrossingUpZero); 
 			if (res.getBullishCrossOver()) return res;
 
 		}
 		{
-			Boolean isHTCrossingDownZero = smoothedHouseTrend.get(prevDate)[0] > 0 && 0 > smoothedHouseTrend.get(date)[0];
+			Boolean isHTCrossingDownZero = prevHt[0] >= 0 && 0 > currentHt[0];
 			res.setBearishCrossBellow(isHTCrossingDownZero);
 			return res;
 			
@@ -139,7 +148,7 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
 		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, smaQuotationStartDateIdx);
 		
-		double[] smthOutput = this.smoothedHouseTrend.get(calculatorDate);
+		double[] smthOutput = this.houseTrend.get(calculatorDate);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
 			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," 
@@ -164,7 +173,7 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 
 	@Override
 	protected SortedMap<Date, double[]> buildOutput() {
-		return smoothedHouseTrend;
+		return houseTrend;
 	}
 	
 	
@@ -175,7 +184,7 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 
 	@Override
 	protected int getDaysSpan() {
-		return 1;
+		return houseTrendPeriod;
 	}
 
 	@Override
@@ -185,7 +194,7 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 	
 	@Override
 	public SortedMap<Date, double[]> calculationOutput() {
-		return smoothedHouseTrend;
+		return houseTrend;
 	}
 
 

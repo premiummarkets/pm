@@ -33,6 +33,7 @@ package com.finance.pms.events.pounderationrules;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.portfolio.AbstractSharesList;
@@ -59,7 +60,7 @@ public abstract class OneEventScreenerSignal extends LatestEventsSignal {
 	}
 
 	@Override
-	public Integer addEvent(EventValue eventValue) {
+	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		
 		if (isFilteredEvent(eventValue)) {
 			//Bearish Neural

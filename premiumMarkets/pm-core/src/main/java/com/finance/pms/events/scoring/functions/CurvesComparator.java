@@ -57,6 +57,13 @@ public abstract class CurvesComparator {
 	protected Date cmpEnd;
 	
 
+	/**
+	 * Compare two input and gives the stdev
+	 *
+	 * @param start 
+	 * @param end 
+	 * @param maxShift 
+	 */
 	public CurvesComparator(Date start, Date end, int maxShift) {
 		super();
 		this.maxShift = maxShift;

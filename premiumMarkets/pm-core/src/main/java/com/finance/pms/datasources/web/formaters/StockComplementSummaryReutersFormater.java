@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.MyUrl;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementSummaryReutersFormater extends LineFormater {
 	
@@ -49,7 +49,7 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 	private Pattern epsValue;
 	private boolean foundEPS;
 
-	public StockComplementSummaryReutersFormater(String url, TrendSupplementedStock stockPart) {
+	public StockComplementSummaryReutersFormater(String url, ScreeningSupplementedStock stockPart) {
 		super(new MyUrl(url));
 		params.add(stockPart);
 
@@ -68,7 +68,7 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		
-		TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
+		ScreeningSupplementedStock stockPart = (ScreeningSupplementedStock) params.get(0);
 		LOGGER.trace(line);
 		
 		Matcher fitEPS = eps.matcher(line);

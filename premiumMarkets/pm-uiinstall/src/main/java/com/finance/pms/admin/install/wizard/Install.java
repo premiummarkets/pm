@@ -163,8 +163,6 @@ public class Install {
 			wizard.registerWizardPanel(LicencePanelDescriptor.IDENTIFIER, descriptor2);
 			WizardPanelDescriptor descriptor3 = new InstallFolderPanelDescriptor();
 			wizard.registerWizardPanel(InstallFolderPanelDescriptor.IDENTIFIER, descriptor3);
-//			WizardPanelDescriptor descriptor31 = new BaseCheckPanelDescriptor();//
-//			wizard.registerWizardPanel(BaseCheckPanelDescriptor.IDENTIFIER, descriptor31);
 			WizardPanelDescriptor descriptor4 = new ProgressPanelDescriptor();
 			wizard.registerWizardPanel(ProgressPanelDescriptor.IDENTIFIER, descriptor4);
 			WizardPanelDescriptor descriptor5 = new SmtpPanelDescriptor();
@@ -180,25 +178,22 @@ public class Install {
 				SystemTypes systemType = Install.systemType;
 				if (systemType == null) systemType = SystemTypes.WINDOWS;
 
-				final String guiShell = InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath() + 
-						File.separator + "shell" +
-						File.separator + "gui" + systemType.getShext();
+				final String guiShell = InstallFolderPanel.getPmFolder().getAbsolutePath() + File.separator + "shell" + File.separator + "gui" + systemType.getShext();
 
 				final String params[];
 
 				System.out.println("OS like : "+systemType);
 				if (systemType.equals(SystemTypes.WINDOWS)) {		
-					Install.windowsPostInstall(InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath());
-					params = new String[] { guiShell, InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath()};
+					Install.windowsPostInstall(InstallFolderPanel.getPmFolder().getAbsolutePath());
+					params = new String[] { guiShell, InstallFolderPanel.getPmFolder().getAbsolutePath()};
 				} else {
-					params = new String[] {"/bin/bash", guiShell, InstallFolderPanel.piggyMarketSqueakFolder.getAbsolutePath() };
+					params = new String[] {"/bin/bash", guiShell, InstallFolderPanel.getPmFolder().getAbsolutePath() };
 				}
 
 				for (String string : params) {
 					System.out.println("launch gui params : "+string);
 				}
 
-				Runtime runTime = Runtime.getRuntime();
 				try {
 
 					while (ProgressPanelDescriptor.connection != null && !ProgressPanelDescriptor.connection.isClosed()) {
@@ -207,7 +202,11 @@ public class Install {
 					}
 					System.out.println("Install sql connection are closed : ");
 
-					Process process = runTime.exec(params, null, InstallFolderPanel.piggyMarketSqueakFolder);
+					ProcessBuilder builder = new ProcessBuilder(params);
+					builder.redirectErrorStream(true);
+					builder.directory(InstallFolderPanel.getPmFolder());
+					Process process = builder.start();
+					
 					final BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
 					Timer timer = new Timer(true);
@@ -225,7 +224,7 @@ public class Install {
 							}
 						}
 
-					}, 600000);
+					}, 300000);
 
 					String line = null;
 					while (!stopReading.booleanValue() && (line = input.readLine()) != null) {
@@ -255,15 +254,13 @@ public class Install {
 				e.printStackTrace();
 			}
 			try {
-				//while (!connectionCheck.getState().equals(StateValue.DONE)) {
 				while (!stop) {
 					Thread.sleep(3000);
 				}
 			} catch (Throwable e) {
 				e.printStackTrace();
 			}
-			//Runtime.getRuntime().exit(0);
-
+			
 		}
 	}
 	
@@ -284,7 +281,7 @@ public class Install {
 	    Properties props = new Properties();
 		//Load props
 		try {
-			pfile = new File(InstallFolderPanel.piggyMarketSqueakFolder.getAbsoluteFile() + File.separator + "db.properties");
+			pfile = new File(InstallFolderPanel.getPmFolder().getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
 			props.load(propFileIS);
 			props.put("dbpath", installPath+File.separator+"derby"+File.separator);
@@ -304,7 +301,7 @@ public class Install {
 		}
 		
 		try {
-			Process guiBatProcess = runtime.exec(runtimeParams, null, InstallFolderPanel.piggyMarketSqueakFolder);
+			Process guiBatProcess = runtime.exec(runtimeParams, null, InstallFolderPanel.getPmFolder());
 			
 			BufferedReader input = new BufferedReader(new InputStreamReader(guiBatProcess.getInputStream()));
 			String line = null;
@@ -319,10 +316,31 @@ public class Install {
 	}
 	
 	public static void selectNextButton() {
-		Box next = 
-			((Box) ((JPanel)((JPanel)((JLayeredPane)((JRootPane)
-					Install.wizard.getDialog().getComponent(0)).getComponent(1)).getComponent(0)).getComponent(0)).getComponent(1));
-        JButton button = (JButton) next.getComponent(2);
-        button.requestFocusInWindow();
-	} 
+		try {
+			Box next = 
+				((Box) ((JPanel)((JPanel)((JLayeredPane)((JRootPane)
+						Install.wizard.getDialog().getComponent(0)).getComponent(1)).getComponent(0)).getComponent(0)).getComponent(1));
+			JButton button = (JButton) next.getComponent(2);
+			button.requestFocusInWindow();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void pressNextButton() {
+		try {
+			Box next = 
+				((Box) ((JPanel)((JPanel)((JLayeredPane)((JRootPane)
+						Install.wizard.getDialog().getComponent(0)).getComponent(1)).getComponent(0)).getComponent(0)).getComponent(1));
+			JButton button = (JButton) next.getComponent(2);
+			button.doClick();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	public static Wizard getWizard() {
+		return wizard;
+	}
 }

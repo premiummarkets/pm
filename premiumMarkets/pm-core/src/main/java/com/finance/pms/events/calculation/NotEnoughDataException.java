@@ -32,6 +32,8 @@ package com.finance.pms.events.calculation;
 
 import java.util.Date;
 
+import com.finance.pms.datasources.shares.Stock;
+
 
 public class NotEnoughDataException extends Exception {
 
@@ -39,15 +41,18 @@ public class NotEnoughDataException extends Exception {
 	
 	private Date shiftedStartDate;
 	private Date shiftedEndDate;
+	private Stock stock;
 
-	public NotEnoughDataException(String message, Throwable cause) {
+	public NotEnoughDataException(Stock stock, String message, Throwable cause) {
 		super(message, cause);
+		this.stock = stock;
 	}
 
-	public NotEnoughDataException(Date shiftedStartDate, Date shiftedEndDate, String message, Throwable cause) {
+	public NotEnoughDataException(Stock stock, Date shiftedStartDate, Date shiftedEndDate, String message, Throwable cause) {
 		super(message, cause);
 		this.shiftedStartDate = shiftedStartDate;
 		this.shiftedEndDate = shiftedEndDate;
+		this.stock = stock;
 	}
 
 	public Date getShiftedStartDate() {
@@ -60,11 +65,11 @@ public class NotEnoughDataException extends Exception {
 
 	@Override
 	public String getMessage() {
+		String msg = ((stock != null)? stock +" :\n ":"Unknown :\n ") + super.getMessage();
 		if (shiftedEndDate !=null && shiftedStartDate != null) {
-			return super.getMessage()+"FYI, the available quotations for this share ranges from "+shiftedStartDate+ " to "+ shiftedEndDate + ".";
-		} else {
-			return super.getMessage();
-		}
-		
+			msg = msg + ".\n Shifted dates info (regarding quotations availability?) "+shiftedStartDate+ " to "+ shiftedEndDate + ".";
+			//return super.getMessage()+"FYI, the available quotations for this share ranges from "+shiftedStartDate+ " to "+ shiftedEndDate + ".";
+		} 
+		return msg;		
 	}
 }

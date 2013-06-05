@@ -1,0 +1,1 @@
+macd:MACDSignal(12.0,26.0,9.0,close)

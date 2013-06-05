@@ -52,7 +52,6 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -113,6 +112,8 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	protected StockList stockList;
 	protected Composite ctrlComposite;
 
+	private int tabIdx;
+
 
 	/**
 	 * Instantiates a new new portfolio item dialog.
@@ -123,17 +124,16 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param composite 
+	 * @param tabIdx 
 	 */
-	public NewPortfolioItemDialog(Composite parent, int style, Composite composite) {
+	public NewPortfolioItemDialog(int tabIdx, Composite parent, int style, Composite composite) {
 		
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
 		
 		this.stockList = new StockList();
 		this.caller = composite;
-		
-		FontData[] defaultFontData = MainGui.DEFAULTFONT.getFontData();
-		defaultFontData[0].setHeight(11);
-		biggerFont = new Font(this.getParent().getDisplay(), defaultFontData);
+		this.tabIdx = tabIdx;
+		biggerFont =  MainGui.DEFAULTFONT;
 	}
 
 	/**
@@ -144,11 +144,11 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @author Guillaume Thoreton
 	 */
 	public static void main(String[] args) {
-		SpringContext ctx = new SpringContext();
-		ctx.setDataSource(args[0]);
+		SpringContext ctx = new SpringContext(args[0]);
+		//ctx.setDataSource(args[0]);
 		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
 		ctx.refresh();
-		showUI(new ArrayList<PortfolioShare>(), new Shell(), null);
+		showUI(0, new ArrayList<PortfolioShare>(), new Shell(), null);
 		
 	}
 
@@ -161,7 +161,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public static NewPortfolioItemDialog showUI(Collection<PortfolioShare> alreadyScanned, Shell shell, PortfolioComposite composite) {
+	public static NewPortfolioItemDialog showUI(int tabIdx, Collection<PortfolioShare> alreadyScanned, Shell shell, PortfolioComposite composite) {
 		
 		if (NewPortfolioItemDialog.runningInst != null && !NewPortfolioItemDialog.runningInst.isDisposed()) {
 			NewPortfolioItemDialog.runningInst.forceFocus();
@@ -175,7 +175,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			piShell.setFont(MainGui.DEFAULTFONT);
 			piShell.setLayout(new FillLayout(SWT.VERTICAL));
 
-			inst = new NewPortfolioItemDialog(piShell, SWT.RESIZE, composite);
+			inst = new NewPortfolioItemDialog(tabIdx, piShell, SWT.RESIZE, composite);
 			inst.initGui(SWT.MULTI);
 
 			piShell.layout();
@@ -215,8 +215,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		
 		while (!this.isDisposed() && !this.getShell().isDisposed()) {
 			try {
-				if (!this.getDisplay().readAndDispatch())
-					this.getDisplay().sleep();
+				if (!this.getDisplay().readAndDispatch()) this.getDisplay().sleep();
 			} catch (RuntimeException e) {
 				LOGGER.error("Error in New Portfolio Item Gui : " + e.getMessage(),e);
 				LOGGER.debug("Error in New Portfolio Item Gui : ", e);
@@ -751,7 +750,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 
 
 	private void addAction(Set<Stock> stocks, BigDecimal quantity, MonitorLevel monitorLevel) {
-		((PortfolioComposite) caller).addShares(stocks, quantity, monitorLevel);
+		((PortfolioComposite) caller).addShares(tabIdx, stocks, quantity, monitorLevel);
 	}
 	
 

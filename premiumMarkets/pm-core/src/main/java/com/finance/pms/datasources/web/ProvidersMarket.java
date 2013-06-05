@@ -69,6 +69,7 @@ public abstract class ProvidersMarket extends ProvidersList {
 		
 		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
 		
+		LOGGER.info("Market Url : " + getUrl());
 		LineFormater lsf = this.getFormater(getUrl(), this.getMarket(), marketQuotationsProviders);
 		@SuppressWarnings("rawtypes")
 		List ltmp = new ArrayList();

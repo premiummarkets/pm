@@ -34,28 +34,28 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.finance.pms.MainPMScmd;
-import com.finance.pms.portfolio.InfoObject;
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.EventDefDescriptorStatic;
+import com.finance.pms.threads.ConfigThreadLocal;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Enum EventDefinition.
  * 
  * @author Guillaume Thoreton
  */
-public enum EventDefinition implements Serializable, InfoObject {
+public enum EventDefinition implements Serializable, EventInfo {
 	
+	//Start
 	ZERO(0,"Zero", false, null),
 
+	//Mas
 	MACDBUY(2, "MAS MACD Crossover (Buy)", false, null),
 	MACDSELL (3,"MAS MACD Crossover (Sell)", false, null),
 	STOCHASTICBUY(4,"MAS Stochastic %D Crossover (Buy)", false, null),
@@ -75,69 +75,78 @@ public enum EventDefinition implements Serializable, InfoObject {
 	CCIBELOW (18,"MAS CCI Crossed below -x", false, null),
 	UNKNOWN99 (99,"Miscellaneous", false, null),
 	
-	PMSMAREVERSAL (101,"SMA Reversal", false, new  EventDefDescriptor("Close",null,null,"Sma",null,null, "Sma is down and Close < Sma", "Sma is up and Close > Sma")),//
-	PMMACDZEROCROSS (102,"MACD Cross Zero", false, new  EventDefDescriptor("Macd",null,null,"Signal line","Zero line",null,"Macd < Signal and Macd crosses below 0","Macd > Signal and Macd crosses above 0")), //
-	PMMACDSIGNALCROSS (103,"MACD Signal Cross", false, new  EventDefDescriptor("Macd",null,null,"Signal line",null,null,"Macd > 0  and Macd crosses below Signal","Macd < 0  and Macd crosses above Signal")),//
-	PMAROONTREND (104,"Aroon Divergence", false, new  EventDefDescriptor(null,"Down","Up","Middle line","Lower threshold","Upper threshold","Aroon down crosses above Aroon up and Aroon down > Upper Threshold and Aroon up < Lower Threshold","Aroon up crosses above Aroon down and Aroon up > Upper Threshold and Aroon down < Lower Threshold")), //
+	//PM (mostly Talib)
+	PMSMAREVERSAL (101,"SMA Reversal", false, new  EventDefDescriptorStatic("Close",null,null,"Sma",null,null, "Sma 50 is down over 15 days and Close < Sma", "Sma 50 is up over 15 days and Close > Sma")),//
+	PMMACDZEROCROSS (102,"MACD Cross Zero", false, new  EventDefDescriptorStatic("Macd",null,null,"Signal line","Zero line",null,"Macd(12,26,9) < Signal and Macd crosses below 0","Macd(12,26,9) > Signal and Macd crosses above 0")), //
+	PMMACDSIGNALCROSS (103,"MACD Signal Cross", false, new  EventDefDescriptorStatic("Macd",null,null,"Signal line",null,null,"Macd(12,26,9) > 0  and Macd crosses below Signal","Macd(12,26,9) < 0  and Macd crosses above Signal")),//
+	PMAROONTREND (104,"Aroon Divergence", false, new  EventDefDescriptorStatic(null,"Down","Up","Middle line","Lower threshold","Upper threshold","Aroon down crosses above Aroon up and Aroon down > Upper Threshold and Aroon up < Lower Threshold","Aroon up crosses above Aroon down and Aroon up > Upper Threshold and Aroon down < Lower Threshold")), //
 	PMZLAGMACDZCROSS(155,"Zero Lag MACD Signal Cross", false,  null),
 	
-	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  new  EventDefDescriptor("Rsi",null,null,null,"Lower threshold","Upper threshold","Rsi crosses above Upper threshold","Rsi crosses below Lower threshold")),//
-	PMMFITHRESHOLD (111,"MFI Threshold Cross", false, new  EventDefDescriptor("Mfi",null,null,null,"Lower threshold","Upper threshold","Mfi crosses above Upper threshold","Mfi crosses below Lower threshold")),//
-	PMSSTOCHTHRESHOLD (112,"Stochastic Threshold Cross", false, new  EventDefDescriptor("Slow K",null,null,"Slow D","Lower threshold","Upper threshold","Slow D crosses above Upper threshold","Slow D crosses below Lower threshold")),//
-	PMCHAIKINOSCTHRESHOLD (113,"Chaikin Oscillator Threshold", false, new  EventDefDescriptor("Oscillator",null,null,"Zero line",null,null,"Chaikin crosses below 0","Chaikin crosses above 0")),//
+	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold","Rsi crosses above Upper threshold","Rsi crosses below Lower threshold")),//
+	PMMFITHRESHOLD (111,"MFI Threshold Cross", false, new  EventDefDescriptorStatic("Mfi",null,null,null,"Lower threshold","Upper threshold","Mfi crosses above Upper threshold","Mfi crosses below Lower threshold")),//
+	PMSSTOCHTHRESHOLD (112,"Stochastic Threshold Cross", false, new  EventDefDescriptorStatic("Slow K",null,null,"Slow D","Lower threshold","Upper threshold","Slow D crosses above Upper threshold","Slow D crosses below Lower threshold")),//
+	PMCHAIKINOSCTHRESHOLD (113,"Chaikin Oscillator Threshold", false, new  EventDefDescriptorStatic("Oscillator",null,null,"Zero line",null,null,"Chaikin crosses below 0","Chaikin crosses above 0")),//
 
-	PMRSIDIVERGENCE (120,"RSI Divergence", false, new  EventDefDescriptor("Rsi",null,null,null,"Lower threshold","Upper threshold","Price higher high and Rsi lower high","Price lower low and Rsi higher low")), //
-	PMMFIDIVERGENCE (121,"MFI Divergence", false, new  EventDefDescriptor("Mfi",null,null,null,"Lower threshold","Upper threshold","Price higher high and Mfi lower high","Price lower low and Mfi higher low")), //
-	PMSSTOCHDIVERGENCE (122,"Stochastic Divergence", false, new  EventDefDescriptor("Slow K",null,null,"Slow D","Lower threshold","Upper threshold","Price higher high and Stochastic lower high","Price lower low and Stochastic higher low")), // 
-	PMCHAIKINOSCDIVERGENCE (123,"Chaikin Oscillator Divergence", false, new  EventDefDescriptor("Oscillator",null,null,null,null,null,"Price higher high and Chaikin lower high","Price lower low and Chaikin higher low")), //
+	PMRSIDIVERGENCE (120,"RSI Divergence", false, new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold","Price higher high and Rsi lower high","Price lower low and Rsi higher low")), //
+	PMMFIDIVERGENCE (121,"MFI Divergence", false, new  EventDefDescriptorStatic("Mfi",null,null,null,"Lower threshold","Upper threshold","Price higher high and Mfi lower high","Price lower low and Mfi higher low")), //
+	PMSSTOCHDIVERGENCE (122,"Stochastic Divergence", false, new  EventDefDescriptorStatic("Slow K",null,null,"Slow D","Lower threshold","Upper threshold","Price higher high and Stochastic lower high","Price lower low and Stochastic higher low")), // 
+	PMCHAIKINOSCDIVERGENCE (123,"Chaikin Oscillator Divergence", false, new  EventDefDescriptorStatic("Oscillator",null,null,null,null,null,"Price higher high and Chaikin lower high","Price lower low and Chaikin higher low")), //
 	
+	//PM not used
 	PMOBVDIVERGENCE (151,"OBV Divergence", false, null),
 	PMACCDISTDIVERGENCE (152,"Acc Dist Divergence", false, null),
 	STDDEV (154,"Standard Deviation", false, null),
 	
+	//Alert
 	//Attention!! Event of type threshold crossing or Forced Sell must be cleaned (or invalidated) after each signal check?? ToTest.
 	ALERTTHRESHOLD (201,"Alert on Threshold cross", false, null),//Not discardable??
 	
+	//Screener
 	SCREENER (302,"Screener Alert", false, null), //Not discardable
-	WEATHER (401,"Temperature", false, new EventDefDescriptor(null,null,null,null,null,null,"Bearish Temperature reversal","Bullish Temperature reversal")),  //Not discardable
+	
+	//Indeps
+	WEATHER (401,"Temperature", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish Temperature reversal","Bullish Temperature reversal")),  //Not discardable
 	
 	CRASHGUARD (502,"Crash", false, null),
-	NEURAL (503,"Neural", true, new  EventDefDescriptor("Neural output", null, null, null, null, null,"Neural signal is down","Neural signal is up")),
+	NEURAL (503,"Neural", true, new  EventDefDescriptorStatic("Neural output", null, null, null, null, null,"Neural signal is down","Neural signal is up")),
 	VARIATION (504,"Variation", false, null),
 	VARIANCE (505,"Variance", false, null),
-	HOUSETREND(506,"HouseTrend", false, null),
-	SECTOR(507,"Sector Ranks Trend", true, new  EventDefDescriptor("Sector output", null, null, null, null, null,"Neural signal is down","Neural signal is up")),
+	HOUSETREND (506,"Logarithmic ROC", false, new  EventDefDescriptorStatic("Logarithmic ROC",null,null,null,null,null,"House trend crosses below 0","House trend crosses above 0")),
+	SECTOR(507,"Sector Ranks Trend", true, new  EventDefDescriptorStatic("Sector output", null, null, null, null, null,"Neural signal is down","Neural signal is up")),
+	ROCANDNEURAL (508,"Roc 'n' Neural", false, new  EventDefDescriptorStatic("First Neural output","Short Logarithmic ROC" , "Long Logarithmic ROC", "Second Neural output", "Short Roc Zero line", "Long Roc Zero line","First Neural Reversed Down and Roc Crossed below zero\nOr Neural is Down and Roc < zero","First Neural Reversed Up and Roc Crossed above zero\nOr Neural is Up and Roc > zero")),
 	
-	INFINITE (999,"Add All", false, null);
+	PARAMETERIZED (900, "Parameterized Events", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"PARAMETERIZED","PARAMETERIZED")),
+	
+	//End
+	INFINITE (999,"All", false, null);
 
+
+	private static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
+	
 	private static final int FIRSTPMTECHEVENT = 100;
 	private static final int LASTPMTECHEVENT = 150;
-	private static final Map<Integer,String> EVENTDEFLIST;
-	static {
-		EventDefinition edVals[] = EventDefinition.values();
-		EVENTDEFLIST = new HashMap<Integer,String>();
-		for (Integer i =0; i < edVals.length; i++) {
-			EVENTDEFLIST.put(i, edVals[i].getEventDef());
-		}
-	}
+	private static final int FIRSTINDEPTECHEVENT = 400;
+	private static final int LASTINDEPTECHEVENT = 998;
 
-
-	private final String eventDef;
+	
+	//Props
+	private final String eventReadableDef;
 	private final Integer eventDefId;
 	private Boolean isContinous;
-	private EventDefDescriptor eventDefDescriptor;
+	private EventDefDescriptorStatic eventDefDescriptor;
+
 	
 	/**
 	 * Instantiates a new event definition.
 	 * 
-	 * @param order the order
-	 * @param value the value
+	 * @param eventDefId the order
+	 * @param eventDef the value
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private EventDefinition(Integer order,String value, Boolean isContinous, EventDefDescriptor eventDefDescriptor) {
-		this.eventDef = value;
-		this.eventDefId = order;
+	private EventDefinition(Integer eventDefId, String eventDef, Boolean isContinous, EventDefDescriptorStatic eventDefDescriptor) {
+		this.eventReadableDef = eventDef;
+		this.eventDefId = eventDefId;
 		this.isContinous = isContinous;
 		this.eventDefDescriptor = eventDefDescriptor;
 	}
@@ -153,16 +162,17 @@ public enum EventDefinition implements Serializable, InfoObject {
 	 */
 	public static EventDefinition valueOf(Integer evDefId){
 		EventDefinition retour = EventDefinition.UNKNOWN99;
-		for (EventDefinition e: EventDefinition.values()) {
-			if (e.getEventDefId().equals(evDefId)) return e;
+		//for (EventInfo e: allEventInfos()) {
+		for (EventDefinition eventDefinition : EventDefinition.values()) {
+			if (eventDefinition.getEventDefId().equals(evDefId)) return eventDefinition;
 		}
 		return retour;
 	}
 	
-	public static EventDefinition valueOfEventDef(String eventDef){
+	public static EventInfo valueOfEventReadableDef(String eventReadableDef){
 		EventDefinition retour = EventDefinition.UNKNOWN99;
-		for (EventDefinition e: EventDefinition.values()) {
-			if (e.getEventDef().equals(eventDef)) return e;
+		for (EventInfo e: allEventInfos()) {
+			if (e.getEventReadableDef().equals(eventReadableDef)) return e;
 		}
 		return retour;
 	}
@@ -172,8 +182,8 @@ public enum EventDefinition implements Serializable, InfoObject {
 	 * 
 	 * @return the event def
 	 */
-	public String getEventDef() {
-		return eventDef;
+	public String getEventReadableDef() {
+		return eventReadableDef;
 	}
 	
 	/**
@@ -184,44 +194,13 @@ public enum EventDefinition implements Serializable, InfoObject {
 	public Integer getEventDefId() {
 		return this.eventDefId;
 	}
-	
-	/**
-	 * Gets the event def list.
-	 * 
-	 * @return the event def list
-	 */
-	public static Map<Integer,String> getEventDefList() {
-		return EVENTDEFLIST;
-	}
-
-	public static EventDefinition[] tAIndicators() {
-		return subEventArray(0,200);
-	}
-	
-	public static Set<EventDefinition> allIndicators() {
-		return new HashSet<EventDefinition>(Arrays.asList(subEventArray(EventDefinition.ZERO.ordinal(),EventDefinition.INFINITE.ordinal())));
-	}
-	
-	public static EventDefinition[] allDiscardableEvents() {
-		EventDefinition[] taEvts = tAIndicators();
-		EventDefinition[] otherEvts = subEventArray(500, EventDefinition.INFINITE.eventDefId);
-		EventDefinition[] ret = new EventDefinition[taEvts.length+otherEvts.length];
-		for (int i = 0; i < ret.length; i++) {		
-			if (i < taEvts.length) {
-				ret[i] = taEvts[i];
-			} else {
-				ret[i]=otherEvts[i-taEvts.length];
-			}
-		}
-		return ret;
-	}
 
 	/**
 	 * @param ordinal 
 	 * @return
 	 */
 	private static EventDefinition[] subEventArray(int ordinalLow, int ordinalHigh) {
-		ArrayList<EventDefinition> retVal = subEventList(ordinalLow, ordinalHigh);
+		ArrayList<EventInfo> retVal = subEventList(ordinalLow, ordinalHigh);
 		EventDefinition[] eventDefinitions = new EventDefinition[retVal.size()] ;
 		return retVal.toArray(eventDefinitions);
 	}
@@ -231,8 +210,8 @@ public enum EventDefinition implements Serializable, InfoObject {
 	 * @param ordinalHigh
 	 * @return
 	 */
-	private static ArrayList<EventDefinition> subEventList(int ordinalLow, int ordinalHigh) {
-		ArrayList<EventDefinition> retVal = new ArrayList<EventDefinition>();
+	private static ArrayList<EventInfo> subEventList(int ordinalLow, int ordinalHigh) {
+		ArrayList<EventInfo> retVal = new ArrayList<EventInfo>();
 		for (EventDefinition eventDefinition : EventDefinition.values()) {
 			if (eventDefinition.getEventDefId() > ordinalLow && eventDefinition.getEventDefId() < ordinalHigh)
 				retVal.add(eventDefinition);
@@ -260,88 +239,127 @@ public enum EventDefinition implements Serializable, InfoObject {
 	}
 	
 	public static String getIndepEventDefinitionsString() {
-		return getEventDefinitionsString(400, 999);
-	}
-
-	public static List<EventDefinition> getPMEventDefinitionsList() {
-		return subEventList(FIRSTPMTECHEVENT, LASTPMTECHEVENT);
+		return getEventDefinitionsString(FIRSTINDEPTECHEVENT, LASTINDEPTECHEVENT);
 	}
 	
-	public static Set<EventDefinition> getPMEventDefinitionsSet() {
-		return new HashSet<EventDefinition>(subEventList(FIRSTPMTECHEVENT, LASTPMTECHEVENT));
+	public static List<EventInfo> getEventDefinitionsListFor(EventDefinition eventDef) {
+		return subEventList(eventDef.getEventDefId()-1, eventDef.getEventDefId()+1);
 	}
 	
-	public static List<EventDefinition> getEventDefinitionsListFor(EventDefinition eventDef) {
-		return subEventList(eventDef.eventDefId-1, eventDef.eventDefId+1);
-	}
-	
-	public static String getEvtDefsCfgStr(List<EventDefinition> eventDefinitions) {
+	public static String getEvtDefsCfgStr(List<EventInfo> eventDefinitions) {
 		
-		SortedSet<EventDefinition> sortedEvtDefs = new  TreeSet<EventDefinition>(new Comparator<EventDefinition>() {
+		SortedSet<EventInfo> sortedEvtDefs = new  TreeSet<EventInfo>(new Comparator<EventInfo>() {
 			
-			public int compare(EventDefinition o1, EventDefinition o2) {
+			public int compare(EventInfo o1, EventInfo o2) {
 				return o1.getEventDefId().compareTo(o2.getEventDefId());
 			}
 		});
 		sortedEvtDefs.addAll(eventDefinitions);
 		
 		String ret = "";
-		for (EventDefinition eventDefinition : sortedEvtDefs) {
+		for (EventInfo eventDefinition : sortedEvtDefs) {
 			ret = ret + "-" + eventDefinition.getEventDefId();
 		}
 		
 		return ret;
 	}
 	
-	public static String getEventDefArrayAsString(EventDefinition[] definitions) {
+	public static String getEventDefArrayAsString(String sepParam, EventInfo... definitions) {
 		String indicatorsStr = "";
-		for (EventDefinition eventDefinition : definitions) {
-			indicatorsStr = indicatorsStr + " " +eventDefinition.name();
+		String sep="";
+		for (EventInfo eventDefinition : definitions) {
+			indicatorsStr = indicatorsStr + sep +eventDefinition.getEventReadableDef();
+			sep = sepParam;
+		}
+		return indicatorsStr;
+	}
+	
+	public static String getEventDefSetAsString(String sepParam, Set<EventInfo> definitions) {
+		String indicatorsStr = "";
+		String sep="";
+		for (EventInfo eventDefinition : definitions) {
+			indicatorsStr = indicatorsStr + sep +eventDefinition.getEventReadableDef();
+			sep = sepParam;
 		}
 		return indicatorsStr;
 	}
 
-	public static String getEventDefCollectionAsString(Set<EventDefinition> definitions) {
-		return EventDefinition.getEventDefArrayAsString(definitions.toArray(new EventDefinition[]{}));
+	public static  Set<EventInfo> loadFirstPassPrefEventDefinitions() {
+		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+		return eventSignalConfig.getIndicatorsSorted();
 	}
+	
+	
+	public static SortedSet<EventInfo> loadMaxPassPrefsEventInfo() {
+		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+		return eventSignalConfig.getAllTechIndicatorsSorted(false);
+		
+	}
+
+	public static synchronized SortedSet<EventInfo> refreshMaxPassPrefsEventInfo() {
+			EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+			return eventSignalConfig.getAllTechIndicatorsSorted(true);
+	}
+	
+	public static EventInfo valueOfEventInfo(String eventInfoReference) throws NoSuchFieldException {
+		for (EventInfo eventInfo : allEventInfos()) {
+			if (eventInfo.getEventDefinitionRef().equals(eventInfoReference)) return eventInfo;
+		}
+		String message = "Can't find EventInfo for "+eventInfoReference+ ". It may have been deleted or not in this config (db.properties and user calculators).";
+		LOGGER.warn(message);
+		throw new NoSuchFieldException(message);
+	}
+	
+	
+	private static SortedSet<EventInfo> allEventInfos() {
+		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+		return eventSignalConfig.getAllEventInfos();
+	}
+
+	public static List<EventInfo> nonTechEventDef() {
+		return Arrays.asList(new EventInfo[]{EventDefinition.ALERTTHRESHOLD, EventDefinition.SCREENER, EventDefinition.UNKNOWN99, EventDefinition.ZERO, EventDefinition.INFINITE});
+	}
+	
 
 	@Override
 	public String info() {
-		return getEventDef();
-	}
-	
-	public static Set<EventDefinition> loadPassPrefsEventDefinitions() {
-		
-		List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));
-		
-		SortedSet<EventDefinition> eventDefinitions = new  TreeSet<EventDefinition>(new Comparator<EventDefinition>() {
-			public int compare(EventDefinition o1, EventDefinition o2) {
-				return o1.getEventDefId().compareTo(o2.getEventDefId());
-			}
-		});
-		
-		for (String eventDefinitionsName : indicators) {
-			eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
-		}
-
-		Integer maxPass = Integer.valueOf(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
-		if (maxPass > 1) {
-			List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
-			for (String eventDefinitionsName : indepIndicators) {
-				eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
-			}
-		}
-		
-		
-		return eventDefinitions;
+		return getEventReadableDef();
 	}
 
+	@Override
 	public Boolean getIsContinous() {
 		return isContinous;
 	}
 
-	public EventDefDescriptor getEventDefDescriptor() {
+	@Override
+	public EventDefDescriptorStatic getEventDefDescriptor() {
 		return eventDefDescriptor;
+	}
+
+	@Override
+	public String getEventDefinitionRef() {
+		return this.name();
+	}
+
+	@Override
+	public boolean equals(EventInfo obj) {
+		return this.getEventDefinitionRef().equals(obj.getEventDefinitionRef());
+	}
+
+	@Override
+	public int compareTo(EventInfo eventInfo) {
+		return this.getEventDefinitionRef().compareTo(eventInfo.getEventDefinitionRef());
+	}
+
+	@Override
+	public String tootTip() {
+		if (eventDefDescriptor != null) {
+			return getEventReadableDef()+" :\n\n" +
+					"is bullish when "+eventDefDescriptor.getBullishDescription()+";\n\n" +
+					"is bearish when "+eventDefDescriptor.getBearishDescription()+";";
+		} else {
+			return eventReadableDef;
+		}
 	}
 	
 }

@@ -66,8 +66,9 @@ import org.hibernate.annotations.ForeignKey;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.alerts.Alert;
-import com.finance.pms.alerts.AlertType;
+import com.finance.pms.alerts.AlertOnEvent;
+import com.finance.pms.alerts.AlertOnThreshold;
+import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
@@ -86,7 +87,6 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-// TODO: Auto-generated Javadoc
 /**
  * 
  * @author Guillaume Thoreton
@@ -100,30 +100,16 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	public static BigDecimal TRANSACTION_FEE = new BigDecimal(MainPMScmd.getPrefs().get("portfolio.fee", "0.01")).setScale(2);
 	
-	
-	/** The stock. */
 	private Stock stock;
-
 	private Date buyDate;
-
-	/** The quantity. */
 	private BigDecimal quantity;
-
-	/** The cashin. */
 	private BigDecimal cashin;
-
-	/** The cashout. */
 	private BigDecimal cashout;
-
-	/** The monitor level. */
 	private MonitorLevel monitorLevel;
-
 	private Currency transactionCurrency;
-
 	private AbstractSharesList portfolio;
-
-	private Set<Alert> alerts;
-	
+	private Set<AlertOnThreshold> alertsOnThreshold;
+	private Set<AlertOnEvent> alertsOnEvent;
 	private String account;
 
 	//hib
@@ -141,9 +127,13 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.monitorLevel = portfolioShare.getMonitorLevel();
 		this.transactionCurrency = portfolioShare.getTransactionCurrency();
 		this.portfolio = portfolioShare.getPortfolio();
-		this.alerts = new HashSet<Alert>();
-		for (Alert alert : portfolioShare.getAlerts()) {
-			this.alerts.add(new Alert(alert, this));
+		this.alertsOnThreshold = new HashSet<AlertOnThreshold>();
+		for (AlertOnThreshold alert : portfolioShare.getAlertsOnThreshold()) {
+			this.alertsOnThreshold.add(new AlertOnThreshold(alert, this));
+		}
+		this.alertsOnEvent = new HashSet<AlertOnEvent>();
+		for (AlertOnEvent alert : portfolioShare.getAlertsOnEvent()) {
+			this.alertsOnEvent.add(new AlertOnEvent(alert, this));
 		}
 		this.account = portfolioShare.getAccount();
 
@@ -171,7 +161,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.monitorLevel = monitor;
 		this.transactionCurrency = transactionCurrency;
 		this.portfolio = sharesList;
-		this.alerts = new HashSet<Alert>();
+		this.alertsOnThreshold = new HashSet<AlertOnThreshold>();
+		this.alertsOnEvent = new HashSet<AlertOnEvent>();
 
 	}
 
@@ -192,7 +183,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return BigDecimal.ZERO;
 	}
 
-	 PortfolioShare(AbstractSharesList shareList, Stock stock, BigDecimal quantity, Date buyDate, BigDecimal cashin, BigDecimal cashout, MonitorLevel monitor, Currency transactionCurrency) {
+	PortfolioShare(AbstractSharesList shareList, Stock stock, BigDecimal quantity, Date buyDate, BigDecimal cashin, BigDecimal cashout, MonitorLevel monitor, Currency transactionCurrency) {
 		this.stock = stock;
 		this.quantity = quantity;
 		this.buyDate = buyDate;
@@ -201,7 +192,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.monitorLevel = monitor;
 		this.transactionCurrency = transactionCurrency;
 		this.portfolio = shareList;
-		this.alerts = new HashSet<Alert>();
+		this.alertsOnThreshold = new HashSet<AlertOnThreshold>();
+		this.alertsOnEvent = new HashSet<AlertOnEvent>();
 		
 		nullAmountsWarning(stock, quantity, cashin);
 
@@ -373,6 +365,15 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		}
 	}
 	
+	public BigDecimal getProfit(Date currentDate) {
+		try {
+			return getCloseQuotationFor(currentDate).subtract(getAvgBuyPrice()).divide(getAvgBuyPrice(),10,BigDecimal.ROUND_DOWN);
+		} catch (ArithmeticException e) {
+			LOGGER.error(e,e);
+			return BigDecimal.ZERO;
+		}
+	}
+	
 	/**
 	 * Gets the profit and loss inflation weighted (v+Ow-Iw)/Iw
 	 * @param currentDate 
@@ -473,7 +474,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	@Override
 	public String toString() {
-		return "PortfolioShare [stock=" + stock.getName() + ", cashin=" + cashin + ", cashout=" + cashout + ", quantity=" + quantity + "]";
+		return "PortfolioShare [portfolio = "+portfolio.getName()+", stock=" + stock.getFriendlyName() + ", cashin=" + cashin + ", cashout=" + cashout + ", quantity=" + quantity + "]";
 	}
 	
 	public void applyTransaction(Transaction transaction, boolean propagate) throws InvalidQuantityException {
@@ -502,25 +503,19 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	private void addBuyPriceAlerts() {
-		this.removeAlert(AlertType.AVG_BUY_PRICE);
+		this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
 		addBuyPriceAlertAbove();
 		addBuyPriceAlertBelow();	
 	}
 
-	/**
-	 * 
-	 */
 	private void addBuyPriceAlertBelow() {
 		BigDecimal avgBuyPrice = this.getAvgBuyPrice();
-		this.addAlert(ThresholdType.DOWN, avgBuyPrice, AlertType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + avgBuyPrice+")");
+		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + avgBuyPrice+")");
 	}
 
-	/**
-	 * @return
-	 */
 	private void addBuyPriceAlertAbove() {
 		BigDecimal avgBuyPrice = this.getAvgBuyPrice();
-		this.addAlert(ThresholdType.UP, avgBuyPrice, AlertType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + avgBuyPrice+")");
+		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + avgBuyPrice+")");
 	}
 
 	/**
@@ -531,7 +526,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	private void addAboveTakeProfitAlert(BigDecimal calculationPrice) {
 	
 		try {
-			this.removeAlert(AlertType.ABOVE_TAKE_PROFIT_LIMIT);	
+			this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT);	
 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
 			
@@ -552,7 +547,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	private void addWeightedZeroProfitAlertGuardSetter(BigDecimal avgBuyPrice, Date currentDate) {
 		
-		this.removeAlert(AlertType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
+		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 	
 		BigDecimal sellLimitGuardPriceRate;
 		InOutWeighted weightedInOut = this.getWeightedInvested(currentDate);
@@ -578,12 +573,12 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	
 	public void addWeigthedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
-		this.addAlert(ThresholdType.UP, price, AlertType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
+		this.addAlertOnThreshold(ThresholdType.UP, price, AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
 	}
 	
 	private void addWeigthedZeroProfitAlertGuard(BigDecimal profitGuard) {
 		
-		this.removeAlert(AlertType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
+		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 		String belowGuardMessage = "";
 		addWeigthedZeroProfitAlertGuard(profitGuard, belowGuardMessage);
 	}
@@ -624,34 +619,34 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 * @param currentPrice
 	 */
 	private void addMovingLimitBelow(BigDecimal crossingPrice) {
-		this.removeAlert(AlertType.BELOW_PRICE_CHANNEL);
+		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_PRICE_CHANNEL);
 
 		BigDecimal limitPriceBelowRate = getEventsConfig().getLimitPriceBelow();
 		BigDecimal belowSellLimit = addPercentage(crossingPrice, limitPriceBelowRate.negate());
 		
 		String belowMessage = "(" +readablePercentOf(limitPriceBelowRate) + " below calculation price " + crossingPrice+")";
 
-		this.addAlert(ThresholdType.DOWN, belowSellLimit, AlertType.BELOW_PRICE_CHANNEL, belowMessage);
+		this.addAlertOnThreshold(ThresholdType.DOWN, belowSellLimit, AlertOnThresholdType.BELOW_PRICE_CHANNEL, belowMessage);
 	}
 	
 	/**
 	 * @param message 
-	 * @param value 
+	 * @param numberValue 
 	 * 
 	 */
 	public void addAboveTakeProfitAlert(BigDecimal price, String message) {
-		this.addAlert(ThresholdType.UP, price, AlertType.ABOVE_TAKE_PROFIT_LIMIT, message);
+		this.addAlertOnThreshold(ThresholdType.UP, price, AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT, message);
 	}
 	
 	public void addWeigthedZeroProfitAlertGuard(BigDecimal price, String message) {
-		this.addAlert(ThresholdType.DOWN, price, AlertType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
+		this.addAlertOnThreshold(ThresholdType.DOWN, price, AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
 	}
 
-	public void addSimpleAlert(ThresholdType threshold, BigDecimal value, String message) {
-		this.addAlert(threshold, value, AlertType.MANUAL, message);
+	public void addSimpleAlertOnThreshold(ThresholdType threshold, BigDecimal value, String message) {
+		this.addAlertOnThreshold(threshold, value, AlertOnThresholdType.MANUAL, message);
 	}
 
-	public PortfolioShare resetCrossDown(Alert alert, BigDecimal crossingPrice) {
+	public PortfolioShare resetCrossDown(AlertOnThreshold alert, BigDecimal crossingPrice) {
 		LOGGER.debug("Params : " + alert);
 
 		switch (alert.getAlertType()) {
@@ -660,14 +655,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 				break;
 			case AVG_BUY_PRICE:
 				//remove and reset alert buy price up
-				this.removeAlert(AlertType.AVG_BUY_PRICE);
+				this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
 				addBuyPriceAlertAbove();
 				break;
 			case BELOW_PRICE_CHANNEL:
 				this.resetAlertLimitBelow(alert, crossingPrice);
 				break;
 			case MANUAL:
-				this.removeAlert(alert);
+				this.removeAlertOnThreshold(alert);
 				break;
 			default:
 				LOGGER.error("Nothing to do for : " + alert);
@@ -677,7 +672,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	}
 
-	public PortfolioShare resetCrossUp(Alert alert, BigDecimal crossingPrice) {
+	public PortfolioShare resetCrossUp(AlertOnThreshold alert, BigDecimal crossingPrice) {
 		LOGGER.debug("Params : " + alert);
 
 		switch (alert.getAlertType()) {
@@ -691,14 +686,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 				break;
 			case AVG_BUY_PRICE:
 				//remove and reset alert buy price down
-				this.removeAlert(AlertType.AVG_BUY_PRICE);
+				this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
 				addBuyPriceAlertBelow();
 				break;
 			case ABOVE_PRICE_CHANNEL:
 				this.resetAlertLimitAbove(alert, crossingPrice);
 				break;
 			case MANUAL:
-				this.removeAlert(alert);
+				this.removeAlertOnThreshold(alert);
 				break;
 			default:
 				LOGGER.error("Nothing to do for : " + alert);
@@ -708,8 +703,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	}
 
-	private void resetAlertLimitAbove(Alert alert, BigDecimal crossPrice) {
-		this.removeAlert(alert);		
+	private void resetAlertLimitAbove(AlertOnThreshold alert, BigDecimal crossPrice) {
+		this.removeAlertOnThreshold(alert);		
 		addChannelAlerts(crossPrice);
 
 	}
@@ -728,46 +723,50 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 */
 	private void addMovingLimitAbove(BigDecimal crossingPrice) {
 
-		this.removeAlert(AlertType.ABOVE_PRICE_CHANNEL);
+		this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_PRICE_CHANNEL);
 
 		String message = "";
 		BigDecimal limitPriceAboveRate = getEventsConfig().getLimitPriceAbove();
 		BigDecimal limitAbovePrice = addPercentage(crossingPrice, limitPriceAboveRate);
 		message = "(" +readablePercentOf(limitPriceAboveRate) + " above calculation price " + crossingPrice +")";
 
-		this.addAlert(ThresholdType.UP, limitAbovePrice, AlertType.ABOVE_PRICE_CHANNEL, message);
+		this.addAlertOnThreshold(ThresholdType.UP, limitAbovePrice, AlertOnThresholdType.ABOVE_PRICE_CHANNEL, message);
 
 	}
 
-	private void resetAlertLimitBelow(Alert alert, BigDecimal crossPrice) {
-		this.removeAlert(alert);
+	private void resetAlertLimitBelow(AlertOnThreshold alert, BigDecimal crossPrice) {
+		this.removeAlertOnThreshold(alert);
 		addChannelAlerts(crossPrice);
 	
 	}
 
-	public void addAlert(ThresholdType threshold, BigDecimal value, AlertType alertType, String message) {
-
+	public void addAlertOnThreshold(ThresholdType threshold, BigDecimal value, AlertOnThresholdType alertType, String message) {
 		if (value != null) {
-			this.alerts.add(new Alert(this, threshold, alertType, value, message));
+			this.alertsOnThreshold.add(new AlertOnThreshold(this, threshold, alertType, value, message));
 		}
 	}
+	
+	public void addAlertOnEvent(String eventInfoReference, MonitorLevel  monitorLevel, String optionalMessage) {
+		this.alertsOnEvent.add(new AlertOnEvent(this, eventInfoReference, monitorLevel, optionalMessage));
+	}
 
-	public void removeAlert(Alert alert) {
-		this.alerts.remove(alert);
+	public void removeAlertOnThreshold(AlertOnThreshold alert) {
+		this.alertsOnThreshold.remove(alert);
 	}
 	
-	private void removeAlert(AlertType alertType) {
-		HashSet<Alert> ret = getAlertsForType(alertType);
-		this.alerts.removeAll(ret);		
+	private void removeAlertOnThresholdFor(AlertOnThresholdType alertType) {
+		HashSet<AlertOnThreshold> ret = getAlertsOnThresholdFor(alertType);
+		this.alertsOnThreshold.removeAll(ret);		
+	}
+	
+	public void clearAlertOnEvent() {
+		this.alertsOnEvent.clear();
 	}
 
-	/**
-	 * @param alertType
-	 * @return
-	 */
-	public HashSet<Alert> getAlertsForType(AlertType alertType) {
-		HashSet<Alert> ret = new HashSet<Alert>();
-		for (Alert alert : this.alerts) {
+
+	public HashSet<AlertOnThreshold> getAlertsOnThresholdFor(AlertOnThresholdType alertType) {
+		HashSet<AlertOnThreshold> ret = new HashSet<AlertOnThreshold>();
+		for (AlertOnThreshold alert : this.alertsOnThreshold) {
 			if (alertType.equals(alert.getAlertType())) {
 				ret.add(alert);
 			}
@@ -778,37 +777,32 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	@OneToMany(mappedBy = "portfolioShare", cascade = {CascadeType.ALL}, fetch = FetchType.EAGER, orphanRemoval=true)
 	@Fetch(FetchMode.SELECT)
-	public Set<Alert> getAlerts() {
-		return alerts;
+	public Set<AlertOnThreshold> getAlertsOnThreshold() {
+		return alertsOnThreshold;
 	}
 
 	@SuppressWarnings("unused")
-	private void setAlerts(Set<Alert> alerts) {
-		this.alerts = alerts;
+	private void setAlertsOnThreshold(Set<AlertOnThreshold> alerts) {
+		this.alertsOnThreshold = alerts;
 	}
 
 	@Transient
-	public Set<Alert> getAlertsUp() {
-		Set<Alert> alertsUp = new HashSet<Alert>();
-		for (Alert alert : alerts) {
+	public Set<AlertOnThreshold> getAlertsOnThresholdUp() {
+		Set<AlertOnThreshold> alertsUp = new HashSet<AlertOnThreshold>();
+		for (AlertOnThreshold alert : alertsOnThreshold) {
 			if (alert.getThresholdType().equals(ThresholdType.UP)) alertsUp.add(alert);
 		}
 		return alertsUp;
 	}
 
 	@Transient
-	public Set<Alert> getAlertsDown() {
-		Set<Alert> alertsDown = new HashSet<Alert>();
-		for (Alert alert : alerts) {
+	public Set<AlertOnThreshold> getAlertsOnThresholdDown() {
+		Set<AlertOnThreshold> alertsDown = new HashSet<AlertOnThreshold>();
+		for (AlertOnThreshold alert : alertsOnThreshold) {
 			if (alert.getThresholdType().equals(ThresholdType.DOWN)) alertsDown.add(alert);
 		}
 		return alertsDown;
 	}
-
-//	@Transient
-//	public MarketValuation getStockCurrency() {
-//		return this.getStock().getMarketValuation();
-//	}
 
 	@Enumerated(EnumType.STRING)
 	public Currency getTransactionCurrency() {
@@ -1097,6 +1091,17 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal sellLimitGuardPrice = weightedInvested.divide(this.getQuantity(),4,BigDecimal.ROUND_CEILING);
 		return sellLimitGuardPrice;
 		
+	}
+
+	@OneToMany(mappedBy = "portfolioShare", cascade = {CascadeType.ALL}, fetch = FetchType.EAGER, orphanRemoval=true)
+	@Fetch(FetchMode.SELECT)
+	public Set<AlertOnEvent> getAlertsOnEvent() {
+		return alertsOnEvent;
+	}
+
+	@SuppressWarnings("unused")
+	private void setAlertsOnEvent(Set<AlertOnEvent> alertsOnEvent) {
+		this.alertsOnEvent = alertsOnEvent;
 	}
 
 }

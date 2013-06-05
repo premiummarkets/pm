@@ -47,8 +47,8 @@ public class WeatherCheckerTest extends TestCase {
 	@Before
 	public void setUp() throws Exception {
 		
-		SpringContext springContext = new SpringContext();
-		springContext.setDataSource("/home/guil/Developpement/Quotes/pms/db.properties");
+		SpringContext springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
+		//springContext.setDataSource("/home/guil/Developpement/Quotes/pms/db.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
 		

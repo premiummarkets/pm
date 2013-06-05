@@ -43,8 +43,6 @@ import java.util.SortedSet;
 import org.jfree.data.xy.OHLCDataItem;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class QuotationData.
  * 
@@ -56,20 +54,20 @@ class QuotationData implements List<QuotationUnit> {
 	@SuppressWarnings("unused")
 	private static final long serialVersionUID = -674715272697353811L;
 	
-	/** The Constant OPEN. */
-	public static final int OPEN = 0;
-	
-	/** The Constant HIGH. */
-	public static final int HIGH = 1;
-	
-	/** The Constant LOW. */
-	public static final int LOW = 2;
-	
-	/** The Constant CLOSE. */
-	public static final int CLOSE = 3;
-	
-	/** The Constant VOLUME. */
-	public static final int VOLUME = 4;
+//	/** The Constant OPEN. */
+//	public static final int OPEN = 0;
+//	
+//	/** The Constant HIGH. */
+//	public static final int HIGH = 1;
+//	
+//	/** The Constant LOW. */
+//	public static final int LOW = 2;
+//	
+//	/** The Constant CLOSE. */
+//	public static final int CLOSE = 3;
+//	
+//	/** The Constant VOLUME. */
+//	public static final int VOLUME = 4;
 	
 	/** The close values. */
 	private StripedQuotations stripedQuotations;
@@ -109,18 +107,11 @@ class QuotationData implements List<QuotationUnit> {
 		return this.stripedQuotations.getBarList().remove(o);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.ArrayList#get(int)
-	 */
-	
+
 	public QuotationUnit get(int index) {
 		return this.stripedQuotations.getBarList().get(index);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.ArrayList#size()
-	 */
-	
 	public int size() {
 		return this.stripedQuotations.getBarList().size();
 	}
@@ -140,6 +131,12 @@ class QuotationData implements List<QuotationUnit> {
 		Integer index = getClosestIndexForDate(0, date);
 		if (index == -1) throw new InvalidAlgorithmParameterException();
 		return get(index).getClose();
+	}
+	
+	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+		Integer index = getClosestIndexForDate(0, date);
+		if (index == -1) throw new InvalidAlgorithmParameterException();
+		return get(index).getData(field);
 	}
 
 	/**
@@ -191,22 +188,27 @@ class QuotationData implements List<QuotationUnit> {
 		if (this.stripedQuotations.isStriped()) 
 			return this.stripedQuotations.getCloseTrimedList();
 		else 
-			return this.getInput(CLOSE);
+			return this.getInput(QuotationDataType.CLOSE);
 	}
 	
 	public double[] getLowValues() {
 		if (this.stripedQuotations.isStriped()) 
 			return this.stripedQuotations.getLowTrimedList();
 		else 
-			return this.getInput(LOW);
+			return this.getInput(QuotationDataType.LOW);
 	}
 	
 	public double[] getHighValues() {
 		if (this.stripedQuotations.isStriped()) 
 			return this.stripedQuotations.getHighTrimedList();
 		else 
-			return this.getInput(HIGH);
+			return this.getInput(QuotationDataType.HIGH);
 	}
+	
+	public double[] getVolumeValues() {
+		return this.getInput(QuotationDataType.VOLUME);
+	}
+
 
 	/**
 	 * Gets the input.
@@ -215,26 +217,26 @@ class QuotationData implements List<QuotationUnit> {
 	 * 
 	 * @return the input
 	 */
-	private double[] getInput(int field) {
+	private double[] getInput(QuotationDataType field) {
 		double[] values = new double[this.size()];
 		switch (field) {
-		case QuotationData.OPEN:
+		case OPEN:
 			for (int i = 0; i < this.size(); i++)
 				values[i] = this.get(i).getOpen().doubleValue();
 			break;
-		case QuotationData.HIGH:
+		case HIGH:
 			for (int i = 0; i < this.size(); i++)
 				values[i] = this.get(i).getHigh().doubleValue();
 			break;
-		case QuotationData.LOW:
+		case LOW:
 			for (int i = 0; i < this.size(); i++)
 				values[i] = this.get(i).getLow().doubleValue();
 			break;
-		case QuotationData.CLOSE :
+		case CLOSE :
 			for (int i = 0; i < this.size(); i++) 
 				values[i] = this.get(i).getClose().doubleValue();
 			break;
-		case QuotationData.VOLUME :
+		case VOLUME :
 			for (int i = 0; i < this.size(); i++) 
 				values[i] = this.get(i).getVolume();
 			break;
@@ -378,10 +380,7 @@ class QuotationData implements List<QuotationUnit> {
 		return this.stripedQuotations.getLast().getDate();
 	}
 
-	public double[] getVolumeValues() {
-			return this.getInput(VOLUME);
-	}
-	
+
 	
 	
 }

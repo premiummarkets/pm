@@ -43,18 +43,15 @@ import com.finance.pms.events.SymbolEvents;
  * @author Guillaume Thoreton
  */
 public class SymbolEventComparator implements Comparator<SymbolEvents> {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(SymbolEventComparator.class);
-	
-	/** The method. */
+
 	String method;
-	
-	/** The params. */
 	Object[] params;
+	private Boolean isAsc;
 	
-	/** The params class. */
 	Class<? extends Object>[] paramsClass;
+
 	
 	/**
 	 * Instantiates a new symbol event comparator.
@@ -64,18 +61,17 @@ public class SymbolEventComparator implements Comparator<SymbolEvents> {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public SymbolEventComparator(String method, Object... params) {
+	public SymbolEventComparator(Boolean isAsc, String method, Object... params) {
+		
 			this.method = method;
 			this.params = params;
 			this.paramsClass = new Class<?>[params.length];
 			for (int i = 0; i < params.length; i++) {
-				this.paramsClass[i] = PonderationRule.class; //o.getClass().getInterfaces()[0]; 
+				this.paramsClass[i] = PonderationRule.class;
 			}
+			this.isAsc = isAsc;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
 		int retour = 0;
@@ -89,7 +85,7 @@ public class SymbolEventComparator implements Comparator<SymbolEvents> {
 		if (retour == 0)
 			retour = (o1).getSymbolName().compareTo((o2).getSymbolName());
 
-		return retour;
+		return (isAsc)?-retour:retour;
 	}
 
 }

@@ -142,8 +142,7 @@ public class MACD extends TalibIndicator {
 
 	@Override
 	public double[] getOutputData() {
-		// TODO Auto-generated method stub
-		return null;
+		return macd;
 	}
 
 }

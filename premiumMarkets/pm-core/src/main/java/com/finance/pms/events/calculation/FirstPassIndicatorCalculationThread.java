@@ -47,6 +47,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.talib.indicators.ChaikinLine;
@@ -88,7 +89,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	private Integer slowKSmaPeriod;
 	private Integer slowDSmaPeriod;
 
-	private List<EventDefinition> firstPassWantedCalculations;
+	private List<EventInfo> firstPassWantedCalculations;
 
 
 	
@@ -169,6 +170,8 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		boolean chaikinOscDivergenceWanted =  checkWanted(EventDefinition.PMCHAIKINOSCDIVERGENCE);
 		boolean chaikinOscThresholdWanted =  checkWanted(EventDefinition.PMCHAIKINOSCTHRESHOLD);
 		boolean stochThresholdWanted = checkWanted(EventDefinition.PMSSTOCHTHRESHOLD);
+		
+//		boolean parameterizedWanted = checkWanted(EventDefinition.PARAMETRIZED);
 		
 		//Which Indicators
 		boolean isSMA200Ok = true;
@@ -562,6 +565,21 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				stddevCrossOk = false;
 			}
 		}
+		
+//		//Parameterized
+//		if (parameterizedWanted) {
+//			try {
+//				NativeParametrizedIndicators nativeIndicators = NativeParametrizedIndicators.loadNativeIndicators();
+//				eventCalculations.add(new ParametrizedCalculator(stock, startDate, endDate, nativeIndicators.getCalculators().get(0)));
+//			} catch (NotEnoughDataException e) {
+//				if (e.getShiftedStartDate() != null) {
+//					LOGGER.warn(warnMessage("ChaikinOscillatorThreshold", startDate, endDate) + butMessage(simpleDateFormat, e));
+//				} else {
+//					LOGGER.error("Failed calculation : "+warnMessage("ChaikinOscillatorThreshold", new Date(), new Date()), e);
+//				}
+//				chaikinOscThresholdOk = false;
+//			}
+//		}
 	
 		
 		if (
@@ -601,7 +619,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	}
 
 	@Override
-	protected List<EventDefinition> getWantedEventCalculations() {
+	protected List<EventInfo> getWantedEventCalculations() {
 		return firstPassWantedCalculations;
 	}
 	

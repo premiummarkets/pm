@@ -125,8 +125,8 @@ public class MainPMScmd {
 			Boolean yahooIndicesSymbols = argList.contains("-yahooIndicesSymbol");
 			Boolean getInflationData = argList.contains("-getInflationData");
 
-			SpringContext springContext = new SpringContext();
-			springContext.setDataSource(dbProps);
+			SpringContext springContext = new SpringContext(dbProps);
+			//springContext.setDataSource(dbProps);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 			springContext.refresh();
 			

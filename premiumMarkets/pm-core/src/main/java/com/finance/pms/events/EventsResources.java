@@ -52,8 +52,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -63,10 +61,10 @@ import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.StockToDB;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.portfolio.PortfolioMgr;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class EventsResources.
  * 
@@ -77,8 +75,7 @@ public class EventsResources {
 	public static final String EVENTSTABLE = "EVENTS";
 	public static final String EVENTSCACHETABLE = "EVENTSCACHE";
 
-	/** The LOGGER. */
-	protected static MyLogger LOGGER = MyLogger.getLogger(EventsResources.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(EventsResources.class);
 	
 	private static EventsResources singleton;
 	
@@ -118,7 +115,7 @@ public class EventsResources {
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
 			result = prime * result + ((eventKey.getDate() == null) ? 0 : eventKey.getDate().hashCode());
-			result = prime * result + ((eventKey.getEventDefExtra().toString() == null) ? 0 : eventKey.getEventDefExtra().toString().hashCode());
+			result = prime * result + ((eventKey.getEventInfoExtra().toString() == null) ? 0 : eventKey.getEventInfoExtra().toString().hashCode());
 			result = prime * result + ((eventValue.getEventDef() == null) ? 0 : eventValue.getEventDef().hashCode());
 			return result;
 		}
@@ -139,7 +136,7 @@ public class EventsResources {
 			} else if (
 					other.eventKey == null || 
 					eventKey.getDate().compareTo(other.eventKey.getDate()) != 0 || 
-					!eventKey.getEventDefExtra().toString().equals(other.eventKey.getEventDefExtra().toString())) {
+					!eventKey.getEventInfoExtra().toString().equals(other.eventKey.getEventInfoExtra().toString())) {
 				return false;
 			}
 			
@@ -167,24 +164,21 @@ public class EventsResources {
 	
 	private class EventCacheEntryComparator implements Comparator<EventCacheEntry> {
 
-		public int compare(EventCacheEntry o1, EventCacheEntry o2) {
-			EventCacheEntry se1 = o1;
-			EventCacheEntry se2 = o2;
-			int retour = 0;
+		public int compare(EventCacheEntry se1, EventCacheEntry se2) {
 
-			int date = (se1.getEventKey().getDate()).compareTo(se2.getEventKey().getDate());
-			if (date != 0) {
-				retour = date;
-			} else {
-				int eventdef = (se1.getEventValue().getEventDef()).compareTo(se2.getEventValue().getEventDef());
-				if (eventdef != 0) {
-					retour = eventdef;
-				} else {
-					int eventExtraType = (se1.getEventKey().getEventDefExtra().toString()).compareTo(se2.getEventKey().getEventDefExtra().toString());
-					retour = eventExtraType;
+			EventInfo se1EventInfo = se1.getEventKey().getEventInfo();
+			EventInfo se2EventInfo = se2.getEventKey().getEventInfo();
+
+			int cmp = (se1.getEventKey().getDate()).compareTo(se2.getEventKey().getDate());
+			if (cmp == 0) {
+				cmp = (se1.getEventValue().getEventDef()).compareTo(se2.getEventValue().getEventDef());
+				if (cmp != 0 && (se1EventInfo.equals(EventDefinition.INFINITE) || se2EventInfo.equals(EventDefinition.ZERO)) ) cmp = -1;
+				if (cmp != 0 && (se1EventInfo.equals(EventDefinition.ZERO) || se2EventInfo.equals(EventDefinition.INFINITE)) ) cmp = +1;
+				if (cmp == 0) {
+					cmp = (se1.getEventKey().getEventInfoExtra().toString()).compareTo(se2.getEventKey().getEventInfoExtra().toString());
 				}
 			}
-			return retour;
+			return cmp;
 		}
 
 	}
@@ -228,20 +222,19 @@ public class EventsResources {
 			}
 		}
 
-		public void deleteEventsInStockCache(Stock stock, Date startDate, Date endDate, List<EventDefinition> indicatorsList) {
+		public void deleteEventsInStockCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
 						
 			deleteEventsInStockSoftCache(stock, startDate, endDate, indicatorsList);
-			
 		}
 
-		private void deleteEventsInStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventDefinition> indicatorsList) {
+		private void deleteEventsInStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
 			
 			SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsInStockCache(stock);
 			if (eventsForStockAndAnalysis != null) {
 				SortedSet<EventCacheEntry> dateSubSet = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
 				SortedSet<EventCacheEntry> subSetToRemove = new TreeSet<EventCacheEntry>(new EventCacheEntryComparator());
 				for (EventCacheEntry eventCacheEntry : dateSubSet) {
-					EventDefinition eventDef =  eventCacheEntry.getEventValue().getEventDef();
+					EventInfo eventDef =  eventCacheEntry.getEventValue().getEventDef();
 					if (indicatorsList.contains(eventDef)) {
 						subSetToRemove.add(eventCacheEntry);
 					}
@@ -275,10 +268,7 @@ public class EventsResources {
 	protected EventsResources() {
 		super();
 		
-		sortedList = new ArrayList<SymbolEvents>();
-		midleList = new ArrayList<SymbolEvents>();
-		finList = new ArrayList<SymbolEvents>();
-		debList = new ArrayList<SymbolEvents>();
+		resetSortLists();
 		String eventCacheProp = MainPMScmd.getPrefs().get("event.cache","true");
 		LOGGER.info("Event cache is set to "+eventCacheProp);
 		
@@ -287,6 +277,13 @@ public class EventsResources {
 		
 		singleton = this;
 		
+	}
+
+	public void resetSortLists() {
+		sortedList = new ArrayList<SymbolEvents>();
+		midleList = new ArrayList<SymbolEvents>();
+		finList = new ArrayList<SymbolEvents>();
+		debList = new ArrayList<SymbolEvents>();
 	}
 	
 	public static EventsResources getInstance() {
@@ -341,26 +338,25 @@ public class EventsResources {
 	private Collection<EventCacheEntry> buildCacheEntriesFromSymbolEvents(SymbolEvents symbolEvents) {
 		
 		List<EventCacheEntry> ret = new ArrayList<EventsResources.EventCacheEntry>();
-		for (EventKey eventKey : symbolEvents.getDataResultList().keySet()) {
-			ret.add(new EventCacheEntry(eventKey, symbolEvents.getDataResultList().get(eventKey)));
+		for (EventKey eventKey : symbolEvents.getDataResultMap().keySet()) {
+			ret.add(new EventCacheEntry(eventKey, symbolEvents.getDataResultMap().get(eventKey)));
 		}
 		return ret;
-		
 	}
 	
-	private SymbolEvents buildSymbolEventsFromCacheEntries(Stock stock, SortedSet<EventCacheEntry> eventSubSet, Set<EventDefinition> eventDefinitions) {
+	private SymbolEvents buildSymbolEventsFromCacheEntries(Stock stock, SortedSet<EventCacheEntry> eventSubSet, Set<EventInfo> eventDefinitions) {
 		SymbolEvents subSymbolEvents = new SymbolEvents(stock, EventState.STATE_TERMINATED);
 		if (eventSubSet.size() > 0) {
 			for (EventCacheEntry eventCacheEntry : eventSubSet) {
 				if (eventDefinitions == null || eventDefinitions.contains(eventCacheEntry.getEventValue().getEventDef())) {
-					subSymbolEvents.addEventResultElement(eventCacheEntry.getEventKey(), eventCacheEntry.getEventValue(), eventCacheEntry.getEventValue().getEventDef().name());
+					subSymbolEvents.addEventResultElement(eventCacheEntry.getEventKey(), eventCacheEntry.getEventValue(), eventCacheEntry.getEventValue().getEventDef().getEventDefinitionRef());
 				}
 			}
 		}
 		return subSymbolEvents;
 	}
 
-	private void updateEventsCache(Date startDate, Date endDate,Set<EventDefinition> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache) {
+	private void updateEventsCache(Date startDate, Date endDate,Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache) {
 		
 		String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
 		for (String eventListName : eventListNames) {		
@@ -370,7 +366,7 @@ public class EventsResources {
 		
 	}
 
-	private void updateEventsCache(Stock stock, Date startDate, Date endDate, Set<EventDefinition> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache) {
+	private void updateEventsCache(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache) {
 
 		String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
 		for (String eventListName : eventListNames) {
@@ -379,10 +375,10 @@ public class EventsResources {
 		}
 	}
 	
-	public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Boolean isPersisted, Set<EventDefinition> eventDefinitions, String... eventListNames) {
+	public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Boolean isPersisted, Set<EventInfo> eventDefinitions, String... eventListNames) {
 		
 		if (!isEventCached && !isPersisted) {
-			String message = "Inconsitency : Events are neither persited or cached.";
+			String message = "Inconsistency : Events are neither persisted or cached.";
 			LOGGER.error(message, new Exception());
 			throw new InvalidParameterException(message);
 		}
@@ -393,7 +389,7 @@ public class EventsResources {
 		if (isEventCached) {
 			
 			if (isPersisted) {
-				this.updateEventsCache(stock, startDate, endDate,eventDefinitions, eventListNamesSet, false);
+				this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, false);
 			}
 			
 			if (isCachePersistent) {
@@ -409,7 +405,7 @@ public class EventsResources {
 					try {
 						retVal = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions);
 					} catch (Exception e) {
-						LOGGER.error("Stock "+stock+" event retreival pb : "+e, e);
+						LOGGER.error("Stock "+stock+" event retrieval pb : "+e, e);
 					}
 				}
 			}
@@ -423,10 +419,10 @@ public class EventsResources {
 	}
 
 	
-	public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Boolean isPersisted, Set<EventDefinition> eventDefinitions, String... eventListNames) {
+	public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Boolean isPersisted, Set<EventInfo> eventDefinitions, String... eventListNames) {
 		
 		if (!isEventCached && !isPersisted) {
-			String message = "Inconsitency : Events are neither persited or cached.";
+			String message = "Inconsistency : Events are neither persisted or cached.";
 			LOGGER.error(message, new Exception());
 			throw new InvalidParameterException(message);
 		}
@@ -485,7 +481,7 @@ public class EventsResources {
 		return eventListNamesSet;
 	}
 	
-	private SymbolEvents subSoftCachedEvents(Stock stock, Date startDate, Date endDate, StockEventsCache eventsForName, String eventListName, Set<EventDefinition> eventDefinitions) {
+	private SymbolEvents subSoftCachedEvents(Stock stock, Date startDate, Date endDate, StockEventsCache eventsForName, String eventListName, Set<EventInfo> eventDefinitions) {
 
 		SymbolEvents subSymbolEvents = new SymbolEvents(stock, EventState.STATE_TERMINATED);
 		EventCacheEntry startInfEvent = smallestCacheEntry(startDate);
@@ -503,77 +499,63 @@ public class EventsResources {
 		return subSymbolEvents;
 	}
 	
-	@SuppressWarnings("rawtypes")
 	private EventCacheEntry bigestCacheEntry(final Date date) {
 
 		return new EventCacheEntry(new EventKey() {
 
 			private static final long serialVersionUID = -5684675854556973652L;
 
-			public Comparable getEventDefId() {
-				return EventDefinition.INFINITE.getEventDefId();
+			public EventInfo getEventInfo() {
+				return EventDefinition.ZERO;
 			}
 
-			public Comparable getEventDefExtra() {
-				return EventDefinition.INFINITE;
+			public String getEventInfoExtra() {
+				return "z";
 			}
 
-			public Comparable getEvenType() {
+			public EventType getEventType() {
 				return EventType.NONE;
 			}
 
 			public Date getDate() {
-				return date;
+				return DateFactory.midnithDate(date);
 			}
 
-			@Override
-			public int compareTo(EventKey o) {
-				throw new NotImplementedException();
-			}
-
-		}, new EventValue(date, EventDefinition.INFINITE, EventType.NONE, ""));
+		}, new EventValue(DateFactory.midnithDate(date), EventDefinition.ZERO, EventType.NONE, ""));
 	}
 
-	@SuppressWarnings("rawtypes")
 	private EventCacheEntry smallestCacheEntry(final Date date) {
 		
 		return new EventCacheEntry(new EventKey() {
 
 			private static final long serialVersionUID = -5684675854556973652L;
 
-			public Comparable getEventDefId() {
-				return EventDefinition.ZERO.getEventDefId();
+			public EventInfo getEventInfo() {
+				return EventDefinition.INFINITE;
 			}
 			
 			
-			public Comparable getEventDefExtra() {
-				return EventDefinition.ZERO;
+			public String getEventInfoExtra() {
+				return "A";
 			}
 			
 			
-			public Comparable getEvenType() {
+			public EventType getEventType() {
 				return EventType.NONE;
 			}
 			
 			
 			public Date getDate() {
-				return date;
-			}
-
-
-			@Override
-			public int compareTo(EventKey o) {
-				throw new NotImplementedException();
+				return DateFactory.midnithDate(date);
 			}
 			
 		}, 
-		new EventValue(date, EventDefinition.ZERO, EventType.NONE,""));
+		new EventValue(DateFactory.midnithDate(date), EventDefinition.INFINITE, EventType.NONE,""));
 	}
 	
 
 	public void crudCreateEvents(List<SymbolEvents> events, Boolean isDataPersisted, String eventListName, boolean preLockRequiered, String tableToLock) {
 
-		
 		if (isEventCached) {
 			if (isCachePersistent && !isDataPersisted) {
 				persitEvents(events, eventListName, EVENTSCACHETABLE, false, "");
@@ -588,11 +570,9 @@ public class EventsResources {
 			persitEvents(events, eventListName, EVENTSTABLE, preLockRequiered, tableToLock);
 
 		} 
-		
 	}
 
 	private void persitEvents(List<SymbolEvents> events, String eventListName, String eventTableName, boolean preLockRequiered, String tableToLock) {
-		
 		
 		ArrayList<Query> qInsert = new ArrayList<Query>();
 		ArrayList<Validatable> lqUpdate = new ArrayList<Validatable>();
@@ -649,9 +629,8 @@ public class EventsResources {
 							DataSource.printHugeCollection(lqUpdate)+"\n" +
 						"Insert request params :\n"+
 							DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
-						"Update return was " +
-							Arrays.toString(updated)
-						, e);
+						"Update return was " + 
+							Arrays.toString(updated), e);
 			}
 
 		} catch (SQLException e) {
@@ -679,7 +658,7 @@ public class EventsResources {
 		while (sortedListIt.hasNext()) {
 			final SymbolEvents se = sortedListIt.next();
 
-			Map<EventKey, EventValue> dataResultList = se.getDataResultList();
+			Map<EventKey, EventValue> dataResultList = se.getDataResultMap();
 			for (final EventKey eventKey : dataResultList.keySet()) {
 
 				final EventValue eventValue = dataResultList.get(eventKey);
@@ -694,16 +673,16 @@ public class EventsResources {
 						//set
 						Query qupdate = new Query();
 						qupdate.addValue(new Integer(se.getEventsState().ordinal()));
-						qupdate.addValue(eventValue.getEventDef().getEventDef());
+						qupdate.addValue(eventValue.getEventDef().getEventDefId());
 						qupdate.addValue(new String(""+eventValue.getEventType().getEventTypeChar().toString()));
 						qupdate.addValue(eventValue.getMessage());
 
 						//where
-						qupdate.addValue(se.getSymbol().toUpperCase());
+						qupdate.addValue(se.getSymbol());
 						qupdate.addValue(se.getIsin());
 						qupdate.addValue(eventValue.getDate());
-						qupdate.addValue(eventValue.getEventDefId());
-						qupdate.addValue(eventKey.getEventDefExtra().toString());
+						qupdate.addValue(eventValue.getEventDef().getEventDefinitionRef());
+						qupdate.addValue(eventKey.getEventInfoExtra().toString());
 						qupdate.addValue(eventValue.getEventListName());
 
 						return qupdate;
@@ -711,7 +690,7 @@ public class EventsResources {
 
 					@Override
 					public String toString() {
-						return "["+se.getSymbol().toUpperCase()+","+se.getIsin()+","+eventValue.getDate()+","+eventValue.getEventDefId()+","+eventKey.getEventDefExtra().toString()+","+eventValue.getEventListName()+"]";
+						return "["+se.getSymbol().toUpperCase()+","+se.getIsin()+","+eventValue.getDate()+","+eventValue.getEventDefId()+","+eventKey.getEventInfoExtra().toString()+","+eventValue.getEventListName()+"]";
 					}
 				});
 
@@ -729,13 +708,13 @@ public class EventsResources {
 	private void addInsertQuery(ArrayList<Query> lqinsert, SymbolEvents se, EventValue eventValue, EventKey eventKey) {
 		
 		Query qinsert = new Query();
-		qinsert.addValue(se.getSymbol().toUpperCase());
+		qinsert.addValue(se.getSymbol());
 		qinsert.addValue(se.getIsin());
 		qinsert.addValue(new Integer(se.getEventsState().ordinal()));
 		qinsert.addValue(eventValue.getDate());
 		qinsert.addValue(eventValue.getEventDefId());
-		qinsert.addValue(eventValue.getEventDef().getEventDef());
-		qinsert.addValue(eventKey.getEventDefExtra().toString());
+		qinsert.addValue(eventValue.getEventDef().getEventDefinitionRef());
+		qinsert.addValue(eventKey.getEventInfoExtra().toString());
 		qinsert.addValue(new String(""+eventValue.getEventType().getEventTypeChar()));
 		qinsert.addValue(eventValue.getMessage());
 		qinsert.addValue(eventValue.getEventListName());
@@ -755,7 +734,7 @@ public class EventsResources {
 	 * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
 	 * @author Guillaume Thoreton
 	 */
-	public void loadEventsByCriteriaAndDate(Date date, Integer inf, Integer sup, PonderationRule pr, Set<EventDefinition> indicators, String eventListNames) throws InvalidAlgorithmParameterException {
+	public void updateEventsTabsByCriteriaAndDate(Date date, Integer inf, Integer sup, PonderationRule pr, Set<EventInfo> indicators, String eventListNames) throws InvalidAlgorithmParameterException {
 		
 		List<SymbolEvents> all = SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), true, indicators, eventListNames), pr);
 		int indexSup = 0;
@@ -767,53 +746,43 @@ public class EventsResources {
 		}
 		
 		if (all.size() > 0) {
-			if (inf != null) {
-				while (indexInf > 0 && all.get(indexInf).getWeight(pr) <= inf)
-					indexInf--;
-				if (indexInf < all.size())
-					this.setFinList(all.subList(indexInf + 1, all.size()));
-				else
-					this.setFinList(new ArrayList<SymbolEvents>());
-			}
-			if (sup != null) {
-				while (indexSup < all.size() && all.get(indexSup).getWeight(pr) >= sup)
-					indexSup++;
-				if (indexSup > 0)
-					this.setDebList(all.subList(0, indexSup));
-				else
-					this.setDebList(new ArrayList<SymbolEvents>());
-			}
+
+			//fin
+			while (indexInf >= 0 && all.get(indexInf).getWeight(pr) <= inf) indexInf--;
+			if (indexInf < all.size())
+				this.setFinList(all.subList(indexInf + 1, all.size()));
+			else
+				this.setFinList(new ArrayList<SymbolEvents>());
+
+			//deb
+			while (indexSup < all.size() && all.get(indexSup).getWeight(pr) >= sup) indexSup++;
+			if (indexSup > 0)
+				this.setDebList(all.subList(0, indexSup));
+			else
+				this.setDebList(new ArrayList<SymbolEvents>());
+
+			//middle
 			if (indexInf + 1 > indexSup) {
 				this.setMidleList(all.subList(indexSup, indexInf + 1));
 			} else {
 				this.setMidleList(new ArrayList<SymbolEvents>());
 			}
+			
+			//all
 			this.setSortedList(all);
+
 		} else {
-			sortedList = new ArrayList<SymbolEvents>();
-			midleList = new ArrayList<SymbolEvents>();
-			finList = new ArrayList<SymbolEvents>();
-			debList = new ArrayList<SymbolEvents>();
+			resetSortLists();
 		}
 	}
 	
-	/**
-	 * Filter monitored events.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void filterOutNonMonitoredEvents() {
 		
-		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
+		Collection<Stock> portfolioStocks = PortfolioMgr.getInstance().getUserMonitoredStocks();
 		dispatch(portfolioStocks);
 		
 	}
 	
-	/**
-	 * Filter category events.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void filterOutCurrentMarketEvents(Object... shareLists) {
 		
 		Collection<Stock> selectedSharelists = new ArrayList<Stock>();
@@ -828,7 +797,7 @@ public class EventsResources {
 	
 	public void filterOutNonPortofolioEvents() {
 		
-		Collection<Stock> portfolioStocks = DataSource.getInstance().getShareDAO().loadAllPortoflioStocks();
+		Collection<Stock> portfolioStocks = PortfolioMgr.getInstance().getPortfolioStocks();
 		dispatch(portfolioStocks);
 		
 	}
@@ -853,16 +822,19 @@ public class EventsResources {
 			if (stocksToKeep.contains(se.getStock())) dl.add(se);
 		}
 		this.setDebList(dl);
+		
 		for (Object o: this.getFinList()) {
 			SymbolEvents se = (SymbolEvents) o;
 			if (stocksToKeep.contains(se.getStock())) fl.add(se);
 		}
 		this.setFinList(fl);
+		
 		for (Object o: this.getMidleList()) {
 			SymbolEvents se = (SymbolEvents) o;
 			if (stocksToKeep.contains(se.getStock())) ml.add(se);
 		}
 		this.setMidleList(ml);
+		
 		for (Object o: this.getSortedList()) {
 			SymbolEvents se = (SymbolEvents) o;
 			if (stocksToKeep.contains(se.getStock())) sl.add(se);
@@ -879,8 +851,7 @@ public class EventsResources {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public void exportEvents(Collection<? extends Object> events, String file,
-			PonderationRule pr) {
+	public void exportEvents(Collection<? extends Object> events, String file, PonderationRule pr) {
 
 		try {
 			File fichier = new File(file);
@@ -983,7 +954,7 @@ public class EventsResources {
 		this.sortedList = sortedList;
 	}
 	
-	public void crudDeleteEventsForStock(Stock stock, String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventDefinition... indicators) {
+	public void crudDeleteEventsForStock(Stock stock, String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
 		
 		
 		//Cash
@@ -1001,14 +972,14 @@ public class EventsResources {
 		
 		//DB
 		if (isDataPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(indicators));
+			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(" ",indicators));
 			DataSource.getInstance().cleanEventsForAnalysisNameAndStock(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
 		}
 		
 	}
 
 
-	public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventDefinition... indicators) {
+	public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
 		
 		//Cash
 		if (isEventCached) {
@@ -1027,7 +998,7 @@ public class EventsResources {
 		
 		//DB
 		if (isDataPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(indicators));
+			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(" ",indicators));
 			DataSource.getInstance().cleanEventsForIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
 		}
 	}
@@ -1054,9 +1025,6 @@ public class EventsResources {
 	
 	public void cleanPersistedEventsCache() throws SQLException {
 		
-		//Query iq = new Query("delete from "+EVENTSCACHETABLE);
-		//DataSource.getInstance().executeUpdate(iq, 600);
-		
 		Query drop = new Query("drop table IF EXISTS "+EVENTSCACHETABLE);
 		DataSource.getInstance().executeUpdate(drop, 600);
 		
@@ -1065,17 +1033,22 @@ public class EventsResources {
 				  "`DATE` datetime NOT NULL,"+
 				  "`SYMBOL` varchar(20) NOT NULL,"+
 				  "`ISIN` varchar(20) NOT NULL,"+
-				  "`EVENTDEF` char(100) DEFAULT NULL,"+
-				  "`EVENTTYPE` char(1) NOT NULL,"+
+				  "`EVENTDEF` varchar(100) DEFAULT NULL,"+
+				  "`EVENTTYPE` varchar(1) NOT NULL,"+
 				  "`ACCURACY` smallint(6) DEFAULT NULL,"+
 				  "`EVENTDEFID` smallint(6) NOT NULL,"+
 				  "`EVENTDEFEXTENSION` varchar(100) NOT NULL DEFAULT '',"+
 				  "`ANALYSENAME` varchar(256) NOT NULL,"+
 				  "`MESSAGE` mediumtext,"+
-				  "PRIMARY KEY (`SYMBOL`,`ISIN`,`ANALYSENAME`,`DATE`,`EVENTDEFID`,`EVENTDEFEXTENSION`),"+
+				  "PRIMARY KEY (`SYMBOL`, `ISIN`, `ANALYSENAME`, `DATE`, `EVENTDEF`, `EVENTDEFEXTENSION`),"+
 				  "KEY `EVENTS_ANAME_DATE` (`ANALYSENAME`,`DATE`),"+
-				  "KEY `EVENTS_STOCK_ANAME_DATE_TYPE` (`SYMBOL`,`ISIN`,`ANALYSENAME`,`DATE`,`EVENTTYPE`)"+
+				  "KEY `EVENTS_STOCK_ANAME_DATE_DEF` (`SYMBOL`,`ISIN`,`ANALYSENAME`,`DATE`,`EVENTDEF`)"+
 				")");
+//		ALTER TABLE EVENTS  ADD PRIMARY KEY ( `ANALYSENAME`, `SYMBOL`, `ISIN`, `DATE`, `EVENTDEF`, `EVENTDEFEXTENSION`);
+//		ALTER TABLE EVENTS  ADD INDEX `EVENTS_ANAME` (`ANALYSENAME`);
+//		ALTER TABLE EVENTS  ADD INDEX `EVENTS_ANAME_DATE` (`ANALYSENAME`,`DATE`);
+//		ALTER TABLE EVENTS  ADD INDEX `EVENTS_STOCK_ANAME_DATE_DEF` (`ANALYSENAME`,`SYMBOL`,`ISIN`,`DATE`,`EVENTDEF`);
+//		ALTER TABLE EVENTS  ADD INDEX `EVENTS_STOCK_ANAME_DATE_DEF_TYPE` (`ANALYSENAME`,`SYMBOL`,`ISIN`,`DATE`,`EVENTDEF`,`EVENTTYPE`);
 		DataSource.getInstance().executeUpdate(create, 600);
 		
 	}
@@ -1087,9 +1060,9 @@ public class EventsResources {
 	 * @param endDate
 	 * @param persistChache 
 	 */
-	private void removeEventsFromEventsSoftCacheFor(Stock stock, StockEventsCache eventsForAnalysis, Date startDate, Date endDate, EventDefinition... indicators) {
+	private void removeEventsFromEventsSoftCacheFor(Stock stock, StockEventsCache eventsForAnalysis, Date startDate, Date endDate, EventInfo... indicators) {
 		
-		List<EventDefinition> indicatorsList = Arrays.asList(indicators);
+		List<EventInfo> indicatorsList = Arrays.asList(indicators);
 		if (eventsForAnalysis != null) {
 			eventsForAnalysis.deleteEventsInStockCache(stock, startDate, endDate, indicatorsList);
 		}
@@ -1099,5 +1072,6 @@ public class EventsResources {
 	public void setIsCachePersistent(Boolean isCachePersistent) {
 		this.isCachePersistent = isCachePersistent;
 	}
+
 
 }

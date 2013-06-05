@@ -143,7 +143,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 
 		//No check available for Yahoo
 		if (!s.isFieldSet("isin") || !s.isFieldSet("symbol") || !s.isFieldSet("name")) {
-			LOGGER.warn("No check available for Yahoo provider. Please provide full info.");
+			LOGGER.warn("No completion check on symbol, isin, name is available for the Yahoo provider. Please provide the full info (symbol, isin, name) for each stock : "+s);
 		} else {
 			List<Validatable> listReq = new ArrayList<Validatable>();
 

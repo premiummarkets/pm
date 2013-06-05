@@ -83,6 +83,9 @@ public class TuningAlertsJmsTemplate extends JmsTemplate {
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}

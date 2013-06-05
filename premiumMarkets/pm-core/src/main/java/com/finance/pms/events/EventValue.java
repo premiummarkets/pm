@@ -34,10 +34,9 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
+import java.util.Set;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class EventValue.
  * 
@@ -45,24 +44,16 @@ import java.util.Map;
  */
 public class EventValue implements Serializable {
 	
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -2037828749889092912L;
-	
-	/** The date. */
+
 	protected Date date;
-
-	/** The event type. */
 	protected EventType eventType;
-	
-	/** The event def. */
-	protected EventDefinition eventDef;
-
+	protected EventInfo eventDef;
 	protected String message = "";
 
 	private String eventListName;
 
-
-	public EventValue(Date date, EventDefinition eventDef, EventType eventType, String message, String eventListName) {
+	public EventValue(Date date, EventInfo eventDef, EventType eventType, String message, String eventListName) {
 		super();
 		this.date = date;
 		this.eventDef = eventDef;
@@ -72,7 +63,7 @@ public class EventValue implements Serializable {
 	}
 	
 
-	public EventValue(Date date, EventDefinition eventDef, EventType eventType, String eventListName) {
+	public EventValue(Date date, EventInfo eventDef, EventType eventType, String eventListName) {
 		super();
 		this.date = date;
 		this.eventDef = eventDef;
@@ -91,18 +82,15 @@ public class EventValue implements Serializable {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public String toExport(Map<Integer, String> eventsList) {
+	public String toExport(Set<String> eventsList) {
 		DateFormat df = new SimpleDateFormat("yyy/MM/dd");
-		return df.format(date) + ";" + eventsList.get(eventDef) + ";" + eventType;
+		return df.format(date) + ";" + eventDef.getEventDefinitionRef() + ";" + eventType;
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+
 	@Override
 	public String toString() {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		return df.format(date)+" -> "+eventDef.getEventDef()+" : "+eventType+" : "+message;
+		return df.format(date)+" -> "+eventDef.getEventReadableDef()+" : "+eventType+" : "+message;
 	}
 	
 	/**
@@ -114,8 +102,7 @@ public class EventValue implements Serializable {
 	 */
 	public String toEmail() {
 		DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
-		return 
-				eventDef.getEventDef()+" on the "+df.format(date) + " (event or last event date) "+ ((this.message != "")?" :\n"+message:".");
+		return eventType.toString()+":"+eventDef.getEventReadableDef()+" on the "+df.format(date) + ((this.message != "")?" :\n"+message:".");
 	}
 
 	/**
@@ -173,7 +160,7 @@ public class EventValue implements Serializable {
 	 * 
 	 * @return the event def
 	 */
-	public EventDefinition getEventDef() {
+	public EventInfo getEventDef() {
 		return eventDef;
 	}
 

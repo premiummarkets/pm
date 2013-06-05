@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.MyUrl;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 
@@ -61,7 +61,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		super(myUrl);
 	}
 
-	public StockComplementSummaryBoursoramaFormater(String url, TrendSupplementedStock stockPart) {
+	public StockComplementSummaryBoursoramaFormater(String url, ScreeningSupplementedStock stockPart) {
 		super(new MyUrl(url));
 		params.add(stockPart);
 
@@ -83,7 +83,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		
-		TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
+		ScreeningSupplementedStock stockPart = (ScreeningSupplementedStock) params.get(0);
 		LOGGER.trace(line);
 		
 		Matcher divValueMatcher = valueDiv.matcher(line);
@@ -102,7 +102,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		return null;
 	}
 	
-	private void grabDiv(String line, TrendSupplementedStock stockPart, Matcher valueMatcher) {
+	private void grabDiv(String line, ScreeningSupplementedStock stockPart, Matcher valueMatcher) {
 		BigDecimal div;
 		if (yeDiv == 1) {
 			if (valueMatcher.find()) {
@@ -126,7 +126,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 	 * @param stockPart
 	 * @param bnaValueMatcher
 	 */
-	private void grabBna(String line, TrendSupplementedStock stockPart, Matcher bnaValueMatcher) {
+	private void grabBna(String line, ScreeningSupplementedStock stockPart, Matcher bnaValueMatcher) {
 		switch (yeBNA) {
 		case 0 :
 			Matcher bnaMatcher = bna.matcher(line);

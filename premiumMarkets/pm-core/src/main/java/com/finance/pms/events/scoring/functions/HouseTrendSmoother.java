@@ -41,7 +41,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
-public class HouseTrendSmoother extends Smoother {
+public class HouseTrendSmoother extends Smoother implements SSmoother {
 	
 	private int period;
 	
@@ -74,6 +74,26 @@ public class HouseTrendSmoother extends Smoother {
 
 		return ret;
 
+	}
+
+	@Override
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
+		
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+
+		List<Double> values = new ArrayList<Double>(data.values());
+		List<Date> keys = new ArrayList<Date>(data.keySet());
+		for (int i = period; i < values.size(); i++) {
+			double currentValue = values.get(i);
+			double previousValue = values.get(i-period);
+			
+			if (currentValue <= 0 || previousValue <= 0 ) throw new NotImplementedException("currentValue : "+currentValue+", previousValue "+previousValue);
+			
+			double value = Math.log10(currentValue/previousValue);
+			ret.put(keys.get(i), value);
+		}
+
+		return ret;
 	}
 
 }

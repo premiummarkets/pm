@@ -41,20 +41,20 @@ import java.util.TreeSet;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.screening.TrendSupplementedStock.MyBigDec;
+import com.finance.pms.screening.ScreeningSupplementedStock.MyBigDec;
 
-public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<TrendSupplementedStock>> {
+public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<ScreeningSupplementedStock>> {
 	
 	public static final int TREND_OUTDATE_LIMIT = 6;
 	//The lower the full rating the better
 	static final BigDecimal CREDIBLE_SELL_THRESHOLD = new BigDecimal(MainPMScmd.getPrefs().get("trend.sellthreshold","100.00"));
 	static final BigDecimal CREDIBLE_BUY_THRESHOLD = new BigDecimal(MainPMScmd.getPrefs().get("trend.buythreshold","0.00"));
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(TrendSupplementStockExporter.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ScreeningSupplementStockExporter.class);
 	
-	protected final class FullRatingCompartor implements Comparator<TrendSupplementedStock> {
+	protected final class FullRatingCompartor implements Comparator<ScreeningSupplementedStock> {
 		
-		public int compare(TrendSupplementedStock o2, TrendSupplementedStock o1) {
+		public int compare(ScreeningSupplementedStock o2, ScreeningSupplementedStock o1) {
 			MyBigDec o1r = o1.fullRating();
 			MyBigDec o2r = o2.fullRating();
 			int ret =  (o2r).compareTo(o1r);
@@ -63,47 +63,47 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		}
 	}
 
-	Collection<TrendSupplementedStock> listOfShares;
+	Collection<ScreeningSupplementedStock> listOfShares;
 	private Date endDate;
 	private Double invalidPerCentage;
-    private Collection<TrendSupplementedStock> invalidTrends;  
+    private Collection<ScreeningSupplementedStock> invalidTrends;  
     private Double notToBefoundPerCentage;
-    private Collection<TrendSupplementedStock> notToBeFoundTrends;
+    private Collection<ScreeningSupplementedStock> notToBeFoundTrends;
     private Double notCrediblePerCentage;
-    private Collection<TrendSupplementedStock> notCredibleTrends;  
+    private Collection<ScreeningSupplementedStock> notCredibleTrends;  
     private Double staledPerCentage;
-    private Collection<TrendSupplementedStock> staledTrends;  
+    private Collection<ScreeningSupplementedStock> staledTrends;  
     private Double ignoredPerCentage;
-    private Collection<TrendSupplementedStock> ignoredTrends;  
+    private Collection<ScreeningSupplementedStock> ignoredTrends;  
 
-	public FullRatingOrdinator(Collection<TrendSupplementedStock> listOfShares, Date end) {
+	public FullRatingOrdinator(Collection<ScreeningSupplementedStock> listOfShares, Date end) {
 		super();
 		this.listOfShares = listOfShares;
 		this.endDate = end;
-		this.invalidTrends = new ArrayList<TrendSupplementedStock>();
-		this.notCredibleTrends = new ArrayList<TrendSupplementedStock>();
-		this.notToBeFoundTrends = new ArrayList<TrendSupplementedStock>();
-		this.staledTrends = new ArrayList<TrendSupplementedStock>();
-		this.ignoredTrends = new ArrayList<TrendSupplementedStock>();
+		this.invalidTrends = new ArrayList<ScreeningSupplementedStock>();
+		this.notCredibleTrends = new ArrayList<ScreeningSupplementedStock>();
+		this.notToBeFoundTrends = new ArrayList<ScreeningSupplementedStock>();
+		this.staledTrends = new ArrayList<ScreeningSupplementedStock>();
+		this.ignoredTrends = new ArrayList<ScreeningSupplementedStock>();
 		
 	}
 
-	public NavigableSet<TrendSupplementedStock> calculate() {
+	public NavigableSet<ScreeningSupplementedStock> calculate() {
 		
-		NavigableSet<TrendSupplementedStock> ordered = new TreeSet<TrendSupplementedStock>(new FullRatingCompartor());
+		NavigableSet<ScreeningSupplementedStock> ordered = new TreeSet<ScreeningSupplementedStock>(new FullRatingCompartor());
 		ordered.addAll(listOfShares);
 		return ordered;
 	}
 
-	public NavigableSet<TrendSupplementedStock> filterCredible() {
+	public NavigableSet<ScreeningSupplementedStock> filterCredible() {
 		
-		NavigableSet<TrendSupplementedStock> ret = new TreeSet<TrendSupplementedStock>(new FullRatingCompartor());
+		NavigableSet<ScreeningSupplementedStock> ret = new TreeSet<ScreeningSupplementedStock>(new FullRatingCompartor());
 		
 		Calendar staleDateLimit = Calendar.getInstance();
 		staleDateLimit.setTime(endDate);
 		staleDateLimit.add(Calendar.MONTH, -TREND_OUTDATE_LIMIT);
 		
-		for (TrendSupplementedStock trendedStock : listOfShares) {
+		for (ScreeningSupplementedStock trendedStock : listOfShares) {
 			MyBigDec fullRating = trendedStock.fullRating();
 			if (	
 					fullRating.isValid() && trendedStock.priceChangeTTM().isValid()
@@ -143,7 +143,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		return invalidPerCentage;
 	}
 
-	public Collection<TrendSupplementedStock> getInvalidTrends() {
+	public Collection<ScreeningSupplementedStock> getInvalidTrends() {
 		return invalidTrends;
 	}
 
@@ -151,7 +151,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		return notToBefoundPerCentage;
 	}
 
-	public Collection<TrendSupplementedStock> getNotToBeFoundTrends() {
+	public Collection<ScreeningSupplementedStock> getNotToBeFoundTrends() {
 		return notToBeFoundTrends;
 	}
 
@@ -159,7 +159,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		return notCrediblePerCentage;
 	}
 
-	public Collection<TrendSupplementedStock> getNotCredibleTrends() {
+	public Collection<ScreeningSupplementedStock> getNotCredibleTrends() {
 		return notCredibleTrends;
 	}
 
@@ -167,7 +167,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		return staledPerCentage;
 	}
 
-	public Collection<TrendSupplementedStock> getStaledTrends() {
+	public Collection<ScreeningSupplementedStock> getStaledTrends() {
 		return staledTrends;
 	}
 
@@ -175,7 +175,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Tren
 		return ignoredPerCentage;
 	}
 
-	public Collection<TrendSupplementedStock> getIgnoredTrends() {
+	public Collection<ScreeningSupplementedStock> getIgnoredTrends() {
 		return ignoredTrends;
 	}
 	

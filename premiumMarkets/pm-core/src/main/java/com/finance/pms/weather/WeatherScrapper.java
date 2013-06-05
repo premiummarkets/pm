@@ -139,8 +139,8 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 		Date startDate = simpleDateFormat.parse(args[1]);
 		Date endDate = simpleDateFormat.parse(args[2]);
 		
-		SpringContext springContext = new SpringContext();
-		springContext.setDataSource(dbProps);
+		SpringContext springContext = new SpringContext(dbProps);
+		//springContext.setDataSource(dbProps);
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 		springContext.refresh();
 		

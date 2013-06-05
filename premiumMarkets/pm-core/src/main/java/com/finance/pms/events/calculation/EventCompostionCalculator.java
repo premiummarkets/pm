@@ -37,7 +37,9 @@ import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -63,7 +65,7 @@ public abstract class EventCompostionCalculator {
 			this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, calculationCurrency, calculatorIndexShift + 15, 0);
 			
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		this.calculationStartIdx =  this.getCalculatorQuotationData().getClosestIndexForDate(0, startDate);
 		this.calculationEndIdx = this.getCalculatorQuotationData().getClosestIndexForDate(0, endDate);
@@ -77,10 +79,8 @@ public abstract class EventCompostionCalculator {
 	public EventCompostionCalculator(Stock stock) { //No quotation related calculator
 		this.stock = stock;
 	}
-	
-	//public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);
 
-	public abstract Map<EventKey, EventValue> calculateEventsFor(String eventListName);
+	public abstract SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName);
 	
 	protected Quotations getCalculatorQuotationData() {
 		return this.quotations;
@@ -96,6 +96,8 @@ public abstract class EventCompostionCalculator {
 	
 	public abstract SortedMap<Date, double[]> calculationOutput();
 	
-	public abstract EventDefinition getEventDefinition();
+	public abstract EventInfo getEventDefinition();
+	
+	public abstract EmailFilterEventSource getSource();
 
 }

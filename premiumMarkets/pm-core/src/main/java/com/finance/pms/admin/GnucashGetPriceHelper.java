@@ -91,7 +91,7 @@ public class GnucashGetPriceHelper {
 		List<UserPortfolio> visiblePortfolios = PortfolioMgr.getInstance().getUserPortfolios();
 		for (Portfolio portfolio : visiblePortfolios) {
 			for (final PortfolioShare pShares : portfolio.getListShares().values()) {
-				if (PortfolioMgr.getInstance().isMonitored(pShares.getStock()))
+				if (PortfolioMgr.getInstance().isMonitored(pShares.getStock(), null))
 				ret.add(new StockWraper() {
 
 					public String getReference() {
@@ -300,8 +300,8 @@ public class GnucashGetPriceHelper {
 
 		SpringContext springContext = null;
 		try {
-			springContext = new SpringContext();
-			springContext.setDataSource(pathToprops);
+			springContext = new SpringContext(pathToprops);
+			//springContext.setDataSource(pathToprops);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 			springContext.refresh();
 

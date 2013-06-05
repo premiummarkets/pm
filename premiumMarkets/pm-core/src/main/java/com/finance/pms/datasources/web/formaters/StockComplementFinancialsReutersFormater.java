@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.MyUrl;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementFinancialsReutersFormater extends LineFormater {
 	
@@ -62,7 +62,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 	private BigDecimal nbOpinions;
 
 
-	public StockComplementFinancialsReutersFormater(String url, TrendSupplementedStock stockPart) {
+	public StockComplementFinancialsReutersFormater(String url, ScreeningSupplementedStock stockPart) {
 		super(new MyUrl(url));
 		params.add(stockPart);
 
@@ -83,7 +83,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		
-		TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
+		ScreeningSupplementedStock stockPart = (ScreeningSupplementedStock) params.get(0);
 		LOGGER.trace(line);
 		
 		Matcher valueMatcher;
@@ -104,7 +104,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 		return null;
 	}
 
-	private void grabEstEPS(String line, TrendSupplementedStock stockPart, Matcher valueMatcher) {
+	private void grabEstEPS(String line, ScreeningSupplementedStock stockPart, Matcher valueMatcher) {
 
 		if (yeEstEPSCpt <= 3 && stockPart.isNOTSetReutersEstEPS()) {
 
@@ -130,7 +130,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 		}
 	}
 	
-	private void payoutRatio(String line, TrendSupplementedStock stockPart, Matcher valueMatcher) {
+	private void payoutRatio(String line, ScreeningSupplementedStock stockPart, Matcher valueMatcher) {
 		BigDecimal payoutRatioValue;
 		if (yePayout && stockPart.isNOTSetReutersPayoutRatio()) {
 			if (valueMatcher.find()) {
@@ -144,7 +144,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 		}
 	}
 
-	private void grabYield(String line, TrendSupplementedStock stockPart, Matcher valueMatcher) {
+	private void grabYield(String line, ScreeningSupplementedStock stockPart, Matcher valueMatcher) {
 		BigDecimal yieldValue;
 		if (yeYield && !isDivSetOrReset) {
 			if (valueMatcher.find()) {

@@ -54,6 +54,7 @@
 			</fileSet>
 			<fileSet>
 				<directory>shell</directory>
+				<fileMode>0776</fileMode>
 			</fileSet>
 			<fileSet>
 				<directory>icons</directory>

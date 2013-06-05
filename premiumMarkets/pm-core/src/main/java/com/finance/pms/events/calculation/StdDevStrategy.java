@@ -71,7 +71,7 @@ public class StdDevStrategy implements VariationStrategy {
 			}
 		}
 		int nbSignedVariations = variations.size();
-		if (variations.size() < MINNBVAR) throw new NotEnoughDataException("", null);
+		if (variations.size() < MINNBVAR) throw new NotEnoughDataException(null, "", null);
 		double[] variationsArray = new double[nbSignedVariations];
 		for (int i = 0; i < nbSignedVariations; i++) {
 			variationsArray[i] = variations.get(i);

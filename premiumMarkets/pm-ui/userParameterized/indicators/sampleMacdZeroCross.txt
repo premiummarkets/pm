@@ -1,0 +1,1 @@
+is bullish when ( sampleMacd crosses up threshold 0.0 and sampleMacd is above historical sampleMacdSgn ); is bearish when ( sampleMacd crosses down threshold 0.0 and sampleMacd is below historical sampleMacdSgn );

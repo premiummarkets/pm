@@ -33,11 +33,13 @@ package com.finance.pms.queue;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
 
+import com.finance.pms.admin.config.Config;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventMessageObject;
 import com.finance.pms.events.EventValue;
@@ -64,9 +66,10 @@ public class SingleEventMessage extends EmailMessage {
 	 * @param eventInMess the event in mess
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param ptc 
 	 */
-	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventValue eventInMess) {
-		super(analyseName.hashCode()+stock.hashCode()+eventInMess.hashCode());
+	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventValue eventInMess, Map<String, Config> ptc) {
+		super(analyseName.hashCode()+stock.hashCode()+eventInMess.hashCode(), ptc);
 		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventInMess, stock);
 	}
 	
@@ -77,9 +80,10 @@ public class SingleEventMessage extends EmailMessage {
 	 * @param eventInMess the event in mess
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param ptc 
 	 */
-	private SingleEventMessage(EventMessageObject eventInMess) {
-		super(eventInMess.hashCode());
+	private SingleEventMessage(EventMessageObject eventInMess, Map<String, Config> ptc) {
+		super(eventInMess.hashCode(), ptc);
 		this.eventMessageObject = eventInMess;
 	}
 	
@@ -89,9 +93,10 @@ public class SingleEventMessage extends EmailMessage {
 	 * @param symbolEvents the event in mess
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param ptc 
 	 */
-	public SingleEventMessage(Serializable eventMessageObject) {
-		this((EventMessageObject) eventMessageObject);
+	public SingleEventMessage(Serializable eventMessageObject, Map<String, Config> ptc) {
+		this((EventMessageObject) eventMessageObject, ptc);
 	}
 	
 	
@@ -487,7 +492,7 @@ public class SingleEventMessage extends EmailMessage {
 
 	@Override
 	public String toString() {
-		return "OneEventMessage [eventMessageObject=" + eventMessageObject + ", properties=" + properties + ", messageKey="
+		return "SingleEventMessage [eventMessageObject=" + eventMessageObject + ", properties=" + properties + ", messageKey="
 				+ messageKey + "]";
 	}
 

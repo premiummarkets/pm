@@ -60,14 +60,19 @@ public class ConfigThreadLocal {
 		return configs;
 	}
 	
-    
-    public static Map<String,Config>  getAll() {
+    //TODO getAll strict?
+    public static Map<String,Config> getAll() {
     	return configs.get();
     }
 	
-    
     public static void set(String configName, Config config) {
     	configs.get().put(configName, config);
+    }
+    
+    public static void setAll(Map<String, Config> configs) {
+    	for (String configKey : configs.keySet()) {
+			set(configKey,configs.get(configKey));
+		}
     }
 
 }

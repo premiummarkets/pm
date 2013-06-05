@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 
 // TODO: Auto-generated Javadoc
@@ -46,20 +46,17 @@ import com.finance.pms.events.pounderationrules.PonderationRule;
 public class EventsActionSort {
 
 	private PonderationRule ponderationRule;
-	private EventsActionSortEnum actionSortEnum;
-	private Set<EventDefinition> indicators;
+	private Set<EventInfo> indicators;
 	
 	
-	public static enum EventsActionSortEnum {
-		DEFAULTWEIGTHTXT ("All Events"),
-		TALIBWEIGHTTXT ("Premium Markets Indicators"),
-		LATESTEVENTSTXT ("Latest Events and Alerts"),
-		LATESTNOALERTSEVENTSTXT ("Latest Trend");
+	public static enum EventsActionFilter {
+		ALLEVENTS ("All Events"),
+		TALIBEVENTS ("Premium Markets Indicators");
 		
 		/** The text. */
 		private String text;
 
-		private EventsActionSortEnum(String text) {
+		private EventsActionFilter(String text) {
 			this.text = text;
 		}
 
@@ -78,11 +75,10 @@ public class EventsActionSort {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public EventsActionSort(EventsActionSortEnum actionSortEnum, PonderationRule ponderationRule, EventDefinition ...definitions) {
-		this.actionSortEnum = actionSortEnum;
+	public EventsActionSort(PonderationRule ponderationRule, EventInfo ...definitions) {
 		this.ponderationRule = ponderationRule;
 		if (definitions != null && definitions.length > 0) {
-			indicators = new HashSet<EventDefinition>();
+			indicators = new HashSet<EventInfo>();
 			indicators.addAll(Arrays.asList(definitions));
 		} else {
 			indicators = null;
@@ -98,11 +94,7 @@ public class EventsActionSort {
 		return ponderationRule;
 	}
 
-	protected EventsActionSortEnum getActionSortEnum() {
-		return actionSortEnum;
-	}
-
-	public Set<EventDefinition> getIndicators() {
+	public Set<EventInfo> getIndicators() {
 		return indicators;
 	}
 	

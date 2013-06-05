@@ -38,17 +38,67 @@ import java.util.Date;
  * 
  * @author Guillaume Thoreton
  */
-public interface EventKey extends Serializable, Comparable<EventKey> {
+public abstract class EventKey implements Serializable, Comparable<EventKey> {
+
+	private static final long serialVersionUID = -328520642861639149L;
+
+	public abstract Date getDate();
+	public abstract EventInfo getEventInfo();
+	public abstract EventType getEventType();
+	public abstract String getEventInfoExtra();
 	
-	public Date getDate();
+	@Override
+	final public int compareTo(EventKey o) {
+		
+		int cmp = getDate().compareTo(o.getDate());
+		if (cmp == 0) {
+			cmp = getEventInfo().compareTo(o.getEventInfo());
+			if (cmp == 0) {
+				cmp = getEventInfoExtra().toString().compareTo(o.getEventInfoExtra().toString());
+				if (cmp == 0) {
+					cmp = getEventType().compareTo((EventType) o.getEventType());
+				}
+			}
+		}
+		
+		return cmp;
+	}
 	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEventDefId();
-	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEvenType();
-	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEventDefExtra();
+	@Override
+	final public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((getDate() == null) ? 0 : getDate().hashCode());
+		result = prime * result + ((getEventType() == null) ? 0 : getEventType().hashCode());
+		result = prime * result + ((getEventInfo() == null) ? 0 : getEventInfo().hashCode());
+		result = prime * result + ((getEventInfoExtra() == null) ? 0 : getEventInfoExtra().hashCode());
+		return result;
+	}
+
+	@Override
+	final public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EventKey other = (EventKey) obj;
+		if (getDate() == null) {
+			if (other.getDate() != null)
+				return false;
+		} else if (getDate().compareTo(other.getDate()) != 0)
+			return false;
+		if (getEventType() != other.getEventType())
+			return false;
+		if (getEventInfo() != other.getEventInfo())
+			return false;
+		if (getEventInfoExtra() == null) {
+			if (other.getEventInfoExtra() != null)
+				return false;
+		} else if (!getEventInfoExtra().equals(other.getEventInfoExtra()))
+			return false;
+		return true;
+	}
 
 }

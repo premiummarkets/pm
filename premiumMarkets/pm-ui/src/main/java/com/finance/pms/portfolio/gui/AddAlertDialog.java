@@ -40,6 +40,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -54,8 +55,8 @@ import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.alerts.Alert;
-import com.finance.pms.alerts.AlertType;
+import com.finance.pms.alerts.AlertOnThreshold;
+import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.portfolio.PortfolioShare;
 
@@ -64,7 +65,7 @@ import com.finance.pms.portfolio.PortfolioShare;
  * 
  * @author Guillaume Thoreton
  */
-public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
+public class AddAlertDialog extends Dialog {
 	
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(AddAlertDialog.class);
@@ -95,8 +96,8 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 	public static void main(String[] args) {
 		try {
 			String dbfile = args[0];
-			SpringContext ctx = new SpringContext();
-			ctx.setDataSource(dbfile);
+			SpringContext ctx = new SpringContext(dbfile);
+			//ctx.setDataSource(dbfile);
 			ctx.setMasSource(dbfile,"false");
 			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
 			ctx.refresh();
@@ -183,9 +184,9 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 					combo.add(ThresholdType.values()[j].name());
 				}
 			
-				combo.add(AlertType.AVG_BUY_PRICE.name());
-				combo.add(AlertType.ABOVE_TAKE_PROFIT_LIMIT.name());
-				combo.add(AlertType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.name());
+				combo.add(AlertOnThresholdType.AVG_BUY_PRICE.name());
+				combo.add(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.name());
+				combo.add(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.name());
 				
 				combo.select(0);
 			}
@@ -207,7 +208,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 							case 1 :
 								ThresholdType threshold;
 								threshold = ThresholdType.values()[combo.getSelectionIndex()];
-								portfolioShare.addSimpleAlert(threshold, value, commentText.getText());
+								portfolioShare.addSimpleAlertOnThreshold(threshold, value, commentText.getText());
 								break;
 							case 2 :
 								portfolioShare.addBuyAlerts(value, EventSignalConfig.getNewDate());
@@ -264,8 +265,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 			Display display = dialogShell.getDisplay();
 			while (!dialogShell.isDisposed()) {
 				try {
-					if (!display.readAndDispatch())
-						display.sleep();
+					if (!display.readAndDispatch()) display.sleep();
 				} catch (RuntimeException e) {
 					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
 					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);
@@ -287,7 +287,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 	private void updateDownTable() {
 		
 		alertTableDown.removeAll();
-		for (Alert alert : portfolioShare.getAlertsDown()) {
+		for (AlertOnThreshold alert : portfolioShare.getAlertsOnThresholdDown()) {
 			TableItem item = new TableItem(alertTableDown, SWT.NONE);
 			item.setData(alert);
 			item.setText(0, alert.toString());
@@ -299,7 +299,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				TableItem[] selection = alertTableDown.getSelection();
 				if (selection != null && selection.length > 0) {
 					TableItem tableItem = selection[0];
-					portfolioShare.removeAlert((Alert)tableItem.getData());
+					portfolioShare.removeAlertOnThreshold((AlertOnThreshold)tableItem.getData());
 					tableItem.dispose();
 				}
 			}
@@ -316,7 +316,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 	private void updateUpTable() {
 		
 		alertTableUp.removeAll();
-		for (Alert alert : portfolioShare.getAlertsUp()) {
+		for (AlertOnThreshold alert : portfolioShare.getAlertsOnThresholdUp()) {
 			TableItem item = new TableItem(alertTableUp, SWT.NONE);
 			item.setData(alert);
 			item.setText(0, alert.toString());
@@ -328,7 +328,7 @@ public class AddAlertDialog extends org.eclipse.swt.widgets.Dialog {
 				TableItem[] selection = alertTableUp.getSelection();
 				if (selection != null && selection.length > 0) {
 					TableItem tableItem = selection[0];
-					portfolioShare.removeAlert((Alert)tableItem.getData());
+					portfolioShare.removeAlertOnThreshold((AlertOnThreshold)tableItem.getData());
 					tableItem.dispose();
 				}
 			}

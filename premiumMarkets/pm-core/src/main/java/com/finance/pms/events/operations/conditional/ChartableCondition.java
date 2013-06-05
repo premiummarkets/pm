@@ -1,0 +1,7 @@
+package com.finance.pms.events.operations.conditional;
+
+public interface ChartableCondition {
+
+	int mainPosition();
+
+}

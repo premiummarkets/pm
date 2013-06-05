@@ -62,9 +62,8 @@ public class WeatherExtractor {
 			
 			exportToCsv(fileName, weatherElements);
 			
-			springContext = new SpringContext();
-			springContext = new SpringContext();
-			springContext.setDataSource(dbProps);
+			springContext = new SpringContext(dbProps);
+			//springContext.setDataSource(dbProps);
 			springContext.loadBeans("/connexions.xml","/swtclients.xml");
 			springContext.refresh();
 			

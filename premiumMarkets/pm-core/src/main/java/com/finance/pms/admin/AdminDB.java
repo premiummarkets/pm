@@ -95,8 +95,8 @@ public class AdminDB {
 		String justcheck = args[2];
 		
 		//new DataSource(dbProps);
-		SpringContext ctx = new SpringContext();
-		ctx.setDataSource(dbProps);
+		SpringContext ctx = new SpringContext(dbProps);
+		//ctx.setDataSource(dbProps);
 		ctx.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		ctx.refresh();
 		

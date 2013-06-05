@@ -31,27 +31,19 @@
 package com.finance.pms.portfolio;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum MonitorLevel.
  * 
  * @author Guillaume Thoreton
  */
 public enum MonitorLevel {
-	
-	/** The NONE. */
+
 	NONE ("None"),
-	
-	/** The BEARISH. */
 	BEARISH ("Bearish"),
-	
-	/** The BULLISH. */
 	BULLISH ("Bullish"),
-	
-	/** The ANY. */
 	ANY ("Any");
+
 	
-	/** The monitor level. */
 	private String monitorLevel;
 
 	/**

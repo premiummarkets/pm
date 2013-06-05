@@ -37,16 +37,16 @@ import java.util.TreeSet;
 
 public class Sector {
 	
-	private NavigableSet<TrendSupplementedStock>  listOfShares;
+	private NavigableSet<ScreeningSupplementedStock>  listOfShares;
 	private String sectorName;
 
 	public Sector(String sectorName) {
 		super();
 		this.sectorName = sectorName;
-		this.listOfShares = new TreeSet<TrendSupplementedStock>(new Comparator<TrendSupplementedStock>() {
+		this.listOfShares = new TreeSet<ScreeningSupplementedStock>(new Comparator<ScreeningSupplementedStock>() {
 
 			
-			public int compare(TrendSupplementedStock o1, TrendSupplementedStock o2) {
+			public int compare(ScreeningSupplementedStock o1, ScreeningSupplementedStock o2) {
 				if (o1.equals(02)) return 0;
 				return o1.fullRating().getValue().compareTo(o2.fullRating().getValue());
 			}
@@ -92,7 +92,7 @@ public class Sector {
 	public BigDecimal calculatePotentiel() {
 		BigDecimal ret = BigDecimal.ZERO.setScale(4);
 		int  nb = 0;
-		for (TrendSupplementedStock stockPerf : listOfShares) {
+		for (ScreeningSupplementedStock stockPerf : listOfShares) {
 			if (stockPerf.yahooPotentielPrice() != null) {
 				ret = ret.add(stockPerf.yahooPotentielPrice().getValue());
 				nb++;
@@ -115,7 +115,7 @@ public class Sector {
 	public BigDecimal calculateConsensus() {
 		BigDecimal ret = BigDecimal.ZERO.setScale(4);
 		int  nb = 0;
-		for (TrendSupplementedStock stockPerf : listOfShares) {
+		for (ScreeningSupplementedStock stockPerf : listOfShares) {
 			if (stockPerf.getYahooMeanRecommendations() != null) {
 				ret = ret.add(stockPerf.getYahooMeanRecommendations());
 				nb++;
@@ -138,7 +138,7 @@ public class Sector {
 	public BigDecimal getPerfs() {
 		BigDecimal ret = BigDecimal.ZERO.setScale(4);
 		int nbValids = listOfShares.size();
-		for (TrendSupplementedStock stockPerf : listOfShares) {
+		for (ScreeningSupplementedStock stockPerf : listOfShares) {
 			if (stockPerf.priceChangeTTM().isValid()) {
 				ret = ret.add(stockPerf.priceChangeTTM().getValue());
 			} else {
@@ -151,7 +151,7 @@ public class Sector {
 	public BigDecimal getYield() {
 		BigDecimal ret = BigDecimal.ZERO.setScale(4);
 		int  nb = 0;
-		for (TrendSupplementedStock stockPerf : listOfShares) {
+		for (ScreeningSupplementedStock stockPerf : listOfShares) {
 			if (stockPerf.yield() != null) {
 				ret = ret.add(stockPerf.yield());
 				nb++;
@@ -163,11 +163,11 @@ public class Sector {
 		return ret.divide(new BigDecimal(nb),4,BigDecimal.ROUND_DOWN);
 	}
 	
-	public void addStock(TrendSupplementedStock stockPerf) {
+	public void addStock(ScreeningSupplementedStock stockPerf) {
 		this.listOfShares.add(stockPerf);
 	}
 	
-	public TrendSupplementedStock getBest() {
+	public ScreeningSupplementedStock getBest() {
 		return listOfShares.last();
 	}
 
@@ -212,7 +212,7 @@ public class Sector {
 		return (this.getConsensus() == null)?"null":getConsensus().toString();
 	}
 	
-	public NavigableSet<TrendSupplementedStock> getListOfShares() {
+	public NavigableSet<ScreeningSupplementedStock> getListOfShares() {
 		return listOfShares;
 	}
 

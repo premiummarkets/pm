@@ -37,9 +37,9 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
-import java.util.SortedMap;
 
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
@@ -48,20 +48,22 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class AllEventRefreshModel.
  * 
@@ -106,7 +108,7 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 	}
 
 	
-	public Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
+	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
 		
 		for (Object shareList : viewStateParams) {
 			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
@@ -126,11 +128,6 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 
 				LOGGER.debug("running analysis for " + analysers[i]);
 				IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
-
-//				//XXX ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig()); 
-//				//XXX The following should be in an other bean and systmaticly used instead of the Configs default constructors
-//				ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
-//				shareListMgr.initConfig();
 
 				ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 
@@ -215,6 +212,22 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 	public Date setLastAnalyse(Date newD, Date oldD) {
 		MainPMScmd.getPrefs().put("quotes.lastanalyse", new SimpleDateFormat("yyyy/MM/dd").format(newD));
 		return newD;
+	}
+
+	@Override
+	public Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object... viewStateParams) {
+		
+		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+		EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
+		TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfs();
+		
+		//Delete all
+		return true;
+	}
+
+	@Override
+	public void callbackForAlerts(Set<Observer> engineObservers, Object... viewStateParams) {
+		throw new NotImplementedException();
 	}
 
 }

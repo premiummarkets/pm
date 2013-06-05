@@ -81,9 +81,9 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
 			this.priceSma20 = new SMA(stock, 20, startDate, endDate, calculationCurrency, 20, 0);
 			this.priceSma65 = new SMA(stock, 65, startDate, endDate, calculationCurrency, 65, 0);
 		} catch (TalibException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
 		chaikinSma20QuotationStartDateIdx = chaikinSma20.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);

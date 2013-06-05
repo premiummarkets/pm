@@ -32,6 +32,8 @@ package com.finance.pms.events.calculation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -43,20 +45,23 @@ import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);
 	private Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators;
-	private List<EventDefinition> secondPassWantedCalculations;
+	private List<EventInfo> secondPassWantedCalculations;
 
 	protected SecondPassIndicatorCalculationThread(
 			Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
@@ -78,22 +83,42 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			if (checkWanted(eventDefinition)) {
 				try {
 					
-					EventCompostionCalculator instanciatedECC = instanciateECC(eventDefinition, availableSecondPassIndicatorCalculators.get(eventDefinition), observers);
-					eventCalculations.add(instanciatedECC);
+					Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
+					
+					List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
+					for (EventInfo eventInfo : eventInfos) {
+						EventCompostionCalculator instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
+						eventCalculations.add(instanciatedECC);
+					}
 					
 				} catch (Exception e) {
 					
 					LOGGER.warn(e,e);
-					//throw new IncompleteDataSetException(stock, new HashSet<EventCompostionCalculator>(), e.getMessage());
 					isDataSetComplete = false;
 					
 				}
 			}
 		}
 		
-		if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete.");
+		if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete for "+stock);
 		
 		return eventCalculations;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<EventInfo> subEventInfosForRequested(EventDefinition eventDefinition) {
+		
+		List<EventInfo> ret = new ArrayList<EventInfo>();
+		switch(eventDefinition) {
+		case PARAMETERIZED :
+			ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
+			@SuppressWarnings("rawtypes")
+			Collection values = parameterizedIndicatorsBuilder.getUserEnabledOperations().values();
+			ret.addAll(values);
+			break;
+		default : ret.add(eventDefinition);
+		}
+		return ret;
 	}
 
 	@Override
@@ -101,19 +126,19 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		secondPassWantedCalculations = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepIndicators();
 	}
 	
-	private EventCompostionCalculator instanciateECC(EventDefinition eventDefinition, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Exception {
-		EventCompostionCalculator ret;
+	private EventCompostionCalculator instanciateECC(EventInfo eventInfo, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Exception {
+		
 		try {
 			
-			Constructor<EventCompostionCalculator> constructor = eventCompositionCalculator.getConstructor(Stock.class,Date.class,Date.class,Currency.class,String.class,Boolean.class,Boolean.class, Observer[].class);
-			ret = constructor.newInstance(stock, startDate, endDate, calculationCurrency, eventListName, export, persistTrainingEvents, observers);
-			return ret;
+			Constructor<EventCompostionCalculator> constructor = eventCompositionCalculator.getConstructor(EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Boolean.class, Boolean.class, Observer[].class);
+			return constructor.newInstance(eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, export, persistTrainingEvents, observers);
+		
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException) {
 				if (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException ) {
-					LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventDefinition.toString(), startDate, endDate));
+					LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventInfo.toString(), startDate, endDate));
 				} else {
-					LOGGER.warn("Failed calculation : " + warnMessage(eventDefinition.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
+					LOGGER.warn("Failed calculation : " + warnMessage(eventInfo.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
 				}
 			} else if (e.getCause() instanceof ErrorException) {
 				LOGGER.error(stock+ " second pass calculation error ",e);
@@ -126,7 +151,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	}
 
 	@Override
-	protected List<EventDefinition> getWantedEventCalculations() {
+	protected List<EventInfo> getWantedEventCalculations() {
 		return secondPassWantedCalculations;
 	}
 	

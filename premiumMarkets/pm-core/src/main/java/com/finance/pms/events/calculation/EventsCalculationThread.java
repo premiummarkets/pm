@@ -31,7 +31,6 @@
 package com.finance.pms.events.calculation;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -50,11 +49,14 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventSource;
+import com.finance.pms.events.AnalysisClient;
+import com.finance.pms.events.EmailFilterEventSource;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.queue.SingleEventMessage;
+import com.finance.pms.queue.SymbolEventsMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public abstract class EventsCalculationThread extends Observable implements Callable<SymbolEvents> {
@@ -95,37 +97,42 @@ public abstract class EventsCalculationThread extends Observable implements Call
 		
 	}
 
-	protected Map<EventKey, EventValue> calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, Date datedeb, Date datefin, Boolean persist) { 
-
-		Map<EventKey, EventValue> edata = new HashMap<EventKey, EventValue>();
-		
-		try {
-			cleanEventsFor(this.eventListName, datedeb, datefin, persist);
-		} catch (Exception e) {
-			LOGGER.error(e,e);
-		}
-		
-		for (EventCompostionCalculator evtCalculator: evtCalculators ) {
-			edata.putAll(evtCalculator.calculateEventsFor(this.eventListName));
-		}
-
-		return edata;
-	}
-
-	protected void sendEvent(final Stock stock, final String eventListName, final EventValue event, final EventSource eventSource) {
+	protected void sendEvent(final Stock stock, final String eventListName, final EventValue event, final EmailFilterEventSource eventSource, final EventInfo eventInfo) {
 	
-		jmsTemplate.send(eventQueue, new MessageCreator() {
-			
-			public Message createMessage(Session session) throws JMSException {
-				
-				SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, event);
-				message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
-				message.setObjectProperty(MessageProperties.TREND.getKey(), event.getEventType().name()); //Bearish or Bullish or Other?
-				message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-				
-				return message;
-			}
-		});
+		if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
+			jmsTemplate.send(eventQueue, new MessageCreator() {
+
+				public Message createMessage(Session session) throws JMSException {
+
+					SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, event, ConfigThreadLocal.getAll());
+					message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
+					message.setObjectProperty(MessageProperties.TREND.getKey(), event.getEventType().name()); //Bearish or Bullish or Other?
+					message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+					if (eventInfo != null) message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), eventInfo.getEventReadableDef());
+
+					return message;
+				}
+			});
+		}
+	}
+	
+	protected void sendEvent(final String eventListName, final SymbolEvents symbolEvents, final EmailFilterEventSource eventSource, final EventType lastEventType, final EventInfo eventInfo) {
+		
+		if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
+			jmsTemplate.send(eventQueue, new MessageCreator() {
+
+				public Message createMessage(Session session) throws JMSException {
+
+					SymbolEventsMessage message = new SymbolEventsMessage(eventListName, symbolEvents, ConfigThreadLocal.getAll());
+					message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
+					message.setObjectProperty(MessageProperties.TREND.getKey(), lastEventType.name()); //Bearish or Bullish or Other?
+					message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+					if (eventInfo != null) message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), eventInfo.getEventReadableDef());
+
+					return message;
+				}
+			});
+		}
 	}
 	
 	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);

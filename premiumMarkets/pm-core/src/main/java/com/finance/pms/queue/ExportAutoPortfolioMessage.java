@@ -33,9 +33,12 @@ package com.finance.pms.queue;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Map;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
+
+import com.finance.pms.admin.config.Config;
 
 public class ExportAutoPortfolioMessage extends IdentifiedObjecMessage implements Serializable {
 
@@ -45,8 +48,8 @@ public class ExportAutoPortfolioMessage extends IdentifiedObjecMessage implement
 	private Date datefin;
 	
 
-	public ExportAutoPortfolioMessage(String processingName, Date datefin) {
-		super(processingName.hashCode());
+	public ExportAutoPortfolioMessage(String processingName, Date datefin, Map<String, Config> ptc) {
+		super(processingName.hashCode(), ptc);
 		this.analyseName = processingName; 
 		this.datefin = datefin;
 	}

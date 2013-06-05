@@ -31,6 +31,7 @@
 package com.finance.pms.events.pounderationrules;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 
@@ -46,8 +47,8 @@ public class ExclusiveTrendNeuralSignal extends DefaultSignal {
 	}
 	
 	@Override
-	public Integer addEvent(EventValue eventValue) {
-		if (isFilteredEvent(eventValue)) {
+	public Integer addEvent(EventKey eventKey,EventValue eventValue) {
+		if (isFilteredEvent(eventKey)) {
 			latestEventDate = eventValue.getDate();
 			parsedEventDefs.add(eventValue.getEventDef());
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {

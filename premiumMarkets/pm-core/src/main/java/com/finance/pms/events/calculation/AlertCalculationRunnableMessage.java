@@ -57,7 +57,6 @@ import com.finance.pms.portfolio.UserPortfolio;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-
 public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunnableMessage {
 
 	private static final long serialVersionUID = 5557078167196323845L;
@@ -135,7 +134,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	public void run() {
 	
 		try {
-			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			this.analysePortfolioCollection(startDate, endDate, portfolios, true);
 			
 		} catch (Exception e) {

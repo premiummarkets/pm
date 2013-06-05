@@ -31,6 +31,7 @@
 package com.finance.pms.events.pounderationrules;
 
 
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 
 public class SilentSignal extends Signal {
@@ -40,7 +41,7 @@ public class SilentSignal extends Signal {
 	}
 
 	@Override
-	public Integer addEvent(EventValue eventValue) {
+	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		return 0;
 	}
 	

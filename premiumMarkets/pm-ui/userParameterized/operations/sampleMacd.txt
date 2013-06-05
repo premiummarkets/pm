@@ -1,0 +1,1 @@
+macd:MACD(12,26,9,close)

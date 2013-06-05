@@ -80,9 +80,9 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 			Calendar startDateCal = Calendar.getInstance();
 			startDateCal.setTime(startDate);
 			QuotationsFactories.getFactory().incrementDate(startDateCal, getDaysSpan()*2);
-			throw new NotEnoughDataException(startDateCal.getTime(), endDate, e.getMessage(),e);
+			throw new NotEnoughDataException(stock, startDateCal.getTime(), endDate, e.getMessage(),e);
 		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(e.getMessage(),e);
+			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
 		aroonQuotationStartDateIdx = aroon.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);

@@ -69,17 +69,10 @@ import com.finance.pms.events.calculation.DateFactory;
  */
 public class MainPMScmd {	
 
-	/** The Constant prefdbpath. */
-	//public static final String prefdbpath = "com.finance.pms"+ System.getProperty("installdir");
+	protected static Logger LOGGER = Logger.getLogger(MainPMScmd.class);
 	
-	/** The Constant prefs. */
-//	private static final Preferences prefs = Preferences.userRoot().node(prefdbpath);
 	private static Preferences prefs = null;
 
-	
-	/** The LOGGER. */
-	//protected static MyLogger LOGGER = Logger.getLogger(MainPMScmd.class);
-	protected static Logger LOGGER = Logger.getLogger(MainPMScmd.class);
 
 	/**
 	 * Instantiates a new main pm scmd.
@@ -126,8 +119,8 @@ public class MainPMScmd {
 			Boolean yahooIndicesSymbols = argList.contains("-yahooIndicesSymbol");
 			Boolean getInflationData = argList.contains("-getInflationData");
 
-			SpringContext springContext = new SpringContext();
-			springContext.setDataSource(dbProps);
+			SpringContext springContext = new SpringContext(dbProps);
+			//springContext.setDataSource(dbProps);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 			springContext.refresh();
 			

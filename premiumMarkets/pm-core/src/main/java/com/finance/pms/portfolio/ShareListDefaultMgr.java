@@ -1,36 +1,53 @@
 package com.finance.pms.portfolio;
 
-import java.math.BigDecimal;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.shares.SharesListId;
-import com.finance.pms.portfolio.Transaction.TransactionType;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class ShareListDefaultMgr extends ShareListMgr {
-
+	
+	@Autowired
+	PortfolioDAO portfolioDAO;
+	
 	@Override
-	protected void foreignKeysUpdate(PortfolioShare oldPortfolioShare) throws InvalidQuantityException {
+	protected void removeForeignKeysUpdate(PortfolioShare toRemovePortfolioShare) {
 			
-		SharesList unknownShareList = new SharesList(SharesListId.UNKNOWN.name());
-		unknownShareList.addOrUpdateShare(
-				oldPortfolioShare.getStock(), 
-				BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, MonitorLevel.NONE, 
-				oldPortfolioShare.getStock().getMarketValuation().getCurrency(), TransactionType.AIN);
-		PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(unknownShareList);
-
+		SharesList unknownShareList = portfolioDAO.loadShareList(SharesListId.UNKNOWN.name());
+		Stock stock = toRemovePortfolioShare.getStock();
+		PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+		if (unknownCounterpartPortfolioShare == null) {
+			unknownShareList.addShare(stock);
+			unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+		}
+		portfolioDAO.saveOrUpdatePortfolioShare(unknownCounterpartPortfolioShare);
+	
+	}
+	
+	@Override
+	protected void addForeignKeysUpdate(PortfolioShare newPortfolioShare) {
+		
+		//We leave as it in Unknown the stock can be in several portfolios.
+		
 	}
 
 	@Override
-	public void initConfig() {
+	public EventSignalConfig initPkgDependentConfig() {
 		
+		EventSignalConfig config;
 		try {
-			ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+			config = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 		} catch (IllegalArgumentException e) {
-			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
+			config = new EventSignalConfig();
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 		}
 		
+		return config;
 	}
+
+
 
 }

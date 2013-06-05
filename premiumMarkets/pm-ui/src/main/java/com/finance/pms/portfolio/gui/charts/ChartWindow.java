@@ -69,8 +69,8 @@ public class ChartWindow extends JFrame {
 			LOGGER.info("Usage : MainGui <path>/db.properties");
 			System.exit(0);
 		}
-		SpringContext ctx = new SpringContext();
-		ctx.setDataSource(dbfile);
+		SpringContext ctx = new SpringContext(dbfile);
+		//ctx.setDataSource(dbfile);
 		//ctx.setProvidersSource(dbfile);
 		ctx.setMasSource(dbfile, "false");
 		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml", "talibanalysisservices.xml","masanalysisservices.xml" });

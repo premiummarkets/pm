@@ -38,7 +38,7 @@ import com.finance.pms.events.SymbolEvents;
 
 public class IndicatorEventCalculator implements ScreenerCalculator<SymbolEvents> {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(TrendSupplementedStock.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(ScreeningSupplementedStock.class);
 	
 	private List<SymbolEvents> events;
 	private Stock stock;

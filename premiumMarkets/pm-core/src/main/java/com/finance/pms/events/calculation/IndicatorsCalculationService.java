@@ -46,7 +46,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.portfolio.PortfolioDAO;
 
 
@@ -99,11 +99,11 @@ public abstract class IndicatorsCalculationService {
 	 * @return 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException {
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException {
 		
 		if ((this.symbolsCache == null) || !keepCache) this.symbolsCache = loadAllStocksFromDB();
 		
-		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analysisRes = null;
+		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analysisRes = null;
 		try {
 			analysisRes = analyze(this.symbolsCache, datedeb, datefin, calculationCurrency, analyseName, periodType, keepCache, passNumber, false, true, passOneCalcMode);
 		} catch (IncompleteDataSetException e) {
@@ -154,7 +154,7 @@ public abstract class IndicatorsCalculationService {
 	 * @throws InvalidAlgorithmParameterException 
 	 * @throws IncompleteDataSetException 
 	 */
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyze(
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean kc, Integer passNumber, Boolean export, Boolean persistEvents,  String passOneCalcMode, Observer... observers)	throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		return this.analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, export, persistEvents, passOneCalcMode, observers);		
@@ -178,7 +178,7 @@ public abstract class IndicatorsCalculationService {
 	 * @throws InvalidAlgorithmParameterException 
 	 * @throws IncompleteDataSetException 
 	 */
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> partialAnalyze(
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> partialAnalyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumer, Boolean export, Boolean persistEvents, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
@@ -206,19 +206,19 @@ public abstract class IndicatorsCalculationService {
 	 * @throws InvalidAlgorithmParameterException 
 	 * @throws IncompleteDataSetException 
 	 */
-	protected abstract Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> analyseSymbolCollection(
+	protected abstract Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
 			throws InvalidAlgorithmParameterException, IncompleteDataSetException;
 
 	
 	
-	public Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> runIndicatorsCalculation(
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(
 			Collection<Stock> shareList, String eventListName, Date startDate, Date endDate, Currency calculationCurrency, 
 			String periodType, Integer passNumber, Boolean export, Boolean persistEvents, String passOneCalcMode, Observer... observers)
 																				throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
-		Map<Stock,Map<EventDefinition, SortedMap<Date, double[]>>> calcRes = null;
+		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calcRes = null;
 		
 		if (shareList.size() > 0) {
 				calcRes = partialAnalyze(shareList, startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, export, persistEvents, passOneCalcMode, observers);

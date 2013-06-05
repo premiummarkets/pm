@@ -47,17 +47,23 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.TransactionElement;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 
-
+@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDAO {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(PortfolioDAOImpl.class);    
+	protected static MyLogger LOGGER = MyLogger.getLogger(PortfolioDAOImpl.class);  
+	
+	private SharesList unknownSharelIstCache;
 
 	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
 	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock) {
 	
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(PortfolioShare.class);
@@ -67,6 +73,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		
 	}
 	
+	@Transactional(readOnly=true)
 	public PortfolioShare loadPortfolioShare(final String symbol, final String isin, final String portfolioName) {
 		
 		return this.getHibernateTemplate().execute(new HibernateCallback<PortfolioShare>() {
@@ -81,24 +88,33 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		});
 		
 	}
-
 	
 	public void saveOrUpdatePortfolio(AbstractSharesList portfolio) {
 		
-		LOGGER.debug("Portfolio before save :"+ portfolio.toString());
 		try {
 			this.getHibernateTemplate().saveOrUpdate(portfolio);
 		} catch (Exception e) {
 			LOGGER.error("While saving Portfolio : "+portfolio,e);
 			throw new RuntimeException(e);
 		}
-
-		LOGGER.debug("Portfolio after save O update :"+ portfolio.toString());
+		
+	}
+	
+	@Override
+	public void saveOrUpdatePortfolioShare(PortfolioShare portfolioShare) {
+	
+		try {
+			this.getHibernateTemplate().saveOrUpdate(portfolioShare);
+			//this.getHibernateTemplate().flush();
+		} catch (Exception e) {
+			LOGGER.error("While saving/updating Portfolio Share: "+portfolioShare,e);
+			throw new RuntimeException(e);
+		}
 		
 	}
 
 	@SuppressWarnings("unchecked")
-	
+	@Transactional(readOnly=true)
 	public List<Portfolio> loadVisiblePortfolios() {
 		
 		List<Portfolio>  retour = new ArrayList<Portfolio>();
@@ -125,8 +141,19 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		this.getHibernateTemplate().delete(portfolio);
 	}
 	
+	@Transactional(readOnly=true)
 	public SharesList loadShareList(String shareListName) {
+		
+		
 		String upperShareListName = shareListName.toUpperCase();
+		
+		if (shareListName.equalsIgnoreCase(SharesListId.UNKNOWN.getSharesListCmdParam())) {
+			if (unknownSharelIstCache == null) {
+				unknownSharelIstCache = (SharesList)this.getHibernateTemplate().get(SharesList.class, upperShareListName);
+			}
+			return unknownSharelIstCache;
+		}
+	
 		SharesList shareList= (SharesList)this.getHibernateTemplate().get(SharesList.class, upperShareListName);
 		
 		if (shareList == null) shareList =  new SharesList(upperShareListName);	
@@ -134,17 +161,14 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 	
 	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
 	public List<String> loadShareListNames() {
 		return this.getHibernateTemplate().find("select name from SharesList");
-	}
-	
-	@Override
-	public List<SharesList> loadShareList() {
-		return this.getHibernateTemplate().loadAll(SharesList.class);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
+	@Transactional(readOnly=true)
 	public List<String> loadShareListNames(String[] include, String[] exclude) {
 		DetachedCriteria detachedCriteria= DetachedCriteria.forClass(SharesList.class);
 		detachedCriteria.setProjection(Projections.projectionList().add(Projections.property("name")));
@@ -156,6 +180,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	
 
 	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
 	public List<String> loadUserPortfolioNames() {
 		return this.getHibernateTemplate().find("select name from UserPortfolio");
 	}	
@@ -172,6 +197,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 
 	@SuppressWarnings("unchecked")
+	@Transactional(readOnly=true)
 	public SortedSet<TransactionElement> loadTransactionReportFor(Stock stock, String account, Date date) {
 		List<TransactionElement> trans = this.getHibernateTemplate().find("from TransactionElement where symbol = ? and isin = ? and account = ? and date <= ? order by date", stock.getSymbol(), stock.getIsin(), account, date);
 		return new TreeSet<TransactionElement>(trans);
@@ -181,6 +207,10 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	public void deleteTransactionReports() {
 		this.getHibernateTemplate().deleteAll(this.getHibernateTemplate().loadAll(TransactionElement.class));
 		
-	}	
+	}
+	
+	public void close() {
+		if (unknownSharelIstCache != null) saveOrUpdatePortfolio(unknownSharelIstCache);
+	}
 	
 }

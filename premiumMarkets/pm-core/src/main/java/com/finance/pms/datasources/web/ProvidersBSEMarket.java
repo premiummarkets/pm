@@ -47,7 +47,7 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.datasources.web.formaters.StockComplementBSEFormater;
 import com.finance.pms.datasources.web.formaters.StockListBSEFormater;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class ProvidersBSEMarket extends ProvidersMarket {
 	
@@ -143,7 +143,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 
 
 	@Override
-	public void retrieveScreeningInfoForShare(TrendSupplementedStock trendSupStock) {
+	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
 		//throw new NotImplementedException();
 		
 	}

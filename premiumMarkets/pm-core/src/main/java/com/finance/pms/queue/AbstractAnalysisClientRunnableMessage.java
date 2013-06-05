@@ -33,7 +33,6 @@ package com.finance.pms.queue;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.jms.Destination;
@@ -58,20 +57,17 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 	protected Queue eventQueue;
 	protected SpringContext springContext;
 	protected AnalysisClient indicatorAnalysis;
-	protected Map<String,Config> configs;
-
 	protected String analysisName;
 	protected Object syncObject;
 	
 	public AbstractAnalysisClientRunnableMessage(Integer key, SpringContext springContext, String analysisName) {
-		super(key);
+		super(key, ConfigThreadLocal.getAll());
 		
 		this.springContext = springContext;
 		indicatorAnalysis = (AnalysisClient) springContext.getBean("indicatorAnalysis");
 		eventQueue = (InnerQueue) springContext.getBean("eventqueue");
 		jmsTemplate = (InnerJmsTemplate) springContext.getBean("jmsTemplate");
 		
-		this.configs = ConfigThreadLocal.getAll();
 		this.analysisName = analysisName;
 		
 		this.syncObject = new Object();
@@ -98,12 +94,10 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 	//Event list name : event list to process. It will be added to an event list with the portfolio name at processing time
 	public BuySellSignalCalculatorMessage sendAutoportfolioSignalProcessingEvent(String signalProcessingPortfolioName, Date startDate, Date endDate, String... additionalEventListName)  throws InterruptedException{
 
-		Map<String, Config> signalConfig = new HashMap<String, Config>();
-		signalConfig.put(Config.EVENT_SIGNAL_NAME, ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME));
 		final BuySellSignalCalculatorMessage message = 
 				new BuySellSignalCalculatorMessage(
 						"Run Auto portfolios Calculation from " + startDate + " to "+endDate, 
-						startDate, endDate, signalProcessingPortfolioName, signalConfig, additionalEventListName);
+						startDate, endDate, signalProcessingPortfolioName, ConfigThreadLocal.getAll(), additionalEventListName);
 		
 		this.jmsTemplate.send(this.eventQueue, new MessageCreator() {
 
@@ -118,6 +112,10 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 	protected void closeSpringContext() {
 		indicatorAnalysis.close();
 		springContext.close();
+	}
+	
+	protected Map<String,Config> getConfigs() {
+		return super.getPassedThroughConfigs();
 	}
 
 	
@@ -383,7 +381,7 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 
 	
 	public String toString() {
-		return "AbstractAnalyseClientRunnableMessage [analysisName=" + analysisName + ", configs=" + configs + ", messageKey="
+		return "AbstractAnalyseClientRunnableMessage [analysisName=" + analysisName + ", messageKey="
 				+ messageKey + "]";
 	}
 

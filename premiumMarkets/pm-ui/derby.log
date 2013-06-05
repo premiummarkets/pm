@@ -1,10 +1,10 @@
 ----------------------------------------------------------------
-Sun Feb 17 03:32:12 GMT 2013:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013c-e635-7e7b-000003168b58 
-on database directory /home/guil/Developpement/Quotes/premiummarkets  with class loader sun.misc.Launcher$AppClassLoader@bf9a12 
+Wed Jun 05 12:11:07 BST 2013:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013f-1408-75b1-0000026e3930 
+on database directory /home/guil/Developpement/Quotes/premiummarkets  with class loader sun.misc.Launcher$AppClassLoader@ad3ba4 
 Loaded from file:/home/guil/.m2/repository/org/apache/derby/derby/10.9.1.0/derby-10.9.1.0.jar
-java.vendor=Oracle Corporation
-java.runtime.version=1.7.0_03-b04
+java.vendor=Sun Microsystems Inc.
+java.runtime.version=1.6.0_38-b05
 user.dir=/home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-ui
 derby.system.home=null
 Database Class Loader started - derby.database.classpath=''

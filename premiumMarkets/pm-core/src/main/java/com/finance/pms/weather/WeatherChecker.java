@@ -34,7 +34,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Observer;
@@ -48,7 +47,9 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -66,7 +67,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 	private Date endDate;
 	SortedSet<WeatherElement> weatherElements;
 
-	public WeatherChecker(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean export, Boolean persistTrainingEvents, Observer...observers) throws NotEnoughDataException {
+	public WeatherChecker(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean export, Boolean persistTrainingEvents, Observer...observers) throws NotEnoughDataException {
 		super(stock);
 		
 		weatherElements = WeatherDAOImpl.getInstance().getMonthlyWeatherUntil(endDate, new WeatherElementsComparator());
@@ -81,7 +82,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 	 * @return
 	 */
 	@Override 
-	public Map<EventKey, EventValue> calculateEventsFor(String eventListName)  {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName)  {
 		
 		Calendar endDateCalendar = firstDayOfPrevMonthOf(endDate);
 		Calendar currentDateCalendar = firstDayOfPrevMonthOf(startDate);
@@ -124,7 +125,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 			}
 		}
 
-		Map<EventKey, EventValue> eventData = new HashMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> eventData = new TreeMap<EventKey, EventValue>();
 		if (!meanEventValue.getEventType().equals(EventType.NONE)) {
 			LOGGER.info("Weather mean temperature hint : " +meanEventValue);
 			addEvent(eventData, meanEventValue.getDate(), meanEventValue.getEventDef(), meanEventValue.getEventType(), meanEventValue.getMessage(), eventListName, "mean");
@@ -138,7 +139,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 		return eventData;
 	}
 	
-	private void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, String hint) {
+	private void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventInfo eventDefinition, EventType eventType, String message, String eventListName, String hint) {
 		EventKey iek = new WeatherEventKey(currentDate, eventDefinition, eventType, hint);
 		EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
 		eventData.put(iek, iev);
@@ -337,9 +338,12 @@ public class WeatherChecker extends EventCompostionCalculator {
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.WEATHER;
-	}
-
+	}	
 	
+	@Override
+	public EmailFilterEventSource getSource() {
+		return EmailFilterEventSource.PMGlobalBuySell;
+	}
 	
 }
 

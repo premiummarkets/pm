@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
 
 public class IncompleteDataSetException extends Exception {
@@ -47,7 +47,7 @@ public class IncompleteDataSetException extends Exception {
 	private static final long serialVersionUID = 8415012484395864898L;
 
 	private List<Stock> failingStocks;
-	private Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> calculatedOutput;
+	private Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput;
 	private Set<EventCompostionCalculator> eventCalculations;
 	private List<SymbolEvents> symbolEvents;
 	
@@ -55,13 +55,13 @@ public class IncompleteDataSetException extends Exception {
 		super(arg0);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
-		this.calculatedOutput = new HashMap<Stock, Map<EventDefinition,SortedMap<Date,double[]>>>();
+		this.calculatedOutput = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
 		this.calculatedOutput.put(failingStock, symbolEventsForStock.getCalculationOutput());
 		this.symbolEvents = new ArrayList<SymbolEvents>();
 		this.symbolEvents.add(symbolEventsForStock);
 	}
 
-	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> symbolEvents, Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> calculatedOutput, String arg0) {
+	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> symbolEvents, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput, String arg0) {
 		super(arg0);
 		this.failingStocks = failingStocks;
 		this.calculatedOutput = calculatedOutput;
@@ -79,7 +79,7 @@ public class IncompleteDataSetException extends Exception {
 		return failingStocks;
 	}
 
-	public Map<Stock, Map<EventDefinition, SortedMap<Date, double[]>>> getCalculatedOutput() {
+	public Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> getCalculatedOutput() {
 		return calculatedOutput;
 	}
 

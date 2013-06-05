@@ -44,6 +44,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.GetMethod;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -94,7 +95,6 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		if (isStartAfterTodaysClose(start)) return;
 		
 		url = resolveUrlFor(stock, start, end);
-
 		TreeSet<Validatable> queries = initValidatableSet();
 		queries.addAll(readPage(stock, url));
 
@@ -173,6 +173,11 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		
 		//specific
 		GetMethod gmCheckNb = ((HttpSourceGoogle) this.httpSource).getStockListRequest(20,this.market);
+		try {
+			LOGGER.info("Google Url : " + gmCheckNb.getURI());
+		} catch (URIException e) {
+			LOGGER.error(e,e);
+		}
 		MarketList marketListCheckNb = ((HttpSourceGoogle) this.httpSource).readURL(gmCheckNb);
 		
 		Integer nbStocks = marketListCheckNb.getNum_company_results();

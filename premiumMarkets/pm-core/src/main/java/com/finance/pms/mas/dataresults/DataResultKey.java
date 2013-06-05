@@ -32,17 +32,17 @@ package com.finance.pms.mas.dataresults;
 
 import java.util.Date;
 
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
+import com.finance.pms.events.EventType;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DataResultKey.
  * 
  * @author Guillaume Thoreton
  */
-public class DataResultKey implements EventKey {
+public class DataResultKey extends EventKey {
 	
 
 	private static final long serialVersionUID = 7449740441898110511L;
@@ -59,63 +59,22 @@ public class DataResultKey implements EventKey {
 		return date;
 	}
 
-	public Comparable<Integer> getEventDefId() {
-		return eventDefId;
+	public EventInfo getEventInfo() {
+		// FIXME
+		return null;
 	}
-	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEvenType() {
+
+	public EventType getEventType() {
 		// FIXME
 		return null;
 	}
 	
-	@SuppressWarnings("rawtypes")
-	public Comparable getEventDefExtra() {
+	public String getEventInfoExtra() {
 		return null;
 	}	
 
-	
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + ((eventDefId == null) ? 0 : eventDefId.hashCode());
-		return result;
-	}
-
-	
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		DataResultKey other = (DataResultKey) obj;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (date.compareTo(other.date) != 0)
-			return false;
-		if (eventDefId == null) {
-			if (other.eventDefId != null)
-				return false;
-		} else if (!eventDefId.equals(other.eventDefId))
-			return false;
-		return true;
-	}
-
 	public String toString() {
 		return "DataResultKey [date=" + date + ", eventdef=" + eventDefId + "]";
-	}
-
-	@Override
-	public int compareTo(EventKey o) {
-		int dateCompare = date.compareTo(o.getDate());
-		if (dateCompare == 0) {
-			return eventDefId.compareTo((Integer) o.getEventDefId());
-		}
-		return dateCompare;
 	}
 	
 }

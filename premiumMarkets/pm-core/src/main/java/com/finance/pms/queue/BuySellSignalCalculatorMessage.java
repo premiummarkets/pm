@@ -45,9 +45,7 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 	private static final long serialVersionUID = -4542088662852292807L;
 	
 	private boolean isProcessed = false;
-	
 	private String messageTxt;
-	private Map<String,Config> passedThroughConfigs;
 	
 	private Date startDate;
 	private Date endDate;
@@ -56,9 +54,8 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 	private String[] additionalEventListNames;
 	
 	public BuySellSignalCalculatorMessage(String messageTxt, Date startDate, Date endDate, String signalProcessingName, Map<String,Config> ptc, String... eventListName) {
-		super(messageTxt.hashCode()+startDate.hashCode()+signalProcessingName.hashCode());
+		super(messageTxt.hashCode()+startDate.hashCode()+signalProcessingName.hashCode(), ptc);
 		this.messageTxt = messageTxt;
-		this.passedThroughConfigs = ptc;
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.signalProcessingName = signalProcessingName;
@@ -80,11 +77,6 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 	public String getSignalProcessingName() {
 		return signalProcessingName;
 	}
-	
-	public Map<String,Config> getPassedThroughConfigs() {
-		return this.passedThroughConfigs;
-	}
-
 
 	public String[] getAdditionalEventListNames() {
 		return additionalEventListNames;
@@ -399,7 +391,7 @@ public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage imple
 	
 	public String toString() {
 		return "SignalProcessorMessage [eventListName=" + additionalEventListNames + ", messageTxt=" + messageTxt
-				+ ", passedThroughConfigs=" + passedThroughConfigs + ", startDate=" + startDate+ ", endDate=" + endDate
+			    + ", startDate=" + startDate+ ", endDate=" + endDate
 				+ ", signalProcessingName=" + signalProcessingName + ", messageKey=" + messageKey + "]";
 	}
 

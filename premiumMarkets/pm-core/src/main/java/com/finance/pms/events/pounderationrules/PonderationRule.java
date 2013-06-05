@@ -66,15 +66,15 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 		
 		Integer isAddingUp = 0;
 		
-		for (EventValue eventValue : sortedEventMap.values()) {
+		for (EventKey eventKey : sortedEventMap.keySet()) {
 			
-			LOGGER.trace("Processing event : "+ eventValue +" at date "+ new SimpleDateFormat("yyyy/MM/dd").format(eventValue.getDate()));
+			LOGGER.trace("Processing event : "+ sortedEventMap.get(eventKey) +" at date "+ new SimpleDateFormat("yyyy/MM/dd").format(eventKey.getDate()));
 			
 			if (isAddingUp != -1) {
-				isAddingUp = this.signal.addEvent(eventValue);
+				isAddingUp = this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
 			} else {
 				//check remaining alerts as all alerts must be checked and prevail
-				if (isNonCumulativeEvent(eventValue)) this.signal.addEvent(eventValue);
+				if (isNonCumulativeEvent(sortedEventMap.get(eventKey))) this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
 			}
 			
 			if (shallExit()) {
@@ -108,7 +108,6 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 		SortedMap<EventKey,EventValue> sortedMap = 
 			new TreeMap<EventKey, EventValue>(new Comparator<EventKey>() {
 				
-				@SuppressWarnings("unchecked")
 				public int compare(EventKey o1, EventKey o2) {
 					
 					if (o1.equals(o2)) {
@@ -118,12 +117,12 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 					int date = o2.getDate().compareTo(o1.getDate());
 					
 					if (date == 0) {
-						int eventDef = o2.getEventDefId().compareTo(o1.getEventDefId());
+						int eventDef = o2.getEventInfo().compareTo(o1.getEventInfo());
 						if (eventDef == 0) {
-							if (EventDefinition.SCREENER.equals(o1.getEventDefId())) {
+							if (EventDefinition.SCREENER.equals(o1.getEventInfo())) {
 								throw new InvalidParameterException("Can't have two screener events at the same date : "+o2+ " and "+o1+" for "+symbolEvents.toString());
 							}
-							return o2.getEvenType().compareTo(o1.getEvenType());
+							return o2.getEventType().compareTo(o1.getEventType());
 						}
 						return eventDef;
 					}
@@ -131,7 +130,7 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 				}
 
 			});
-		sortedMap.putAll(symbolEvents.getDataResultList());
+		sortedMap.putAll(symbolEvents.getDataResultMap());
 	
 		return sortedMap;
 	}

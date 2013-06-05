@@ -35,19 +35,20 @@ import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventSource;
 import com.finance.pms.events.EventState;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
@@ -132,8 +133,8 @@ public class AutoPortfolioDelegate {
 						return "~";
 					}
 				},
-				new HashMap<EventKey, EventValue>(),
-				new HashMap<Integer, String>(),
+				new TreeMap<EventKey, EventValue>(),
+				new ArrayList<String>(),
 				EventState.STATE_TERMINATED) {
 					
 					private static final long serialVersionUID = 1L;
@@ -281,8 +282,8 @@ public class AutoPortfolioDelegate {
 							return "0";
 						}
 					},
-					new HashMap<EventKey, EventValue>(),
-					new HashMap<Integer,String>(),
+					new TreeMap<EventKey, EventValue>(),
+					new ArrayList<String>(),
 					EventState.STATE_TERMINATED) {
 
 						private static final long serialVersionUID = 1L;
@@ -431,7 +432,7 @@ public class AutoPortfolioDelegate {
 		TransactionRecord transactionRecord = 
 					new TransactionRecord(
 							thisPortfolio.getName(), shareList.getAvailableCash(), currentDate, stock, 
-							movement, quantity, price, symbolEvents, EventSource.PMAutoBuySell);
+							movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
 		
 		getTransactionHistory().add(transactionRecord);
 	

@@ -34,7 +34,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventSource;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.SymbolEvents;
 
 public class TransactionRecord {
@@ -48,9 +48,9 @@ public class TransactionRecord {
 	private BigDecimal transactionQuantity;
 	private BigDecimal transactionPrice;
 	private SymbolEvents eventList;
-	private EventSource source;
+	private EmailFilterEventSource source;
 	
-	public TransactionRecord(String tunningPortfolioName,BigDecimal availbleCash, Date date, Stock stock, String movement, BigDecimal quantity, BigDecimal price, SymbolEvents eventList, EventSource source) {
+	public TransactionRecord(String tunningPortfolioName,BigDecimal availbleCash, Date date, Stock stock, String movement, BigDecimal quantity, BigDecimal price, SymbolEvents eventList, EmailFilterEventSource source) {
 		super();
 		this.portfolioName = tunningPortfolioName;
 		this.availableCash = availbleCash;
@@ -122,7 +122,7 @@ public class TransactionRecord {
 				+ ".\n triggeringWeight : " + ((eventList != null)? eventList.getTriggeringFinalWeight(): "none");
 	}
 
-	public EventSource getSource() {
+	public EmailFilterEventSource getSource() {
 		return source;
 	}
 	

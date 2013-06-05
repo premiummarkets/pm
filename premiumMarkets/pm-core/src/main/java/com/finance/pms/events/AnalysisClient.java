@@ -31,6 +31,7 @@
 package com.finance.pms.events;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -63,13 +64,13 @@ import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.queue.BuySellSignalCalculatorMessage;
 import com.finance.pms.queue.EmailMessage;
 import com.finance.pms.queue.ExportAutoPortfolioMessage;
+import com.finance.pms.queue.IdentifiedObjecMessage;
 import com.finance.pms.queue.InnerQueue;
 import com.finance.pms.queue.SingleEventMessage;
 import com.finance.pms.queue.SymbolEventsMessage;
+import com.finance.pms.threads.ConfigThreadLocal;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class AnalysisClient.
  * 
@@ -77,13 +78,14 @@ import com.finance.pms.queue.SymbolEventsMessage;
  */
 public class AnalysisClient  implements MessageListener, ApplicationContextAware {
 
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(AnalysisClient.class);
+	
 	public static Stock ANY_STOCK = new Stock("ANYSTOCK","ANYSTOCK");
 	static {
 		ANY_STOCK.setName("ANY STOCK");
 		ANY_STOCK.setMarketValuation(new MarketValuation(Market.EURONEXT));
 	}
+	private static EnumSet<EmailFilterEventSource> EMAILMSGQEUEINGFILTER = EmailFilterEventSource.webSet();
 	
 	ApplicationContext applicationContext;
 	
@@ -106,6 +108,14 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	public void onMessage(Message message) {
 
     	try {
+    		
+    		
+    		if (message instanceof IdentifiedObjecMessage) {
+    			ConfigThreadLocal.setAll(((IdentifiedObjecMessage) message).getPassedThroughConfigs());
+    		} else {
+    			throw new IllegalArgumentException("The message is not an IdentifiedObjecMessage : "+message.getClass().getSimpleName());
+    		}
+    		
 
     		if (message instanceof BuySellSignalCalculatorMessage) { //Retrieve events from DB and process Auto portfolios. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
     			
@@ -116,14 +126,14 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     					new BuySellSignalCalculatorMessageRunnable(processorMessage, (JmsTemplate) applicationContext.getBean("jmsTemplate"), (InnerQueue) applicationContext.getBean("eventqueue")));
 
  
-    		} else if (message instanceof ExportAutoPortfolioMessage) { //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
+    		} else if (message instanceof ExportAutoPortfolioMessage) { //Not used??  //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
     			
     			ExportAutoPortfolioMessage m = (ExportAutoPortfolioMessage) message;
     			LOGGER.info("New export message received : " + m.getAnalyseName());
     			runSynchTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
     			
     			
-    		} else if (message instanceof AbstractAnalysisClientRunnableMessage) { //Runnable Messages : screener, indicator, all stocks summaries and alerts on threshold
+    		} else if (message instanceof AbstractAnalysisClientRunnableMessage) {//Is it still used as messages?? //Runnable Messages : screener, indicator, all stocks summaries and alerts on threshold
     			
     			AbstractAnalysisClientRunnableMessage runnableMessage = (AbstractAnalysisClientRunnableMessage) message;
     			LOGGER.info("New runnable message received : "+runnableMessage.getAnalysisName()+" for "+runnableMessage.getClass().getName());
@@ -132,19 +142,23 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     		} else if (message instanceof EmailMessage) { //SymbolEvent : send email
 
     			SymbolEvents symbolEventMessage = extractSymbolEventsObject(message);
-    			String eventListName = extractEventListName(message);
-    			
-    			EventType eType = EventType.valueOf((String) message.getObjectProperty(MessageProperties.TREND.getKey()));
-    			EventSource source = (EventSource) message.getObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey());
-    			
-    			LOGGER.debug("Event list for " + symbolEventMessage.getSymbolName() + " (" + symbolEventMessage.getSymbol() + ") : \n" + symbolEventMessage.toString());
-
-    			//Email
-    			Boolean sendEmail = (Boolean) message.getObjectProperty(MessageProperties.SEND_EMAIL.getKey());
-    			
-    			if (sendEmail) {
-    				sendEmail(symbolEventMessage, eType, source, eventListName);
-				}
+    			if (symbolEventMessage != null) {
+	    			String eventListName = extractEventListName(message);
+	    			
+	    			EventType eType = EventType.valueOf((String) message.getObjectProperty(MessageProperties.TREND.getKey()));
+	    			EmailFilterEventSource source = (EmailFilterEventSource) message.getObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey());
+	    			String eventInfoRef = (String) message.getObjectProperty(MessageProperties.EVENT_INFO.getKey());
+	    			if (eventInfoRef == null) eventInfoRef = "";
+	    			
+	    			//Email
+	    			Boolean sendEmail = (Boolean) message.getObjectProperty(MessageProperties.SEND_EMAIL.getKey());
+	    			
+	    			if (sendEmail) {
+	    				sendEmail(symbolEventMessage, eType, source, eventListName, eventInfoRef);
+					}
+    			} else {
+    				LOGGER.warn("Ignored message : "+message);
+    			}
 
     		} else {
     			throw new IllegalArgumentException("Unrecognised message type : "+message.getClass().getSimpleName());
@@ -163,50 +177,20 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	 * @param source
 	 * @param fromUI
 	 * @param eventListName 
+	 * @param eventInfoRef 
 	 */
-    private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EventSource source, String eventListName) {
+    private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
     	
     	LOGGER.debug(
     			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
-    			+ symbolEvents.getSymbolName()+" ("+symbolEvents.getSymbol()+"), "+symbolEvents.toEMail());
+    			+ symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
  
     	Boolean sendMailEnabled = new Boolean(MainPMScmd.getPrefs().get("mail.infoalert.activated","false"));
     	
-    	//SCREENING
-    	//All screening on monitored from user portfolios
-    	Boolean isValidScreeningEvent = source.equals(EventSource.PMUserScreening) && symbolEvents.isMonitored();
-    	//Screening validity metrics info message
-    	Boolean isValidScreeningMessage = source.equals(EventSource.PMScreening) && symbolEvents.getStock().equals(ANY_STOCK) && eventType.equals(EventType.INFO);
-    	
-    	//WEATHER
-    	//Only REFSTOCK sends a Weather msg
-    	//Non monitored share won't send weather messages
-    	Boolean isValidWeatherEvent = source.equals(EventSource.PMWeather) && symbolEvents.getStock().equals(ANY_STOCK);
-    	
-    	//ALERTS
-    	Boolean isMonitoredForPortfolio = PortfolioMgr.getInstance().isMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
-    	//All alerts on monitored from user portfolios
-    	Boolean isValidAlertEvent = source.equals(EventSource.PMUserAlert) && isMonitoredForPortfolio;
- 
-    	//BUY SELL
-    	//All Buy and Sell signals from auto portfolios and monitored user portfolios
-    	//Sell signal from sell only monitored portfolios
-    	Boolean isValidPmUserEvent = source.equals(EventSource.PMUserBuySell) && symbolEvents.getStock().equals(ANY_STOCK);
-		//Boolean isValidAutoBuySellSignal = source.equals(EventSource.PMAutoBuySell) || ( source.equals(EventSource.PMUserBuySell)  && isMonitoredForPortfolio );
-		//Boolean isSellMonitoredForPortfolio = PortfolioMgr.getInstance().isSellMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
-		//Boolean isValidMonitoredSellOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isSellMonitoredForPortfolio && (eventType.equals(EventType.BEARISH) || eventType.equals(EventType.INFO));
-		//Boolean isBuyMonitoredForPortfolio = PortfolioMgr.getInstance().isBuyMonitoredForPortofolio(symbolEvents.getStock(), eventListName);	
-		//Boolean isValidMonitoredBuyOnlySignal =  source.equals(EventSource.PMUserBuySell)  && isBuyMonitoredForPortfolio && (eventType.equals(EventType.BULLISH) || eventType.equals(EventType.INFO));
-		
-		Boolean isValidEventSource = isValidAlertEvent || isValidScreeningEvent || isValidScreeningMessage || isValidWeatherEvent || isValidPmUserEvent ; 
-									//|| isValidAutoBuySellSignal || isValidMonitoredSellOnlySignal || isValidMonitoredBuyOnlySignal;	
+		Boolean isValidEventSource =  symbolEvents.getStock().equals(ANY_STOCK) || PortfolioMgr.getInstance().isMonitoredForEvent(symbolEvents);
 		if 	( sendMailEnabled && isValidEventSource ) {
-			LOGGER.info(
-	    			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
-	    			+ symbolEvents.getSymbolName()+" ("+symbolEvents.getSymbol()+"), "+symbolEvents.toEMail());
-			
-			this.sendMailEvent(symbolEvents, eventType, source, eventListName);
-			
+			LOGGER.info("Email/Popup potential message preview : "+eventType.name()+" "+eventInfoRef+" from "+source+" in "+ eventListName + " : "+symbolEvents.getStock().getFriendlyName()+", "+symbolEvents.toEMail());
+			this.sendMailEvent(symbolEvents, eventType, source, eventListName, eventInfoRef);
 		} 
     }
 
@@ -215,7 +199,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	 */
     private void runSynchTask(String analysisName, Runnable runnable) {
 
-    		LOGGER.debug("Excuting executor :"+runnable.getClass().getName()+" for "+ analysisName);
+    		LOGGER.debug("Executing executor :"+runnable.getClass().getName()+" for "+ analysisName);
     		analysisExecutor.execute(runnable);
 
     }
@@ -227,11 +211,16 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	 */
 	private SymbolEvents extractSymbolEventsObject(Message message) throws JMSException {
 	
-		if (message instanceof SingleEventMessage) {
-			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage) message).getObject();
-			return  new SymbolEvents(eventMessageObject);
-		} else if (message instanceof SymbolEventsMessage) {
-			return (SymbolEvents) ((ObjectMessage) message).getObject();
+		try {
+			if (message instanceof SingleEventMessage) {
+				EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage) message).getObject();
+				return  new SymbolEvents(eventMessageObject);
+			} else if (message instanceof SymbolEventsMessage) {
+				return (SymbolEvents) ((ObjectMessage) message).getObject();
+			}
+		} catch (NoSuchFieldException e) {
+			LOGGER.warn("Unrecognised message : "+message+".\nEvent definition not found in this configuration (db.property, user ops) "+e);
+			return null;
 		}
 		
 		throw new JMSException("Unrecognised message :"+message);
@@ -242,7 +231,9 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		if (message instanceof SingleEventMessage) {
 			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage) message).getObject();
 			return eventMessageObject.getEventListName();
-		} 
+		} if (message instanceof SymbolEventsMessage) {
+			return ((SymbolEventsMessage)message).getEventListName();
+		}
 		return null;
 	}
 	
@@ -256,11 +247,12 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param eventListName 
+	 * @param eventInfoRef 
 	 */
-	private void sendMailEvent(SymbolEvents event, EventType eventType, EventSource source, String eventListName) {
+	private void sendMailEvent(SymbolEvents event, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
 		
 		if (this.templateMessage.getTo() == null || this.templateMessage.getTo().length == 0 || this.templateMessage.getTo()[0] == null || this.templateMessage.getTo()[0].equals("")) {
-			LOGGER.warn("No recipicent set for this message. Event sending aborted!");
+			LOGGER.warn("No recipient set for this message. Event sending aborted!");
 			return;
 		}
 		
@@ -269,7 +261,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		String eMailTxt = event.toEMail();
 		String notaBene = "This message was created on the "+new Date();
 		String subject = "NONE";
-	
+		if (!eventInfoRef.isEmpty()) eventInfoRef = ", "+eventInfoRef;
+		
 		switch (eventType) {
 			case BEARISH:
 				String sellTrigPat = "selltriggeringEvents : ";
@@ -278,7 +271,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					int sstartIdx = eMailTxt.indexOf(sellTrigPat) + sellTrigPat.length();
 					sellTriggeringEvents = " with trigger " + eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
 				}
-				subject = source + " : " + stockName + " SELL"+ sellTriggeringEvents + " in " + eventListName;
+				subject = source + " : " + stockName + eventInfoRef+ " SELL"+ sellTriggeringEvents + " in " + eventListName;
 				break;
 			case BULLISH:
 				String buyTrigPat = "buytriggeringEvents : ";
@@ -287,11 +280,11 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					int bstartIdx = eMailTxt.indexOf(buyTrigPat) + buyTrigPat.length();
 					buyTriggeringEvents = " with trigger" + eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
 				}
-				subject = source + " : " + stockName + " BUY" + buyTriggeringEvents + " in " + eventListName;
+				subject = source + " : " + stockName + eventInfoRef+ " BUY" + buyTriggeringEvents + " in " + eventListName;
 				break;
 			default:
 				String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
-				subject = source + " : " + stockName + " " + addEventType + " in " + eventListName;
+				subject = source + " : " + stockName + eventInfoRef+ " " + addEventType + " in " + eventListName;
 		}
 		
 		mail.setSubject(subject);
@@ -311,7 +304,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	 * @param eMailTxt
 	 * @return
 	 */
-	private String inferAdditionalEventTypeForOtherNInfoEventTypes(EventSource eventSource, String eMailTxt) {
+	private String inferAdditionalEventTypeForOtherNInfoEventTypes(EmailFilterEventSource eventSource, String eMailTxt) {
 
 		String bearish = "SELL";
 		String bullish = "BUY";
@@ -321,8 +314,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		//PMTAEvents,PMScreening,PMUserScreening,PMAlert,PMUserAlert,PMAutoBuySell,PMUserBuySell,PMWeather 
 		switch(eventSource) {
 		case PMTAEvents:
-		case PMScreening :
-		case PMAlert:
+		case PMAutoScreening :
+		case PMAutoAlert:
 		case PMAutoBuySell:
 			break;
 		case PMUserScreening:
@@ -348,8 +341,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				evenTypeAdd = bullish;
 			}
 			break;
-		case PMWeather:
-			break;
+//		case PMWeather:
+//			break;
 		}
 
 		return evenTypeAdd;
@@ -398,7 +391,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				List<Runnable> shutdownNow = analysisExecutor.shutdownNow();
 				LOGGER.error(shutdownNow,new Exception());
 			}
-			LOGGER.info("All runnable messages are stoped.");
+			LOGGER.info("All runnable messages are stopped.");
 
 			LOGGER.info("Saving auto portfolios.");
 			try {
@@ -430,6 +423,23 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			System.out.println("Error closing AnalysisClient : "+e);
 			e.printStackTrace();
 		}
+	}
+	
+
+	public static EnumSet<EmailFilterEventSource> getEmailMsgQeueingFilter() {
+		return AnalysisClient.EMAILMSGQEUEINGFILTER;
+	}
+	
+	public static void addEmailMsgQeueingFilter(EmailFilterEventSource element) {
+		AnalysisClient.EMAILMSGQEUEINGFILTER.add(element);
+	}
+	
+	public static void removeEmailMsgQeueingFilter(EmailFilterEventSource element) {
+		AnalysisClient.EMAILMSGQEUEINGFILTER.remove(element);
+	}
+
+	public static void setEmailMsgQeueingFilter(EnumSet<EmailFilterEventSource> emailMsgQeueingFilter) {
+		AnalysisClient.EMAILMSGQEUEINGFILTER = emailMsgQeueingFilter;
 	}
 
 	public void setEventQueue(InnerQueue eventQueue) {

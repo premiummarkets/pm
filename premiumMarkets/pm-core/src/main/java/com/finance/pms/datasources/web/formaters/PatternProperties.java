@@ -101,8 +101,6 @@ public class PatternProperties extends Properties {
 	 * @author Guillaume Thoreton
 	 */
 	public void load(String projectRelativeFilePath) throws IOException {
-		
-		//this.load(ClassLoader.getSystemClassLoader().getResourceAsStream(projectRelqtiveFilePath));
 		this.load(this.getClass().getClassLoader().getResourceAsStream(projectRelativeFilePath));
 	}
 

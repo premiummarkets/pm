@@ -38,15 +38,11 @@ import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.talib.indicators.TalibCoreService;
 import com.tictactec.ta.lib.MInteger;
-import com.tictactec.ta.lib.RetCode;
 
 public class TalibEmaSmoother extends Smoother {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(TalibEmaSmoother.class);
-
 	private int period;
 	
 
@@ -61,7 +57,7 @@ public class TalibEmaSmoother extends Smoother {
 		
 		int lag = 0;
 		if (fixLag) {
-			lag = (period - 1) / 2;
+			lag = (period - 1)/2;
 		} 
 		
 		MInteger outBegIdx = new MInteger();
@@ -78,18 +74,18 @@ public class TalibEmaSmoother extends Smoother {
 			i++;
 		}
 		
-		RetCode rc;
+		//RetCode rc;
 		if (period == 1) {
 			ema = Arrays.copyOfRange(inReal, startIdx, endIdx);
 			outBegIdx = new MInteger();
 			outBegIdx.value = startIdx;
 			outNBElement = new MInteger();
 			outNBElement.value = endIdx - outBegIdx.value;
-			rc = RetCode.Success;
+			//rc = RetCode.Success;
 		} else {
-			rc = TalibCoreService.getCore().ema(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, ema);
+			//rc = 
+			TalibCoreService.getCore().ema(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, ema);
 		}
-		LOGGER.debug("l smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		int j = 0;

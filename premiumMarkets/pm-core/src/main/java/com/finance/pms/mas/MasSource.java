@@ -33,12 +33,15 @@ package com.finance.pms.mas;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.TimeoutException;
 
 import com.finance.pms.MainPMScmd;
@@ -458,7 +461,7 @@ public class MasSource implements SourceConnector {
 		//String stocktrunc = stock.getSymbol().toLowerCase().substring(0,stock.getSymbol().length()-3);
 		String stocktrunc = stock.getSymbol().toLowerCase();
 		Map<Integer, String> el = sendEventListRequest(period_type, stocktrunc, connection);
-		Map<EventKey, EventValue> ed = new HashMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> ed = new TreeMap<EventKey, EventValue>();
 		SymbolEvents se;
 		if (el.size() > 0) {
 			//Cr�ation de la requete d'analyse. //cf. DATE_PARSING_UTILITIES
@@ -477,7 +480,7 @@ public class MasSource implements SourceConnector {
 			DataInspector di = connection.sendRequest(EVENT_DATA_REQUEST, eventsString.toString());
 			String results = di.getMessage();
 			if (di.getAckNumber() == MasConnection.OK) {
-				ed = (Map<EventKey, EventValue>) ResultsParser.resultParser(results, new EventDataResultFormat());
+				ed = (SortedMap<EventKey, EventValue>) ResultsParser.resultParser(results, new EventDataResultFormat());
 			} else {
 				LOGGER.warn("Wrong data results for symbol : " + stocktrunc);
 				LOGGER.warn("Response Ack : " + di.getAckNumber());
@@ -486,7 +489,7 @@ public class MasSource implements SourceConnector {
 				throw new IOException("Error retreiving event result data : " + results);
 			}
 		}
-		se = new SymbolEvents(stock, ed, el, EventState.STATE_TERMINATED);
+		se = new SymbolEvents(stock, ed, new ArrayList<String>(), EventState.STATE_TERMINATED);
 		return se;
 	}
 

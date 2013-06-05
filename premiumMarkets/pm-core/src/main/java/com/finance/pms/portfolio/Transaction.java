@@ -59,11 +59,11 @@ public class Transaction {
 		this.date = date;
 	}
 	
-	public void resetAmount() {
-		this.modtype = TransactionType.AIN;
-		this.fullAmountIn = BigDecimal.ZERO;
-		this.fullAmountOut =  BigDecimal.ZERO;
-	}
+//	public void resetAmount() {
+//		this.modtype = TransactionType.AIN;
+//		this.fullAmountIn = BigDecimal.ZERO;
+//		this.fullAmountOut =  BigDecimal.ZERO;
+//	}
 	
 	public BigDecimal getTransactionPrice() {
 		return transactionPrice;
@@ -94,19 +94,21 @@ public class Transaction {
 	public BigDecimal fullAmountIn() {
 		
 		if (this.modtype.equals(TransactionType.AIN)) {
-			return this.fullAmountIn.add(this.amount());
-		} else {
-			return this.fullAmountIn;
-		}		
+			BigDecimal fullin =  this.fullAmountIn.add(this.amount());
+			return fullin;
+		}
+		return this.fullAmountIn;
+	
 	}
 	
 	public BigDecimal fullAmountOut() {
 		
 		if (this.modtype.equals(TransactionType.AOUT)) {
-			return this.fullAmountOut.add(this.amount());
-		} else {
-			return this.fullAmountOut;
-		}	
+			BigDecimal fullout = this.fullAmountOut.add(this.amount());
+			return fullout;
+		} 
+		return this.fullAmountOut;
+			
 	}
 
 	

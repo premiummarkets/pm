@@ -30,8 +30,6 @@
  */
 package com.finance.pms.datasources.db;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.Connection;
@@ -50,7 +48,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
@@ -76,10 +73,12 @@ import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventState;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
@@ -125,6 +124,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	private ApplicationContext applicationContext;
 
+	public static String DB_PATH_NNAME;
+
 
 	/**
 	 * Instantiates a new data source.
@@ -133,254 +134,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public DataSource(String pathToprops) {
-		Properties props = new Properties();
-		try {
-			props.load(new FileInputStream((new File(pathToprops))));
-			// Connection
-			if (System.getProperty("dbpath") != null) {
-				MainPMScmd.getPrefs().put("dbpath", System.getProperty("dbpath"));
-			} else {
-				putInPrefs("dbpath", props);
-			}
-			if (props.containsKey("software"))
-				MainPMScmd.getPrefs().put("software", props.getProperty("software"));
-			if (props.containsKey("driver"))
-				MainPMScmd.getPrefs().put("driver", props.getProperty("driver"));
-			if (props.containsKey("host"))
-				MainPMScmd.getPrefs().put("host", props.getProperty("host"));
-			if (props.containsKey("port"))
-				MainPMScmd.getPrefs().put("port", props.getProperty("port"));
-			if (props.containsKey("database"))
-				MainPMScmd.getPrefs().put("database", props.getProperty("database"));
-			if (props.containsKey("username"))
-				MainPMScmd.getPrefs().put("username", props.getProperty("username"));
-			if (props.containsKey("password"))
-				MainPMScmd.getPrefs().put("password", props.getProperty("password"));
-			if (props.containsKey("db.poolsize"))
-				MainPMScmd.getPrefs().put("db.poolsize", props.getProperty("db.poolsize"));
-			// Tables shares
-			if (props.containsKey("shares"))
-				MainPMScmd.getPrefs().put("shares", props.getProperty("shares"));
-			if (props.containsKey("symbol"))
-				MainPMScmd.getPrefs().put("symbol", props.getProperty("symbol"));
-			if (props.containsKey("isin"))
-				MainPMScmd.getPrefs().put("isin", props.getProperty("isin"));
-			if (props.containsKey("sicovam"))
-				MainPMScmd.getPrefs().put("sicovam", props.getProperty("sicovam"));
-			if (props.containsKey("name"))
-				MainPMScmd.getPrefs().put("name", props.getProperty("name"));
-			if (props.containsKey("date"))
-				MainPMScmd.getPrefs().put("date", props.getProperty("date"));
-			if (props.containsKey("open"))
-				MainPMScmd.getPrefs().put("open", props.getProperty("open"));
-			if (props.containsKey("close"))
-				MainPMScmd.getPrefs().put("close", props.getProperty("close"));
-			if (props.containsKey("high"))
-				MainPMScmd.getPrefs().put("high", props.getProperty("high"));
-			if (props.containsKey("low"))
-				MainPMScmd.getPrefs().put("low", props.getProperty("low"));
-			if (props.containsKey("volume"))
-				MainPMScmd.getPrefs().put("volume", props.getProperty("volume"));
-			if (props.containsKey("currency"))
-				MainPMScmd.getPrefs().put("currency", props.getProperty("currency"));
-			if (props.containsKey("lookup"))
-				MainPMScmd.getPrefs().put("lookup", props.getProperty("lookup"));
-			if (props.containsKey("lookup.symbol"))
-				MainPMScmd.getPrefs().put("lookup.symbol", props.getProperty("lookup.symbol"));
-			if (props.containsKey("lookup.isin"))
-				MainPMScmd.getPrefs().put("lookup.isin", props.getProperty("lookup.isin"));
-			if (props.containsKey("lookup.name"))
-				MainPMScmd.getPrefs().put("lookup.name", props.getProperty("lookup.name"));
-			if (props.containsKey("lookup.removable"))
-				MainPMScmd.getPrefs().put("lookup.removable", props.getProperty("lookup.removable"));
-			if (props.containsKey("lookup.category"))
-				MainPMScmd.getPrefs().put("lookup.category", props.getProperty("lookup.category"));
-			if (props.containsKey("lookup.lastquote"))
-				MainPMScmd.getPrefs().put("lookup.lastquote", props.getProperty("lookup.lastquote"));
-			// Tables lard feuille
-			if (props.containsKey("portfolio.table"))
-				MainPMScmd.getPrefs().put("portfolio.table", props.getProperty("portfolio.table"));
-			if (props.containsKey("portfolio.symbol"))
-				MainPMScmd.getPrefs().put("portfolio.symbol", props.getProperty("portfolio.symbol"));
-			if (props.containsKey("portfolio.quantity"))
-				MainPMScmd.getPrefs().put("portfolio.quantity", props.getProperty("portfolio.quantity"));
-			if (props.containsKey("portfolio.cashin"))
-				MainPMScmd.getPrefs().put("portfolio.cashin", props.getProperty("portfolio.cashin"));
-			if (props.containsKey("portfolio.cashout"))
-				MainPMScmd.getPrefs().put("portfolio.cashout", props.getProperty("portfolio.cashout"));
-			if (props.containsKey("portfolio.name"))
-				MainPMScmd.getPrefs().put("portfolio.name", props.getProperty("portfolio.name"));
-			// Tables Events
-			if (props.containsKey("events.table"))
-				MainPMScmd.getPrefs().put("events.table", props.getProperty("events.table"));
-			if (props.containsKey("events.symbol"))
-				MainPMScmd.getPrefs().put("events.symbol", props.getProperty("events.symbol"));
-			if (props.containsKey("events.accuracy"))
-				MainPMScmd.getPrefs().put("events.accuracy", props.getProperty("events.accuracy"));
-			if (props.containsKey("events.state"))
-				MainPMScmd.getPrefs().put("events.state", props.getProperty("events.state"));
-			if (props.containsKey("events.date"))
-				MainPMScmd.getPrefs().put("events.date", props.getProperty("events.date"));
-			if (props.containsKey("events.eventdefid"))
-				MainPMScmd.getPrefs().put("events.eventdefid", props.getProperty("events.eventdefid"));
-			if (props.containsKey("events.eventdef"))
-				MainPMScmd.getPrefs().put("events.eventdef", props.getProperty("events.eventdef"));
-			if (props.containsKey("events.type"))
-				MainPMScmd.getPrefs().put("events.type", props.getProperty("events.type"));
-			// Semaphore
-			putInPrefs("alertcalculator.semaphore.nbthread",props);
-			putInPrefs("indicatorcalculator.semaphore.nbthread",props);
-			putInPrefs("currencyconverter.semaphore.nbthread",props);
-			putInPrefs("marketlistretrieval.semaphore.nbthread",props);
-			putInPrefs("screeninginforetrieval.semaphore.nbthread",props);
-			putInPrefs("quotationretrieval.semaphore.nbthread",props);
-			putInPrefs("trendeventscalculation.semaphore.nbthread",props);
-			putInPrefs("indicatortunning.semaphore.nbthread",props);
-
-			//Analyse
-			if (props.containsKey("mas.daysbackwardday"))
-				MainPMScmd.getPrefs().put("mas.daysbackwardday", props.getProperty("mas.daysbackwardday"));
-			if (props.containsKey("talib.daysbackwardday"))
-				MainPMScmd.getPrefs().put("talib.daysbackwardday", props.getProperty("talib.daysbackwardday"));
-			
-			//Quotes
-			if (props.containsKey("quotes.listfile"))
-				MainPMScmd.getPrefs().put("quotes.listfile", props.getProperty("quotes.listfile"));
-			if (props.containsKey("quotes.lastlistfetch"))
-				MainPMScmd.getPrefs().put("quotes.lastlistfetch", props.getProperty("quotes.lastlistfetch"));
-			if (props.containsKey("quotes.lastfetch"))
-				MainPMScmd.getPrefs().put("quotes.lastfetch", props.getProperty("quotes.lastfetch"));
-			if (props.containsKey("quotes.lastanalyse"))
-				MainPMScmd.getPrefs().put("quotes.lastanalyse", props.getProperty("quotes.lastanalyse"));
-			if (props.containsKey("quotes.provider"))
-				MainPMScmd.getPrefs().put("quotes.provider", props.getProperty("quotes.provider"));
-			if (props.containsKey("quotes.listprovider"))
-				MainPMScmd.getPrefs().put("quotes.listprovider", props.getProperty("quotes.listprovider"));
-			if (props.containsKey("analyse.mas.enable"))
-				MainPMScmd.getPrefs().put("analyse.mas.enable", props.getProperty("analyse.mas.enable"));
-			if (props.containsKey("quotes.sendeventfromui"))
-				MainPMScmd.getPrefs().put("quotes.sendeventfromui", props.getProperty("quotes.sendeventfromui"));
-			if (props.containsKey("quotes.listproviderindices"))
-				MainPMScmd.getPrefs().put("quotes.listproviderindices", props.getProperty("quotes.listproviderindices"));
-			
-			//Events
-			if (props.containsKey("event.stoploss"))
-				MainPMScmd.getPrefs().put("event.stoploss", props.getProperty("event.stoploss"));
-			if (props.containsKey("event.sellalert"))
-				MainPMScmd.getPrefs().put("event.sellalert", props.getProperty("event.sellalert"));
-			if (props.containsKey("event.buytrigger"))
-				MainPMScmd.getPrefs().put("event.buytrigger", props.getProperty("event.buytrigger"));
-			if (props.containsKey("event.selltrigger"))
-				MainPMScmd.getPrefs().put("event.selltrigger", props.getProperty("event.selltrigger"));
-			if (props.containsKey("event.maxloss"))
-				MainPMScmd.getPrefs().put("event.maxloss", props.getProperty("event.maxloss"));
-			
-			if (props.containsKey("event.indicators"))
-				MainPMScmd.getPrefs().put("event.indicators", props.getProperty("event.indicators"));
-			if (props.containsKey("event.sellindicators"))
-				MainPMScmd.getPrefs().put("event.sellindicators", props.getProperty("event.sellindicators"));
-			if (props.containsKey("event.buyindicators"))
-				MainPMScmd.getPrefs().put("event.buyindicators", props.getProperty("event.buyindicators"));
-			putInPrefs("event.indepIndicators",props);
-			
-			if (props.containsKey("mail.infoalert.activated"))
-				MainPMScmd.getPrefs().put("mail.infoalert.activated", props.getProperty("mail.infoalert.activated"));
-			if (props.containsKey("event.backwarddayspan"))
-				MainPMScmd.getPrefs().put("event.backwarddayspan", props.getProperty("event.backwarddayspan"));
-			if (props.containsKey("event.expectedrate"))
-				MainPMScmd.getPrefs().put("event.expectedrate", props.getProperty("event.expectedrate"));
-			putInPrefs("event.nbPassMax",props);
-			
-			//Neural
-			if (props.containsKey("event.buyponderationrule"))
-				MainPMScmd.getPrefs().put("event.buyponderationrule", props.getProperty("event.buyponderationrule"));
-			if (props.containsKey("event.sellponderationrule"))
-				MainPMScmd.getPrefs().put("event.sellponderationrule", props.getProperty("event.sellponderationrule"));
-			if (props.containsKey("perceptron.autoretrain"))
-				MainPMScmd.getPrefs().put("perceptron.autoretrain", props.getProperty("perceptron.autoretrain"));
-			if (props.containsKey("perceptron.filterTolerance"))
-				MainPMScmd.getPrefs().put("perceptron.filterTolerance", props.getProperty("perceptron.filterTolerance"));
-			putInPrefs("perceptron.trainingNbSlices",props);
-			putInPrefs("perceptron.maxNbOfTrainingYears",props);
-			putInPrefs("perceptron.minNbOfTrainingYears",props);
-			putInPrefs("perceptron.perceptronMinMonthEvents",props);
-			putInPrefs("perceptron.stampoutput",props);
-			putInPrefs("perceptron.exportoutput",props);
-			if (System.getProperty("neural.nbTrainingIter") != null) {
-				MainPMScmd.getPrefs().put("neural.nbTrainingIter", System.getProperty("neural.nbTrainingIter"));
-			} else {
-				putInPrefs("neural.nbTrainingIter",props);
-			}
-			putInPrefs("perceptron.trainingPMEventOccLowerSpan",props);
-			putInPrefs("perceptron.expectedSmothingSMAPeriod",props);
-			putInPrefs("perceptron.trainOutNbDaysAhead",props);
-			putInPrefs("perceptron.outputGeneratorInst",props);
-			putInPrefs("perceptron.expectedSmothingSMALag",props);
-			
-			//Sector
-			if (System.getProperty("sector.nbTrainingIter") != null) {
-				MainPMScmd.getPrefs().put("sector.nbTrainingIter", System.getProperty("sector.nbTrainingIter"));
-			} else {
-				putInPrefs("sector.nbTrainingIter",props);
-			}
-			putInPrefs("sectors.nbStepsForward",props);
-			putInPrefs("sectors.isTrainingConstrained",props);
-			putInPrefs("sectors.refHTSmoothSMA",props);
-			putInPrefs("sectors.sectorsHTSmoothSMA",props);
-			putInPrefs("sectors.supportStocks",props);
-			
-			//Tune 
-			putInPrefs("perceptron.retuneSpan", props);
-			putInPrefs("neural.retuneFreq", props);
-			putInPrefs("sector.retuneFreq", props);
-			putInPrefs("tuning.configs",props);
-			putInPrefs("perceptron.nbfolds",props);
-			putInPrefs("perceptron.foldsize",props);
-			
-			//Q fact
-			putInPrefs("bean.quotationFactory", props);
-
-			//Indicators
-			putInPrefs("indicators.smareversalsmaperiod",props);
-			putInPrefs("indicators.stddevsmaperiod",props);
-			putInPrefs("indicators.variancesmaperiod",props);
-			
-			putInPrefs("indicators.macd.fastperiod",props);
-			putInPrefs("indicators.macd.slowperiod",props);
-			putInPrefs("indicators.macd.signal",props);
-			
-			putInPrefs("indicators.variation.period",props);
-			putInPrefs("indicators.variation.spandiff",props);
-			
-			putInPrefs("indicators.variance.period",props);
-			putInPrefs("indicators.variance.spandiff",props);
-			putInPrefs("indicators.variance.minvalid",props);
-			
-			putInPrefs("indicators.returnoutput", props);
-			
-			//Screnner Trend
-			if (props.containsKey("trend.sellthreshold"))
-				MainPMScmd.getPrefs().put("trend.sellthreshold", props.getProperty("trend.sellthreshold"));
-			if (props.containsKey("trend.buythreshold"))
-				MainPMScmd.getPrefs().put("trend.buythreshold", props.getProperty("trend.buythreshold"));
-			putInPrefs("marketlistretrieval.trendSuppNeeded",props);
-			
-			//Gnu
-			if (props.containsKey("gnurepport.dateformat"))
-				MainPMScmd.getPrefs().put("gnurepport.dateformat", props.getProperty("gnurepport.dateformat"));
-			
-			//End date test
-			putInPrefs("test.endDate", props);
-			
-			//Event cache
-			LOGGER.info("event cache is "+props.getProperty("event.cache"));
-			putInPrefs("event.cache", props);
-			
-			MainPMScmd.getPrefs().flush();
-		} catch (Exception e) {
-			LOGGER.error("Couldn't init DataSource. Check the propeties path",e);
-		}
+	public DataSource() {
+		
 		QUOTATIONS.TABLE_NAME = MainPMScmd.getPrefs().get("quotations", "QUOTATIONS");
 		QUOTATIONS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("symbol", "SYMBOL");
 		QUOTATIONS.ISIN_FIELD = MainPMScmd.getPrefs().get("isin", "ISIN");
@@ -425,14 +180,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			singleton = this;
 		}
 	}
-
-	/**
-	 * @param property 
-	 * @param props
-	 */
-	private void putInPrefs(String property, Properties props) {
-		if (props.containsKey(property))
-			MainPMScmd.getPrefs().put(property, props.getProperty(property));
+	
+	public static String dbPathNname() {
+		return DB_PATH_NNAME;
 	}
 
 	/**
@@ -813,7 +563,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 * @author Guillaume Thoreton
 	 */
 	@SuppressWarnings("unchecked")
-	public List<SymbolEvents> loadEventsByDate(String eventsTableName, Date startDate, Date endDate, Set<EventDefinition> eventDefinitions, String... eventListNames) {
+	public List<SymbolEvents> loadEventsByDate(String eventsTableName, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 		
 		String eventListConstraint = " ( ";
 		String sep = "'";
@@ -823,17 +573,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 		eventListConstraint += "' ) ";
 		
-		String eventDefIdConstraint = " ( ";
-		if (eventDefinitions != null) 
-		{
-			String sep2 = "";
-			for (EventDefinition eventlist : eventDefinitions) {
-				eventDefIdConstraint = eventDefIdConstraint + sep2 + eventlist.getEventDefId();
-				sep2 = " , ";
-			}
-			eventDefIdConstraint += " ) ";
-		}
-		
 		Query select = new Query(
 				"SELECT "
 				+ eventsTableName + ".*," 
@@ -842,8 +581,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				+ " WHERE "
 				+ eventsTableName +"."+ EVENTS.DATE_FIELD + " >= ? AND " 
 				+ eventsTableName +"."+ EVENTS.DATE_FIELD + " <= ? AND " 
-				+ eventsTableName +"."+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint+" AND " 
-				+ ((eventDefinitions != null)?(eventsTableName +"."+EVENTS.EVENTDEFID_FIELD + " in " +eventDefIdConstraint+" AND "):"")
+				+ eventsTableName +"."+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint
+				+ eventDefinitionConstraint(eventDefinitions)+ " AND "
 				+ eventsTableName +"."+ EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
 				+ SHARES.TABLE_NAME + "."+ SHARES.SYMBOL_FIELD + "=" + eventsTableName +"."+ EVENTS.SYMBOL_FIELD + " AND "
 				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + eventsTableName +"."+ EVENTS.ISIN_FIELD ) {
@@ -881,18 +620,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(startDate);
 		select.addValue(endDate);
 		
-		LOGGER.debug(select.getQuery()+" with startDate :"+startDate+ " and endDate :	"+endDate);
+		LOGGER.debug(select.getQuery()+" with startDate : "+startDate+ " and endDate :	"+endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
 		
 		return (List<SymbolEvents>) lret;
 	}
 	
 
-//	public SymbolEvents loadAllEventsFor(String eventsTableName, Stock stock, String eventListName) {
-//		return this.loadEventsByDate(eventsTableName, stock, DateFactory.dateAtZero(), EventSignalConfig.getNewDate(), null, eventListName);
-//	}
-	
-	public SymbolEvents loadEventsByDate(String eventsTableName, final Stock stock, Date startDate, Date endDate, Set<EventDefinition> eventDefinitions, String... eventListNames) {
+	public SymbolEvents loadEventsByDate(String eventsTableName, final Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 		
 		String eventListConstraint = " ( ";
 		{
@@ -904,17 +639,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			eventListConstraint += "' ) ";
 		}
 		
-		String eventDefIdConstraint = " ( ";
-		if (eventDefinitions != null) 
-		{
-			String sep2 = "";
-			for (EventDefinition eventlist : eventDefinitions) {
-				eventDefIdConstraint = eventDefIdConstraint + sep2 + eventlist.getEventDefId();
-				sep2 = " , ";
-			}
-			eventDefIdConstraint += " ) ";
-		}
-		
 		Query select = new Query(
 				"SELECT "
 				+ "*"
@@ -922,8 +646,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				+ " WHERE "
 				+ EVENTS.DATE_FIELD + " >= ? AND " 
 				+ EVENTS.DATE_FIELD + " <= ? AND " 
-				+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint+" AND " 
-				+ ((eventDefinitions != null)?(EVENTS.EVENTDEFID_FIELD + " in " +eventDefIdConstraint+" AND "):"")
+				+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint
+				+ eventDefinitionConstraint(eventDefinitions)+ " AND "
 				+ EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
 				+ EVENTS.SYMBOL_FIELD + " = ? AND "
 				+ EVENTS.ISIN_FIELD+" = ?") {
@@ -961,41 +685,53 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	
 	private void readEventFromRS(ResultSet rs, SymbolEvents sers) throws SQLException {
 		
-		Integer eventType = rs.getInt(EVENTS.EVENTDEFID_FIELD);
+		Integer eventDefId = rs.getInt(EVENTS.EVENTDEFID_FIELD);
 		EventKey eventKey;
 		EventValue eventValue;
 		
-		if (EventDefinition.ALERTTHRESHOLD.equals(EventDefinition.valueOf(eventType))) {
-			eventKey = new AlertEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD), rs.getString(EVENTS.EVENTDEFEXTENSION_FIELD));
-			eventValue = new AlertEventValue(rs.getDate(EVENTS.DATE_FIELD), 
-						rs.getInt(EVENTS.EVENTDEFID_FIELD),
+		try {
+			if (EventDefinition.ALERTTHRESHOLD.equals(EventDefinition.valueOf(eventDefId))) {
+				eventKey = new AlertEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getString(EVENTS.EVENTDEF_FIELD).trim(), rs.getString(EVENTS.EVENTTYPE_FIELD).trim(), rs.getString(EVENTS.EVENTDEFEXTENSION_FIELD).trim());
+				eventValue = new AlertEventValue(rs.getDate(EVENTS.DATE_FIELD), 
+							rs.getString(EVENTS.EVENTDEF_FIELD).trim(),
+							rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
+							rs.getString(EVENTS.MESSAGE_FIELD),
+							rs.getString(EVENTS.ANALYSE_NAME));
+			} else if (EventDefinition.SCREENER.equals(EventDefinition.valueOf(eventDefId))) {
+				eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getString(EVENTS.EVENTDEF_FIELD).trim(), rs.getString(EVENTS.EVENTTYPE_FIELD).trim());
+				eventValue = new AlertEventValue(rs.getDate(EVENTS.DATE_FIELD), 
+						rs.getString(EVENTS.EVENTDEF_FIELD).trim(),
 						rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
 						rs.getString(EVENTS.MESSAGE_FIELD),
 						rs.getString(EVENTS.ANALYSE_NAME));
-		} else if (EventDefinition.SCREENER.equals(EventDefinition.valueOf(eventType))) {
-			eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD));
-			eventValue = new AlertEventValue(rs.getDate(EVENTS.DATE_FIELD), 
-					rs.getInt(EVENTS.EVENTDEFID_FIELD),
-					rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
-					rs.getString(EVENTS.MESSAGE_FIELD),
-					rs.getString(EVENTS.ANALYSE_NAME));
-		} else if (EventDefinition.WEATHER.equals(EventDefinition.valueOf(eventType))) {
-			eventKey = new WeatherEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD), rs.getString(EVENTS.EVENTDEFEXTENSION_FIELD));
-			eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
-					rs.getInt(EVENTS.EVENTDEFID_FIELD),
-					rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
-					rs.getString(EVENTS.MESSAGE_FIELD),
-					rs.getString(EVENTS.ANALYSE_NAME));
-		} else {
-			eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getInt(EVENTS.EVENTDEFID_FIELD), rs.getString(EVENTS.EVENTTYPE_FIELD).toLowerCase());
-			eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
-						rs.getInt(EVENTS.EVENTDEFID_FIELD),
-						rs.getString(EVENTS.EVENTTYPE_FIELD).trim().toLowerCase(),
+			} else if (EventDefinition.WEATHER.equals(EventDefinition.valueOf(eventDefId))) {
+				eventKey = new WeatherEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getString(EVENTS.EVENTDEF_FIELD).trim(), rs.getString(EVENTS.EVENTTYPE_FIELD).trim(), rs.getString(EVENTS.EVENTDEFEXTENSION_FIELD).trim());
+				eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
+						rs.getString(EVENTS.EVENTDEF_FIELD).trim(),
+						rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
 						rs.getString(EVENTS.MESSAGE_FIELD),
 						rs.getString(EVENTS.ANALYSE_NAME));
+			} else if (EventDefinition.PARAMETERIZED.equals(EventDefinition.valueOf(eventDefId))) {
+				eventKey = new ParameterizedEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getString(EVENTS.EVENTDEF_FIELD).trim(), rs.getString(EVENTS.EVENTTYPE_FIELD).trim());
+				eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
+						rs.getString(EVENTS.EVENTDEF_FIELD).trim(),
+						rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
+						rs.getString(EVENTS.MESSAGE_FIELD),
+						rs.getString(EVENTS.ANALYSE_NAME));
+			} else {
+				eventKey = new StandardEventKey(rs.getDate(EVENTS.DATE_FIELD), rs.getString(EVENTS.EVENTDEF_FIELD).trim(), rs.getString(EVENTS.EVENTTYPE_FIELD).trim().toLowerCase());
+				eventValue = new StandardEventValue(rs.getDate(EVENTS.DATE_FIELD), 
+							rs.getString(EVENTS.EVENTDEF_FIELD).trim(),
+							rs.getString(EVENTS.EVENTTYPE_FIELD).trim().toLowerCase(),
+							rs.getString(EVENTS.MESSAGE_FIELD),
+							rs.getString(EVENTS.ANALYSE_NAME));
+			}
+			
+			sers.addEventResultElement(eventKey, eventValue, rs.getString(EVENTS.EVENTDEF_FIELD).trim());
+			
+		} catch (NoSuchFieldException e) {
+			LOGGER.warn("Event definition not found in this configuration (db.properties and user calculators) : "+e);
 		}
-		
-		sers.addEventResultElement(eventKey, eventValue, rs.getString(EVENTS.EVENTDEF_FIELD).trim());
 		
 	}
 	
@@ -1014,7 +750,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				"SELECT "
 					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.ANALYSE_NAME+","
 					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.DATE_FIELD+","
-					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.EVENTDEFID_FIELD+","
+					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.EVENTDEF_FIELD+","
 					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.EVENTTYPE_FIELD+","
 					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.ISIN_FIELD+","
 					+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.MESSAGE_FIELD+","
@@ -1025,25 +761,29 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD +" in "+eventTypeConstraint+" AND " 
 					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD + " = ? AND " 
 					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD + " = ? AND " 
-					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEFID_FIELD + " = ? "
+					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEF_FIELD + " = ? "
 				+ " ORDER BY "+EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.DATE_FIELD+ " DESC ") {
 
 					@Override
 					public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
-						EventValue eventValue = new AlertEventValue(
-										rs.getDate(EVENTS.DATE_FIELD), 
-										rs.getInt(EVENTS.EVENTDEFID_FIELD),
-										rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
-										rs.getString(EVENTS.MESSAGE_FIELD),
-										rs.getString(EVENTS.ANALYSE_NAME));
-						retour.add(eventValue);
+						try {
+							EventValue eventValue = new AlertEventValue(
+											rs.getDate(EVENTS.DATE_FIELD), 
+											rs.getString(EVENTS.EVENTDEF_FIELD).trim(),
+											rs.getString(EVENTS.EVENTTYPE_FIELD).trim(),
+											rs.getString(EVENTS.MESSAGE_FIELD),
+											rs.getString(EVENTS.ANALYSE_NAME));
+							retour.add(eventValue);
+						} catch (NoSuchFieldException e) {
+							LOGGER.warn("Event definition not found in this configuration : "+e);
+						}
 					}
 			
 		};
 		select.addValue(listEventName);
 		select.addValue(stock.getIsin());
 		select.addValue(stock.getSymbol());
-		select.addValue(EventDefinition.SCREENER.getEventDefId());
+		select.addValue(EventDefinition.SCREENER.getEventDefinitionRef());
 		
 		LOGGER.debug(select.getQuery());
 		List<EventValue> eventValues = exectuteSelect(EventValue.class, select);
@@ -1100,7 +840,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 	
-	public void cleanEventsForIndicators(String eventsTableName, String analyseName, Date start, Date end, EventDefinition ...eventDefinitions) {
+	public void cleanEventsForIndicators(String eventsTableName, String analyseName, Date start, Date end, EventInfo ...eventDefinitions) {
 
 		try {
 			
@@ -1129,7 +869,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 	
-	public void cleanEventsForAnalysisNameAndStock(String eventTableName, Stock stock, String analyseName, Date start, Date end, EventDefinition ...eventDefinitions) {
+	public void cleanEventsForAnalysisNameAndStock(String eventTableName, Stock stock, String analyseName, Date start, Date end, EventInfo ...eventDefinitions) {
 
 		try {
 
@@ -1151,22 +891,28 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error(e,e);
 		}
 	}
+	
+	
+	private String eventDefinitionConstraint(Set<EventInfo> eventDefinitions) {
+		if (eventDefinitions !=null) return eventDefinitionConstraint(eventDefinitions.toArray(new EventInfo[0]));
+		return "";
+	}
 
 	/**
 	 * @param eventDefinitions
 	 * @return
 	 */
-	private String eventDefinitionConstraint(EventDefinition... eventDefinitions) {
+	private String eventDefinitionConstraint(EventInfo... eventDefinitions) {
 		if (eventDefinitions.length == 0) {
 			return "";
 		} else {
-			String eventDefConstraint = " AND EVENTDEFID in ( ";
+			String eventDefConstraint = " AND "+EVENTS.EVENTDEF_FIELD+" in ( ";
 			String sep = " ";
-			for (EventDefinition eventDefinition : eventDefinitions) {
-				eventDefConstraint += sep + eventDefinition.getEventDefId();
+			for (EventInfo eventDefinition : eventDefinitions) {
+				eventDefConstraint += sep + "'" + eventDefinition.getEventDefinitionRef()+ "'";
 				sep = " , ";
 			}
-			eventDefConstraint += " )";
+			eventDefConstraint += " ) ";
 			return eventDefConstraint;
 		}
 	}
@@ -1249,19 +995,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			
 			PreparedStatement pst;
 			Connection conn = scnx.getConn();
-			
-			//Dead lock Debug
-//			for (Object o : query.getParameterValues()) {
-//				String param;
-//				if (o instanceof Date) {
-//					param = "'"+new SimpleDateFormat("yyyy-MM-dd").format(o)+"'";
-//				} else if (o instanceof Number){
-//					param = o.toString();
-//				} else {
-//					param = "'"+o.toString()+"'";
-//				}
-//				sqlQueryString = sqlQueryString.replaceFirst("\\?", param);
-//			}
 			
 			pst = conn.prepareStatement(sqlQueryString);
 			pst.setQueryTimeout(queryTimeOutInSec);
@@ -1381,20 +1114,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 */
 	private String connectionUrl() {
 		String connectionURL;
-		
+
 		String protocol = MainPMScmd.getPrefs().get("software", "derby");
 		connectionURL = "jdbc:" + protocol;
-		
-		String commandLineDb = System.getProperty("dbpath");
-		if (commandLineDb != null) {
-			MainPMScmd.getPrefs().put("dbpath", commandLineDb);
-			connectionURL = connectionURL + ":" + commandLineDb;
-		} else {
-			connectionURL = connectionURL + ":" + MainPMScmd.getPrefs().get("dbpath", "derby/");
-		}
-		
-		if (connectionURL.endsWith("/")) connectionURL = connectionURL.substring(0,connectionURL.length()-1);
-		connectionURL = connectionURL + "/" + MainPMScmd.getPrefs().get("database", "premiummarkets");
+
+		connectionURL = connectionURL + ":" + DataSource.dbPathNname();
 
 		String username = MainPMScmd.getPrefs().get("username", "nouserspecified");
 		if (!username.isEmpty() && !username.equals("nouserspecified"))
@@ -1907,10 +1631,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String getUPDATE(String eventTableName) {
 			return "UPDATE " + eventTableName + " SET " 
 			+ EVENTS.ACCURACY_FIELD + "= ? , " 
-			+ EVENTS.EVENTDEF_FIELD + "= ? , " + EVENTS.EVENTTYPE_FIELD + " = ? , " + EVENTS.MESSAGE_FIELD + "= ? "
+			+ EVENTS.EVENTDEFID_FIELD + "= ? , " + EVENTS.EVENTTYPE_FIELD + " = ? , " + EVENTS.MESSAGE_FIELD + "= ? "
 					+ " WHERE " 
 					+ EVENTS.SYMBOL_FIELD + " = ? AND "+ EVENTS.ISIN_FIELD + " = ? AND " 
-					+ EVENTS.DATE_FIELD + " = ? AND " + EVENTS.EVENTDEFID_FIELD + " = ? AND " + EVENTS.EVENTDEFEXTENSION_FIELD + " = ? AND "
+					+ EVENTS.DATE_FIELD + " = ? AND " + EVENTS.EVENTDEF_FIELD + " = ? AND " + EVENTS.EVENTDEFEXTENSION_FIELD + " = ? AND "
 					+ EVENTS.ANALYSE_NAME + " = ?";
 		}
 		

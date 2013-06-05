@@ -91,6 +91,24 @@ public class QuotationUnit implements Comparable<QuotationUnit>
         this.close = close;
         this.volume = volume;
     }
+    
+    
+    public Number getData(QuotationDataType field) {
+    	switch (field) {
+		case OPEN:
+				return getOpen();
+		case HIGH:
+			return getHigh();
+		case LOW:
+			return getLow();
+		case CLOSE :
+			return getClose();
+		case VOLUME :
+			return getVolume();
+		default :
+			throw new RuntimeException("Unknwon quotqtion data type");
+		}
+    }
 
     /**
      * Gets the close.

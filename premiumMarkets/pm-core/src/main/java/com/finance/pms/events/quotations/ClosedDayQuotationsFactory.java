@@ -199,7 +199,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			return fullRefSQuotationsMap;
 			
 		} catch (InvalidAlgorithmParameterException e) {
-			throw new NotEnoughDataException(e.getMessage(), e);
+			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
 		}
 	}
 
@@ -213,15 +213,41 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			current.setTime(firstRefStockQuote);
 			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
 			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), quotations.getCloseForDate(current.getTime()).doubleValue() );
+				fullRefSQuotationsMap.put(current.getTime(), quotations.getCloseForDate(current.getTime()).doubleValue());
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 			
 			return fullRefSQuotationsMap;
 			
 		} catch (InvalidAlgorithmParameterException e) {
-			throw new NotEnoughDataException(e.getMessage(), e);
+			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
 		}
+	}
+	
+	@Override
+	public SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field) throws NotEnoughDataException {
+		
+		try {
+			SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
+			Date firstRefStockQuote = quotations.getDate(0);
+			Calendar current = Calendar.getInstance();
+			current.setTime(firstRefStockQuote);
+			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
+			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
+				fullRefSQuotationsMap.put(current.getTime(), quotations.getFieldForDate(current.getTime(), field).doubleValue());
+				QuotationsFactories.getFactory().incrementDate(current, 1);
+			}
+			
+			return fullRefSQuotationsMap;
+			
+		} catch (InvalidAlgorithmParameterException e) {
+			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public LastUpdateStampChecker checkLastQuotationUpdateFor(Stock stock) {
+		return Quotations.checkLastQuotationUpdateFor(stock);
 	}
 
 }

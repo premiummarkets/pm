@@ -77,11 +77,11 @@ public class AutoPortfolioLogAnalyser {
 	
 	public static void main(String... args) throws IOException, ParseException {
 		
-		SpringContext springContext = new SpringContext();
+		SpringContext springContext = new SpringContext(args[0]);
 		
 		try {
 
-			springContext.setDataSource(args[0]);
+			//springContext.setDataSource(args[0]);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 			springContext.refresh();
 			
@@ -117,6 +117,7 @@ public class AutoPortfolioLogAnalyser {
 				}
 
 			} else {
+				
 				String symbol = splitedLine[symbolCol];
 				Stock stock = DataSource.getInstance().loadStockBySymbol(symbol);
 				Date date = new SimpleDateFormat("yyyy/MM/dd").parse(splitedLine[dateCol]);

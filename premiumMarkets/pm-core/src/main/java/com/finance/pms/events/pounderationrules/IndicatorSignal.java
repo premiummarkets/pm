@@ -30,22 +30,22 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import java.util.Map;
+import java.util.Collection;
 
 public class IndicatorSignal extends DefaultSignal {
 	
-	Integer indicator;
+	String indicator;
 
-	public IndicatorSignal(Integer indicator, Map<Integer, String> evenDefList) {
+	public IndicatorSignal(String indicator, Collection<String> evenDefList) {
 		super(evenDefList);
 		this.indicator = indicator;
 	}
 	
 	@Override
-	public Integer eventWeigth(Map<Integer, String> eventList, Integer eventId) {
+	public Integer eventWeigth(Collection<String> eventList, String eventDef) {
 		Integer retour;
 		
-		if (eventList.containsKey(eventId) && eventId.equals(indicator)) {
+		if (eventList.contains(eventDef) && eventDef.equals(indicator)) {
 			retour = 1;
 		} else {
 			retour = 0;

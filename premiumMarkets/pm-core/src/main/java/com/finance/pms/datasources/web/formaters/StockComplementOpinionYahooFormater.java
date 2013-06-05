@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.MyUrl;
-import com.finance.pms.screening.TrendSupplementedStock;
+import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementOpinionYahooFormater extends LineFormater {
 	
@@ -53,7 +53,7 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 	private Boolean isEmpty = false;
 
 	
-	public StockComplementOpinionYahooFormater(String url, TrendSupplementedStock stockPart) {
+	public StockComplementOpinionYahooFormater(String url, ScreeningSupplementedStock stockPart) {
 		super(new MyUrl(url));
 		params.add(stockPart);
 		lineNumber = 1;
@@ -77,7 +77,7 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 		lineNumber ++;
 
 		LOGGER.trace(line);
-		TrendSupplementedStock stockPart = (TrendSupplementedStock) params.get(0);
+		ScreeningSupplementedStock stockPart = (ScreeningSupplementedStock) params.get(0);
 
 		if (stockPart.isNOTSetYahooTargetPrice()) {
 			Matcher mTargetP = meanTarget.matcher(line);
@@ -124,7 +124,7 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 	 * @param stockPart
 	 * @throws StopParseFoundException
 	 */
-	private void endScrapping(TrendSupplementedStock stockPart) throws StopParseFoundException {
+	private void endScrapping(ScreeningSupplementedStock stockPart) throws StopParseFoundException {
 		
 			if (stockPart.isNOTSetYahooMeanRecommendations() && stockPart.isNOTSetYahooTargetPrice()) {
 				isEmpty = true;
