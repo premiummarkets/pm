@@ -7,7 +7,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Shell;
 
-public class ActionDialog extends ErrorDialog {
+public class ActionDialog extends UserDialog {
 	
 	protected ActionDialogAction action;
 	String actionTxt;
@@ -34,7 +34,7 @@ public class ActionDialog extends ErrorDialog {
 		valideButton1.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent evt) {
-				if (evt.keyCode == SWT.CR) {
+				if (evt.keyCode == SWT.CR || evt.keyCode == SWT.SPACE) {
 					action.action(valideButton1);
 					validerbutton1MouseDown(evt);
 				}

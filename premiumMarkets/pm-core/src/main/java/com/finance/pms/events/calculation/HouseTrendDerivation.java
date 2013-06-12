@@ -90,7 +90,7 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 		isValidData(stock, sma, firstDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 		
 		HouseTrendSmoother  houseTrendSmoother = new HouseTrendSmoother(houseTrendPeriod);
-		SortedMap<Date, double[]> mapFromSma = QuotationsFactories.getFactory().buildMapFromQuotations(new CalculationQuotations(stock, sma.getStripedData(0), calculationCurrency));
+		SortedMap<Date, double[]> mapFromSma = QuotationsFactories.getFactory().buildMapFromQuotationsClose(new CalculationQuotations(stock, sma.getStripedData(0), calculationCurrency));
 		houseTrend = houseTrendSmoother.smooth(mapFromSma, false);
 		
 	}

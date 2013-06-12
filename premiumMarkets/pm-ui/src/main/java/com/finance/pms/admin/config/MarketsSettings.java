@@ -64,7 +64,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
@@ -429,7 +429,7 @@ public class MarketsSettings extends Composite {
 									selectedMarketListIndices = checkDefaultIndices(shareListNames, selectedMarketShareListId);
 								}
 								if (selectedMarketListIndices.isEmpty()) {
-									ErrorDialog dialog = new ErrorDialog(getShell(), 0, "You have selected a list based on "+selectedMarketShareListId.getDescription()+".\nYou must specify one or more indices to include.", null);
+									UserDialog dialog = new UserDialog(getShell(), 0, "You have selected a list based on "+selectedMarketShareListId.getDescription()+".\nYou must specify one or more indices to include.", null);
 									dialog.open();
 									validate.setEnabled(true);
 									return;

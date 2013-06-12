@@ -23,9 +23,4 @@ public class DownRatioCondition extends CrossConstantCondition implements StandA
 		return (current - prev)/Math.abs(prev) < -constant;
 	}
 
-	@Override
-	public int mainPosition() {
-		return 2;
-	}
-
 }

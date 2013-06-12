@@ -68,7 +68,7 @@ import org.eclipse.swt.widgets.Slider;
 import org.jfree.chart.ChartPanel;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.RefreshableView;
@@ -238,9 +238,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				mainChartComposite = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
 				Frame chartFrame = SWT_AWT.new_Frame(mainChartComposite);
 				mainChartWraper = new ChartMain(ChartsComposite.DEFAULT_START_DATE, JFreeChartTimePeriod.DAY);
-				mainChartPanel = new ChartPanel(mainChartWraper.initChart(stripedCloseFunction));
-				chartFrame.add(mainChartPanel);
-				chartFrame.setVisible(true);
+				mainChartPanel = new ChartPanel(mainChartWraper.initChart(stripedCloseFunction), true, true, true, true, true);
 				mainChartPanel.addMouseMotionListener(new MouseMotionListener() {
 					
 					@Override
@@ -269,6 +267,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						}
 					}
 				});
+				mainChartPanel.setDoubleBuffered(true);
+				mainChartPanel.setIgnoreRepaint(true);
+				mainChartPanel.setRefreshBuffer(false);
 				mainChartPanel.setInitialDelay(0);
 				mainChartPanel.setReshowDelay(Integer.MAX_VALUE);
 				mainChartPanel.addMouseMotionListener(new MouseMotionListener() {
@@ -289,7 +290,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						
 					}
 				});
-
+				
 				mainChartComposite.addKeyListener(new org.eclipse.swt.events.KeyListener() {
 					
 					@Override
@@ -304,6 +305,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						//
 					}
 				});
+				
+				chartFrame.add(mainChartPanel);
+				chartFrame.setVisible(true);
 			}
 			{
 				chartBoutonsGroup = new Group(this, SWT.NONE);
@@ -460,7 +464,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									sliderStartDate.setSelection(0);
 									startSliderUpdateConditional(sliderStartDate, startDateLabel, sliderEndDate, endDateLabel);
 								} else {
-									ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "To move the start date further forward, you will need to move the end date first.", null);
+									UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "To move the start date further forward, you will need to move the end date first.", null);
 									dialog.open();
 								}
 							}
@@ -502,7 +506,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									sliderEndDate.setSelection(100);
 									endSliderUpdateConditional(sliderEndDate, endDateLabel, sliderStartDate, startDateLabel);
 								} else {
-									ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "To move the end date further backward, you will need to move the start date first.", null);
+									UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "To move the end date further backward, you will need to move the start date first.", null);
 									dialog.open();
 								}
 							}
@@ -777,10 +781,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			highLight(highligtedId, (Stock) viewStateParams[0], false);
 			
 		}
+		chartDisplayStrategy.refreshView(exceptions);
+		
 		if (viewStateParams != null && viewStateParams.length == 1 && isVisible()) {
 			for (Exception exception : exceptions) {
 				if (exception instanceof EventRefreshException) {
-					ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, 
+					UserDialog dialog = new UserDialog(getShell(), SWT.NONE, 
 							"Couldn't refresh all analysis for "+((Stock) viewStateParams[0]).getFriendlyName()+". Check that date bounds are not out of range.", 
 							exceptions.toString());
 					exceptions.clear();

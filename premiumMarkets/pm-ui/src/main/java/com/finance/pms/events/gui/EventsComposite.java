@@ -69,7 +69,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
@@ -87,6 +87,8 @@ import com.finance.pms.datasources.RefreshAllEventStrategyEngine;
 import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
 import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.ShareListInfo;
+import com.finance.pms.events.AnalysisClient;
+import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventValue;
@@ -98,7 +100,6 @@ import com.finance.pms.events.pounderationrules.EventValuesComparator;
 import com.finance.pms.events.pounderationrules.LatestEventsAllIndDefsPonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.SymbolEventComparator;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -167,6 +168,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private EventModel<RefreshPortfolioStrategyEngine> portfolioStocksEventModel;
 	
 	private Shell treeRowToolTip;
+
+	private Button sendNotifs;
 
 
 	public EventsComposite(Composite parent, int style, LogComposite logComposite) {
@@ -253,11 +256,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 					buyCriteriaWeigthtext.setLayoutData(buyCriteriaWeigthtextLData);
 					buyCriteriaWeigthtext.setText(supCrit.toString());
 					buyCriteriaWeigthtext.setFont(MainGui.CONTENTFONT);
-					buyCriteriaWeigthtext.addListener(SWT.DefaultSelection, new Listener() {
+					Listener listener = new Listener() {
 						public void handleEvent(Event e) {
 							setCrit(sellCriteriaWeigthtext.getText(), buyCriteriaWeigthtext.getText(), dateCriteriatext.getText());
 						}
-					});
+					};
+					buyCriteriaWeigthtext.addListener (SWT.FocusOut, listener);
+					buyCriteriaWeigthtext.addListener (SWT.DefaultSelection, listener);
 				}
 				{
 					sellCriteriaWeigthLabel = new Label(trendFilterGrp, SWT.CENTER);
@@ -271,11 +276,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 					sellCriteriaWeigthtext.setLayoutData(sellCriteriaWeigthtextLData);
 					sellCriteriaWeigthtext.setText(infCrit.toString());
 					sellCriteriaWeigthtext.setFont(MainGui.CONTENTFONT);
-					sellCriteriaWeigthtext.addListener(SWT.DefaultSelection, new Listener() {
+					Listener listener = new Listener() {
 						public void handleEvent(Event e) {
 							setCrit(sellCriteriaWeigthtext.getText(), buyCriteriaWeigthtext.getText(), dateCriteriatext.getText());
 						}
-					});
+					};
+					sellCriteriaWeigthtext.addListener (SWT.FocusOut, listener);
+					sellCriteriaWeigthtext.addListener (SWT.DefaultSelection, listener);
 				}
 				{
 					final Text dateFilterText = new Text(trendFilterGrp, SWT.NONE);
@@ -284,19 +291,21 @@ public class EventsComposite extends Composite implements RefreshableView {
 					dateFilterText.setFont(MainGui.CONTENTFONT);
 					dateFilterText.setText(nbDaysFilter.toString());
 					dateFilterText.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getFilterDate()));
-					dateFilterText.addListener(SWT.DefaultSelection, new Listener() {
+					Listener listener = new Listener() {
 						public void handleEvent(Event e) {
 							try {
 								nbDaysFilter = Integer.valueOf(dateFilterText.getText());
 								dateFilterText.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getFilterDate()));
 								eventFilterChange(selectedEventInfos);
 							} catch (NumberFormatException pe) {
-								ErrorDialog inst = new ErrorDialog(EventsComposite.this.getShell(), SWT.NULL, pe.getMessage(), null);
+								UserDialog inst = new UserDialog(EventsComposite.this.getShell(), SWT.NULL, pe.getMessage(), null);
 								inst.open();
 								dateFilterText.setText("5");
 							}
 						}
-					});
+					};
+					dateFilterText.addListener (SWT.FocusOut, listener);
+					dateFilterText.addListener (SWT.DefaultSelection, listener);
 				}
 				{
 					Label dateFilterLabel = new Label(trendFilterGrp, SWT.PUSH | SWT.CENTER);
@@ -349,8 +358,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 						@Override
 						public void mouseDown(MouseEvent evt) {
 					
-							PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton,  EventDefinition.loadMaxPassPrefsEventInfo(), selectedEventInfos, true, SWT.CHECK);
-							popupMenu.open();
+							PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton,  EventDefinition.loadMaxPassPrefsEventInfo(), selectedEventInfos, true, SWT.CHECK, null);
+							popupMenu.open(null);
 							eventFilterChange(selectedEventInfos);
 						}
 					});
@@ -437,8 +446,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 							if (viewStateParams != null) {
 								selectedShareLists.addAll(Arrays.asList(viewStateParams));
 							}
-							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, selectedMarketsFilterbutton, shareLists, selectedShareLists, true, SWT.CHECK);
-							popupMenu.open();
+							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, selectedMarketsFilterbutton, shareLists, selectedShareLists, true, SWT.CHECK, null);
+							popupMenu.open(null);
 							allStocksEventModel.setViewStateParams(selectedShareLists.toArray());
 							
 							try {
@@ -482,6 +491,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 				computeButtonGroup.setText("Compute :");
 				computeButtonGroup.setFont(MainGui.DEFAULTFONT);
 				computeButtonGroup.setBackground(MainGui.eVENTS_LIGHT);
+				String notificationNote = 
+						"Notifications are sent for all stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
+						"Only on the updated delta for the natives indicators and from the calculation start date for your parameterised indicators.";
 				{
 					dateCriteriatext = new Text(computeButtonGroup, SWT.NONE);
 					GridData sellCriteriaDatetextLData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -489,12 +501,14 @@ public class EventsComposite extends Composite implements RefreshableView {
 					dateCriteriatext.setFont(MainGui.CONTENTFONT);
 					dateCriteriatext.setText(nbMonthsAnalysis.toString());
 					dateCriteriatext.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getAnalysisStartDate()));
-					dateCriteriatext.addListener(SWT.KeyUp|SWT.Modify|SWT.DefaultSelection, new Listener() {
+					Listener listener = new Listener() {
 						public void handleEvent(Event e) {
 							setCrit(sellCriteriaWeigthtext.getText(), buyCriteriaWeigthtext.getText(), dateCriteriatext.getText());
 							dateCriteriatext.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getAnalysisStartDate()));
 						}
-					});
+					};
+					dateCriteriatext.addListener (SWT.FocusOut, listener);
+					dateCriteriatext.addListener (SWT.DefaultSelection, listener);
 				}
 				{
 					dateCriteriaLabel = new Label(computeButtonGroup, SWT.PUSH | SWT.CENTER);
@@ -502,6 +516,36 @@ public class EventsComposite extends Composite implements RefreshableView {
 					dateCriteriaLabel.setText("Months");
 					dateCriteriaLabel.setToolTipText("This is the number of months you wish to calculate the events for.");
 					dateCriteriaLabel.setFont(MainGui.DEFAULTFONT);
+				}
+				{
+					sendNotifs = new Button(computeButtonGroup, SWT.CHECK);
+					GridData group1LData2 = new GridData(SWT.FILL, SWT.TOP, true, false);
+					group1LData2.horizontalSpan =2;
+					sendNotifs.setLayoutData(group1LData2);
+					sendNotifs.setText("Notify me");
+					sendNotifs.setToolTipText("For this to work, make sure your email settings are up to date in 'Settings' menu.\n"+notificationNote);
+					sendNotifs.setFont(MainGui.DEFAULTFONT);
+					sendNotifs.setSelection(true);
+					sendNotifs.addSelectionListener(new SelectionListener() {
+						
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							handle();
+						}
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							handle();
+						}
+						
+						private void handle() {
+							if (sendNotifs.getSelection()) {
+								AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+							} else {
+								AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+							}
+						}
+
+					});
 				}
 				{
 					quotationBox = new Button(computeButtonGroup, SWT.CHECK);
@@ -531,7 +575,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshMonitored.setText(StocksActionFilter.FILTERMONITORED.getText());
 					refreshMonitored.setToolTipText(
 							"Will update the events calculation on Stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
-							"For most indicators, notifications by email on the updated delta are generated if properly setup.\n" +//'most' albeit first pass indicators
+							"Notifications are sent for all stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
+							notificationNote+"\n"+
 							"To regenerate all notifications from the chosen calculation start date, you need to clear the previous calculations first.");
 					refreshMonitored.addMouseListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
@@ -550,8 +595,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshPortfolios.setFont(MainGui.DEFAULTFONT);
 					refreshPortfolios.setText(StocksActionFilter.FILTERPORTFOLIO.getText());
 					refreshPortfolios.setToolTipText(
-							"Will update the events calculation on all your portfolios.\n" +
-							"Notifications are sent only on the updated delta and for Stocks marked as monitored (Bearish, Bullish or both) in your portfolios.");
+							"Will update the events calculation on all your portfolios.\n" + 
+							notificationNote);
 					refreshPortfolios.addMouseListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
 						public void mouseDown(MouseEvent evt) {
@@ -568,9 +613,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshSelectedMarkets.setLayoutData(group1LData);
 					refreshSelectedMarkets.setText(StocksActionFilter.FILTERMARKETS.getText());
 					refreshSelectedMarkets.setFont(MainGui.DEFAULTFONT);
-					refreshPortfolios.setToolTipText(
-							"Will update the events calculation on the market you have selected. Please be aware that this is time consuming.\n" +
-							"Notifications are sent only on the updated delta and for Stocks marked as monitored (Bearish, Bullish or both) in your portfolios.");
+					refreshSelectedMarkets.setToolTipText(
+							"Will update the events calculation on the market you have selected. Please be aware that this is time consuming.\n" + 
+							notificationNote);
 					refreshSelectedMarkets.addMouseListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
 						public void mouseDown(MouseEvent evt) {
@@ -585,8 +630,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 							if (viewStateParams != null) {
 								selectedShareLists.addAll(Arrays.asList(viewStateParams));
 							}
-							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, refreshSelectedMarkets, shareLists, selectedShareLists, true, SWT.CHECK);
-							popupMenu.open();
+							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, refreshSelectedMarkets, shareLists, selectedShareLists, true, SWT.CHECK, null);
+							popupMenu.open(null);
 
 							allStocksEventModel.setViewStateParams(selectedShareLists.toArray());
 							this.updateEventRefreshModelState(quotationListBox.getSelection(), quotationBox.getSelection(), true, false,  false, false, 0l);
@@ -597,14 +642,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 					});
 				}
 				computeButtonGroup.layout();
-				//computeButtonGroup.pack();
 			}
 
-			//ctrlComposite.pack();
 			this.layout();
-			//this.pack();
-			
-			
 
 		} catch (Exception e) {
 			LOGGER.error("", e);
@@ -732,21 +772,26 @@ public class EventsComposite extends Composite implements RefreshableView {
 						
 						//pack columns
 						int tcw = 0;
-						for (TreeColumn tc : treeItem.getParent().getColumns()) {
-							columnPack(tc);
-							tcw = tcw + tc.getWidth();
+						if (!treeItem.isDisposed()) {
+							
+							Tree parent = treeItem.getParent();
+							for (TreeColumn tc : parent.getColumns()) {
+								columnPack(tc);
+								tcw = tcw + tc.getWidth();
+							}
+							
+							//resize sash
+							int evtCmpW = tcw + ctrlComposite.getSize().x + 20;
+							int shellW  = ((SashForm)EventsComposite.this.getParent()).getSize().x;
+							int evtSashWeight = Math.min(90,100*evtCmpW/shellW);
+							SashForm sashParent = (SashForm)EventsComposite.this.getParent();
+							int actualTotWeight = 0;
+							for (int sashWeight : sashParent.getWeights()) {
+								actualTotWeight = actualTotWeight + sashWeight;
+							}
+							if ((100*sashParent.getWeights()[0]/actualTotWeight) < evtSashWeight) sashParent.setWeights(new int[]{evtSashWeight, 0, 100-evtSashWeight});
 						}
 						
-						//resize sash
-						int evtCmpW = tcw + ctrlComposite.getSize().x + 20;
-						int shellW  = ((SashForm)EventsComposite.this.getParent()).getSize().x;
-						int evtSashWeight = Math.min(90,100*evtCmpW/shellW);
-						SashForm sashParent = (SashForm)EventsComposite.this.getParent();
-						int actualTotWeight = 0;
-						for (int sashWeight : sashParent.getWeights()) {
-							actualTotWeight = actualTotWeight + sashWeight;
-						}
-						if ((100*sashParent.getWeights()[0]/actualTotWeight) < evtSashWeight) sashParent.setWeights(new int[]{evtSashWeight, 0, 100-evtSashWeight});
 					}
 
 				});
@@ -812,7 +857,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			stockFilter();
 
 		} catch (InvalidAlgorithmParameterException e) {
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, e.toString(), null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, e.toString(), null);
 			inst.open();
 		} 
 	}
@@ -820,8 +865,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 	protected Date getFilterDate() {
 		Calendar newDate = Calendar.getInstance();
 		newDate.setTime(EventSignalConfig.getNewDate());
-		Date filterDateStart =QuotationsFactories.getFactory().incrementDate(newDate, -nbDaysFilter).getTime();
-		return filterDateStart;
+		newDate.add(Calendar.DAY_OF_YEAR, -nbDaysFilter);
+		return newDate.getTime();
 	}
 
 	private void reloadTabs() {
@@ -847,7 +892,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			infCrit = Integer.parseInt(infCritp);
 			MainPMScmd.getPrefs().put("gui.crit.inf", infCritp);
 		} catch (NumberFormatException e) {
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, e.toString(), null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, e.toString(), null);
 			inst.open();
 			sellCriteriaWeigthtext.setText(this.infCrit.toString());
 		}
@@ -856,7 +901,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			supCrit = Integer.parseInt(supCritp);
 			MainPMScmd.getPrefs().put("gui.crit.sup", supCritp);
 		} catch (NumberFormatException e) {
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, e.toString(), null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, e.toString(), null);
 			inst.open();
 			buyCriteriaWeigthtext.setText(this.supCrit.toString());
 		}
@@ -864,7 +909,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 		try {
 			nbMonthsAnalysis = Integer.valueOf(dateCrit);
 		} catch (NumberFormatException e) {
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, e.getMessage(), null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, e.getMessage(), null);
 			inst.open();
 			dateCriteriatext.setText("6");
 		} finally {
@@ -876,7 +921,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			sortOnWeigthCriteriasActions();
 			reloadTabs();
 		} catch (Exception e1) {
-			ErrorDialog dialog = new ErrorDialog(this.getShell(), SWT.NULL, "Invalid date : " + dateCriteriatext, null);
+			UserDialog dialog = new UserDialog(this.getShell(), SWT.NULL, "Invalid date : " + dateCriteriatext, null);
 			dialog.open();
 		} finally {
 			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -1008,7 +1053,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 		if (isVisible()) {
 			for (Exception exception : exceptions) {
 				if (exception instanceof EventRefreshException) {
-					ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Couldn't refresh all events. Check that date bounds are not out of range.", exceptions.toString());
+					UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Couldn't refresh all events. Check that date bounds are not out of range.", exceptions.toString());
 					exceptions.clear();
 					dialog.open();
 					break;
@@ -1020,8 +1065,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 	public Date getAnalysisStartDate() {
 		Calendar newDate = Calendar.getInstance();
 		newDate.setTime(EventSignalConfig.getNewDate());
-		Date analysisStart =QuotationsFactories.getFactory().incrementDateLarge(newDate, -nbMonthsAnalysis).getTime();
-		return analysisStart;
+		newDate.add(Calendar.MONTH, -nbMonthsAnalysis);
+		return newDate.getTime();
 	}
 
 	private void eventFilterChange(final Set<EventInfo> eventDefs) {
@@ -1066,6 +1111,10 @@ public class EventsComposite extends Composite implements RefreshableView {
 			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
 		super.setVisible(visible);
+	}
+
+	public Button getSendNotifs() {
+		return sendNotifs;
 	}
 
 }

@@ -177,11 +177,6 @@ public class SymbolEvents implements Serializable {
 	 * @return the sorted datat result list in date ascending order.
 	 */
 	public ArrayList<EventValue> getSortedDataResultList() {
-		
-//		DataResultComparator drcomp = new DataResultComparator();
-//		ArrayList<EventValue> sortedList = new ArrayList<EventValue>(dataResultMap.values());
-//		Collections.sort(sortedList,drcomp);
-//		return sortedList;
 		return new ArrayList<EventValue>(dataResultMap.values());
 	}
 	

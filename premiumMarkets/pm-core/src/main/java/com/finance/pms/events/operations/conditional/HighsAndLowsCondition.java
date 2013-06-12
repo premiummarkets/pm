@@ -24,6 +24,16 @@ import com.finance.pms.events.operations.nativeops.DoubleValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 
+
+/**
+ * 
+ * @author Guillaume Thoreton
+ * Additional constraints :
+ * not implemented : 'over'
+ * does not make sense : 'for'. As the condition is an event in time not a status in time.
+ * 'spanning'
+ * 
+ */
 public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>> implements StandAloneCondition {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
@@ -32,7 +42,7 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 	}
 	
 	public HighsAndLowsCondition(String reference, String description) {
-		super(reference, description, new DoubleOperation("days span look back"), new DoubleOperation("look back smoothed threshold period"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new DoubleOperation("look back span in days"), new DoubleOperation("smoothed look back tolerance threshold period"), new DoubleMapOperation("historical data input"));
 	}
 
 	public HighsAndLowsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -41,9 +51,10 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 	}
 
 	@Override
-	public int mainPosition() {
+	public int mainInputPosition() {
 		return 2;
 	}
+
 
 	@Override
 	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
@@ -51,19 +62,18 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 		Integer lookBackNbdays = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer lookBackSmoothedThreshPeriod = ((DoubleValue) inputs.get(1)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
+		Date dataFirstKey = data.firstKey();
 		
 		if (lookBackNbdays < 4) return new BooleanMultiMapValue(data.keySet(),false); //We need a least 3 days to draw one of these
 		
-		if (lookBackSmoothedThreshPeriod == -1) {//default smooth = lookBackNbdays/7
-			lookBackSmoothedThreshPeriod = lookBackNbdays/7;
+		
+		SortedMap<Date, Double> sSmooth = new TreeMap<Date, Double>();
+		Date sSmoothFirstKey= new Date(0);
+		if (lookBackSmoothedThreshPeriod != -1) {
+			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(lookBackSmoothedThreshPeriod);
+			sSmooth = smaSmoother.sSmooth(data, false);
+			sSmoothFirstKey = sSmooth.firstKey();
 		}
-		
-		
-		TalibSmaSmoother smaSmoother = new TalibSmaSmoother(lookBackSmoothedThreshPeriod);
-		SortedMap<Date, Double> sSmooth = smaSmoother.sSmooth(data, false);
-		
-		Date dataFirstKey = data.firstKey();
-		Date sSmoothFirstKey = sSmooth.firstKey();
 		
 		SortedMap<Date, Double> reglines = new TreeMap<Date, Double>();
 		
@@ -73,29 +83,51 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 			currentDate.setTime(date);
 			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -lookBackNbdays).getTime();
 			
-			if (lookBackPeriodStart.after(dataFirstKey) && lookBackPeriodStart.after(sSmoothFirstKey)) {
+			if ( lookBackPeriodStart.after(dataFirstKey) && lookBackPeriodStart.after(sSmoothFirstKey) ) {
+				
 				SortedMap<Date, Double> quotationLookBackP = data.subMap(lookBackPeriodStart, date);
-				SortedMap<Date, Double> thresholdLookBackP = sSmooth.subMap(lookBackPeriodStart, date);
+				if (quotationLookBackP.size() < 4) continue; //We need a least 3 days to draw one of these
+				
+				SortedMap<Date, Double> thresholdLookBackP = new TreeMap<Date, Double>();
+				if (!sSmooth.isEmpty()) {
+					thresholdLookBackP = sSmooth.subMap(lookBackPeriodStart, date);
+				}
 			
 				ComparableArray regline = new ComparableArray();
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(new ComparableArray(quotationLookBackP.values()), new ComparableArray(thresholdLookBackP.values()), regline);
-				if (conditionCheck != null) {		
+				if (conditionCheck != null) {
+					
 					outputs.getValue(targetStock).put(date, conditionCheck);
 					
-					if ( conditionCheck && (reglines.isEmpty() || lookBackPeriodStart.after(reglines.lastKey())) ) {
+					if ( conditionCheck ) {
 						//Add Printable
-//						ListIterator<Double> reglineIterator = regline.listIterator();
-//						for (Date regDate : data.subMap(lookBackPeriodStart, date).keySet()) {
-//							if (reglineIterator.hasNext()) reglines.put(regDate, reglineIterator.next());
-//						}
-						List<Date> datesList = new ArrayList<Date>(data.subMap(lookBackPeriodStart, date).keySet());
-						reglines.put(datesList.get(0), regline.get(0));
-						reglines.put(datesList.get(datesList.size()-1), regline.get(regline.size()-1));
-						for (int i = 1; i < datesList.size()-1; i++) {
-							reglines.put(datesList.get(i), Double.NaN);
+						try {
+							
+							SortedMap<Date, Double> datesSubMap = data.subMap(lookBackPeriodStart, date);
+							List<Date> datesList = new ArrayList<Date>(datesSubMap.keySet());
+							
+							int gap = 0;
+							if (!reglines.isEmpty()) {
+								SortedMap<Date,Double> roomAvail = data.subMap(reglines.lastKey(), date);
+								while (roomAvail.size() <= datesSubMap.size() + 2 && gap < datesList.size()-1) {
+									gap++;
+									datesSubMap = data.subMap(datesList.get(gap), date);
+								}
+							}
+							
+							if (gap < datesList.size()) {
+								reglines.put(datesList.get(gap), regline.get(gap));
+								for (int i = gap+1; i < datesList.size()-1; i++) {
+									reglines.put(datesList.get(i), Double.NaN);
+								}
+								reglines.put(datesList.get(datesList.size()-1), regline.get(regline.size()-1));
+							}
+							
+						} catch (Exception e) {
+							//Out of range wont be printed
+							LOGGER.error(e,e);
 						}
-						
 					}
 				}
 			}
@@ -159,6 +191,4 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 		}
 		
 	}
-
-
 }

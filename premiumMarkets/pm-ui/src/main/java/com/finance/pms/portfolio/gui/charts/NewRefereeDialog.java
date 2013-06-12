@@ -37,7 +37,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
@@ -151,7 +151,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	protected void addSelection(Set<Stock> stocks) {
 		this.selectedStocks = stocks;
 		
-		ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Added referee : "+stocks, null);
+		UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Added referee : "+stocks, null);
 		inst.open();
 	}	
 	

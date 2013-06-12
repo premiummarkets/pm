@@ -135,7 +135,7 @@ public class Portfolio extends AbstractSharesList {
 		
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate,true,transactionCurrency);
-			BigDecimal valueAtDate = quotations.getCloseForDate(currentDate);
+			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
 			
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 		} catch (NoQuotationsException e) {
@@ -147,7 +147,7 @@ public class Portfolio extends AbstractSharesList {
 		
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
-			BigDecimal valueAtDate = quotations.getCloseForDate(currentDate);
+			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
 			BigDecimal quantity = unitAmount.divide(valueAtDate, 4, BigDecimal.ROUND_DOWN);
 			
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
@@ -205,7 +205,7 @@ public class Portfolio extends AbstractSharesList {
 	public void removeOrUpdateShareForQuantity(PortfolioShare portfolioShare, BigDecimal quantity, Date date) throws InvalidAlgorithmParameterException, InvalidQuantityException {
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), date, true, portfolioShare.getTransactionCurrency());
-			BigDecimal lastQuotation = quotations.getCloseForDate(date);
+			BigDecimal lastQuotation = quotations.getClosestCloseForDate(date);
 			
 			removeOrUpdateShare(portfolioShare, quantity, date, lastQuotation, TransactionType.AOUT);
 		} catch (NoQuotationsException e) {

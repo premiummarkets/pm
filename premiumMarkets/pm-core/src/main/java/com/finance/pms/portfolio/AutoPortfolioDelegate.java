@@ -254,7 +254,7 @@ public class AutoPortfolioDelegate {
 						
 				try {
 					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
-					BigDecimal buyPrice = quotations.getCloseForDate(currentDate);		
+					BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);		
 					BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_DOWN);
 					
 					PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.NONE, transactionCurrency, TransactionType.AIN);
@@ -390,7 +390,7 @@ public class AutoPortfolioDelegate {
 	
 			try {
 				Quotations quotations =  QuotationsFactories.getFactory().getQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency());
-				BigDecimal lastPrice = quotations.getCloseForDate(currentDate);
+				BigDecimal lastPrice = quotations.getClosestCloseForDate(currentDate);
 				
 				BigDecimal quantityProrata;
 				if (unitAmount != null) {

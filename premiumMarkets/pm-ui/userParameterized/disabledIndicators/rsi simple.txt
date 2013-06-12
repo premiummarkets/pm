@@ -1,0 +1,2 @@
+is bullish when rsi14 crosses down threshold 30;
+is bearish when rsi14 crosses up threshold 70;

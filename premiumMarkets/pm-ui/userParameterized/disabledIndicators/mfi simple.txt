@@ -1,0 +1,2 @@
+is bullish when mfi14 crosses down threshold 20;
+is bearish when mfi14 crosses up threshold 80;

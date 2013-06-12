@@ -50,7 +50,8 @@ public class ChartBarSquare extends BarChartDisplayStrategy {
 		TimeSeries timeSerie = new TimeSeries(serieName);
 
 		int cpt = 0;
-		int gap = Math.max(1, barSerie.size()/208);
+		//int gap = Math.max(1, barSerie.size()/208);
+		int gap = 1;
 		for (Date date : barSerie.keySet()) {
 			if (cpt % gap  == 0) {
 				RegularTimePeriod period = new Day(date);

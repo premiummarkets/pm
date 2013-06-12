@@ -101,7 +101,7 @@ import org.jfree.chart.ChartColor;
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
@@ -625,7 +625,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									currencyStockDialog.open();
 								} catch (Exception e) {
 									LOGGER.error(e,e);
-									ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding currency. \n"+e, null);
+									UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error adding currency. \n"+e, null);
 									inst.open();
 								}
 								
@@ -647,7 +647,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									removeSelectedShare(true);
 								} catch (InvalidQuantityException e) {
 									LOGGER.warn(e,e);
-									ErrorDialog errorDialog = new ErrorDialog(getShell(),SWT.NULL,e.getMessage(), null);
+									UserDialog errorDialog = new UserDialog(getShell(),SWT.NULL,e.getMessage(), null);
 									errorDialog.open();
 								}
 								int tabi = portfolioCTabFolder1.getSelectionIndex();
@@ -1320,8 +1320,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										LOGGER.warn("Event definition not found in this configuration : "+e);
 									}
 								}
-								PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(PortfolioComposite.this, table, availEventDefs, selectedEventDefs, true, SWT.CHECK);
-								popupMenu.open();
+								PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(PortfolioComposite.this, table, availEventDefs, selectedEventDefs, true, SWT.CHECK, null);
+								popupMenu.open(null);
 								selectedShare.clearAlertOnEvent();
 								if (!selectedEventDefs.isEmpty()) {
 									selectedShare.setMonitorLevel(MonitorLevel.ANY);
@@ -1345,18 +1345,25 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			table.addMouseListener(new MouseListener() {
 
 				public void mouseDoubleClick(MouseEvent event) {
+					
 					tableRowClickHandler(table, txtEditor, comboEditor, event);
 				}
 
 				public void mouseDown(MouseEvent event) {
 					
-					int selectionIndex = table.getSelectionIndex();
-					if (selectionIndex != -1) {
-						SlidingPortfolioShare selectedShare = modelControler.getShareInTab(portfolioCTabFolder1.getSelectionIndex(), selectionIndex);
-						if (event.button == 1) {
-							chartsComposite.highLight(selectionIndex, selectedShare.getStock(), true);
+					if (event.button == 1) {
+						
+						Point pt = new Point(event.x, event.y);
+						TableItem item = table.getItem(pt); 
+
+						if (item != null) {
+							int selectionIndex = table.getSelectionIndex();
+							if (selectionIndex != -1) {
+								SlidingPortfolioShare selectedShare = modelControler.getShareInTab(portfolioCTabFolder1.getSelectionIndex(), selectionIndex);
+								chartsComposite.highLight(selectionIndex, selectedShare.getStock(), true);
+							} 
 						} 
-					} 
+					}
 				}
 
 				public void mouseUp(MouseEvent arg0) {
@@ -1412,9 +1419,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				}
 			});
 		}
-		
-		//if (portfolioCTabFolder1.getSelectionIndex() == tabIdx) updateTabItemsFromPortfolio(tabIdx, portfolio, tabInitObserver);
-		
+	
 	}
 
 	/**
@@ -1536,11 +1541,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 */
 	private void columnEditManagment(ArrayList<String> anciennesVal, TableItem tableItem, int rowIdx, int columnIndex) {
 		
-		ErrorDialog inst;
+		UserDialog inst;
 		TransactionPriceDialog selectPriceDialog;
 		
 		if (slidingEndAnchor.getSelection() || slidingStartAnchor.getSelection()) {
-			inst = new ErrorDialog(this.getShell(), SWT.NULL, "Please tick off the sliding anchors before changing the porfolio records.", null);
+			inst = new UserDialog(this.getShell(), SWT.NULL, "Please tick off the sliding anchors before changing the porfolio records.", null);
 			inst.open();
 			return;
 		}
@@ -1603,7 +1608,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			}
 				
 			default: //Not modifiable
-				inst = new ErrorDialog(this.getShell(), SWT.NULL, "Column is immutable.", null);
+				inst = new UserDialog(this.getShell(), SWT.NULL, "Column is immutable.", null);
 				inst.open();
 				tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 				tableItem.setFont(MainGui.CONTENTFONT);
@@ -1611,19 +1616,19 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			}
 		} catch (NumberFormatException e) {
 			LOGGER.warn(e, e);
-			inst = new ErrorDialog(this.getShell(), SWT.NULL, "Both cash in and quotation must be floats", null);
+			inst = new UserDialog(this.getShell(), SWT.NULL, "Both cash in and quotation must be floats", null);
 			inst.open();
 			tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 			tableItem.setFont(MainGui.CONTENTFONT);
 		} catch (ParseException e) {
 			LOGGER.warn(e, e);
-			inst = new ErrorDialog(this.getShell(), SWT.NULL, "Invalid date please enter something like : dd-MM-yyyy", null);
+			inst = new UserDialog(this.getShell(), SWT.NULL, "Invalid date please enter something like : dd-MM-yyyy", null);
 			inst.open();
 			tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 			tableItem.setFont(MainGui.CONTENTFONT);
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
-			inst = new ErrorDialog(this.getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
+			inst = new UserDialog(this.getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
 			inst.open();
 			tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 			tableItem.setFont(MainGui.CONTENTFONT);
@@ -1949,11 +1954,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			PortfolioMgr.getInstance().hibStorePortfolio();
 		} catch (NumberFormatException e) {
 			LOGGER.error("",e);
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Wrong float value \n"+e, null);
+			UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Wrong float value \n"+e, null);
 			inst.open();
 		} catch (RuntimeException e) {
 			LOGGER.error("",e);
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error While updating data base \n"+e, null);
+			UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error While updating data base \n"+e, null);
 			inst.open();
 		}
 
@@ -2005,7 +2010,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.debug(e);
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL,e.getMessage()+"\n"+e.toString(), null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL,e.getMessage()+"\n"+e.toString(), null);
 			inst.open();
 		}
 	}
@@ -2037,7 +2042,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL,"Error adding share. \n"+e, null);
 			inst.open();
 		}
 		
@@ -2082,7 +2087,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						quotationUpdate.getQuotesFor(selectedStocks);
 					} catch (StockNotFoundException e) {
 						selectedStocks.removeAll(e.getInvalidStocks());
-						ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Stocks not found", e.getMessage());
+						UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Stocks not found", e.getMessage());
 						dialog.open();
 					}
 
@@ -2097,7 +2102,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 				} catch (Exception e) {
 					LOGGER.error(e,e);
-					ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+					UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
 					inst.open();
 				} finally {
 					setChanged();
@@ -2155,13 +2160,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			} catch (InvalidAlgorithmParameterException e) {
 				String message = "No quotations for " + stock;
 				LOGGER.warn(message, e);
-				ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, message+"\n"+e.getMessage()+"\n"+e.toString(), null);
+				UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, message+"\n"+e.getMessage()+"\n"+e.toString(), null);
 				inst.open();
 				
 			} catch (InvalidQuantityException e) {
 				String message = "Wrong quantity for " + stock;
 				LOGGER.warn(message, e);
-				ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL, message+"\n"+e.getMessage()+"\n"+e.toString(), null);
+				UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, message+"\n"+e.getMessage()+"\n"+e.toString(), null);
 				inst.open();
 				
 			}
@@ -2348,7 +2353,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				}
 			} catch (Exception e) {
 				PortfolioComposite.LOGGER.error("Can't read gnucash transaction file : ", e);
-				ErrorDialog errorDialog = new ErrorDialog(getShell(), SWT.NULL, "Can't read gnucash transaction file : " + e, null);
+				UserDialog errorDialog = new UserDialog(getShell(), SWT.NULL, "Can't read gnucash transaction file : " + e, null);
 				errorDialog.open();
 			}
 	
@@ -2380,7 +2385,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			for (String emess : gnuCashAdvPortfolioParser.getNotFoundStocks()) {
 				addMess = addMess.concat(emess).concat("\n");
 			}
-			ErrorDialog errorDialog = new ErrorDialog(getShell(),SWT.NULL, erreurMessage, addMess);
+			UserDialog errorDialog = new UserDialog(getShell(),SWT.NULL, erreurMessage, addMess);
 			errorDialog.open();
 		}
 	}
@@ -2416,7 +2421,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		} catch (Exception e) {
 			PortfolioComposite.LOGGER.error("Can't read gnucash report file : ", e);
-			ErrorDialog errorDialog = new ErrorDialog(getShell(), SWT.NULL, "Can't read gnucash report file : " + e, null);
+			UserDialog errorDialog = new UserDialog(getShell(), SWT.NULL, "Can't read gnucash report file : " + e, null);
 			errorDialog.open();
 		}
 	}
@@ -2536,7 +2541,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			ErrorDialog inst = new ErrorDialog(this.getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL,"Error adding share. \n"+e, null);
 			inst.open();
 		}
 	}
@@ -2565,18 +2570,23 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 		int tabindex = portfolioCTabFolder1.getSelectionIndex();
 		if (tabindex == -1) return;
-		
+
 		List<SlidingPortfolioShare> list = modelControler.getShareListInTab(tabindex);
 		
 		Table t  = (Table) cTabItem[tabindex].getData();
+		
+		int selectedRowIndex = t.getSelectionIndex();
+		
 		t.removeAll();
 		updatePortfolioTabItems(tabindex, list, 0);
 		updatePortfolioColors(tabindex, list);
+		
+		if (selectedRowIndex != -1) t.select(selectedRowIndex);
 
 		if (isVisible()) {
 			for (Exception exception : exceptions) {
 				if (exception instanceof QuotatationRefreshException) {
-					ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Couldn't refresh all quotations\n", exceptions.toString());
+					UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Couldn't refresh all quotations\n", exceptions.toString());
 					exceptions.clear();
 					dialog.open();
 					break;

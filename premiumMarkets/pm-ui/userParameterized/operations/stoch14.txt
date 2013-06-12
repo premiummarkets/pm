@@ -1,0 +1,1 @@
+stoch:SlowD(14,3,Sma,3,Sma,high,low,close)

@@ -6,12 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
-import com.finance.pms.events.operations.conditional.BooleanMultiMapValue;
 import com.finance.pms.events.operations.conditional.ChartableCondition;
+import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 
 public class TargetStockInfo {
@@ -93,17 +94,24 @@ public class TargetStockInfo {
 	Date endDate;
 	private String analysisName;
 	
-	List<Output> gatheredOutputs;
+	List<Output> calculatedOutputsCache;
+	
+	List<Output> gatheredChartableOutputs;
 	List<ChartedOutputGroup> chartedOutputGroups;
 	
-	public TargetStockInfo(String analysisName, Stock stock, Date startDate, Date endDate) {
+	public TargetStockInfo(String analysisName, Stock stock, Date startDate, Date endDate) throws WarningException {
 		super();
 		this.analysisName = analysisName;
 		this.stock = stock;
+		
+		Date lastQuote = stock.getLastQuote();
+		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : "+stock.toString());
 		this.startDate = startDate;
+		//this.endDate = (lastQuote.before(endDate))?lastQuote:endDate;
 		this.endDate = endDate;
 		
-		this.gatheredOutputs = new ArrayList<TargetStockInfo.Output>();
+		this.calculatedOutputsCache = new ArrayList<TargetStockInfo.Output>();
+		this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
 		this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
 	}
 	
@@ -122,33 +130,35 @@ public class TargetStockInfo {
 	
 	public Value<?> checkAlreadyCalculated(Operation operation) {
 		if (operation.getFormula() == null && !(operation instanceof StockOperation)) return null;
-		int indexOf = gatheredOutputs.indexOf(new Output(new OutputReference(operation)));
+		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation)));
 		if (indexOf == -1) {
 			return null;
 		}
-		return gatheredOutputs.get(indexOf).outputData ;
+		return calculatedOutputsCache.get(indexOf).outputData ;
 	}
 	
 	public void addOutput(Operation operation, Value<?> output) {
 		
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
 		if (alreadyCalculated != null) return;
-		if (output instanceof BooleanMultiMapValue) {
-			for (String outputKey: ((BooleanMultiMapValue) output).getAdditionalOutputs().keySet()) {
-				this.gatheredOutputs.add(new Output(new OutputReference(operation, outputKey), ((BooleanMultiMapValue) output).getAdditionalOutputs().get(outputKey)));
-			}
-		} else {
-			this.gatheredOutputs.add(new Output(new OutputReference(operation), output));
-		}
 		
+		this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
+		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), output));
+
+	}
+	
+	public void addExtraneousChartableOutput(Operation operation, DoubleMapValue output, String multiOutputDiscriminator) {
+		
+		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
+
 	}
 	
 	public ChartedOutputGroup setMain(Operation operation) {
 
-		Integer indexOfOutput = getIndexOfOutput(operation);
+		Integer indexOfOutput = getIndexOfChartableOutput(operation);
 		if (indexOfOutput != -1) {
 			
-			Output output = gatheredOutputs.get(indexOfOutput);
+			Output output = gatheredChartableOutputs.get(indexOfOutput);
 			OutputDescr chartedDesrc = output.getChartedDescription();
 			if (chartedDesrc != null) {
 				chartedDesrc.maskType(Type.MAIN);
@@ -165,27 +175,23 @@ public class TargetStockInfo {
 		}
 	}
 	
-	public Integer getIndexOfOutput(Operation operation) {
-		return gatheredOutputs.indexOf(new Output(new OutputReference(operation)));
+	public Integer getIndexOfChartableOutput(Operation operation) {
+		return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation)));
 	}
 	
-	public Integer getIndexOfOutput(OutputReference outputRef) {
-		return gatheredOutputs.indexOf(new Output(outputRef));
-	}
-
-	public List<Output> getGatheredOutputs() {
-		return gatheredOutputs;
+	public Integer getIndexOfChartableOutput(OutputReference outputRef) {
+		return gatheredChartableOutputs.indexOf(new Output(outputRef));
 	}
 
 	public List<ChartedOutputGroup> getChartedOutputGroups() {
 		return chartedOutputGroups;
 	}
 
-	public void addSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
+	public void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
 		
-		Integer indexOfOutput = getIndexOfOutput(operation);
+		Integer indexOfOutput = getIndexOfChartableOutput(operation);
 		if (indexOfOutput != -1) {
-			Output output = gatheredOutputs.get(indexOfOutput);
+			Output output = gatheredChartableOutputs.get(indexOfOutput);
 			OutputDescr chartedDesrc = output.getChartedDescription();
 			if (chartedDesrc != null) {
 				//Merge mainChartedGrp and existingChartedGrp if <> + maskType
@@ -211,17 +217,15 @@ public class TargetStockInfo {
 		}
 	}
 	
-	public void addAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
+	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
 		
-		Integer indexOfMainOutput = getIndexOfOutput(operand.getOperands().get(((ChartableCondition)operand).mainPosition()));
-		Output output = gatheredOutputs.get(indexOfMainOutput);
+		Integer indexOfMain = getIndexOfChartableOutput(operand.getOperands().get(((ChartableCondition)operand).mainInputPosition()));
+		Output output = gatheredChartableOutputs.get(indexOfMain);
 		OutputDescr chartedDesrc = output.getChartedDescription();
 		if (chartedDesrc != null) {
 			ChartedOutputGroup mainChartedGroup = chartedDesrc.getContainer();
-			//Type type = null;
 			for (String outputKey : outputTypes.keySet()) {
-				Integer indexOfOutput = getIndexOfOutput(new OutputReference(operand, outputKey));
-				//type = (type == null)?Type.MULTI:Type.MULTISIGNAL;
+				Integer indexOfOutput = getIndexOfChartableOutput(new OutputReference(operand, outputKey));
 				mainChartedGroup.addAdditonalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
 			}
 		} else {
@@ -233,6 +237,10 @@ public class TargetStockInfo {
 	@Override
 	public String toString() {
 		return "TargetStockInfo [stock=" + stock + ", startDate=" + startDate + ", endDate=" + endDate + ", analysisName=" + analysisName + "]";
+	}
+
+	public List<Output> getGatheredChartableOutputs() {
+		return gatheredChartableOutputs;
 	}
 
 

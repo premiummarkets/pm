@@ -12,7 +12,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.events.calculation.antlr.EditorIndsLexerDelegate;
@@ -89,12 +89,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			parameterizedBuilder.enableFormula(identifier);
 
 		} catch (IOException e) {
-			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Formula can't be enabled.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula can't be enabled.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			return;
 		} catch (Exception e) {
-			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 		} 
@@ -115,12 +115,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			parameterizedBuilder.disableFormula(identifier);
 
 		} catch (IOException e) {
-			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Formula can't be disabled.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula can't be disabled.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			return;
 		} catch (Exception e) {
-			ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 
@@ -162,6 +162,19 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		disableFormula.setSelection(false);
 		editor.setEnabled(true);
 		editor.setEditable(true);
+	}
+	
+	@Override
+	protected Boolean checkIdCharacters(String identifier, String addMessage) {
+		for (int i = 0; i < identifier.length(); i++) {
+			char charAt = identifier.charAt(i);
+			if (!Character.isLetterOrDigit(charAt) && !Character.isWhitespace(charAt)) {
+				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", addMessage);
+				dialog.open();
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	

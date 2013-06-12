@@ -14,11 +14,22 @@ import com.finance.pms.events.operations.nativeops.DoubleOperation;
 import com.finance.pms.events.operations.nativeops.DoubleValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
+
+/**
+ * 
+ * @author Guillaume Thoreton
+ * Additional constraints :
+ * not implemented : 'over'
+ * does not make sense : 'for'. As the condition is an event in time not a status in time.
+ * 'spanning'
+ * 
+ */
 public class ReverseCondition extends Condition<Boolean>  implements StandAloneCondition {
 	
 
 	private ReverseCondition() {
-		super("historical data reverse", "True when a time series reverses up or down", new DoubleOperation("direction"), new DoubleOperation("changeratio"), new DoubleOperation("dateshift"), new DoubleMapOperation());
+		super("historical data reverse", "True when a time series reverses up or down", 
+		new DoubleOperation("direction"), new DoubleOperation("change ratio"), new DoubleOperation("dates comparison span"), new DoubleMapOperation("historical data input"));
 	}
 
 	public ReverseCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -32,10 +43,10 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 		
 		Double direction = ((DoubleValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Double changeRatio = ((DoubleValue) inputs.get(1)).getValue(targetStock).doubleValue();
-		Integer shift = ((DoubleValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer spanningPeriod = ((DoubleValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-shift.intValue(), false, false);
+		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningPeriod.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 		
 		BooleanMapValue outputs = new  BooleanMapValue();
@@ -67,7 +78,7 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 	}
 
 	@Override
-	public int mainPosition() {
+	public int mainInputPosition() {
 		return 3;
 	}
 

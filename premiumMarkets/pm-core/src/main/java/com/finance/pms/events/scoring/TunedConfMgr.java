@@ -182,17 +182,6 @@ public class TunedConfMgr {
 	
 	public void updateConf(TunedConf tunedConf, Stock stock, Date lastEventDate) {
 		
-//		//Updating the last tuned conf date
-//		Date lastEventDate = null;
-//		for (EventDefinition eventDefinition : resForStock.keySet()) {
-//			SortedMap<Date, double[]> resForStockAndEvtDef = resForStock.get(eventDefinition);
-//			if (!resForStockAndEvtDef.isEmpty()) {
-//				Date lastKeyForEventDet = resForStockAndEvtDef.lastKey();
-//				if (lastEventDate == null || lastKeyForEventDet.after(lastEventDate)) {
-//					lastEventDate = lastKeyForEventDet;
-//				}
-//			}
-//		}
 		if (lastEventDate != null) tunedConf.setLastCalculatedEvent(lastEventDate);
 		getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
 		

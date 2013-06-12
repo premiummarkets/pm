@@ -23,9 +23,4 @@ public class UpRatioCondition extends CrossConstantCondition implements StandAlo
 		return (current - prev)/Math.abs(prev) > constant;
 	}
 
-	@Override
-	public int mainPosition() {
-		return 2;
-	}
-
 }

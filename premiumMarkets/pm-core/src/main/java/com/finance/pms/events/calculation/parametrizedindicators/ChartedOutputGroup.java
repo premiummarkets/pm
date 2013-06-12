@@ -14,18 +14,18 @@ public class ChartedOutputGroup {
 	public class OutputDescr {
 		
 		ChartedOutputGroup container;
-		String friendlyName;
+		String outputName;
 		Type type;
 		Integer outputIndex;
 		Value<?> value;
 		
-		public OutputDescr(ChartedOutputGroup container, Type type, Integer outputIndex, Value<?> value, String friendlyName) {
+		public OutputDescr(ChartedOutputGroup container, Type type, Integer outputIndex, Value<?> value, String outputName) {
 			super();
 			this.container = container;
 			this.type = type;
 			this.outputIndex = outputIndex;
 			this.value = value;
-			this.friendlyName = friendlyName;
+			this.outputName = outputName;
 		}
 
 		public Type getType() {
@@ -44,13 +44,14 @@ public class ChartedOutputGroup {
 			this.outputIndex = outputIndex;
 		}
 
-		public String getFriendlyName() {
-			return friendlyName;
+		public String fullQualifiedName() {
+			//return ((container!=null && container.getThisDescription() != this)?container.getThisDescription().fullQualifiedName()+" : ":"")+friendlyName;
+			return ((container!=null)?container.getThisReference().getOperationReference()+" : ":"")+outputName;
 		}
 
 		@Override
 		public String toString() {
-			return "OutputDescr [name=" + friendlyName + ", type=" + type + ", outputIndex=" + outputIndex + ", value=" + value + "]";
+			return "OutputDescr [name=" + outputName + ", type=" + type + ", outputIndex=" + outputIndex + ", value=" + value + "]";
 		}
 
 		public ChartedOutputGroup getContainer() {
@@ -91,25 +92,31 @@ public class ChartedOutputGroup {
 	
 	//Adding a main
 	public ChartedOutputGroup(Operation operation, int outputIndex) {
-		String friendlyName = operation.aMoreFriendlyName();
-		thisDescription = new OutputDescr(this, Type.MAIN, outputIndex, null, friendlyName);
+		//String friendlyName = operation.aMoreFriendlyName();
+		String outputName = operation.getReference();
+		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
+		
+		thisDescription = new OutputDescr(this, Type.MAIN, outputIndex, null, outputName);
 		thisReference = new OutputReference(operation);
 		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
 	}
 	
 	public void addSignal(Operation operation, int outputIndex) {
-		String friendlyName = operation.aMoreFriendlyName();
-		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.SIGNAL, outputIndex, null, friendlyName));
+		//String friendlyName = operation.aMoreFriendlyName();
+		String outputName = operation.getReference();
+		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
+		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.SIGNAL, outputIndex, null, outputName));
 	}
 
-	public void addConstant(String namePrefix, Operation operation, DoubleValue doubleValue) {
-		String friendlyName = doubleValue.getNumberValue() + " " + namePrefix +" "+operation.getReferenceAsOperand();
-		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.CONSTANT, null, doubleValue, friendlyName));
+	public void addConstant(String parentReference, Operation operation, DoubleValue doubleValue) {
+		//String friendlyName = doubleValue.getNumberValue() + " " + namePrefix +" "+operation.getReferenceAsOperand();
+		String outputName = doubleValue.getNumberValue() +" ("+parentReference+" "+operation.getReferenceAsOperand()+")";
+		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.CONSTANT, null, doubleValue, outputName));
 	}
 	
-	public void addAdditonalOutput(String namePrefix, Operation operation, int outputIndex, Type type) {
-		String friendlyName = namePrefix + " ("+operation.getReference()+")";
-		this.components.put(new OutputReference(operation, namePrefix), new OutputDescr(this, type, outputIndex, null, friendlyName));
+	public void addAdditonalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
+		String outputName = outputKey + " ("+operation.getReference()+")";
+		this.components.put(new OutputReference(operation, outputKey), new OutputDescr(this, type, outputIndex, null, outputName));
 	}
 	
 	public OutputDescr mvComponentIn(OutputReference outputRef, OutputDescr outputDescr) {

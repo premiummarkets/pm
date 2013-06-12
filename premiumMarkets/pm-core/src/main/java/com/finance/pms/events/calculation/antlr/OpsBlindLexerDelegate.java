@@ -22,4 +22,9 @@ public class OpsBlindLexerDelegate implements OpsLexerDelegate {
 		return true;
 	}
 
+	@Override
+	public boolean runtimeMATypeOpAhead() {
+		return true;
+	}
+
 }

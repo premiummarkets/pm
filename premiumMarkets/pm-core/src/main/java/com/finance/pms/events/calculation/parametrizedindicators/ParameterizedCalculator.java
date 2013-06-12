@@ -46,8 +46,11 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
+import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
+import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -73,8 +76,9 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	 * @param export 
 	 * @param persistTrainingEvents 
 	 * @param observers 
+	 * @throws WarningException 
 	 */
-	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers)  {
+	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers) throws WarningException  {
 		super(stock);		
 		targetStock = new TargetStockInfo(analyseName, stock, startDate, endDate);
 		this.conditionHolder = (EventConditionHolder) eventInfo;
@@ -92,7 +96,6 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
 			
-			//TODO indeterministic series??
 			Date currentKeyDate = null;
 			EventKey previousKey = null;
 			SortedSet<EventKey> toRemove = new TreeSet<EventKey>();
@@ -107,9 +110,14 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 				previousKey = currentKey;
 			}
 			
-			LOGGER.warn("Indeterministic events for parametrised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
+			LOGGER.warn("Indeterministic events for parameterised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
 			for (EventKey eventKey : toRemove) {
+				EventValue eventValue = returnedEvents.get(eventKey);
 				returnedEvents.remove(eventKey);
+				
+				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
+				eventValue.setEventType(EventType.NONE);
+				returnedEvents.put(noneEventKey,eventValue);
 			}
 			
 			
@@ -130,7 +138,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 		SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
 
-		List<Output> gatheredOutputs = targetStock.getGatheredOutputs();
+		List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
 		
 		List<Object> normOutputs = new ArrayList<Object>();
 		SortedSet<Date> fullDateSet = new TreeSet<Date>();
@@ -176,20 +184,9 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 				if (normOutput instanceof SortedMap) {
 					
-					//If output is NaN this means that the output is not available and should not be displayed at that date on chart.
-					//If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
-					//We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
 					@SuppressWarnings("unchecked")
 					Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
-					if (ds2 != null) {
-						if (!ds2.isNaN()) {
-							retOutput[outputPosition]  =  ds2;
-						} else {
-							retOutput[outputPosition]  =  Double.NEGATIVE_INFINITY;
-						}
-					} else {
-						retOutput[outputPosition]  = Double.NaN;
-					}
+					retOutput[outputPosition] = translateOutputForCharting(ds2);
 				} 
 				else if (normOutput instanceof Double) {
 					retOutput[outputPosition] = (Double)normOutput;
@@ -201,7 +198,6 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 		return calculationOutput;
 	}
-	
 
 	@Override
 	protected int getDaysSpan() {

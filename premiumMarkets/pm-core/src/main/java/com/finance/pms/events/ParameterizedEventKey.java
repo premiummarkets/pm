@@ -81,6 +81,6 @@ public class ParameterizedEventKey extends EventKey {
 
 	@Override
 	public String toString() {
-		return "ParameterizedEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + "]";
+		return "ParameterizedEventKey [date=" + date + ", eventdef=" + eventdef.getEventReadableDef() + ", eventType=" + eventType + "]";
 	}
 }

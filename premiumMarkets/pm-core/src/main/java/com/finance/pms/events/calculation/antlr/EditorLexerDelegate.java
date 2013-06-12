@@ -8,10 +8,20 @@ import java.util.Set;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.RecognizerSharedState;
 
+import com.tictactec.ta.lib.MAType;
+
 public class EditorLexerDelegate {
 	
 	public static final List<String> CONSTANT_TOKENS = new ArrayList<String>(Arrays.asList("0","1","2","3","4","5","6","7","8","9"));
 	public static final List<String> HISTORICALDATA_TOKENS = new ArrayList<String>(Arrays.asList("close","open","high","low","volume"));
+	
+	public static final List<String> MATYPES_TOKENS = new ArrayList<String>();			
+	{
+		MAType[] maTypes = MAType.values();
+		for (int i = 0; i < maTypes.length; i++) {
+			MATYPES_TOKENS.add(maTypes[i].name());
+		}
+	}
 	
 	PartialTokenStatus partialTokenStatus;
 	
@@ -27,6 +37,10 @@ public class EditorLexerDelegate {
 
 	public boolean runtimeHistoryOpAhead() {
 		return lookAheadFor(HISTORICALDATA_TOKENS);
+	}
+	
+	public boolean runtimeMATypeOpAhead() {
+		return lookAheadFor(MATYPES_TOKENS);
 	}
 
 	private boolean lookAheadFor(List<String> histoTok) {

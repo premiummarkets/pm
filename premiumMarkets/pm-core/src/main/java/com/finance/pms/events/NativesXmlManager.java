@@ -11,6 +11,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
+import com.finance.pms.events.operations.nativeops.PMAroonOperation;
 import com.finance.pms.events.operations.nativeops.PMHouseTrendOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMSMAOperation;
@@ -61,6 +62,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmsmaOperation);
 		PMHouseTrendOperation houseTrendOperation = new PMHouseTrendOperation();
 		nativeOperations.addOperation(houseTrendOperation);
+		PMAroonOperation pmAroonOperation = new PMAroonOperation();
+		nativeOperations.addOperation(pmAroonOperation);
 		
 		//saveNativeOperations(nativeOperations);
 		return nativeOperations;

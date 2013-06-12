@@ -566,22 +566,6 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			}
 		}
 		
-//		//Parameterized
-//		if (parameterizedWanted) {
-//			try {
-//				NativeParametrizedIndicators nativeIndicators = NativeParametrizedIndicators.loadNativeIndicators();
-//				eventCalculations.add(new ParametrizedCalculator(stock, startDate, endDate, nativeIndicators.getCalculators().get(0)));
-//			} catch (NotEnoughDataException e) {
-//				if (e.getShiftedStartDate() != null) {
-//					LOGGER.warn(warnMessage("ChaikinOscillatorThreshold", startDate, endDate) + butMessage(simpleDateFormat, e));
-//				} else {
-//					LOGGER.error("Failed calculation : "+warnMessage("ChaikinOscillatorThreshold", new Date(), new Date()), e);
-//				}
-//				chaikinOscThresholdOk = false;
-//			}
-//		}
-	
-		
 		if (
 				!rsiDivergenceOk|| !zeroCrossMACDOk || !signalCrossMACDOk || !smaReversalOk || !rsiThresholdCrossOk ||
 				!obvDivergenceOk || !mfiDivergenceOk || !mfiThresholdOk || !varianceOk || 

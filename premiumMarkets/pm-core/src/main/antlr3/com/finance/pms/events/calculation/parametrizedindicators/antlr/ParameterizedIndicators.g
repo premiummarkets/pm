@@ -170,40 +170,62 @@ operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) 
 constant :  Number -> ^(Double Number) ;
 
 opcmpcondition [CommonTree firstOp] : 
+
   'is above historical' WhiteChar operand -> ^(SupDoubleMapCondition {$firstOp} operand) |
   'is below historical' WhiteChar operand -> ^(InfDoubleMapCondition {$firstOp} operand) |
-  ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Double Number["1.0"]) {$firstOp} operand))
-        ( WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(CrossDownDoubleMapCondition {$nbDays.tree} {$firstOp}) )? |
-  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Double Number["1.0"]) {$firstOp} operand)) 
-       ( WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(CrossUpDoubleMapCondition {$nbDays.tree} {$firstOp}) )? |
-  'equals historical' WhiteChar operand -> ^(EqualDoubleMapCondition {$firstOp} operand);
-
-constantcmp [CommonTree firstOp] : 
-  'equals threshold' WhiteChar constant -> ^(EqualConstantCondition constant {$firstOp}) | 
-  'is above threshold' WhiteChar constant -> ^(SupConstantCondition constant {$firstOp})| 
-  'is below threshold' WhiteChar constant -> ^(InfConstantCondition constant {$firstOp});
+  'equals historical' WhiteChar operand -> ^(EqualDoubleMapCondition {$firstOp} operand) |
   
-//TODO constant ops with several constants as operands (ex : is up more than X% for N days) <= needs hadoc tree rewriting?
+  ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Double Number["1.0"]) {$firstOp} operand))
+        ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$firstOp} operand) )? |
+        
+  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Double Number["1.0"]) {$firstOp} operand)) 
+       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$firstOp} operand) )?;
+       
+
+constantcmp [CommonTree firstOp] :
+ 
+  ('equals threshold' WhiteChar threshold=constant -> ^(EqualConstantCondition constant ^(Double Number["0"]) {$firstOp}) )
+    ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS -> ^(EqualConstantCondition {$threshold.tree} {$overNbDays.tree} {$firstOp}) )? |
+    
+  ('is above threshold' WhiteChar threshold=constant -> ^(SupConstantCondition constant ^(Double Number["0"]) {$firstOp}) )
+    ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS -> ^(SupConstantCondition {$threshold.tree} {$overNbDays.tree} {$firstOp}) )? |
+    
+  ('is below threshold' WhiteChar threshold=constant -> ^(InfConstantCondition constant ^(Double Number["0"]) {$firstOp}) )
+    ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS -> ^(InfConstantCondition {$threshold.tree} {$overNbDays.tree} {$firstOp}) )?;
+    
+
 presetcondition [CommonTree firstOp]  : 
+
   ('reverses down' -> ^(ReverseCondition ^(Double Number["-1"]) ^(Double Number["0.0"]) ^(Double Number["1.0"]) {$firstOp}))
-      ( WhiteChar 'more than' WhiteChar percentdown=constant PERCENT WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(ReverseCondition ^(Double Number["-1"]) {$percentdown.tree} {$nbDays.tree} {$firstOp}) )? | 
+      ( WhiteChar 'more than' WhiteChar percentdown=constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+      -> ^(ReverseCondition ^(Double Number["-1"]) {$percentdown.tree} {$spanningNbDays.tree} {$firstOp}) )? | 
+      
   ('reverses up' -> ^(ReverseCondition ^(Double Number["1"]) ^(Double Number["0.0"]) ^(Double Number["1.0"]) {$firstOp}))
-      ( WhiteChar 'more than' WhiteChar percentup=constant PERCENT WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(ReverseCondition ^(Double Number["1"]) {$percentup.tree} {$nbDays.tree} {$firstOp}) )? |
-  ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Double Number["1.0"]) {$firstOp})) 
-      ( WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(DownRatioCondition {$percentdown.tree} {$nbDays.tree} {$firstOp}) )? |
-  ('goes up more than' WhiteChar percentup=constant PERCENT -> ^(UpRatioCondition constant ^(Double Number["1.0"]) {$firstOp})) 
-      ( WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(UpRatioCondition {$percentup.tree} {$nbDays.tree} {$firstOp}) )? |
-  ('crosses up threshold' WhiteChar cnst=constant -> ^(CrossUpConstantCondition constant ^(Double Number["1.0"]) {$firstOp}))
-      ( WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(CrossUpConstantCondition {$cnst.tree} {$nbDays.tree} {$firstOp}) )? |  
-  ('crosses down threshold' WhiteChar cnst=constant -> ^(CrossDownConstantCondition constant ^(Double Number["1.0"]) {$firstOp}))
-      ( WhiteChar 'over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(CrossDownConstantCondition {$cnst.tree} {$nbDays.tree} {$firstOp}) )? |
-  ('makes a higher high over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherHighCondition constant ^(Double Number["-1.0"]) {$firstOp}))
+      ( WhiteChar 'more than' WhiteChar percentup=constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+      -> ^(ReverseCondition ^(Double Number["1"]) {$percentup.tree} {$spanningNbDays.tree} {$firstOp}) )? |
+      
+  ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Double Number["1.0"])  ^(Double Number["0.0"]) {$firstOp})) 
+      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(DownRatioCondition {$percentdown.tree} {$spanningNbDays.tree}  ^(Double Number["0.0"]) {$firstOp}) )? |
+  ('goes up more than' WhiteChar percentup=constant PERCENT -> ^(UpRatioCondition constant ^(Double Number["1.0"])  ^(Double Number["0.0"]) {$firstOp})) 
+      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(UpRatioCondition {$percentup.tree} {$spanningNbDays.tree}  ^(Double Number["0.0"]) {$firstOp}) )? |
+      
+  ('crosses up threshold' WhiteChar threshold=constant -> ^(CrossUpConstantCondition constant ^(Double Number["1.0"])  ^(Double Number["0.0"]) {$firstOp}))
+      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+        WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      -> ^(CrossUpConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree}  {$firstOp}) )? |  
+      
+  ('crosses down threshold' WhiteChar threshold=constant -> ^(CrossDownConstantCondition constant ^(Double Number["1.0"]) ^(Double Number["0.0"]) {$firstOp}))
+      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+        WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      -> ^(CrossDownConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree}  {$firstOp}) )? |
+      
+  ('makes a higher high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherHighCondition constant ^(Double Number["-1.0"]) {$firstOp}))
        ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(HigherHighCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )? |
-  ('makes a higher low over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherLowCondition constant ^(Double Number["-1.0"]) {$firstOp}))
+  ('makes a higher low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherLowCondition constant ^(Double Number["-1.0"]) {$firstOp}))
        ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(HigherLowCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )? |
-  ('makes a lower high over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerHighCondition constant ^(Double Number["-1.0"]) {$firstOp}))
+  ('makes a lower high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerHighCondition constant ^(Double Number["-1.0"]) {$firstOp}))
        ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(LowerHighCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )? |
-  ('makes a lower low over' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerLowCondition constant ^(Double Number["-1.0"]) {$firstOp}))
+  ('makes a lower low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerLowCondition constant ^(Double Number["-1.0"]) {$firstOp}))
        ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(LowerLowCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )?;
 
 Operation 

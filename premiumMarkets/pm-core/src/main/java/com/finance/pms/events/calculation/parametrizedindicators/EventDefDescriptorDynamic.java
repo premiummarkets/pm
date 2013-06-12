@@ -16,7 +16,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorDynamic.class);
 
-	public static Color[][] COLORS = new  Color[][] {{Color.BLACK, Color.RED, Color.ORANGE},  {Color.BLUE, Color.MAGENTA, Color.ORANGE}, {Color.GRAY, Color.YELLOW, Color.ORANGE}};
+	public static Color[][] COLORS = new  Color[][] {{Color.BLACK, Color.RED, Color.ORANGE},  {Color.BLUE, Color.MAGENTA, Color.CYAN}, {Color.GRAY, Color.PINK, Color.YELLOW}};
 	
 	private String descriptorReference;
 	private String bullishDescription;
@@ -59,7 +59,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		
 		descripitonArrays = new String[descripitonList.size()];
 		for (int i = 0; i < descripitonList.size(); i++) {
-			descripitonArrays[i] = descripitonList.get(i).getFriendlyName();
+			descripitonArrays[i] = descripitonList.get(i).fullQualifiedName();
 		}
 		
 	}

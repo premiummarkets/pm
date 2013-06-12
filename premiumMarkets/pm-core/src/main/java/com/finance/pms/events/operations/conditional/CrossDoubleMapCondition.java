@@ -18,12 +18,21 @@ import com.finance.pms.events.operations.nativeops.DoubleOperation;
 import com.finance.pms.events.operations.nativeops.DoubleValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
+/**
+ * 
+ * @author Guillaume Thoreton
+ * Additional constraints :
+ * not implemented : 'over'
+ * does not make sense : 'for'. As the condition is an event in time not a status in time.
+ * 'spanning'
+ */
+
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class})
-public abstract class CrossDoubleMapCondition extends Condition<Double> {
+public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 	
 	
 	public CrossDoubleMapCondition(String reference, String description) {
-		super(reference, description, new DoubleOperation("date shift"), new DoubleMapOperation(reference+ " left operand"), new DoubleMapOperation(reference+ " right operand"));
+		super(reference, description, new DoubleOperation("dates comparison span"), new DoubleMapOperation(reference+ "left operand (data)"), new DoubleMapOperation(reference+ "right operand (signal)"));
 	}
 	
 	public CrossDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -34,7 +43,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> {
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Integer shift = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer spanningShift = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
 		
@@ -42,7 +51,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> {
 		fullKeySet.addAll(firstOp.keySet());
 		fullKeySet.addAll(secondOp.keySet());
 		
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-shift.intValue(), false, false);
+		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedFirstOp = rightShifter.shift(firstOp);
 		SortedMap<Date, Double> rightShiftedSecondOp = rightShifter.shift(secondOp);
 		
@@ -63,5 +72,15 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> {
 		}
 		
 		return outputs;
+	}
+
+	@Override
+	public int mainInputPosition() {
+		return 1;
+	}
+
+	@Override
+	public int inputSignalPosition() {
+		return 2;
 	}
 }

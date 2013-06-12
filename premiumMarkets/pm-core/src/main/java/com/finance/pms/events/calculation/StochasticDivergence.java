@@ -33,37 +33,21 @@
 
 package com.finance.pms.events.calculation;
 
-import java.math.BigDecimal;
-import java.security.InvalidAlgorithmParameterException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventType;
-import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
-import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.talib.dataresults.StandardEventKey;
-import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.StochasticOscillator;
-import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
+public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	
 	private StochasticOscillator stochOsc;
 	private Integer stochQuotationStartDateIdx;
-	
-	private SMA sma;
-	private Integer smaQuotationStartDateIdx;
 
 	public StochasticDivergence(Stock stock, StochasticOscillator stochasticOscillator, HouseAroon aroon, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
@@ -72,62 +56,7 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
 		Integer stochQuotationEndDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(stochQuotationStartDateIdx, endDate);
 		isValidData(stock, stochasticOscillator, startDate, stochQuotationStartDateIdx, stochQuotationEndDateIdx);
-		
-		try {
-			this.sma = new SMA(stock, 2, startDate, endDate, calculationCurrency, Math.max(20, getDaysSpan()), 0);
-		} catch (TalibException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 	
-	}
-
-	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
-	
-		FormulatRes res = new FormulatRes(EventDefinition.PMSSTOCHDIVERGENCE);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
-		
-		int stochIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.stochOsc, calculatorIndex, stochQuotationStartDateIdx);
-		double[] stochLookBackP = Arrays.copyOfRange(this.stochOsc.getSlowK(), stochIdx - getDaysSpan(), stochIdx);
-		double[] quotationLookBackP = Arrays.copyOfRange(this.getCalculatorQuotationData().getCloseValues(), calculatorIndex - getDaysSpan(), calculatorIndex);
-		
-		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
-		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
-		
-		double[] lowThreshLookBackP = new double[getDaysSpan()];
-		for (int i = 0; i < lowThreshLookBackP.length; i++) {
-			lowThreshLookBackP[i] = this.stochOsc.getLowerThreshold();
-			
-		}
-		
-		double[] upperThreshLookBackP = new double[getDaysSpan()];
-		for (int i = 0; i < upperThreshLookBackP.length; i++) {
-			upperThreshLookBackP[i] = this.stochOsc.getUpperThreshold();
-			
-		}
-		
-		{
-			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
-			Boolean isStochUp = higherLow(stochLookBackP, lowThreshLookBackP);
-			res.setBullishCrossOver(isPriceDown && isStochUp); 
-			
-			if (res.getBullishCrossOver()) return res;
-
-		}
-		{
-			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
-			Boolean isStochDown = lowerHigh(stochLookBackP, upperThreshLookBackP);
-			res.setBearishCrossBellow(isPriceUp && isStochDown);
-		
-			return res;
-		}
-		
 	}
 	
 	@Override
@@ -153,41 +82,10 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, LOW TH, UP TH, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
+		//String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, LOW TH, UP TH, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, LOW TH, UP TH, STOCH SLOW K, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
-	}
-
-	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSSTOCHDIVERGENCE, EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSSTOCHDIVERGENCE, EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		
-		int stochIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.stochOsc, calculatorIndex, stochQuotationStartDateIdx);
-		int stochQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, stochQuotationStartDateIdx);
-		
-		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
-			+ this.stochOsc.getIndicatorQuotationData().get(stochQuotationIndex).getDate() + ","
-			+ this.stochOsc.getLowerThreshold() + ","
-			+ this.stochOsc.getUpperThreshold() + ","
-			+ this.stochOsc.getSlowK()[stochIndex] + ","
-			+ this.stochOsc.getSlowD()[stochIndex];
-		
-		if (bearishEventValue != null) {
-			line = line + ","+calculatorClose+",0,";
-		} else if (bullishEventValue != null) {
-			line = line + ",0,"+calculatorClose+",";
-		} else {
-			line = line + ",0,0,";
-		}
-		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
-		return line;
 	}
 	
 	@Override
@@ -197,6 +95,8 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 		return new double[]
 				{
 				this.stochOsc.getSlowK()[stochIndex],
+				translateOutputForCharting(this.higherLows.get(calculatorIndex)),
+				translateOutputForCharting(this.lowerHighs.get(calculatorIndex)),
 				this.stochOsc.getSlowD()[stochIndex],
 				this.stochOsc.getLowerThreshold(),
 				this.stochOsc.getUpperThreshold(),
@@ -211,6 +111,31 @@ public class StochasticDivergence extends TalibIndicatorsCompositionCalculator {
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMSSTOCHDIVERGENCE;
+	}
+
+	@Override
+	protected double getOscillatorLowerThreshold() {
+		return this.stochOsc.getLowerThreshold();
+	}
+
+	@Override
+	protected double getOscillatorUpperThreshold() {
+		return this.stochOsc.getUpperThreshold();
+	}
+
+	@Override
+	protected Integer getOscillatorQuotationStartDateIdx() {
+		return stochQuotationStartDateIdx;
+	}
+
+	@Override
+	protected double[] getOscillatorOutput() {
+		return this.stochOsc.getSlowD();
+	}
+
+	@Override
+	protected TalibIndicator getOscillator() {
+		return this.stochOsc;
 	}
 
 }

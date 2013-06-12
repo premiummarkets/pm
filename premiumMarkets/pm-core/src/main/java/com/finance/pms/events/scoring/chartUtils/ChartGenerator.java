@@ -110,7 +110,7 @@ public class ChartGenerator {
 			dataset.addSeries(timeSerie);
 			renderer.setSeriesPaint(seriesIdx, serieDef.getSerieColor());
 			renderer.setSeriesFillPaint(seriesIdx, serieDef.getSerieColor());
-			renderer.setSeriesStroke(seriesIdx, new BasicStroke(serieDef.getSerieSize()));
+			renderer.setSeriesStroke(seriesIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
 			
 			seriesIdx++;
 		}

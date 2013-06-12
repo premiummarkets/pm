@@ -1,19 +1,24 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2013-06-04 00:11:43
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2013-06-09 23:02:39
  //parser
      package com.finance.pms.events.calculation.parametrizedindicators.antlr;
-    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-    import com.finance.pms.events.calculation.antlr.IndsParserDelegate;
-    import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
-    import com.finance.pms.events.calculation.antlr.UnfinishedNestedCondition;
-    import com.finance.pms.events.calculation.antlr.InvalidOperationException;
+    import org.antlr.runtime.BitSet;
+import org.antlr.runtime.NoViableAltException;
+import org.antlr.runtime.Parser;
+import org.antlr.runtime.ParserRuleReturnScope;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.RecognizerSharedState;
+import org.antlr.runtime.Token;
+import org.antlr.runtime.TokenStream;
+import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.CommonTreeAdaptor;
+import org.antlr.runtime.tree.RewriteRuleSubtreeStream;
+import org.antlr.runtime.tree.RewriteRuleTokenStream;
+import org.antlr.runtime.tree.TreeAdaptor;
 
-
-import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
-
-import org.antlr.runtime.tree.*;
+import com.finance.pms.events.calculation.antlr.IndsParserDelegate;
+import com.finance.pms.events.calculation.antlr.InvalidOperationException;
+import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+import com.finance.pms.events.calculation.antlr.UnfinishedNestedCondition;
 
 
 @SuppressWarnings("all")
@@ -34,9 +39,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 		"'goes down more than'", "'goes up more than'", "'is above historical'", 
 		"'is above threshold'", "'is bearish if not bullish'", "'is bearish when'", 
 		"'is below historical'", "'is below threshold'", "'is bullish when'", 
-		"'makes a higher high over'", "'makes a higher low over'", "'makes a lower high over'", 
-		"'makes a lower low over'", "'more than'", "'over'", "'reverses down'", 
-		"'reverses up'", "'smoothing threshold'"
+		"'makes a higher high spanning'", "'makes a higher low spanning'", "'makes a lower high spanning'", 
+		"'makes a lower low spanning'", "'more than'", "'over'", "'reverses down'", 
+		"'reverses up'", "'smoothing threshold'", "'spanning'"
 	};
 	public static final int EOF=-1;
 	public static final int T__45=45;
@@ -63,6 +68,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final int T__66=66;
 	public static final int T__67=67;
 	public static final int T__68=68;
+	public static final int T__69=69;
 	public static final int AND=4;
 	public static final int AndDoubleMapCondition=5;
 	public static final int CLOSEPARENTEHSIS=6;
@@ -202,7 +208,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 			stream_bearish_condition.add(bearish_condition1.getTree());
 			// AST REWRITE
-			// elements: bearish_condition, bullish_condition
+			// elements: bullish_condition, bearish_condition
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -1850,7 +1856,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 	// $ANTLR start "opcmpcondition"
-	// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:172:1: opcmpcondition[CommonTree firstOp] : ( 'is above historical' WhiteChar operand -> ^( SupDoubleMapCondition operand ) | 'is below historical' WhiteChar operand -> ^( InfDoubleMapCondition operand ) | ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition ) )? | ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition ) )? | 'equals historical' WhiteChar operand -> ^( EqualDoubleMapCondition operand ) );
+	// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:172:1: opcmpcondition[CommonTree firstOp] : ( 'is above historical' WhiteChar operand -> ^( SupDoubleMapCondition operand ) | 'is below historical' WhiteChar operand -> ^( InfDoubleMapCondition operand ) | 'equals historical' WhiteChar operand -> ^( EqualDoubleMapCondition operand ) | ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition operand ) )? | ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition operand ) )? );
 	public final ParameterizedIndicatorsParser.opcmpcondition_return opcmpcondition(CommonTree firstOp) throws RecognitionException {
 		ParameterizedIndicatorsParser.opcmpcondition_return retval = new ParameterizedIndicatorsParser.opcmpcondition_return();
 		retval.start = input.LT(1);
@@ -1863,26 +1869,26 @@ public class ParameterizedIndicatorsParser extends Parser {
 		Token WhiteChar59=null;
 		Token string_literal61=null;
 		Token WhiteChar62=null;
-		Token WhiteChar64=null;
-		Token string_literal65=null;
-		Token WhiteChar66=null;
+		Token string_literal64=null;
+		Token WhiteChar65=null;
 		Token WhiteChar67=null;
-		Token DAYS68=null;
-		Token string_literal69=null;
+		Token string_literal68=null;
+		Token WhiteChar69=null;
 		Token WhiteChar70=null;
-		Token WhiteChar72=null;
-		Token string_literal73=null;
-		Token WhiteChar74=null;
+		Token DAYS71=null;
+		Token string_literal72=null;
+		Token WhiteChar73=null;
 		Token WhiteChar75=null;
-		Token DAYS76=null;
-		Token string_literal77=null;
+		Token string_literal76=null;
+		Token WhiteChar77=null;
 		Token WhiteChar78=null;
-		ParserRuleReturnScope nbDays =null;
+		Token DAYS79=null;
+		ParserRuleReturnScope spanningNbDays =null;
 		ParserRuleReturnScope operand57 =null;
 		ParserRuleReturnScope operand60 =null;
 		ParserRuleReturnScope operand63 =null;
-		ParserRuleReturnScope operand71 =null;
-		ParserRuleReturnScope operand79 =null;
+		ParserRuleReturnScope operand66 =null;
+		ParserRuleReturnScope operand74 =null;
 
 		CommonTree string_literal55_tree=null;
 		CommonTree WhiteChar56_tree=null;
@@ -1890,33 +1896,33 @@ public class ParameterizedIndicatorsParser extends Parser {
 		CommonTree WhiteChar59_tree=null;
 		CommonTree string_literal61_tree=null;
 		CommonTree WhiteChar62_tree=null;
-		CommonTree WhiteChar64_tree=null;
-		CommonTree string_literal65_tree=null;
-		CommonTree WhiteChar66_tree=null;
+		CommonTree string_literal64_tree=null;
+		CommonTree WhiteChar65_tree=null;
 		CommonTree WhiteChar67_tree=null;
-		CommonTree DAYS68_tree=null;
-		CommonTree string_literal69_tree=null;
+		CommonTree string_literal68_tree=null;
+		CommonTree WhiteChar69_tree=null;
 		CommonTree WhiteChar70_tree=null;
-		CommonTree WhiteChar72_tree=null;
-		CommonTree string_literal73_tree=null;
-		CommonTree WhiteChar74_tree=null;
+		CommonTree DAYS71_tree=null;
+		CommonTree string_literal72_tree=null;
+		CommonTree WhiteChar73_tree=null;
 		CommonTree WhiteChar75_tree=null;
-		CommonTree DAYS76_tree=null;
-		CommonTree string_literal77_tree=null;
+		CommonTree string_literal76_tree=null;
+		CommonTree WhiteChar77_tree=null;
 		CommonTree WhiteChar78_tree=null;
+		CommonTree DAYS79_tree=null;
 		RewriteRuleTokenStream stream_49=new RewriteRuleTokenStream(adaptor,"token 49");
 		RewriteRuleTokenStream stream_DAYS=new RewriteRuleTokenStream(adaptor,"token DAYS");
+		RewriteRuleTokenStream stream_69=new RewriteRuleTokenStream(adaptor,"token 69");
 		RewriteRuleTokenStream stream_45=new RewriteRuleTokenStream(adaptor,"token 45");
 		RewriteRuleTokenStream stream_57=new RewriteRuleTokenStream(adaptor,"token 57");
 		RewriteRuleTokenStream stream_47=new RewriteRuleTokenStream(adaptor,"token 47");
-		RewriteRuleTokenStream stream_65=new RewriteRuleTokenStream(adaptor,"token 65");
 		RewriteRuleTokenStream stream_53=new RewriteRuleTokenStream(adaptor,"token 53");
 		RewriteRuleTokenStream stream_WhiteChar=new RewriteRuleTokenStream(adaptor,"token WhiteChar");
 		RewriteRuleSubtreeStream stream_constant=new RewriteRuleSubtreeStream(adaptor,"rule constant");
 		RewriteRuleSubtreeStream stream_operand=new RewriteRuleSubtreeStream(adaptor,"rule operand");
 
 		try {
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:172:37: ( 'is above historical' WhiteChar operand -> ^( SupDoubleMapCondition operand ) | 'is below historical' WhiteChar operand -> ^( InfDoubleMapCondition operand ) | ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition ) )? | ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition ) )? | 'equals historical' WhiteChar operand -> ^( EqualDoubleMapCondition operand ) )
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:172:37: ( 'is above historical' WhiteChar operand -> ^( SupDoubleMapCondition operand ) | 'is below historical' WhiteChar operand -> ^( InfDoubleMapCondition operand ) | 'equals historical' WhiteChar operand -> ^( EqualDoubleMapCondition operand ) | ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition operand ) )? | ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition operand ) )? )
 			int alt19=5;
 			switch ( input.LA(1) ) {
 			case 53:
@@ -1929,17 +1935,17 @@ public class ParameterizedIndicatorsParser extends Parser {
 				alt19=2;
 				}
 				break;
-			case 45:
+			case 49:
 				{
 				alt19=3;
 				}
 				break;
-			case 47:
+			case 45:
 				{
 				alt19=4;
 				}
 				break;
-			case 49:
+			case 47:
 				{
 				alt19=5;
 				}
@@ -1951,15 +1957,15 @@ public class ParameterizedIndicatorsParser extends Parser {
 			}
 			switch (alt19) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:173:3: 'is above historical' WhiteChar operand
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:174:3: 'is above historical' WhiteChar operand
 					{
-					string_literal55=(Token)match(input,53,FOLLOW_53_in_opcmpcondition744);  
+					string_literal55=(Token)match(input,53,FOLLOW_53_in_opcmpcondition745);  
 					stream_53.add(string_literal55);
 
-					WhiteChar56=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition746);  
+					WhiteChar56=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition747);  
 					stream_WhiteChar.add(WhiteChar56);
 
-					pushFollow(FOLLOW_operand_in_opcmpcondition748);
+					pushFollow(FOLLOW_operand_in_opcmpcondition749);
 					operand57=operand();
 					state._fsp--;
 
@@ -1975,9 +1981,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 173:43: -> ^( SupDoubleMapCondition operand )
+					// 174:43: -> ^( SupDoubleMapCondition operand )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:173:46: ^( SupDoubleMapCondition operand )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:174:46: ^( SupDoubleMapCondition operand )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SupDoubleMapCondition, "SupDoubleMapCondition"), root_1);
@@ -1994,15 +2000,15 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 2 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:174:3: 'is below historical' WhiteChar operand
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:3: 'is below historical' WhiteChar operand
 					{
-					string_literal58=(Token)match(input,57,FOLLOW_57_in_opcmpcondition764);  
+					string_literal58=(Token)match(input,57,FOLLOW_57_in_opcmpcondition765);  
 					stream_57.add(string_literal58);
 
-					WhiteChar59=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition766);  
+					WhiteChar59=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition767);  
 					stream_WhiteChar.add(WhiteChar59);
 
-					pushFollow(FOLLOW_operand_in_opcmpcondition768);
+					pushFollow(FOLLOW_operand_in_opcmpcondition769);
 					operand60=operand();
 					state._fsp--;
 
@@ -2018,9 +2024,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 174:43: -> ^( InfDoubleMapCondition operand )
+					// 175:43: -> ^( InfDoubleMapCondition operand )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:174:46: ^( InfDoubleMapCondition operand )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:46: ^( InfDoubleMapCondition operand )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(InfDoubleMapCondition, "InfDoubleMapCondition"), root_1);
@@ -2037,13 +2043,10 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 3 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:3: ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:176:3: 'equals historical' WhiteChar operand
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:3: ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:4: 'crosses down historical' WhiteChar operand
-					{
-					string_literal61=(Token)match(input,45,FOLLOW_45_in_opcmpcondition785);  
-					stream_45.add(string_literal61);
+					string_literal61=(Token)match(input,49,FOLLOW_49_in_opcmpcondition785);  
+					stream_49.add(string_literal61);
 
 					WhiteChar62=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition787);  
 					stream_WhiteChar.add(WhiteChar62);
@@ -2064,20 +2067,12 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 175:48: -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
+					// 176:41: -> ^( EqualDoubleMapCondition operand )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:51: ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:176:44: ^( EqualDoubleMapCondition operand )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
-						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossDownDoubleMapCondition, "CrossDownDoubleMapCondition"), root_1);
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:175:81: ^( Double Number[\"1.0\"] )
-						{
-						CommonTree root_2 = (CommonTree)adaptor.nil();
-						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
-						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "1.0"));
-						adaptor.addChild(root_1, root_2);
-						}
-
+						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(EqualDoubleMapCondition, "EqualDoubleMapCondition"), root_1);
 						adaptor.addChild(root_1, firstOp);
 						adaptor.addChild(root_1, stream_operand.nextTree());
 						adaptor.addChild(root_0, root_1);
@@ -2089,91 +2084,24 @@ public class ParameterizedIndicatorsParser extends Parser {
 					retval.tree = root_0;
 
 					}
-
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:176:9: ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition ) )?
-					int alt17=2;
-					int LA17_0 = input.LA(1);
-					if ( (LA17_0==WhiteChar) ) {
-						int LA17_1 = input.LA(2);
-						if ( (LA17_1==65) ) {
-							alt17=1;
-						}
-					}
-					switch (alt17) {
-						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:176:11: WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
-							{
-							WhiteChar64=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition819);  
-							stream_WhiteChar.add(WhiteChar64);
-
-							string_literal65=(Token)match(input,65,FOLLOW_65_in_opcmpcondition821);  
-							stream_65.add(string_literal65);
-
-							WhiteChar66=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition823);  
-							stream_WhiteChar.add(WhiteChar66);
-
-							pushFollow(FOLLOW_constant_in_opcmpcondition827);
-							nbDays=constant();
-							state._fsp--;
-
-							stream_constant.add(nbDays.getTree());
-							WhiteChar67=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition829);  
-							stream_WhiteChar.add(WhiteChar67);
-
-							DAYS68=(Token)match(input,DAYS,FOLLOW_DAYS_in_opcmpcondition831);  
-							stream_DAYS.add(DAYS68);
-
-							// AST REWRITE
-							// elements: 
-							// token labels: 
-							// rule labels: retval
-							// token list labels: 
-							// rule list labels: 
-							// wildcard labels: 
-							retval.tree = root_0;
-							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
-
-							root_0 = (CommonTree)adaptor.nil();
-							// 176:69: -> ^( CrossDownDoubleMapCondition )
-							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:176:72: ^( CrossDownDoubleMapCondition )
-								{
-								CommonTree root_1 = (CommonTree)adaptor.nil();
-								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossDownDoubleMapCondition, "CrossDownDoubleMapCondition"), root_1);
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
-								adaptor.addChild(root_1, firstOp);
-								adaptor.addChild(root_0, root_1);
-								}
-
-							}
-
-
-							retval.tree = root_0;
-
-							}
-							break;
-
-					}
-
-					}
 					break;
 				case 4 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:177:3: ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:3: ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition operand ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:177:3: ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:177:4: 'crosses up historical' WhiteChar operand
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:3: ( 'crosses down historical' WhiteChar operand -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:4: 'crosses down historical' WhiteChar operand
 					{
-					string_literal69=(Token)match(input,47,FOLLOW_47_in_opcmpcondition851);  
-					stream_47.add(string_literal69);
+					string_literal64=(Token)match(input,45,FOLLOW_45_in_opcmpcondition809);  
+					stream_45.add(string_literal64);
 
-					WhiteChar70=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition853);  
-					stream_WhiteChar.add(WhiteChar70);
+					WhiteChar65=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition811);  
+					stream_WhiteChar.add(WhiteChar65);
 
-					pushFollow(FOLLOW_operand_in_opcmpcondition855);
-					operand71=operand();
+					pushFollow(FOLLOW_operand_in_opcmpcondition813);
+					operand66=operand();
 					state._fsp--;
 
-					stream_operand.add(operand71.getTree());
+					stream_operand.add(operand66.getTree());
 					// AST REWRITE
 					// elements: operand
 					// token labels: 
@@ -2185,13 +2113,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 177:46: -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
+					// 178:48: -> ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:177:49: ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:51: ^( CrossDownDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
-						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossUpDoubleMapCondition, "CrossUpDoubleMapCondition"), root_1);
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:177:77: ^( Double Number[\"1.0\"] )
+						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossDownDoubleMapCondition, "CrossDownDoubleMapCondition"), root_1);
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:81: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -2211,41 +2139,41 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:8: ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition ) )?
-					int alt18=2;
-					int LA18_0 = input.LA(1);
-					if ( (LA18_0==WhiteChar) ) {
-						int LA18_1 = input.LA(2);
-						if ( (LA18_1==65) ) {
-							alt18=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:179:9: ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossDownDoubleMapCondition operand ) )?
+					int alt17=2;
+					int LA17_0 = input.LA(1);
+					if ( (LA17_0==WhiteChar) ) {
+						int LA17_1 = input.LA(2);
+						if ( (LA17_1==69) ) {
+							alt17=1;
 						}
 					}
-					switch (alt18) {
+					switch (alt17) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:10: WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:179:11: WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar72=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition885);  
-							stream_WhiteChar.add(WhiteChar72);
+							WhiteChar67=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition843);  
+							stream_WhiteChar.add(WhiteChar67);
 
-							string_literal73=(Token)match(input,65,FOLLOW_65_in_opcmpcondition887);  
-							stream_65.add(string_literal73);
+							string_literal68=(Token)match(input,69,FOLLOW_69_in_opcmpcondition845);  
+							stream_69.add(string_literal68);
 
-							WhiteChar74=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition889);  
-							stream_WhiteChar.add(WhiteChar74);
+							WhiteChar69=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition847);  
+							stream_WhiteChar.add(WhiteChar69);
 
-							pushFollow(FOLLOW_constant_in_opcmpcondition893);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_opcmpcondition851);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar75=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition895);  
-							stream_WhiteChar.add(WhiteChar75);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar70=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition853);  
+							stream_WhiteChar.add(WhiteChar70);
 
-							DAYS76=(Token)match(input,DAYS,FOLLOW_DAYS_in_opcmpcondition897);  
-							stream_DAYS.add(DAYS76);
+							DAYS71=(Token)match(input,DAYS,FOLLOW_DAYS_in_opcmpcondition855);  
+							stream_DAYS.add(DAYS71);
 
 							// AST REWRITE
-							// elements: 
+							// elements: operand
 							// token labels: 
 							// rule labels: retval
 							// token list labels: 
@@ -2255,14 +2183,15 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 178:68: -> ^( CrossUpDoubleMapCondition )
+							// 179:81: -> ^( CrossDownDoubleMapCondition operand )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:178:71: ^( CrossUpDoubleMapCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:179:84: ^( CrossDownDoubleMapCondition operand )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
-								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossUpDoubleMapCondition, "CrossUpDoubleMapCondition"), root_1);
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossDownDoubleMapCondition, "CrossDownDoubleMapCondition"), root_1);
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
 								adaptor.addChild(root_1, firstOp);
+								adaptor.addChild(root_1, stream_operand.nextTree());
 								adaptor.addChild(root_0, root_1);
 								}
 
@@ -2279,19 +2208,22 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 5 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:179:3: 'equals historical' WhiteChar operand
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:3: ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition operand ) )?
 					{
-					string_literal77=(Token)match(input,49,FOLLOW_49_in_opcmpcondition916);  
-					stream_49.add(string_literal77);
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:3: ( 'crosses up historical' WhiteChar operand -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:4: 'crosses up historical' WhiteChar operand
+					{
+					string_literal72=(Token)match(input,47,FOLLOW_47_in_opcmpcondition886);  
+					stream_47.add(string_literal72);
 
-					WhiteChar78=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition918);  
-					stream_WhiteChar.add(WhiteChar78);
+					WhiteChar73=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition888);  
+					stream_WhiteChar.add(WhiteChar73);
 
-					pushFollow(FOLLOW_operand_in_opcmpcondition920);
-					operand79=operand();
+					pushFollow(FOLLOW_operand_in_opcmpcondition890);
+					operand74=operand();
 					state._fsp--;
 
-					stream_operand.add(operand79.getTree());
+					stream_operand.add(operand74.getTree());
 					// AST REWRITE
 					// elements: operand
 					// token labels: 
@@ -2303,12 +2235,20 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 179:41: -> ^( EqualDoubleMapCondition operand )
+					// 181:46: -> ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:179:44: ^( EqualDoubleMapCondition operand )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:49: ^( CrossUpDoubleMapCondition ^( Double Number[\"1.0\"] ) operand )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
-						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(EqualDoubleMapCondition, "EqualDoubleMapCondition"), root_1);
+						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossUpDoubleMapCondition, "CrossUpDoubleMapCondition"), root_1);
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:77: ^( Double Number[\"1.0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "1.0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
 						adaptor.addChild(root_1, firstOp);
 						adaptor.addChild(root_1, stream_operand.nextTree());
 						adaptor.addChild(root_0, root_1);
@@ -2318,6 +2258,74 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 					retval.tree = root_0;
+
+					}
+
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:182:8: ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( CrossUpDoubleMapCondition operand ) )?
+					int alt18=2;
+					int LA18_0 = input.LA(1);
+					if ( (LA18_0==WhiteChar) ) {
+						int LA18_1 = input.LA(2);
+						if ( (LA18_1==69) ) {
+							alt18=1;
+						}
+					}
+					switch (alt18) {
+						case 1 :
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:182:10: WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS
+							{
+							WhiteChar75=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition920);  
+							stream_WhiteChar.add(WhiteChar75);
+
+							string_literal76=(Token)match(input,69,FOLLOW_69_in_opcmpcondition922);  
+							stream_69.add(string_literal76);
+
+							WhiteChar77=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition924);  
+							stream_WhiteChar.add(WhiteChar77);
+
+							pushFollow(FOLLOW_constant_in_opcmpcondition928);
+							spanningNbDays=constant();
+							state._fsp--;
+
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar78=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_opcmpcondition930);  
+							stream_WhiteChar.add(WhiteChar78);
+
+							DAYS79=(Token)match(input,DAYS,FOLLOW_DAYS_in_opcmpcondition932);  
+							stream_DAYS.add(DAYS79);
+
+							// AST REWRITE
+							// elements: operand
+							// token labels: 
+							// rule labels: retval
+							// token list labels: 
+							// rule list labels: 
+							// wildcard labels: 
+							retval.tree = root_0;
+							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
+
+							root_0 = (CommonTree)adaptor.nil();
+							// 182:80: -> ^( CrossUpDoubleMapCondition operand )
+							{
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:182:83: ^( CrossUpDoubleMapCondition operand )
+								{
+								CommonTree root_1 = (CommonTree)adaptor.nil();
+								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossUpDoubleMapCondition, "CrossUpDoubleMapCondition"), root_1);
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
+								adaptor.addChild(root_1, firstOp);
+								adaptor.addChild(root_1, stream_operand.nextTree());
+								adaptor.addChild(root_0, root_1);
+								}
+
+							}
+
+
+							retval.tree = root_0;
+
+							}
+							break;
+
+					}
 
 					}
 					break;
@@ -2350,7 +2358,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 	// $ANTLR start "constantcmp"
-	// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:1: constantcmp[CommonTree firstOp] : ( 'equals threshold' WhiteChar constant -> ^( EqualConstantCondition constant ) | 'is above threshold' WhiteChar constant -> ^( SupConstantCondition constant ) | 'is below threshold' WhiteChar constant -> ^( InfConstantCondition constant ) );
+	// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:185:1: constantcmp[CommonTree firstOp] : ( ( 'equals threshold' WhiteChar threshold= constant -> ^( EqualConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( EqualConstantCondition ) )? | ( 'is above threshold' WhiteChar threshold= constant -> ^( SupConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( SupConstantCondition ) )? | ( 'is below threshold' WhiteChar threshold= constant -> ^( InfConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( InfConstantCondition ) )? );
 	public final ParameterizedIndicatorsParser.constantcmp_return constantcmp(CommonTree firstOp) throws RecognitionException {
 		ParameterizedIndicatorsParser.constantcmp_return retval = new ParameterizedIndicatorsParser.constantcmp_return();
 		retval.start = input.LT(1);
@@ -2359,65 +2367,99 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 		Token string_literal80=null;
 		Token WhiteChar81=null;
+		Token WhiteChar82=null;
 		Token string_literal83=null;
 		Token WhiteChar84=null;
-		Token string_literal86=null;
-		Token WhiteChar87=null;
-		ParserRuleReturnScope constant82 =null;
-		ParserRuleReturnScope constant85 =null;
-		ParserRuleReturnScope constant88 =null;
+		Token WhiteChar85=null;
+		Token DAYS86=null;
+		Token string_literal87=null;
+		Token WhiteChar88=null;
+		Token WhiteChar89=null;
+		Token string_literal90=null;
+		Token WhiteChar91=null;
+		Token WhiteChar92=null;
+		Token DAYS93=null;
+		Token string_literal94=null;
+		Token WhiteChar95=null;
+		Token WhiteChar96=null;
+		Token string_literal97=null;
+		Token WhiteChar98=null;
+		Token WhiteChar99=null;
+		Token DAYS100=null;
+		ParserRuleReturnScope threshold =null;
+		ParserRuleReturnScope overNbDays =null;
 
 		CommonTree string_literal80_tree=null;
 		CommonTree WhiteChar81_tree=null;
+		CommonTree WhiteChar82_tree=null;
 		CommonTree string_literal83_tree=null;
 		CommonTree WhiteChar84_tree=null;
-		CommonTree string_literal86_tree=null;
-		CommonTree WhiteChar87_tree=null;
+		CommonTree WhiteChar85_tree=null;
+		CommonTree DAYS86_tree=null;
+		CommonTree string_literal87_tree=null;
+		CommonTree WhiteChar88_tree=null;
+		CommonTree WhiteChar89_tree=null;
+		CommonTree string_literal90_tree=null;
+		CommonTree WhiteChar91_tree=null;
+		CommonTree WhiteChar92_tree=null;
+		CommonTree DAYS93_tree=null;
+		CommonTree string_literal94_tree=null;
+		CommonTree WhiteChar95_tree=null;
+		CommonTree WhiteChar96_tree=null;
+		CommonTree string_literal97_tree=null;
+		CommonTree WhiteChar98_tree=null;
+		CommonTree WhiteChar99_tree=null;
+		CommonTree DAYS100_tree=null;
+		RewriteRuleTokenStream stream_DAYS=new RewriteRuleTokenStream(adaptor,"token DAYS");
 		RewriteRuleTokenStream stream_58=new RewriteRuleTokenStream(adaptor,"token 58");
+		RewriteRuleTokenStream stream_65=new RewriteRuleTokenStream(adaptor,"token 65");
 		RewriteRuleTokenStream stream_54=new RewriteRuleTokenStream(adaptor,"token 54");
 		RewriteRuleTokenStream stream_WhiteChar=new RewriteRuleTokenStream(adaptor,"token WhiteChar");
 		RewriteRuleTokenStream stream_50=new RewriteRuleTokenStream(adaptor,"token 50");
 		RewriteRuleSubtreeStream stream_constant=new RewriteRuleSubtreeStream(adaptor,"rule constant");
 
 		try {
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:181:34: ( 'equals threshold' WhiteChar constant -> ^( EqualConstantCondition constant ) | 'is above threshold' WhiteChar constant -> ^( SupConstantCondition constant ) | 'is below threshold' WhiteChar constant -> ^( InfConstantCondition constant ) )
-			int alt20=3;
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:185:34: ( ( 'equals threshold' WhiteChar threshold= constant -> ^( EqualConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( EqualConstantCondition ) )? | ( 'is above threshold' WhiteChar threshold= constant -> ^( SupConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( SupConstantCondition ) )? | ( 'is below threshold' WhiteChar threshold= constant -> ^( InfConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( InfConstantCondition ) )? )
+			int alt23=3;
 			switch ( input.LA(1) ) {
 			case 50:
 				{
-				alt20=1;
+				alt23=1;
 				}
 				break;
 			case 54:
 				{
-				alt20=2;
+				alt23=2;
 				}
 				break;
 			case 58:
 				{
-				alt20=3;
+				alt23=3;
 				}
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 20, 0, input);
+					new NoViableAltException("", 23, 0, input);
 				throw nvae;
 			}
-			switch (alt20) {
+			switch (alt23) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:182:3: 'equals threshold' WhiteChar constant
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:3: ( 'equals threshold' WhiteChar threshold= constant -> ^( EqualConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( EqualConstantCondition ) )?
 					{
-					string_literal80=(Token)match(input,50,FOLLOW_50_in_constantcmp943);  
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:3: ( 'equals threshold' WhiteChar threshold= constant -> ^( EqualConstantCondition constant ^( Double Number[\"0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:4: 'equals threshold' WhiteChar threshold= constant
+					{
+					string_literal80=(Token)match(input,50,FOLLOW_50_in_constantcmp970);  
 					stream_50.add(string_literal80);
 
-					WhiteChar81=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp945);  
+					WhiteChar81=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp972);  
 					stream_WhiteChar.add(WhiteChar81);
 
-					pushFollow(FOLLOW_constant_in_constantcmp947);
-					constant82=constant();
+					pushFollow(FOLLOW_constant_in_constantcmp976);
+					threshold=constant();
 					state._fsp--;
 
-					stream_constant.add(constant82.getTree());
+					stream_constant.add(threshold.getTree());
 					// AST REWRITE
 					// elements: constant
 					// token labels: 
@@ -2429,13 +2471,21 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 182:41: -> ^( EqualConstantCondition constant )
+					// 187:52: -> ^( EqualConstantCondition constant ^( Double Number[\"0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:182:44: ^( EqualConstantCondition constant )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:55: ^( EqualConstantCondition constant ^( Double Number[\"0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(EqualConstantCondition, "EqualConstantCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:89: ^( Double Number[\"0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
 						adaptor.addChild(root_1, firstOp);
 						adaptor.addChild(root_0, root_1);
 						}
@@ -2444,23 +2494,94 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 					retval.tree = root_0;
+
+					}
+
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:5: ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( EqualConstantCondition ) )?
+					int alt20=2;
+					int LA20_0 = input.LA(1);
+					if ( (LA20_0==WhiteChar) ) {
+						int LA20_1 = input.LA(2);
+						if ( (LA20_1==65) ) {
+							alt20=1;
+						}
+					}
+					switch (alt20) {
+						case 1 :
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:7: WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS
+							{
+							WhiteChar82=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1003);  
+							stream_WhiteChar.add(WhiteChar82);
+
+							string_literal83=(Token)match(input,65,FOLLOW_65_in_constantcmp1005);  
+							stream_65.add(string_literal83);
+
+							WhiteChar84=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1007);  
+							stream_WhiteChar.add(WhiteChar84);
+
+							pushFollow(FOLLOW_constant_in_constantcmp1011);
+							overNbDays=constant();
+							state._fsp--;
+
+							stream_constant.add(overNbDays.getTree());
+							WhiteChar85=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1013);  
+							stream_WhiteChar.add(WhiteChar85);
+
+							DAYS86=(Token)match(input,DAYS,FOLLOW_DAYS_in_constantcmp1015);  
+							stream_DAYS.add(DAYS86);
+
+							// AST REWRITE
+							// elements: 
+							// token labels: 
+							// rule labels: retval
+							// token list labels: 
+							// rule list labels: 
+							// wildcard labels: 
+							retval.tree = root_0;
+							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
+
+							root_0 = (CommonTree)adaptor.nil();
+							// 188:69: -> ^( EqualConstantCondition )
+							{
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:72: ^( EqualConstantCondition )
+								{
+								CommonTree root_1 = (CommonTree)adaptor.nil();
+								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(EqualConstantCondition, "EqualConstantCondition"), root_1);
+								adaptor.addChild(root_1, (threshold!=null?((CommonTree)threshold.getTree()):null));
+								adaptor.addChild(root_1, (overNbDays!=null?((CommonTree)overNbDays.getTree()):null));
+								adaptor.addChild(root_1, firstOp);
+								adaptor.addChild(root_0, root_1);
+								}
+
+							}
+
+
+							retval.tree = root_0;
+
+							}
+							break;
+
+					}
 
 					}
 					break;
 				case 2 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:183:3: 'is above threshold' WhiteChar constant
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:3: ( 'is above threshold' WhiteChar threshold= constant -> ^( SupConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( SupConstantCondition ) )?
 					{
-					string_literal83=(Token)match(input,54,FOLLOW_54_in_constantcmp964);  
-					stream_54.add(string_literal83);
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:3: ( 'is above threshold' WhiteChar threshold= constant -> ^( SupConstantCondition constant ^( Double Number[\"0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:4: 'is above threshold' WhiteChar threshold= constant
+					{
+					string_literal87=(Token)match(input,54,FOLLOW_54_in_constantcmp1042);  
+					stream_54.add(string_literal87);
 
-					WhiteChar84=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp966);  
-					stream_WhiteChar.add(WhiteChar84);
+					WhiteChar88=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1044);  
+					stream_WhiteChar.add(WhiteChar88);
 
-					pushFollow(FOLLOW_constant_in_constantcmp968);
-					constant85=constant();
+					pushFollow(FOLLOW_constant_in_constantcmp1048);
+					threshold=constant();
 					state._fsp--;
 
-					stream_constant.add(constant85.getTree());
+					stream_constant.add(threshold.getTree());
 					// AST REWRITE
 					// elements: constant
 					// token labels: 
@@ -2472,13 +2593,21 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 183:43: -> ^( SupConstantCondition constant )
+					// 190:54: -> ^( SupConstantCondition constant ^( Double Number[\"0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:183:46: ^( SupConstantCondition constant )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:57: ^( SupConstantCondition constant ^( Double Number[\"0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SupConstantCondition, "SupConstantCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:89: ^( Double Number[\"0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
 						adaptor.addChild(root_1, firstOp);
 						adaptor.addChild(root_0, root_1);
 						}
@@ -2489,21 +2618,92 @@ public class ParameterizedIndicatorsParser extends Parser {
 					retval.tree = root_0;
 
 					}
+
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:5: ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( SupConstantCondition ) )?
+					int alt21=2;
+					int LA21_0 = input.LA(1);
+					if ( (LA21_0==WhiteChar) ) {
+						int LA21_1 = input.LA(2);
+						if ( (LA21_1==65) ) {
+							alt21=1;
+						}
+					}
+					switch (alt21) {
+						case 1 :
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:7: WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS
+							{
+							WhiteChar89=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1075);  
+							stream_WhiteChar.add(WhiteChar89);
+
+							string_literal90=(Token)match(input,65,FOLLOW_65_in_constantcmp1077);  
+							stream_65.add(string_literal90);
+
+							WhiteChar91=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1079);  
+							stream_WhiteChar.add(WhiteChar91);
+
+							pushFollow(FOLLOW_constant_in_constantcmp1083);
+							overNbDays=constant();
+							state._fsp--;
+
+							stream_constant.add(overNbDays.getTree());
+							WhiteChar92=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1085);  
+							stream_WhiteChar.add(WhiteChar92);
+
+							DAYS93=(Token)match(input,DAYS,FOLLOW_DAYS_in_constantcmp1087);  
+							stream_DAYS.add(DAYS93);
+
+							// AST REWRITE
+							// elements: 
+							// token labels: 
+							// rule labels: retval
+							// token list labels: 
+							// rule list labels: 
+							// wildcard labels: 
+							retval.tree = root_0;
+							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
+
+							root_0 = (CommonTree)adaptor.nil();
+							// 191:69: -> ^( SupConstantCondition )
+							{
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:72: ^( SupConstantCondition )
+								{
+								CommonTree root_1 = (CommonTree)adaptor.nil();
+								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SupConstantCondition, "SupConstantCondition"), root_1);
+								adaptor.addChild(root_1, (threshold!=null?((CommonTree)threshold.getTree()):null));
+								adaptor.addChild(root_1, (overNbDays!=null?((CommonTree)overNbDays.getTree()):null));
+								adaptor.addChild(root_1, firstOp);
+								adaptor.addChild(root_0, root_1);
+								}
+
+							}
+
+
+							retval.tree = root_0;
+
+							}
+							break;
+
+					}
+
+					}
 					break;
 				case 3 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:184:3: 'is below threshold' WhiteChar constant
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:3: ( 'is below threshold' WhiteChar threshold= constant -> ^( InfConstantCondition constant ^( Double Number[\"0\"] ) ) ) ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( InfConstantCondition ) )?
 					{
-					string_literal86=(Token)match(input,58,FOLLOW_58_in_constantcmp984);  
-					stream_58.add(string_literal86);
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:3: ( 'is below threshold' WhiteChar threshold= constant -> ^( InfConstantCondition constant ^( Double Number[\"0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:4: 'is below threshold' WhiteChar threshold= constant
+					{
+					string_literal94=(Token)match(input,58,FOLLOW_58_in_constantcmp1114);  
+					stream_58.add(string_literal94);
 
-					WhiteChar87=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp986);  
-					stream_WhiteChar.add(WhiteChar87);
+					WhiteChar95=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1116);  
+					stream_WhiteChar.add(WhiteChar95);
 
-					pushFollow(FOLLOW_constant_in_constantcmp988);
-					constant88=constant();
+					pushFollow(FOLLOW_constant_in_constantcmp1120);
+					threshold=constant();
 					state._fsp--;
 
-					stream_constant.add(constant88.getTree());
+					stream_constant.add(threshold.getTree());
 					// AST REWRITE
 					// elements: constant
 					// token labels: 
@@ -2515,13 +2715,21 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 184:43: -> ^( InfConstantCondition constant )
+					// 193:54: -> ^( InfConstantCondition constant ^( Double Number[\"0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:184:46: ^( InfConstantCondition constant )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:57: ^( InfConstantCondition constant ^( Double Number[\"0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(InfConstantCondition, "InfConstantCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:89: ^( Double Number[\"0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
 						adaptor.addChild(root_1, firstOp);
 						adaptor.addChild(root_0, root_1);
 						}
@@ -2530,6 +2738,74 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 					retval.tree = root_0;
+
+					}
+
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:5: ( WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( InfConstantCondition ) )?
+					int alt22=2;
+					int LA22_0 = input.LA(1);
+					if ( (LA22_0==WhiteChar) ) {
+						int LA22_1 = input.LA(2);
+						if ( (LA22_1==65) ) {
+							alt22=1;
+						}
+					}
+					switch (alt22) {
+						case 1 :
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:7: WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS
+							{
+							WhiteChar96=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1147);  
+							stream_WhiteChar.add(WhiteChar96);
+
+							string_literal97=(Token)match(input,65,FOLLOW_65_in_constantcmp1149);  
+							stream_65.add(string_literal97);
+
+							WhiteChar98=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1151);  
+							stream_WhiteChar.add(WhiteChar98);
+
+							pushFollow(FOLLOW_constant_in_constantcmp1155);
+							overNbDays=constant();
+							state._fsp--;
+
+							stream_constant.add(overNbDays.getTree());
+							WhiteChar99=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_constantcmp1157);  
+							stream_WhiteChar.add(WhiteChar99);
+
+							DAYS100=(Token)match(input,DAYS,FOLLOW_DAYS_in_constantcmp1159);  
+							stream_DAYS.add(DAYS100);
+
+							// AST REWRITE
+							// elements: 
+							// token labels: 
+							// rule labels: retval
+							// token list labels: 
+							// rule list labels: 
+							// wildcard labels: 
+							retval.tree = root_0;
+							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
+
+							root_0 = (CommonTree)adaptor.nil();
+							// 194:69: -> ^( InfConstantCondition )
+							{
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:72: ^( InfConstantCondition )
+								{
+								CommonTree root_1 = (CommonTree)adaptor.nil();
+								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(InfConstantCondition, "InfConstantCondition"), root_1);
+								adaptor.addChild(root_1, (threshold!=null?((CommonTree)threshold.getTree()):null));
+								adaptor.addChild(root_1, (overNbDays!=null?((CommonTree)overNbDays.getTree()):null));
+								adaptor.addChild(root_1, firstOp);
+								adaptor.addChild(root_0, root_1);
+								}
+
+							}
+
+
+							retval.tree = root_0;
+
+							}
+							break;
+
+					}
 
 					}
 					break;
@@ -2562,187 +2838,210 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 	// $ANTLR start "presetcondition"
-	// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:1: presetcondition[CommonTree firstOp] : ( ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ) )? | ( 'crosses up threshold' WhiteChar cnst= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )? | ( 'crosses down threshold' WhiteChar cnst= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )? | ( 'makes a higher high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )? | ( 'makes a higher low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )? | ( 'makes a lower high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )? | ( 'makes a lower low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )? );
+	// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:197:1: presetcondition[CommonTree firstOp] : ( ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Double Number[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Double Number[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )? | ( 'makes a higher high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )? | ( 'makes a higher low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )? | ( 'makes a lower high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )? | ( 'makes a lower low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )? );
 	public final ParameterizedIndicatorsParser.presetcondition_return presetcondition(CommonTree firstOp) throws RecognitionException {
 		ParameterizedIndicatorsParser.presetcondition_return retval = new ParameterizedIndicatorsParser.presetcondition_return();
 		retval.start = input.LT(1);
 
 		CommonTree root_0 = null;
 
-		Token string_literal89=null;
-		Token WhiteChar90=null;
-		Token string_literal91=null;
-		Token WhiteChar92=null;
-		Token PERCENT93=null;
-		Token WhiteChar94=null;
-		Token string_literal95=null;
-		Token WhiteChar96=null;
-		Token WhiteChar97=null;
-		Token DAYS98=null;
-		Token string_literal99=null;
-		Token WhiteChar100=null;
 		Token string_literal101=null;
 		Token WhiteChar102=null;
-		Token PERCENT103=null;
+		Token string_literal103=null;
 		Token WhiteChar104=null;
-		Token string_literal105=null;
+		Token PERCENT105=null;
 		Token WhiteChar106=null;
-		Token WhiteChar107=null;
-		Token DAYS108=null;
-		Token string_literal109=null;
-		Token WhiteChar110=null;
-		Token PERCENT111=null;
+		Token string_literal107=null;
+		Token WhiteChar108=null;
+		Token WhiteChar109=null;
+		Token DAYS110=null;
+		Token string_literal111=null;
 		Token WhiteChar112=null;
 		Token string_literal113=null;
 		Token WhiteChar114=null;
-		Token WhiteChar115=null;
-		Token DAYS116=null;
+		Token PERCENT115=null;
+		Token WhiteChar116=null;
 		Token string_literal117=null;
 		Token WhiteChar118=null;
-		Token PERCENT119=null;
-		Token WhiteChar120=null;
+		Token WhiteChar119=null;
+		Token DAYS120=null;
 		Token string_literal121=null;
 		Token WhiteChar122=null;
-		Token WhiteChar123=null;
-		Token DAYS124=null;
+		Token PERCENT123=null;
+		Token WhiteChar124=null;
 		Token string_literal125=null;
 		Token WhiteChar126=null;
 		Token WhiteChar127=null;
-		Token string_literal128=null;
-		Token WhiteChar129=null;
+		Token DAYS128=null;
+		Token string_literal129=null;
 		Token WhiteChar130=null;
-		Token DAYS131=null;
-		Token string_literal132=null;
-		Token WhiteChar133=null;
+		Token PERCENT131=null;
+		Token WhiteChar132=null;
+		Token string_literal133=null;
 		Token WhiteChar134=null;
-		Token string_literal135=null;
-		Token WhiteChar136=null;
-		Token WhiteChar137=null;
-		Token DAYS138=null;
-		Token string_literal139=null;
-		Token WhiteChar140=null;
+		Token WhiteChar135=null;
+		Token DAYS136=null;
+		Token string_literal137=null;
+		Token WhiteChar138=null;
+		Token WhiteChar139=null;
+		Token string_literal140=null;
 		Token WhiteChar141=null;
-		Token DAYS142=null;
-		Token WhiteChar143=null;
-		Token string_literal144=null;
-		Token WhiteChar145=null;
-		Token string_literal146=null;
+		Token WhiteChar142=null;
+		Token DAYS143=null;
+		Token WhiteChar144=null;
+		Token string_literal145=null;
+		Token WhiteChar146=null;
 		Token WhiteChar147=null;
-		Token WhiteChar148=null;
-		Token DAYS149=null;
+		Token DAYS148=null;
+		Token string_literal149=null;
 		Token WhiteChar150=null;
-		Token string_literal151=null;
-		Token WhiteChar152=null;
-		Token string_literal153=null;
+		Token WhiteChar151=null;
+		Token string_literal152=null;
+		Token WhiteChar153=null;
 		Token WhiteChar154=null;
-		Token WhiteChar155=null;
-		Token DAYS156=null;
-		Token WhiteChar157=null;
-		Token string_literal158=null;
+		Token DAYS155=null;
+		Token WhiteChar156=null;
+		Token string_literal157=null;
+		Token WhiteChar158=null;
 		Token WhiteChar159=null;
-		Token string_literal160=null;
-		Token WhiteChar161=null;
+		Token DAYS160=null;
+		Token string_literal161=null;
 		Token WhiteChar162=null;
-		Token DAYS163=null;
-		Token WhiteChar164=null;
-		Token string_literal165=null;
-		Token WhiteChar166=null;
+		Token WhiteChar163=null;
+		Token DAYS164=null;
+		Token WhiteChar165=null;
+		Token string_literal166=null;
+		Token WhiteChar167=null;
+		Token string_literal168=null;
+		Token WhiteChar169=null;
+		Token WhiteChar170=null;
+		Token DAYS171=null;
+		Token WhiteChar172=null;
+		Token string_literal173=null;
+		Token WhiteChar174=null;
+		Token string_literal175=null;
+		Token WhiteChar176=null;
+		Token WhiteChar177=null;
+		Token DAYS178=null;
+		Token WhiteChar179=null;
+		Token string_literal180=null;
+		Token WhiteChar181=null;
+		Token string_literal182=null;
+		Token WhiteChar183=null;
+		Token WhiteChar184=null;
+		Token DAYS185=null;
+		Token WhiteChar186=null;
+		Token string_literal187=null;
+		Token WhiteChar188=null;
 		ParserRuleReturnScope percentdown =null;
-		ParserRuleReturnScope nbDays =null;
+		ParserRuleReturnScope spanningNbDays =null;
 		ParserRuleReturnScope percentup =null;
-		ParserRuleReturnScope cnst =null;
+		ParserRuleReturnScope threshold =null;
+		ParserRuleReturnScope overNbDays =null;
+		ParserRuleReturnScope nbDays =null;
 		ParserRuleReturnScope lookBackSmthPeriod =null;
 
-		CommonTree string_literal89_tree=null;
-		CommonTree WhiteChar90_tree=null;
-		CommonTree string_literal91_tree=null;
-		CommonTree WhiteChar92_tree=null;
-		CommonTree PERCENT93_tree=null;
-		CommonTree WhiteChar94_tree=null;
-		CommonTree string_literal95_tree=null;
-		CommonTree WhiteChar96_tree=null;
-		CommonTree WhiteChar97_tree=null;
-		CommonTree DAYS98_tree=null;
-		CommonTree string_literal99_tree=null;
-		CommonTree WhiteChar100_tree=null;
 		CommonTree string_literal101_tree=null;
 		CommonTree WhiteChar102_tree=null;
-		CommonTree PERCENT103_tree=null;
+		CommonTree string_literal103_tree=null;
 		CommonTree WhiteChar104_tree=null;
-		CommonTree string_literal105_tree=null;
+		CommonTree PERCENT105_tree=null;
 		CommonTree WhiteChar106_tree=null;
-		CommonTree WhiteChar107_tree=null;
-		CommonTree DAYS108_tree=null;
-		CommonTree string_literal109_tree=null;
-		CommonTree WhiteChar110_tree=null;
-		CommonTree PERCENT111_tree=null;
+		CommonTree string_literal107_tree=null;
+		CommonTree WhiteChar108_tree=null;
+		CommonTree WhiteChar109_tree=null;
+		CommonTree DAYS110_tree=null;
+		CommonTree string_literal111_tree=null;
 		CommonTree WhiteChar112_tree=null;
 		CommonTree string_literal113_tree=null;
 		CommonTree WhiteChar114_tree=null;
-		CommonTree WhiteChar115_tree=null;
-		CommonTree DAYS116_tree=null;
+		CommonTree PERCENT115_tree=null;
+		CommonTree WhiteChar116_tree=null;
 		CommonTree string_literal117_tree=null;
 		CommonTree WhiteChar118_tree=null;
-		CommonTree PERCENT119_tree=null;
-		CommonTree WhiteChar120_tree=null;
+		CommonTree WhiteChar119_tree=null;
+		CommonTree DAYS120_tree=null;
 		CommonTree string_literal121_tree=null;
 		CommonTree WhiteChar122_tree=null;
-		CommonTree WhiteChar123_tree=null;
-		CommonTree DAYS124_tree=null;
+		CommonTree PERCENT123_tree=null;
+		CommonTree WhiteChar124_tree=null;
 		CommonTree string_literal125_tree=null;
 		CommonTree WhiteChar126_tree=null;
 		CommonTree WhiteChar127_tree=null;
-		CommonTree string_literal128_tree=null;
-		CommonTree WhiteChar129_tree=null;
+		CommonTree DAYS128_tree=null;
+		CommonTree string_literal129_tree=null;
 		CommonTree WhiteChar130_tree=null;
-		CommonTree DAYS131_tree=null;
-		CommonTree string_literal132_tree=null;
-		CommonTree WhiteChar133_tree=null;
+		CommonTree PERCENT131_tree=null;
+		CommonTree WhiteChar132_tree=null;
+		CommonTree string_literal133_tree=null;
 		CommonTree WhiteChar134_tree=null;
-		CommonTree string_literal135_tree=null;
-		CommonTree WhiteChar136_tree=null;
-		CommonTree WhiteChar137_tree=null;
-		CommonTree DAYS138_tree=null;
-		CommonTree string_literal139_tree=null;
-		CommonTree WhiteChar140_tree=null;
+		CommonTree WhiteChar135_tree=null;
+		CommonTree DAYS136_tree=null;
+		CommonTree string_literal137_tree=null;
+		CommonTree WhiteChar138_tree=null;
+		CommonTree WhiteChar139_tree=null;
+		CommonTree string_literal140_tree=null;
 		CommonTree WhiteChar141_tree=null;
-		CommonTree DAYS142_tree=null;
-		CommonTree WhiteChar143_tree=null;
-		CommonTree string_literal144_tree=null;
-		CommonTree WhiteChar145_tree=null;
-		CommonTree string_literal146_tree=null;
+		CommonTree WhiteChar142_tree=null;
+		CommonTree DAYS143_tree=null;
+		CommonTree WhiteChar144_tree=null;
+		CommonTree string_literal145_tree=null;
+		CommonTree WhiteChar146_tree=null;
 		CommonTree WhiteChar147_tree=null;
-		CommonTree WhiteChar148_tree=null;
-		CommonTree DAYS149_tree=null;
+		CommonTree DAYS148_tree=null;
+		CommonTree string_literal149_tree=null;
 		CommonTree WhiteChar150_tree=null;
-		CommonTree string_literal151_tree=null;
-		CommonTree WhiteChar152_tree=null;
-		CommonTree string_literal153_tree=null;
+		CommonTree WhiteChar151_tree=null;
+		CommonTree string_literal152_tree=null;
+		CommonTree WhiteChar153_tree=null;
 		CommonTree WhiteChar154_tree=null;
-		CommonTree WhiteChar155_tree=null;
-		CommonTree DAYS156_tree=null;
-		CommonTree WhiteChar157_tree=null;
-		CommonTree string_literal158_tree=null;
+		CommonTree DAYS155_tree=null;
+		CommonTree WhiteChar156_tree=null;
+		CommonTree string_literal157_tree=null;
+		CommonTree WhiteChar158_tree=null;
 		CommonTree WhiteChar159_tree=null;
-		CommonTree string_literal160_tree=null;
-		CommonTree WhiteChar161_tree=null;
+		CommonTree DAYS160_tree=null;
+		CommonTree string_literal161_tree=null;
 		CommonTree WhiteChar162_tree=null;
-		CommonTree DAYS163_tree=null;
-		CommonTree WhiteChar164_tree=null;
-		CommonTree string_literal165_tree=null;
-		CommonTree WhiteChar166_tree=null;
+		CommonTree WhiteChar163_tree=null;
+		CommonTree DAYS164_tree=null;
+		CommonTree WhiteChar165_tree=null;
+		CommonTree string_literal166_tree=null;
+		CommonTree WhiteChar167_tree=null;
+		CommonTree string_literal168_tree=null;
+		CommonTree WhiteChar169_tree=null;
+		CommonTree WhiteChar170_tree=null;
+		CommonTree DAYS171_tree=null;
+		CommonTree WhiteChar172_tree=null;
+		CommonTree string_literal173_tree=null;
+		CommonTree WhiteChar174_tree=null;
+		CommonTree string_literal175_tree=null;
+		CommonTree WhiteChar176_tree=null;
+		CommonTree WhiteChar177_tree=null;
+		CommonTree DAYS178_tree=null;
+		CommonTree WhiteChar179_tree=null;
+		CommonTree string_literal180_tree=null;
+		CommonTree WhiteChar181_tree=null;
+		CommonTree string_literal182_tree=null;
+		CommonTree WhiteChar183_tree=null;
+		CommonTree WhiteChar184_tree=null;
+		CommonTree DAYS185_tree=null;
+		CommonTree WhiteChar186_tree=null;
+		CommonTree string_literal187_tree=null;
+		CommonTree WhiteChar188_tree=null;
 		RewriteRuleTokenStream stream_67=new RewriteRuleTokenStream(adaptor,"token 67");
 		RewriteRuleTokenStream stream_DAYS=new RewriteRuleTokenStream(adaptor,"token DAYS");
 		RewriteRuleTokenStream stream_66=new RewriteRuleTokenStream(adaptor,"token 66");
 		RewriteRuleTokenStream stream_48=new RewriteRuleTokenStream(adaptor,"token 48");
+		RewriteRuleTokenStream stream_69=new RewriteRuleTokenStream(adaptor,"token 69");
 		RewriteRuleTokenStream stream_68=new RewriteRuleTokenStream(adaptor,"token 68");
 		RewriteRuleTokenStream stream_PERCENT=new RewriteRuleTokenStream(adaptor,"token PERCENT");
 		RewriteRuleTokenStream stream_46=new RewriteRuleTokenStream(adaptor,"token 46");
 		RewriteRuleTokenStream stream_WhiteChar=new RewriteRuleTokenStream(adaptor,"token WhiteChar");
 		RewriteRuleTokenStream stream_64=new RewriteRuleTokenStream(adaptor,"token 64");
 		RewriteRuleTokenStream stream_51=new RewriteRuleTokenStream(adaptor,"token 51");
-		RewriteRuleTokenStream stream_65=new RewriteRuleTokenStream(adaptor,"token 65");
 		RewriteRuleTokenStream stream_52=new RewriteRuleTokenStream(adaptor,"token 52");
+		RewriteRuleTokenStream stream_65=new RewriteRuleTokenStream(adaptor,"token 65");
 		RewriteRuleTokenStream stream_62=new RewriteRuleTokenStream(adaptor,"token 62");
 		RewriteRuleTokenStream stream_63=new RewriteRuleTokenStream(adaptor,"token 63");
 		RewriteRuleTokenStream stream_60=new RewriteRuleTokenStream(adaptor,"token 60");
@@ -2750,73 +3049,73 @@ public class ParameterizedIndicatorsParser extends Parser {
 		RewriteRuleSubtreeStream stream_constant=new RewriteRuleSubtreeStream(adaptor,"rule constant");
 
 		try {
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:187:39: ( ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ) )? | ( 'crosses up threshold' WhiteChar cnst= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )? | ( 'crosses down threshold' WhiteChar cnst= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )? | ( 'makes a higher high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )? | ( 'makes a higher low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )? | ( 'makes a lower high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )? | ( 'makes a lower low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )? )
-			int alt31=10;
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:197:39: ( ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Double Number[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Double Number[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )? | ( 'makes a higher high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )? | ( 'makes a higher low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )? | ( 'makes a lower high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )? | ( 'makes a lower low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )? )
+			int alt34=10;
 			switch ( input.LA(1) ) {
 			case 66:
 				{
-				alt31=1;
+				alt34=1;
 				}
 				break;
 			case 67:
 				{
-				alt31=2;
+				alt34=2;
 				}
 				break;
 			case 51:
 				{
-				alt31=3;
+				alt34=3;
 				}
 				break;
 			case 52:
 				{
-				alt31=4;
+				alt34=4;
 				}
 				break;
 			case 48:
 				{
-				alt31=5;
+				alt34=5;
 				}
 				break;
 			case 46:
 				{
-				alt31=6;
+				alt34=6;
 				}
 				break;
 			case 60:
 				{
-				alt31=7;
+				alt34=7;
 				}
 				break;
 			case 61:
 				{
-				alt31=8;
+				alt34=8;
 				}
 				break;
 			case 62:
 				{
-				alt31=9;
+				alt34=9;
 				}
 				break;
 			case 63:
 				{
-				alt31=10;
+				alt34=10;
 				}
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 31, 0, input);
+					new NoViableAltException("", 34, 0, input);
 				throw nvae;
 			}
-			switch (alt31) {
+			switch (alt34) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:3: ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:3: ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:3: ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:4: 'reverses down'
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:3: ( 'reverses down' -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:4: 'reverses down'
 					{
-					string_literal89=(Token)match(input,66,FOLLOW_66_in_presetcondition1016);  
-					stream_66.add(string_literal89);
+					string_literal101=(Token)match(input,66,FOLLOW_66_in_presetcondition1195);  
+					stream_66.add(string_literal101);
 
 					// AST REWRITE
 					// elements: 
@@ -2829,13 +3128,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 188:20: -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
+					// 199:20: -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:23: ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:23: ^( ReverseCondition ^( Double Number[\"-1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(ReverseCondition, "ReverseCondition"), root_1);
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:42: ^( Double Number[\"-1\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:42: ^( Double Number[\"-1\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -2843,7 +3142,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 						adaptor.addChild(root_1, root_2);
 						}
 
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:65: ^( Double Number[\"0.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:65: ^( Double Number[\"0.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -2851,7 +3150,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 						adaptor.addChild(root_1, root_2);
 						}
 
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:188:89: ^( Double Number[\"1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:89: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -2870,55 +3169,55 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:189:7: ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )?
-					int alt21=2;
-					int LA21_0 = input.LA(1);
-					if ( (LA21_0==WhiteChar) ) {
-						int LA21_1 = input.LA(2);
-						if ( (LA21_1==64) ) {
-							alt21=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:7: ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"-1\"] ) ) )?
+					int alt24=2;
+					int LA24_0 = input.LA(1);
+					if ( (LA24_0==WhiteChar) ) {
+						int LA24_1 = input.LA(2);
+						if ( (LA24_1==64) ) {
+							alt24=1;
 						}
 					}
-					switch (alt21) {
+					switch (alt24) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:189:9: WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:9: WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar90=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1056);  
-							stream_WhiteChar.add(WhiteChar90);
+							WhiteChar102=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1235);  
+							stream_WhiteChar.add(WhiteChar102);
 
-							string_literal91=(Token)match(input,64,FOLLOW_64_in_presetcondition1058);  
-							stream_64.add(string_literal91);
+							string_literal103=(Token)match(input,64,FOLLOW_64_in_presetcondition1237);  
+							stream_64.add(string_literal103);
 
-							WhiteChar92=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1060);  
-							stream_WhiteChar.add(WhiteChar92);
+							WhiteChar104=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1239);  
+							stream_WhiteChar.add(WhiteChar104);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1064);
+							pushFollow(FOLLOW_constant_in_presetcondition1243);
 							percentdown=constant();
 							state._fsp--;
 
 							stream_constant.add(percentdown.getTree());
-							PERCENT93=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1066);  
-							stream_PERCENT.add(PERCENT93);
+							PERCENT105=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1245);  
+							stream_PERCENT.add(PERCENT105);
 
-							WhiteChar94=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1068);  
-							stream_WhiteChar.add(WhiteChar94);
+							WhiteChar106=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1247);  
+							stream_WhiteChar.add(WhiteChar106);
 
-							string_literal95=(Token)match(input,65,FOLLOW_65_in_presetcondition1070);  
-							stream_65.add(string_literal95);
+							string_literal107=(Token)match(input,69,FOLLOW_69_in_presetcondition1249);  
+							stream_69.add(string_literal107);
 
-							WhiteChar96=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1072);  
-							stream_WhiteChar.add(WhiteChar96);
+							WhiteChar108=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1251);  
+							stream_WhiteChar.add(WhiteChar108);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1076);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_presetcondition1255);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar97=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1078);  
-							stream_WhiteChar.add(WhiteChar97);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar109=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1257);  
+							stream_WhiteChar.add(WhiteChar109);
 
-							DAYS98=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1080);  
-							stream_DAYS.add(DAYS98);
+							DAYS110=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1259);  
+							stream_DAYS.add(DAYS110);
 
 							// AST REWRITE
 							// elements: 
@@ -2931,13 +3230,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 189:128: -> ^( ReverseCondition ^( Double Number[\"-1\"] ) )
+							// 201:7: -> ^( ReverseCondition ^( Double Number[\"-1\"] ) )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:189:131: ^( ReverseCondition ^( Double Number[\"-1\"] ) )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:201:10: ^( ReverseCondition ^( Double Number[\"-1\"] ) )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(ReverseCondition, "ReverseCondition"), root_1);
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:189:150: ^( Double Number[\"-1\"] )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:201:29: ^( Double Number[\"-1\"] )
 								{
 								CommonTree root_2 = (CommonTree)adaptor.nil();
 								root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -2946,7 +3245,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 								}
 
 								adaptor.addChild(root_1, (percentdown!=null?((CommonTree)percentdown.getTree()):null));
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
 								adaptor.addChild(root_1, firstOp);
 								adaptor.addChild(root_0, root_1);
 								}
@@ -2964,13 +3263,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 2 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:3: ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:3: ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:3: ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:4: 'reverses up'
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:3: ( 'reverses up' -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:4: 'reverses up'
 					{
-					string_literal99=(Token)match(input,67,FOLLOW_67_in_presetcondition1110);  
-					stream_67.add(string_literal99);
+					string_literal111=(Token)match(input,67,FOLLOW_67_in_presetcondition1303);  
+					stream_67.add(string_literal111);
 
 					// AST REWRITE
 					// elements: 
@@ -2983,13 +3282,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 190:18: -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
+					// 203:18: -> ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:21: ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:21: ^( ReverseCondition ^( Double Number[\"1\"] ) ^( Double Number[\"0.0\"] ) ^( Double Number[\"1.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(ReverseCondition, "ReverseCondition"), root_1);
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:40: ^( Double Number[\"1\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:40: ^( Double Number[\"1\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -2997,7 +3296,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 						adaptor.addChild(root_1, root_2);
 						}
 
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:62: ^( Double Number[\"0.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:62: ^( Double Number[\"0.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -3005,7 +3304,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 						adaptor.addChild(root_1, root_2);
 						}
 
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:190:86: ^( Double Number[\"1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:86: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -3024,55 +3323,55 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:7: ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )?
-					int alt22=2;
-					int LA22_0 = input.LA(1);
-					if ( (LA22_0==WhiteChar) ) {
-						int LA22_1 = input.LA(2);
-						if ( (LA22_1==64) ) {
-							alt22=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:7: ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Double Number[\"1\"] ) ) )?
+					int alt25=2;
+					int LA25_0 = input.LA(1);
+					if ( (LA25_0==WhiteChar) ) {
+						int LA25_1 = input.LA(2);
+						if ( (LA25_1==64) ) {
+							alt25=1;
 						}
 					}
-					switch (alt22) {
+					switch (alt25) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:9: WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:9: WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar100=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1150);  
-							stream_WhiteChar.add(WhiteChar100);
+							WhiteChar112=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1343);  
+							stream_WhiteChar.add(WhiteChar112);
 
-							string_literal101=(Token)match(input,64,FOLLOW_64_in_presetcondition1152);  
-							stream_64.add(string_literal101);
+							string_literal113=(Token)match(input,64,FOLLOW_64_in_presetcondition1345);  
+							stream_64.add(string_literal113);
 
-							WhiteChar102=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1154);  
-							stream_WhiteChar.add(WhiteChar102);
+							WhiteChar114=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1347);  
+							stream_WhiteChar.add(WhiteChar114);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1158);
+							pushFollow(FOLLOW_constant_in_presetcondition1351);
 							percentup=constant();
 							state._fsp--;
 
 							stream_constant.add(percentup.getTree());
-							PERCENT103=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1160);  
-							stream_PERCENT.add(PERCENT103);
+							PERCENT115=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1353);  
+							stream_PERCENT.add(PERCENT115);
 
-							WhiteChar104=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1162);  
-							stream_WhiteChar.add(WhiteChar104);
+							WhiteChar116=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1355);  
+							stream_WhiteChar.add(WhiteChar116);
 
-							string_literal105=(Token)match(input,65,FOLLOW_65_in_presetcondition1164);  
-							stream_65.add(string_literal105);
+							string_literal117=(Token)match(input,69,FOLLOW_69_in_presetcondition1357);  
+							stream_69.add(string_literal117);
 
-							WhiteChar106=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1166);  
-							stream_WhiteChar.add(WhiteChar106);
+							WhiteChar118=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1359);  
+							stream_WhiteChar.add(WhiteChar118);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1170);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_presetcondition1363);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar107=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1172);  
-							stream_WhiteChar.add(WhiteChar107);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar119=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1365);  
+							stream_WhiteChar.add(WhiteChar119);
 
-							DAYS108=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1174);  
-							stream_DAYS.add(DAYS108);
+							DAYS120=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1367);  
+							stream_DAYS.add(DAYS120);
 
 							// AST REWRITE
 							// elements: 
@@ -3085,13 +3384,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 191:126: -> ^( ReverseCondition ^( Double Number[\"1\"] ) )
+							// 205:7: -> ^( ReverseCondition ^( Double Number[\"1\"] ) )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:129: ^( ReverseCondition ^( Double Number[\"1\"] ) )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:205:10: ^( ReverseCondition ^( Double Number[\"1\"] ) )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(ReverseCondition, "ReverseCondition"), root_1);
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:191:148: ^( Double Number[\"1\"] )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:205:29: ^( Double Number[\"1\"] )
 								{
 								CommonTree root_2 = (CommonTree)adaptor.nil();
 								root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -3100,7 +3399,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 								}
 
 								adaptor.addChild(root_1, (percentup!=null?((CommonTree)percentup.getTree()):null));
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
 								adaptor.addChild(root_1, firstOp);
 								adaptor.addChild(root_0, root_1);
 								}
@@ -3118,24 +3417,24 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 3 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:192:3: ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:3: ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Double Number[\"0.0\"] ) ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:192:3: ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:192:4: 'goes down more than' WhiteChar percentdown= constant PERCENT
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:3: ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:4: 'goes down more than' WhiteChar percentdown= constant PERCENT
 					{
-					string_literal109=(Token)match(input,51,FOLLOW_51_in_presetcondition1203);  
-					stream_51.add(string_literal109);
+					string_literal121=(Token)match(input,51,FOLLOW_51_in_presetcondition1410);  
+					stream_51.add(string_literal121);
 
-					WhiteChar110=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1205);  
-					stream_WhiteChar.add(WhiteChar110);
+					WhiteChar122=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1412);  
+					stream_WhiteChar.add(WhiteChar122);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1209);
+					pushFollow(FOLLOW_constant_in_presetcondition1416);
 					percentdown=constant();
 					state._fsp--;
 
 					stream_constant.add(percentdown.getTree());
-					PERCENT111=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1211);  
-					stream_PERCENT.add(PERCENT111);
+					PERCENT123=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1418);  
+					stream_PERCENT.add(PERCENT123);
 
 					// AST REWRITE
 					// elements: constant
@@ -3148,18 +3447,26 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 192:65: -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) )
+					// 207:65: -> ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:192:68: ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:68: ^( DownRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(DownRatioCondition, "DownRatioCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:192:98: ^( Double Number[\"1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:98: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
 						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "1.0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:123: ^( Double Number[\"0.0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0.0"));
 						adaptor.addChild(root_1, root_2);
 						}
 
@@ -3174,38 +3481,38 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:7: ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ) )?
-					int alt23=2;
-					int LA23_0 = input.LA(1);
-					if ( (LA23_0==WhiteChar) ) {
-						int LA23_1 = input.LA(2);
-						if ( (LA23_1==65) ) {
-							alt23=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:208:7: ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Double Number[\"0.0\"] ) ) )?
+					int alt26=2;
+					int LA26_0 = input.LA(1);
+					if ( (LA26_0==WhiteChar) ) {
+						int LA26_1 = input.LA(2);
+						if ( (LA26_1==69) ) {
+							alt26=1;
 						}
 					}
-					switch (alt23) {
+					switch (alt26) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:9: WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:208:9: WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar112=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1240);  
-							stream_WhiteChar.add(WhiteChar112);
+							WhiteChar124=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1455);  
+							stream_WhiteChar.add(WhiteChar124);
 
-							string_literal113=(Token)match(input,65,FOLLOW_65_in_presetcondition1242);  
-							stream_65.add(string_literal113);
+							string_literal125=(Token)match(input,69,FOLLOW_69_in_presetcondition1457);  
+							stream_69.add(string_literal125);
 
-							WhiteChar114=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1244);  
-							stream_WhiteChar.add(WhiteChar114);
+							WhiteChar126=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1459);  
+							stream_WhiteChar.add(WhiteChar126);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1248);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_presetcondition1463);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar115=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1250);  
-							stream_WhiteChar.add(WhiteChar115);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar127=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1465);  
+							stream_WhiteChar.add(WhiteChar127);
 
-							DAYS116=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1252);  
-							stream_DAYS.add(DAYS116);
+							DAYS128=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1467);  
+							stream_DAYS.add(DAYS128);
 
 							// AST REWRITE
 							// elements: 
@@ -3218,14 +3525,22 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 193:67: -> ^( DownRatioCondition )
+							// 208:79: -> ^( DownRatioCondition ^( Double Number[\"0.0\"] ) )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:193:70: ^( DownRatioCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:208:82: ^( DownRatioCondition ^( Double Number[\"0.0\"] ) )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(DownRatioCondition, "DownRatioCondition"), root_1);
 								adaptor.addChild(root_1, (percentdown!=null?((CommonTree)percentdown.getTree()):null));
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:208:147: ^( Double Number[\"0.0\"] )
+								{
+								CommonTree root_2 = (CommonTree)adaptor.nil();
+								root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+								adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0.0"));
+								adaptor.addChild(root_1, root_2);
+								}
+
 								adaptor.addChild(root_1, firstOp);
 								adaptor.addChild(root_0, root_1);
 								}
@@ -3243,24 +3558,24 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 4 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:3: ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:209:3: ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Double Number[\"0.0\"] ) ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:3: ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:4: 'goes up more than' WhiteChar percentup= constant PERCENT
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:209:3: ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:209:4: 'goes up more than' WhiteChar percentup= constant PERCENT
 					{
-					string_literal117=(Token)match(input,52,FOLLOW_52_in_presetcondition1274);  
-					stream_52.add(string_literal117);
+					string_literal129=(Token)match(input,52,FOLLOW_52_in_presetcondition1497);  
+					stream_52.add(string_literal129);
 
-					WhiteChar118=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1276);  
-					stream_WhiteChar.add(WhiteChar118);
+					WhiteChar130=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1499);  
+					stream_WhiteChar.add(WhiteChar130);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1280);
+					pushFollow(FOLLOW_constant_in_presetcondition1503);
 					percentup=constant();
 					state._fsp--;
 
 					stream_constant.add(percentup.getTree());
-					PERCENT119=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1282);  
-					stream_PERCENT.add(PERCENT119);
+					PERCENT131=(Token)match(input,PERCENT,FOLLOW_PERCENT_in_presetcondition1505);  
+					stream_PERCENT.add(PERCENT131);
 
 					// AST REWRITE
 					// elements: constant
@@ -3273,18 +3588,26 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 194:61: -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) )
+					// 209:61: -> ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:64: ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:209:64: ^( UpRatioCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(UpRatioCondition, "UpRatioCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:194:92: ^( Double Number[\"1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:209:92: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
 						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "1.0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:209:117: ^( Double Number[\"0.0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0.0"));
 						adaptor.addChild(root_1, root_2);
 						}
 
@@ -3299,38 +3622,38 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:195:7: ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ) )?
-					int alt24=2;
-					int LA24_0 = input.LA(1);
-					if ( (LA24_0==WhiteChar) ) {
-						int LA24_1 = input.LA(2);
-						if ( (LA24_1==65) ) {
-							alt24=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:210:7: ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Double Number[\"0.0\"] ) ) )?
+					int alt27=2;
+					int LA27_0 = input.LA(1);
+					if ( (LA27_0==WhiteChar) ) {
+						int LA27_1 = input.LA(2);
+						if ( (LA27_1==69) ) {
+							alt27=1;
 						}
 					}
-					switch (alt24) {
+					switch (alt27) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:195:9: WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:210:9: WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar120=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1311);  
-							stream_WhiteChar.add(WhiteChar120);
+							WhiteChar132=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1542);  
+							stream_WhiteChar.add(WhiteChar132);
 
-							string_literal121=(Token)match(input,65,FOLLOW_65_in_presetcondition1313);  
-							stream_65.add(string_literal121);
+							string_literal133=(Token)match(input,69,FOLLOW_69_in_presetcondition1544);  
+							stream_69.add(string_literal133);
 
-							WhiteChar122=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1315);  
-							stream_WhiteChar.add(WhiteChar122);
+							WhiteChar134=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1546);  
+							stream_WhiteChar.add(WhiteChar134);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1319);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_presetcondition1550);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar123=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1321);  
-							stream_WhiteChar.add(WhiteChar123);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar135=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1552);  
+							stream_WhiteChar.add(WhiteChar135);
 
-							DAYS124=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1323);  
-							stream_DAYS.add(DAYS124);
+							DAYS136=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1554);  
+							stream_DAYS.add(DAYS136);
 
 							// AST REWRITE
 							// elements: 
@@ -3343,14 +3666,22 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 195:67: -> ^( UpRatioCondition )
+							// 210:79: -> ^( UpRatioCondition ^( Double Number[\"0.0\"] ) )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:195:70: ^( UpRatioCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:210:82: ^( UpRatioCondition ^( Double Number[\"0.0\"] ) )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(UpRatioCondition, "UpRatioCondition"), root_1);
 								adaptor.addChild(root_1, (percentup!=null?((CommonTree)percentup.getTree()):null));
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:210:143: ^( Double Number[\"0.0\"] )
+								{
+								CommonTree root_2 = (CommonTree)adaptor.nil();
+								root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+								adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0.0"));
+								adaptor.addChild(root_1, root_2);
+								}
+
 								adaptor.addChild(root_1, firstOp);
 								adaptor.addChild(root_0, root_1);
 								}
@@ -3368,22 +3699,22 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 5 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:196:3: ( 'crosses up threshold' WhiteChar cnst= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:212:3: ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:196:3: ( 'crosses up threshold' WhiteChar cnst= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:196:4: 'crosses up threshold' WhiteChar cnst= constant
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:212:3: ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:212:4: 'crosses up threshold' WhiteChar threshold= constant
 					{
-					string_literal125=(Token)match(input,48,FOLLOW_48_in_presetcondition1345);  
-					stream_48.add(string_literal125);
+					string_literal137=(Token)match(input,48,FOLLOW_48_in_presetcondition1591);  
+					stream_48.add(string_literal137);
 
-					WhiteChar126=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1347);  
-					stream_WhiteChar.add(WhiteChar126);
+					WhiteChar138=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1593);  
+					stream_WhiteChar.add(WhiteChar138);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1351);
-					cnst=constant();
+					pushFollow(FOLLOW_constant_in_presetcondition1597);
+					threshold=constant();
 					state._fsp--;
 
-					stream_constant.add(cnst.getTree());
+					stream_constant.add(threshold.getTree());
 					// AST REWRITE
 					// elements: constant
 					// token labels: 
@@ -3395,18 +3726,26 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 196:51: -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) )
+					// 212:56: -> ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:196:54: ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:212:59: ^( CrossUpConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossUpConstantCondition, "CrossUpConstantCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:196:90: ^( Double Number[\"1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:212:95: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
 						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "1.0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:212:120: ^( Double Number[\"0.0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0.0"));
 						adaptor.addChild(root_1, root_2);
 						}
 
@@ -3421,38 +3760,58 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:197:7: ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )?
-					int alt25=2;
-					int LA25_0 = input.LA(1);
-					if ( (LA25_0==WhiteChar) ) {
-						int LA25_1 = input.LA(2);
-						if ( (LA25_1==65) ) {
-							alt25=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:213:7: ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ) )?
+					int alt28=2;
+					int LA28_0 = input.LA(1);
+					if ( (LA28_0==WhiteChar) ) {
+						int LA28_1 = input.LA(2);
+						if ( (LA28_1==69) ) {
+							alt28=1;
 						}
 					}
-					switch (alt25) {
+					switch (alt28) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:197:9: WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:213:9: WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar127=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1379);  
-							stream_WhiteChar.add(WhiteChar127);
+							WhiteChar139=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1633);  
+							stream_WhiteChar.add(WhiteChar139);
 
-							string_literal128=(Token)match(input,65,FOLLOW_65_in_presetcondition1381);  
-							stream_65.add(string_literal128);
+							string_literal140=(Token)match(input,69,FOLLOW_69_in_presetcondition1635);  
+							stream_69.add(string_literal140);
 
-							WhiteChar129=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1383);  
-							stream_WhiteChar.add(WhiteChar129);
+							WhiteChar141=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1637);  
+							stream_WhiteChar.add(WhiteChar141);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1387);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_presetcondition1641);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar130=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1389);  
-							stream_WhiteChar.add(WhiteChar130);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar142=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1643);  
+							stream_WhiteChar.add(WhiteChar142);
 
-							DAYS131=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1391);  
-							stream_DAYS.add(DAYS131);
+							DAYS143=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1645);  
+							stream_DAYS.add(DAYS143);
+
+							WhiteChar144=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1656);  
+							stream_WhiteChar.add(WhiteChar144);
+
+							string_literal145=(Token)match(input,65,FOLLOW_65_in_presetcondition1658);  
+							stream_65.add(string_literal145);
+
+							WhiteChar146=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1660);  
+							stream_WhiteChar.add(WhiteChar146);
+
+							pushFollow(FOLLOW_constant_in_presetcondition1664);
+							overNbDays=constant();
+							state._fsp--;
+
+							stream_constant.add(overNbDays.getTree());
+							WhiteChar147=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1666);  
+							stream_WhiteChar.add(WhiteChar147);
+
+							DAYS148=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1668);  
+							stream_DAYS.add(DAYS148);
 
 							// AST REWRITE
 							// elements: 
@@ -3465,14 +3824,15 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 197:67: -> ^( CrossUpConstantCondition )
+							// 215:7: -> ^( CrossUpConstantCondition )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:197:70: ^( CrossUpConstantCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:215:10: ^( CrossUpConstantCondition )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossUpConstantCondition, "CrossUpConstantCondition"), root_1);
-								adaptor.addChild(root_1, (cnst!=null?((CommonTree)cnst.getTree()):null));
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								adaptor.addChild(root_1, (threshold!=null?((CommonTree)threshold.getTree()):null));
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
+								adaptor.addChild(root_1, (overNbDays!=null?((CommonTree)overNbDays.getTree()):null));
 								adaptor.addChild(root_1, firstOp);
 								adaptor.addChild(root_0, root_1);
 								}
@@ -3490,22 +3850,22 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 6 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:198:3: ( 'crosses down threshold' WhiteChar cnst= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ) ) ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:217:3: ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:198:3: ( 'crosses down threshold' WhiteChar cnst= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:198:4: 'crosses down threshold' WhiteChar cnst= constant
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:217:3: ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:217:4: 'crosses down threshold' WhiteChar threshold= constant
 					{
-					string_literal132=(Token)match(input,46,FOLLOW_46_in_presetcondition1415);  
-					stream_46.add(string_literal132);
+					string_literal149=(Token)match(input,46,FOLLOW_46_in_presetcondition1708);  
+					stream_46.add(string_literal149);
 
-					WhiteChar133=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1417);  
-					stream_WhiteChar.add(WhiteChar133);
+					WhiteChar150=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1710);  
+					stream_WhiteChar.add(WhiteChar150);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1421);
-					cnst=constant();
+					pushFollow(FOLLOW_constant_in_presetcondition1714);
+					threshold=constant();
 					state._fsp--;
 
-					stream_constant.add(cnst.getTree());
+					stream_constant.add(threshold.getTree());
 					// AST REWRITE
 					// elements: constant
 					// token labels: 
@@ -3517,18 +3877,26 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 198:53: -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) )
+					// 217:58: -> ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:198:56: ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:217:61: ^( CrossDownConstantCondition constant ^( Double Number[\"1.0\"] ) ^( Double Number[\"0.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossDownConstantCondition, "CrossDownConstantCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:198:94: ^( Double Number[\"1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:217:99: ^( Double Number[\"1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
 						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "1.0"));
+						adaptor.addChild(root_1, root_2);
+						}
+
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:217:123: ^( Double Number[\"0.0\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(Number, "0.0"));
 						adaptor.addChild(root_1, root_2);
 						}
 
@@ -3543,38 +3911,58 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:7: ( WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )?
-					int alt26=2;
-					int LA26_0 = input.LA(1);
-					if ( (LA26_0==WhiteChar) ) {
-						int LA26_1 = input.LA(2);
-						if ( (LA26_1==65) ) {
-							alt26=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:218:7: ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ) )?
+					int alt29=2;
+					int LA29_0 = input.LA(1);
+					if ( (LA29_0==WhiteChar) ) {
+						int LA29_1 = input.LA(2);
+						if ( (LA29_1==69) ) {
+							alt29=1;
 						}
 					}
-					switch (alt26) {
+					switch (alt29) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:9: WhiteChar 'over' WhiteChar nbDays= constant WhiteChar DAYS
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:218:9: WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS
 							{
-							WhiteChar134=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1449);  
-							stream_WhiteChar.add(WhiteChar134);
+							WhiteChar151=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1749);  
+							stream_WhiteChar.add(WhiteChar151);
 
-							string_literal135=(Token)match(input,65,FOLLOW_65_in_presetcondition1451);  
-							stream_65.add(string_literal135);
+							string_literal152=(Token)match(input,69,FOLLOW_69_in_presetcondition1751);  
+							stream_69.add(string_literal152);
 
-							WhiteChar136=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1453);  
-							stream_WhiteChar.add(WhiteChar136);
+							WhiteChar153=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1753);  
+							stream_WhiteChar.add(WhiteChar153);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1457);
-							nbDays=constant();
+							pushFollow(FOLLOW_constant_in_presetcondition1757);
+							spanningNbDays=constant();
 							state._fsp--;
 
-							stream_constant.add(nbDays.getTree());
-							WhiteChar137=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1459);  
-							stream_WhiteChar.add(WhiteChar137);
+							stream_constant.add(spanningNbDays.getTree());
+							WhiteChar154=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1759);  
+							stream_WhiteChar.add(WhiteChar154);
 
-							DAYS138=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1461);  
-							stream_DAYS.add(DAYS138);
+							DAYS155=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1761);  
+							stream_DAYS.add(DAYS155);
+
+							WhiteChar156=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1772);  
+							stream_WhiteChar.add(WhiteChar156);
+
+							string_literal157=(Token)match(input,65,FOLLOW_65_in_presetcondition1774);  
+							stream_65.add(string_literal157);
+
+							WhiteChar158=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1776);  
+							stream_WhiteChar.add(WhiteChar158);
+
+							pushFollow(FOLLOW_constant_in_presetcondition1780);
+							overNbDays=constant();
+							state._fsp--;
+
+							stream_constant.add(overNbDays.getTree());
+							WhiteChar159=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1782);  
+							stream_WhiteChar.add(WhiteChar159);
+
+							DAYS160=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1784);  
+							stream_DAYS.add(DAYS160);
 
 							// AST REWRITE
 							// elements: 
@@ -3587,14 +3975,15 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 199:67: -> ^( CrossDownConstantCondition )
+							// 220:7: -> ^( CrossDownConstantCondition )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:199:70: ^( CrossDownConstantCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:220:10: ^( CrossDownConstantCondition )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(CrossDownConstantCondition, "CrossDownConstantCondition"), root_1);
-								adaptor.addChild(root_1, (cnst!=null?((CommonTree)cnst.getTree()):null));
-								adaptor.addChild(root_1, (nbDays!=null?((CommonTree)nbDays.getTree()):null));
+								adaptor.addChild(root_1, (threshold!=null?((CommonTree)threshold.getTree()):null));
+								adaptor.addChild(root_1, (spanningNbDays!=null?((CommonTree)spanningNbDays.getTree()):null));
+								adaptor.addChild(root_1, (overNbDays!=null?((CommonTree)overNbDays.getTree()):null));
 								adaptor.addChild(root_1, firstOp);
 								adaptor.addChild(root_0, root_1);
 								}
@@ -3612,27 +4001,27 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 7 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:3: ( 'makes a higher high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:222:3: ( 'makes a higher high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:3: ( 'makes a higher high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:4: 'makes a higher high over' WhiteChar nbDays= constant WhiteChar DAYS
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:222:3: ( 'makes a higher high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:222:4: 'makes a higher high spanning' WhiteChar nbDays= constant WhiteChar DAYS
 					{
-					string_literal139=(Token)match(input,60,FOLLOW_60_in_presetcondition1483);  
-					stream_60.add(string_literal139);
+					string_literal161=(Token)match(input,60,FOLLOW_60_in_presetcondition1822);  
+					stream_60.add(string_literal161);
 
-					WhiteChar140=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1485);  
-					stream_WhiteChar.add(WhiteChar140);
+					WhiteChar162=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1824);  
+					stream_WhiteChar.add(WhiteChar162);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1489);
+					pushFollow(FOLLOW_constant_in_presetcondition1828);
 					nbDays=constant();
 					state._fsp--;
 
 					stream_constant.add(nbDays.getTree());
-					WhiteChar141=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1491);  
-					stream_WhiteChar.add(WhiteChar141);
+					WhiteChar163=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1830);  
+					stream_WhiteChar.add(WhiteChar163);
 
-					DAYS142=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1493);  
-					stream_DAYS.add(DAYS142);
+					DAYS164=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1832);  
+					stream_DAYS.add(DAYS164);
 
 					// AST REWRITE
 					// elements: constant
@@ -3645,14 +4034,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 200:72: -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) )
+					// 222:76: -> ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:75: ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:222:79: ^( HigherHighCondition constant ^( Double Number[\"-1.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(HigherHighCondition, "HigherHighCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:200:106: ^( Double Number[\"-1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:222:110: ^( Double Number[\"-1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -3671,29 +4060,29 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:201:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )?
-					int alt27=2;
-					int LA27_0 = input.LA(1);
-					if ( (LA27_0==WhiteChar) ) {
-						int LA27_1 = input.LA(2);
-						if ( (LA27_1==68) ) {
-							alt27=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:223:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherHighCondition ) )?
+					int alt30=2;
+					int LA30_0 = input.LA(1);
+					if ( (LA30_0==WhiteChar) ) {
+						int LA30_1 = input.LA(2);
+						if ( (LA30_1==68) ) {
+							alt30=1;
 						}
 					}
-					switch (alt27) {
+					switch (alt30) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:201:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:223:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
 							{
-							WhiteChar143=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1522);  
-							stream_WhiteChar.add(WhiteChar143);
+							WhiteChar165=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1861);  
+							stream_WhiteChar.add(WhiteChar165);
 
-							string_literal144=(Token)match(input,68,FOLLOW_68_in_presetcondition1524);  
-							stream_68.add(string_literal144);
+							string_literal166=(Token)match(input,68,FOLLOW_68_in_presetcondition1863);  
+							stream_68.add(string_literal166);
 
-							WhiteChar145=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1526);  
-							stream_WhiteChar.add(WhiteChar145);
+							WhiteChar167=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1865);  
+							stream_WhiteChar.add(WhiteChar167);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1530);
+							pushFollow(FOLLOW_constant_in_presetcondition1869);
 							lookBackSmthPeriod=constant();
 							state._fsp--;
 
@@ -3709,9 +4098,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 201:80: -> ^( HigherHighCondition )
+							// 223:80: -> ^( HigherHighCondition )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:201:83: ^( HigherHighCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:223:83: ^( HigherHighCondition )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(HigherHighCondition, "HigherHighCondition"), root_1);
@@ -3734,27 +4123,27 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 8 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:202:3: ( 'makes a higher low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:224:3: ( 'makes a higher low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:202:3: ( 'makes a higher low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:202:4: 'makes a higher low over' WhiteChar nbDays= constant WhiteChar DAYS
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:224:3: ( 'makes a higher low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:224:4: 'makes a higher low spanning' WhiteChar nbDays= constant WhiteChar DAYS
 					{
-					string_literal146=(Token)match(input,61,FOLLOW_61_in_presetcondition1552);  
-					stream_61.add(string_literal146);
+					string_literal168=(Token)match(input,61,FOLLOW_61_in_presetcondition1891);  
+					stream_61.add(string_literal168);
 
-					WhiteChar147=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1554);  
-					stream_WhiteChar.add(WhiteChar147);
+					WhiteChar169=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1893);  
+					stream_WhiteChar.add(WhiteChar169);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1558);
+					pushFollow(FOLLOW_constant_in_presetcondition1897);
 					nbDays=constant();
 					state._fsp--;
 
 					stream_constant.add(nbDays.getTree());
-					WhiteChar148=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1560);  
-					stream_WhiteChar.add(WhiteChar148);
+					WhiteChar170=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1899);  
+					stream_WhiteChar.add(WhiteChar170);
 
-					DAYS149=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1562);  
-					stream_DAYS.add(DAYS149);
+					DAYS171=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1901);  
+					stream_DAYS.add(DAYS171);
 
 					// AST REWRITE
 					// elements: constant
@@ -3767,14 +4156,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 202:71: -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) )
+					// 224:75: -> ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:202:74: ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:224:78: ^( HigherLowCondition constant ^( Double Number[\"-1.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(HigherLowCondition, "HigherLowCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:202:104: ^( Double Number[\"-1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:224:108: ^( Double Number[\"-1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -3793,29 +4182,29 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )?
-					int alt28=2;
-					int LA28_0 = input.LA(1);
-					if ( (LA28_0==WhiteChar) ) {
-						int LA28_1 = input.LA(2);
-						if ( (LA28_1==68) ) {
-							alt28=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:225:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( HigherLowCondition ) )?
+					int alt31=2;
+					int LA31_0 = input.LA(1);
+					if ( (LA31_0==WhiteChar) ) {
+						int LA31_1 = input.LA(2);
+						if ( (LA31_1==68) ) {
+							alt31=1;
 						}
 					}
-					switch (alt28) {
+					switch (alt31) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:225:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
 							{
-							WhiteChar150=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1591);  
-							stream_WhiteChar.add(WhiteChar150);
+							WhiteChar172=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1930);  
+							stream_WhiteChar.add(WhiteChar172);
 
-							string_literal151=(Token)match(input,68,FOLLOW_68_in_presetcondition1593);  
-							stream_68.add(string_literal151);
+							string_literal173=(Token)match(input,68,FOLLOW_68_in_presetcondition1932);  
+							stream_68.add(string_literal173);
 
-							WhiteChar152=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1595);  
-							stream_WhiteChar.add(WhiteChar152);
+							WhiteChar174=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1934);  
+							stream_WhiteChar.add(WhiteChar174);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1599);
+							pushFollow(FOLLOW_constant_in_presetcondition1938);
 							lookBackSmthPeriod=constant();
 							state._fsp--;
 
@@ -3831,9 +4220,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 203:80: -> ^( HigherLowCondition )
+							// 225:80: -> ^( HigherLowCondition )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:203:83: ^( HigherLowCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:225:83: ^( HigherLowCondition )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(HigherLowCondition, "HigherLowCondition"), root_1);
@@ -3856,27 +4245,27 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 9 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:3: ( 'makes a lower high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:226:3: ( 'makes a lower high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:3: ( 'makes a lower high over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:4: 'makes a lower high over' WhiteChar nbDays= constant WhiteChar DAYS
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:226:3: ( 'makes a lower high spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:226:4: 'makes a lower high spanning' WhiteChar nbDays= constant WhiteChar DAYS
 					{
-					string_literal153=(Token)match(input,62,FOLLOW_62_in_presetcondition1621);  
-					stream_62.add(string_literal153);
+					string_literal175=(Token)match(input,62,FOLLOW_62_in_presetcondition1960);  
+					stream_62.add(string_literal175);
 
-					WhiteChar154=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1623);  
-					stream_WhiteChar.add(WhiteChar154);
+					WhiteChar176=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1962);  
+					stream_WhiteChar.add(WhiteChar176);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1627);
+					pushFollow(FOLLOW_constant_in_presetcondition1966);
 					nbDays=constant();
 					state._fsp--;
 
 					stream_constant.add(nbDays.getTree());
-					WhiteChar155=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1629);  
-					stream_WhiteChar.add(WhiteChar155);
+					WhiteChar177=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1968);  
+					stream_WhiteChar.add(WhiteChar177);
 
-					DAYS156=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1631);  
-					stream_DAYS.add(DAYS156);
+					DAYS178=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1970);  
+					stream_DAYS.add(DAYS178);
 
 					// AST REWRITE
 					// elements: constant
@@ -3889,14 +4278,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 204:71: -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) )
+					// 226:75: -> ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:74: ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:226:78: ^( LowerHighCondition constant ^( Double Number[\"-1.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(LowerHighCondition, "LowerHighCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:204:104: ^( Double Number[\"-1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:226:108: ^( Double Number[\"-1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -3915,29 +4304,29 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:205:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )?
-					int alt29=2;
-					int LA29_0 = input.LA(1);
-					if ( (LA29_0==WhiteChar) ) {
-						int LA29_1 = input.LA(2);
-						if ( (LA29_1==68) ) {
-							alt29=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:227:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerHighCondition ) )?
+					int alt32=2;
+					int LA32_0 = input.LA(1);
+					if ( (LA32_0==WhiteChar) ) {
+						int LA32_1 = input.LA(2);
+						if ( (LA32_1==68) ) {
+							alt32=1;
 						}
 					}
-					switch (alt29) {
+					switch (alt32) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:205:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:227:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
 							{
-							WhiteChar157=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1660);  
-							stream_WhiteChar.add(WhiteChar157);
+							WhiteChar179=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1999);  
+							stream_WhiteChar.add(WhiteChar179);
 
-							string_literal158=(Token)match(input,68,FOLLOW_68_in_presetcondition1662);  
-							stream_68.add(string_literal158);
+							string_literal180=(Token)match(input,68,FOLLOW_68_in_presetcondition2001);  
+							stream_68.add(string_literal180);
 
-							WhiteChar159=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1664);  
-							stream_WhiteChar.add(WhiteChar159);
+							WhiteChar181=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2003);  
+							stream_WhiteChar.add(WhiteChar181);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1668);
+							pushFollow(FOLLOW_constant_in_presetcondition2007);
 							lookBackSmthPeriod=constant();
 							state._fsp--;
 
@@ -3953,9 +4342,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 205:80: -> ^( LowerHighCondition )
+							// 227:80: -> ^( LowerHighCondition )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:205:83: ^( LowerHighCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:227:83: ^( LowerHighCondition )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(LowerHighCondition, "LowerHighCondition"), root_1);
@@ -3978,27 +4367,27 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 10 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:206:3: ( 'makes a lower low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )?
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:228:3: ( 'makes a lower low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) ) ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )?
 					{
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:206:3: ( 'makes a lower low over' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) )
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:206:4: 'makes a lower low over' WhiteChar nbDays= constant WhiteChar DAYS
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:228:3: ( 'makes a lower low spanning' WhiteChar nbDays= constant WhiteChar DAYS -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) ) )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:228:4: 'makes a lower low spanning' WhiteChar nbDays= constant WhiteChar DAYS
 					{
-					string_literal160=(Token)match(input,63,FOLLOW_63_in_presetcondition1690);  
-					stream_63.add(string_literal160);
+					string_literal182=(Token)match(input,63,FOLLOW_63_in_presetcondition2029);  
+					stream_63.add(string_literal182);
 
-					WhiteChar161=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1692);  
-					stream_WhiteChar.add(WhiteChar161);
+					WhiteChar183=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2031);  
+					stream_WhiteChar.add(WhiteChar183);
 
-					pushFollow(FOLLOW_constant_in_presetcondition1696);
+					pushFollow(FOLLOW_constant_in_presetcondition2035);
 					nbDays=constant();
 					state._fsp--;
 
 					stream_constant.add(nbDays.getTree());
-					WhiteChar162=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1698);  
-					stream_WhiteChar.add(WhiteChar162);
+					WhiteChar184=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2037);  
+					stream_WhiteChar.add(WhiteChar184);
 
-					DAYS163=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition1700);  
-					stream_DAYS.add(DAYS163);
+					DAYS185=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2039);  
+					stream_DAYS.add(DAYS185);
 
 					// AST REWRITE
 					// elements: constant
@@ -4011,14 +4400,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 206:70: -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) )
+					// 228:74: -> ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) )
 					{
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:206:73: ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:228:77: ^( LowerLowCondition constant ^( Double Number[\"-1.0\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(LowerLowCondition, "LowerLowCondition"), root_1);
 						adaptor.addChild(root_1, stream_constant.nextTree());
-						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:206:102: ^( Double Number[\"-1.0\"] )
+						// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:228:106: ^( Double Number[\"-1.0\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Double, "Double"), root_2);
@@ -4037,29 +4426,29 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 					}
 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )?
-					int alt30=2;
-					int LA30_0 = input.LA(1);
-					if ( (LA30_0==WhiteChar) ) {
-						int LA30_1 = input.LA(2);
-						if ( (LA30_1==68) ) {
-							alt30=1;
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:229:8: ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant -> ^( LowerLowCondition ) )?
+					int alt33=2;
+					int LA33_0 = input.LA(1);
+					if ( (LA33_0==WhiteChar) ) {
+						int LA33_1 = input.LA(2);
+						if ( (LA33_1==68) ) {
+							alt33=1;
 						}
 					}
-					switch (alt30) {
+					switch (alt33) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
+							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:229:10: WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod= constant
 							{
-							WhiteChar164=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1729);  
-							stream_WhiteChar.add(WhiteChar164);
+							WhiteChar186=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2068);  
+							stream_WhiteChar.add(WhiteChar186);
 
-							string_literal165=(Token)match(input,68,FOLLOW_68_in_presetcondition1731);  
-							stream_68.add(string_literal165);
+							string_literal187=(Token)match(input,68,FOLLOW_68_in_presetcondition2070);  
+							stream_68.add(string_literal187);
 
-							WhiteChar166=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition1733);  
-							stream_WhiteChar.add(WhiteChar166);
+							WhiteChar188=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2072);  
+							stream_WhiteChar.add(WhiteChar188);
 
-							pushFollow(FOLLOW_constant_in_presetcondition1737);
+							pushFollow(FOLLOW_constant_in_presetcondition2076);
 							lookBackSmthPeriod=constant();
 							state._fsp--;
 
@@ -4075,9 +4464,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 							RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 							root_0 = (CommonTree)adaptor.nil();
-							// 207:80: -> ^( LowerLowCondition )
+							// 229:80: -> ^( LowerLowCondition )
 							{
-								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:207:83: ^( LowerLowCondition )
+								// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:229:83: ^( LowerLowCondition )
 								{
 								CommonTree root_1 = (CommonTree)adaptor.nil();
 								root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(LowerLowCondition, "LowerLowCondition"), root_1);
@@ -4180,138 +4569,168 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_HistoricalData_in_operand688 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_Operation_in_operand708 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_Number_in_constant722 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_53_in_opcmpcondition744 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition746 = new BitSet(new long[]{0x0000000100200000L});
-	public static final BitSet FOLLOW_operand_in_opcmpcondition748 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_57_in_opcmpcondition764 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition766 = new BitSet(new long[]{0x0000000100200000L});
-	public static final BitSet FOLLOW_operand_in_opcmpcondition768 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_45_in_opcmpcondition785 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_53_in_opcmpcondition745 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition747 = new BitSet(new long[]{0x0000000100200000L});
+	public static final BitSet FOLLOW_operand_in_opcmpcondition749 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_57_in_opcmpcondition765 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition767 = new BitSet(new long[]{0x0000000100200000L});
+	public static final BitSet FOLLOW_operand_in_opcmpcondition769 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_49_in_opcmpcondition785 = new BitSet(new long[]{0x0000100000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition787 = new BitSet(new long[]{0x0000000100200000L});
-	public static final BitSet FOLLOW_operand_in_opcmpcondition789 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition819 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_opcmpcondition821 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition823 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_opcmpcondition827 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition829 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_opcmpcondition831 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_47_in_opcmpcondition851 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition853 = new BitSet(new long[]{0x0000000100200000L});
-	public static final BitSet FOLLOW_operand_in_opcmpcondition855 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition885 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_opcmpcondition887 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition889 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_opcmpcondition893 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition895 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_opcmpcondition897 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_49_in_opcmpcondition916 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition918 = new BitSet(new long[]{0x0000000100200000L});
-	public static final BitSet FOLLOW_operand_in_opcmpcondition920 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_50_in_constantcmp943 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp945 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_constantcmp947 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_54_in_constantcmp964 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp966 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_constantcmp968 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_58_in_constantcmp984 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp986 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_constantcmp988 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_66_in_presetcondition1016 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1056 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
-	public static final BitSet FOLLOW_64_in_presetcondition1058 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1060 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1064 = new BitSet(new long[]{0x0000000800000000L});
-	public static final BitSet FOLLOW_PERCENT_in_presetcondition1066 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1068 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_presetcondition1070 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1072 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1076 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1078 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1080 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_67_in_presetcondition1110 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1150 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
-	public static final BitSet FOLLOW_64_in_presetcondition1152 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1154 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1158 = new BitSet(new long[]{0x0000000800000000L});
-	public static final BitSet FOLLOW_PERCENT_in_presetcondition1160 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1162 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_presetcondition1164 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1166 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1170 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1172 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1174 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_51_in_presetcondition1203 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1205 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1209 = new BitSet(new long[]{0x0000000800000000L});
-	public static final BitSet FOLLOW_PERCENT_in_presetcondition1211 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1240 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_presetcondition1242 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1244 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1248 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1250 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1252 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_52_in_presetcondition1274 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1276 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1280 = new BitSet(new long[]{0x0000000800000000L});
-	public static final BitSet FOLLOW_PERCENT_in_presetcondition1282 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1311 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_presetcondition1313 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1315 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1319 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1321 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1323 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_48_in_presetcondition1345 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_operand_in_opcmpcondition789 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_45_in_opcmpcondition809 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition811 = new BitSet(new long[]{0x0000000100200000L});
+	public static final BitSet FOLLOW_operand_in_opcmpcondition813 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition843 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_opcmpcondition845 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition847 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_opcmpcondition851 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition853 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_opcmpcondition855 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_47_in_opcmpcondition886 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition888 = new BitSet(new long[]{0x0000000100200000L});
+	public static final BitSet FOLLOW_operand_in_opcmpcondition890 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition920 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_opcmpcondition922 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition924 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_opcmpcondition928 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition930 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_opcmpcondition932 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_50_in_constantcmp970 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp972 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_constantcmp976 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1003 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_constantcmp1005 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1007 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_constantcmp1011 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1013 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_constantcmp1015 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_54_in_constantcmp1042 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1044 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_constantcmp1048 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1075 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_constantcmp1077 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1079 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_constantcmp1083 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1085 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_constantcmp1087 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_58_in_constantcmp1114 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1116 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_constantcmp1120 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1147 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_constantcmp1149 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1151 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_constantcmp1155 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1157 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_constantcmp1159 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_66_in_presetcondition1195 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1235 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
+	public static final BitSet FOLLOW_64_in_presetcondition1237 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1239 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1243 = new BitSet(new long[]{0x0000000800000000L});
+	public static final BitSet FOLLOW_PERCENT_in_presetcondition1245 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1247 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_presetcondition1249 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1251 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1255 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1257 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1259 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_67_in_presetcondition1303 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1343 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
+	public static final BitSet FOLLOW_64_in_presetcondition1345 = new BitSet(new long[]{0x0000100000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1347 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1351 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1379 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_presetcondition1381 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1383 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1387 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1389 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1391 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_46_in_presetcondition1415 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1417 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1421 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1449 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-	public static final BitSet FOLLOW_65_in_presetcondition1451 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1453 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1457 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1459 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1461 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_60_in_presetcondition1483 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1485 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1489 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1491 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1493 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1522 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
-	public static final BitSet FOLLOW_68_in_presetcondition1524 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1526 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1530 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_61_in_presetcondition1552 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1554 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1558 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1560 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1562 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1591 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
-	public static final BitSet FOLLOW_68_in_presetcondition1593 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1595 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1599 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_62_in_presetcondition1621 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1623 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1627 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1629 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1631 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1660 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
-	public static final BitSet FOLLOW_68_in_presetcondition1662 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1664 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1668 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_63_in_presetcondition1690 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1692 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1696 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1698 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition1700 = new BitSet(new long[]{0x0000100000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1729 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
-	public static final BitSet FOLLOW_68_in_presetcondition1731 = new BitSet(new long[]{0x0000100000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1733 = new BitSet(new long[]{0x0000000020000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition1737 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1351 = new BitSet(new long[]{0x0000000800000000L});
+	public static final BitSet FOLLOW_PERCENT_in_presetcondition1353 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1355 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_presetcondition1357 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1359 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1363 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1365 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1367 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_51_in_presetcondition1410 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1412 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1416 = new BitSet(new long[]{0x0000000800000000L});
+	public static final BitSet FOLLOW_PERCENT_in_presetcondition1418 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1455 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_presetcondition1457 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1459 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1463 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1465 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1467 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_52_in_presetcondition1497 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1499 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1503 = new BitSet(new long[]{0x0000000800000000L});
+	public static final BitSet FOLLOW_PERCENT_in_presetcondition1505 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1542 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_presetcondition1544 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1546 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1550 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1552 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1554 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_48_in_presetcondition1591 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1593 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1597 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1633 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_presetcondition1635 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1637 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1641 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1643 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1645 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1656 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_presetcondition1658 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1660 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1664 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1666 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1668 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_46_in_presetcondition1708 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1710 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1714 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1749 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+	public static final BitSet FOLLOW_69_in_presetcondition1751 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1753 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1757 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1759 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1761 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1772 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_presetcondition1774 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1776 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1780 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1782 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1784 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_60_in_presetcondition1822 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1824 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1828 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1830 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1832 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1861 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
+	public static final BitSet FOLLOW_68_in_presetcondition1863 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1865 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1869 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_61_in_presetcondition1891 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1893 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1897 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1899 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1901 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1930 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
+	public static final BitSet FOLLOW_68_in_presetcondition1932 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1934 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1938 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_62_in_presetcondition1960 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1962 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition1966 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1968 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition1970 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1999 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
+	public static final BitSet FOLLOW_68_in_presetcondition2001 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2003 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2007 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_63_in_presetcondition2029 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2031 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2035 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2037 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2039 = new BitSet(new long[]{0x0000100000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2068 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
+	public static final BitSet FOLLOW_68_in_presetcondition2070 = new BitSet(new long[]{0x0000100000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2072 = new BitSet(new long[]{0x0000000020000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2076 = new BitSet(new long[]{0x0000000000000002L});
 }

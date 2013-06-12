@@ -54,10 +54,10 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * 
  * @author Guillaume Thoreton
  */
-public class ErrorDialog extends Dialog {
+public class UserDialog extends Dialog {
 	
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(ErrorDialog.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 
 
 	private Label errorLabel1;
@@ -69,14 +69,14 @@ public class ErrorDialog extends Dialog {
 	private Boolean isOk = false;
 
 
-	public ErrorDialog(Shell parent, int style, String erreur, String addMessage) {
+	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
 		this.getParent().setText("Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
 	
-	public ErrorDialog(Shell parent, int style, String title, String erreur, String addMessage) {
+	public UserDialog(Shell parent, int style, String title, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
 		this.getParent().setText(title);
 		this.erreur = erreur;
@@ -124,8 +124,12 @@ public class ErrorDialog extends Dialog {
 			getParent().layout();
 			getParent().pack();
 			getParent().open();
-			getParent().forceFocus();
-			valideButton1.setFocus();
+			boolean setFocus = getParent().setFocus();
+//			boolean forceFocus = getParent().forceFocus();
+			boolean setFocus2 = valideButton1.setFocus();
+//			boolean forceFocus2 = valideButton1.forceFocus();
+//			LOGGER.info("Error dialog focus : "+setFocus+" and "+forceFocus+", button focuses : "+setFocus2+" and "+forceFocus2);
+			LOGGER.info("Dialog focus : "+setFocus+" , dialog button focuses : "+setFocus2);
 			
 			Display display = getParent().getDisplay();
 			while (!getParent().isDisposed()) {
@@ -148,6 +152,7 @@ public class ErrorDialog extends Dialog {
 	
 		String cleanMessage = message.replaceAll("\\. ", ".\n");
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
+		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
 		
 		return cleanMessage;
 	}
@@ -163,20 +168,10 @@ public class ErrorDialog extends Dialog {
 		});
 		valideButton1.addKeyListener(new KeyAdapter() {
 			
-			Boolean pressed = false;
-			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (e.keyCode == SWT.CR  && pressed) {
+				if (e.keyCode == SWT.CR || e.keyCode == SWT.SPACE) {
 					validerbutton1MouseDown(e);
-				}
-				pressed = true;
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.keyCode == SWT.CR) {
-					pressed = true;
 				}
 			}
 		

@@ -327,5 +327,9 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 
 	}
 	
+	public Boolean isDataCleared()  {
+		return eventModel.isAnalyseDataCleared();
+	}
+	
 	
 }

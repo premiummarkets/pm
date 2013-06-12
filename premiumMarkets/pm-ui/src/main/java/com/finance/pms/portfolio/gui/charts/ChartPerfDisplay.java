@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
@@ -46,14 +46,14 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		super();
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
-		this.chartTarget.getMainChartWraper().getMainYAxis().setNumberFormatOverride(ChartMain.PERCENTAGE_FORMAT);
-		this.chartTarget.getMainChartWraper().getMainPlot().setNoDataMessage("No data available. Check that the portfolio stocks and sliding date ranges are valid. There may not be quotations available for this operation.");
+		this.chartTarget.getMainChartWraper().initMainPlot(
+				ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges are valid. There may not be quotations available for this operation.");
 	}
 
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, boolean recalculationGranted) {
-		
-		chartTarget.getMainChartWraper().getMainYAxis().setLabel("");
+
+		chartTarget.getMainChartWraper().setMainYAxisLabel("");
 		if (!chartTarget.isVisible() || idx == null || selectedShare == null ) {
 			return;
 		}
@@ -190,8 +190,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							selectTransfo.add(transfoInfo);
 						}
 					}
-					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, false, SWT.RADIO);
-					popupMenu.open();
+					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, false, SWT.RADIO, null);
+					popupMenu.open(null);
 					for (TransfoInfo selctTransUnic : selectTransfo) {
 						selctTransUnic.action.action(null);
 					}
@@ -234,8 +234,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							} 
 						}
 
-						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, new TreeSet<SlidingPortfolioShare>(chartTarget.getListShares()), displayedShares, true, SWT.CHECK);
-						popupMenu.open();
+						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, new TreeSet<SlidingPortfolioShare>(chartTarget.getListShares()), displayedShares, true, SWT.CHECK, null);
+						popupMenu.open(null);
 						for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getListShares()) {
 							if (displayedShares.contains(slidingPortfolioShare)) {
 								slidingPortfolioShare.setDisplayOnChart(true);
@@ -283,7 +283,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					loadRefereeQuotations(stock);
 				} catch (Exception e) {
 					LOGGER.debug(e);
-					ErrorDialog inst = new ErrorDialog(chartTarget.getShell(), SWT.NULL, "Referee unknown or no quotations", null);
+					UserDialog inst = new UserDialog(chartTarget.getShell(), SWT.NULL, "Referee unknown or no quotations", null);
 					inst.open();
 					chartTarget.setStripedCloseFunction(new StripedCloseInitPriceRelative());
 				}
@@ -317,14 +317,14 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				MainPMScmd.getPrefs().put("charts.referee", referree.getSymbol());
 
 			} catch (Exception e) {
-				ErrorDialog inst = new ErrorDialog(chartTarget.getShell(), SWT.NULL, "Invalid referee : "+referree.getFriendlyName()+"\n"+e, null);
+				UserDialog inst = new UserDialog(chartTarget.getShell(), SWT.NULL, "Invalid referee : "+referree.getFriendlyName()+"\n"+e, null);
 				inst.open();
 			} finally {
 				chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 			}
 
 		} else if (pItemDialog instanceof NewRefereeDialog) {
-			ErrorDialog inst = new ErrorDialog(chartTarget.getShell(), SWT.NULL, "No referee selected please select a stock \n", null);
+			UserDialog inst = new UserDialog(chartTarget.getShell(), SWT.NULL, "No referee selected please select a stock \n", null);
 			inst.open();
 		}
 
@@ -367,6 +367,12 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	@Override
 	public void exportBarChartPng() {
 		// NotImplemented
+	}
+
+	@Override
+	public void refreshView(List<Exception> exceptions) {
+		// Nothing
+		
 	}
 
 }

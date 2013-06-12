@@ -183,7 +183,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 	
 	@Override
-	public SortedMap<Date, double[]> buildMapFromQuotations(Quotations quotations) throws NotEnoughDataException {
+	public SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
 		
 		try {
 			SortedMap<Date, double[]> fullRefSQuotationsMap = new TreeMap<Date, double[]>();
@@ -192,7 +192,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			current.setTime(firstRefStockQuote);
 			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
 			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getCloseForDate(current.getTime()).doubleValue()} );
+				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getClosestCloseForDate(current.getTime()).doubleValue()} );
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 			
@@ -204,16 +204,19 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 	@Override
-	public SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations) throws NotEnoughDataException {
+	public SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException {
 		
 		try {
 			SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
-			Date firstRefStockQuote = quotations.getDate(0);
+			
+			Date firstRefStockQuote = quotations.getDate(from);
 			Calendar current = Calendar.getInstance();
 			current.setTime(firstRefStockQuote);
-			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
+			
+			Date lastRefStockQuote = quotations.getDate(to);
+			
 			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), quotations.getCloseForDate(current.getTime()).doubleValue());
+				fullRefSQuotationsMap.put(current.getTime(), quotations.getClosestCloseForDate(current.getTime()).doubleValue());
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 			
@@ -225,16 +228,29 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 	
 	@Override
-	public SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field) throws NotEnoughDataException {
+	public SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
+		SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
+		for (int i = from; i <= to; i++) {
+			QuotationUnit quotationUnit = quotations.get(i);
+			fullRefSQuotationsMap.put(quotationUnit.getDate(),quotationUnit.getData(field).doubleValue());
+		}
+		return fullRefSQuotationsMap;
+	}
+	
+	@Override
+	public SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
 		
 		try {
 			SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
-			Date firstRefStockQuote = quotations.getDate(0);
+
+			Date firstRefStockQuote = quotations.getDate(from);
 			Calendar current = Calendar.getInstance();
 			current.setTime(firstRefStockQuote);
-			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
+	
+			Date lastRefStockQuote = quotations.getDate(to);
+			
 			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), quotations.getFieldForDate(current.getTime(), field).doubleValue());
+				fullRefSQuotationsMap.put(current.getTime(), quotations.getClosestFieldForDate(current.getTime(), field).doubleValue());
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 			

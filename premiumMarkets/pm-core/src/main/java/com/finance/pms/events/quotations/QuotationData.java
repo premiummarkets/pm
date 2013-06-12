@@ -54,21 +54,6 @@ class QuotationData implements List<QuotationUnit> {
 	@SuppressWarnings("unused")
 	private static final long serialVersionUID = -674715272697353811L;
 	
-//	/** The Constant OPEN. */
-//	public static final int OPEN = 0;
-//	
-//	/** The Constant HIGH. */
-//	public static final int HIGH = 1;
-//	
-//	/** The Constant LOW. */
-//	public static final int LOW = 2;
-//	
-//	/** The Constant CLOSE. */
-//	public static final int CLOSE = 3;
-//	
-//	/** The Constant VOLUME. */
-//	public static final int VOLUME = 4;
-	
 	/** The close values. */
 	private StripedQuotations stripedQuotations;
 

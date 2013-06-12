@@ -122,7 +122,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		progressBarLabel.setText("Time elapsed : "+timeElapsedStr);
 		progressBarLabel.pack();
 		
-		//logDisplay.setText(MyLogger.lastMessage.substring(0, 100) + ((MyLogger.lastMessage.length() > 100)?" ...":""));
 		logDisplay.setText(MyLogger.lastMessage);
 		logDisplay.setToolTipText(MyLogger.lastMessage);
 		logDisplay.pack();
@@ -168,6 +167,17 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			try {
 				totalIter = (Integer) observerMsg.getNameValuePairs().get(0).value;
 				nbIterDone = 0;
+				
+				view.getDisplay().asyncExec(new Runnable() {
+					
+					public void run() {
+						if (totalIter != null && nbIterDone != null) {
+							progressBarUpdate();
+						}
+					}
+					
+				});
+				
 			} catch (Exception e) {
 				LOGGER.warn("Unhandled logger notification : "+arg);
 			}

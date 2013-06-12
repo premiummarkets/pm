@@ -80,7 +80,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		try {
 			if (slidingStart) {
 				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(super.getStock(), start, true, super.getTransactionCurrency());
-				BigDecimal startClosePrice = quotations.getCloseForDate(start);
+				BigDecimal startClosePrice = quotations.getClosestCloseForDate(start);
 				return super.getQuantity().multiply(startClosePrice).setScale(2, BigDecimal.ROUND_DOWN);
 			} else {
 				return super.getCashin();

@@ -32,7 +32,7 @@ public class PMAroonOperation extends PMIndicatorOperation {
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
-		Integer period = (Integer) ((DoubleValue)inputs.get(0)).getValue(targetStock);
+		Integer period = ((DoubleValue)inputs.get(0)).getValue(targetStock).intValue();
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {

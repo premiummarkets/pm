@@ -1,0 +1,2 @@
+is bullish when stoch14 crosses down threshold 20;
+is bearish when stoch14 crosses up threshold 80;

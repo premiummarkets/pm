@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
@@ -54,7 +54,7 @@ import com.finance.pms.portfolio.SharesList;
 
 public class ShareListUpdateDialog extends Dialog {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(ErrorDialog.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 	
 	private Font biggerFont;
 
@@ -143,7 +143,7 @@ public class ShareListUpdateDialog extends Dialog {
 						existDersc.setText(provider.getSharesListIdEnum().getDescription());
 						existDersc.setVisible(true);
 					} catch (java.lang.IllegalArgumentException e) {
-						ErrorDialog dialog = new ErrorDialog(getParent(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
+						UserDialog dialog = new UserDialog(getParent(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
 						dialog.open();
 					}
 					
@@ -648,7 +648,7 @@ public class ShareListUpdateDialog extends Dialog {
 			sharesListForThisListProvider.addShare(newStock);
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 		} catch (StockNotFoundException e) {
-			ErrorDialog inst = new ErrorDialog(getParent().getShell(), SWT.NULL, 
+			UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL, 
 					"The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		}
@@ -660,7 +660,7 @@ public class ShareListUpdateDialog extends Dialog {
 			portfolioInsertShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
-			ErrorDialog inst = new ErrorDialog(getParent().getShell(), SWT.NULL, 
+			UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL, 
 					"The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		} finally {
@@ -693,11 +693,11 @@ public class ShareListUpdateDialog extends Dialog {
 				sharesListForThisListProvider.addShares(stocksInFile);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 			} catch (StockNotFoundException e) {
-				ErrorDialog inst = new ErrorDialog(getParent().getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
+				UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
 				inst.open();
 			} catch (Exception e) {
 				LOGGER.warn(e,e);
-				ErrorDialog inst = new ErrorDialog(getParent().getShell(), SWT.NULL,"Wrong file format.", null);
+				UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL,"Wrong file format.", null);
 				inst.open();
 			}
 			

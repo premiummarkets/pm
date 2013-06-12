@@ -100,4 +100,20 @@ public abstract class EventCompostionCalculator {
 	
 	public abstract EmailFilterEventSource getSource();
 
+	
+	//If output is NaN this means that the output is not available and should not be displayed at that date on chart.
+	//If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
+	//We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
+	protected Double translateOutputForCharting(Double ds2) {
+		if (ds2 != null) {
+			if (!ds2.isNaN()) {
+				return ds2;
+			} else {
+				return Double.NEGATIVE_INFINITY;
+			}
+		} else {
+			return Double.NaN;
+		}
+	}
+
 }

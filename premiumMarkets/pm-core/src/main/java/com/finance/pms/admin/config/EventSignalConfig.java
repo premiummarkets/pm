@@ -128,6 +128,9 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private int rocNNeuralHouseTrendPeriod = new Integer(MainPMScmd.getPrefs().get("rocnneural.houseTrendPeriod", "21"));
 	private int rocNNeuralQuoteSmthPeriod = new Integer(MainPMScmd.getPrefs().get("rocnneural.quoteSmthPeriod", "1"));
 	
+	//Neural and Bar chart event occ span
+	private int perceptronTrainingPMEventOccLowerSpan = new Integer(MainPMScmd.getPrefs().get("perceptron.trainingPMEventOccLowerSpan", "12"));
+	
 	
 
 	public EventSignalConfig() {
@@ -458,6 +461,9 @@ public class EventSignalConfig extends Config implements Cloneable {
 		result = prime * result + ((sellLimitGuardPrice == null) ? 0 : sellLimitGuardPrice.hashCode());
 		result = prime * result + ((sellLimitToPrice == null) ? 0 : sellLimitToPrice.hashCode());
 		result = prime * result + ((sellPonderationRule == null) ? 0 : sellPonderationRule.hashCode());
+		result = prime * result + rocNNeuralHouseTrendPeriod;
+		result = prime * result + rocNNeuralQuoteSmthPeriod;
+		result = prime * result + perceptronTrainingPMEventOccLowerSpan;
 		return result;
 	}
 
@@ -539,6 +545,12 @@ public class EventSignalConfig extends Config implements Cloneable {
 			if (other.sellPonderationRule != null)
 				return false;
 		} else if (!sellPonderationRule.equals(other.sellPonderationRule))
+			return false;
+		if (rocNNeuralHouseTrendPeriod != other.rocNNeuralHouseTrendPeriod)
+			return false;
+		if (rocNNeuralQuoteSmthPeriod != other.rocNNeuralQuoteSmthPeriod)
+			return false;
+		if (perceptronTrainingPMEventOccLowerSpan != other.perceptronTrainingPMEventOccLowerSpan)
 			return false;
 		
 		return true;
@@ -622,6 +634,13 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public void setRocNNeuralQuoteSmthPeriod(int rocNNeuralQuoteSmthPeriod) {
 		this.rocNNeuralQuoteSmthPeriod = rocNNeuralQuoteSmthPeriod;
+	}
+	
+	public int getPerceptronTrainingPMEventOccLowerSpan() {
+		return perceptronTrainingPMEventOccLowerSpan;
+	}
+	public void setPerceptronTrainingPMEventOccLowerSpan(int trainingPMEventOccLowerSpan) {
+		this.perceptronTrainingPMEventOccLowerSpan = trainingPMEventOccLowerSpan;
 	}
 
 }

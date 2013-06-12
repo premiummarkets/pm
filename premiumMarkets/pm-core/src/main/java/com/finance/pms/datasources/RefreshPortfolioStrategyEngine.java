@@ -48,12 +48,14 @@ import com.finance.pms.events.calculation.AlertCalculationRunnableMessage;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.portfolio.UserPortfolio;
 
 
 
 public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 	
+	@Override
 	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
 		 try {
 			actionThread.runIndicatorsCalculationPassTwo(true);
@@ -62,12 +64,18 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 		 return null;
 	}
 
+	@Override
 	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
 		try {
-			actionThread.runIndicatorsCalculationPassOne(true , "auto");
+			actionThread.runIndicatorsCalculationPassOne(true , passOneOverwriteMode());
 		} catch (IncompleteDataSetException e) {
 		}
 		return null;
+	}
+	
+	@Override
+	protected String passOneOverwriteMode() {
+		return "auto";
 	}
 
 	@Override
@@ -82,7 +90,6 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 
 	@Override
 	public void callbackForlastListFetch(Set<Observer> engineObservers, Object... viewStateParams) {
-		//Object[] stocks = Arrays.copyOf(((Object[])viewStateParams[0]),((Object[])viewStateParams[0]).length,(new Stock[0]).getClass());
 		Object[] stocks = (Object[]) viewStateParams[0];
 		super.callbackForlastListFetch(engineObservers, stocks);
 	}
@@ -94,7 +101,7 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 	}
 
 	@Override
-	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object... viewStateParams) {
+	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object... viewStateParams) throws NotEnoughDataException {
 		Object[] stocks = (Object[]) viewStateParams[0];
 		return super.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, stocks);
 	}

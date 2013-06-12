@@ -93,4 +93,6 @@ public abstract class ChartDisplayStrategy {
 
 	public abstract void exportBarChartPng();
 
+	public  abstract void refreshView(List<Exception> exceptions);
+
 }

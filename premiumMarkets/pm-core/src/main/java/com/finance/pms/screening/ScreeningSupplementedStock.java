@@ -190,8 +190,8 @@ public class ScreeningSupplementedStock extends Validatable {
 		try {
 			Date ttm = ttm(endDate);
 			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, ttm, endDate, true, null, 0, 0);
-			close = quotationsInstance.getCloseForDate(endDate);
-			ttmClose = quotationsInstance.getCloseForDate(ttm);
+			close = quotationsInstance.getClosestCloseForDate(endDate);
+			ttmClose = quotationsInstance.getClosestCloseForDate(ttm);
 			
 		} catch (Exception e) {
 			LOGGER.warn(e,e);

@@ -48,7 +48,7 @@ public class StockOperation extends DoubleMapOperation {
 			case CLOSE :
 				{
 					Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), true, null, 0, 0);
-					buildSMapFromQuotations = QuotationsFactories.getFactory().buildSMapFromQuotations(quotationsInstance);
+					buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
 				}
 			case HIGH :
 			case LOW :
@@ -57,7 +57,7 @@ public class StockOperation extends DoubleMapOperation {
 			default :
 				{
 					Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), true, null, 0, 0);
-					buildSMapFromQuotations = QuotationsFactories.getFactory().buildSMapFromQuotations(quotationsInstance, targetStockInputType);
+					buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
 				}
 			}
 

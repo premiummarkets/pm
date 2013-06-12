@@ -1,0 +1,1 @@
+aroon:AroonDown(50,high,low)

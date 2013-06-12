@@ -1,0 +1,2 @@
+is bullish when chainkin crosses up threshold 0.0;
+is bearish when chainkin crosses down threshold 0.0;

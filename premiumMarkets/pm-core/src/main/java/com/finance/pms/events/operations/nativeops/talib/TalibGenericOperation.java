@@ -3,6 +3,7 @@ package com.finance.pms.events.operations.nativeops.talib;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
@@ -15,9 +16,12 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleOperation;
 import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.MATypeOperation;
+import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.TalibOperation;
 import com.finance.pms.talib.indicators.TalibCoreService;
 import com.finance.pms.talib.indicators.TalibException;
+import com.tictactec.ta.lib.MAType;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
@@ -38,8 +42,13 @@ public class TalibGenericOperation extends TalibOperation {
 		
 		ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
 		for (String inConstantName : inConstantsNames) {
-			DoubleOperation constant = new DoubleOperation("number",inConstantName, inConstantName, null);
-			overridingOperands.add(constant);
+			if (inConstantName.contains("MAType")) {
+				MATypeOperation maType = new MATypeOperation("moving average type", inConstantName, inConstantName + ". One of "+EnumSet.allOf(MAType.class), null);
+				overridingOperands.add(maType);
+			} else {
+				DoubleOperation constant = new DoubleOperation("number", inConstantName, inConstantName, null);
+				overridingOperands.add(constant);
+			}
 		}
 		for (String inDataName : inDataNames) {
 			DoubleMapOperation data = new DoubleMapOperation(inDataName);
@@ -75,10 +84,20 @@ public class TalibGenericOperation extends TalibOperation {
 		args[1] = endIdx;
 		
 		//Param check
-		List<Integer> inConstants = new ArrayList<Integer>();
+		List<Object> inConstants = new ArrayList<Object>();
 		for (int i = 0; i < inConstantsNames.size(); i++) {
-			inConstants.add(((DoubleValue) inputs.get(i)).getValue(targetStock).intValue());
-			args[i+argShift] = inConstants.get(i);
+			Value<?> value = inputs.get(i);
+			if (value instanceof DoubleValue) {
+				inConstants.add(((DoubleValue) value).getValue(targetStock).intValue());
+				args[i+argShift] = inConstants.get(i);
+			}
+			else if (value instanceof MATypeValue) {
+				inConstants.add(((MATypeValue) value).getValue(targetStock));
+				args[i+argShift] = inConstants.get(i);
+			}
+			else {
+				throw new TalibException("In constant type not supported :" + value, new Throwable());
+			}
 		}
 		argShift = argShift + inConstantsNames.size();
 		

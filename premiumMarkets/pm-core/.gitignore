@@ -4,3 +4,7 @@
 /target
 /appClientModule
 /hashes.txt
+/.antlr-eclipse
+/pmserror.log*
+/pmsjava.log*
+/*.png

@@ -1,0 +1,1 @@
+adOsc(3,10,high,low,close,volume)

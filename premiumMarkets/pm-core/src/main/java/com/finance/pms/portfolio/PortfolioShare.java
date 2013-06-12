@@ -174,7 +174,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	private BigDecimal closeQuotationFor(Stock stock, Currency transactionCurrency, Date currentDate) {
 		try {			
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
-			return quotations.getCloseForDate(currentDate);
+			return quotations.getClosestCloseForDate(currentDate);
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.warn("No quotations for " + stock);
 		} catch (NoQuotationsException e) {
@@ -1057,8 +1057,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 					new Boolean(false), StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
 					new MarketValuation(Market.NYSE), "None", TradingMode.UNKNOWN, 0L);
 			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, fisrtDate, false, Currency.USD);
-			inflatAtFirst = inflationQuotations.getCloseForDate(fisrtDate);
-			inflatAtSecond = inflationQuotations.getCloseForDate(secondDate);
+			inflatAtFirst = inflationQuotations.getClosestCloseForDate(fisrtDate);
+			inflatAtSecond = inflationQuotations.getClosestCloseForDate(secondDate);
 			inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(inflatAtFirst,10,BigDecimal.ROUND_DOWN);
 		} catch (Exception e) {
 			LOGGER.warn(e,e); 

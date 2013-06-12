@@ -33,6 +33,7 @@ package com.finance.pms.events.pounderationrules;
 import java.util.Comparator;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventValue;
 
 
@@ -71,14 +72,21 @@ public class EventValuesComparator implements Comparator<EventValue> {
 			this.isAsc = isAsc;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public int compare(EventValue o1, EventValue o2) {
 		int retour = 0;
 		try {
-			Comparable<Comparable> o1Value = (Comparable<Comparable>) o1.getClass().getMethod(this.method, this.paramsClass).invoke(o1, params);
-			Comparable<Comparable> o2Value = (Comparable<Comparable>) o2.getClass().getMethod(this.method,this.paramsClass).invoke(o2, params);
-			retour = o2Value.compareTo(o1Value);
-			retour = (isAsc)?-retour:retour;
+			if (this.method.equals("getEventDef")) {
+				EventInfo o1Value = (EventInfo) o1.getClass().getMethod(this.method, this.paramsClass).invoke(o1, params);
+				EventInfo o2Value = (EventInfo) o2.getClass().getMethod(this.method,this.paramsClass).invoke(o2, params);
+				retour = o2Value.compareTo(o1Value);
+				retour = (isAsc)?-retour:retour;
+			} else {
+				Comparable o1Value = (Comparable) o1.getClass().getMethod(this.method, this.paramsClass).invoke(o1, params);
+				Comparable o2Value = (Comparable) o2.getClass().getMethod(this.method,this.paramsClass).invoke(o2, params);
+				retour = o2Value.compareTo(o1Value);
+				retour = (isAsc)?-retour:retour;
+			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		} 

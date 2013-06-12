@@ -114,10 +114,15 @@ public class EventConditionHolder extends Operation implements EventInfo {
 	public void setReference(String reference) {
 		super.setReference(reference);
 		this.eventDefDescriptor.setDescriptorReference(reference);
-		String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormula(), 0)[1];
-		this.eventDefDescriptor.setBullishDescription(FormulaUtils.bullishClause(indentedFormula));
-		this.eventDefDescriptor.setBearishDescription(FormulaUtils.bearishClause(indentedFormula));
-	}
+		if (this.getFormula() != null) {
+			String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormula(), 0)[1];
+			this.eventDefDescriptor.setBullishDescription(FormulaUtils.bullishClause(indentedFormula));
+			this.eventDefDescriptor.setBearishDescription(FormulaUtils.bearishClause(indentedFormula));
+		} else {
+			this.eventDefDescriptor.setBullishDescription("No description available");
+			this.eventDefDescriptor.setBearishDescription("No description available");
+		}
+	} 
 
 	@Override
 	public String tootTip() {

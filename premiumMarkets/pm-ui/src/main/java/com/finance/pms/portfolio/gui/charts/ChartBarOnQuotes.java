@@ -21,8 +21,10 @@ public class ChartBarOnQuotes extends BarChartDisplayStrategy {
 
 	@Override
 	public void setBarYAxis() {
+		
 		chartMain.getMainPlot().setRangeAxis(1, chartMain.getMainYAxis());
 		chartMain.getMainPlot().mapDatasetToRangeAxis(1, 0);
+		
 	}
 	
 	

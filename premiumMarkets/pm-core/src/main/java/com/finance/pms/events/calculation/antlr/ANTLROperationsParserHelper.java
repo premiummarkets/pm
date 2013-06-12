@@ -481,6 +481,9 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					LOGGER.info("No matching op for "+parsedParam);
 				}
 				break;
+			case MATYPE: //TODO Generalise to String parameter
+				foundMatch = addSuggsAsAlts(alternatives, parsedParam, highLighPosition, EditorIndsLexerDelegate.MATYPES_TOKENS, "moving average type ");
+				break;
 			}
 			if (!foundMatch) throw new IllegalArgumentException();
 		}

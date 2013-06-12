@@ -60,7 +60,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -315,7 +315,7 @@ public class DbSettings extends Dialog {
 							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						}
 						
-						ErrorDialog dialog = new ErrorDialog(getParent(), SWT.NONE, "The new settings will take effect at next restart.", null);
+						UserDialog dialog = new UserDialog(getParent(), SWT.NONE, "The new settings will take effect at next restart.", null);
 						dialog.open();
 						getParent().close();
 						getParent().dispose();

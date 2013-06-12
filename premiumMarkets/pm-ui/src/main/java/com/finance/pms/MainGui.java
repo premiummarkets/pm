@@ -345,7 +345,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								try {
 									Properties pbuild = new Properties();
 									pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
-									ErrorDialog dialog = new ErrorDialog(getShell(),SWT.NULL,
+									UserDialog dialog = new UserDialog(getShell(),SWT.NULL,
 "Premium Markets is an automated stock market analysis system.\n"+
 "It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
 "See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
@@ -468,7 +468,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								public void widgetSelected(SelectionEvent e) {
 									OperationBuilderDialog builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
 									builderDialog.open();
-									((ChartsComposite) chartsSash()).refreshView(new ArrayList<Exception>());
+									if (!((ChartsComposite) chartsSash()).isDisposed()) ((ChartsComposite) chartsSash()).refreshView(new ArrayList<Exception>());
 								}
 								
 							});
@@ -817,7 +817,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				} catch (Throwable e) {
 					LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
 					inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-					ErrorDialog dialog = new ErrorDialog(inst.getShell(),SWT.NULL, "An unhandled error as occurred.", e.getMessage());
+					UserDialog dialog = new UserDialog(inst.getShell(),SWT.NULL, "An unhandled error as occurred.", e.getMessage());
 					dialog.open();
 				}
 			}
@@ -957,8 +957,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(false);
 			sashes.setWeights(new int[]{100,0,0});
 			
-			//eventConfig.setSendAnalysisAlertEmails(true);
-			AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+			if (((EventsComposite)eventsSash()).getSendNotifs().getSelection()) AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 			
 			((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
 		}
@@ -968,7 +967,6 @@ public class MainGui extends SashForm implements RefreshableView {
 				winTable[j].setVisible(false);
 			}
 			
-			//eventConfig.setSendAnalysisAlertEmails(false);
 			AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 			
 		}
@@ -979,8 +977,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{50,0,50});
 			
-			//eventConfig.setSendAnalysisAlertEmails(true);
-			AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+			if (((EventsComposite)eventsSash()).getSendNotifs().getSelection())  AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 			
 			((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
 			((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
@@ -991,7 +988,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{0,50,50});
 			
-			//eventConfig.setSendAnalysisAlertEmails(false);
 			AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 			
 			((RefreshableView)chartsSash()).refreshView(new ArrayList<Exception>());
@@ -1157,7 +1153,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		}
 		if (isVisible() && !exceptions.isEmpty()) {
-				ErrorDialog dialog = new ErrorDialog(getShell(), SWT.NONE, 
+				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, 
 						"Couldn't refresh views. "+
 						((allStocksEventModel.getViewStateParams() != null && allStocksEventModel.getViewStateParams().length >0)?allStocksEventModel.getViewStateParams()[0]:"")+"\n",
 						exceptions.toString());

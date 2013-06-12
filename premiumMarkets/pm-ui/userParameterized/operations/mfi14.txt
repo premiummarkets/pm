@@ -1,0 +1,1 @@
+mfi(14,high,low,close,volume)

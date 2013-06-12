@@ -3,6 +3,7 @@ package com.finance.pms.events.operations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -17,7 +18,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.conditional.ChartableCondition;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.conditional.EventConditionHolder;
-import com.finance.pms.events.operations.conditional.BooleanMultiMapValue;
+import com.finance.pms.events.operations.conditional.MultiMapValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.StandAloneCondition;
@@ -55,8 +56,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	//Default value hint for this
 	private Value<?> defaultValue;
 	
-	//This name as operand of the parent
+	//this name as operand of the parent
 	private String referenceAsOperand;
+	
+	//this reference as native operation (should not be changed)//TODO use this reference to sort out reentrant and invalid ops instead of the overridden reference.
+	private String operationReference;
 	
 	@XmlElementWrapper(name = "availableOutputSelectors")
 	@XmlElement(name = "availableOutputSelector")
@@ -82,6 +86,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.operands = (ArrayList<Operation>) operands;
 		this.availableOutputSelectors = new ArrayList<String>();
 		
+		this.operationReference = reference;
+		
 		this.disabled = false;
 	}
 	
@@ -91,6 +97,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.description = description;
 		this.operands = new ArrayList<Operation>();
 		this.availableOutputSelectors = new ArrayList<String>();
+		
+		this.operationReference = reference;
 	}
 	
 
@@ -102,6 +110,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.defaultValue = defaultValue;
 		this.operands = new ArrayList<Operation>();
 		this.availableOutputSelectors = new ArrayList<String>();
+		
+		this.operationReference = reference;
 		
 		this.disabled = false;
 	}
@@ -127,11 +137,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					Value<?> output = operand.run(targetStock);		
 					operandsOutputs.add(output);
 					
-					gatherDoubleMapValueOutput(targetStock, operand, output);
+					gatherCalculatedOutput(targetStock, operand, output);
 					
-					if (output instanceof BooleanMultiMapValue) {
-						addAdditionalOutputs(targetStock, operand, (BooleanMultiMapValue) output);
-					}
 				}
 				
 				createChartedOutputGroups(targetStock, operandsOutputs);
@@ -149,10 +156,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		
 	}
 
-	private void gatherDoubleMapValueOutput(TargetStockInfo targetStock, Operation operand, Value<?> output) {
-		if ( (output instanceof DoubleMapValue && (operand.getFormula() != null)) || operand instanceof StockOperation || (output instanceof BooleanMultiMapValue  && operand instanceof ChartableCondition) ) {
+	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output) {
+	
+		//We gather only outputs for StockOperation and User formulas.
+		if ( (output instanceof DoubleMapValue && (operand.getFormula() != null)) || operand instanceof StockOperation) {
 			targetStock.addOutput(operand, output);
 		}
+		//We also gather extraneous chartable outputs from conditions
+		if (operand instanceof ChartableCondition && output instanceof MultiMapValue) {
+			addAdditionalOutputs(targetStock, operand, (MultiMapValue) output);
+		}
+		
 	}
 
 	private ChartedOutputGroup createChartedOutputGroups(TargetStockInfo targetStock, List<Value<?>> operandsOutputs) {
@@ -160,24 +174,24 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		ChartedOutputGroup chartedOutputGroup = null;
 		if (this instanceof OnSignalCondition) {//Operands outputs are grouped
 			//pikup or create the group
-			int mainOpPosition = ((OnSignalCondition) this).mainPosition();
+			int mainOpPosition = ((OnSignalCondition) this).mainInputPosition();
 			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
 			//add the signal
-			int signalOpPosition = ((OnSignalCondition) this).signalPosition();
-			targetStock.addSignal(chartedOutputGroup, operands.get(signalOpPosition));
+			int signalOpPosition = ((OnSignalCondition) this).inputSignalPosition();
+			targetStock.addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition));
 			
 		} else if ((this instanceof OnThresholdCondition)) {
 			//pikup or create the group
-			int mainOpPosition = ((OnThresholdCondition) this).mainPosition();
+			int mainOpPosition = ((OnThresholdCondition) this).mainInputPosition();
 			Operation mainOp = operands.get(mainOpPosition);
 			chartedOutputGroup = targetStock.setMain(mainOp);
 			//add the constant
-			int thresholdOpPosition = ((OnThresholdCondition)this).thresholdPosition();
-			chartedOutputGroup.addConstant(mainOp.aMoreFriendlyName(), operands.get(thresholdOpPosition), (DoubleValue) operandsOutputs.get(thresholdOpPosition));
+			int thresholdOpPosition = ((OnThresholdCondition)this).inputThresholdPosition();
+			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (DoubleValue) operandsOutputs.get(thresholdOpPosition));
 			
 		} else if (this instanceof StandAloneCondition) {
 			
-			int mainOpPosition = ((StandAloneCondition) this).mainPosition();
+			int mainOpPosition = ((StandAloneCondition) this).mainInputPosition();
 			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
 				
 		} 
@@ -185,8 +199,16 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return chartedOutputGroup;
  	}
 	
-	private void addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, BooleanMultiMapValue operandsOutput) {
-		if (operand instanceof ChartableCondition) targetStock.addAdditonalOutputs(operand, operandsOutput.getAdditionalOutputsTypes());
+	private void addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) {
+		
+		//add to gathered
+		Map<String, DoubleMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
+		for (String extOutKey : extraneousOutputs.keySet()) {
+			targetStock.addExtraneousChartableOutput(operand, extraneousOutputs.get(extOutKey), extOutKey);
+		}
+		
+		//add to chart info
+		targetStock.addChartInfoForAdditonalOutputs(operand, operandsOutput.getAdditionalOutputsTypes());
 	}
 	
 	public abstract Value<?> calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
@@ -449,11 +471,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	
-	public String aMoreFriendlyName() {
-		String fName = reference;
-		if (outputSelector != null) fName = outputSelector + " ("+fName+")";
-		return fName;
-	}
+//	public String aMoreFriendlyName() {
+//		String fName = reference;
+//		if (outputSelector != null) fName = outputSelector + " ("+fName+")";
+//		return fName;
+//	}
 
 	
 	@XmlTransient
@@ -472,6 +494,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	protected void setAvailableOutputSelectors(ArrayList<String> availableOutputSelectors) {
 		this.availableOutputSelectors = availableOutputSelectors;
+	}
+
+	public String getOperationReference() {
+		return operationReference;
 	}
 
 }

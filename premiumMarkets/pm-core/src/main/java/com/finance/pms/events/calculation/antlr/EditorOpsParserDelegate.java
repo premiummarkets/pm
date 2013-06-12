@@ -191,7 +191,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			} else if (son instanceof CommonTree) {
 				CommonTree cTree = ((CommonTree)son);
 				paramTxt = ((CommonTree) son).getText();
-				if (paramTxt.equals("Double") || paramTxt.equals("Stock") ) {
+				if (paramTxt.equals("Double") || paramTxt.equals("Stock")  || paramTxt.equals("MAType")) {
 					paramTxt = cTree.getChild(0).getText();
 				} else {
 					paramTxt = cTree.getText();

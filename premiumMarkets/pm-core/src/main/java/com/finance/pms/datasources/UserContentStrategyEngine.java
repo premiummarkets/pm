@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -58,11 +59,14 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
+import com.finance.pms.threads.ObserverMsg;
 
 public abstract class UserContentStrategyEngine implements EventModelStrategyEngine {
 	
@@ -90,10 +94,10 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
-		
+	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) throws NotEnoughDataException {
+
 		if (viewStateParams == null || viewStateParams.length == 0) throw new java.lang.UnsupportedOperationException("You  must select a stock before running an analysis.");
-		
+
 		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
 		String[] analysers = new String[analysisList.size()];
 		for (int j = 0; j < analysers.length; j++) {
@@ -102,41 +106,43 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 
 		Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 		Date datedeb = DateFactory.midnithDate(startAnalyseDate);
-		
+
 		@SuppressWarnings("rawtypes")
 		List stockList = new ArrayList(Arrays.asList(viewStateParams));
-		
+
 		@SuppressWarnings("rawtypes")
 		List invalid = new ArrayList<Stock>();
- 		for (Object stock : stockList) {
+		for (Object stock : stockList) {
 			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(firstQuotationDateFromQuotations);
 			QuotationsFactories.getFactory().incrementDate(calendar, 50);
 			if (calendar.getTime().after(datedeb)) {
-				LOGGER.warn("Not enough quotations to compute over the requested period, lease adjust for Stock "+stock);
+				LOGGER.warn("Not enough quotations to compute over the requested period, please adjust for Stock "+stock);
 				invalid.add(stock);
 			}
 		}
- 		stockList.removeAll(invalid);
-		
+		stockList.removeAll(invalid);
+
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
+		if (stockList.size() == 0) throw new NotEnoughDataException(null, "The following stock does not have enough quotations to be calculated from "+datedeb+" : "+invalid, new Throwable());
+		
 		for (int i = 0; i < analysers.length; i++) {
-			
+
 			LOGGER.debug("running analysis for " + analysers[i]);
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
-			
+
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
-			
+
 			Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
-	
+
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 					SpringContext.getSingleton(), 
 					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
 					stockList, datedeb, datefin, export, engineObservers.toArray(new Observer[0]));
-			
+
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
-	
+
 			//Pass one
 			Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 			try {
@@ -145,7 +151,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 				LOGGER.error(e,e);
 			}
 			if (runPassOne != null) outputRet.putAll(runPassOne);
-			
+
 			//Pass two
 			if (maxPass == 2) {
 				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
@@ -166,12 +172,10 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 				}
 			} 
 		}
-		
+
+
 		return outputRet;
 	}
-	
-	protected abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException;
-	protected abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException;
 	
 	public void callbackForReco(Set<Observer> engineObservers) {
 		throw new NotImplementedException();
@@ -210,14 +214,69 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 	@Override
 	public Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object... viewStateParams) {
 		
+		for (Observer observer : engineObservers) {
+			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, viewStateParams.length));
+		}
+	
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
 		for (Object stock : viewStateParams) {
+			
+			LOGGER.guiInfo("Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
+			
 			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
 			TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
+			
+			for (Observer observer : engineObservers) {
+				observer.update(null, new ObserverMsg((Stock) stock, ObserverMsg.ObsKey.NONE));
+			}
 		}
 		
 		return false;
 		
+	}
+
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
+		
+		
+		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
+		try {
+			passTwoOutput = actionThread.runIndicatorsCalculationPassTwo(true);
+		} catch (IncompleteDataSetException e1) {
+			passTwoOutput = e1.getCalculatedOutput();
+		}
+	
+		return finalising(actionThread, passTwoOutput);
+	}
+
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
+		
+		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
+		try {
+			passOneOutput = actionThread.runIndicatorsCalculationPassOne(true , passOneOverwriteMode());
+		} catch (IncompleteDataSetException e1) {
+			passOneOutput = e1.getCalculatedOutput();
+		}
+	
+		return finalising(actionThread, passOneOutput);
+		
+	}
+
+	protected abstract String passOneOverwriteMode();
+	
+	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput) {
+
+		Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
+		for (Stock stock : passOutput.keySet()) {
+			Map<EventInfo, SortedMap<Date, double[]>> map4Stock = passOutput.get(stock);
+			if (map4Stock != null) {
+				ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
+				for (EventInfo evtDef : map4Stock.keySet()) {
+					SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
+					if (map4EvtDef != null) ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef));
+				}
+			}
+		}
+		return ret;
 	}
 
 }

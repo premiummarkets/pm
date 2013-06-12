@@ -11,11 +11,25 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
+/**
+ * 
+ * @author Guillaume Thoreton
+ * Some conditions can (when it makes sense) be followed by key words changing the result :
+ * 'over n days' : means that the condition happened once over the past n days. It could as well not be fulfilled a the date
+ * 'for n days' : means that the condition was true for n days in a row.
+ * 'spanning n days' : will be used for condition involving events happening over time like when comparing two status of the data at two point in time t and t-n. 
+ * 	For instance 'close crosses up 10 spanning 3 days' means that close was below 10 three days ago and close is now above 10 
+ * These two can be combined like for instance :
+ *  	close is above 10 over 30 days for 2 days
+ *   	close is above 10 over 10 days for 10 days
+ *   	goes up for 10 days spanning 2 days
+ *   ...
+ *   Note 'days' here mean days calendar open days not quotation days.
+ */
+
 @XmlRootElement
 @XmlSeeAlso({CrossConstantCondition.class, BooleanDoubleMapCondition.class, CmpDoubleMapCondition.class})
-public class Condition<T> extends Operation {
-	
-	//private enum Conditions {EQUAL, SUP, INF, Going UP, Going DOWN, LOWERHIGH, LOWERLOW, HIGHERHIGH, HIGHERLOW};	
+public class Condition<T> extends Operation {	
 	
 	protected Condition() {
 		super();
@@ -41,6 +55,4 @@ public class Condition<T> extends Operation {
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new BooleanMapValue();
 	}
-	
-
 }

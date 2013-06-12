@@ -66,11 +66,9 @@ public abstract class IndicatorsCalculationService {
 	protected ShareDAO shareDAO;
 	protected PortfolioDAO portfolioDAO;
 	private Collection<Stock> symbolsCache;
-	//protected Set<Observer> observers;
-
+	
 	public IndicatorsCalculationService() {
 		super();
-		//observers = new ConcurrentSkipListSet<Observer>();
 	}
 
 	/**

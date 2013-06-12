@@ -327,11 +327,11 @@ public class Quotations {
 		return ret;
 	}
 
-	public BigDecimal getCloseForDate(Date date) throws InvalidAlgorithmParameterException {
+	public BigDecimal getClosestCloseForDate(Date date) throws InvalidAlgorithmParameterException {
 		return convert(getQuotationData().getClosestCloseForDate(date),date);
 	}
 	
-	public Number getFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
 		if (field.equals(QuotationDataType.VOLUME)) {
 			return getQuotationData().getClosestFieldForDate(date, field);
 		} else {

@@ -70,12 +70,14 @@ public interface QuotationsFactory {
 
 	public abstract Boolean isInOpenHours(Date lastDate);
 
-	SortedMap<Date, double[]> buildMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
+	SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException;
 	
-	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations) throws NotEnoughDataException;
+	SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
 
 	public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Stock stock);
 
-	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field) throws NotEnoughDataException;
+	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+
+	SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 	
 }

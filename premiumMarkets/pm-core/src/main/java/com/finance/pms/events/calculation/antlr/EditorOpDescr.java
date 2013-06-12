@@ -7,12 +7,13 @@ import java.util.Set;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleOperation;
+import com.finance.pms.events.operations.nativeops.MATypeOperation;
 
 public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 	
 	public enum ParamType {
 		
-		CONSTANT(DoubleOperation.class, "Number"), DOUBLEMAP (DoubleMapOperation.class, "Data");
+		CONSTANT(DoubleOperation.class, "Number"), DOUBLEMAP (DoubleMapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType");
 		
 		Class<? extends Operation> operandClass;
 		String typeDescr;
@@ -37,7 +38,10 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 				return CONSTANT;
 			} else if (tokenName.equals("StockOperation")) {
 				return DOUBLEMAP;
-			} else {
+			} else if (tokenName.equals("MAType")) {//TODO Generalise to String??
+				return MATYPE;
+			}
+			else {
 				for (EditorOpDescr editorOpDescr : allOps) {
 					if (editorOpDescr.getName().equals(tokenName)) return DOUBLEMAP;
 				}

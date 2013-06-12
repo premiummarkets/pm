@@ -103,7 +103,8 @@ public class OTFTuningFinalizer {
 		String chartFile = "noChartAvailable";
 		BigDecimal totProfit = BigDecimal.ONE;
 		
-		EventType prevEventType = EventType.NONE;
+		//EventType prevEventType = EventType.NONE;
+		EventType prevEventType = null;
 		PeriodRatingDTO period = new PeriodRatingDTO();
 
 		try {
@@ -136,7 +137,7 @@ public class OTFTuningFinalizer {
 
 			//Other init
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 0, 0);
-			BigDecimal lastClose = quotations.getCloseForDate(endCalcRes);
+			BigDecimal lastClose = quotations.getClosestCloseForDate(endCalcRes);
 
 			Pattern pattern = Pattern.compile("config : (.*) es : ");
 			DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
@@ -146,7 +147,7 @@ public class OTFTuningFinalizer {
 			//TODO of any use??? Fill training quotations + calc output up to start date
 			while (currentDate.getTime().before(startDate)) {
 				String line  = simpleDateFormat.format(currentDate.getTime());
-				BigDecimal closeForDate = quotations.getCloseForDate(currentDate.getTime());
+				BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
 				double[] output = calcOutput.get(currentDate.getTime());
 				String outputString = (output == null)?"NaN":output[0]+"";
 				line = line + ", " + closeForDate + ", , ";
@@ -165,7 +166,7 @@ public class OTFTuningFinalizer {
 				currentEvent = eventsIt.next();
 			}
 
-			BigDecimal prevCloseForDate = quotations.getCloseForDate(currentDate.getTime());
+			BigDecimal prevCloseForDate = quotations.getClosestCloseForDate(currentDate.getTime());
 			SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
 			SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 			
@@ -173,7 +174,7 @@ public class OTFTuningFinalizer {
 
 				String line  = simpleDateFormat.format(currentDate.getTime());
 
-				BigDecimal closeForDate = quotations.getCloseForDate(currentDate.getTime());
+				BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
 				line  = line + ", " + closeForDate;
 			
 				//Some events may have been skipped (ie WE events) and must be disregarded
@@ -200,10 +201,11 @@ public class OTFTuningFinalizer {
 					}
 
 					EventType eventType = currentEvent.getEventType();
-					if (!prevEventType.equals(eventType)) {//Trend change or first trend
+					if (prevEventType == null || !prevEventType.equals(eventType)) {//Trend change or first trend
 
 						//TO
-						if (!prevEventType.equals(EventType.NONE)) {
+						//if (!prevEventType.equals(EventType.NONE)) {
+						if (prevEventType != null) {//Not the first trend
 
 							BigDecimal pPriceChange = closeForDate.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
 
@@ -227,27 +229,30 @@ public class OTFTuningFinalizer {
 						//Csv First trend change
 						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
 							line = line + ", , " + prevCloseForDate.multiply(big2);
-							buySerie.put(currentDate.getTime(), quotations.getCloseForDate(currentDate.getTime()).doubleValue());
+							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
 							line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-							sellSerie.put(currentDate.getTime(), quotations.getCloseForDate(currentDate.getTime()).doubleValue());
+							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						}
 						if (eventsIt.hasNext()) {
 							currentEvent = eventsIt.next();
 						}
 
-						prevEventType = eventType;
-						prevCloseForDate = closeForDate;
+						if (!eventType.equals(EventType.NONE)){
+							prevEventType = eventType;
+							prevCloseForDate = closeForDate;
+						}
+						
 
 					} else {
 
 						//Csv No trend change
 						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
 							line = line + ", , " + prevCloseForDate.multiply(big2);
-							buySerie.put(currentDate.getTime(), quotations.getCloseForDate(currentDate.getTime()).doubleValue());
+							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
 							line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-							sellSerie.put(currentDate.getTime(), quotations.getCloseForDate(currentDate.getTime()).doubleValue());
+							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						}
 						if (eventsIt.hasNext()) {
 							currentEvent = eventsIt.next();
@@ -256,15 +261,18 @@ public class OTFTuningFinalizer {
 
 				} else { //Filling up until the current event date is reached
 					
-					if (prevEventType.equals(EventType.BULLISH)) {
-						line = line + ", , " + prevCloseForDate.multiply(big2);
-						buySerie.put(currentDate.getTime(), quotations.getCloseForDate(currentDate.getTime()).doubleValue());
-					} else if (prevEventType.equals(EventType.BEARISH)) {
-						line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-						sellSerie.put(currentDate.getTime(), quotations.getCloseForDate(currentDate.getTime()).doubleValue());
-					} else {
+					if (prevEventType == null) {
 						line = line + ", , ";
 					}
+					else if (prevEventType.equals(EventType.BULLISH)) {
+						line = line + ", , " + prevCloseForDate.multiply(big2);
+						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					} 
+					else if (prevEventType.equals(EventType.BEARISH)) {
+						line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					}
+					
 				}
 
 				double[] output = calcOutput.get(currentDate.getTime());
@@ -280,7 +288,8 @@ public class OTFTuningFinalizer {
 
 			bufferedWriter.flush();
 			
-			if (prevEventType.equals(EventType.NONE) || calcOutput.size() == 0) {
+			//Not enought data we stop
+			if (prevEventType == null || calcOutput.size() == 0) {
 				
 				String message = "No trend forecast events were found after calculation.\n";
 				
@@ -300,7 +309,7 @@ public class OTFTuningFinalizer {
 				
 			}
 			
-			observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
+			//Enough data we throw up the things
 			
 			//PNG chart
 			trendFile = fileName;
@@ -325,6 +334,8 @@ public class OTFTuningFinalizer {
 			} else {
 				chartFile = "noChartAvailable";
 			}
+			observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
+			
 			
 			BigDecimal pPriceChange = lastClose.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
 
@@ -340,7 +351,7 @@ public class OTFTuningFinalizer {
 			periods.add(period);	
 			
 			//Buy and hold profit
-			BigDecimal firstClose = quotations.getCloseForDate(startDate);
+			BigDecimal firstClose = quotations.getClosestCloseForDate(startDate);
 			BigDecimal buyAndHoldProfit = lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN);
 
 
@@ -369,10 +380,7 @@ public class OTFTuningFinalizer {
 		
 		//line series
 		SortedMap<DataSetBarDescr, SortedMap<Date, Double>> lineSeries = new TreeMap<DataSetBarDescr, SortedMap<Date,Double>>();
-		Date fromKey = quotations.getDate(quotations.getFirstDateShiftedIdx());
-		Date toKey = quotations.getDate(quotations.getLastDateIdx());
-		
-		SortedMap<Date, Double> quotes =  QuotationsFactories.getFactory().buildSMapFromQuotations(quotations).subMap(fromKey, toKey);
+		SortedMap<Date, Double> quotes =  QuotationsFactories.getFactory().buildSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()); //.subMap(fromKey, toKey);
 		lineSeries.put(new DataSetBarDescr(2, "historical prices",Color.BLUE.darker()), quotes);
 		
 		SortedMap<Date, Double> sma100;
@@ -384,7 +392,6 @@ public class OTFTuningFinalizer {
 			throw new NotEnoughDataException(quotations.getStock(), "Generate chart : No enough data to calculate sma for "+quotations.getStock(), e);
 		}
 		
-		//if (calcOutput.firstKey().before(fromKey)) calcOutput = calcOutput.tailMap(fromKey);
 		SortedMap<Date, Double> sCalcOutput = sCalcOutput(calcOutput);
 		lineSeries.put(new DataSetBarDescr(0, "Premium Markets trend line", new Color(46,236,236), 3f), sCalcOutput);
 		

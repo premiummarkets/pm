@@ -33,9 +33,12 @@ package com.finance.pms.portfolio.gui.charts;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.RectangularShape;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -67,6 +70,7 @@ import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
+import org.jfree.chart.renderer.xy.XYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -78,6 +82,7 @@ import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.OHLCDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.Layer;
+import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.TextAnchor;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -139,8 +144,8 @@ public class ChartMain extends Chart {
 	
 	private XYDataset buildLineDataSet(final StripedCloseFunction stripedCloseFunction, final List<SlidingPortfolioShare> portfolioShares, final Boolean applyColors) {
 
-		TimeSeriesCollection combinedDataset = new TimeSeriesCollection();
-		
+		final TimeSeriesCollection combinedDataset = new TimeSeriesCollection();
+
 		//Check if empty
 		Boolean isAnyShowing = false;
 		for (SlidingPortfolioShare slidingPortfolioShare : portfolioShares) {
@@ -149,12 +154,11 @@ public class ChartMain extends Chart {
 		if (!isAnyShowing) return combinedDataset;
 
 		//Build lines
-		for (int k=0; k < portfolioShares.size(); k++) {
+		for (int k = 0; k < portfolioShares.size(); k++) {
 
 			final Quotations quotations = getQuotations(stripedCloseFunction, portfolioShares.get(k));
 
 			TimeSeries lineSerie = buildLineSeries(stripedCloseFunction, quotations, portfolioShares.get(k));
-
 			combinedDataset.addSeries(lineSerie);
 
 			Paint paint = java.awt.Color.BLACK;
@@ -162,7 +166,7 @@ public class ChartMain extends Chart {
 				org.eclipse.swt.graphics.Color color = portfolioShares.get(k).getColor();
 				paint = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue());
 			}
-			
+
 			final XYItemRenderer renderer = mainPlot.getRenderer();
 
 			renderer.setSeriesPaint(k, paint);
@@ -182,26 +186,19 @@ public class ChartMain extends Chart {
 						Date date = new Date((long) dataset.getXValue(series, item));
 						x = simpleDateFormat.format(date);
 						closeForDate = quotations.get(quotations.getClosestIndexForDate(0, date));
-						
-						String variationAddInfo  = "";
+
+						String variationAddInfo = "";
 						if (!stripedCloseFunction.lineToolTip().isEmpty()) {
-							y =  percentInstance.format(dataset.getYValue(series, item));
-							variationAddInfo = "<br>Variation : "+ y + " " + stripedCloseFunction.lineToolTip();
+							y = percentInstance.format(dataset.getYValue(series, item));
+							variationAddInfo = "<br>Variation : " + y + " " + stripedCloseFunction.lineToolTip();
 						}
-						
-						return "<html>" +
-									"<font size='2'>" +
-									"<b>" + portfolioShares.get(kf).getFreindlyName() + "</b> On the " + x + "<br>" + 
-									"Open&nbsp;&nbsp;&nbsp;: " + closeForDate.getOpen() + "<br>" + 
-									"High&nbsp;&nbsp;&nbsp;: " + closeForDate.getHigh() + "<br>" + 
-									"Low&nbsp;&nbsp;&nbsp;&nbsp;: " + closeForDate.getLow() + "<br>" + 
-									"Close&nbsp;&nbsp;: " + closeForDate.getClose() + "<br>" + 
-									"Volume : " + closeForDate.getVolume() + 
-									variationAddInfo + 
-									"</font>"+
-								"</html>" ;
+
+						return "<html>" + "<font size='2'>" + "<b>" + portfolioShares.get(kf).getFreindlyName() + "</b> On the " + x + "<br>"
+						+ "Open&nbsp;&nbsp;&nbsp;: " + closeForDate.getOpen() + "<br>" + "High&nbsp;&nbsp;&nbsp;: " + closeForDate.getHigh()
+						+ "<br>" + "Low&nbsp;&nbsp;&nbsp;&nbsp;: " + closeForDate.getLow() + "<br>" + "Close&nbsp;&nbsp;: "
+						+ closeForDate.getClose() + "<br>" + "Volume : " + closeForDate.getVolume() + variationAddInfo + "</font>" + "</html>";
 					} catch (Exception e) {
-						LOGGER.debug(e,e);
+						LOGGER.debug(e, e);
 					}
 					return "NaN";
 
@@ -209,66 +206,82 @@ public class ChartMain extends Chart {
 			};
 
 			renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
-			renderer.setSeriesShape(k, new Rectangle(new Dimension(100,100)));
-			Boolean displayOnChart = (lineSerie.getItemCount() == 0)? false : portfolioShares.get(k).getDisplayOnChart();
+			renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
+			Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : portfolioShares.get(k).getDisplayOnChart();
 			renderer.setSeriesVisible(k, displayOnChart);
 
 		}
+
 
 		return combinedDataset;
 	}
 
 
-	public JFreeChart initChart(StripedCloseFunction stripedCloseFunction) {
+	public JFreeChart initChart(final StripedCloseFunction stripedCloseFunction) {
 		
-		Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
-		Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
+		Runnable runnable = new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
+				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 
-		xAxis = new DateAxis();
-		xAxis.setAutoRange(true);
-		xAxis.setTimeline(tradingTimeLine());
-		xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
-		if (jFreeTimePeriod.equals(JFreeChartTimePeriod.DAY)) xAxis.setDateFormatOverride(new SimpleDateFormat("dd MMM yy"));
+				xAxis = new DateAxis();
+				xAxis.setAutoRange(true);
+				xAxis.setTimeline(tradingTimeLine());
+				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
+				if (jFreeTimePeriod.equals(JFreeChartTimePeriod.DAY)) xAxis.setDateFormatOverride(new SimpleDateFormat("dd MMM yy"));
+				
+				///	Y axis
+				//Line Y axis
+				mainYAxis = new NumberAxis();	 
+				mainYAxis.setAutoRange(true);
+				mainYAxis.setAutoRangeIncludesZero(false);
+				mainYAxis.setTickLabelFont(mainYAxis.getTickLabelFont().deriveFont(7f));
+				mainYAxis.setLabelFont(mainYAxis.getLabelFont().deriveFont(10f));
+				
+				//Indicator Y axis (indicator is not showing at init)
+				//indicYAxis = initYAxis();
+				
+				/// Plots
+				//Lines
+			    XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer(true, false);
+				lineRenderer.setBaseItemLabelsVisible(true);	
+				TimeSeriesCollection lineDataset = new TimeSeriesCollection();
+				mainPlot = new XYPlot(lineDataset, null, null, lineRenderer);
+				mainPlot.addRangeMarker(new ValueMarker(0));
+				mainPlot.setRangeAxis(0, mainYAxis);
+				mainPlot.setDomainMinorGridlinesVisible(true);
+				
+				//Bars
+				TimeSeriesCollection barDataset = new TimeSeriesCollection();
+				XYBarRenderer barRenderer = new XYBarRenderer();
+				mainPlot.setRenderer(1, barRenderer);
+				barChartDisplayStrategy.setBarYAxis();
+				mainPlot.setDataset(1, barDataset);
+				
+				//Indicator plot
+					//This is not created from start
+				
+				
+				//Combine
+				CombinedDomainXYPlot combinedDomainXYPlot = new CombinedDomainXYPlot(xAxis);
+				combinedDomainXYPlot.add(mainPlot, 3);
+				
+				//Create
+				ChartMain.this.jFreeChart = new JFreeChart(combinedDomainXYPlot);
+				ChartMain.this.jFreeChart.removeLegend();
+			    
+			}
+		};
 		
-		///	Y axis
-		//Line Y axis
-		mainYAxis = new NumberAxis();	 
-		mainYAxis.setAutoRange(true);
-		mainYAxis.setAutoRangeIncludesZero(false);
-		mainYAxis.setTickLabelFont(mainYAxis.getTickLabelFont().deriveFont(7f));
-		mainYAxis.setLabelFont(mainYAxis.getLabelFont().deriveFont(10f));
+		try {
+			EventQueue.invokeAndWait(runnable);
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
 		
-		//Indicator Y axis (indicator is not showing at init)
-		//indicYAxis = initYAxis();
-		
-		/// Plots
-		//Lines
-	    XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer(true, false);
-		lineRenderer.setBaseItemLabelsVisible(true);	
-		TimeSeriesCollection lineDataset = new TimeSeriesCollection();
-		mainPlot = new XYPlot(lineDataset, null, null, lineRenderer);
-		mainPlot.addRangeMarker(new ValueMarker(0));
-		mainPlot.setRangeAxis(0, mainYAxis);
-		mainPlot.setDomainMinorGridlinesVisible(true);
-		
-		//Bars
-		TimeSeriesCollection barDataset = new TimeSeriesCollection();
-		XYBarRenderer barRenderer = new XYBarRenderer();
-		mainPlot.setRenderer(1, barRenderer);
-		barChartDisplayStrategy.setBarYAxis();
-		mainPlot.setDataset(1, barDataset);
-		
-		//Indicator plot
-		//This is not created from start
-		
-		//Combine
-		CombinedDomainXYPlot combinedDomainXYPlot = new CombinedDomainXYPlot(xAxis);
-		combinedDomainXYPlot.add(mainPlot, 3);
-		
-		//Create
-		this.jFreeChart = new JFreeChart(combinedDomainXYPlot);
-	    this.jFreeChart.removeLegend();
-	    
 	    return this.jFreeChart;
 	  }
 
@@ -282,71 +295,112 @@ public class ChartMain extends Chart {
 	}
 	
 	
-	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, int lineSerieIdx) {
+	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx) {
 		
-		TimeSeriesCollection barDataSets = new TimeSeriesCollection();
-		
-		XYBarRenderer renderer = (XYBarRenderer) mainPlot.getRenderer(1);
-		renderer.removeAnnotations();
-		
-		TimeSeries lineSerie = ((TimeSeriesCollection) mainPlot.getDataset(0)).getSeries(lineSerieIdx);
-		double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
-		
-		int eventDefSerieIdx = 0;
-		final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-		final NumberFormat percentInstance = new DecimalFormat("#0.00 %");
-		for (final DataSetBarDescr serieDef : barSeries.keySet()) {
+		Runnable runnable = new Runnable() {
 			
-			TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(serieDef.getSerieName(), barSeries.get(serieDef), lineSerie);
-			barDataSets.addSeries(barDataSet);
+			public void run() {
+				
+				TimeSeriesCollection barDataSets = new TimeSeriesCollection();
+				
+				XYBarRenderer renderer = (XYBarRenderer) mainPlot.getRenderer(1);
+				renderer.removeAnnotations();
+				
+				//TODO review with the chart options
+				//renderer.setBase(serieDef.getBase());
+				//renderer.setUseYInterval(true);
+				renderer.setMargin(0);
+				renderer.setBarPainter(new XYBarPainter() {
+					
+					@Override
+					public void paintBarShadow(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base, boolean pegShadow) {
+					}
+					
+					@Override
+					public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base) {
+			            bar.setFrame(bar.getX(), bar.getY(), bar.getWidth() + 0, bar.getHeight());
+			            g2.setColor((Color) renderer.getSeriesPaint(row));
+			            g2.fill(bar);
+			            g2.draw(bar);
+					}
+				});
+				
+				TimeSeries lineSerie = ((TimeSeriesCollection) mainPlot.getDataset(0)).getSeries(lineSerieIdx);
+				double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
+				int eventDefSerieIdx = 0;
+				final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
+				final NumberFormat percentInstance = new DecimalFormat("#0.00 %");
+				for (final DataSetBarDescr serieDef : barSeries.keySet()) {
 
-			//Annotation
-			if (serieDef.isLabeled())  {
-				RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount() -1, 0));
-				Double annV = maxBarValue * eventDefSerieIdx/barSeries.size();
-				XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " ("+ percentInstance.format(serieDef.getProfit())+")", annTP.getFirstMillisecond(), annV);
-				annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
-				annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
-				annotation.setPaint(Color.GRAY);
-				renderer.addAnnotation(annotation);
+					TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(serieDef.getSerieName(), barSeries.get(serieDef), lineSerie);
+					barDataSets.addSeries(barDataSet);
+
+					//Annotation
+					if (serieDef.isLabeled()) {
+						RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount() - 1, 0));
+						Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
+						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + percentInstance.format(serieDef.getProfit())+ ")", annTP.getFirstMillisecond(), annV);
+						annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
+						annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
+						annotation.setPaint(Color.GRAY);
+						renderer.addAnnotation(annotation);
+					}
+
+					//ToolTip
+					XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+
+						public String generateToolTip(XYDataset dataset, int series, int item) {
+
+							String x = "NaN";
+							EventType type = EventType.NONE;
+							String desrc = "Indeterministic simultaneous BULLISH and BEARISH";
+							try {
+
+								Date date = new Date((long) dataset.getXValue(series, item));
+								x = simpleDateFormat.format(date);
+
+								switch (serieDef.getId() % 3) {
+								case 0:
+									type = EventType.BULLISH;
+									desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
+									break;
+								case 2:
+									type = EventType.BEARISH;
+									desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
+									break;
+								default:
+									break;
+								}
+
+								return "<html>" + "<font size='2'>" + "<b>" + serieDef.getStockDescr() + "</b><br>" + "<b>" + serieDef.getEventDisplayeDef()
+										+ "</b> on the " + x + "<br>" + "Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" + "Descr&nbsp;&nbsp;&nbsp;: " + desrc
+										+ "<br>" + "</font>" + "</html>";
+
+							} catch (Exception e) {
+								LOGGER.debug(e, e);
+							}
+							return "NaN";
+
+						}
+					};
+					
+					renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
+					renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
+					renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
+					renderer.setSeriesOutlinePaint(eventDefSerieIdx, serieDef.getSerieColor());
+					renderer.setSeriesPaint(eventDefSerieIdx, serieDef.getSerieColor());
+					renderer.setSeriesFillPaint(eventDefSerieIdx, serieDef.getSerieColor());
+		
+					eventDefSerieIdx++;
+					
+				}
+				
+				mainPlot.setDataset(1, barDataSets);
 			}
 			
-			//ToolTip
-			XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-				public String generateToolTip(XYDataset dataset, int series, int item) {
-					
-					String x = "NaN";
-					try {
-						Date date = new Date((long) dataset.getXValue(series, item));
-						x = simpleDateFormat.format(date);
-						
-						return "<html>"+
-						"<font size='2'>" +
-						"<b>"+serieDef.getStockDescr()+"</b><br>" +
-						"<b>"+serieDef.getEventDisplayeDef()+"</b> on the " + x +"<br>" +
-						"Trend&nbsp;&nbsp;&nbsp;: "+((serieDef.getId() % 2 == 0)?EventType.BULLISH:EventType.BEARISH)+"<br>" +
-						"Descr&nbsp;&nbsp;&nbsp;: "+((serieDef.getId() % 2 == 0)?serieDef.getEventDefDescriptor().getHtmlBullishDescription():serieDef.getEventDefDescriptor().getHtmlBearishDescription())+"<br>" +
-						"</font>"+
-						"</html>" ;
-					} catch (Exception e) {
-						LOGGER.debug(e,e);
-					}
-					return "NaN";
-
-				}
-			};
-			renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
-			
-			renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
-			renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieSize()));
-			renderer.setSeriesPaint(eventDefSerieIdx, serieDef.getSerieColor());
-			renderer.setSeriesFillPaint(eventDefSerieIdx, serieDef.getSerieColor());
-			
-			eventDefSerieIdx++;
-		}
+		};
 		
-		mainPlot.setDataset(1, barDataSets);
+		EventQueue.invokeLater(runnable);
 		
 	}
 
@@ -356,133 +410,146 @@ public class ChartMain extends Chart {
 	 * @param applyColors 
 	 * @param chartPanelComponent
 	 */
-	public void updateLineDataSet(List<SlidingPortfolioShare> listShares, StripedCloseFunction stripedCloseFunction, Boolean applyColors) {
+	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors) {
 
-		XYDataset dataSet = buildLineDataSet(stripedCloseFunction, listShares, applyColors);
-		Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
-		Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
-		xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate,arbitraryEndDate)));
-		try {
-			mainPlot.setDataset(dataSet);
-		} catch (IllegalArgumentException e) {
-			LOGGER.warn(e,e);
-			resetBarChart();
-			resetIndicChart();
-			updateLineDataSet(listShares, stripedCloseFunction, applyColors);
-		}
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				XYDataset dataSet = buildLineDataSet(stripedCloseFunction, listShares, applyColors);
+				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
+				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
+				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
+				try {
+					mainPlot.setDataset(dataSet);
+				} catch (IllegalArgumentException e) {
+					LOGGER.warn(e, e);
+					resetBarChart();
+					resetIndicChart();
+					updateLineDataSet(listShares, stripedCloseFunction, applyColors);
+				}
+			}
+			
+		};
+		
+		EventQueue.invokeLater(runnable);
 		
 	}
 	
-	public void updateIndicDataSet(EventInfo chartedEvtDef, SortedMap<Date, double[]> serie) throws NoSuchElementException {
+	public void updateIndicDataSet(final EventInfo chartedEvtDef, final SortedMap<Date, double[]> serie) throws NoSuchElementException {
 
-		final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-		final NumberFormat numberFormat = new DecimalFormat("0.000000");
-		
-		CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot)jFreeChart.getXYPlot();
-		
-		//Check if indic plot present
-		@SuppressWarnings("rawtypes")
-		List subplots = combinedDomainXYPlot.getSubplots();
-		if (subplots.size() == 1) {
-			XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
-			indicRenderer.setBaseItemLabelsVisible(true, false);	
-
-			indicPlot = new XYPlot(null, null, null, indicRenderer);
-			indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
-			indicPlot.setNoDataMessage("No indicator output is available. Check that the stocks and date ranges are valid.");
-			indicPlot.setDomainMinorGridlinesVisible(true);
-		}
-		indicPlot.clearRangeAxes();
-		
-		final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
-		String[] eventDefDescriptorArray = new String[0];
-		if (eventDefDescriptor != null) {
-			eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
-		}
-
-		for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
+		Runnable runnable = new Runnable() {
 			
-			//Build and add Data set for group
-			XYItemRenderer renderer = indicPlot.getRenderer(groupIdx);
-			if (renderer == null) {
-				renderer = new XYLineAndShapeRenderer(true, false);
-				renderer.setBaseItemLabelsVisible(true, false);	
-				indicPlot.setRenderer(groupIdx, renderer);
-			}
-			ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
-			if (rangeAxis == null) {
-				rangeAxis = initYAxis();
-				if (groupIdx == 0) {
-					rangeAxis.setLabel(chartedEvtDef.getEventReadableDef());
-				} else {
-					rangeAxis.setVisible(false);
-				}
-				indicPlot.setRangeAxis(groupIdx, rangeAxis);
-				indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);		
-			}
-			TimeSeriesCollection dataset = new TimeSeriesCollection();
-			
-			Integer[] outputIndexes = eventDefDescriptor.getIndexesForGroup(groupIdx);
-			for (int k = 0; k < outputIndexes.length; k++) {
-
-				int outputIdx = outputIndexes[k];
-				final String domain = eventDefDescriptorArray[outputIdx];
-				TimeSeries timeSerie = new TimeSeries(domain);
-				Boolean isNotNan = false;
-				for (Date date : serie.keySet()) {
-					double[] ds = serie.get(date);
-					RegularTimePeriod period = new Day(date);
-					Number value = ds[outputIdx];
-					isNotNan = isNotNan || ( !((Double)value).isNaN() && !((Double)value).isInfinite() ) ;
-					//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
-					if (!((Double)value).isInfinite()) {
-						TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-						timeSerie.add(item, false);
-					}
-				}
-				if (!isNotNan) timeSerie.addOrUpdate(new TimeSeriesDataItem(new Day(serie.firstKey()), 0));
+			public void run() {
 				
-				dataset.addSeries(timeSerie);
+				final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
+				final NumberFormat numberFormat = new DecimalFormat("0.000000");
+				CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
+				
+				//Check if indic plot present
+				@SuppressWarnings("rawtypes")
+				List subplots = combinedDomainXYPlot.getSubplots();
+				if (subplots.size() == 1) {
+					XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
+					indicRenderer.setBaseItemLabelsVisible(true, false);
 
-				renderer.setSeriesPaint(k, eventDefDescriptor.getColor(outputIdx));
-				renderer.setSeriesShape(k, new Rectangle(new Dimension(100,100)));
+					indicPlot = new XYPlot(null, null, null, indicRenderer);
+					indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
+					indicPlot.setNoDataMessage("No indicator output is available. Check that the stocks and date ranges are valid.");
+					indicPlot.setDomainMinorGridlinesVisible(true);
+				}
+				indicPlot.clearRangeAxes();
+				
+				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
+				String[] eventDefDescriptorArray = new String[0];
+				if (eventDefDescriptor != null) {
+					eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
+				}
+				
+				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
 
-				XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-					public String generateToolTip(XYDataset dataset, int series, int item) {
-
-						String y = "NaN";
-						String x = "NaN";
-						try {
-							y =  numberFormat.format(dataset.getYValue(series, item));
-							Date date = new Date((long) dataset.getXValue(series, item));
-							x = simpleDateFormat.format(date);
-							return 
-									"<html>"+
-									"<font size='2'>" +
-									"<b>"+  domain +"</b> on the " + x +"<br>" +
-									((eventDefDescriptor.displayValues())?"Value : "+ y:"" ) +
-									"</font>" +
-									"</html>";
-						} catch (Exception e) {
-							LOGGER.debug(e,e);
+					//Build and add Data set for group
+					XYItemRenderer renderer = indicPlot.getRenderer(groupIdx);
+					if (renderer == null) {
+						renderer = new XYLineAndShapeRenderer(true, false);
+						renderer.setBaseItemLabelsVisible(true, false);
+						indicPlot.setRenderer(groupIdx, renderer);
+					}
+					ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
+					if (rangeAxis == null) {
+						rangeAxis = initYAxis();
+						if (groupIdx == 0) {
+							rangeAxis.setLabel(chartedEvtDef.getEventReadableDef());
+						} else {
+							rangeAxis.setVisible(false);
 						}
-						return "NaN";
+						indicPlot.setRangeAxis(groupIdx, rangeAxis);
+						indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);
+					}
+					TimeSeriesCollection dataset = new TimeSeriesCollection();
+
+					Integer[] outputIndexes = eventDefDescriptor.getIndexesForGroup(groupIdx);
+					int serieIdx = 0;
+					for (int k = 0; k < outputIndexes.length; k++) {
+
+						int outputIdx = outputIndexes[k];
+						final String domain = eventDefDescriptorArray[outputIdx];
+						TimeSeries timeSerie = new TimeSeries(domain);
+						Boolean isNotNan = false;
+						for (Date date : serie.keySet()) {
+							double[] ds = serie.get(date);
+							RegularTimePeriod period = new Day(date);
+							Number value = ds[outputIdx];
+							isNotNan = isNotNan || (!((Double) value).isNaN() && !((Double) value).isInfinite());
+							//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
+							if (!((Double) value).isInfinite()) {
+								TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+								timeSerie.add(item, false);
+							}
+						}
+						if (isNotNan) {
+
+							dataset.addSeries(timeSerie);
+
+							renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
+							renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
+
+							XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+
+								public String generateToolTip(XYDataset dataset, int series, int item) {
+
+									String y = "NaN";
+									String x = "NaN";
+									try {
+										y = numberFormat.format(dataset.getYValue(series, item));
+										Date date = new Date((long) dataset.getXValue(series, item));
+										x = simpleDateFormat.format(date);
+										return "<html>" + "<font size='2'>" + "<b>" + domain + "</b> on the " + x + "<br>"
+												+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") + "</font>" + "</html>";
+									} catch (Exception e) {
+										LOGGER.debug(e, e);
+									}
+									return "NaN";
+
+								}
+							};
+
+							renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
+							serieIdx++;
+						}
 
 					}
-				};
-				
-				renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
 
+					indicPlot.setDataset(groupIdx, dataset);
+				}
+				//Combine
+				if (subplots.size() == 1) {
+					combinedDomainXYPlot.add(indicPlot, 1);
+				}
 			}
 			
-			indicPlot.setDataset(groupIdx, dataset);
-		}
-
-		//Combine
-		if (subplots.size() == 1) {
-			combinedDomainXYPlot.add(indicPlot, 1);
-		}
+		};
+		
+		EventQueue.invokeLater(runnable);
 
 	}
 
@@ -492,6 +559,7 @@ public class ChartMain extends Chart {
 	 * @return
 	 */
 	private Quotations getQuotations(StripedCloseFunction stripedCloseFunction, PortfolioShare portfolioShare) {
+		
 		Date startDate = stripedCloseFunction.getArbitraryStartDate();
 		Date endDate = stripedCloseFunction.getArbitraryEndDate();
 		Quotations bdQuotes;
@@ -501,6 +569,7 @@ public class ChartMain extends Chart {
 			throw new RuntimeException(e);
 		}
 		return bdQuotes;
+		
 	}
 
 
@@ -536,20 +605,28 @@ public class ChartMain extends Chart {
 	 * @param highlightStroke 
 	 * @param lineRenderer
 	 */
-	public void highLightSerie(Integer serie, float highlightStroke) {
+	public void highLightSerie(final Integer serie, final float highlightStroke) {
 		
-		for (int i= 0; i < mainPlot.getSeriesCount(); i++) {
-			mainPlot.getRenderer().setSeriesStroke(i, new BasicStroke(1));
-		}
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				for (int i = 0; i < mainPlot.getSeriesCount(); i++) {
+					mainPlot.getRenderer().setSeriesStroke(i, new BasicStroke(1));
+				}
+				Stroke stroke = new BasicStroke(highlightStroke);
+				mainPlot.getRenderer().setSeriesStroke(serie, stroke);
+			}
+			
+		};
 		
-		Stroke stroke = new BasicStroke(highlightStroke);
-		mainPlot.getRenderer().setSeriesStroke(serie, stroke);
+		EventQueue.invokeLater(runnable);
 		
 	}
 	
 		
   @SuppressWarnings("unused") //Test
 	private void exportQuotations(String filename, ArrayList<OHLCDataItem> data) {
+	  
 		File export = new File(filename);
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 
@@ -563,32 +640,77 @@ public class ChartMain extends Chart {
 		} catch (IOException e) {
 			LOGGER.error("", e);
 		}
+		
 	}
 
 	public void resetBarChart() {
-		mainPlot.setDataset(1, new TimeSeriesCollection());
-		mainPlot.getRenderer(1).removeAnnotations();
+		
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				mainPlot.setDataset(1, new TimeSeriesCollection());
+				mainPlot.getRenderer(1).removeAnnotations();
+			}
+		};
+		
+		EventQueue.invokeLater(runnable);
 		
 	}
 	
 	public void resetIndicChart() {
-		if (indicPlot != null && ((CombinedDomainXYPlot)jFreeChart.getXYPlot()).getSubplots().size() == 2) {
-			indicPlot.clearRangeAxes();
-			indicPlot.clearDomainAxes();
-			((CombinedDomainXYPlot)jFreeChart.getXYPlot()).remove(indicPlot);
-			indicPlot = null;
-		}
+		
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				if (indicPlot != null && ((CombinedDomainXYPlot) jFreeChart.getXYPlot()).getSubplots().size() == 2) {
+					indicPlot.clearRangeAxes();
+					indicPlot.clearDomainAxes();
+					((CombinedDomainXYPlot) jFreeChart.getXYPlot()).remove(indicPlot);
+					indicPlot = null;
+				}
+			}
+			
+		};
+		
+		EventQueue.invokeLater(runnable);
 	}
 
-	public XYPlot getMainPlot() {
+	protected XYPlot getMainPlot() {
 		return mainPlot;
 	}
 
-	public NumberAxis getMainYAxis() {
+	protected NumberAxis getMainYAxis() {
 		return mainYAxis;
 	}
-
+	
+	public void initMainPlot(final NumberFormat yAxisFormat, final String noDataMsg) {
+		
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				mainYAxis.setNumberFormatOverride(yAxisFormat);
+				mainPlot.setNoDataMessage(noDataMsg);
+			}
+			
+		};
+		EventQueue.invokeLater(runnable);
+	}
+	
+	public void setMainYAxisLabel(final String label) {
+		
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				mainYAxis.setLabel(label);
+			}
+			
+		};
+		EventQueue.invokeLater(runnable);
+	}
+ 
 	public void exportChart(String path) throws FileNotFoundException, IOException {
+		
 		ChartUtilities.writeChartAsPNG(new FileOutputStream(new File(path)), this.jFreeChart, 700, 600);
+		
 	}	
 }

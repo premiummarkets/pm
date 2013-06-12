@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
@@ -27,8 +28,10 @@ public class PopupMenu<T extends InfoObject>  {
 	private Control parent;
 	
 	private Boolean unableSelectAll;
+	private ActionDialogAction action;
+	private Shell selectionShell;
 
-	public PopupMenu(Control parent, Control root, Set<T> availableOptSet, Set<T> selectionList, Boolean unableSelectAll, int style) {
+	public PopupMenu(Control parent, Control root, Set<T> availableOptSet, Set<T> selectionList, Boolean unableSelectAll, int style, ActionDialogAction action) {
 		super();
 		this.root = root;
 		this.style = style;
@@ -43,23 +46,31 @@ public class PopupMenu<T extends InfoObject>  {
 		
 		this.selectionSet = selectionList;
 		this.parent = parent;
+		
 		this.unableSelectAll = unableSelectAll;
+		this.action = action;
+		
 	}
 
-	public void open() {
+	public void open(Point location) {
 		
-		final Shell selectionShell =  new Shell(this.parent.getShell());
+		selectionShell = new Shell(this.parent.getShell());
 		RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
 		selectionShell.setLayout(rowLayout);
 		selectionShell.setFont(MainGui.CONTENTFONT);
 		
 		selectionShell.addListener(SWT.Deactivate, new Listener() {
 			public void handleEvent(Event e){	
-				selectionShell.setVisible(false);
+				if (action == null) {
+					selectionShell.dispose();
+				} else {
+					
+				}
 			}
 		});
 		
 		if (unableSelectAll) {
+			
 			final Button selectAllBut = new Button(selectionShell, style);
 			selectAllBut.setText("Select/Deselect all");
 			selectAllBut.setFont(MainGui.DEFAULTFONT);
@@ -76,6 +87,7 @@ public class PopupMenu<T extends InfoObject>  {
 				}
 				
 				private void handle() {
+					
 					if (selectAllBut.getSelection()) {
 						for (Control button : selectionShell.getChildren()) {
 							((Button)button).setSelection(true);
@@ -89,9 +101,13 @@ public class PopupMenu<T extends InfoObject>  {
 						}
 						selectionSet.clear();
 					}
+					
+					if (action != null) action.action(null);
+					
 				}
 				
 			});
+			
 		}
 
 		for (final T buttonInfo : availableOptSet) {
@@ -115,11 +131,15 @@ public class PopupMenu<T extends InfoObject>  {
 				}
 				
 				private void handleSelection(T buttonInfo, final Button button) {
+					
 					if (button.getSelection()) {
 						selectionSet.add(buttonInfo);
 					} else {
 						selectionSet.remove(buttonInfo);
 					}
+					
+					if (action != null) action.action(null);
+			
 				}
 				
 			});
@@ -138,6 +158,8 @@ public class PopupMenu<T extends InfoObject>  {
 				parentShellBounds.y + pparentBounds.y +parentBounds.y + root.getBounds().y, 
 				selectionShell.getBounds().width, selectionShell.getBounds().height);
 		
+		if (location != null ) selectionShell.setLocation(location);
+		
 		selectionShell.open();
 		selectionShell.setFocus();
 		
@@ -150,5 +172,9 @@ public class PopupMenu<T extends InfoObject>  {
 			selectionShell.dispose();
 		}
 				
+	}
+
+	public Shell getSelectionShell() {
+		return selectionShell;
 	}
 }

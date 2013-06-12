@@ -1,0 +1,2 @@
+is bullish when HouseAroonUp is above historical HouseAroonDown and HouseAroonUp is above threshold 90 and HouseAroonDown is below threshold 30;
+is bearish when HouseAroonDown is above historical HouseAroonUp and HouseAroonDown is above threshold 90 and HouseAroonUp is below threshold 30;

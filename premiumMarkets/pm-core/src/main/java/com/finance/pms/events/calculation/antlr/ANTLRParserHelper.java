@@ -34,7 +34,11 @@ public abstract class ANTLRParserHelper {
 	public static int translatePositionToCaret(String formula, int lineNum, int lineOffset) {
 		String[] editorTextLines = formula.split("\n", -1);
 		int caretPos = 0;
-		if (lineNum == -1) lineNum = editorTextLines.length;
+		if (lineNum == -1) lineNum = editorTextLines.length; //Short cut to add up all lines when no line number is specified
+		if (lineOffset == -1) {//Empty start of the next line must be shifted to end of previous line?
+			lineNum = lineNum -1; 
+			lineOffset = (lineNum > 0)?editorTextLines[lineNum-1].length()-1:-1;
+		}
 		for(int j = 0; j < lineNum -1; j++) {
 			caretPos = caretPos + editorTextLines[j].length() +1;
 		}
@@ -60,10 +64,9 @@ public abstract class ANTLRParserHelper {
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 			String line = null;
-			String sep = "";
-			while((line = bufferedReader.readLine()) != null) {
-				parsedLine = parsedLine + sep + line;
-				sep = "\n";
+			parsedLine = ((line = bufferedReader.readLine()) != null)?line:"";
+			while ((line = bufferedReader.readLine()) != null) {
+				parsedLine = parsedLine + "\n"+ line;
 			}
 			inputStream.reset();
 		} catch (IOException e1) {

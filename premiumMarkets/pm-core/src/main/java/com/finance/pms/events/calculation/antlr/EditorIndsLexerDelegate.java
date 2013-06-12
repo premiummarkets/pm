@@ -10,7 +10,7 @@ import org.antlr.runtime.RecognizerSharedState;
 
 public class EditorIndsLexerDelegate extends EditorLexerDelegate implements IndsLexerDelegate {
 	
-	public static final List<String> SYNTAX_TOKENS = new ArrayList<String>(Arrays.asList(" ",";","(",")","%"));
+	public static final List<String> SYNTAX_TOKENS = new ArrayList<String>(Arrays.asList("\n"," ",";","(",")","%"));
 
 	private Set<EditorOpDescr> runtimeOps;
 

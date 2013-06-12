@@ -21,7 +21,7 @@ public class CrossDownDoubleMapCondition extends CrossDoubleMapCondition {
 		Double currentFirstOp = (Double) ops[1];
 		Double previousSecondOp = (Double) ops[2];
 		Double currentSecondOp = (Double) ops[3];
-		return previousFirstOp.compareTo(previousSecondOp) <= 0 &&  currentFirstOp.compareTo(currentSecondOp) > 0;
+		return previousFirstOp.compareTo(previousSecondOp) >= 0 &&  currentFirstOp.compareTo(currentSecondOp) < 0;
 	}
 
 

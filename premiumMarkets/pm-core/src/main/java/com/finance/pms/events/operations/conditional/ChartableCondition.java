@@ -1,7 +1,10 @@
 package com.finance.pms.events.operations.conditional;
 
+
 public interface ChartableCondition {
 
-	int mainPosition();
+	int mainInputPosition();
+	
+	//List<String> extraneousOutputsDiscriminators();
 
 }

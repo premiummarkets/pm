@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.tictactec.ta.lib.Core;
+import com.tictactec.ta.lib.MAType;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
@@ -26,7 +27,6 @@ public class TalibOperationGenerator {
 	
 	public TalibOperationGenerator() {
 		super();
-		
 		initSynoData();
 	}
 
@@ -66,14 +66,14 @@ public class TalibOperationGenerator {
 								break;
 							}
 							else {
-								throw new UnsupportedOperationException();
+								throw new UnsupportedOperationException(parameterTypes[paramShift] + " is neither Double[] or Integer");
 							}
 							paramShift++;
 						}
 						
 						//inConstants
 						while (paramShift < parameterTypes.length) {
-							if (parameterTypes[paramShift].equals(Integer.TYPE)) {
+							if (parameterTypes[paramShift].equals(Integer.TYPE) || parameterTypes[paramShift].equals(MAType.class)) {
 								inConstantsNames.add(addParam(params, paramShift, "inConstant"));
 							} 
 							else if (parameterTypes[paramShift].equals(MInteger.class)) {
@@ -81,7 +81,7 @@ public class TalibOperationGenerator {
 								break;
 							}
 							else {
-								throw new UnsupportedOperationException();
+								throw new UnsupportedOperationException(parameterTypes[paramShift] + " is not Integer, MAType or MInteger");
 							}
 							paramShift++;
 						}
@@ -94,7 +94,7 @@ public class TalibOperationGenerator {
 									if (!addParam.equals("Real")) outDataNames.add(addParam);
 								} 
 								else {
-									throw new UnsupportedOperationException();
+									throw new UnsupportedOperationException(parameterTypes[paramShift] + " is not Double[]");
 								}
 								paramShift++;
 							}
@@ -115,7 +115,7 @@ public class TalibOperationGenerator {
 				}
 				
 			} catch (UnsupportedOperationException e) {
-				
+				LOGGER.warn("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
 			}
 		}
 		
@@ -139,8 +139,6 @@ public class TalibOperationGenerator {
 		try {
 			
 			{
-				//File description =new File("talibdescriptions.txt");
-				//BufferedReader descriptionBR = new BufferedReader(new FileReader(description));
 				BufferedReader descriptionBR = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/talibdescriptions.txt")));
 				String dline = null;
 				while ((dline = descriptionBR.readLine()) != null) {
@@ -151,8 +149,6 @@ public class TalibOperationGenerator {
 			}
 			
 			{
-				//File signature = new File("talibsignatures.txt");
-				//BufferedReader signaturesBR = new BufferedReader(new FileReader(signature));
 				BufferedReader signaturesBR = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/talibsignatures.txt")));
 				String sline = null;
 				while ((sline = signaturesBR.readLine()) != null) {
@@ -167,13 +163,22 @@ public class TalibOperationGenerator {
 							for (int i = 3; i < lineSplit.length; i++) {
 								if (lineSplit[i].contains(",")){
 									signatureArray.add(null);
+									if (sline.contains("double") || sline.contains("float") || sline.contains("int") || sline.contains("MAType")) {
+										String[] paramSplit = sline.substring(sline.indexOf("(")+1).trim().split(" ");
+										String param = paramSplit[1].replaceAll("[,)\\[\\]]", "");
+										if (param.equals("inReal")) param = "Historical data";
+										if (param.startsWith("optIn")) param = param.substring(5);
+										if (param.startsWith("in")) param = param.substring(2);
+										if (param.startsWith("out")) param = param.substring(3);
+										signatureArray.set(paramShift,param.trim());
+									}
 									paramShift++;
 								}
 							}
 
 							while ((sline = signaturesBR.readLine()) != null && !sline.contains("{")) {
 								signatureArray.add(null);
-								if (sline.contains("double") || sline.contains("float") || sline.contains("int")) {
+								if (sline.contains("double") || sline.contains("float") || sline.contains("int") || sline.contains("MAType")) {
 									String[] paramSplit = sline.trim().split(" ");
 									String param = paramSplit[1].replaceAll("[,)\\[\\]]", "");
 									if (param.equals("inReal")) param = "Historical data";

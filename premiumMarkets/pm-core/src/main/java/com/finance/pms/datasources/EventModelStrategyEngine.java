@@ -42,6 +42,7 @@ import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 
 /**
  * The Interface EventRefreshModelDelegate.
@@ -92,7 +93,7 @@ public interface EventModelStrategyEngine {
 
 	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) throws HttpException;
 	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) throws StockNotFoundException;
-	public abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams);
+	public abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) throws NotEnoughDataException;
 	public abstract void callbackForAlerts(Set<Observer> engineObservers, Object...viewStateParams) throws InterruptedException;
 	public abstract void  callbackForReco(Set<Observer> engineObservers);
 	public abstract Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object...viewStateParams);

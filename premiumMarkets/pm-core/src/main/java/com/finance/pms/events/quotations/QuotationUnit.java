@@ -69,8 +69,8 @@ public class QuotationUnit implements Comparable<QuotationUnit>
     /** The volume. */
     private long volume;
     
- 
-    /**
+
+	/**
      * Instantiates a new quotation unit.
      * 
      * @param date the date

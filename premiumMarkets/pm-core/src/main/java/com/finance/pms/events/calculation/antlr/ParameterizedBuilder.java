@@ -48,8 +48,13 @@ public abstract class ParameterizedBuilder extends Observable {
 					desrc = desrc.substring(0,i) + " " + desrc.substring(i);
 					i++;
 				}
+				else if (desrc.charAt(i) == '_' && i < desrc.length()-1) {
+					desrc = desrc.substring(0,i) + " " + desrc.substring(i+1);
+					i++;
+				}
 			}
-			return (""+desrc.charAt(0)).toUpperCase() + desrc.toLowerCase().substring(1);
+			//return (""+desrc.charAt(0)).toUpperCase() + desrc.toLowerCase().substring(1);
+			return (""+desrc.charAt(0)).toUpperCase() + desrc.substring(1);
 		} else {
 			return desrc.toUpperCase();
 		}
@@ -354,6 +359,11 @@ public abstract class ParameterizedBuilder extends Observable {
 			try {
 				BufferedReader bufferedReader = new BufferedReader(new FileReader(formulaFile));
 				String formula = bufferedReader.readLine();
+				String line = null;
+				while ((line = bufferedReader.readLine()) != null) {
+					formula = formula + "\n"+ line;
+				}
+				bufferedReader.close();
 				Operation parsedOp = parseFormula(opName, formula);
 				userOps.put(parsedOp.getReference(), parsedOp);
 				

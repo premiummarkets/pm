@@ -17,20 +17,32 @@ public class ShareListDefaultMgr extends ShareListMgr {
 	protected void removeForeignKeysUpdate(PortfolioShare toRemovePortfolioShare) {
 			
 		SharesList unknownShareList = portfolioDAO.loadShareList(SharesListId.UNKNOWN.name());
-		Stock stock = toRemovePortfolioShare.getStock();
-		PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
-		if (unknownCounterpartPortfolioShare == null) {
-			unknownShareList.addShare(stock);
-			unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+		
+		if (!toRemovePortfolioShare.getPortfolio().equals(unknownShareList)) {
+			Stock stock = toRemovePortfolioShare.getStock();
+			PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+			if (unknownCounterpartPortfolioShare == null) {
+				unknownShareList.addShare(stock);
+				unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+			}
+			portfolioDAO.saveOrUpdatePortfolioShare(unknownCounterpartPortfolioShare);
 		}
-		portfolioDAO.saveOrUpdatePortfolioShare(unknownCounterpartPortfolioShare);
 	
 	}
 	
 	@Override
 	protected void addForeignKeysUpdate(PortfolioShare newPortfolioShare) {
 		
-		//We leave as it in Unknown the stock can be in several portfolios.
+		SharesList unknownShareList = portfolioDAO.loadShareList(SharesListId.UNKNOWN.name());
+		
+		if (!newPortfolioShare.getPortfolio().equals(unknownShareList)) {
+			Stock stock = newPortfolioShare.getStock();
+			PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+			if (unknownCounterpartPortfolioShare != null) {
+				portfolioDAO.saveOrUpdatePortfolioShare(newPortfolioShare);
+				unknownShareList.removeShare(unknownCounterpartPortfolioShare);
+			}
+		}
 		
 	}
 

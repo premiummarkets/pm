@@ -6,6 +6,7 @@ import com.finance.pms.events.operations.nativeops.LeafOperation;
 public class OutputReference implements Comparable<OutputReference> {
 
 	String reference;
+	String operationReference;
 	String outputSelector;
 	String formula;
 	String referenceAsOperand;
@@ -17,6 +18,8 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.formula = operation.getFormula();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		isLeaf = (operation instanceof LeafOperation);
+		
+		this.operationReference = operation.getOperationReference();
 	}
 	
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
@@ -25,6 +28,8 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.formula = operation.getFormula();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		isLeaf = (operation instanceof LeafOperation);
+		
+		this.operationReference = operation.getOperationReference();
 	}
 	
 	@Override
@@ -103,6 +108,10 @@ public class OutputReference implements Comparable<OutputReference> {
 	@Override
 	public String toString() {
 		return "OutputReference [hash=" + hashCode() + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", outputSelector="+ outputSelector + ", formula=" + formula + "]";
+	}
+
+	public String getOperationReference() {
+		return operationReference;
 	}
 	
 }

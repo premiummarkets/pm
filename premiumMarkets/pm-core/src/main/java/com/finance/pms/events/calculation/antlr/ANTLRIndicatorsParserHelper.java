@@ -42,7 +42,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					"reverses up" ,"reverses down" ,
 					"goes up more than" ,"goes down more than" ,
 					"crosses up threshold" ,"crosses down threshold", "equals threshold", "is above threshold", "is below threshold",
-					"makes a higher high over", "makes a higher low over","makes a lower high over", "makes a lower low over",
+					"makes a higher high spanning", "makes a higher low spanning","makes a lower high spanning", "makes a lower low spanning",
 					"crosses up historical" , "crosses down historical", "equals historical", "is above historical" ,"is below historical"
 					));
 	public static final List<String> HISTORICALDATA_TOKENS = new ArrayList<String>(Arrays.asList("close","open","high","low","volume"));

@@ -6,8 +6,9 @@ options {
 	ASTLabelType=CommonTree;
 }
 tokens {
-  Double ;
-  StockOperation ;
+  Double;
+  MAType;
+  StockOperation;
   OperationOutput;
 }
 
@@ -105,6 +106,9 @@ tokens {
   private boolean runtimeHistoryOpAhead() {
     return lexerDelegate.runtimeHistoryOpAhead();
   }
+  public boolean runtimeMATypeOpAhead() {
+     return lexerDelegate.runtimeMATypeOpAhead();
+  }
 
   
 }
@@ -118,13 +122,16 @@ userop :
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
   
 params : param (',' param)* -> param+ ;
-param : Number ->  ^(Double Number) | operand ;
+param : Number ->  ^(Double Number) | MATypeToken -> ^(MAType MATypeToken) | operand ;
 operand : stockhistory -> stockhistory | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) ;
 //outputSelector : OutputSelector -> OutputSelector ;
 
 HistoricalData
      : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low'  | 'volume')
+     ;
+MATypeToken
+     : {runtimeMATypeOpAhead()}? => ('Sma'|'Ema'|'Wma'|'Dema'|'Tema'| 'Trima'| 'Kama'| 'Mama'| 'T3')
      ;
 Nativeop 
      : {runtimeNativeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+

@@ -30,160 +30,83 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.math.BigDecimal;
-import java.security.InvalidAlgorithmParameterException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventType;
-import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.talib.dataresults.StandardEventKey;
-import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.MFI;
-import com.finance.pms.talib.indicators.SMA;
-import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class MFIDivergence extends TalibIndicatorsCompositionCalculator {
+public class MFIDivergence extends OscillatorDivergenceCalculator {
 	
 	MFI mfi;
 	private Integer mfiQuotationStartDateIdx;
-	
-	SMA sma;
-	private Integer smaQuotationStartDateIdx;
+
 	
 	public MFIDivergence(Stock stock, MFI mfi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.mfi = mfi;
 		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(mfiQuotationStartDateIdx, endDate);
-		isValidData(stock, mfi, startDate, mfiQuotationStartDateIdx, macdQuotationEndDateIdx);
-		
-		try {
-			this.sma = new SMA(stock,12, startDate, endDate, calculationCurrency, Math.max(20, getDaysSpan()), 0);
-		} catch (TalibException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
+		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(getOscillatorQuotationStartDateIdx(), endDate);
+		isValidData(stock, mfi, startDate, getOscillatorQuotationStartDateIdx(), macdQuotationEndDateIdx);
 	
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
-		
-		FormulatRes res = new FormulatRes(EventDefinition.PMMFIDIVERGENCE);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
-		
-		int mfiIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx);
-		double[] mfiLookBackP = Arrays.copyOfRange(this.mfi.getMfi(), mfiIdx - getDaysSpan(), mfiIdx);
-		double[] quotationLookBackP = Arrays.copyOfRange(this.getCalculatorQuotationData().getCloseValues(), calculatorIndex - getDaysSpan(), calculatorIndex);
-		
-		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
-		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
-		
-		double[] lowThreshLookBackP = new double[getDaysSpan()];
-		for (int i = 0; i < lowThreshLookBackP.length; i++) {
-			lowThreshLookBackP[i] = 50; //this.mfi.getLowerThreshold();
-			
-		}
-		
-		double[] upperThreshLookBackP = new double[getDaysSpan()];
-		for (int i = 0; i < upperThreshLookBackP.length; i++) {
-			upperThreshLookBackP[i] = 50; //this.mfi.getUpperThreshold();
-			
-		}
-		
-		{
-			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
-			Boolean isMfiUp = higherLow(mfiLookBackP, lowThreshLookBackP) && mfi.getMfi()[mfiIdx - getDaysSpan()] < mfi.getLowerThreshold();
-			res.setBullishCrossOver(isPriceDown && isMfiUp); 
-			
-			if (res.getBullishCrossOver()) return res;
-		}
-		{
-			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
-			Boolean isMfiDown = lowerHigh(mfiLookBackP, upperThreshLookBackP) && mfi.getMfi()[mfiIdx - getDaysSpan()] > mfi.getUpperThreshold();
-			res.setBearishCrossBellow(isPriceUp && isMfiDown);
-		
-			return res;
-		}
+	protected double getOscillatorLowerThreshold() {
+		return mfi.getLowerThreshold();
 	}
-	
-	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
-		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, index);
-		if (indicator instanceof MFI) return this.isInDataRange((MFI)indicator, index);
-		throw new RuntimeException("Booo",new Throwable());
-	}
-	
-	private boolean isInDataRange(SMA sma, Integer index) {
-		return 0 <= index && index < sma.getSma().length;
-	}
-	
-	public Boolean isInDataRange(MFI rsi, Integer index) {
-		return getDaysSpan() <= index && index < rsi.getMfi().length;
+	@Override
+	protected double getOscillatorUpperThreshold() {
+		return mfi.getUpperThreshold();
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
-		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFIDIVERGENCE,EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFIDIVERGENCE,EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
-		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
-			+ this.mfi.getLowerThreshold() + ","
-			+ this.mfi.getUpperThreshold() + ","
-			+ this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)];
+	protected double[] getOscillatorOutput() {
+		return mfi.getMfi();
+	}
+
+	@Override
+	protected Integer getOscillatorQuotationStartDateIdx() {
+		return mfiQuotationStartDateIdx;
+	}
+
+	@Override
+	protected MFI getOscillator() {
+		return this.mfi;
+	}
+
+	@Override
+	protected String getHeader(List<Integer> scoringSmas) {
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, MFI HigherLow, MFI LowerHigh, LOW TH, UP TH, MFI ,bearish, bullish";
+		head = addScoringHeader(head, scoringSmas);
+		return head+"\n";	
 		
-		if (bearsihEventValue != null) {
-			line = line + ","+calculatorClose+",0,";
-		} else if (bullishEventValue != null){
-			line = line + ",0,"+calculatorClose+",";
-		} else {
-			line = line + ",0,0,";
-		}
-		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
-		return line;
 	}
 	
 	@Override
 	protected double[] buildOneOutput(int calculatorIndex) {
-		
 		return new double[]
 				{
-					this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)],
-					//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
-					this.mfi.getLowerThreshold(),
-					this.mfi.getUpperThreshold()
+					getOscillatorOutput()[getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx())],
+					translateOutputForCharting(this.higherLows.get(calculatorIndex)),
+					translateOutputForCharting(this.lowerHighs.get(calculatorIndex)),
+					getOscillatorLowerThreshold(),
+					getOscillatorUpperThreshold()
 				};
 	}
-
-
+	
 	@Override
-	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI ,bearish, bullish";
-		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
-		
+	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
+		if (indicator instanceof MFI) return this.isInDataRange((MFI)indicator, index);
+		throw new RuntimeException("Boo",new Throwable());
+	}
+	
+	public Boolean isInDataRange(MFI rsi, Integer index) {
+		return getDaysSpan() <= index && index < rsi.getMfi().length;
 	}
 
 	@Override
@@ -195,4 +118,5 @@ public class MFIDivergence extends TalibIndicatorsCompositionCalculator {
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMMFIDIVERGENCE;
 	}
+
 }

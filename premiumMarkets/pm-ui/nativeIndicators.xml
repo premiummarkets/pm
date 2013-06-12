@@ -9,18 +9,22 @@
                     <reference>bullishCondition</reference>
                     <description>bullishCondition</description>
                     <operands/>
+                    <availableOutputSelectors/>
                 </operand>
                 <operand xsi:type="condition">
                     <reference>bearishCondition</reference>
                     <description>bearishCondition</description>
                     <operands/>
+                    <availableOutputSelectors/>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>eventListName</reference>
                     <description>eventListName</description>
                     <operands/>
+                    <availableOutputSelectors/>
                 </operand>
             </operands>
+            <availableOutputSelectors/>
         </calculator>
     </calculators>
 </nativeParametrizedIndicators>

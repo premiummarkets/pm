@@ -73,7 +73,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -483,7 +483,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 							
 					
 						} catch (java.lang.IllegalArgumentException e) {
-							ErrorDialog dialog = new ErrorDialog(NewPortfolioItemDialog.this.getShell(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
+							UserDialog dialog = new UserDialog(NewPortfolioItemDialog.this.getShell(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
 							dialog.open();
 
 						}
@@ -714,14 +714,14 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 		} catch (IllegalStateException e) {
 			LOGGER.warn(e,e);
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,
+			UserDialog inst = new UserDialog(getShell(), SWT.NULL,
 					"Invalid share description\n" +
 					"To search for a share, type the first letters of its name, symbol or isin and select it in the drop down box.\n" +
 					"If the share you are looking for is not present, use the 'Stock lists and Markets' menu to add it.", null);
 			inst.open();
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share.\nInvalid share description\n"+e, null);
+			UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error adding share.\nInvalid share description\n"+e, null);
 			inst.open();
 		}
 	}
@@ -742,7 +742,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			ErrorDialog inst = new ErrorDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+			UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
 			inst.open();
 		}
 		symbolTable.deselectAll();

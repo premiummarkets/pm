@@ -95,7 +95,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	//Initialized in spring context
+	//Initialised in spring context
 	public CommonIndicatorCalculationService(Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators, JmsTemplate jmsTemplate, Queue eventQueue) {
 		this.eventQueue = eventQueue;
 		this.jmsTemplate = jmsTemplate;
@@ -159,8 +159,9 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
 		List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
+		int obsSize = stList.size() + 1;
 		for (Observer observer : observers) {
-			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, stList.size()));
+			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize));
 		}
 		Set<Observer> obsSet = new HashSet<Observer>(Arrays.asList(observers));
 		
@@ -283,8 +284,12 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		
 		try {
 			
-			LOGGER.info("Storing "+allEvents.size()+" sets of events, from "+startDate+" to "+endDate);
+			LOGGER.guiInfo("Storing pass "+passNumber+" events ("+allEvents.size()+" sets), from "+startDate+" to "+endDate);
 			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
+			
+			for (Observer observer : observers) {
+				observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.NONE));
+			}
 			
 		} catch (Exception e) {
 			isDataSetComplete = false;

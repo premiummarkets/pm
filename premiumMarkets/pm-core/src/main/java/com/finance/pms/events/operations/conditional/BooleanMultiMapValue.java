@@ -11,7 +11,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 
-public class BooleanMultiMapValue extends BooleanMapValue {
+public class BooleanMultiMapValue extends BooleanMapValue implements  MultiMapValue {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 
@@ -27,6 +27,8 @@ public class BooleanMultiMapValue extends BooleanMapValue {
 
 	public BooleanMultiMapValue(Set<Date> keySet, boolean initValue) {
 		super(keySet, initValue);
+		additionalOutputs = new HashMap<String, DoubleMapValue>();
+		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 
@@ -57,11 +59,13 @@ public class BooleanMultiMapValue extends BooleanMapValue {
 		return null;
 	}
 	
+	@Override
 	public Map<String, DoubleMapValue> getAdditionalOutputs() {
 		return additionalOutputs;
 	}
 
 
+	@Override
 	public Map<String, Type> getAdditionalOutputsTypes() {
 		return additionalOutputsTypes;
 	}

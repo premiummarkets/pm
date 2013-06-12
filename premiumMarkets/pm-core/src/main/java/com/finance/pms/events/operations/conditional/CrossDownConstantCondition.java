@@ -21,13 +21,8 @@ public class CrossDownConstantCondition extends CrossConstantCondition implement
 	}
 	
 	@Override
-	public int thresholdPosition() {
+	public int inputThresholdPosition() {
 		return 0;
-	}
-
-	@Override
-	public int mainPosition() {
-		return 2;
 	}
 
 }

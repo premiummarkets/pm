@@ -7,5 +7,6 @@ public interface OpsLexerDelegate {
 	public boolean runtimeHistoryOpAhead();
 	public boolean runtimeNativeOpAhead();
 	public boolean runtimeOutputSelectorAhead();
+	public boolean runtimeMATypeOpAhead();
 
 }

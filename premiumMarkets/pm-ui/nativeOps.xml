@@ -1,14 +1,56 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <nativeOperationsBasic>
     <operations>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibSmaOperation">
-            <reference>sma</reference>
-            <description>Sma on any Date Value list containing real historical data or resulting of calculations</description>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmsmaOperation">
+            <reference>sma_</reference>
+            <description>House made SMA on close historical data</description>
             <operands>
                 <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
+                    <reference>number</reference>
                     <referenceAsOperand>smaPeriod</referenceAsOperand>
-                    <description>sma period</description>
+                    <description>Sma period</description>
+                    <defaultValue xsi:type="doubleValue">
+                        <numberValue>200.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
+            <reference>substraction_</reference>
+            <description>Substraction of two historical data series</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>minuend</reference>
+                    <description>minuend</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>subtrahend</reference>
+                    <description>subtrahend</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="product">
+            <reference>product_</reference>
+            <description>Product of n historical data series</description>
+            <operands/>
+            <availableOutputSelectors/>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibSmaOperation">
+            <reference>sma__</reference>
+            <description>Sma on any on any historical data series.</description>
+            <operands>
+                <operand xsi:type="doubleOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>smaPeriod</referenceAsOperand>
+                    <description>Sma period</description>
                     <defaultValue xsi:type="doubleValue">
                         <numberValue>200.0</numberValue>
                     </defaultValue>
@@ -24,91 +66,24 @@
             </operands>
             <availableOutputSelectors/>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmmacdOperation">
-            <reference>housemacd</reference>
-            <description>House made MACD on close historical data</description>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmAroonOperation">
+            <reference>aroon_</reference>
+            <description>Aroon indicator house made</description>
             <operands>
                 <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>macdFastPeriod</referenceAsOperand>
-                    <description>macd Fast period</description>
+                    <reference>number</reference>
+                    <referenceAsOperand>aroonPeriod</referenceAsOperand>
+                    <description>Aroon period</description>
                     <defaultValue xsi:type="doubleValue">
-                        <numberValue>12.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-                <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
-                    <description>macd Slow period</description>
-                    <defaultValue xsi:type="doubleValue">
-                        <numberValue>26.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-                <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
-                    <description>macd Signal period</description>
-                    <defaultValue xsi:type="doubleValue">
-                        <numberValue>9.0</numberValue>
+                        <numberValue>25.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
             </operands>
             <availableOutputSelectors>
-                <availableOutputSelector>macd</availableOutputSelector>
-                <availableOutputSelector>history</availableOutputSelector>
-                <availableOutputSelector>signal</availableOutputSelector>
-            </availableOutputSelectors>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibMacdOperation">
-            <reference>macd</reference>
-            <description>Macd on any Date Value list containing real historical data or resulting of calculations</description>
-            <operands>
-                <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>macdFastPeriod</referenceAsOperand>
-                    <description>macd Fast period</description>
-                    <defaultValue xsi:type="doubleValue">
-                        <numberValue>12.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-                <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
-                    <description>macd Slow period</description>
-                    <defaultValue xsi:type="doubleValue">
-                        <numberValue>26.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-                <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
-                    <description>macd Signal period</description>
-                    <defaultValue xsi:type="doubleValue">
-                        <numberValue>9.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-            </operands>
-            <availableOutputSelectors>
-                <availableOutputSelector>macd</availableOutputSelector>
-                <availableOutputSelector>signal</availableOutputSelector>
+                <availableOutputSelector>down</availableOutputSelector>
+                <availableOutputSelector>up</availableOutputSelector>
             </availableOutputSelectors>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmHouseTrendOperation">
@@ -116,7 +91,7 @@
             <description>Roc logarithmic over a period</description>
             <operands>
                 <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
+                    <reference>number</reference>
                     <referenceAsOperand>logRocPeriod</referenceAsOperand>
                     <description>Roc period</description>
                     <defaultValue xsi:type="doubleValue">
@@ -134,17 +109,60 @@
             </operands>
             <availableOutputSelectors/>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmsmaOperation">
-            <reference>housesma</reference>
-            <description>House made SMA on close historical data</description>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmmacdOperation">
+            <reference>macd_</reference>
+            <description>House made MACD on close historical data</description>
             <operands>
                 <operand xsi:type="doubleOperation">
-                    <reference>doubleValue</reference>
-                    <referenceAsOperand>smaPeriod</referenceAsOperand>
-                    <description>sma period</description>
+                    <reference>number</reference>
+                    <referenceAsOperand>macdFastPeriod</referenceAsOperand>
+                    <description>Macd Fast period</description>
                     <defaultValue xsi:type="doubleValue">
-                        <numberValue>200.0</numberValue>
+                        <numberValue>12.0</numberValue>
                     </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
+                    <description>Macd Slow period</description>
+                    <defaultValue xsi:type="doubleValue">
+                        <numberValue>26.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
+                    <description>Macd Signal period</description>
+                    <defaultValue xsi:type="doubleValue">
+                        <numberValue>9.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>macd</availableOutputSelector>
+                <availableOutputSelector>history</availableOutputSelector>
+                <availableOutputSelector>signal</availableOutputSelector>
+            </availableOutputSelectors>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="division">
+            <reference>division_</reference>
+            <description>Division of two historical data series</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>dividende</reference>
+                    <description>dividende</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>divisor</reference>
+                    <description>divisor</description>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
@@ -152,16 +170,56 @@
             <availableOutputSelectors/>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="sum">
-            <reference>sum</reference>
-            <description>Sum</description>
+            <reference>sum_</reference>
+            <description>Summation of n historical data series</description>
             <operands/>
             <availableOutputSelectors/>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="product">
-            <reference>product</reference>
-            <description>Product</description>
-            <operands/>
-            <availableOutputSelectors/>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibMacdOperation">
+            <reference>macd__</reference>
+            <description>Macd on any historical data series.</description>
+            <operands>
+                <operand xsi:type="doubleOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>macdFastPeriod</referenceAsOperand>
+                    <description>macd Fast period</description>
+                    <defaultValue xsi:type="doubleValue">
+                        <numberValue>12.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
+                    <description>macd Slow period</description>
+                    <defaultValue xsi:type="doubleValue">
+                        <numberValue>26.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
+                    <description>macd Signal period</description>
+                    <defaultValue xsi:type="doubleValue">
+                        <numberValue>9.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>macd</availableOutputSelector>
+                <availableOutputSelector>signal</availableOutputSelector>
+            </availableOutputSelectors>
         </operation>
     </operations>
 </nativeOperationsBasic>

@@ -45,6 +45,15 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 
+
+/**
+ * 
+ * @author Guillaume Thoreton
+ * Additional constraints :
+ * not implemented : 'over'
+ * not implemented : 'for'
+ * does not make sense : 'spanning' . As the condition is a status in time not an event in time.
+ */
 @XmlSeeAlso({SupDoubleMapCondition.class})
 public abstract class CmpDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
@@ -91,12 +100,12 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	@Override
-	public int signalPosition() {
+	public int inputSignalPosition() {
 		return 1;
 	}
 	
 	@Override
-	public int mainPosition() {
+	public int mainInputPosition() {
 		return 0;
 	}
 	

@@ -15,10 +15,10 @@ import java.util.TreeMap;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -28,12 +28,13 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
-import com.finance.pms.ErrorDialog;
+import com.finance.pms.UserDialog;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
+import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventRefreshController;
@@ -64,21 +65,25 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private Boolean spinnerSelection;
 	
 
+	private PopupMenu<EventInfo> evtDefTrendPopupMenu;
+	private PopupMenu<EventInfo> evtDefChartingPopupMenu;
+	private Button evtDefsTrendChartingBut;
+	private Button evtDefsChartingBut;
+
+	
+
 	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
 		super();
 		
-//TODO recalculate only selected indicators
-//		ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
-//		config = shareListMgr.initConfig();
-
+		//TODO recalculate only selected indicators?
 		this.alphaDividend = MainPMScmd.getPrefs().getDouble("chart.alphaDividend", 2);
 		this.spinnerSelection = false;
 		
 		this.chartTarget = chartTarget;
 		this.calculating = null;
 		populatePopups(chartTarget.getPopusGroup());
-		this.chartTarget.getMainChartWraper().getMainYAxis().setNumberFormatOverride(ChartMain.NUMBER_FORMAT);
-		this.chartTarget.getMainChartWraper().getMainPlot().setNoDataMessage(
+		this.chartTarget.getMainChartWraper().initMainPlot(
+				ChartMain.NUMBER_FORMAT, 
 				"Nothing to display?\n" +
 				"Select a stock in your portfolio and " +
 				"Use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select indicators.\n" +
@@ -87,12 +92,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 
-
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, boolean recalculationGranted) {
 
 		if (!chartTarget.isVisible() || idx == null || selectedShare == null ) {
-			chartTarget.getMainChartWraper().getMainYAxis().setLabel("");
+			chartTarget.getMainChartWraper().setMainYAxisLabel("");
 			return;
 		}
 		
@@ -102,13 +106,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
 			chartTarget.getMainChartWraper().resetBarChart();
 		} 
+		if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+			chartTarget.getMainChartWraper().resetIndicChart();
+		}
+		
 		hideAllButSelected(selectedShare);
 
 		if (!chartTarget.getChartedEvtDefsTrends().isEmpty() || !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {//Some thing has to be displayed
 
 			if (calculating != null && calculating.equals(selectedShare)) {//This stock is already running a calculation
 
-				ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(), SWT.NONE, "Still calculating indicators for "+selectedShare.getFriendlyName()+".\nThanks for waiting.", null);
+				UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "Still calculating indicators for "+selectedShare.getFriendlyName()+".\nThanks for waiting.", null);
 				dialog.open();
 
 			} else {//We try and run
@@ -148,11 +156,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		if (chartTarget.getChartedEvtDefsTrends().isEmpty()) chartTarget.getMainChartWraper().resetBarChart();
 		
 		if (chartTarget.getChartedEvtDefsTrends().isEmpty() && (chartTarget.getChartedEvtDef() == null || chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO))){
-			ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(), SWT.NONE, "No Indicator or Trend is selected.\n Use the buttons below the chart to select your indicators and trends.", null);
+			UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "No Indicator or Trend is selected.\n Use the buttons below the chart to select your indicators and trends.", null);
 			dialog.open();
 		}
 		
-		chartTarget.getMainChartWraper().getMainYAxis().setLabel(selectedShare.getFriendlyName());
+		//chartTarget.getMainChartWraper().getMainYAxis().setLabel(selectedShare.getFriendlyName());
+		chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
 		chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 1);
 
 	}
@@ -160,22 +169,15 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private void eventsRecalculationAck(final Stock selectedShare) {
 		
 		String msg = "All analysis are not up to date for "+selectedShare.getName()+" and the selected time frame.";
-		String click = "Click to update";
+		String click = "Click to update calculations";
 		ActionDialogAction action  = new ActionDialogAction() {
 
 			@Override
 			public void action(Button targetButton) {
 
 				chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
-				EventRefreshController eventRefreshController = new EventRefreshController(chartTarget.getHightlitedEventModel(), chartTarget, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-					@Override
-					public void mouseDown(MouseEvent evt) {
-						this.updateEventRefreshModelState(false, true, true, false, false, false, 0l);
-						chartTarget.initRefreshAction();
-						super.mouseDown(evt);
-					}
-				};
-				eventRefreshController.mouseDown(null);
+				EventRefreshController refreshHighlitedAnalysisController = refreshHighlitedAnalysisController();
+				refreshHighlitedAnalysisController.widgetSelected(null);
 			}
 			
 		};
@@ -185,6 +187,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 	
 	private void hideAllButSelected(final Stock selectedShare) {
+		
 		for (SlidingPortfolioShare sShare : chartTarget.getListShares()) {
 			if (!sShare.getStock().equals(selectedShare)) {
 				sShare.setDisplayOnChart(false);
@@ -195,6 +198,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
 		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getListShares(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+		
 	}
 	
 	private void updateBarChart(Stock selectedShare, Date exentedStartDate, boolean recalculationGranted, Boolean needsUpdate) {
@@ -226,10 +230,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				}
 			}
 			
+			//TODO UI setting
+			int maxFill = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getPerceptronTrainingPMEventOccLowerSpan();
+			//int maxFill = 0;
+			Boolean isZerobased = true;
+			
 			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barsData = ChartBarUtils.buildBarsData(
 					alphaDividend, selectedShare, 
 					chartTarget.getChartedEvtDefsTrends(),
-					chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), eventsForStock, tuningRess);
+					chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), eventsForStock, tuningRess, 
+					maxFill, isZerobased);
 			
 			chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId());
 		
@@ -238,7 +248,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		//Missing bars
 		if (!needsUpdate && !failingTrendAnalysis.isEmpty()) {
 			String chartedEvtStr = EventDefinition.getEventDefSetAsString(", ",failingTrendAnalysis);
-			ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(),  SWT.NULL, 
+			UserDialog dialog = new UserDialog(chartTarget.getShell(),  SWT.NULL, 
 					"Not all analysis are available to refresh the Trends Bar Chart for this period and "+selectedShare.getFriendlyName()+".\n" +
 					"If you just cleared the calculation, try Refresh calculations.", 
 					"Missing Trends : "+chartedEvtStr+".\n" +
@@ -248,7 +258,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 	}
 
-	private void updateChartIndicator(Stock selectedShare, boolean recalculationGranted) {
+	private void updateChartIndicator(final Stock selectedShare, boolean recalculationGranted) {
 		
 		SortedMap<Date, double[]> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, chartTarget.getChartedEvtDef());
 	
@@ -258,16 +268,26 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			if (!recalculationGranted) {
 			
 				chartTarget.getMainChartWraper().resetIndicChart();
-				ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(),  SWT.NULL, 
-						"No indicator data for this period and "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
+				ActionDialog actionDialog = new ActionDialog(chartTarget.getShell(),  SWT.NULL, 
+						"Warning", "No indicator data for this period and "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
 						"If you cleared the calculation, try Refresh calculations.", 
 						"This may happen if the calculation has been cleared, has failed, is not granted or has not enough quotations for the period.\n" +
-						"Also check the date boundaries as well as the indicators displayed.");
-				dialog.open();
+						"Also check the date boundaries as well as the indicators displayed.",
+						"Update calculations Now?", new ActionDialogAction() {
+							@Override
+							public void action(Button targetButton) {
+								chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
+								EventRefreshController refreshHighlitedAnalysisController = refreshHighlitedAnalysisController();
+								refreshHighlitedAnalysisController.widgetSelected(null);
+							}
+						});
+				actionDialog.open();
+				
 			}
 		
 		//Thats all good, we display	
 		} else {
+			
 			SortedMap<Date, double[]> subMap = new TreeMap<Date, double[]>();
 			if (!outputCache.isEmpty()) {
 
@@ -283,10 +303,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				}
 				
 			}
+			
 			try {
 				chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap);
 			} catch (NoSuchElementException e) {
-				ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(), SWT.NONE, 
+				UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, 
 						"I can't refresh Indicator Chart for "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+".\n If you cleared the calculation, try Refresh calculations.",
 						"Because I could not find calculation results for : "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+". Please Refresh calculations or choose an other indicator.");
 				dialog.open();
@@ -308,6 +329,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void endRefreshAction(List<Exception> exceptions) {
+	
 		synchronized (chartTarget.getLogComposite()) {
 			calculating = null;
 		}
@@ -319,7 +341,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		cleanPopupsGroup(popusGroup);
 		
 		{
-			final Button evtDefsChartingBut = new Button(popusGroup, SWT.PUSH);
+			evtDefsChartingBut = new Button(popusGroup, SWT.PUSH);
 			evtDefsChartingBut.setFont(MainGui.DEFAULTFONT);
 			evtDefsChartingBut.setText(INDICATORSBUTTXT);
 			evtDefsChartingBut.setToolTipText("This is to setup the display of indicators historical data at the bottom of the chart.\nYou must select a share in the portfolio to display its analysis.");
@@ -328,33 +350,25 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {		
-					handleEvent(evtDefsChartingBut);
+					handleEvent();
 				}
 				
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleEvent(evtDefsChartingBut);
+					handleEvent();
 				}
 
-				private void handleEvent(final Button evtDefsButs) {
+				private void handleEvent() {
 					
-					Set<EventInfo> availEventDefs = new HashSet<EventInfo>(EventDefinition.loadMaxPassPrefsEventInfo());
-					availEventDefs.add(EventDefinition.ZERO);
-					
-					Set<EventInfo> chartedEvtDefTmpSet = new HashSet<EventInfo>();
-					chartedEvtDefTmpSet.add(chartTarget.getChartedEvtDef());
-					PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(chartTarget, evtDefsButs, availEventDefs, chartedEvtDefTmpSet, false, SWT.RADIO);
-					popupMenu.open();
-
-					Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
-					chartTarget.setChartedEvtDef(chartedEvtDefTmpSet.iterator().next());
-					if (viewStateParams != null && viewStateParams.length == 1 || chartedEvtDefTmpSet.isEmpty()) {
-						highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
+					if (evtDefChartingPopupMenu == null || evtDefChartingPopupMenu.getSelectionShell().isDisposed()) {
+						
+						initEvtChartingPopup(null);
+						
 					} else {
-						if (chartTarget.getChartedEvtDef() != null && !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-							ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
-							dialog.open();
-						}
+						
+						evtDefChartingPopupMenu.getSelectionShell().setVisible(true);
+						evtDefChartingPopupMenu.getSelectionShell().setFocus();
+						
 					}
 					
 				}
@@ -363,7 +377,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		}
 		{
-			final Button evtDefsTrendChartingBut = new Button(popusGroup, SWT.PUSH);
+			evtDefsTrendChartingBut = new Button(popusGroup, SWT.PUSH);
 			evtDefsTrendChartingBut.setFont(MainGui.DEFAULTFONT);
 			evtDefsTrendChartingBut.setText(TRENDBUTTXT);
 			evtDefsTrendChartingBut.setToolTipText("This is to setup the display of gathered indicators trends.\nYou must select a share in the portfolio to display its analysis.");
@@ -372,30 +386,29 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {		
-					handleEvent(evtDefsTrendChartingBut);
+					handleEvent();
 				}
 				
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleEvent(evtDefsTrendChartingBut);
+					handleEvent();
 				}
 
-				private void handleEvent(final Button evtDefsBut) {
+				private void handleEvent() {
 					
-					Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
-					
-					PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(chartTarget, evtDefsBut, availEventDefs, chartTarget.getChartedEvtDefsTrends(), true, SWT.CHECK);
-					popupMenu.open();
-					Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
-					if (viewStateParams != null && viewStateParams.length == 1) {
-						highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
+
+					if (evtDefTrendPopupMenu == null || evtDefTrendPopupMenu.getSelectionShell().isDisposed()) {
+
+						initEvtDefTrendPopup(null);
+
 					} else {
-						if (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
-							ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
-							dialog.open();
-						}
+						
+						evtDefTrendPopupMenu.getSelectionShell().setVisible(true);
+						evtDefTrendPopupMenu.getSelectionShell().setFocus();
+						
 					}
+					
 				}
 
 			});
@@ -404,18 +417,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		{
 			Button recalc =  new Button(popusGroup, SWT.PUSH);
 			recalc.setFont(MainGui.DEFAULTFONT);
-			recalc.setText("Refresh calculations");
-			recalc.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), (RefreshableView)chartTarget.getParent().getParent(), ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-				
-				@Override
-				public void widgetSelected(SelectionEvent evt) {
-					LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
-					this.updateEventRefreshModelState(false,false,true,false, true, false, 0l);
-					((RefreshableView)chartTarget.getParent().getParent()).initRefreshAction();
-					super.widgetSelected(evt);
-				}
-				
-			});
+			recalc.setText("Update calculations");
+			recalc.addSelectionListener(refreshHighlitedAnalysisController());
 			
 		}
 		{
@@ -461,7 +464,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 								highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
 							} else {
 								if ((chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty())) {
-									ErrorDialog dialog = new ErrorDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
+									UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
 									dialog.open();
 								}
 							}
@@ -475,6 +478,24 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		
 		popusGroup.layout();
 		
+	}
+
+
+
+	protected EventRefreshController refreshHighlitedAnalysisController() {
+		
+		return new EventRefreshController(chartTarget.getHightlitedEventModel(), (RefreshableView)chartTarget.getParent().getParent(), ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+			
+			@Override
+			public void widgetSelected(SelectionEvent evt) {
+				LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
+				this.updateEventRefreshModelState(false,true,true,false, true, false, 0l);
+				((RefreshableView)chartTarget.getParent().getParent()).initRefreshAction();
+				super.widgetSelected(evt);
+			}
+		
+		};
+	
 	}
 
 
@@ -519,7 +540,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 
-
 	@Override
 	public void exportBarChartPng() {
 		
@@ -558,6 +578,104 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
 		}
+	}
+
+
+	@Override
+	public void refreshView(List<Exception> exceptions) {
+		
+		if (evtDefChartingPopupMenu != null && !evtDefChartingPopupMenu.getSelectionShell().isDisposed()) {
+			Point position = evtDefChartingPopupMenu.getSelectionShell().getLocation();
+			evtDefChartingPopupMenu.getSelectionShell().dispose();
+			initEvtChartingPopup(position);
+		}
+		
+		if (evtDefTrendPopupMenu!= null && !evtDefTrendPopupMenu.getSelectionShell().isDisposed()) {
+			Point position = evtDefTrendPopupMenu.getSelectionShell().getLocation();
+			evtDefTrendPopupMenu.getSelectionShell().dispose();
+			initEvtDefTrendPopup(position);
+		}
+		
+	}
+	
+	private void initEvtDefTrendPopup(final Point location) {
+		
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				
+				Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
+				ActionDialogAction action = new ActionDialogAction() {
+
+					@Override
+					public void action(Button targetButton) {
+
+						Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
+						if (viewStateParams != null && viewStateParams.length == 1) {
+							highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
+						} else {
+							if (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
+								UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE,
+										"You must select a share in the portfolio to display its analysis.", null);
+								dialog.open();
+							}
+						}
+
+					}
+				};
+				
+				evtDefTrendPopupMenu = new PopupMenu<EventInfo>(chartTarget, evtDefsTrendChartingBut, availEventDefs, chartTarget.getChartedEvtDefsTrends(), true, SWT.CHECK, action);
+				evtDefTrendPopupMenu.open((location != null)?location:new Point(chartTarget.getLocation().x + chartTarget.getSize().x, chartTarget.getLocation().y));
+			}
+			
+		};
+		
+		chartTarget.getDisplay().asyncExec(runnable);
+	
+	}
+
+
+	private void initEvtChartingPopup(final Point location) {
+		
+		Runnable runnable = new Runnable() {
+			
+			public void run() {
+				
+				Set<EventInfo> availEventDefs = new HashSet<EventInfo>(EventDefinition.loadMaxPassPrefsEventInfo());
+				availEventDefs.add(EventDefinition.ZERO);
+				final Set<EventInfo> chartedEvtDefTmpSet = new HashSet<EventInfo>();
+				chartedEvtDefTmpSet.add(chartTarget.getChartedEvtDef());
+				
+				ActionDialogAction action = new ActionDialogAction() {
+
+					@Override
+					public void action(Button targetButton) {
+
+						Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
+						if (!chartedEvtDefTmpSet.isEmpty()) {
+							//changing evtdef selection
+							chartTarget.setChartedEvtDef(chartedEvtDefTmpSet.iterator().next());
+							//if stock selected, we update
+							boolean stockSelected = viewStateParams != null && viewStateParams.length == 1;
+							if (stockSelected) { 
+								highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
+							} else {
+								//warning only if evtdef selected and no stock
+								if (chartTarget.getChartedEvtDef() != null && !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+									UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
+									dialog.open();
+								}
+							}
+						}
+
+					}
+				};
+				evtDefChartingPopupMenu = new PopupMenu<EventInfo>(chartTarget, evtDefsChartingBut, availEventDefs, chartedEvtDefTmpSet, false, SWT.RADIO, action);
+				evtDefChartingPopupMenu.open((location != null)?location:new Point(chartTarget.getLocation().x + chartTarget.getSize().x, chartTarget.getLocation().y));
+			}
+		};
+		
+		chartTarget.getDisplay().asyncExec(runnable);
 	}
 
 }

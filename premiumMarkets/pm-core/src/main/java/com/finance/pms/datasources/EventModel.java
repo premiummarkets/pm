@@ -79,6 +79,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	
 	protected static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	private static Map<Stock, UpdateStamp> cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
+	private static Boolean cacheInit = true;
 	
 	
 	static class EventDefCacheEntry {
@@ -214,12 +215,13 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	 * Callback forlast analyse.
 	 * 		
 	 * @author Guillaume Thoreton
+	 * @throws NotEnoughDataException 
 	 * @throws IncompleteDataSetException 
 	 */
 	//Output can still be available if all events have not been calculated successfully
 	//However bounds date won't be valid and recorded until all events are successfully calculated.
 	//Hence the user will systematically be asked for recalculation if all events are not valid.
-	public synchronized void callbackForlastAnalyse(Date startAnalyseDate) {
+	public synchronized void callbackForlastAnalyse(Date startAnalyseDate) throws NotEnoughDataException {
 		
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput = eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams);
 		
@@ -227,6 +229,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			
 			//Update cache
 			outputCache.putAll(callbackForlastAnalyseOutput);
+			cacheInit = false;
 			
 			//Update cache bounds records
 			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
@@ -297,6 +300,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 				cacheTimeStamps.remove((Stock)stock);
 			}
 		}
+		cacheInit = false;
 		
 	}
 
@@ -441,6 +445,12 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		} else {
 			return false;
 		}
+	}
+	
+	public Boolean isAnalyseDataCleared() {
+		if (cacheInit) return false;
+		if (outputCache != null && !outputCache.isEmpty()) return false;
+		return true;
 	}
 
 	
