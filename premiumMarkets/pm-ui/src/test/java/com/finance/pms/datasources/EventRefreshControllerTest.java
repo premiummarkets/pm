@@ -54,7 +54,7 @@ import com.finance.pms.events.gui.EventsComposite;
 
 
 // TODO: Auto-generated Javadoc
-//@ContextConfiguration(locations = {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"})
+//@ContextConfiguration(locations = {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"})
 /**
  * The Class EventRefreshControllerTest.
  * 
@@ -645,7 +645,7 @@ private void endTest() {
  * @author Guillaume Thoreton
  */
 private void mouseDown(EventRefreshController eventRefreshController) {
-	eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse, false, false, false, 0l);
+	//FIXME eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse, false, false, false, 0l);
 	eventRefreshController.mouseDown((MouseEvent) org.easymock.EasyMock.anyObject());
 }
 

@@ -60,9 +60,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 
 /**
@@ -309,7 +309,7 @@ public class DbSettings extends Dialog {
 							SpringContext ctx = new SpringContext(pathToProps);
 							//ctx.setDataSource(pathToProps);
 							ctx.setMasSource(pathToProps,"false");
-							ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
+							ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
 							ctx.refresh();
 							
 							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));

@@ -101,6 +101,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		}
 		this.layout();
 		this.pack();
+				
 	}
 	
 	/**
@@ -122,8 +123,8 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		progressBarLabel.setText("Time elapsed : "+timeElapsedStr);
 		progressBarLabel.pack();
 		
-		logDisplay.setText(MyLogger.lastMessage);
-		logDisplay.setToolTipText(MyLogger.lastMessage);
+		logDisplay.setText(MyLogger.lastMsg.getLastMessage());
+		logDisplay.setToolTipText(MyLogger.lastMsg.getLastMessage());
 		logDisplay.pack();
 		
 		double percentDone = (totalIter == 0)? 0 : new Double(nbIterDone)/new Double(totalIter);
@@ -156,6 +157,26 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		progressBar.setSelection(0);
 		startTime = (new Date()).getTime();
 		this.view = view;
+		
+		Observer observer = new Observer() {
+			
+			@Override
+			public void update(Observable o, final Object arg) {
+
+				LogComposite.this.view.getDisplay().asyncExec(new Runnable() {
+
+					public void run() {
+						logDisplay.setText((String) arg);
+						logDisplay.setToolTipText((String) arg);
+						logDisplay.pack();
+						LogComposite.this.layout();
+					}
+
+				});
+			}
+		};
+		
+		MyLogger.lastMsg.addObserver(observer);
 	}
 
 	public void update(Observable o, Object arg) {

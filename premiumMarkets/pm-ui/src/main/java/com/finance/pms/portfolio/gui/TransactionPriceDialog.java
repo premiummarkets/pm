@@ -117,7 +117,7 @@ public class TransactionPriceDialog {
 			//ctx.setDataSource(dbfile);
 			//ctx.setProvidersSource(dbfile);
 			ctx.setMasSource(dbfile,"false");
-			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
+			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
 			ctx.refresh();
 		
 			//FIXME tests

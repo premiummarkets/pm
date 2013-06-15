@@ -196,10 +196,12 @@ public class EventsResources {
 	private class StockEventsCache  {
 		
 		ConcurrentHashMap<Stock, SoftReference<EventCacheEntryList>> underLayingSoftMap;
+		ConcurrentHashMap<Stock, Integer> underLayingSoftMapMonitor;
 
 		public StockEventsCache() {
 			super();
 			underLayingSoftMap = new ConcurrentHashMap<Stock, SoftReference<EventCacheEntryList>>();
+			underLayingSoftMapMonitor = new ConcurrentHashMap<Stock, Integer>();
 		}
 
 		public Set<Stock> keySet() {
@@ -207,29 +209,34 @@ public class EventsResources {
 		}
 		
 
-		public void createEventsInStockCache(List<SymbolEvents> events) {
+		public void createEventsInStockCache(List<SymbolEvents> events, boolean checkMonitor) {
 
-			addEventsInStockSoftCache(events);
+			addEventsInStockSoftCache(events, checkMonitor);
 		}
 
-		public EventCacheEntryList readEventsInStockCache(Stock stock) {
+		public EventCacheEntryList readEventsInStockCache(Stock stock, boolean checkMonitor) {
 
 			SoftReference<EventCacheEntryList> softRef = underLayingSoftMap.get(stock);
 			if (softRef == null) {
+				if (checkMonitor && !isCachePersistent && underLayingSoftMapMonitor.contains(stock)) {
+					throw new IllegalStateException(
+							"You are using no persistence (isCachePersistent is "+isCachePersistent+" and isEventPersited is "+!checkMonitor+" as per checkMonitor)." +
+							" And stock "+stock.getFriendlyName()+ " had once events in the cache but they have been garbage collected." +
+							" You may either increase memory or use persistence");
+				}
 				return null;
 			} else {
 				return softRef.get();
 			}
 		}
 
-		public void deleteEventsInStockCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
-						
+		public void deleteEventsInStockCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {	
 			deleteEventsInStockSoftCache(stock, startDate, endDate, indicatorsList);
 		}
 
 		private void deleteEventsInStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
 			
-			SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsInStockCache(stock);
+			SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsInStockCache(stock, false);
 			if (eventsForStockAndAnalysis != null) {
 				SortedSet<EventCacheEntry> dateSubSet = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
 				SortedSet<EventCacheEntry> subSetToRemove = new TreeSet<EventCacheEntry>(new EventCacheEntryComparator());
@@ -243,10 +250,10 @@ public class EventsResources {
 			}
 		}
 
-		private void addEventsInStockSoftCache(List<SymbolEvents> events) {
+		private void addEventsInStockSoftCache(List<SymbolEvents> events, boolean checkMonitor) {
 			
 			for (SymbolEvents symbolEvents : events) {
-				EventCacheEntryList sortedEventsForStock = this.readEventsInStockCache(symbolEvents.getStock());
+				EventCacheEntryList sortedEventsForStock = this.readEventsInStockCache(symbolEvents.getStock(), checkMonitor);
 				if (sortedEventsForStock == null) {
 					sortedEventsForStock = new EventCacheEntryList(new EventCacheEntryComparator());
 					this.createEventsInSoftStockCache(symbolEvents.getStock(), sortedEventsForStock);
@@ -257,10 +264,12 @@ public class EventsResources {
 		
 		private void createEventsInSoftStockCache(Stock stock, EventCacheEntryList cacheEntries) {
 
-			SoftReference<EventCacheEntryList> oldValue = underLayingSoftMap.put(stock, new SoftReference<EventCacheEntryList>(cacheEntries));
+			SoftReference<EventCacheEntryList> value = new SoftReference<EventCacheEntryList>(cacheEntries);
+			SoftReference<EventCacheEntryList> oldValue = underLayingSoftMap.put(stock, value);
 			if (oldValue != null) {
 				oldValue.clear();
 			}
+			underLayingSoftMapMonitor.put(stock, value.hashCode());
 		}
 	}
 
@@ -302,7 +311,7 @@ public class EventsResources {
 		
 	}
 	
-	private void addEventsToCache(List<SymbolEvents> events, String eventListName) {
+	private void addEventsToCache(List<SymbolEvents> events, String eventListName, boolean checkMonitor) {
 
 		if (isEventCached) {
 			
@@ -312,13 +321,13 @@ public class EventsResources {
 					eventsForName = new StockEventsCache();
 					EVENTS_CACHE.put(eventListName, eventsForName);
 				}
-				eventsForName.createEventsInStockCache(events);
+				eventsForName.createEventsInStockCache(events, checkMonitor);
 			}
 		}
 		
 	}
 	
-	private void addEventsToSoftCache(List<SymbolEvents> events, String eventListName) {
+	private void addEventsToSoftCache(List<SymbolEvents> events, String eventListName, boolean checkMonitor) {
 
 		if (isEventCached) {
 
@@ -328,7 +337,7 @@ public class EventsResources {
 					eventsForName = new StockEventsCache();
 					EVENTS_CACHE.put(eventListName, eventsForName);
 				}
-				eventsForName.addEventsInStockSoftCache(events);
+				eventsForName.addEventsInStockSoftCache(events, checkMonitor);
 			}
 		}
 
@@ -356,22 +365,22 @@ public class EventsResources {
 		return subSymbolEvents;
 	}
 
-	private void updateEventsCache(Date startDate, Date endDate,Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache) {
+	private void updateEventsCache(Date startDate, Date endDate,Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache, boolean checkMonitor) {
 		
 		String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
 		for (String eventListName : eventListNames) {		
 			List<SymbolEvents> eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, startDate, endDate, eventDefinitions, eventListName);
-			this.addEventsToSoftCache(eventsForName, eventListName);
+			this.addEventsToSoftCache(eventsForName, eventListName, checkMonitor);
 		}
 		
 	}
 
-	private void updateEventsCache(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache) {
+	private void updateEventsCache(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache, boolean checkMonitor) {
 
 		String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
 		for (String eventListName : eventListNames) {
 			SymbolEvents eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, eventDefinitions, eventListName);
-			this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForName}), eventListName);
+			this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForName}), eventListName, checkMonitor);
 		}
 	}
 	
@@ -389,11 +398,11 @@ public class EventsResources {
 		if (isEventCached) {
 			
 			if (isPersisted) {
-				this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, false);
+				this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, false, !isPersisted);
 			}
 			
 			if (isCachePersistent) {
-				this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, true);
+				this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, true, !isPersisted);
 			}
 			
 			for (String eventListName : eventListNamesSet) {
@@ -403,7 +412,7 @@ public class EventsResources {
 					LOGGER.info("No events cached for " + eventListName+ " and "+stock + " from "+startDate+" to "+endDate);
 				} else {
 					try {
-						retVal = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions);
+						retVal = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions, !isPersisted);
 					} catch (Exception e) {
 						LOGGER.error("Stock "+stock+" event retrieval pb : "+e, e);
 					}
@@ -433,11 +442,11 @@ public class EventsResources {
 		if (isEventCached) {
 			
 			if (isPersisted) {
-				this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, false);
+				this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, false, !isPersisted);
 			}
 			
 			if (isCachePersistent) {
-				this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, true);
+				this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, true, !isPersisted);
 			}
 			
 			for (String eventListName : eventListNamesSet) {
@@ -449,7 +458,7 @@ public class EventsResources {
 					for (Stock stock : eventsForName.keySet()) {
 						SymbolEvents subCachedEvents;
 						try {
-							subCachedEvents = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions);
+							subCachedEvents = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions, !isPersisted);
 							if (subCachedEvents != null) {
 								if (retVal.contains(subCachedEvents)) {
 									retVal.get(retVal.indexOf(subCachedEvents)).addEventResultElement(subCachedEvents);
@@ -481,13 +490,13 @@ public class EventsResources {
 		return eventListNamesSet;
 	}
 	
-	private SymbolEvents subSoftCachedEvents(Stock stock, Date startDate, Date endDate, StockEventsCache eventsForName, String eventListName, Set<EventInfo> eventDefinitions) {
+	private SymbolEvents subSoftCachedEvents(Stock stock, Date startDate, Date endDate, StockEventsCache eventsForName, String eventListName, Set<EventInfo> eventDefinitions, boolean checkMonitor) {
 
 		SymbolEvents subSymbolEvents = new SymbolEvents(stock, EventState.STATE_TERMINATED);
 		EventCacheEntry startInfEvent = smallestCacheEntry(startDate);
 		EventCacheEntry endSupEvent = bigestCacheEntry(endDate);
 		
-		SortedSet<EventCacheEntry> eventsForStockAndName = eventsForName.readEventsInStockCache(stock);
+		SortedSet<EventCacheEntry> eventsForStockAndName = eventsForName.readEventsInStockCache(stock, checkMonitor);
 		if (eventsForStockAndName != null && !eventsForStockAndName.isEmpty()) {
 			try {
 				SortedSet<EventCacheEntry> eventSubSet = eventsForStockAndName.subSet(startInfEvent, endSupEvent);
@@ -561,7 +570,7 @@ public class EventsResources {
 				persitEvents(events, eventListName, EVENTSCACHETABLE, false, "");
 			}
 
-			addEventsToCache(events, eventListName);
+			addEventsToCache(events, eventListName, !isDataPersisted);
 		}
 	
 		if (isDataPersisted || !isEventCached) {

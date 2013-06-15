@@ -32,7 +32,6 @@ package com.finance.pms.datasources;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +50,6 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
@@ -63,7 +61,6 @@ import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -78,6 +75,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 
 	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) throws StockNotFoundException {
 		
+		LOGGER.guiInfo("Task : Updating quotations");
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		
 		LOGGER.debug("Fetching monitored quotations");
@@ -88,6 +86,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 
 	@SuppressWarnings("unchecked")
 	private void updateQuotations(QuotationUpdate quotationUpdate, Object... viewStateParams) throws StockNotFoundException {
+		
 		@SuppressWarnings("rawtypes")
 		List stockList = Arrays.asList(viewStateParams);
 		quotationUpdate.getQuotesFor(stockList);
@@ -110,26 +109,28 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		@SuppressWarnings("rawtypes")
 		List stockList = new ArrayList(Arrays.asList(viewStateParams));
 
-		@SuppressWarnings("rawtypes")
-		List invalid = new ArrayList<Stock>();
-		for (Object stock : stockList) {
-			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(firstQuotationDateFromQuotations);
-			QuotationsFactories.getFactory().incrementDate(calendar, 50);
-			if (calendar.getTime().after(datedeb)) {
-				LOGGER.warn("Not enough quotations to compute over the requested period, please adjust for Stock "+stock);
-				invalid.add(stock);
-			}
-		}
-		stockList.removeAll(invalid);
+//		@SuppressWarnings("rawtypes")
+//		List invalid = new ArrayList<Stock>();
+//		for (Object stock : stockList) {
+//			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
+//			Calendar calendar = Calendar.getInstance();
+//			calendar.setTime(firstQuotationDateFromQuotations);
+//			QuotationsFactories.getFactory().incrementDate(calendar, 50);
+//			if (calendar.getTime().after(datedeb)) {
+//				LOGGER.warn("Not enough quotations to compute over the requested period, please adjust for Stock "+stock);
+//				invalid.add(stock);
+//			}
+//		}
+//		stockList.removeAll(invalid);
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		if (stockList.size() == 0) throw new NotEnoughDataException(null, "The following stock does not have enough quotations to be calculated from "+datedeb+" : "+invalid, new Throwable());
+//		if (stockList.size() == 0) throw new NotEnoughDataException(null, "The following stock does not have enough quotations to be calculated from "+datedeb+" : "+invalid, new Throwable());
+		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected, please adjust", new Throwable());
 		
 		for (int i = 0; i < analysers.length; i++) {
 
-			LOGGER.debug("running analysis for " + analysers[i]);
+			LOGGER.guiInfo("Task : Analysing from "+datedeb+" to "+datefin);
+			
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
@@ -221,7 +222,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
 		for (Object stock : viewStateParams) {
 			
-			LOGGER.guiInfo("Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
+			LOGGER.guiInfo("Task : Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
 			
 			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
 			TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
@@ -229,6 +230,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			for (Observer observer : engineObservers) {
 				observer.update(null, new ObserverMsg((Stock) stock, ObserverMsg.ObsKey.NONE));
 			}
+			
 		}
 		
 		return false;

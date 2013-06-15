@@ -70,14 +70,14 @@ public class UserDialog extends Dialog {
 
 
 	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
-		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
-		this.getParent().setText("Warning");
+		super(new Shell(parent, SWT.SHEET | SWT.ON_TOP | SWT.RESIZE));
+		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
 	
-	public UserDialog(Shell parent, int style, String title, String erreur, String addMessage) {
-		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
+	protected UserDialog(Shell parent, int style, String title, String erreur, String addMessage) {
+		super(new Shell(parent, style));
 		this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
@@ -125,14 +125,11 @@ public class UserDialog extends Dialog {
 			getParent().pack();
 			getParent().open();
 			boolean setFocus = getParent().setFocus();
-//			boolean forceFocus = getParent().forceFocus();
 			boolean setFocus2 = valideButton1.setFocus();
-//			boolean forceFocus2 = valideButton1.forceFocus();
-//			LOGGER.info("Error dialog focus : "+setFocus+" and "+forceFocus+", button focuses : "+setFocus2+" and "+forceFocus2);
 			LOGGER.info("Dialog focus : "+setFocus+" , dialog button focuses : "+setFocus2);
 			
 			Display display = getParent().getDisplay();
-			while (!getParent().isDisposed()) {
+			while (!getParent().isDisposed() && getParent().isVisible()) {
 				try {
 					if (!display.readAndDispatch()) display.sleep();
 				} catch (RuntimeException e) {

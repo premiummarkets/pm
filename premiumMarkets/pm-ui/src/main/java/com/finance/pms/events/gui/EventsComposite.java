@@ -69,7 +69,6 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.UserDialog;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
@@ -77,6 +76,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.TableToolTip;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -359,7 +359,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 						public void mouseDown(MouseEvent evt) {
 					
 							PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton,  EventDefinition.loadMaxPassPrefsEventInfo(), selectedEventInfos, true, SWT.CHECK, null);
-							popupMenu.open(null);
+							popupMenu.open();
 							eventFilterChange(selectedEventInfos);
 						}
 					});
@@ -447,7 +447,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 								selectedShareLists.addAll(Arrays.asList(viewStateParams));
 							}
 							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, selectedMarketsFilterbutton, shareLists, selectedShareLists, true, SWT.CHECK, null);
-							popupMenu.open(null);
+							popupMenu.open();
 							allStocksEventModel.setViewStateParams(selectedShareLists.toArray());
 							
 							try {
@@ -581,7 +581,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshMonitored.addMouseListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
 						public void mouseDown(MouseEvent evt) {
-							this.updateEventRefreshModelState(quotationListBox.getSelection(), quotationBox.getSelection(), true, false,  false, false, 0l);
+							//updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse,) 
+							List<TaskId> taskIds = new ArrayList<EventRefreshController.TaskId>();
+							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
+							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
+							taskIds.add(TaskId.Analysis);
+							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
 							super.mouseDown(evt);
 						}
@@ -600,7 +605,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshPortfolios.addMouseListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
 						public void mouseDown(MouseEvent evt) {
-							this.updateEventRefreshModelState(quotationListBox.getSelection(), quotationBox.getSelection(), true, false,  false, false, 0l);
+							// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+							List<TaskId> taskIds = new ArrayList<EventRefreshController.TaskId>();
+							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
+							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
+							taskIds.add(TaskId.Analysis);
+							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
 							super.mouseDown(evt);
 						}
@@ -631,10 +641,15 @@ public class EventsComposite extends Composite implements RefreshableView {
 								selectedShareLists.addAll(Arrays.asList(viewStateParams));
 							}
 							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, refreshSelectedMarkets, shareLists, selectedShareLists, true, SWT.CHECK, null);
-							popupMenu.open(null);
+							popupMenu.open();
 
 							allStocksEventModel.setViewStateParams(selectedShareLists.toArray());
-							this.updateEventRefreshModelState(quotationListBox.getSelection(), quotationBox.getSelection(), true, false,  false, false, 0l);
+							
+							List<TaskId> taskIds = new ArrayList<EventRefreshController.TaskId>();
+							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
+							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
+							taskIds.add(TaskId.Analysis);
+							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 
 							initRefreshAction();
 							super.mouseDown(evt);
@@ -1042,6 +1057,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
+	@Override
 	public void refreshView(List<Exception> exceptions) {
 		
 		// Refresh view

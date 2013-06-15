@@ -73,9 +73,9 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;

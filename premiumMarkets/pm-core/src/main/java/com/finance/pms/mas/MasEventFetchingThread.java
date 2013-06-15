@@ -52,7 +52,6 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.SourceClient;
-import com.finance.pms.threads.ThreadSemaphore;
 
 
 
@@ -106,8 +105,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public MasEventFetchingThread(String periodType, Stock stock, String datedeb, String datefin, String analyseName,
-			ThreadSemaphore threadSemaphore,Queue eventQueue, JmsTemplate jmsTemplate) {
+	public MasEventFetchingThread(String periodType, Stock stock, String datedeb, String datefin, String analyseName, Queue eventQueue, JmsTemplate jmsTemplate) {
 
 		this.period = periodType;
 		this.stock = stock;

@@ -37,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Observable;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
@@ -101,7 +102,9 @@ public class MyLogger {
 	
 	private static String mailActivationType;
 	
-	public static String lastMessage = ""; 
+	//public static String lastMessage = ""; 
+	public static GuiLoggerObservable lastMsg = new GuiLoggerObservable();
+	
 	public static String version = "None";
 	
 	
@@ -295,7 +298,24 @@ public class MyLogger {
 	}
 	
 	/** The delegate logger. */
-	Logger delegateLogger;
+	private Logger delegateLogger;
+	
+	
+	public static class GuiLoggerObservable extends Observable {
+		
+		String lastMessage;
+
+		public void setLastMessage(String lastMessage) {
+			this.lastMessage = lastMessage;
+			setChanged();
+			notifyObservers(lastMessage);
+		}
+
+		public String getLastMessage() {
+			return lastMessage;
+		} 
+		
+	}
 
 	/**
 	 * Instantiates a new my logger.
@@ -587,7 +607,9 @@ public class MyLogger {
 	 */
 	public void guiInfo(Object message) {
 		delegateLogger.info(message);
-		lastMessage = message.toString();
+		//lastMessage = message.toString();
+		lastMsg.setLastMessage(message.toString());
+		
 	}
 
 	/**

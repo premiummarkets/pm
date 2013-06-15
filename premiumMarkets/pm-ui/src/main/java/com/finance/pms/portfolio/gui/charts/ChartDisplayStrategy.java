@@ -95,4 +95,6 @@ public abstract class ChartDisplayStrategy {
 
 	public  abstract void refreshView(List<Exception> exceptions);
 
+	public abstract void shutDownDisplay();
+
 }

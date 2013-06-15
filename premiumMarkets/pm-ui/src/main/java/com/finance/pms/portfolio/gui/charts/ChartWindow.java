@@ -73,7 +73,7 @@ public class ChartWindow extends JFrame {
 		//ctx.setDataSource(dbfile);
 		//ctx.setProvidersSource(dbfile);
 		ctx.setMasSource(dbfile, "false");
-		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml", "talibanalysisservices.xml","masanalysisservices.xml" });
+		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml", "talibanalysisservices.xml" });
 		ctx.refresh();
 		
 		//"FTE.PA";"FRANCE TELECOM";"FR0000133308";"ALL";1;"2008-04-25";"YAHOO  

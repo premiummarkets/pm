@@ -91,6 +91,11 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 						eventCalculations.add(instanciatedECC);
 					}
 					
+				} catch (InvocationTargetException e) {
+					
+					//LOGGER.warn(e);
+					isDataSetComplete = false;
+					
 				} catch (Exception e) {
 					
 					LOGGER.warn(e,e);
@@ -142,6 +147,8 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 				}
 			} else if (e.getCause() instanceof ErrorException) {
 				LOGGER.error(stock+ " second pass calculation error ",e);
+			} else {
+				LOGGER.error(stock+ " second pass calculation unhandled error ",e);
 			}
 			throw e;
 		} catch (Exception e) {
@@ -160,7 +167,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 
 		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
 			if (checkWanted(eventDefinition)) {
-				LOGGER.info("cleaning "+eventDefinition+" events for "+eventListName+" from "+datedeb + " to "+datefin);
+				LOGGER.info("cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
 				EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
 			}
 		}

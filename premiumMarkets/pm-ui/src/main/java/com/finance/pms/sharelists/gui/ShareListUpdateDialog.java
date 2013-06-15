@@ -36,8 +36,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
@@ -80,11 +80,8 @@ public class ShareListUpdateDialog extends Dialog {
 	public ShareListUpdateDialog(Shell parent, int style) {
 		
 		super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.RESIZE | SWT.SHELL_TRIM), style);
-		this.setText("Add or Update a Stock list");
+		getParent().setText("Premium Markets - Add or Update a Stock list");
 				
-		//FontData[] defaultFontData = MainGui.DEFAULTFONT.getFontData();
-		//defaultFontData[0].setHeight(11);
-		//biggerFont = new Font(getParent().getDisplay(), defaultFontData);
 		biggerFont = MainGui.DEFAULTFONT;
 		
 	}

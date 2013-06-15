@@ -11,6 +11,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -21,19 +22,24 @@ import com.finance.pms.portfolio.InfoObject;
 
 public class PopupMenu<T extends InfoObject>  {
 
-	private final Control root;
+	private final Composite rootParent;
+	private Control controlParent;
 	private int style;
+	private Shell selectionShell;
+	
+	
 	private Set<T> availableOptSet;
 	private Set<T> selectionSet;
-	private Control parent;
 	
 	private Boolean unableSelectAll;
 	private ActionDialogAction action;
-	private Shell selectionShell;
 
-	public PopupMenu(Control parent, Control root, Set<T> availableOptSet, Set<T> selectionList, Boolean unableSelectAll, int style, ActionDialogAction action) {
+
+	public PopupMenu(Composite rootParent, Control controlParent, Set<T> availableOptSet, Set<T> selectionList, Boolean unableSelectAll, int style, ActionDialogAction action) {
 		super();
-		this.root = root;
+		this.rootParent = rootParent;
+		this.controlParent = controlParent;
+	
 		this.style = style;
 		
 		this.availableOptSet = new TreeSet<T>(new Comparator<T>() {
@@ -43,18 +49,21 @@ public class PopupMenu<T extends InfoObject>  {
 			}
 		});
 		this.availableOptSet.addAll(availableOptSet);
-		
 		this.selectionSet = selectionList;
-		this.parent = parent;
 		
 		this.unableSelectAll = unableSelectAll;
+		
 		this.action = action;
 		
 	}
 
-	public void open(Point location) {
+	public void open() {
+		this.open(null,null);
+	}
+	
+	public void open(Point location, Boolean addWidth) {
 		
-		selectionShell = new Shell(this.parent.getShell());
+		selectionShell = new Shell(rootParent.getShell(), SWT.DIALOG_TRIM);
 		RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
 		selectionShell.setLayout(rowLayout);
 		selectionShell.setFont(MainGui.CONTENTFONT);
@@ -68,6 +77,39 @@ public class PopupMenu<T extends InfoObject>  {
 				}
 			}
 		});
+		
+		initPopup();
+		
+		if (location == null) {
+			
+			Rectangle parentShellBounds = rootParent.getShell().getBounds();
+			Rectangle parentBounds = controlParent.getParent().getBounds();
+			Rectangle pparentBounds = controlParent.getParent().getParent().getBounds();
+			selectionShell.setBounds(
+					parentShellBounds.x + pparentBounds.x +parentBounds.x + controlParent.getBounds().x,  
+					parentShellBounds.y + pparentBounds.y +parentBounds.y + controlParent.getBounds().y, 
+					selectionShell.getBounds().width, selectionShell.getBounds().height);
+		} else {
+			
+			if (addWidth != null && addWidth) location.x = location.x + selectionShell.getSize().x;
+			selectionShell.setLocation(location);
+			
+		}
+		
+		selectionShell.open();
+		
+		Display display = selectionShell.getDisplay();
+		while (!selectionShell.isDisposed () && selectionShell.isVisible ()) {
+			if (!display.readAndDispatch()) display.sleep();
+		}
+		
+		if (!selectionShell.isDisposed ()) {
+			selectionShell.dispose();
+		}
+				
+	}
+
+	protected void initPopup() {
 		
 		if (unableSelectAll) {
 			
@@ -102,7 +144,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.clear();
 					}
 					
-					if (action != null) action.action(null);
+					if (action != null) action.action(selectAllBut);
 					
 				}
 				
@@ -138,7 +180,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.remove(buttonInfo);
 					}
 					
-					if (action != null) action.action(null);
+					if (action != null) action.action(button);
 			
 				}
 				
@@ -148,33 +190,26 @@ public class PopupMenu<T extends InfoObject>  {
 			button.setVisible(true);
 		}
 		
+		selectionShell.layout();
 		selectionShell.pack();
-		
-		Rectangle parentShellBounds = parent.getShell().getBounds();
-		Rectangle parentBounds = root.getParent().getBounds();
-		Rectangle pparentBounds = root.getParent().getParent().getBounds();
-		selectionShell.setBounds(
-				parentShellBounds.x + pparentBounds.x +parentBounds.x + root.getBounds().x,  
-				parentShellBounds.y + pparentBounds.y +parentBounds.y + root.getBounds().y, 
-				selectionShell.getBounds().width, selectionShell.getBounds().height);
-		
-		if (location != null ) selectionShell.setLocation(location);
-		
-		selectionShell.open();
-		selectionShell.setFocus();
-		
-		Display display = selectionShell.getDisplay();
-		while (!selectionShell.isDisposed () && selectionShell.isVisible ()) {
-			if (!display.readAndDispatch()) display.sleep();
-		}
-		
-		if (!selectionShell.isDisposed ()) {
-			selectionShell.dispose();
-		}
-				
 	}
 
 	public Shell getSelectionShell() {
 		return selectionShell;
+	}
+
+	public void updateAction(ActionDialogAction action, Set<T> availEventDefs, Set<T> selectionSet) {
+		
+		this.action = action;
+		this.availableOptSet.clear();
+		this.availableOptSet.addAll(availEventDefs);
+		this.selectionSet = selectionSet;
+		
+		Control[] children = selectionShell.getChildren();
+		for (Control control : children) {
+			control.dispose();
+		}
+		
+		initPopup();
 	}
 }

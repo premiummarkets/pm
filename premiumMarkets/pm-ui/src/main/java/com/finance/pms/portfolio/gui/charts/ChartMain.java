@@ -295,7 +295,7 @@ public class ChartMain extends Chart {
 	}
 	
 	
-	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx) {
+	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx, final Boolean isZeroBased) {
 		
 		Runnable runnable = new Runnable() {
 			
@@ -318,7 +318,16 @@ public class ChartMain extends Chart {
 					
 					@Override
 					public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base) {
-			            bar.setFrame(bar.getX(), bar.getY(), bar.getWidth() + 0, bar.getHeight());
+						
+						//System.out.printf("%f %f %f %f %d %f \n", bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight(), seriesIdx, barHeight);
+						if (isZeroBased) {
+							bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight());
+						} else {
+							int seriesIdx = (row/3) +1;
+							double barHeight = bar.getHeight()/seriesIdx ;
+							bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), barHeight);
+						}
+			       
 			            g2.setColor((Color) renderer.getSeriesPaint(row));
 			            g2.fill(bar);
 			            g2.draw(bar);

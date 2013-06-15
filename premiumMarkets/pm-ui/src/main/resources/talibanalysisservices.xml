@@ -8,9 +8,6 @@
          http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
 	
-	
-	
-	
 	<bean id="talib" class="com.finance.pms.events.calculation.CommonIndicatorCalculationService">
 	
 		<constructor-arg type="java.util.Map" ref="availableSecondPassIndicatorCalculators" />

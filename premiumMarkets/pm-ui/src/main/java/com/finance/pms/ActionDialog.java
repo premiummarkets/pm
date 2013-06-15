@@ -13,7 +13,7 @@ public class ActionDialog extends UserDialog {
 	String actionTxt;
 
 	public ActionDialog(Shell parent, int style, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
-		super(parent, style, title, erreur, addMessage);
+		super(parent, SWT.DIALOG_TRIM, title, erreur, addMessage);
 		this.actionTxt = actionTxt;
 		this.action = action;
 		

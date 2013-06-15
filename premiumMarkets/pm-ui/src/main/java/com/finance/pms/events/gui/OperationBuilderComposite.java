@@ -47,11 +47,12 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventRefreshController;
+import com.finance.pms.datasources.EventRefreshController.TaskId;
 import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ANTLRParserHelper;
 import com.finance.pms.events.calculation.antlr.Alternative;
@@ -162,6 +163,7 @@ public class OperationBuilderComposite extends Composite {
 			refLayoutData.horizontalSpan = 2;
 			formulaReference.setLayoutData(refLayoutData);
 			formulaReference.setFont(MainGui.CONTENTFONT);
+			formulaReference.setToolTipText("Help available at http://premiummarkets.elasticbeanstalk.com/html/swtui.html#UserGuidances");
 			formulaReference.addMouseListener(new MouseListener() {
 				
 				@Override
@@ -571,7 +573,7 @@ public class OperationBuilderComposite extends Composite {
 	protected void clearPreviousCalcsWarning() {
 		
 		final EventRefreshController clearPreviousCalculationsControler = mainGuiParent.clearPreviousCalculationsControler();
-		if (!clearPreviousCalculationsControler.isDataCleared()) {
+		if (clearPreviousCalculationsControler.isValidTask(TaskId.Clean)) {
 		
 			ActionDialog actionDialog = 
 					new ActionDialog(getShell(), SWT.NONE, "You have changed some "+builderLabel()+" formulas.", 
@@ -664,7 +666,7 @@ public class OperationBuilderComposite extends Composite {
 			//Sanity check
 			NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
 			if (checkNextToken != null) {
-				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Error in formula", "Formula "+formula+" can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
+				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula "+formula+" can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
 				dialog.open();
 				return false;
 			} else {
@@ -693,7 +695,7 @@ public class OperationBuilderComposite extends Composite {
 	protected Boolean isNativeOp(String identifier, Operation existingOp) {
 		Boolean isNativeOp = false;
 		if ((existingOp != null && existingOp.isNative()) ||(existingOp = parameterizedBuilder.getNativeOperations().get(identifier)) != null) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", 
+			UserDialog dialog = new UserDialog(getShell(), SWT.NONE,
 					"The identifier you have chosen clashes with a native identifier :\n" +
 					existingOp.getReference()+", "+existingOp.getDescription()+".\n" +
 					"Use an other one, for instance "+identifier+"1 or my"+identifier+" and save again.", null);
@@ -736,7 +738,7 @@ public class OperationBuilderComposite extends Composite {
 
 	protected Boolean checkIdCharacters(String identifier, String addMessage) {
 		for (int i = 0; i < identifier.length(); i++) {
-			if (!Character.isLetterOrDigit(identifier.charAt(i))) {
+			if (!Character.isLetterOrDigit(identifier.charAt(i)) && identifier.charAt(i) != '_') {
 				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", addMessage+"Must not contain white spaces.\n");
 				dialog.open();
 				return false;

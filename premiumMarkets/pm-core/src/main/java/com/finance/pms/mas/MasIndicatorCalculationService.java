@@ -146,7 +146,7 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 //					Thread masReadThread = new Thread(th);
 //					masReadThread.start();
 					//FIXME
-					executor.execute(new MasEventFetchingThread(periodType, stock, dateDeb, dateFin,analyseName, null, this.eventQueue, this.jmsTemplate));
+					//executor.execute(new MasEventFetchingThread(periodType, stock, dateDeb, dateFin,analyseName, null, this.eventQueue, this.jmsTemplate));
 //				} catch (InterruptedException e) {
 //					LOGGER.debug("",e);
 //				}

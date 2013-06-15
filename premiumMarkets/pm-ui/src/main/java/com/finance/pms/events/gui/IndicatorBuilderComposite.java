@@ -12,9 +12,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
+import com.finance.pms.UserDialog;
 import com.finance.pms.events.calculation.antlr.EditorIndsLexerDelegate;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;

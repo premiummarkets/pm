@@ -101,13 +101,13 @@ import org.jfree.chart.ChartColor;
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
-import com.finance.pms.UserDialog;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.SpringContext;
 import com.finance.pms.TableToolTip;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnEvent;
@@ -160,7 +160,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	
 	Integer colorNum = 0;
 	int getNextColor() {
-		synchronized (colorNum) {
+		synchronized (PAINTS) {
 			return (++colorNum % PortfolioComposite.PAINTS.length);
 		}
 	}
@@ -543,7 +543,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 
 										Portfolio portfolio = modelControler.getPortfolio(selectionIndex);
-										//List<SlidingPortfolioShare> shareListInTab = modelControler.getShareListInTab(selectionIndex);
 										Table ttomod = (Table) cTabItem[selectionIndex].getData();
 										if (ttomod.getItems().length != portfolio.getListShares().size()) {
 											updateTabItemsFromPortfolio(selectionIndex, portfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
@@ -579,13 +578,15 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						emailAlertsMenu.addSelectionListener(new EventRefreshController(modelControler.portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 							@Override
 							public void widgetSelected(SelectionEvent evt) {
-								this.updateEventRefreshModelState(false, false, false, false, false, true, 0l);
-								initRefreshAction();
-								super.widgetSelected(evt);
+								handle(evt);
 							}
 							@Override
 							public void widgetDefaultSelected(SelectionEvent evt) {
-								this.updateEventRefreshModelState(false, false, false, false, false, true, 0l);
+								handle(evt);
+							}
+							private void handle(SelectionEvent evt) {
+								// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+								this.updateEventRefreshModelState(0l, TaskId.Alerts);
 								initRefreshAction();
 								super.widgetSelected(evt);
 							}
@@ -747,6 +748,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									slidingPortfolioShare.setDisplayOnChart(false);
 								}
 							}
+							chartsComposite.shutDownDisplay();
 							chartsComposite.setChartDisplayStrategy(new ChartIndicatorDisplay(chartsComposite));
 							chartsComposite.resetChart();
 						}
@@ -763,6 +765,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									slidingPortfolioShare.setDisplayOnChart(true);
 								}
 							}
+							chartsComposite.shutDownDisplay();
 							chartsComposite.setChartDisplayStrategy(new ChartPerfDisplay(chartsComposite));
 							chartsComposite.resetChart();
 						}
@@ -1321,7 +1324,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									}
 								}
 								PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(PortfolioComposite.this, table, availEventDefs, selectedEventDefs, true, SWT.CHECK, null);
-								popupMenu.open(null);
+								popupMenu.open();
 								selectedShare.clearAlertOnEvent();
 								if (!selectedEventDefs.isEmpty()) {
 									selectedShare.setMonitorLevel(MonitorLevel.ANY);

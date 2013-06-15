@@ -37,8 +37,8 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
+import com.finance.pms.UserDialog;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 

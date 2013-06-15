@@ -75,7 +75,8 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 	
 	@Override
 	protected String passOneOverwriteMode() {
-		return "auto";
+		//return "auto";
+		return "force";
 	}
 
 	@Override

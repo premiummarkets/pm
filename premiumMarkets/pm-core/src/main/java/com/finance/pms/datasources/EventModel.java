@@ -79,7 +79,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	
 	protected static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	private static Map<Stock, UpdateStamp> cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
-	private static Boolean cacheInit = true;
+//	private static Boolean cacheInit = true;
 	
 	
 	static class EventDefCacheEntry {
@@ -229,7 +229,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			
 			//Update cache
 			outputCache.putAll(callbackForlastAnalyseOutput);
-			cacheInit = false;
+//			cacheInit = false;
 			
 			//Update cache bounds records
 			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
@@ -270,12 +270,11 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	 * @throws HttpException 
 	 */
 	public synchronized void callbackForlastListFetch() throws HttpException {
-			eventRefreshStrategyEngine.callbackForlastListFetch(engineObservers, viewStateParams);		
+		eventRefreshStrategyEngine.callbackForlastListFetch(engineObservers, viewStateParams);		
 	}
 	
 	public synchronized void callbackForReco() {
 		eventRefreshStrategyEngine.callbackForReco(engineObservers);
-
 	}
 
 	/**
@@ -286,10 +285,23 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	 */
 	public synchronized void callbackForlastQuotationFetch() throws StockNotFoundException {
 		eventRefreshStrategyEngine.callbackForlastQuotationFetch(engineObservers, viewStateParams);
-
 	}
 	
 	public void callbackForAnalysisClean() {
+		
+//		cacheInit = false;
+		
+//		for (Object stock : viewStateParams) {
+//			if (stock instanceof Stock) {
+//				outputCache.remove((Stock)stock);
+//				cacheTimeStamps.remove((Stock)stock);
+//			} else {
+//				outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+//				cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
+//				break;
+//			}
+//		}
+		
 		Boolean deleteAll = eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, viewStateParams);
 		if (deleteAll) {
 			outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
@@ -300,7 +312,6 @@ public class EventModel<T extends EventModelStrategyEngine> {
 				cacheTimeStamps.remove((Stock)stock);
 			}
 		}
-		cacheInit = false;
 		
 	}
 
@@ -446,12 +457,5 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			return false;
 		}
 	}
-	
-	public Boolean isAnalyseDataCleared() {
-		if (cacheInit) return false;
-		if (outputCache != null && !outputCache.isEmpty()) return false;
-		return true;
-	}
-
 	
 } 

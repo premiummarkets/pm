@@ -74,6 +74,9 @@ public class HouseAroon extends TalibIndicator {
 				outAroonDown[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[1]))/perd.doubleValue()) * 100;
 			}
 			
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.warn(e);
+			return RetCode.OutOfRangeStartIndex;
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
 			return RetCode.OutOfRangeStartIndex;

@@ -57,6 +57,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
@@ -169,7 +170,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		for (final Stock stock : stList) {
 			
 			try {
-				LOGGER.guiInfo("Calculating pass "+passNumber+" events for stock "+stock.toString()+ " between "+startDate+" and "+endDate);
+				LOGGER.guiInfo("Calculation requested : pass "+passNumber+" events for stock "+stock.toString()+ " between "+startDate+" and "+endDate);
 
 				final Queue eventQueue = this.eventQueue;
 				final JmsTemplate jmsTemplate = this.jmsTemplate;
@@ -177,20 +178,32 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				IndicatorsCalculationThread calculationRunnableTarget = null;
 				Currency stockCalcCurrency = (calculationCurrency == null)? stock.getMarketValuation().getCurrency() : calculationCurrency;
 				
+				//Shift calculation date to available quotes
+				Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(firstQuotationDateFromQuotations);
+				QuotationsFactories.getFactory().incrementDate(calendar, 200);
+				Date adjustedStartDate = startDate;
+				if (calendar.getTime().after(startDate)) {
+					adjustedStartDate = calendar.getTime();
+					LOGGER.info("Calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
+				}
+				
+				//Calculations
 				if (passNumber == 1) {//pass 1
 					
 					//Date bounds setting
 					TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName());
-					CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, startDate, endDate);
+					CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, adjustedStartDate, endDate);
 					if (passOneCalcMode.equals("auto")) {
 						endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-						calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
+						calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, adjustedStartDate, endDate);
 					}
 					if (passOneCalcMode.equals("reset")) {
 						endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-						tunedConf.setLastCalculationStart(startDate);
+						tunedConf.setLastCalculationStart(adjustedStartDate);
 						tunedConf.setLastCalculationEnd(endDate);
-						calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, startDate, endDate);
+						calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, adjustedStartDate, endDate);
 					}
 					
 					//if We inc or reset, tuned conf last event will need update : We add it in the map
@@ -208,7 +221,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					} else {
 						
 						LOGGER.info(
-								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
+								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+adjustedStartDate+" to "+endDate+". "+
 								"No recalculation needed calculation bound is "+ calculationBounds.toString());
 					}
 					
@@ -216,7 +229,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				} else {// pass 2
 					
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
-							stock, startDate, endDate, stockCalcCurrency, eventListName, obsSet,
+							stock, adjustedStartDate, endDate, stockCalcCurrency, eventListName, obsSet,
 							availSecondPIndCalculators, export, keepCache, eventQueue, jmsTemplate, persistEvents, true);
 					
 					

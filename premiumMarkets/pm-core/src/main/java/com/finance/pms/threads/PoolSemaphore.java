@@ -226,7 +226,7 @@ public class PoolSemaphore {
 	 */
 	private SourceClient getNextAvailableConnexion() {
 		for (int i = 0; i < this.nThreads; ++i) {
-			synchronized (used[i]) {
+			synchronized (used) {
 				if (!used[i]) {
 					try {
 						if (null == sourceClient[i] || !sourceClient[i].isValid()) {

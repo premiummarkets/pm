@@ -519,7 +519,8 @@ public class MainGui extends SashForm implements RefreshableView {
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 									eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(false,true,false,false, false,false,0l);
+									// updateEventRefreshModelState( Boolean dofetchQuotes, )
+									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
 									super.widgetSelected(evt);
 								}
@@ -533,7 +534,8 @@ public class MainGui extends SashForm implements RefreshableView {
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 									eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(false,true,false,false, false, false, 0l);
+									// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
 									super.widgetSelected(evt);
 								}
@@ -550,8 +552,8 @@ public class MainGui extends SashForm implements RefreshableView {
 									eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 									Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
 									eventModel.setViewStateParams(inflationStock);
-									
-									this.updateEventRefreshModelState(false,true,false,false, false, false,0l);
+									// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
 									super.widgetSelected(evt);
 								
@@ -583,7 +585,8 @@ public class MainGui extends SashForm implements RefreshableView {
 										allStocksEventModel.setViewStateParams(new ShareListInfo(Providers.providerShareListName(provider)));
 										LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 										eventModel.setLastListFetch(EventModel.DEFAULT_DATE);
-										this.updateEventRefreshModelState(true, false, false, false, false, false, 0l);
+										// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+										this.updateEventRefreshModelState(0l, TaskId.FetchLists);
 										initRefreshAction();
 										super.widgetSelected(evt);
 
@@ -658,15 +661,18 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	public EventRefreshController clearPreviousCalculationsControler() {
+		
 		return new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 			@Override
 			public void widgetSelected(SelectionEvent evt) {
 				LOGGER.guiInfo("I am clearing the analysis history. Thanks for waiting ...");
-				this.updateEventRefreshModelState(false,false,false,false, true, false, 0l);
+				// updateEventRefreshModelState( Boolean doAnalysisClean)
+				this.updateEventRefreshModelState( 0l, TaskId.Clean);
 				initRefreshAction();
 				super.widgetSelected(evt);
 			}
 		};
+		
 	}
 
 	/**
@@ -701,9 +707,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			
 			//Spring Context init		
 			SpringContext ctx = new SpringContext(dbfile);
-			//ctx.setDataSource(dbfile);
 			ctx.setMasSource(dbfile,"false");
-			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
+			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
 			try {
 				ctx.refresh();
 			} catch (BeanCreationException e1) {
@@ -1100,7 +1105,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	@Override
 	public void setCursor(Cursor cursor) {
 		
-		synchronized (cursorCpt) {
+		synchronized (mainMenu) {
 			
 			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
 				cursorCpt --;

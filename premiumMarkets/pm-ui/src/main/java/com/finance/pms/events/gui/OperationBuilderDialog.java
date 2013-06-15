@@ -27,7 +27,7 @@ public class OperationBuilderDialog {
 	public Object open() {
 	
         shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
-        shell.setText("Parameterise and Create indicators ...");
+        shell.setText("Premium Markets - Parameterise and Create indicators ...");
         
         initGui();
         

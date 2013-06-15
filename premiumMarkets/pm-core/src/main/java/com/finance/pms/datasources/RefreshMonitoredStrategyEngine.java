@@ -42,26 +42,12 @@ import org.apache.commons.lang.NotImplementedException;
  * @author Guillaume Thoreton
  */
 public class RefreshMonitoredStrategyEngine extends UserContentStrategyEngine {
-	
-//	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
-//		 try {
-//			actionThread.runIndicatorsCalculationPassTwo(true);
-//		} catch (IncompleteDataSetException e) {
-//		}
-//		 return null;
-//	}
-//
-//	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
-//		try {
-//			actionThread.runIndicatorsCalculationPassOne(true , "auto");
-//		} catch (IncompleteDataSetException e) {
-//		}
-//		return null;
-//	}
+
 	
 	@Override
 	protected String passOneOverwriteMode() {
-		return "auto";
+		//return "auto";
+		return "force";
 	}
 
 	@Override

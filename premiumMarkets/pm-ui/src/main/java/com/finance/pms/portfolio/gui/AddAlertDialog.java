@@ -99,7 +99,7 @@ public class AddAlertDialog extends Dialog {
 			SpringContext ctx = new SpringContext(dbfile);
 			//ctx.setDataSource(dbfile);
 			ctx.setMasSource(dbfile,"false");
-			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml","masanalysisservices.xml"});
+			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
 			ctx.refresh();
 			
 		} catch (Exception e) {

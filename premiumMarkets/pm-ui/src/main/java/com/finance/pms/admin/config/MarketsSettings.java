@@ -64,10 +64,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.DbInstaller;
 import com.finance.pms.admin.NoPreparedDbException;
 import com.finance.pms.admin.OtherException;

@@ -21,27 +21,15 @@ public class ChartBarUtils {
 	
 	
 	public static SortedMap<DataSetBarDescr, SortedMap<Date, Double>> buildBarsData(
-			Double alphaDividende, Stock selectedShare, 
-			Set<EventInfo> chartedEvtDefsTrends,
+			Stock selectedShare, Set<EventInfo> chartedEvtDefsTrends, 
 			Date start, Date end, SymbolEvents eventsForStock, Map<EventInfo, TuningResDTO> tuningRess, 
-			int maxFill, Boolean isZerobAsed) {
+			Double alphaDividende, int maxFill, Boolean isGradiant) {
 		
 		int chartedTrendsEvtDefsSize = chartedEvtDefsTrends.size();
 		
 		SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barData = new TreeMap<DataSetBarDescr, SortedMap<Date,Double>>();
 	
-		double yValueFactor; 
-		double yBase;
-		
-		if (isZerobAsed) {
-			yValueFactor = 1d;
-			yBase = 0d;
-		} else {
-			//yValueFactor = .9d/chartedTrendsEvtDefsSize;
-			yValueFactor = 1d;
-			yBase = 1d - 1d/chartedTrendsEvtDefsSize;
-		}
-		
+		double yValueFactor = 1d;
 		int serieIdx = chartedTrendsEvtDefsSize*3;
 	
 		for (EventInfo eventInfo : chartedEvtDefsTrends) {
@@ -75,25 +63,25 @@ public class ChartBarUtils {
 				cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, end, maxFill);
 			}
 	
-			//int alpha = 255 / (int) Math.ceil((chartedTrendsEvtDefsSize/alphaDividende));
-			int alpha = 255 / (int) Math.ceil( alphaDividende*((serieIdx)/3) );
+			int gradiant = (isGradiant)?serieIdx/3:1;
+			int alpha = 255 / (int) Math.ceil( alphaDividende*gradiant );
 			TuningResDTO tuningResDTO = tuningRess.get(eventInfo);
 			
 			DataSetBarDescr buyKey = 
 					new DataSetBarDescr(
 						serieIdx, 
 						eventInfo.info()+" buy", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-						yBase, new java.awt.Color(189,249,189, alpha), 10f);
+						0, new java.awt.Color(189,249,189, alpha), 10f);
 			DataSetBarDescr sellKey = 
 					new DataSetBarDescr(
 						serieIdx-1, 
 						eventInfo.info()+" sell", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-						yBase, new java.awt.Color(246,173,173, alpha), 10f);
+						0, new java.awt.Color(246,173,173, alpha), 10f);
 			DataSetBarDescr indeterKey = 
 					new DataSetBarDescr(
 						serieIdx-2, 
 						eventInfo.info()+" indeterministic", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-						yBase, new java.awt.Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), alpha), 10f);
+						0, new java.awt.Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), alpha), 10f);
 			
 			
 			if (!buyS.isEmpty()) {
@@ -108,44 +96,12 @@ public class ChartBarUtils {
 			barData.put(sellKey, sellS.tailMap(start));
 			barData.put(indeterKey, indeterS.tailMap(start));
 	
-			if (isZerobAsed) {
-				yValueFactor = yValueFactor - 1d/chartedTrendsEvtDefsSize;
-			} else {
-				yValueFactor = yValueFactor - .9d/chartedTrendsEvtDefsSize;
-				yBase = yBase - 1d/chartedTrendsEvtDefsSize;
-			}
-	
+			//yValueFactor = yValueFactor - .9d/chartedTrendsEvtDefsSize;
+			yValueFactor = yValueFactor - 1d/chartedTrendsEvtDefsSize;
 			serieIdx = serieIdx - 3;
 		}
 	
 		return barData;
-	}
-
-	private static void fillBarChart(double factor, SortedMap<Date, Double> sellS, SortedMap<Date, Double> buyS, SortedMap<Date, Double> undeterS, EventValue prevEventValue, Date currEvtDate) {
-	
-		Calendar prevDateCal = Calendar.getInstance();
-		prevDateCal.setTime(prevEventValue.getDate());
-	
-		double value = factor;
-	
-		if ( prevEventValue.getEventType().equals(EventType.BULLISH)) {
-			while (prevDateCal.getTime().before(currEvtDate)) {
-				buyS.put(prevDateCal.getTime(), value);
-				prevDateCal.add(Calendar.DAY_OF_YEAR, +1);
-			}
-		}
-		else if (prevEventValue.getEventType().equals(EventType.BEARISH)) {
-			while (prevDateCal.getTime().before(currEvtDate)) {
-				sellS.put(prevDateCal.getTime(), value);
-				prevDateCal.add(Calendar.DAY_OF_YEAR, +1);
-			}
-		}
-		else if (prevEventValue.getEventType().equals(EventType.NONE)) {
-			while (prevDateCal.getTime().before(currEvtDate)) {
-				undeterS.put(prevDateCal.getTime(), value);
-				prevDateCal.add(Calendar.DAY_OF_YEAR, +1);
-			}
-		}
 	}
 	
 	//nbMaxFill = 0 means no filling limit

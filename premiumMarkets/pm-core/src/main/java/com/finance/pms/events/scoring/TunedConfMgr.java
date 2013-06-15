@@ -203,17 +203,24 @@ public class TunedConfMgr {
 		dateFinCal.set(Calendar.MILLISECOND,0);
 		Stack<OnTheFlyRevesreCalcPeriod> retuneDates = new Stack<OnTheFlyRevesreCalcPeriod>();
 		
-		Calendar slidingDateFinCal = Calendar.getInstance();
-		slidingDateFinCal.setTime(dateFin);
-		slidingDateFinCal.add(Calendar.DAY_OF_YEAR, 1); //for exclusive subsets fix
-		
-		//Add previous periods
-		while (dateDebCal.getTime().before(slidingDateFinCal.getTime())) {
+		if (tuneFreq > 0) {
 
-			Date pEndDate = slidingDateFinCal.getTime();
-			QuotationsFactories.getFactory().incrementDateLarge(slidingDateFinCal, -tuneFreq);
-			Date pStartDate = slidingDateFinCal.getTime();
-			retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
+			Calendar slidingDateFinCal = Calendar.getInstance();
+			slidingDateFinCal.setTime(dateFin);
+			slidingDateFinCal.add(Calendar.DAY_OF_YEAR, 1); //for exclusive subsets fix
+
+			//Add previous periods
+			while (dateDebCal.getTime().before(slidingDateFinCal.getTime())) {
+
+				Date pEndDate = slidingDateFinCal.getTime();
+				QuotationsFactories.getFactory().incrementDateLarge(slidingDateFinCal, -tuneFreq);
+				Date pStartDate = slidingDateFinCal.getTime();
+				if (pStartDate.after(dateDeb) || pStartDate.equals(dateDeb)) retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
+			}
+
+		} else {
+			
+			retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, dateDeb, dateFin));
 		}
 		
 		return retuneDates;

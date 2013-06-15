@@ -16,10 +16,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
-import com.finance.pms.UserDialog;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
+import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -191,7 +191,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						}
 					}
 					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, false, SWT.RADIO, null);
-					popupMenu.open(null);
+					popupMenu.open();
 					for (TransfoInfo selctTransUnic : selectTransfo) {
 						selctTransUnic.action.action(null);
 					}
@@ -235,7 +235,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						}
 
 						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, new TreeSet<SlidingPortfolioShare>(chartTarget.getListShares()), displayedShares, true, SWT.CHECK, null);
-						popupMenu.open(null);
+						popupMenu.open();
 						for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getListShares()) {
 							if (displayedShares.contains(slidingPortfolioShare)) {
 								slidingPortfolioShare.setDisplayOnChart(true);
@@ -373,6 +373,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	public void refreshView(List<Exception> exceptions) {
 		// Nothing
 		
+	}
+
+	@Override
+	public void shutDownDisplay() {
+		// Nothing
 	}
 
 }
