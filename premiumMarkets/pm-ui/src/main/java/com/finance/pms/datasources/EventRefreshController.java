@@ -64,16 +64,8 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	protected EventModel<? extends EventModelStrategyEngine> eventModel;
 	private RefreshableView view;
 	Config config;
-
-
-	private Date currentDate;
 	
-//	private Boolean doFetchListStocks;
-//	private Boolean doFetchQuotes;
-//	private Boolean doAnalyse;
-//	private Boolean doReco;
-//	private Boolean doAnalysisClean;
-//	private Boolean doAlerts;
+	private Date currentDate;
 	
 	private Long taskKey;
 	private List<TaskId> taskIds;
@@ -141,13 +133,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	//public void updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey) {
 	//The order of the tasks is not important but the last one!
 	public void updateEventRefreshModelState(Long taskKey, TaskId ... taskIds) {
-		
-//		this.doFetchListStocks = doFetchListStocks;
-//		this.doFetchQuotes = doFetchQuotes;
-//		this.doAnalyse = doAnalyse;
-//		this.doReco = doReco;
-//		this.doAnalysisClean = doAnalysisClean;
-//		this.doAlerts = doAlerts;
+
 		this.taskKey = taskKey;
 		this.taskIds = Arrays.asList(taskIds);
 
@@ -160,170 +146,181 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	 */
 	private synchronized void refreshAction(final Date startAnalyseDate) {
 		
-			if (taskIds == null || taskIds.isEmpty()) return;
-			TaskId lastTaskOfThisGroup = taskIds.get(taskIds.size() -1);
-	
 			final List<Exception> exceptions = new ArrayList<Exception>();
-			List<EventRefreshTask> tasksGroup = new ArrayList<EventRefreshController.EventRefreshTask>();
-		 	
-			if (taskIds.contains(TaskId.FetchLists) && isFetchListStocks() ) {	
-
-				//Add Fetch List to the queue
-				if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || isValidTask(lastTaskOfThisGroup, eventModel.getViewStateParams())) {
-
-					eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-
-					tasksGroup.add(new EventRefreshTask(TaskId.FetchLists, eventModel.getViewStateParams()) {
-						public void run() {
-							try {
-								eventModel.callbackForlastListFetch();
-								eventModel.setLastListFetch(currentDate);
-							} catch (Throwable e) { 
-								exceptions.add(new StockListRefreshException(e));
-							}
-						}
-					});
-				} else {
-					return;
-				}
-
-			}
 			
-			if (taskIds.contains(TaskId.FetchRecos)) {
-				//Add Fetch Reco to the queue
-				if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || isValidTask(lastTaskOfThisGroup, eventModel.getViewStateParams())) {
-					tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos, eventModel.getViewStateParams()) {
-						public void run() {
-							try {
-								eventModel.callbackForReco();
-							} catch (Throwable e) {
-								exceptions.add(new RecoRefreshException(e));
-							}
-						}
-					});
-				} else {
-					return;
-				}
+			try {
 				
-			}
-			
-			if (taskIds.contains(TaskId.FetchQuotations) && isFetchQuotes()) {
-				
-				//Add Fetch Quotations
-				if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || isValidTask(lastTaskOfThisGroup, eventModel.getViewStateParams())) {
-					tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations, eventModel.getViewStateParams()) {
-						public void run() {
-							try {
-								eventModel.callbackForlastQuotationFetch();
-								eventModel.setLastQuotationFetch(currentDate);
-								eventModel.resetLastAnalyse();
-							} catch (Throwable e) {
-								exceptions.add(new QuotatationRefreshException(e));
-							}
-						}
-					});
-				} else {
-					return;
-				}
-			
-			}
-			
-			if (taskIds.contains(TaskId.Clean)) {
-			
-				//Add clear Analysis
-				if (!lastTaskOfThisGroup.equals(TaskId.Clean) || isValidTask(lastTaskOfThisGroup, eventModel.getViewStateParams())) {
+				TaskId lastTaskOfThisGroup = null;
+				if (taskIds != null && !taskIds.isEmpty()) lastTaskOfThisGroup = taskIds.get(taskIds.size() -1);
 
-					eventModel.resetAnalisysList();
-					eventModel.getAnalysisList().add("talib");
-					
-					tasksGroup.add(new EventRefreshTask(TaskId.Clean, eventModel.getViewStateParams()) {
-						public void run() {
-							try {
-								eventModel.callbackForAnalysisClean();
-								eventModel.resetLastAnalyse();
-							} catch (Throwable e) {
-								exceptions.add(new EventRefreshException(e));
-							}
-						}
+				
+				List<EventRefreshTask> tasksGroup = new ArrayList<EventRefreshController.EventRefreshTask>();
+				
+				if (taskIds.contains(TaskId.FetchLists) && isFetchListStocks() ) {	
 
-					});
-				} else {
-					return;
-				}
-				
-			}
-			
-			if (taskIds.contains(TaskId.Analysis)) {
-				
-				//Add Analysis
-				if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || isValidTask(lastTaskOfThisGroup, eventModel.getViewStateParams(), startAnalyseDate)) {
-					
-					eventModel.resetAnalisysList();
-					eventModel.getAnalysisList().add("talib");
-					
-					tasksGroup.add(new EventRefreshTask(TaskId.Analysis, eventModel.getViewStateParams(), startAnalyseDate) {
-						public void run() {
-							try {
-								eventModel.callbackForlastAnalyse(startAnalyseDate);
-								eventModel.setLastAnalyse(currentDate);
-							} catch (Throwable e) {
-								exceptions.add(new EventRefreshException(e));
-							}
-						}
+					//Add Fetch List to the queue
+					if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || isValidTask(lastTaskOfThisGroup)) {
 
-					});
-				} else {
-					return;
-				}
-			}
-			
-			if (taskIds.contains(TaskId.Alerts)) {
-				
-				//Add Alerts calc
-				if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || isValidTask(lastTaskOfThisGroup, eventModel.getViewStateParams(), startAnalyseDate)) {
-					tasksGroup.add(new EventRefreshTask(TaskId.Alerts, eventModel.getViewStateParams()) {
-						public void run() {
-							try {
-								eventModel.callbackForAlerts();
-							} catch (Throwable e) {
-								exceptions.add(new EventRefreshException(e));
-							}
-						}
-					});
-				} else {
-					return;
-				}
-			}
-			
-			
-			EventTaskQueue.getSingleton().offerTasks(tasksGroup);
-			
-			//Refresh view task
-			EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh, eventModel.getViewStateParams()) {
-				
-				public void run() {
-					
-					try {
-						//Notifiy observers
-						for (Observer obs : eventModel.getEngineObservers()) {
-							obs.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.DONE, taskKey));
-						}
+						eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 
-						//Update potential registered view when finished
-						view.getDisplay().syncExec(new Runnable() {
+						tasksGroup.add(new EventRefreshTask(TaskId.FetchLists, eventModel.getViewStateParams()) {
 							public void run() {
-								view.endRefreshAction(exceptions);
+								try {
+									eventModel.callbackForlastListFetch();
+									eventModel.setLastListFetch(currentDate);
+								} catch (Throwable e) { 
+									exceptions.add(new StockListRefreshException(e));
+								}
+							}
+						});
+					} else {
+						return;
+					}
+
+				}
+				
+				if (taskIds.contains(TaskId.FetchRecos)) {
+					//Add Fetch Reco to the queue
+					if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || isValidTask(lastTaskOfThisGroup)) {
+						tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos, eventModel.getViewStateParams()) {
+							public void run() {
+								try {
+									eventModel.callbackForReco();
+								} catch (Throwable e) {
+									exceptions.add(new RecoRefreshException(e));
+								}
+							}
+						});
+					} else {
+						return;
+					}
+					
+				}
+				
+				if (taskIds.contains(TaskId.FetchQuotations) && isFetchQuotes()) {
+					
+					//Add Fetch Quotations
+					if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || isValidTask(lastTaskOfThisGroup)) {
+						tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations, eventModel.getViewStateParams()) {
+							public void run() {
+								try {
+									eventModel.callbackForlastQuotationFetch();
+									eventModel.setLastQuotationFetch(currentDate);
+									eventModel.resetLastAnalyse();
+								} catch (Throwable e) {
+									exceptions.add(new QuotatationRefreshException(e));
+								}
+							}
+						});
+					} else {
+						return;
+					}
+				
+				}
+				
+				if (taskIds.contains(TaskId.Clean)) {
+				
+					//Add clear Analysis
+					if (!lastTaskOfThisGroup.equals(TaskId.Clean) || isValidTask(lastTaskOfThisGroup)) {
+
+						eventModel.resetAnalisysList();
+						eventModel.getAnalysisList().add("talib");
+						
+						tasksGroup.add(new EventRefreshTask(TaskId.Clean, eventModel.getViewStateParams()) {
+							public void run() {
+								try {
+									eventModel.callbackForAnalysisClean();
+									eventModel.resetLastAnalyse();
+								} catch (Throwable e) {
+									exceptions.add(new EventRefreshException(e));
+								}
 							}
 
 						});
+					} else {
+						return;
+					}
+					
+				}
+				
+				if (taskIds.contains(TaskId.Analysis)) {
+					
+					//Add Analysis
+					if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || isValidTask(lastTaskOfThisGroup, startAnalyseDate)) {
 						
-					} catch (Exception e) {
-						LOGGER.error(e,e);
+						eventModel.resetAnalisysList();
+						eventModel.getAnalysisList().add("talib");
+						
+						tasksGroup.add(new EventRefreshTask(TaskId.Analysis, eventModel.getViewStateParams(), startAnalyseDate, EventModel.eventInfoChangeStamp) {
+							public void run() {
+								try {
+									eventModel.callbackForlastAnalyse(startAnalyseDate);
+									eventModel.setLastAnalyse(currentDate);
+								} catch (Throwable e) {
+									exceptions.add(new EventRefreshException(e));
+								}
+							}
+
+						});
+					} else {
+						return;
 					}
 				}
 				
-			});
-		
+				//TODO you need add params for alters as well or you can't run it twice ...
+				if (taskIds.contains(TaskId.Alerts)) {
+					
+					//Add Alerts calc
+					if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || isValidTask(lastTaskOfThisGroup)) {
+						tasksGroup.add(new EventRefreshTask(TaskId.Alerts, eventModel.getViewStateParams()) {
+							public void run() {
+								try {
+									eventModel.callbackForAlerts();
+								} catch (Throwable e) {
+									exceptions.add(new EventRefreshException(e));
+								}
+							}
+						});
+					} else {
+						return;
+					}
+				}
+				
+				
+				EventTaskQueue.getSingleton().offerTasks(tasksGroup);
+				
+				
+			} finally {
+				
+
+				//Refresh view task
+				EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh, eventModel.getViewStateParams()) {
+					
+					public void run() {
+						
+						try {
+							//Notifiy observers
+							for (Observer obs : eventModel.getEngineObservers()) {
+								obs.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.DONE, taskKey));
+							}
+
+							//Update potential registered view when finished
+							view.getDisplay().syncExec(new Runnable() {
+								public void run() {
+									view.endRefreshAction(exceptions);
+								}
+
+							});
+							
+						} catch (Exception e) {
+							LOGGER.error(e,e);
+						}
+					}
+					
+				});
+				
+			}
+			
 	}
 	
 
@@ -360,7 +357,10 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	
 	public boolean isValidTask(TaskId taskId, Object... addParams) {
 		
-		EventRefreshTask requestedTask = new EventRefreshTask(taskId, eventModel.getViewStateParams(), addParams) {
+		Object[] addParams2 = Arrays.copyOf(addParams, addParams.length+1);
+		addParams2[addParams.length]= EventModel.eventInfoChangeStamp;
+		
+		EventRefreshTask requestedTask = new EventRefreshTask(taskId, eventModel.getViewStateParams(), addParams2) {
 			@Override
 			public void run() {	
 			}
@@ -371,11 +371,11 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 		return !isLastRunTheSame;
 	}
 	
-	
 	abstract class EventRefreshTask implements Runnable {
 		
 		private TaskId taskId;
 		private int paramSign;
+		private List<Object> addParams;
 		
 		public EventRefreshTask(TaskId taskId, Object[] viewParams, Object ... addParams) {
 			super();
@@ -387,9 +387,8 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				}
 			}
 			if (addParams != null) {
-				for (Object object : addParams) {
-					this.paramSign = this.paramSign + object.hashCode();
-				}
+				this.addParams = new ArrayList<Object>();
+				this.addParams.addAll(Arrays.asList(addParams));
 			}
 		}
 		
@@ -412,6 +411,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + paramSign;
+			result = prime * result + addParams.size();
 			result = prime * result + ((taskId == null) ? 0 : taskId.hashCode());
 			return result;
 		}
@@ -427,6 +427,8 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				return false;
 			EventRefreshTask other = (EventRefreshTask) obj;
 			if (paramSign != other.paramSign)
+				return false;
+			if (!addParams.equals(other.addParams)) 
 				return false;
 			if (taskId != other.taskId)
 				return false;

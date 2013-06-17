@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 
@@ -140,7 +142,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		
 		//If there is a pre parameterised operation, we use it
 		if (nativeOperations != null) {
-			LOGGER.info("Cloning pre parameterize op : "+nativeOperations);
+			LOGGER.info("Cloning pre parameterise op : "+nativeOperations);
 
 			Operation clone = (Operation) nativeOperations.clone();
 			clone.setOperands(operands);
@@ -154,14 +156,14 @@ public abstract class ParameterizedBuilder extends Observable {
 			try {
 
 				String childText = opPackage + child.getToken().getText();
-				LOGGER.info("Instanciating NON pre parameterize op : "+childText);
+				LOGGER.info("Instantiating NON pre parameterise op : "+childText);
 
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
 				return constructor.newInstance(operands, outputSelector);
 
 			} catch (Exception e) {
-				LOGGER.info(e.toString() + ", cause " + ((e.getCause() != null)?e.getCause().toString():"unknown")+". child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Can't instanciate : "+opPackage);
+				LOGGER.info(e.toString() + ", cause " + ((e.getCause() != null)?e.getCause().toString():"unknown")+". child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Can't Instantiate : "+opPackage);
 			}
 
 		}
@@ -259,7 +261,8 @@ public abstract class ParameterizedBuilder extends Observable {
 		try {
 			Operation operation = currentOperations.get(identifier);
 			
-			checkInUse(operation);
+			List<Operation> checkInUse = checkInUse(operation);
+			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
 			
 			File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 			formulaFile.delete();
@@ -275,17 +278,34 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	protected abstract void checkInUse(Operation operation);
+	public abstract List<Operation> checkInUse(Operation operation);
+	
+	public abstract List<Operation> notifyChanged(Operation operation);
+
+	
+	protected List<Operation> actualCheckInUse(Collection<Operation> operations, Operation operationToCheck) {
+		
+		List<Operation> operationUsing = new ArrayList<Operation>();
+		for (Operation operation : operations) {
+			try {
+				actualCheckInUseRecusrsive(Arrays.asList(new Operation[]{operation}), operationToCheck);
+			} catch (Exception e) {
+				operationUsing.add(operation);
+			}
+		}
+		
+		return operationUsing;
+	}
 	
 	
-	protected void actualCheckInUse(Collection<Operation> operations, Operation operationToCheck) {
+	protected void actualCheckInUseRecusrsive(Collection<Operation> operations, Operation operationToCheck) {
 		
 		for (Operation operation : operations) {
-			if (!(operation == operationToCheck) && operation instanceof DoubleMapOperation && operationToCheck.getReference().equals(operation.getReference())) {
+			if (operation != operationToCheck && operation instanceof DoubleMapOperation && operationToCheck.getReference().equals(operation.getReference())) {
 				throw new RuntimeException("'"+ operationToCheck.getReference() +"' is used by some other operations. Please delete these first.");
 			}
 			if (operation.getOperands() != null) {
-				actualCheckInUse(operation.getOperands(), operationToCheck);
+				actualCheckInUseRecusrsive(operation.getOperands(), operationToCheck);
 			}
 		}
 	}
@@ -297,7 +317,8 @@ public abstract class ParameterizedBuilder extends Observable {
 		if (operation == null) return;
 		
 		try {
-			checkInUse(operation);
+			List<Operation> checkInUse = checkInUse(operation);
+			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
 
 			moveToDisabled(identifier);
 			operation.setDisabled(true);
@@ -398,6 +419,32 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	public Map<String, Operation> getNativeOperations() {
 		return nativeOperations;
+	}
+	
+	public class InUsedExecption extends RuntimeException {
+	
+		private static final long serialVersionUID = 635237818106787530L;
+		
+		List<Operation> inUse;
+
+		public InUsedExecption(List<Operation> inUse) {
+			super();
+			this.inUse = inUse;
+		}
+
+		public List<Operation> getInUse() {
+			return inUse;
+		}
+	}
+	
+	public String operationListAsString(String sepParam, List<Operation> operations) {
+		String opStr = "";
+		String sep="";
+		for (Operation operation : operations) {
+			opStr = opStr + sep +operation.getReference();
+			sep = sepParam;
+		}
+		return opStr;
 	}
 
 }

@@ -15,9 +15,11 @@ import org.eclipse.swt.widgets.Composite;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
+import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.calculation.antlr.EditorIndsLexerDelegate;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.conditional.EventConditionHolder;
 
 public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
@@ -100,7 +102,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		} 
 		
 		checkBoxDisabled();
-		clearPreviousCalcsWarning();
+		previousCalcsAsDirty(identifier);
 
 	}
 
@@ -127,7 +129,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		} 
 		
 		checkBoxDisabled();
-		clearPreviousCalcsWarning();
+		previousCalcsAsDirty(identifier);
 
 	}
 
@@ -175,6 +177,16 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	protected void previousCalcsAsDirty(String identifier) {
+		
+		EventConditionHolder operation = (EventConditionHolder) parameterizedBuilder.getUserCurrentOperations().get(identifier);
+		EventModel.dirtyCacheFor(operation);
+		EventModel.updateEventInfoStamp();
+		refreshViews();
+		
 	}
 	
 	

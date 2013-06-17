@@ -43,6 +43,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
@@ -65,7 +66,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.TypedListener;
 import org.jfree.chart.ChartPanel;
 
 import com.finance.pms.CursorFactory;
@@ -78,8 +81,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshException;
 import com.finance.pms.datasources.RefreshChartHightlited;
-import com.finance.pms.datasources.db.StripedCloseAbsoluteRelative;
 import com.finance.pms.datasources.db.StripedCloseFunction;
+import com.finance.pms.datasources.db.StripedCloseRelativeToStart;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -120,7 +123,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private Composite mainChartComposite;
 	private ChartMain mainChartWraper;
 	
-	private Set<EventInfo> chartedEvtDefsTrends;
+	//TODO mv to ChartIndicatorDisplay Strategy
+	private SortedSet<EventInfo> chartedEvtDefsTrends;
 	private EventInfo chartedEvtDef;
 
 	public Group chartBoutonsGroup;
@@ -164,7 +168,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.setToolTipText("Sash : Click on this border and drag to resize");
 		super.setCursor(new Cursor(getDisplay(), SWT.CURSOR_CROSS));
 		
-		this.stripedCloseFunction = new StripedCloseAbsoluteRelative(slidingStartDate, slidingEndDate);
+		this.stripedCloseFunction = new StripedCloseRelativeToStart(slidingStartDate, slidingEndDate);
 		this.initGUI();
 		chartDisplayStrategy = new ChartPerfDisplay(this);
 		chartDisplayStrategy.resetChart();
@@ -236,6 +240,15 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				}
 			});
 			
+			this.addListener(SWT.Hide, new Listener() {
+				
+				@Override
+				public void handleEvent(Event event) {
+					chartDisplayStrategy.shutDownDisplay();
+					
+				}
+			});
+			
 			{
 				mainChartComposite = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
 				Frame chartFrame = SWT_AWT.new_Frame(mainChartComposite);
@@ -281,7 +294,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 													Thread.sleep(10);
 													cpt++;
 												}
-												if (chartPanelFocusGain) mainChartComposite.forceFocus();
+												if (chartPanelFocusGain) {
+													mainChartComposite.forceFocus();
+												}
 											} catch (InterruptedException e1) {
 												e1.printStackTrace();
 											}
@@ -813,14 +828,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			chartedEvtDef = EventDefinition.ZERO;
 		}
 		
-		//List<EventInfo> toRemove = new ArrayList<EventInfo>();
-		Set<EventInfo> updatedChartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
+		SortedSet<EventInfo> updatedChartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
 		for (EventInfo eventInfo : chartedEvtDefsTrends) {
 			try {
 				updatedChartedEvtDefsTrends.add(EventDefinition.valueOfEventInfo(eventInfo.getEventDefinitionRef()));
 			} catch (NoSuchFieldException e) {
 				LOGGER.warn("Event info as been disabled or deleted. Removing from chart trend selection : "+eventInfo);
-				//toRemove.add(eventInfo);
 			}
 		}
 		chartedEvtDefsTrends = updatedChartedEvtDefsTrends;
@@ -849,6 +862,10 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 	
 	public void shutDownDisplay() {
+		Shell[] childrenShells = this.getShell().getShells();
+		for (Shell child : childrenShells) {
+			child.dispose();
+		}
 		this.chartDisplayStrategy.shutDownDisplay();
 	}
 	
@@ -913,11 +930,24 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
 	public void setStripedCloseFunction(StripedCloseFunction stripedCloseFunction) {
+		
 		this.stripedCloseFunction = stripedCloseFunction;
+		updateButtonsToolTips();
 	}
 
 
+	private void updateButtonsToolTips() {
+		chartDisplayStrategy.updateButtonsToolTips();		
+	}
+
+	//TODO Use a map and reuse the strategy instead of new so that u keep the state
 	public void setChartDisplayStrategy(ChartDisplayStrategy chartDisplayStrategy) {
+		
+		//XXX XXX
+		MainGui.viewEventsMenuItem.setSelection(false);
+		Listener[] listeners = MainGui.viewEventsMenuItem.getListeners(SWT.Selection);
+		((SelectionListener)((TypedListener)listeners[0]).getEventListener()).widgetSelected(null);
+		
 		this.chartDisplayStrategy = chartDisplayStrategy;
 	}
 

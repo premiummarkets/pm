@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.events.OnTheFlyRevesreCalcPeriod;
 import com.finance.pms.datasources.events.TunedConfDAO;
 import com.finance.pms.datasources.shares.Stock;
@@ -215,7 +216,12 @@ public class TunedConfMgr {
 				Date pEndDate = slidingDateFinCal.getTime();
 				QuotationsFactories.getFactory().incrementDateLarge(slidingDateFinCal, -tuneFreq);
 				Date pStartDate = slidingDateFinCal.getTime();
-				if (pStartDate.after(dateDeb) || pStartDate.equals(dateDeb)) retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
+				if (pStartDate.after(dateDeb) || pStartDate.equals(dateDeb)) {
+					retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
+				} 
+				else if (retuneDates.isEmpty()) {
+					retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, dateDeb, dateFin));
+				}
 			}
 
 		} else {
@@ -228,6 +234,15 @@ public class TunedConfMgr {
 
 	public TunedConfDAO getTunedConfDAO() {
 		return tunedConfDAO;
+	}
+	
+	public static Date adjustStartDate(final Stock stock) {
+		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
+		Calendar adjustedStartCal = Calendar.getInstance();
+		adjustedStartCal.setTime(firstQuotationDateFromQuotations);
+		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, 200);
+		Date adjustedStartDate = adjustedStartCal.getTime();
+		return adjustedStartDate;
 	}
 
 }

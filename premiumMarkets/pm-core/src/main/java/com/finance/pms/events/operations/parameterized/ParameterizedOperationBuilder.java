@@ -58,13 +58,29 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 	}
 
 	@Override
-	protected void checkInUse(Operation operation) {
+	public List<Operation> checkInUse(Operation operation) {
 		
-		actualCheckInUse(currentOperations.values(), operation);
+		List<Operation> actualCheckInUse = actualCheckInUse(currentOperations.values(), operation);
+		actualCheckInUse.addAll(notifyChanged(operation));
 		
-		this.setChanged();
-		this.notifyObservers(operation);
+		return actualCheckInUse;
 	}
+	
+
+	@Override
+	public List<Operation> notifyChanged(Operation operation) {
+		
+		List<Operation> actualCheckInUse = new ArrayList<Operation>();
+		try {
+			this.setChanged();
+			this.notifyObservers(operation);
+		} catch (InUsedExecption e) {
+			actualCheckInUse.addAll(e.getInUse());
+		}
+		
+		return actualCheckInUse;
+	}
+
 
 	@Override
 	protected void updateCaches() {
@@ -164,8 +180,6 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 		}
 		
 		return deads;
-	}
-
-	
+	}	
 
 }

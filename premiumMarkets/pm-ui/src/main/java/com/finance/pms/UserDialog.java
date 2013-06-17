@@ -96,22 +96,23 @@ public class UserDialog extends Dialog {
 			dialogShellLayout.verticalSpacing = 20;
 			this.getParent().setLayout(dialogShellLayout);
 			this.getParent().setBackground(MainGui.pOPUP_BG);
-			if (erreur != null)
-			{
-				errorLabel1 = new Label(getParent(), SWT.FILL);
+			
+			if (erreur != null) {
+				errorLabel1 = new Label(getParent(), SWT.WRAP);
 				errorLabel1.setText(this.erreur);
 				errorLabel1.setFont(MainGui.DEFAULTFONT);
-				errorLabel1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+				errorLabel1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 				errorLabel1.setAlignment(SWT.LEFT);
 				errorLabel1.setBackground(MainGui.pOPUP_BG);
 			}
 			if (addMessage != null) {
-				textArea = new Text(getParent(), SWT.V_SCROLL);
-				textArea.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+				textArea = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
+				textArea.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 				textArea.setBackground(MainGui.pOPUP_BG);
 				textArea.setText(cleanMsg(this.addMessage));
 				textArea.setEditable(false);
 				textArea.setFont(MainGui.DEFAULTFONT);
+
 			}
 			{
 				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);

@@ -87,7 +87,7 @@ import org.jfree.ui.TextAnchor;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.StripedCloseFunction;
-import com.finance.pms.datasources.db.StripedCloseIndexRelative;
+import com.finance.pms.datasources.db.StripedCloseRelativeToReferee;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.calculation.EventDefDescriptor;
@@ -106,7 +106,7 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
  */
 public class ChartMain extends Chart {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(StripedCloseIndexRelative.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToReferee.class);
 	
 	public static final DateFormat DATE_FORMAT = DateFormat.getTimeInstance();
 	public static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat("#0.00 %");

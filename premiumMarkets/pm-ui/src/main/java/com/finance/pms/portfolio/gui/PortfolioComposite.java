@@ -437,7 +437,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	public static void main(String[] args) {
 
 		SpringContext ctx = new SpringContext(args[0]);
-		//ctx.setDataSource(args[0]);
 		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
 		ctx.refresh();		
 	}

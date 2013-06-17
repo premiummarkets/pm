@@ -157,7 +157,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 				symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
 				
 			} catch (Exception e) {
-				LOGGER.warn(e,e);
+				LOGGER.warn(e);
 				incomplete = true;
 			}
 			

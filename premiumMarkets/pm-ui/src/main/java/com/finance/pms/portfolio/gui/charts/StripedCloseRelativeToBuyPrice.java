@@ -46,16 +46,16 @@ import com.finance.pms.portfolio.PortfolioShare;
  * 
  * @author Guillaume Thoreton
  */
-public class StripedCloseInitPriceRelative extends StripedCloseFunction {
+public class StripedCloseRelativeToBuyPrice extends StripedCloseFunction {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseInitPriceRelative.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToBuyPrice.class);
 
 	/** The buy price. */
 	private BigDecimal buyPrice;
 	@SuppressWarnings("unused") //debug
 	private PortfolioShare portfolioShare;
 
-	public StripedCloseInitPriceRelative() {	
+	public StripedCloseRelativeToBuyPrice() {	
 		super();
 	}
 

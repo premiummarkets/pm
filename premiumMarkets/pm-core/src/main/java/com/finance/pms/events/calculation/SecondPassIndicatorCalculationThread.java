@@ -139,9 +139,9 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			return constructor.newInstance(eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, export, persistTrainingEvents, observers);
 		
 		} catch (InvocationTargetException e) {
-			if (e.getCause() instanceof WarningException) {
-				if (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException ) {
-					LOGGER.warn("Failed calculation : NotEnoughDataException!! " + warnMessage(eventInfo.toString(), startDate, endDate));
+			if (e.getCause() instanceof WarningException || e.getCause() instanceof NotEnoughDataException) {
+				if (e.getCause() instanceof NotEnoughDataException || (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException) ) {
+					LOGGER.warn("Failed calculation : Not Enough Data " + warnMessage(eventInfo.toString(), startDate, endDate));
 				} else {
 					LOGGER.warn("Failed calculation : " + warnMessage(eventInfo.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
 				}

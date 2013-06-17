@@ -1,0 +1,2 @@
+is bullish when stochWrong is above historical close;
+is bearish when stochWrong is below historical close;

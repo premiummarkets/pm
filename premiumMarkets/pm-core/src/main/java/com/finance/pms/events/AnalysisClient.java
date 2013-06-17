@@ -87,6 +87,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	}
 	private static EnumSet<EmailFilterEventSource> EMAILMSGQEUEINGFILTER = EmailFilterEventSource.webSet();
 	
+	private static EmailSendingFilter EMAILSENDINGLFILTER;
+	
 	ApplicationContext applicationContext;
 	
 	private MailSender mailSender;
@@ -187,8 +189,13 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
  
     	Boolean sendMailEnabled = new Boolean(MainPMScmd.getPrefs().get("mail.infoalert.activated","false"));
     	
+		Boolean isFiltered = (
+				EMAILSENDINGLFILTER != null && symbolEvents.getEventDefList().size() == 1 && 
+				EMAILSENDINGLFILTER.filtered().contains(symbolEvents.getEventDefList().iterator().next()) && 
+				symbolEvents.getLastDate().getTime() >= EMAILSENDINGLFILTER.filterDate()
+				);
 		Boolean isValidEventSource =  symbolEvents.getStock().equals(ANY_STOCK) || PortfolioMgr.getInstance().isMonitoredForEvent(symbolEvents);
-		if 	( sendMailEnabled && isValidEventSource ) {
+		if 	( sendMailEnabled && isValidEventSource && isFiltered) {
 			LOGGER.info("Email/Popup potential message preview : "+eventType.name()+" "+eventInfoRef+" from "+source+" in "+ eventListName + " : "+symbolEvents.getStock().getFriendlyName()+", "+symbolEvents.toEMail());
 			this.sendMailEvent(symbolEvents, eventType, source, eventListName, eventInfoRef);
 		} 
@@ -341,8 +348,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				evenTypeAdd = bullish;
 			}
 			break;
-//		case PMWeather:
-//			break;
 		}
 
 		return evenTypeAdd;
@@ -425,6 +430,13 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		}
 	}
 	
+	public static void setEmailSendingFilter(EmailSendingFilter emailSendingFilter) {
+		EMAILSENDINGLFILTER = emailSendingFilter;
+	}
+	
+	public static void clearEmailSendingFilter() {
+		EMAILSENDINGLFILTER = null;
+	}
 
 	public static EnumSet<EmailFilterEventSource> getEmailMsgQeueingFilter() {
 		return AnalysisClient.EMAILMSGQEUEINGFILTER;

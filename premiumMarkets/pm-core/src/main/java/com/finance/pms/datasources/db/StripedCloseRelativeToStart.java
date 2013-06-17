@@ -39,11 +39,11 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
 
 
-public class StripedCloseAbsoluteRelative extends StripedCloseFunction {
+public class StripedCloseRelativeToStart extends StripedCloseFunction {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseAbsoluteRelative.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToStart.class);
 
-	public StripedCloseAbsoluteRelative(Date arbitraryStartDate, Date arbitraryEndDate) {
+	public StripedCloseRelativeToStart(Date arbitraryStartDate, Date arbitraryEndDate) {
 		super(arbitraryEndDate);
 		this.arbitraryStartDate = arbitraryStartDate;
 	}

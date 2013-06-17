@@ -109,22 +109,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		@SuppressWarnings("rawtypes")
 		List stockList = new ArrayList(Arrays.asList(viewStateParams));
 
-//		@SuppressWarnings("rawtypes")
-//		List invalid = new ArrayList<Stock>();
-//		for (Object stock : stockList) {
-//			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
-//			Calendar calendar = Calendar.getInstance();
-//			calendar.setTime(firstQuotationDateFromQuotations);
-//			QuotationsFactories.getFactory().incrementDate(calendar, 50);
-//			if (calendar.getTime().after(datedeb)) {
-//				LOGGER.warn("Not enough quotations to compute over the requested period, please adjust for Stock "+stock);
-//				invalid.add(stock);
-//			}
-//		}
-//		stockList.removeAll(invalid);
-
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-//		if (stockList.size() == 0) throw new NotEnoughDataException(null, "The following stock does not have enough quotations to be calculated from "+datedeb+" : "+invalid, new Throwable());
 		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected, please adjust", new Throwable());
 		
 		for (int i = 0; i < analysers.length; i++) {

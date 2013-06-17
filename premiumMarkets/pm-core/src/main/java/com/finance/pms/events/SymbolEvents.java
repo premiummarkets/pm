@@ -444,13 +444,10 @@ public class SymbolEvents implements Serializable {
 	}
 	
 	public Date getLastDate() {
-//		Integer nbEvents = this.getDataResultMap().size();
-//		return getDateForResIndex(nbEvents-1);
 		return dataResultMap.lastKey().getDate();
 	}
 	
 	public Date getFirstDate() {
-//		return getDateForResIndex(0);
 		return dataResultMap.firstKey().getDate();
 	}
 

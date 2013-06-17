@@ -24,21 +24,29 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	String signalLine;
 	String lowerThreshold;
 	String upperThreshold;
-	
-	String bearishDescription;
-	String bullishDescription;
 
 	private List<Color> colors;
 	private String[] descriptionArrays;
+	
 
+	String bearishDescription;
+	String bullishDescription;
 	private String[] bearishParamsMethods;
 	private String[] bullishParamsMethods;
 	
+	String formatedBearishDescription;
+	String formatedBullishDescription;
+
+	private String htmlBearishDescription;
+	private String htmlBullishDescription;
+
+
 	
 	public EventDefDescriptorStatic(
 			String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold, 
 			String bearishDescription, String[] bearishParamsMethods, String bullishDescription,  String[] bullishParamsMethods) {
 		super();
+		
 		this.mainIndicator = mainIndicator;
 		this.secondIndicator = secondIndicator;
 		this.thirdIndicator = thirdIndicator;
@@ -48,8 +56,9 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 		
 		this.bearishDescription = bearishDescription;
 		this.bearishParamsMethods = bearishParamsMethods;
+		
 		this.bullishDescription = bullishDescription;
-		this.bullishParamsMethods=bullishParamsMethods;
+		this.bullishParamsMethods = bullishParamsMethods;
 
 		initLists();
 	}
@@ -103,18 +112,23 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
 
 	public String getHtmlBearishDescription() {
-		return StringEscapeUtils.escapeHtml(bearishDescription).replace("\n", "<br>");
+		if (htmlBearishDescription == null) htmlBearishDescription = initHtmlDescription(getBearishDescription());
+		return htmlBearishDescription;
 	}
-
 	
 	public String getHtmlBullishDescription() {
-		return  StringEscapeUtils.escapeHtml(bullishDescription).replace("\n", "<br>");
+		if (htmlBullishDescription == null) htmlBullishDescription = initHtmlDescription(getBullishDescription());
+		return htmlBullishDescription;
 	}
+
+	private String initHtmlDescription(String description) {
+		return StringEscapeUtils.escapeHtml(description).replace("\n", "<br>");
+	}
+
 	
 	public Color getColor(int i) {
 		return colors.get(i);
 	}
-
 
 	@Override
 	public Boolean displayValues() {
@@ -145,37 +159,47 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	}
 
 
-	public String getBearishDescription() {
-		
-		Object[] paramsValues = (bearishParamsMethods != null)?configParams(bearishParamsMethods):new Object[0];
-		return String.format(bearishDescription, paramsValues);
-		
-	}
-
-
 	private Object[] configParams(String[] paramsMethods) {
-		
+
 		if (paramsMethods == null || paramsMethods.length < 2 ) return new Object[0];
-		
-		Config config = (Config) ConfigThreadLocal.get(paramsMethods[0]);
-		Object[] paramsValues =  new Object[paramsMethods.length-1];
-		for (int i = 1; i < paramsMethods.length; i++) {
-			try {
-				Method method = config.getClass().getMethod("get"+paramsMethods[i]);
-				paramsValues[i-1] = method.invoke(config);
-			} catch (Exception e) {
-				LOGGER.error(e,e);
+
+		Config config;
+		try {
+			config = (Config) ConfigThreadLocal.get(paramsMethods[0]);
+
+			Object[] paramsValues =  new Object[paramsMethods.length-1];
+			for (int i = 1; i < paramsMethods.length; i++) {
+				try {
+					Method method = config.getClass().getMethod("get"+paramsMethods[i]);
+					paramsValues[i-1] = method.invoke(config);
+				} catch (Exception e) {
+					LOGGER.error(e,e);
+				}
 			}
+			return paramsValues;
+		} catch (Exception e1) {
+			LOGGER.error(e1);
 		}
-		return paramsValues;
-		
+		return null;
+
+	}
+	
+	public String getBearishDescription() {
+		if (formatedBearishDescription == null) formatedBearishDescription = initDesrciption(bearishDescription, bearishParamsMethods);
+		return formatedBearishDescription;
 	}
 
 
 	public String getBullishDescription() {
-		
-		Object[] paramsValues = (bullishParamsMethods != null)?configParams(bullishParamsMethods):new Object[0];
-		return String.format(bullishDescription, paramsValues);
+		if (formatedBullishDescription == null) formatedBullishDescription = initDesrciption(bullishDescription, bullishParamsMethods);
+		return formatedBullishDescription;
+	}
+	
+	
+	private String initDesrciption( String description, String[] paramsMethods) {
+		Object[] paramsValues = (paramsMethods != null)?configParams(paramsMethods):new Object[0];
+		if (paramsValues != null) return String.format(description, paramsValues);
+		return description;
 	}
 	
 

@@ -89,6 +89,7 @@ import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EmailFilterEventSource;
+import com.finance.pms.events.EmailSendingFilter;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventValue;
@@ -150,10 +151,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	private Integer infCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.inf", "-1")); // -2;
 	private Integer supCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.sup", "1")); // 4;
-	Integer nbDaysFilter;
+	private Integer nbDaysFilter;
 
-	Integer nbMonthsAnalysis;
-
+	private Integer nbMonthsAnalysis;
 
 	private LogComposite logComposite;
 
@@ -175,7 +175,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 	public EventsComposite(Composite parent, int style, LogComposite logComposite) {
 		super(parent, style);
 
-		this.nbMonthsAnalysis = new Integer(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "6"));
+		this.nbMonthsAnalysis = new Integer(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
 		this.logComposite = logComposite;
 		allStocksEventModel = EventModel.getInstance(new RefreshAllEventStrategyEngine());
 		monitoredStocksEventModel = EventModel.getInstance(new RefreshMonitoredStrategyEngine());
@@ -197,7 +197,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 		setFilter(StocksActionFilter.FILTERMONITORED);
 		sortOnWeigthCriteriasActions();
 		reloadTabs();
-		
+			
 		needInit = false;
 	}
 
@@ -210,8 +210,26 @@ public class EventsComposite extends Composite implements RefreshableView {
 			thisLayout.marginHeight = 0;
 			thisLayout.marginWidth = 0;
 			this.setLayout(thisLayout);
-
 			this.setBackground(MainGui.eVENTS_DARKER);
+			this.addListener(SWT.Show, new Listener() {
+				
+				@Override
+				public void handleEvent(Event event) {
+					if (EventsComposite.this.getSendNotifs().getSelection()){
+						AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+						AnalysisClient.setEmailSendingFilter(new EmailSendingFilter(getFilterDate(), selectedEventInfos));
+					}
+					
+				}
+			});
+			this.addListener(SWT.Hide, new Listener() {
+
+				@Override
+				public void handleEvent(Event event) {
+					AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+					AnalysisClient.clearEmailSendingFilter();
+				}
+			});
 			
 			{
 				eventsCTabFolder = new CTabFolder(this, SWT.NONE);
@@ -493,7 +511,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 				computeButtonGroup.setBackground(MainGui.eVENTS_LIGHT);
 				String notificationNote = 
 						"Notifications are sent for all stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
-						"Only on the updated delta for the natives indicators and from the calculation start date for your parameterised indicators.";
+						"Notifications are filtered according to the 'Trend' and 'Event' filters above.";
 				{
 					dateCriteriatext = new Text(computeButtonGroup, SWT.NONE);
 					GridData sellCriteriaDatetextLData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -540,8 +558,10 @@ public class EventsComposite extends Composite implements RefreshableView {
 						private void handle() {
 							if (sendNotifs.getSelection()) {
 								AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+								AnalysisClient.setEmailSendingFilter(new EmailSendingFilter(getFilterDate(), selectedEventInfos));
 							} else {
 								AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
+								AnalysisClient.clearEmailSendingFilter();
 							}
 						}
 
@@ -575,9 +595,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshMonitored.setText(StocksActionFilter.FILTERMONITORED.getText());
 					refreshMonitored.setToolTipText(
 							"Will update the events calculation on Stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
-							"Notifications are sent for all stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
-							notificationNote+"\n"+
-							"To regenerate all notifications from the chosen calculation start date, you need to clear the previous calculations first.");
+							notificationNote+"\n");
 					refreshMonitored.addMouseListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
 						public void mouseDown(MouseEvent evt) {
@@ -926,7 +944,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 		} catch (NumberFormatException e) {
 			UserDialog inst = new UserDialog(this.getShell(), SWT.NULL, e.getMessage(), null);
 			inst.open();
-			dateCriteriatext.setText("6");
+			dateCriteriatext.setText(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
 		} finally {
 			//
 		}
@@ -1089,32 +1107,37 @@ public class EventsComposite extends Composite implements RefreshableView {
 		
 		if (eventDefs == null || eventDefs.isEmpty()) {
 			EventsResources.getInstance().resetSortLists();
-			return;
+			reloadTabs();
+
+		} else {
+
+			Display.getDefault().asyncExec(new Runnable() {
+				
+				public void run() {
+
+					try {
+
+						getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+
+						Integer sellEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold();
+						Integer buyEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
+						PonderationRule ponderationRule = (evtFilterLatestTick.getSelection())?new LatestEventsAllIndDefsPonderationRule():new DefaultPonderationRule(sellEventTriggerThreshold, buyEventTriggerThreshold);
+						EventInfo[] eventDefArray = eventDefs.toArray(new EventInfo[0]);
+						setAction(new EventsActionSort(ponderationRule, eventDefArray));
+
+						sortOnWeigthCriteriasActions();
+						reloadTabs();
+
+					} finally {
+						getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+					}
+
+				}
+
+			});
 		}
 		
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-
-				try {
-
-					getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-
-					Integer sellEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold();
-					Integer buyEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
-					PonderationRule ponderationRule = (evtFilterLatestTick.getSelection())?new LatestEventsAllIndDefsPonderationRule():new DefaultPonderationRule(sellEventTriggerThreshold, buyEventTriggerThreshold);
-					EventInfo[] eventDefArray = eventDefs.toArray(new EventInfo[0]);
-					setAction(new EventsActionSort(ponderationRule, eventDefArray));
-
-					sortOnWeigthCriteriasActions();
-					reloadTabs();
-
-				} finally {
-					getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-				}
-				
-			}
-			
-		});
+		AnalysisClient.setEmailSendingFilter(new EmailSendingFilter(getFilterDate(), eventDefs));
 	}
 
 	@Override

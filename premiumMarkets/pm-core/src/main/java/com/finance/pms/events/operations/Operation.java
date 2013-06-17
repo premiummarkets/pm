@@ -150,7 +150,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}
 			
 		} catch (Exception e) {
-			LOGGER.error("Operation calculation error "+this, e);
+			LOGGER.warn("Operation calculation error "+this, e);
 			throw new ArithmeticException(e.toString());
 		}
 		
@@ -469,13 +469,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		String paramsSyno = (operandsSynoptic.isEmpty())?"": "("+operandsSynoptic+")";
 		return referenceSyno + outSelectorSyno + paramsSyno + defaultSyno;
 	}
-	
-	
-//	public String aMoreFriendlyName() {
-//		String fName = reference;
-//		if (outputSelector != null) fName = outputSelector + " ("+fName+")";
-//		return fName;
-//	}
 
 	
 	@XmlTransient

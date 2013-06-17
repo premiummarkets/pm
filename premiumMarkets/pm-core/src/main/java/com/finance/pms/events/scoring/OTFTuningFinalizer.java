@@ -352,9 +352,8 @@ public class OTFTuningFinalizer {
 			
 			//Buy and hold profit
 			BigDecimal firstClose = quotations.getClosestCloseForDate(startDate);
-			BigDecimal buyAndHoldProfit = lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN);
-
-
+			BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
+			
 			return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, calcOutput.firstKey(), calcOutput.lastKey());
 			
 

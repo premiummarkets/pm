@@ -237,7 +237,7 @@ public class EventsResources {
 		private void deleteEventsInStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
 			
 			SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsInStockCache(stock, false);
-			if (eventsForStockAndAnalysis != null) {
+			if (eventsForStockAndAnalysis != null && !eventsForStockAndAnalysis.isEmpty()) {
 				SortedSet<EventCacheEntry> dateSubSet = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
 				SortedSet<EventCacheEntry> subSetToRemove = new TreeSet<EventCacheEntry>(new EventCacheEntryComparator());
 				for (EventCacheEntry eventCacheEntry : dateSubSet) {

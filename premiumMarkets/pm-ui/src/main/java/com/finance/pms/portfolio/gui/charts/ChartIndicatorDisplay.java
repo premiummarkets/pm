@@ -1,6 +1,7 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,6 +12,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
@@ -27,16 +31,17 @@ import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainGui;
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventModel;
+import com.finance.pms.datasources.EventModel.UpdateStamp;
 import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.EventRefreshController.TaskId;
-import com.finance.pms.datasources.db.StripedCloseRealQuote;
+import com.finance.pms.datasources.db.StripedCloseRealPrice;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -54,10 +59,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartIndicatorDisplay.class);
 
-	private static final String TRENDBUTTXT = "Chart Trends ...";
+	protected static final String TRENDBUTTXT = "Chart Trends ...";
 	private static final String INDICATORSBUTTXT = "Chart Indicators ...";
 
-	private Boolean spinnerSelection;
 	private BarSettings barChartSettings;
 	
 	private PopupMenu<EventInfo> evtDefTrendPopupMenu;
@@ -70,15 +74,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
 		super();
 		
-		this.spinnerSelection = false;
-		this.barChartSettings = new BarSettings(
-				MainPMScmd.getPrefs().getDouble("chart.alphaDividend", 2), 
-				((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getPerceptronTrainingPMEventOccLowerSpan(), 
-				false, false);
+		this.barChartSettings = new BarSettings();
 		
 		//TODO recalculate only selected indicators?
 		this.chartTarget = chartTarget;
-//		this.calculating = null;
 		populatePopups(chartTarget.getPopusGroup());
 		this.chartTarget.getMainChartWraper().initMainPlot(
 				ChartMain.NUMBER_FORMAT, 
@@ -114,11 +113,22 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				
 				//We try and run
 				try {
+					Set<EventInfo> allEvtInfos = chartTarget.initChartedEvtDefsTrendsSet();
+					allEvtInfos.addAll(chartTarget.getChartedEvtDefsTrends());
+					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allEvtInfos.add(chartTarget.getChartedEvtDef());
+					
+					HashMap<EventInfo, UpdateStamp> notUptoDateStamps = new HashMap<EventInfo, EventModel.UpdateStamp>();
+					Calendar minDate = Calendar.getInstance();
+					minDate.setTime(new Date(0));
+					Boolean needsUpdate = 
+							chartTarget.getHightlitedEventModel()
+							.cacheNeedsUpdateCheck(
+									selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
+									notUptoDateStamps, minDate, allEvtInfos.toArray(new EventInfo[0]));
 
-					Boolean needsUpdate = chartTarget.getHightlitedEventModel().cacheNeedsUpdateCheck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
-
-					if (needsUpdate && recalculationGranted) {
-						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate());	
+					//if (needsUpdate && recalculationGranted) {
+					if (needsUpdate) {
+						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), notUptoDateStamps, minDate);	
 					} 
 
 					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
@@ -148,16 +158,20 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 	
-	private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate) {
-		
-		String msg = "All analysis are not up to date for "+selectedShare.getName()+" and the selected time frame.";
-		String click = "Click to update calculations";
-		
+	private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate, HashMap<EventInfo, UpdateStamp> notUptoDateStamps, Calendar minDate) {
+			
 		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
 		final EventRefreshController refreshHighlitedAnalysisController = refreshHighlightedAnalysisController();
-		
-		if (eventRecalculationAck == null && refreshHighlitedAnalysisController.isValidTask(TaskId.Analysis, slidingStartDate)) {
+	
+		if (eventRecalculationAck == null && refreshHighlitedAnalysisController.isValidTask(TaskId.Analysis, slidingStartDate, EventModel.eventInfoChangeStamp)) {
 			
+			String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
+			String click = "Click to update calculations";
+			if (minDate.after(new Date(0))) msg = msg +"\nMinimun calculation date reached for this stock : "+new SimpleDateFormat("MMM dd yyyy").format(minDate);
+			for (EventInfo eventInfo : notUptoDateStamps.keySet()) {
+				msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 
+			}
+		
 			ActionDialogAction action  = new ActionDialogAction() {
 	
 				@Override
@@ -190,33 +204,55 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		
 	}
 	
-	private void updateBarChart(Stock selectedShare, Date exentedStartDate, boolean recalculationGranted, Boolean needsUpdate) {
+	private void updateBarChart(final Stock selectedShare, Date exentedStartDate, boolean recalculationGranted, Boolean needsUpdate) {
 
 		SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), true, chartTarget.getChartedEvtDefsTrends(), IndicatorCalculationServiceMain.UI_ANALYSIS);
 
-		Set<EventInfo> failingTrendAnalysis = new HashSet<EventInfo>();
+		final Set<EventInfo> noDataTrends = new HashSet<EventInfo>();
 		
-		//No indic found
+		//No events found
 		if (eventsForStock == null || eventsForStock.getDataResultMap().isEmpty()) {
 		
-			//No indic found despite recalc
+			//No events found despite recalc
 			if (!recalculationGranted) {
 				chartTarget.getMainChartWraper().resetBarChart();	
 			} else {
-				failingTrendAnalysis.addAll(chartTarget.getChartedEvtDefsTrends());
+				noDataTrends.addAll(chartTarget.getChartedEvtDefsTrends());
 			}
 			
 		//That's all or partially good, we display
 		} else {
 	
-			Map<EventInfo, TuningResDTO>  tuningRess = new HashMap<EventInfo, TuningResDTO>();
-			for (EventInfo eventDefinition :  chartTarget.getChartedEvtDefsTrends()) {
-				TuningResDTO tuningResCache = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
-				if (tuningResCache != null) {
-					tuningRess.put(eventDefinition, tuningResCache);
-				} else {
-					failingTrendAnalysis.add(eventDefinition);
-				}
+			final Map<EventInfo, TuningResDTO>  tuningRess = new HashMap<EventInfo, TuningResDTO>();
+			
+			ExecutorService executor = Executors.newFixedThreadPool(50);
+			
+			final Map<String, Config> configs = ConfigThreadLocal.getAll();
+			for (final EventInfo eventDefinition :  chartTarget.getChartedEvtDefsTrends()) {
+				
+				Runnable runnable = new Runnable() {
+					public void run() {
+	
+						ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,configs.get(Config.EVENT_SIGNAL_NAME));
+						ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,configs.get(Config.INDICATOR_PARAMS_NAME));
+						
+						TuningResDTO tuningResCache = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
+						if (tuningResCache != null) {
+							tuningRess.put(eventDefinition, tuningResCache);
+						} else {
+							noDataTrends.add(eventDefinition);
+						}
+					}
+				};
+				executor.execute(runnable);
+				
+			}
+			
+			executor.shutdown();
+			try {
+				executor.awaitTermination(5, TimeUnit.MINUTES);
+			} catch (InterruptedException e) {
+				LOGGER.error(e,e);
 			}
 			
 			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barsData = ChartBarUtils.buildBarsData(
@@ -229,14 +265,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 		
 		//Missing bars
-		if (!needsUpdate && !failingTrendAnalysis.isEmpty()) {
-			String chartedEvtStr = EventDefinition.getEventDefSetAsString(", ",failingTrendAnalysis);
+		if (!needsUpdate && !noDataTrends.isEmpty()) {
+			String chartedEvtStr = EventDefinition.getEventDefSetAsString(", ",noDataTrends);
 			UserDialog dialog = new UserDialog(chartTarget.getShell(),  SWT.NULL, 
-					"Not all analysis are available to refresh the Trends Bar Chart for this period and "+selectedShare.getFriendlyName()+".\n" +
-					"If you just cleared the calculation, try Refresh calculations.", 
-					"Missing Trends : "+chartedEvtStr+".\n" +
-					"This may happen if the calculation has been cleared, has failed, is not granted or has not enough quotations for the period.\n" +
-					"Also check the indicators in Charted Trends as well as the date boundaries.");
+					//"Not all analysis are available to refresh the Trends Bar Chart for this period and "+selectedShare.getFriendlyName()+".\n" +
+					"No events are available for : "+chartedEvtStr+".\nWithin the period you have selected and "+selectedShare.getFriendlyName()+".\n" +
+					"If you just cleared the calculation results, you may want to Update calculations.", 
+					"This may also happen if calculations failed or if there is not enough quotations for the period.\n" +
+					"Check the indicators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.");
 			dialog.open();
 		}
 	}
@@ -256,10 +292,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					
 					chartTarget.getMainChartWraper().resetIndicChart();
 					ActionDialog actionDialog = new ActionDialog(chartTarget.getShell(),  SWT.NULL, 
-							"Warning", "No indicator data for this period and "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
-							"If you cleared the calculation, try Refresh calculations.", 
-							"This may happen if the calculation has been cleared, has failed, is not granted or has not enough quotations for the period.\n" +
-							"Also check the date boundaries as well as the indicators displayed.",
+							"Warning", 
+							"No events are available within the period you have selected and "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
+							"If you just cleared the calculations results, you may want to Update calculations.", 
+							"This may also happen if calculations failed, or if there is not enough quotations for the period.\n" +
+							"Check the indicators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.",
 							"Update calculations Now?", new ActionDialogAction() {
 								@Override
 								public void action(Button targetButton) {
@@ -307,24 +344,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void initRefreshAction() {
-//		synchronized (chartTarget.getLogComposite()) {
-//			calculating = (Stock) chartTarget.getHightlitedEventModel().getViewStateParams()[0];
-//		}
 	}
 
 
 
 	@Override
 	public void endRefreshAction(List<Exception> exceptions) {
-//		synchronized (chartTarget.getLogComposite()) {
-//			calculating = null;
-//		}
 	}
 
 	@Override
 	public void populatePopups(Composite popusGroup) {
 		
-		cleanPopupsGroup(popusGroup);
+		cleanPopupButtonsGroup(popusGroup);
 		
 		{
 			evtDefsChartingBut = new Button(popusGroup, SWT.PUSH);
@@ -378,67 +409,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		}
 		{
-			Button recalc =  new Button(popusGroup, SWT.PUSH);
-			recalc.setFont(MainGui.DEFAULTFONT);
-			recalc.setText("Update calculations");
-			recalc.addSelectionListener(refreshHighlightedAnalysisController());
-			
-		}
-//		{
-//			final Spinner alphaSpinner = new Spinner(popusGroup, SWT.WRAP|SWT.READ_ONLY);
-//			alphaSpinner.setFont(MainGui.DEFAULTFONT);
-//			int digits = 1;
-//			alphaSpinner.setDigits(digits);
-//			alphaSpinner.setMinimum(5);
-//			alphaSpinner.setMaximum(EventDefinition.loadMaxPassPrefsEventInfo().size()*10);
-//			alphaSpinner.setIncrement(5);
-//			alphaSpinner.setSelection((int)(barChartSettings.alphaDividend*Math.pow(10, digits)));
-//			alphaSpinner.setToolTipText(
-//					"For a better visibility of the result, You can change the colours alpha of the charted trend.\n" +
-//					"You must select a share in the portfolio to display its analysis\n" +
-//					"You also must choose the trends you want to display using the '"+TRENDBUTTXT+"' button.");
-//			alphaSpinner.addSelectionListener(new SelectionAdapter() {
-//			
-//				public void widgetSelected(SelectionEvent e) {
-//					int selection = alphaSpinner.getSelection();
-//					int digits = alphaSpinner.getDigits();
-//					barChartSettings.alphaDividend = selection / Math.pow(10, digits);
-//					synchronized (spinnerSelection) {
-//						spinnerSelection = true;
-//					}
-//				}
-//			});
-//			alphaSpinner.addListener(SWT.MouseExit, new Listener() {
-//
-//				public void handleEvent(Event arg0) {
-//					synchronized (spinnerSelection) {
-//						if (spinnerSelection) {
-//							spinnerSelection = false;
-//							
-//							try {
-//								MainPMScmd.getPrefs().putDouble("chart.alphaDividend", barChartSettings.alphaDividend);
-//								MainPMScmd.getPrefs().flush();
-//							} catch (Exception e) {
-//								LOGGER.error(e, e);
-//							}
-//
-//							Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
-//							if (viewStateParams != null && viewStateParams.length == 1) {
-//								highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
-//							} else {
-//								if ((chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty())) {
-//									UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
-//									dialog.open();
-//								}
-//							}
-//							
-//						}
-//					}
-//				}
-//
-//			});
-//		}
-		{
 			Button barSettings = new Button(popusGroup, SWT.NONE);
 			barSettings.setFont(MainGui.DEFAULTFONT);
 			barSettings.setText("Trend settings ...");
@@ -456,9 +426,38 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				private void handle() {
 					
+					ActionDialogAction  action =  new ActionDialogAction() {
+						
+						private UserDialog dialog;
+
+						@Override
+						public void action(Button targetButton) {
+
+							Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
+							if (viewStateParams != null && viewStateParams.length == 1) {
+								highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
+							} else {
+								if (dialog == null && (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty())) {
+									dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
+									dialog.open();
+								}
+							}
+						}
+					};
 					
+					BarSettingsDialog barSettingsDialog = new BarSettingsDialog(chartTarget.getShell(), barChartSettings, action);
+					Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
+					barChartSettings = barSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
+
 				}
 			});
+			
+		}
+		{
+			Button recalc =  new Button(popusGroup, SWT.PUSH);
+			recalc.setFont(MainGui.DEFAULTFONT);
+			recalc.setText("Update calculations");
+			recalc.addSelectionListener(refreshHighlightedAnalysisController());
 			
 		}
 		
@@ -497,7 +496,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				sShare.setDisplayOnChart(false);
 			}
 		}
-		chartTarget.setStripedCloseFunction(new StripedCloseRealQuote());
+		chartTarget.setStripedCloseFunction(new StripedCloseRealPrice());
 		chartTarget.updateCharts(chartTarget.getListShares(), false, false);
 		
 	}
@@ -671,6 +670,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	public void shutDownDisplay() {
 		if (evtDefChartingPopupMenu != null) evtDefChartingPopupMenu.getSelectionShell().dispose();
 		if (evtDefTrendPopupMenu != null) evtDefTrendPopupMenu.getSelectionShell().dispose();
+	}
+
+
+	@Override
+	public void updateButtonsToolTips() {
+		//Nothing
 	}
 
 

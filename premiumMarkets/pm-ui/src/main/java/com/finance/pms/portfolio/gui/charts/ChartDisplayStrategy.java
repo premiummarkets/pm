@@ -69,7 +69,7 @@ public abstract class ChartDisplayStrategy {
 
 	public abstract void populatePopups(Composite popusGroup);
 
-	protected void cleanPopupsGroup(Composite popusGroup) {
+	protected void cleanPopupButtonsGroup(Composite popusGroup) {
 		Control[] children = popusGroup.getChildren();
 		for (Control control : children) {
 			control.dispose();
@@ -96,5 +96,7 @@ public abstract class ChartDisplayStrategy {
 	public  abstract void refreshView(List<Exception> exceptions);
 
 	public abstract void shutDownDisplay();
+
+	public abstract void updateButtonsToolTips();
 
 }

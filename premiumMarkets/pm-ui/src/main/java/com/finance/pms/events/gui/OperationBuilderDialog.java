@@ -55,7 +55,7 @@ public class OperationBuilderDialog {
 		Group opGrp = new Group(shell, SWT.NONE);
 		opGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		opGrp.setLayout(new GridLayout());
-		opGrp.setText("Parameterize and Create indicators' calculation");
+		opGrp.setText("Parameterise and Create indicators' calculation");
 		opGrp.setFont(MainGui.DEFAULTFONT);
 		opGrp.setBackground(MainGui.pOPUP_GRP);
 		OperationBuilderComposite operationBuilderDialog = new OperationBuilderComposite(opGrp, mainGui);
@@ -64,7 +64,7 @@ public class OperationBuilderDialog {
 		Group indcGrp = new Group(shell, SWT.NONE);
 		indcGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		indcGrp.setLayout(new GridLayout());
-		indcGrp.setText("Parameterize and Create events' calculation");
+		indcGrp.setText("Parameterise and Create events' calculation");
 		indcGrp.setFont(MainGui.DEFAULTFONT);
 		indcGrp.setBackground(MainGui.pOPUP_GRP);
 		IndicatorBuilderComposite indicatorBuilderComposite = new IndicatorBuilderComposite(indcGrp, mainGui, operationBuilderDialog.getComboUpdateMonitor());

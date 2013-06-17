@@ -137,7 +137,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	private MenuItem eventsMenuItem;
 	private Menu eventsSubMenu;
-	private MenuItem viewEventsMenuItem;
+	public static MenuItem viewEventsMenuItem;
 	
 	private  MenuItem portfolioMenuItem;
 	public static Menu portfolioSubMenu;
@@ -190,7 +190,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
 		
 		AnalysisClient.setEmailMsgQeueingFilter(EmailFilterEventSource.uiSet());
-		
 		
 		sashes = new SashForm(this, SWT.HORIZONTAL);
 		logComposite = new LogComposite(this);
@@ -476,7 +475,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						new MenuItem(eventsSubMenu, SWT.SEPARATOR);
 						{
 							MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
-							eventClean.setText("Clear previous calculations");
+							eventClean.setText("Clear All previous calculations");
 							eventClean.addSelectionListener(clearPreviousCalculationsControler());
 						}
 						{
@@ -924,7 +923,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		PortfolioComposite portfolio = new PortfolioComposite(sashes, charts, SWT.NONE|SWT.BORDER, logComposite);
 		this.winTable[2] = portfolio;
 		
-		this.viewEventsMenuItem.setSelection(false);
+		MainGui.viewEventsMenuItem.setSelection(false);
 		this.viewPortfolioMenuItem.setSelection(true);
 		this.setMainDisplay();
 		
@@ -952,7 +951,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private void setMainDisplay() {
+	protected void setMainDisplay() {
 		
 		//0 Event, 1 Chart, 2 Portfolio
 		
@@ -962,8 +961,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(false);
 			sashes.setWeights(new int[]{100,0,0});
 			
-			if (((EventsComposite)eventsSash()).getSendNotifs().getSelection()) AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
-			
 			((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
 		}
 		
@@ -971,8 +968,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			for (int j = 0; j < winTable.length; j++) {
 				winTable[j].setVisible(false);
 			}
-			
-			AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 			
 		}
 		
@@ -982,8 +977,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{50,0,50});
 			
-			if (((EventsComposite)eventsSash()).getSendNotifs().getSelection())  AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
-			
 			((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
 			((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
 		}
@@ -992,8 +985,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			chartsSash().setVisible(true);
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{0,50,50});
-			
-			AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 			
 			((RefreshableView)chartsSash()).refreshView(new ArrayList<Exception>());
 			((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());

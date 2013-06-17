@@ -11,11 +11,13 @@ import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.talib.indicators.TalibException;
 
 @XmlRootElement
 public class PMAroonOperation extends PMIndicatorOperation {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(PMMACDOperation.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(PMAroonOperation.class);
 	
 	public PMAroonOperation() {
 		super("aroon_", "Aroon indicator house made", new DoubleOperation("number","aroonPeriod","Aroon period", new DoubleValue(25.0)));
@@ -48,6 +50,10 @@ public class PMAroonOperation extends PMIndicatorOperation {
 				return outputToMap(targetStock, arron, arron.getOutputData());
 			}
 			
+		} catch (NoQuotationsException e) {
+			LOGGER.warn(e);
+		} catch (TalibException e) {
+			LOGGER.warn(e);
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}

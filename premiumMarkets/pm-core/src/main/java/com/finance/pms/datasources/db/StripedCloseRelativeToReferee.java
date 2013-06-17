@@ -46,9 +46,9 @@ import com.finance.pms.portfolio.PortfolioShare;
  * 
  * @author Guillaume Thoreton
  */
-public class StripedCloseIndexRelative extends StripedCloseFunction {
+public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseIndexRelative.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToReferee.class);
 
 	Quotations relativeQuotations;
 
@@ -66,7 +66,7 @@ public class StripedCloseIndexRelative extends StripedCloseFunction {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public StripedCloseIndexRelative(Quotations relativeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
+	public StripedCloseRelativeToReferee(Quotations relativeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
 		super(arbitraryEndDate);
 
 		if (null == relativeQuotations || relativeQuotations.size() == 0) 

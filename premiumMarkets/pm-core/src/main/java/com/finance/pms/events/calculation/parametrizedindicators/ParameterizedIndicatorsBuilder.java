@@ -2,6 +2,8 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -60,7 +62,11 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 			@Override
 			public void update(Observable o, Object arg) {
 				if (arg != null)  {
-					actualCheckInUse(currentOperations.values(), (Operation)arg);
+					
+					List<Operation> checkInUse = actualCheckInUse(currentOperations.values(), (Operation)arg);
+					//if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ (Operation)arg +"' is used by "+checkInUse+". Please delete these first.");
+					if (!checkInUse.isEmpty()) throw new InUsedExecption(checkInUse);
+
 				} else {
 					resetUserOperations();
 				}
@@ -97,8 +103,15 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	//Is called when Indicators are changed
 	@Override
-	protected void checkInUse(Operation operation) {
+	public List<Operation> checkInUse(Operation operation) {
 		//We don't check root operations
+		return new ArrayList<Operation>();
+	}
+	
+	@Override
+	public List<Operation> notifyChanged(Operation operation) {
+		//Nothing
+		return new ArrayList<Operation>();
 	}
 
 	//Is called when Indicators are changed
@@ -111,6 +124,10 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	protected EmptyMarker getEmptyMarkerInstance(CommonTree child) {
 		throw new UnsupportedOperationException("Empty user operation "+child);
 	}
+
+
+	
+	
 	
 	
 	

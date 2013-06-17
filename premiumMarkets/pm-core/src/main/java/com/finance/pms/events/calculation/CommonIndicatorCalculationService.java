@@ -57,7 +57,6 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
@@ -178,15 +177,16 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				IndicatorsCalculationThread calculationRunnableTarget = null;
 				Currency stockCalcCurrency = (calculationCurrency == null)? stock.getMarketValuation().getCurrency() : calculationCurrency;
 				
-				//Shift calculation date to available quotes
-				Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(firstQuotationDateFromQuotations);
-				QuotationsFactories.getFactory().incrementDate(calendar, 200);
-				Date adjustedStartDate = startDate;
-				if (calendar.getTime().after(startDate)) {
-					adjustedStartDate = calendar.getTime();
+				//Adjust calculation date to available quotes
+				Date adjustedStartDate = TunedConfMgr.adjustStartDate(stock);
+				if (adjustedStartDate.before(startDate) || adjustedStartDate.equals(startDate)) {
+					adjustedStartDate = startDate;
+				} else {
 					LOGGER.info("Calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
+				}
+				if (adjustedStartDate.after(endDate) || adjustedStartDate.equals(endDate)) {
+					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
+					continue;
 				}
 				
 				//Calculations

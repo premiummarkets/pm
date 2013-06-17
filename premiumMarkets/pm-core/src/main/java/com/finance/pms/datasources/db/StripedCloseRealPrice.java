@@ -7,7 +7,7 @@ import java.util.Date;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
 
-public class StripedCloseRealQuote extends StripedCloseFunction {
+public class StripedCloseRealPrice extends StripedCloseFunction {
 
 	@Override
 	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
@@ -35,7 +35,7 @@ public class StripedCloseRealQuote extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "";
+		return "real price";
 	}
 
 }

@@ -34,6 +34,7 @@ import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,6 +58,7 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
 /**
@@ -77,11 +79,10 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	private Set<Observer> engineObservers;
 	private Object[] viewStateParams;
 	
-	protected static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
-	private static Map<Stock, UpdateStamp> cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
-//	private static Boolean cacheInit = true;
-	
-	
+	private static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+	private static Map<Stock, Map<EventInfo, UpdateStamp>> cacheTimeStamps = new HashMap<Stock, Map<EventInfo, UpdateStamp>>();
+	public static Long eventInfoChangeStamp = 0l;
+
 	static class EventDefCacheEntry {
 		
 		SortedMap<Date, double[]> outputMap;
@@ -96,14 +97,18 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		}
 	}
 	
-	static class UpdateStamp {
+	enum OutStampState {OK,FAILING, DIRTY};
+	
+	public static class UpdateStamp {
 		private Date start;
 		private Date end;
+		private OutStampState outputState;
 		
-		public UpdateStamp(Date start, Date end) {
+		public UpdateStamp(Date start, Date end, Boolean isFailing) {
 			super();
 			this.start = start;
 			this.end = end;
+			this.outputState = (isFailing)?OutStampState.FAILING:OutStampState.OK;
 		}
 		
 		@Override
@@ -134,6 +139,18 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			} else if (!start.equals(other.start))
 				return false;
 			return true;
+		}
+
+		public Boolean isDirty() {
+			return outputState.equals(OutStampState.DIRTY);
+		}
+		
+		public Boolean isFailing() {
+			return outputState.equals(OutStampState.FAILING);
+		}
+
+		public void setDirty() {
+			this.outputState = OutStampState.DIRTY;
 		}
 	}
 
@@ -171,6 +188,21 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 			throw new RuntimeException(e);
+		}
+		
+	}
+	
+	
+	public static void dirtyCacheFor(EventInfo eventInfo) {
+		
+		for (Stock stock : cacheTimeStamps.keySet()) {
+			Map<EventInfo, UpdateStamp> stockTimeStamps = cacheTimeStamps.get(stock);
+			if (stockTimeStamps != null) {
+				UpdateStamp updateStamp = stockTimeStamps.get(eventInfo);
+				if (updateStamp != null) {
+					updateStamp.setDirty();
+				}
+			}
 		}
 		
 	}
@@ -229,8 +261,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			
 			//Update cache
 			outputCache.putAll(callbackForlastAnalyseOutput);
-//			cacheInit = false;
-			
+
 			//Update cache bounds records
 			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 			Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
@@ -239,17 +270,23 @@ public class EventModel<T extends EventModelStrategyEngine> {
 			Boolean isAllEventsOk = true;
 			String msg = "";
 			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
-				//Check if the calculation was complete
+				//update time stamp cache
 				Boolean isAllEventsOkForStock = true;
 				for (EventInfo eventDefinition : indicators) {
 					EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
+					Map<EventInfo, UpdateStamp> timeStamps4Stock = cacheTimeStamps.get(stock);
+					if (timeStamps4Stock == null) {
+						timeStamps4Stock = new HashMap<EventInfo, EventModel.UpdateStamp>();
+						cacheTimeStamps.put(stock, timeStamps4Stock);
+					}
+					Boolean isFailing = false;
 					if (evtDefRes == null) {
 						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' is failing for " + stock.getFriendlyName() + "\n";
 						isAllEventsOkForStock = false;
-						break;
-					}
+						isFailing = true;
+					} 
+					timeStamps4Stock.put(eventDefinition, new UpdateStamp(datedeb, datefin, isFailing));
 				}
-				if (isAllEventsOkForStock) cacheTimeStamps.put(stock, new UpdateStamp(datedeb, datefin));
 				isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
 			}
 			
@@ -289,23 +326,10 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	
 	public void callbackForAnalysisClean() {
 		
-//		cacheInit = false;
-		
-//		for (Object stock : viewStateParams) {
-//			if (stock instanceof Stock) {
-//				outputCache.remove((Stock)stock);
-//				cacheTimeStamps.remove((Stock)stock);
-//			} else {
-//				outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
-//				cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
-//				break;
-//			}
-//		}
-		
 		Boolean deleteAll = eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, viewStateParams);
 		if (deleteAll) {
 			outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
-			cacheTimeStamps = new HashMap<Stock, UpdateStamp>();
+			cacheTimeStamps = new HashMap<Stock, Map<EventInfo,UpdateStamp>>();
 		} else {
 			for (Object stock : viewStateParams) {
 				outputCache.remove((Stock)stock);
@@ -449,13 +473,40 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		
 	}
 	
-	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end) {
-		UpdateStamp updateStamp = cacheTimeStamps.get(stock);
-		if (updateStamp == null || start.before(updateStamp.start) || end.after(updateStamp.end)) {
+	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end, Map<EventInfo, UpdateStamp> notUptoDateStamps, Calendar minDate, EventInfo ...eventInfos) {
+		
+		if (eventInfos.length == 0) return false;
+		
+		Map<EventInfo, UpdateStamp> updateStamps = cacheTimeStamps.get(stock);
+		if (updateStamps == null) {
 			return true;
-		} else {
-			return false;
 		}
+		
+		Date adjustStartDate = TunedConfMgr.adjustStartDate(stock);
+		
+		if (start.before(adjustStartDate)) {
+			start = adjustStartDate;
+			minDate.setTime(adjustStartDate);
+		}
+		
+		Boolean needsUpdate = false;
+		for (EventInfo eventInfo : eventInfos) {
+			UpdateStamp updateStamp = updateStamps.get(eventInfo);
+			boolean isOutSidePrevCalcPeriod = start.before(updateStamp.start) || end.after(updateStamp.end);
+			if (updateStamp == null || updateStamp.isDirty() || isOutSidePrevCalcPeriod) {
+				notUptoDateStamps.put(eventInfo, updateStamp);
+				needsUpdate = true;
+			}
+		}
+		
+		return needsUpdate;
+		
 	}
+	
+	public static Long updateEventInfoStamp() {
+		eventInfoChangeStamp = new Date().getTime();
+		return eventInfoChangeStamp;
+	}
+	
 	
 } 

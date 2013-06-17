@@ -44,15 +44,19 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
-import com.finance.pms.datasources.EventRefreshController.TaskId;
+import com.finance.pms.datasources.RefreshFourToutStrategyEngine;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ANTLRParserHelper;
 import com.finance.pms.events.calculation.antlr.Alternative;
@@ -62,13 +66,14 @@ import com.finance.pms.events.calculation.antlr.NextToken;
 import com.finance.pms.events.calculation.antlr.NextToken.TokenType;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.threads.ConfigThreadLocal;
 
 public class OperationBuilderComposite extends Composite {
 	
 	public static MyLogger LOGGER = MyLogger.getLogger(OperationBuilderComposite.class);
 
 	protected ParameterizedBuilder parameterizedBuilder;
-	private MainGui mainGuiParent;
+    private MainGui mainGuiParent;
 	
 	private Label errorLabel;
 	protected CCombo formulaReference;
@@ -566,28 +571,34 @@ public class OperationBuilderComposite extends Composite {
 			dialog.open();
 		}
 		
-		clearPreviousCalcsWarning();
+		previousCalcsAsDirty(identifier);
 		
 	}
 
-	protected void clearPreviousCalcsWarning() {
-		
-		final EventRefreshController clearPreviousCalculationsControler = mainGuiParent.clearPreviousCalculationsControler();
-		if (clearPreviousCalculationsControler.isValidTask(TaskId.Clean)) {
-		
-			ActionDialog actionDialog = 
-					new ActionDialog(getShell(), SWT.NONE, "You have changed some "+builderLabel()+" formulas.", 
-					"You have changed some "+builderLabel()+" formulas.\nYou may want to clear.",
-					"Don't forget to click Refresh calculations after clearing!", 
-					"Clear calculations", new ActionDialogAction() {
-						@Override
-						public void action(Button targetButton) {
-							clearPreviousCalculationsControler.widgetSelected(null);
-						}
-			});
-			actionDialog.open();
-			
+	protected void previousCalcsAsDirty(String identifier) {
+
+		Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
+
+		List<Operation> inUse = parameterizedBuilder.notifyChanged(operation);
+		for (Operation opInUse : inUse) {
+			EventModel.dirtyCacheFor((EventInfo) opInUse);
 		}
+
+		EventModel.updateEventInfoStamp();
+		refreshViews();
+
+	}
+
+	protected void refreshViews() {
+		EventRefreshController eventRefreshController = new EventRefreshController(EventModel.getInstance(new RefreshFourToutStrategyEngine()), mainGuiParent, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+			@Override
+			public void widgetSelected(SelectionEvent evt) {
+				LOGGER.guiInfo("Refreshing views");
+				this.updateEventRefreshModelState(0l);
+				super.widgetSelected(evt);
+			}
+		};
+		eventRefreshController.widgetSelected(null);
 	}
 
 	protected String saveButtonTxt() {
@@ -687,7 +698,7 @@ public class OperationBuilderComposite extends Composite {
 			//return true;
 		} 
 		
-		clearPreviousCalcsWarning();
+		previousCalcsAsDirty(identifier);
 		return true;
 		
 	}
@@ -1036,6 +1047,7 @@ public class OperationBuilderComposite extends Composite {
 				String token = data.getAltString();
 				String description = (data.getDescription() != null)?data.getDescription():"";
 				String synoptic = (data.getSynoptic() != null && data.getDefaultValue() == null)?data.getSynoptic():((data.getDefaultValue() != null)?data.getDefaultValue():"");
+				synoptic = synoptic.replaceAll("\n", Text.DELIMITER);
 				
 				if(i < items.length) {
 					items[i].setData(data);
@@ -1120,7 +1132,7 @@ public class OperationBuilderComposite extends Composite {
 			//error Msg
 			String syno = (alternative.getSynoptic() == null)?"":" : "+ alternative.getSynoptic();
 			String addErrorTxt = "@ line " + lineNum + ", start column " + endLineOffset + " : " + alternative.getAltString() + "\n" + alternative.getDescription() + syno;
-			errorLabel.setText(addErrorTxt.replace(". ", ".\n"));
+			errorLabel.setText(addErrorTxt.replaceAll("\n", Text.DELIMITER).replace(". ", "."+Text.DELIMITER));
 			this.layout();
 			return true; //TODO several highlight alts??!
 

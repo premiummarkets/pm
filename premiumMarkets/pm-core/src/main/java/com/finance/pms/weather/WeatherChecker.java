@@ -67,7 +67,10 @@ public class WeatherChecker extends EventCompostionCalculator {
 	private Date endDate;
 	SortedSet<WeatherElement> weatherElements;
 
-	public WeatherChecker(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean export, Boolean persistTrainingEvents, Observer...observers) throws NotEnoughDataException {
+	public WeatherChecker(
+			EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean export, Boolean persistTrainingEvents, Observer...observers) 
+			throws NotEnoughDataException {
+		
 		super(stock);
 		
 		weatherElements = WeatherDAOImpl.getInstance().getMonthlyWeatherUntil(endDate, new WeatherElementsComparator());
