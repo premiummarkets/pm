@@ -2505,9 +2505,22 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 
 	protected void packColumns(Table ttomod) {
+		int minSize = 50;
 		for (int j = 0; j < Titles.values().length; j++) {
-			ttomod.getColumn(j).pack();
-			if (j > 0) ttomod.getColumn(j).setWidth(Math.max((this.getSize().x-ttomod.getColumn(0).getWidth())/(Titles.values().length-1), 50));
+			
+			if (j > 0) {
+				int availableSize = (this.getSize().x-ttomod.getColumn(0).getWidth())/(Titles.values().length-1);
+				if (availableSize <= minSize) {
+					ttomod.getColumn(j).setWidth(minSize);
+				} 
+				else if (availableSize > minSize) {
+					ttomod.getColumn(j).pack();
+					int actualPackedWidth = ttomod.getColumn(j).getWidth();
+					if (actualPackedWidth > availableSize)ttomod.getColumn(j).setWidth(availableSize);
+				}
+			} else {
+				ttomod.getColumn(j).pack();
+			}
 		}
 	}
 	

@@ -101,7 +101,7 @@ public class UserDialog extends Dialog {
 				errorLabel1 = new Label(getParent(), SWT.WRAP);
 				errorLabel1.setText(this.erreur);
 				errorLabel1.setFont(MainGui.DEFAULTFONT);
-				errorLabel1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				errorLabel1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
 				errorLabel1.setAlignment(SWT.LEFT);
 				errorLabel1.setBackground(MainGui.pOPUP_BG);
 			}
@@ -116,9 +116,9 @@ public class UserDialog extends Dialog {
 			}
 			{
 				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);
-				GridData Validerbutton1LData = new GridData(GridData.FILL_HORIZONTAL);
-				Validerbutton1LData.horizontalAlignment = GridData.CENTER;
-				valideButton1.setLayoutData(Validerbutton1LData);
+				GridData validerbutton1LData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
+				//Validerbutton1LData.horizontalAlignment = GridData.CENTER;
+				valideButton1.setLayoutData(validerbutton1LData);
 				validationButtonTxtAndAction();
 			}
 			

@@ -492,8 +492,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		Boolean needsUpdate = false;
 		for (EventInfo eventInfo : eventInfos) {
 			UpdateStamp updateStamp = updateStamps.get(eventInfo);
-			boolean isOutSidePrevCalcPeriod = start.before(updateStamp.start) || end.after(updateStamp.end);
-			if (updateStamp == null || updateStamp.isDirty() || isOutSidePrevCalcPeriod) {
+			if (updateStamp == null || updateStamp.isDirty() || start.before(updateStamp.start) || end.after(updateStamp.end)) {
 				notUptoDateStamps.put(eventInfo, updateStamp);
 				needsUpdate = true;
 			}

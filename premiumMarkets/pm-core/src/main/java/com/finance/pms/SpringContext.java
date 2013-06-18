@@ -275,6 +275,9 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getPrefs().put("mas.daysbackwardday", props.getProperty("mas.daysbackwardday"));
 			if (props.containsKey("talib.daysbackwardday"))
 				MainPMScmd.getPrefs().put("talib.daysbackwardday", props.getProperty("talib.daysbackwardday"));
+			if (props.containsKey("autoporfolio.generatecsv"))
+				MainPMScmd.getPrefs().put("autoporfolio.generatecsv", props.getProperty("autoporfolio.generatecsv"));
+			
 			
 			//Quotes
 			if (props.containsKey("quotes.listfile"))
@@ -397,7 +400,7 @@ public class SpringContext extends GenericApplicationContext {
 			
 			putInPrefs("indicators.returnoutput", props);
 			
-			//Screnner Trend
+			//Screener Trend
 			if (props.containsKey("trend.sellthreshold"))
 				MainPMScmd.getPrefs().put("trend.sellthreshold", props.getProperty("trend.sellthreshold"));
 			if (props.containsKey("trend.buythreshold"))

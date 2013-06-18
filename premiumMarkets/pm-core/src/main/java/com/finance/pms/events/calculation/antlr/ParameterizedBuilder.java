@@ -79,7 +79,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		if (LOGGER.isDebugEnabled()) {
 			DOTTreeGenerator gen = new DOTTreeGenerator();
 			StringTemplate st = gen.toDOT(commonTree);
-			LOGGER.info(st);
+			LOGGER.debug(st);
 		}
 	  
 		Operation builtOperation = buildOperation(commonTree);
@@ -142,7 +142,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		
 		//If there is a pre parameterised operation, we use it
 		if (nativeOperations != null) {
-			LOGGER.info("Cloning pre parameterise op : "+nativeOperations);
+			LOGGER.debug("Cloning pre parameterise op : "+nativeOperations);
 
 			Operation clone = (Operation) nativeOperations.clone();
 			clone.setOperands(operands);
@@ -156,14 +156,14 @@ public abstract class ParameterizedBuilder extends Observable {
 			try {
 
 				String childText = opPackage + child.getToken().getText();
-				LOGGER.info("Instantiating NON pre parameterise op : "+childText);
+				LOGGER.debug("Instantiating NON pre parameterise op : "+childText);
 
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
 				return constructor.newInstance(operands, outputSelector);
 
 			} catch (Exception e) {
-				LOGGER.info(e.toString() + ", cause " + ((e.getCause() != null)?e.getCause().toString():"unknown")+". child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Can't Instantiate : "+opPackage);
+				LOGGER.debug(e.toString() + ", cause " + ((e.getCause() != null)?e.getCause().toString():"unknown")+". child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Can't Instantiate : "+opPackage);
 			}
 
 		}

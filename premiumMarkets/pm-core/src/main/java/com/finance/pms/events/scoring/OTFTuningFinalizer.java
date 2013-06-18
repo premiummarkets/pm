@@ -106,6 +106,8 @@ public class OTFTuningFinalizer {
 		//EventType prevEventType = EventType.NONE;
 		EventType prevEventType = null;
 		PeriodRatingDTO period = new PeriodRatingDTO();
+		
+		Boolean generateBuySellCsv = MainPMScmd.getPrefs().getBoolean("autoporfolio.generatecsv", true);
 
 		try {
 			
@@ -129,11 +131,15 @@ public class OTFTuningFinalizer {
 				endDateStamp = new SimpleDateFormat("yyyyMMdd").format(endDate);
 			}
 			
-			String fileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol() + "_"+evtDef.info()+"_BuyAndSellRecords"+endDateStamp+".csv";
-			File file = new File(System.getProperty("installdir") + File.separator + fileName);
-			file.delete();
-			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
-			bufferedWriter.write("Date, Quotations, Bearish, Bullish, Output \n");
+			BufferedWriter bufferedWriter = null;
+			String fileName = "noOutputAvailable";
+			if (generateBuySellCsv) {
+				fileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol() + "_"+evtDef.info()+"_BuyAndSellRecords"+endDateStamp+".csv";
+				File file = new File(System.getProperty("installdir") + File.separator + fileName);
+				file.delete();
+				bufferedWriter = new BufferedWriter(new FileWriter(file));
+				bufferedWriter.write("Date, Quotations, Bearish, Bullish, Output \n");
+			}
 
 			//Other init
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 0, 0);
@@ -145,16 +151,18 @@ public class OTFTuningFinalizer {
 			Calendar currentDate = zeroTimeDate(startDate);
 			
 			//TODO of any use??? Fill training quotations + calc output up to start date
-			while (currentDate.getTime().before(startDate)) {
-				String line  = simpleDateFormat.format(currentDate.getTime());
-				BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-				double[] output = calcOutput.get(currentDate.getTime());
-				String outputString = (output == null)?"NaN":output[0]+"";
-				line = line + ", " + closeForDate + ", , ";
-				line = line + ", " + outputString; 		
-				line = line + "\n";
-				bufferedWriter.write(line);
-				QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+			if (generateBuySellCsv) {
+				while (currentDate.getTime().before(startDate)) {
+					String line  = simpleDateFormat.format(currentDate.getTime());
+					BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+					double[] output = calcOutput.get(currentDate.getTime());
+					String outputString = (output == null)?"NaN":output[0]+"";
+					line = line + ", " + closeForDate + ", , ";
+					line = line + ", " + outputString; 		
+					line = line + "\n";
+					bufferedWriter.write(line);
+					QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+				}
 			}
 
 			BigDecimal big2 = BigDecimal.ONE;
@@ -171,11 +179,14 @@ public class OTFTuningFinalizer {
 			SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 			
 			while (currentDate.getTime().before(endCalcRes) || currentDate.getTime().compareTo(endCalcRes) == 0) {
-
-				String line  = simpleDateFormat.format(currentDate.getTime());
-
+				
 				BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-				line  = line + ", " + closeForDate;
+				
+				String line = "";
+				if (generateBuySellCsv) {
+					line  = simpleDateFormat.format(currentDate.getTime());
+					line  = line + ", " + closeForDate;
+				}
 			
 				//Some events may have been skipped (ie WE events) and must be disregarded
 				while (currentEvent != null && currentDate.getTime().after(currentEvent.getDate()) && eventsIt.hasNext()) {
@@ -228,10 +239,10 @@ public class OTFTuningFinalizer {
 
 						//Csv First trend change
 						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
-							line = line + ", , " + prevCloseForDate.multiply(big2);
+							if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
 							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
-							line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+							if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
 							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						}
 						if (eventsIt.hasNext()) {
@@ -248,10 +259,10 @@ public class OTFTuningFinalizer {
 
 						//Csv No trend change
 						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
-							line = line + ", , " + prevCloseForDate.multiply(big2);
+							if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
 							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
-							line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+							if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
 							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 						}
 						if (eventsIt.hasNext()) {
@@ -262,14 +273,14 @@ public class OTFTuningFinalizer {
 				} else { //Filling up until the current event date is reached
 					
 					if (prevEventType == null) {
-						line = line + ", , ";
+						if (generateBuySellCsv) line = line + ", , ";
 					}
 					else if (prevEventType.equals(EventType.BULLISH)) {
-						line = line + ", , " + prevCloseForDate.multiply(big2);
+						if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
 						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 					} 
 					else if (prevEventType.equals(EventType.BEARISH)) {
-						line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+						if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
 						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
 					}
 					
@@ -277,16 +288,20 @@ public class OTFTuningFinalizer {
 
 				double[] output = calcOutput.get(currentDate.getTime());
 				String outputString =(output == null)?"NaN":output[0]+"";
-				line = line + ", "+outputString;
-				line = line + "\n";
 				
-				bufferedWriter.write(line);
+				if (generateBuySellCsv) {
+					line = line + ", "+outputString;
+					line = line + "\n";
+					bufferedWriter.write(line);
+				}
 
 				QuotationsFactories.getFactory().incrementDate(currentDate, 1);
 				
 			}//End while
 
-			bufferedWriter.flush();
+			if (generateBuySellCsv) {
+				bufferedWriter.flush();
+			}
 			
 			//Not enought data we stop
 			if (prevEventType == null || calcOutput.size() == 0) {
@@ -312,7 +327,7 @@ public class OTFTuningFinalizer {
 			//Enough data we throw up the things
 			
 			//PNG chart
-			trendFile = fileName;
+			if (generateBuySellCsv) trendFile = fileName;
 			
 			if (generateSmaCmpOutChart) {
 				

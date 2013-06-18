@@ -115,7 +115,7 @@ public class TalibOperationGenerator {
 				}
 				
 			} catch (UnsupportedOperationException e) {
-				LOGGER.warn("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
+				LOGGER.debug("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
 			}
 		}
 		

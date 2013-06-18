@@ -47,6 +47,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
@@ -228,6 +230,23 @@ public class EventsComposite extends Composite implements RefreshableView {
 				public void handleEvent(Event event) {
 					AnalysisClient.removeEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 					AnalysisClient.clearEmailSendingFilter();
+				}
+			});
+			
+			this.addControlListener(new ControlListener() {
+				
+				@Override
+				public void controlResized(ControlEvent e) {
+					int treeIdx = eventsCTabFolder.getSelectionIndex();
+					TreeColumn[] columns = cTabTrees.get(treeIdx).getColumns();
+					for (TreeColumn treeColumn : columns) {
+						columnPack(treeColumn);
+					}
+				}
+				
+				@Override
+				public void controlMoved(ControlEvent e) {
+					
 				}
 			});
 			
@@ -756,6 +775,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 					for (int j = 0; j < columnsHeaders.length; j++) {
 						TreeColumn symbolColumn = new TreeColumn(cTabTrees.get(i), SWT.NONE);
 						symbolColumn.setText(columnsHeaders[j]);
+						symbolColumn.setToolTipText("All columns can be reordered.\nClick on a symbol and expand. Then click on the column header.");
 					}
 					final int fi = i;
 					for (int j = 0; j < columnsHeaders.length; j++) {
@@ -807,14 +827,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 						int tcw = 0;
 						if (!treeItem.isDisposed()) {
 							
-							Tree parent = treeItem.getParent();
-							for (TreeColumn tc : parent.getColumns()) {
-								columnPack(tc);
-								tcw = tcw + tc.getWidth();
-							}
+							Tree tree = treeItem.getParent();
 							
 							//resize sash
-							int evtCmpW = tcw + ctrlComposite.getSize().x + 20;
+							//int evtCmpW = tcw + ctrlComposite.getSize().x + 20;
+							Point computeSize = tree.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+							int evtCmpW = computeSize.x + ctrlComposite.getSize().x;
+							
 							int shellW  = ((SashForm)EventsComposite.this.getParent()).getSize().x;
 							int evtSashWeight = Math.min(90,100*evtCmpW/shellW);
 							SashForm sashParent = (SashForm)EventsComposite.this.getParent();
@@ -823,6 +842,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 								actualTotWeight = actualTotWeight + sashWeight;
 							}
 							if ((100*sashParent.getWeights()[0]/actualTotWeight) < evtSashWeight) sashParent.setWeights(new int[]{evtSashWeight, 0, 100-evtSashWeight});
+							
+							//pack columns
+							for (TreeColumn tc : tree.getColumns()) {
+								columnPack(tc);
+								tcw = tcw + tc.getWidth();
+							}
 						}
 						
 					}
@@ -840,8 +865,22 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void columnPack(TreeColumn treeColumn) {
-		treeColumn.pack();
-		treeColumn.setWidth(Math.min((this.getSize().x+ctrlComposite.getSize().x)/columnsHeaders.length, treeColumn.getWidth()));
+//		treeColumn.pack();
+//		int maxSize = (this.getSize().x-ctrlComposite.getSize().x)/columnsHeaders.length;
+//		int minSize = 70;
+//		int packedActualSize = treeColumn.getWidth();
+//		if (minSize < maxSize && maxSize < packedActualSize) treeColumn.setWidth(maxSize);
+		
+		int minSize = 70;
+		int availableSize = (this.getSize().x-ctrlComposite.getSize().x)/columnsHeaders.length;
+		if (availableSize <= minSize) {
+			treeColumn.setWidth(minSize);
+		} 
+		else if (availableSize > minSize) {
+			treeColumn.pack();
+			int actualPackedWidth = treeColumn.getWidth();
+			if (actualPackedWidth > availableSize) treeColumn.setWidth(availableSize);
+		}
 	}
 
 	private void subItems(TreeItem symbolEventsTableTreeItem, SymbolEvents se, Comparator<EventValue> comparator) {

@@ -236,7 +236,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,configs.get(Config.EVENT_SIGNAL_NAME));
 						ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,configs.get(Config.INDICATOR_PARAMS_NAME));
 						
-						TuningResDTO tuningResCache = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
+						TuningResDTO tuningResCache = null;
+						try {
+							tuningResCache = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
+						} catch (Exception e) {
+							LOGGER.error(e,e);
+						}
 						if (tuningResCache != null) {
 							tuningRess.put(eventDefinition, tuningResCache);
 						} else {

@@ -501,6 +501,43 @@ public class OperationBuilderComposite extends Composite {
 		editor.addListener(SWT.FocusOut, focusOutListener);
 		
 		tokenAltsTable.addListener(SWT.FocusOut, focusOutListener);
+		
+		Listener paintListener = new Listener() {
+			public void handleEvent(Event event) {
+				switch (event.type) {
+				case SWT.MeasureItem: {
+					TableItem item = (TableItem) event.item;
+					String text = getText(item, event.index);
+					Point size = event.gc.textExtent(text);
+					event.width = size.x;
+					event.height = Math.max(event.height, size.y);
+					break;
+				}
+				case SWT.PaintItem: {
+					TableItem item = (TableItem) event.item;
+					String text = getText(item, event.index);
+					Point size = event.gc.textExtent(text);
+					int offset2 = event.index == 0 ? Math.max(0, (event.height - size.y) / 2) : 0;
+					event.gc.drawText(text, event.x, event.y + offset2, true);
+					break;
+				}
+				case SWT.EraseItem: {
+					event.detail &= ~SWT.FOREGROUND;
+					break;
+				}
+				}
+			}
+
+			String getText(TableItem item, int column) {
+				String text = item.getText(column);
+				return text;
+			}
+		};
+		
+		tokenAltsTable.addListener(SWT.MeasureItem, paintListener);
+		tokenAltsTable.addListener(SWT.PaintItem, paintListener);
+		tokenAltsTable.addListener(SWT.EraseItem, paintListener);
+
 
 		getShell().addListener(SWT.Move, new Listener() {
 			public void handleEvent(Event event) {
@@ -1045,9 +1082,9 @@ public class OperationBuilderComposite extends Composite {
 				Alternative data = alternatives.get(i);
 				
 				String token = data.getAltString();
-				String description = (data.getDescription() != null)?data.getDescription():"";
+				String description = (data.getDescription() != null)?data.getDescription()+"    ":"    ";
 				String synoptic = (data.getSynoptic() != null && data.getDefaultValue() == null)?data.getSynoptic():((data.getDefaultValue() != null)?data.getDefaultValue():"");
-				synoptic = synoptic.replaceAll("\n", Text.DELIMITER);
+				//synoptic = synoptic.replaceAll("\n", Text.DELIMITER);
 				
 				if(i < items.length) {
 					items[i].setData(data);
@@ -1083,13 +1120,13 @@ public class OperationBuilderComposite extends Composite {
 			getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, tableDefaultSize.x, 200);
 			getPopupShell().setVisible(true);
 			
-			LOGGER.info("Items : "+tokenAltsTable.getItems());
-			if (LOGGER.isInfoEnabled()) {
+			LOGGER.debug("Items : "+tokenAltsTable.getItems());
+			if (LOGGER.isDebugEnabled()) {
 				String itemsStr = "";
 				for (TableItem tableItem : tokenAltsTable.getItems()) {
 					itemsStr = itemsStr + tableItem.getText(0) + ":" + tableItem.getText(1) + " , "; 
 				}
-				LOGGER.info("ItemStr size "+tokenAltsTable.getItems().length+". Items str : "+itemsStr);
+				LOGGER.debug("ItemStr size "+tokenAltsTable.getItems().length+". Items str : "+itemsStr);
 			}
 			
 	}

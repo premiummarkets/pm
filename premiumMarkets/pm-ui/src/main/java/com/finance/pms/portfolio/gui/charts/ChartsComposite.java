@@ -123,7 +123,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private Composite mainChartComposite;
 	private ChartMain mainChartWraper;
 	
-	//TODO mv to ChartIndicatorDisplay Strategy
+	//TODO mv to ChartIndicatorDisplay Strategy (+ getInstance instead of new one Strategy object to keep state)
 	private SortedSet<EventInfo> chartedEvtDefsTrends;
 	private EventInfo chartedEvtDef;
 
@@ -245,7 +245,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				@Override
 				public void handleEvent(Event event) {
 					chartDisplayStrategy.shutDownDisplay();
-					
 				}
 			});
 			
@@ -283,28 +282,28 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						} catch (InterruptedException e1) {
 							e1.printStackTrace();
 						}
-						synchronized (mainChartComposite) {
+						//synchronized (chartedEvtDef) {
 							if (!closeRequested) {
 								Display.getDefault().asyncExec(new Runnable() {
 									public void run() {
-										if (!mainChartComposite.isFocusControl()) {
-											try {
+										try {
+											if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
 												int cpt = 0;
 												while (chartPanelFocusGain && cpt < 200) {
 													Thread.sleep(10);
 													cpt++;
 												}
-												if (chartPanelFocusGain) {
+												if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
 													mainChartComposite.forceFocus();
 												}
-											} catch (InterruptedException e1) {
-												e1.printStackTrace();
 											}
+										} catch (Throwable e) {
+											LOGGER.warn(e,e);
 										}
 									}
 								});
 							}
-						}
+						//}
 					}
 					
 					@Override
@@ -710,10 +709,10 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	
 	protected void rootShellClosed(DisposeEvent evt) {
 		
-		synchronized (mainChartComposite) {
+		//synchronized (chartedEvtDef) {
 			closeRequested = true;
 			SWT_AWT.getFrame(mainChartComposite).dispose();	
-		}
+		//}
 		
 	}
 
