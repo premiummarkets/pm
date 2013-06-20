@@ -61,7 +61,7 @@ public abstract class ChartDisplayStrategy {
 
 	protected ChartsComposite chartTarget;
 	
-	public abstract void highLight(Integer idx, final Stock selectedShare, boolean recalculationGranted);
+	public abstract void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted);
 
 	public abstract void initRefreshAction();
 
@@ -77,7 +77,7 @@ public abstract class ChartDisplayStrategy {
 	}
 	
 	protected Boolean checkIfShowing(Stock selectedShare) {
-		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getListShares()) {
+		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
 			if (slidingPortfolioShare.getStock().equals(selectedShare) && slidingPortfolioShare.getDisplayOnChart()) {
 				return true;
 			}
@@ -86,10 +86,12 @@ public abstract class ChartDisplayStrategy {
 	}
 
 	public abstract void resetChart();
+	
+	public abstract void lightResetChart();
 
 	public abstract Boolean getIsApplyColor();
 
-	public abstract void highLighPrevious();
+	public abstract int retreivePreviousSelection();
 
 	public abstract void exportBarChartPng();
 

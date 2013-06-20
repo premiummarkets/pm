@@ -64,7 +64,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * @param tabIx 
 	 */
 	public NewRefereeDialog(Composite parent,int style, Composite composite) {
-		super(-1, parent,style, composite);
+		super(parent,style, composite);
 	}
 	
 	
@@ -151,7 +151,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	protected void addSelection(Set<Stock> stocks) {
 		this.selectedStocks = stocks;
 		
-		UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Added referee : "+stocks, null);
+		UserDialog inst = new UserDialog(getShell(), "Added referee : "+stocks,null);
 		inst.open();
 	}	
 	

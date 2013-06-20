@@ -112,9 +112,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	protected StockList stockList;
 	protected Composite ctrlComposite;
 
-	private int tabIdx;
-
-
 	/**
 	 * Instantiates a new new portfolio item dialog.
 	 * 
@@ -126,13 +123,13 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @param composite 
 	 * @param tabIdx 
 	 */
-	public NewPortfolioItemDialog(int tabIdx, Composite parent, int style, Composite composite) {
+	public NewPortfolioItemDialog(Composite parent, int style, Composite composite) {
 		
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
 		
 		this.stockList = new StockList();
 		this.caller = composite;
-		this.tabIdx = tabIdx;
+		//this.tabIdx = tabIdx;
 		biggerFont =  MainGui.DEFAULTFONT;
 	}
 
@@ -175,7 +172,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			piShell.setFont(MainGui.DEFAULTFONT);
 			piShell.setLayout(new FillLayout(SWT.VERTICAL));
 
-			inst = new NewPortfolioItemDialog(tabIdx, piShell, SWT.RESIZE, composite);
+			inst = new NewPortfolioItemDialog(piShell, SWT.RESIZE, composite);
 			inst.initGui(SWT.MULTI);
 
 			piShell.layout();
@@ -280,15 +277,19 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 					public void handleEvent(Event event) {
 						switch (event.keyCode) {
 							case SWT.ARROW_DOWN:
-								int index = (table.getSelectionIndex() + 1) % table.getItemCount();
-								table.setSelection(index);
-								event.doit = false;
+								if (popupShell.isVisible() && table.getItemCount() != 0) {
+									int index = (table.getSelectionIndex() + 1) % table.getItemCount();
+									table.setSelection(index);
+									event.doit = false;
+								}
 								break;
 							case SWT.ARROW_UP:
-								index = table.getSelectionIndex() - 1;
-								if (index < 0) index = table.getItemCount() - 1;
-								table.setSelection(index);
-								event.doit = false;
+								if (popupShell.isVisible() && table.getItemCount() != 0) {
+									int index = table.getSelectionIndex() - 1;
+									if (index < 0) index = table.getItemCount() - 1;
+									table.setSelection(index);
+									event.doit = false;
+								}
 								break;
 							case SWT.CR:
 								if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
@@ -483,7 +484,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 							
 					
 						} catch (java.lang.IllegalArgumentException e) {
-							UserDialog dialog = new UserDialog(NewPortfolioItemDialog.this.getShell(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
+							UserDialog dialog = new UserDialog(NewPortfolioItemDialog.this.getShell(), item+" is not a valid share list. Has it been added by hand?", null);
 							dialog.open();
 
 						}
@@ -714,14 +715,14 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 		} catch (IllegalStateException e) {
 			LOGGER.warn(e,e);
-			UserDialog inst = new UserDialog(getShell(), SWT.NULL,
-					"Invalid share description\n" +
-					"To search for a share, type the first letters of its name, symbol or isin and select it in the drop down box.\n" +
-					"If the share you are looking for is not present, use the 'Stock lists and Markets' menu to add it.", null);
+			UserDialog inst = new UserDialog(getShell(), "Invalid share description\n" +
+			"To search for a share, type the first letters of its name, symbol or isin and select it in the drop down box.\n" +
+			"If the share you are looking for is not present, use the 'Stock lists and Markets' menu to add it.",
+					null);
 			inst.open();
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error adding share.\nInvalid share description\n"+e, null);
+			UserDialog inst = new UserDialog(getShell(), "Error adding share.\nInvalid share description\n"+e,null);
 			inst.open();
 		}
 	}
@@ -742,7 +743,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			UserDialog inst = new UserDialog(getShell(), SWT.NULL,"Error adding share. \n"+e, null);
+			UserDialog inst = new UserDialog(getShell(), "Error adding share. \n"+e,null);
 			inst.open();
 		}
 		symbolTable.deselectAll();
@@ -750,7 +751,9 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 
 
 	private void addAction(Set<Stock> stocks, BigDecimal quantity, MonitorLevel monitorLevel) {
-		((PortfolioComposite) caller).addShares(tabIdx, stocks, quantity, monitorLevel);
+		PortfolioComposite portfolioComposite = (PortfolioComposite) caller;
+		int currentTabSelection = portfolioComposite.getCurrentTabSelection();
+		if (currentTabSelection != -1) portfolioComposite.addShares(currentTabSelection, stocks, quantity, monitorLevel);
 	}
 	
 

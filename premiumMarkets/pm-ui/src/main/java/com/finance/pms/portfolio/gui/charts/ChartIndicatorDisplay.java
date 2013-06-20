@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialog;
@@ -84,13 +85,13 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				"Nothing to display?\n" +
 				"Select a stock in your portfolio and " +
 				"Use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select indicators.\n" +
-				"Also check that the portfolio stocks and sliding date ranges are valid. There may not be quotations available for this operation.");
+				"Also check the portfolio stocks and sliding date ranges. There may be no quotations available.");
 		
 	}
 
 
 	@Override
-	public void highLight(Integer idx, Stock selectedShare, boolean recalculationGranted) {
+	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 
 		if (!chartTarget.isVisible() || idx == null || selectedShare == null ) {
 			chartTarget.getMainChartWraper().setMainYAxisLabel("");
@@ -108,6 +109,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 		
 		hideAllButSelected(selectedShare);
+		
+		chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
+		chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 1);
 
 		if (!chartTarget.getChartedEvtDefsTrends().isEmpty() || !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {//Some thing has to be displayed
 				
@@ -121,8 +125,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					Calendar minDate = Calendar.getInstance();
 					minDate.setTime(new Date(0));
 					Boolean needsUpdate = 
-							chartTarget.getHightlitedEventModel()
-							.cacheNeedsUpdateCheck(
+							chartTarget.getHightlitedEventModel().cacheNeedsUpdateCheck(
 									selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
 									notUptoDateStamps, minDate, allEvtInfos.toArray(new EventInfo[0]));
 
@@ -149,13 +152,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		if (chartTarget.getChartedEvtDefsTrends().isEmpty()) chartTarget.getMainChartWraper().resetBarChart();
 		
 		if (chartTarget.getChartedEvtDefsTrends().isEmpty() && (chartTarget.getChartedEvtDef() == null || chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO))){
-			UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "No Indicator or Trend is selected.\n Use the buttons below the chart to select your indicators and trends.", null);
+			UserDialog dialog = new UserDialog(chartTarget.getShell(), "No Indicator or Trend is selected.\n Use the buttons below the chart to select your indicators and trends.", null);
 			dialog.open();
 		}
-
-		chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
-		chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 1);
-
+		
 	}
 	
 	private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate, HashMap<EventInfo, UpdateStamp> notUptoDateStamps, Calendar minDate) {
@@ -175,7 +175,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			ActionDialogAction action  = new ActionDialogAction() {
 	
 				@Override
-				public void action(Button targetButton) {
+				public void action(Control targetControl) {
 					refreshHighlitedAnalysisController.widgetSelected(null);
 				}
 				
@@ -191,7 +191,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	
 	private void hideAllButSelected(final Stock selectedShare) {
 		
-		for (SlidingPortfolioShare sShare : chartTarget.getListShares()) {
+		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 			if (!sShare.getStock().equals(selectedShare)) {
 				sShare.setDisplayOnChart(false);
 			} else {
@@ -200,7 +200,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getListShares(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
 		
 	}
 	
@@ -272,12 +272,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		//Missing bars
 		if (!needsUpdate && !noDataTrends.isEmpty()) {
 			String chartedEvtStr = EventDefinition.getEventDefSetAsString(", ",noDataTrends);
-			UserDialog dialog = new UserDialog(chartTarget.getShell(),  SWT.NULL, 
-					//"Not all analysis are available to refresh the Trends Bar Chart for this period and "+selectedShare.getFriendlyName()+".\n" +
-					"No events are available for : "+chartedEvtStr+".\nWithin the period you have selected and "+selectedShare.getFriendlyName()+".\n" +
-					"If you just cleared the calculation results, you may want to Update calculations.", 
+			UserDialog dialog = new UserDialog(chartTarget.getShell(),  //"Not all analysis are available to refresh the Trends Bar Chart for this period and "+selectedShare.getFriendlyName()+".\n" +
+			"No events are available for : "+chartedEvtStr+".\nWithin the period you have selected "+selectedShare.getFriendlyName()+".\n" +
+			"If you just cleared the calculation results, you may want to Update calculations.", 
 					"This may also happen if calculations failed or if there is not enough quotations for the period.\n" +
-					"Check the indicators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.");
+					"Check the indicators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.\n" +
+					"If this is an edited indicator you can also check the formula of : "+chartedEvtStr);
 			dialog.open();
 		}
 	}
@@ -298,13 +298,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					chartTarget.getMainChartWraper().resetIndicChart();
 					ActionDialog actionDialog = new ActionDialog(chartTarget.getShell(),  SWT.NULL, 
 							"Warning", 
-							"No events are available within the period you have selected and "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
+							"No events are available within the period you have selected share "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
 							"If you just cleared the calculations results, you may want to Update calculations.", 
 							"This may also happen if calculations failed, or if there is not enough quotations for the period.\n" +
-							"Check the indicators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.",
+							"Check the indicators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.\n" +
+							"If this is an edited indicator you can also check the formula of : "+chartTarget.getChartedEvtDef().getEventReadableDef(),
 							"Update calculations Now?", new ActionDialogAction() {
 								@Override
-								public void action(Button targetButton) {
+								public void action(Control targetControl) {
 									refreshHighlitedAnalysisController.widgetSelected(null);
 								}
 							});
@@ -336,8 +337,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			try {
 				chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap);
 			} catch (NoSuchElementException e) {
-				UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, 
-						"I can't refresh Indicator Chart for "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+".\n If you cleared the calculation, try Refresh calculations.",
+				UserDialog dialog = new UserDialog(chartTarget.getShell(), "I can't refresh Indicator Chart for "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+".\n If you cleared the calculation, try Refresh calculations.", 
 						"Because I could not find calculation results for : "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+". Please Refresh calculations or choose an other indicator.");
 				dialog.open();
 			}
@@ -433,18 +433,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					
 					ActionDialogAction  action =  new ActionDialogAction() {
 						
-						private UserDialog dialog;
+						private UserDialog noStockSelectedWarningDialog;
 
 						@Override
-						public void action(Button targetButton) {
+						public void action(Control targetControl) {
 
 							Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
 							if (viewStateParams != null && viewStateParams.length == 1) {
 								highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
 							} else {
-								if (dialog == null && (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty())) {
-									dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
-									dialog.open();
+								if (noStockSelectedWarningDialog == null && (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty())) {
+									noStockSelectedWarningDialog = new UserDialog(chartTarget.getShell(), "You must select a share in the portfolio to display its analysis.", null);
+									noStockSelectedWarningDialog.open();
 								}
 							}
 						}
@@ -493,7 +493,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	@Override
 	public void resetChart() {
 		
-		for (SlidingPortfolioShare sShare : chartTarget.getListShares()) {
+		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 			Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
 			if (viewStateParams != null && viewStateParams.length != 0 && ((Stock)viewStateParams[0]).equals(sShare.getStock()))  {
 				sShare.setDisplayOnChart(true);
@@ -502,7 +502,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 		}
 		chartTarget.setStripedCloseFunction(new StripedCloseRealPrice());
-		chartTarget.updateCharts(chartTarget.getListShares(), false, false);
+		
+		chartTarget.getMainChartWraper().resetLineChart();
+		chartTarget.getMainChartWraper().resetBarChart();
+		chartTarget.getMainChartWraper().resetIndicChart();
+		
+	}
+	
+	@Override
+	public void lightResetChart() {
+		resetChart();
 		
 	}
 
@@ -516,17 +525,19 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 
 	@Override
-	public void highLighPrevious() {
+	public int retreivePreviousSelection() {
 		int cpt = 0;
-		for (SlidingPortfolioShare sShare : chartTarget.getListShares()) {
+		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 			if (sShare.getDisplayOnChart()){
-				chartTarget.getHightlitedEventModel().setViewStateParams(sShare.getStock());
-				chartTarget.setHighligtedId(cpt);
-				highLight(chartTarget.getHighligtedId(), (Stock) chartTarget.getHightlitedEventModel().getViewStateParams()[0], true);
-				break;
+				//chartTarget.getHightlitedEventModel().setViewStateParams(sShare.getStock());
+				//chartTarget.setHighligtedId(cpt);
+				//highLight(chartTarget.getHighligtedId(), (Stock) chartTarget.getHightlitedEventModel().getViewStateParams()[0], true);
+				//break;
+				return cpt;
 			}
 			cpt ++;
 		}
+		return -1;
 		
 	}
 
@@ -554,8 +565,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			});
 			ActionDialogAction actionDialogAction = new ActionDialogAction() {
 				@Override
-				public void action(Button targetButton) {
-					actionDialog.name = ((Text) actionDialog.control).getText();
+				public void action(Control targetControl) {
+					actionDialog.values[0] = ((Text) targetControl).getText();
 				}
 			};
 			actionDialog.setControl(exportPngFileName);
@@ -563,7 +574,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			actionDialog.open();
 			
 			//Export
-			chartTarget.getMainChartWraper().exportChart(filePath+File.separator+actionDialog.name+".png");
+			chartTarget.getMainChartWraper().exportChart(filePath+File.separator+actionDialog.values[0]+".png");
 		
 			
 		} catch (Exception e) {
@@ -591,14 +602,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		ActionDialogAction action = new ActionDialogAction() {
 
 			@Override
-			public void action(Button targetButton) {
+			public void action(Control targetControl) {
 
 				Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
 				if (viewStateParams != null && viewStateParams.length == 1) {
 					highLight(chartTarget.getHighligtedId(), (Stock) viewStateParams[0], true);
 				} else {
 					if (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
-						UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
+						UserDialog dialog = new UserDialog(chartTarget.getShell(), "You must select a share in the portfolio to display its analysis.", null);
 						dialog.open();
 					}
 				}
@@ -633,7 +644,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		ActionDialogAction action = new ActionDialogAction() {
 
 			@Override
-			public void action(Button targetButton) {
+			public void action(Control targetControl) {
 
 				Object[] viewStateParams = chartTarget.getHightlitedEventModel().getViewStateParams();
 				if (!chartedEvtDefTmpSet.isEmpty()) {
@@ -646,7 +657,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					} else {
 						//warning only if evtdef selected and no stock
 						if (chartTarget.getChartedEvtDef() != null && !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-							UserDialog dialog = new UserDialog(chartTarget.getShell(), SWT.NONE, "You must select a share in the portfolio to display its analysis.", null);
+							UserDialog dialog = new UserDialog(chartTarget.getShell(), "You must select a share in the portfolio to display its analysis.", null);
 							dialog.open();
 						}
 					}

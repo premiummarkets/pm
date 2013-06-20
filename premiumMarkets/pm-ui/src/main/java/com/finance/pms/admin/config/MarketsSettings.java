@@ -429,7 +429,7 @@ public class MarketsSettings extends Composite {
 									selectedMarketListIndices = checkDefaultIndices(shareListNames, selectedMarketShareListId);
 								}
 								if (selectedMarketListIndices.isEmpty()) {
-									UserDialog dialog = new UserDialog(getShell(), 0, "You have selected a list based on "+selectedMarketShareListId.getDescription()+".\nYou must specify one or more indices to include.", null);
+									UserDialog dialog = new UserDialog(getShell(), "You have selected a list based on "+selectedMarketShareListId.getDescription()+".\nYou must specify one or more indices to include.", null);
 									dialog.open();
 									validate.setEnabled(true);
 									return;

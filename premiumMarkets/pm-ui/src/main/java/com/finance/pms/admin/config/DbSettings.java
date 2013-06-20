@@ -315,7 +315,7 @@ public class DbSettings extends Dialog {
 							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						}
 						
-						UserDialog dialog = new UserDialog(getParent(), SWT.NONE, "The new settings will take effect at next restart.", null);
+						UserDialog dialog = new UserDialog(getParent(), "The new settings will take effect at next restart.", null);
 						dialog.open();
 						getParent().close();
 						getParent().dispose();

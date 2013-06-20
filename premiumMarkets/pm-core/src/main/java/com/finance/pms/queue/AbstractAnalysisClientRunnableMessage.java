@@ -86,6 +86,7 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 			public Message createMessage(Session session) throws JMSException {
 				return objectMessage;
 			}
+			
 		});
 	}
 	

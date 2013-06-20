@@ -49,6 +49,7 @@ import org.eclipse.swt.widgets.Text;
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
+import com.finance.pms.RefreshableView;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -598,12 +599,12 @@ public class OperationBuilderComposite extends Composite {
 		try {
 			parameterizedBuilder.removeFormula(identifier);
 		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula can't be deleted.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Formula can't be deleted.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			return;
 		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 		}
@@ -632,6 +633,7 @@ public class OperationBuilderComposite extends Composite {
 			public void widgetSelected(SelectionEvent evt) {
 				LOGGER.guiInfo("Refreshing views");
 				this.updateEventRefreshModelState(0l);
+				((RefreshableView) mainGuiParent).initRefreshAction();
 				super.widgetSelected(evt);
 			}
 		};
@@ -686,7 +688,7 @@ public class OperationBuilderComposite extends Composite {
 		
 		String formula = formatedEditorTxt();
 		if (formula == null || formula.isEmpty()) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid formula", null);
+			UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid formula", null);
 			dialog.open();
 			return true;
 		}
@@ -699,7 +701,7 @@ public class OperationBuilderComposite extends Composite {
 		if (existingOp != null && checkOverWrite) {
 			ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "Identifier already exists", "Identifier "+existingOp.getReference()+" already exists", null, "Write over", new ActionDialogAction() {
 				@Override
-				public void action(Button targetButton) {
+				public void action(Control targetControl) {
 					formulaReference.forceFocus();
 				}
 			});
@@ -714,7 +716,7 @@ public class OperationBuilderComposite extends Composite {
 			//Sanity check
 			NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
 			if (checkNextToken != null) {
-				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula "+formula+" can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
+				UserDialog dialog = new UserDialog(getShell(), "Formula "+formula+" can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
 				dialog.open();
 				return false;
 			} else {
@@ -723,13 +725,13 @@ public class OperationBuilderComposite extends Composite {
 			}
 
 		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula can't be saved.\n Please fill in a valid formula", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Formula can't be saved.\n Please fill in a valid formula", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			return false;
 			
 		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			//return true;
@@ -743,10 +745,10 @@ public class OperationBuilderComposite extends Composite {
 	protected Boolean isNativeOp(String identifier, Operation existingOp) {
 		Boolean isNativeOp = false;
 		if ((existingOp != null && existingOp.isNative()) ||(existingOp = parameterizedBuilder.getNativeOperations().get(identifier)) != null) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE,
-					"The identifier you have chosen clashes with a native identifier :\n" +
-					existingOp.getReference()+", "+existingOp.getDescription()+".\n" +
-					"Use an other one, for instance "+identifier+"1 or my"+identifier+" and save again.", null);
+			UserDialog dialog = new UserDialog(getShell(), "The identifier you have chosen clashes with a native identifier :\n" +
+			existingOp.getReference()+", "+existingOp.getDescription()+".\n" +
+			"Use an other one, for instance "+identifier+"1 or my"+identifier+" and save again.",
+					null);
 			dialog.open();
 			isNativeOp = true;
 		}
@@ -765,7 +767,7 @@ public class OperationBuilderComposite extends Composite {
 		Boolean isValid = true;
 		
 		if (identifier == null || identifier.length() <2 || EditorLexerDelegate.HISTORICALDATA_TOKENS.contains(identifier) || EditorLexerDelegate.MATYPES_TOKENS.contains(identifier)) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", addMessage);
+			UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid identifier", addMessage);
 			dialog.open();
 			isIdEmpty = true;
 			
@@ -787,7 +789,7 @@ public class OperationBuilderComposite extends Composite {
 	protected Boolean checkIdCharacters(String identifier, String addMessage) {
 		for (int i = 0; i < identifier.length(); i++) {
 			if (!Character.isLetterOrDigit(identifier.charAt(i)) && identifier.charAt(i) != '_') {
-				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", addMessage+"Must not contain white spaces.\n");
+				UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid identifier", addMessage+"Must not contain white spaces.\n");
 				dialog.open();
 				return false;
 			}

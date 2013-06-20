@@ -91,9 +91,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 
 					final Queue eventQueue = this.eventQueue;
 					final JmsTemplate jmsTemplate = this.jmsTemplate;
-					
-					//EventsResources.getInstance().cleanEventsForAnalysisName(portfolio.getName(), startDate, endDate, true, EventDefinition.alertsOnThresholds());
-					
+
 					Future<SymbolEvents> submitedRunnable = 
 							(Future<SymbolEvents>) executor.submit(new AlertsCalculationThread(portfolioShare, startDate, endDate, portfolio.getName(), isUserPortfolio, keepCache, eventQueue, jmsTemplate));
 					futures.add(submitedRunnable);

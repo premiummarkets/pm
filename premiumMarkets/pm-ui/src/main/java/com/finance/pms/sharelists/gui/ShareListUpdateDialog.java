@@ -140,7 +140,7 @@ public class ShareListUpdateDialog extends Dialog {
 						existDersc.setText(provider.getSharesListIdEnum().getDescription());
 						existDersc.setVisible(true);
 					} catch (java.lang.IllegalArgumentException e) {
-						UserDialog dialog = new UserDialog(getParent(), SWT.NONE, item+" is not a valid share list. Has it been added by hand?", null);
+						UserDialog dialog = new UserDialog(getParent(), item+" is not a valid share list. Has it been added by hand?", null);
 						dialog.open();
 					}
 					
@@ -645,8 +645,8 @@ public class ShareListUpdateDialog extends Dialog {
 			sharesListForThisListProvider.addShare(newStock);
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 		} catch (StockNotFoundException e) {
-			UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL, 
-					"The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
+			UserDialog inst = new UserDialog(getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", 
+					(e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		}
 	}
@@ -657,8 +657,8 @@ public class ShareListUpdateDialog extends Dialog {
 			portfolioInsertShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
-			UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL, 
-					"The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
+			UserDialog inst = new UserDialog(getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", 
+					(e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		} finally {
 			getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -690,11 +690,11 @@ public class ShareListUpdateDialog extends Dialog {
 				sharesListForThisListProvider.addShares(stocksInFile);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 			} catch (StockNotFoundException e) {
-				UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL,(e.getMessage() != null)?e.getMessage():e.toString(), null);
+				UserDialog inst = new UserDialog(getParent().getShell(), (e.getMessage() != null)?e.getMessage():e.toString(),null);
 				inst.open();
 			} catch (Exception e) {
 				LOGGER.warn(e,e);
-				UserDialog inst = new UserDialog(getParent().getShell(), SWT.NULL,"Wrong file format.", null);
+				UserDialog inst = new UserDialog(getParent().getShell(), "Wrong file format.",null);
 				inst.open();
 			}
 			

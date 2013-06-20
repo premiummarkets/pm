@@ -33,6 +33,8 @@ package com.finance.pms.portfolio.gui;
 import java.math.BigDecimal;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
@@ -60,7 +62,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	protected static MyLogger LOGGER = MyLogger.getLogger(RemoveConfirmationDialog.class);
 
 	private Shell dialogShell;
-	private Button Validerbutton1;
+	private Button validerbutton1;
 	private Label Errorlabel1;
 	
 	private Boolean ask4Apply;
@@ -136,16 +138,6 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				Errorlabel1.setAlignment(SWT.CENTER);
 				Errorlabel1.setBackground(MainGui.pOPUP_BG);
 			}
-//			{
-//				StyledText text = new StyledText(dialogShell, SWT.NONE);
-//				GridData Errorlabel1LData = new GridData();
-//				Errorlabel1LData.horizontalSpan = 2;
-//				text.setLayoutData(Errorlabel1LData);
-//				text.setText("Ticking the following box, will sell the share at the current price and apply the transaction to the portfolio.\n" +
-//							"Otherwise, the raw amounts in and out will be substracted from the total amounts as they are (ie all transactions on that line are canceled.)");
-//				text.setFont(MainGui.DEFAULTFONT);
-//				text.setBackground(MainGui.pOPUP_BG);
-//			}
 			if (ask4Apply){
 				applyToAmountCheck = new Button(dialogShell, SWT.CHECK);
 				GridData Errorlabel1LData = new GridData();
@@ -204,23 +196,26 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				alertPercentageTxt.setEnabled(false);
 			}
 			{
-				Validerbutton1 = new Button(dialogShell, SWT.PUSH);
+				validerbutton1 = new Button(dialogShell, SWT.PUSH);
 				GridData Validerbutton1LData = new GridData(GridData.BEGINNING);
 				Validerbutton1LData.horizontalAlignment = GridData.BEGINNING;
-				Validerbutton1.setLayoutData(Validerbutton1LData);
-				Validerbutton1.setText("Validate");
-				Validerbutton1.setFont(MainGui.DEFAULTFONT);
-				Validerbutton1.addMouseListener(new MouseAdapter() {
+				validerbutton1.setLayoutData(Validerbutton1LData);
+				validerbutton1.setText("Validate");
+				validerbutton1.setFont(MainGui.DEFAULTFONT);
+				validerbutton1.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-						canceled = false;
-						apply= ask4Apply && applyToAmountCheck.getSelection();
-						monitor = monitorCheck.getSelection();
-						if (monitor) {
-							monitroPortfolioName = monitoringPortfolioTxt.getText();
-							percentageFall = BigDecimal.valueOf(Double.valueOf(alertPercentageTxt.getText()));
+						validClose();
+						closeMouseDown();
+					}
+				});
+				validerbutton1.addKeyListener(new KeyAdapter() {
+					@Override
+					public void keyReleased(KeyEvent evt) {
+						if (evt.keyCode == SWT.CR) {
+							validClose();
+							closeMouseDown();
 						}
-						closeMouseDown(evt);
 					}
 				});
 			}
@@ -235,7 +230,16 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 					@Override
 					public void mouseDown(MouseEvent evt) {
 						canceled = true;
-						closeMouseDown(evt);
+						closeMouseDown();
+					}
+				});
+				cancel.addKeyListener(new KeyAdapter() {
+					@Override
+					public void keyReleased(KeyEvent evt) {
+						if (evt.keyCode == SWT.CR) {
+							canceled = true;
+							closeMouseDown();
+						}
 					}
 				});
 			}
@@ -266,7 +270,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	private void closeMouseDown(MouseEvent evt) {
+	private void closeMouseDown() {
 		dialogShell.dispose();
 	}
 
@@ -288,6 +292,16 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 
 	public Boolean getMonitorCheck() {
 		return monitor;
+	}
+
+	protected void validClose() {
+		canceled = false;
+		apply= ask4Apply && applyToAmountCheck.getSelection();
+		monitor = monitorCheck.getSelection();
+		if (monitor) {
+			monitroPortfolioName = monitoringPortfolioTxt.getText();
+			percentageFall = BigDecimal.valueOf(Double.valueOf(alertPercentageTxt.getText()));
+		}
 	}
 
 }

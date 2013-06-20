@@ -88,7 +88,7 @@ public class Portfolio extends AbstractSharesList {
 		
 		this.buyPonderationRule =  buyPonderationRule;
 		this.sellPonderationRule = sellPonderationRule;
-		this.portfolioCurrency = portfolioCurrency;
+		this.portfolioCurrency = (portfolioCurrency == null || portfolioCurrency.equals(Currency.NAN))?null:portfolioCurrency;//TODO use NAN currency instead of null
 	}
 
 

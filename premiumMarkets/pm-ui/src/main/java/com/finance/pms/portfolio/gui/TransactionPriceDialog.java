@@ -195,7 +195,7 @@ public class TransactionPriceDialog {
 				way1.addSelectionListener(new SelectionListener() {
 					
 					public void widgetDefaultSelected(SelectionEvent arg0) {
-						// TODO Auto-generated method stub
+						transaction.setModtype(TransactionType.AIN);
 					}
 					
 					public void widgetSelected(SelectionEvent arg0) {
@@ -209,7 +209,7 @@ public class TransactionPriceDialog {
 				way2.addSelectionListener(new SelectionListener() {
 					
 					public void widgetDefaultSelected(SelectionEvent arg0) {
-						// TODO Auto-generated method stub
+						transaction.setModtype(TransactionType.AOUT);
 					}
 					
 					public void widgetSelected(SelectionEvent arg0) {
@@ -336,7 +336,7 @@ public class TransactionPriceDialog {
 				resetButton.addSelectionListener(new SelectionListener() {
 					
 					public void widgetDefaultSelected(SelectionEvent arg0) {
-						// TODO Auto-generated method stub
+						refreshValues();
 					}
 					
 					public void widgetSelected(SelectionEvent arg0) {
@@ -374,6 +374,13 @@ public class TransactionPriceDialog {
 					public void mouseDown(MouseEvent evt) {
 						ok = true;
 						reset = resetButton.getSelection();
+						
+						Float quantity = new Float(quantityText.getText());
+						Float amount = new Float(transactionAmountText.getText());
+						Float sp = (quantity != 0)?amount/quantity:1;
+						transaction.setQuantity(quantity);
+						transaction.setTransactionSharePrice(sp);
+						
 						newTransactionValidateButtonMouseDown(evt);
 					}
 				});

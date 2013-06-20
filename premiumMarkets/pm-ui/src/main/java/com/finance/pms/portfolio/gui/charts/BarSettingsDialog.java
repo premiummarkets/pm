@@ -52,7 +52,7 @@ public class BarSettingsDialog {
 	
 	public BarSettings open(Point location) {
 		
-        shell = new Shell(parent, SWT.DIALOG_TRIM);
+        shell = new Shell(parent.getShell(), SWT.DIALOG_TRIM);
         shell.setText("Premium Markets - Trend Display Settings ...");
         
         shell.addDisposeListener(new DisposeListener() {
@@ -120,7 +120,7 @@ public class BarSettingsDialog {
 						barChartSettings.setMaxFill(Integer.valueOf(evtOccSpanTxt.getText()));
 						action.action(null);
 					} catch (NumberFormatException pe) {
-						UserDialog inst = new UserDialog(shell, SWT.NULL, pe.getMessage(), null);
+						UserDialog inst = new UserDialog(shell, pe.getMessage(), null);
 						inst.open();
 						evtOccSpanTxt.setText(""+barChartSettings.getMaxFill());
 					}

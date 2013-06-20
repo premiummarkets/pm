@@ -41,7 +41,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -60,7 +59,7 @@ public class UserDialog extends Dialog {
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 
 
-	private Label errorLabel1;
+	private Text errorLabel1;
 	private Text textArea;
 	private String erreur;
 	private String addMessage;
@@ -69,8 +68,15 @@ public class UserDialog extends Dialog {
 	private Boolean isOk = false;
 
 
-	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
+	public UserDialog(Shell parent, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHEET | SWT.ON_TOP | SWT.RESIZE));
+		this.getParent().setText("Premium Markets - Warning");
+		this.erreur = erreur;
+		this.addMessage = addMessage;
+	}
+	
+	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
+		super(new Shell(parent,style));
 		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
@@ -93,37 +99,45 @@ public class UserDialog extends Dialog {
 		try {
 
 			GridLayout dialogShellLayout = new GridLayout();
-			dialogShellLayout.verticalSpacing = 20;
+			//dialogShellLayout.verticalSpacing = 10;
 			this.getParent().setLayout(dialogShellLayout);
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 			
 			if (erreur != null) {
-				errorLabel1 = new Label(getParent(), SWT.WRAP);
-				errorLabel1.setText(this.erreur);
+				errorLabel1 = new Text(getParent(), SWT.WRAP);
+				GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+				//layoutData.heightHint = 100;
+				errorLabel1.setLayoutData(layoutData);
 				errorLabel1.setFont(MainGui.DEFAULTFONT);
-				errorLabel1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
-				errorLabel1.setAlignment(SWT.LEFT);
 				errorLabel1.setBackground(MainGui.pOPUP_BG);
+				errorLabel1.setText(cleanMsg(this.erreur, true));
+				//errorLabel1.pack();
+				
 			}
 			if (addMessage != null) {
 				textArea = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
-				textArea.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-				textArea.setBackground(MainGui.pOPUP_BG);
-				textArea.setText(cleanMsg(this.addMessage));
-				textArea.setEditable(false);
+				textArea.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
 				textArea.setFont(MainGui.DEFAULTFONT);
-
+				textArea.setBackground(MainGui.pOPUP_BG);
+				textArea.setEditable(false);
+				textArea.setText(cleanMsg(this.addMessage, false));
 			}
 			{
 				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);
 				GridData validerbutton1LData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
-				//Validerbutton1LData.horizontalAlignment = GridData.CENTER;
 				valideButton1.setLayoutData(validerbutton1LData);
+				//Validerbutton1LData.horizontalAlignment = GridData.CENTER;
 				validationButtonTxtAndAction();
 			}
 			
+			if (errorLabel1 != null) {
+				errorLabel1.pack();
+				if (errorLabel1.getSize().y < 100) ((GridData)errorLabel1.getLayoutData()).heightHint = 100;
+			}
 			getParent().layout();
 			getParent().pack();
+			
+			
 			getParent().open();
 			boolean setFocus = getParent().setFocus();
 			boolean setFocus2 = valideButton1.setFocus();
@@ -146,9 +160,10 @@ public class UserDialog extends Dialog {
 		}
 	}
 
-	private String cleanMsg(String message) {
+	private String cleanMsg(String message, Boolean noCR) {
 	
-		String cleanMessage = message.replaceAll("\\. ", ".\n");
+		String cleanMessage = message;
+		if (!noCR) cleanMessage = message.replaceAll("\\. ", ".\n"); //else cleanMessage = message.replaceAll("\\.\n", ". ").replaceAll("\n", ". ");
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
 		

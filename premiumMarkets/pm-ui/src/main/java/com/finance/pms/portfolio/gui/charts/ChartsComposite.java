@@ -114,7 +114,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private ChartDisplayStrategy chartDisplayStrategy;
 	
 	private StripedCloseFunction stripedCloseFunction;
-	private List<SlidingPortfolioShare> listShares;
+	private List<SlidingPortfolioShare> currentTabShareList;
 
 	private Integer highligtedId;
 	private EventModel<RefreshChartHightlited> hightlitedEventModel;
@@ -150,7 +150,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public ChartsComposite(Composite parent, int style, LogComposite logComposite) {
 		super(parent, style);
 		
-		this.listShares = new ArrayList<SlidingPortfolioShare>();
+		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 		
 		this.slidingEndDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 		Calendar calendar = Calendar.getInstance();
@@ -187,39 +187,46 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	public void resetShareList(List<SlidingPortfolioShare> listShares, Boolean portfolioHasChanged) {
+	public void updateChartsWith(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean hasChanged) {
 		
-		this.listShares = listShares;
-		updateCharts(listShares, portfolioHasChanged, false);
+		this.currentTabShareList = listShares;
+		updateCharts(this.portfolioComposite.getCurrentTabContent(), isSamePortfolio, hasChanged, false);
 		
 	}
 	
-	public void highLight(Integer idx, final Stock selectedShare, boolean recalculationGranted) {
+	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
-	void updateCharts(List<SlidingPortfolioShare> listShares, Boolean portfolioHasChanged, boolean grantEventsUpdate) {
+	void updateCharts(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean portfolioHasChanged, Boolean grantEventsUpdate) {
 		
-		//Quotation line
 		stripedCloseFunction.updateStartDate(slidingStartDate);
 		stripedCloseFunction.updateEndDate(slidingEndDate);
-		mainChartWraper.updateLineDataSet(listShares, stripedCloseFunction, chartDisplayStrategy.getIsApplyColor());
 		
-		mainChartWraper.resetBarChart();
-		mainChartWraper.resetIndicChart();
-		
-		//indic, bar and highlight
-		if (!portfolioHasChanged) {
-			
-			Object[] viewStateParams = hightlitedEventModel.getViewStateParams();
-			if (viewStateParams != null && viewStateParams.length == 1) {
-				highLight(this.highligtedId, (Stock) viewStateParams[0], grantEventsUpdate);
-			}
-			
+		if (isSamePortfolio) {
+			if (portfolioHasChanged) {
+				
+				int previousSelection = chartDisplayStrategy.retreivePreviousSelection();
+				if (previousSelection != -1) {
+					getHightlitedEventModel().setViewStateParams(getCurrentTabShareList().get(previousSelection).getStock());
+					setHighligtedId(previousSelection);
+				} else {
+					getHightlitedEventModel().setViewStateParams();
+					setHighligtedId(null);
+				}
+				
+				chartDisplayStrategy.lightResetChart();
+			} 
 		} else {
-			
-			chartDisplayStrategy.highLighPrevious();
-			
+			getHightlitedEventModel().setViewStateParams();
+			setHighligtedId(null);
+			chartDisplayStrategy.lightResetChart();
+		} 
+		
+		
+		Object[] viewStateParams = hightlitedEventModel.getViewStateParams();
+		if (viewStateParams != null && viewStateParams.length > 0) {
+			chartDisplayStrategy.highLight(getHighligtedId(), (Stock) viewStateParams[0], grantEventsUpdate);
 		}
 
 	}
@@ -244,7 +251,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				
 				@Override
 				public void handleEvent(Event event) {
-					chartDisplayStrategy.shutDownDisplay();
+					ChartsComposite.this.shutDownDisplay();
 				}
 			});
 			
@@ -484,7 +491,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									sliderStartDate.setSelection(0);
 									startSliderUpdateConditional(sliderStartDate, startDateLabel, sliderEndDate, endDateLabel);
 								} else {
-									UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "To move the start date further forward, you will need to move the end date first.", null);
+									UserDialog dialog = new UserDialog(getShell(), "To move the start date further forward, you will need to move the end date first.", null);
 									dialog.open();
 								}
 							}
@@ -526,7 +533,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									sliderEndDate.setSelection(100);
 									endSliderUpdateConditional(sliderEndDate, endDateLabel, sliderStartDate, startDateLabel);
 								} else {
-									UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "To move the end date further backward, you will need to move the start date first.", null);
+									UserDialog dialog = new UserDialog(getShell(), "To move the end date further backward, you will need to move the start date first.", null);
 									dialog.open();
 								}
 							}
@@ -798,7 +805,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		if (viewStateParams != null && viewStateParams.length == 1) {
 			
 			checkChartSelectionValidity();
-			highLight(highligtedId, (Stock) viewStateParams[0], false);
+			chartDisplayStrategy.highLight(highligtedId, (Stock) viewStateParams[0], false);
 			
 		}
 		chartDisplayStrategy.refreshView(exceptions);
@@ -806,8 +813,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		if (viewStateParams != null && viewStateParams.length == 1 && isVisible()) {
 			for (Exception exception : exceptions) {
 				if (exception instanceof EventRefreshException) {
-					UserDialog dialog = new UserDialog(getShell(), SWT.NONE, 
-							"Couldn't refresh all analysis for "+((Stock) viewStateParams[0]).getFriendlyName()+". Check that date bounds are not out of range.", 
+					UserDialog dialog = new UserDialog(ChartsComposite.this.getShell(), "Couldn't refresh all analysis for "+((Stock) viewStateParams[0]).getFriendlyName()+". Check that date bounds are not out of range.", 
 							exceptions.toString());
 					exceptions.clear();
 					dialog.open();
@@ -854,7 +860,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		if (sliderSelection) {
 			synchronized (sliderEndDate) {
 				sliderSelection = false;
-				updateCharts(listShares, false, true);
+				updateCharts(currentTabShareList, true, true, true);
 				portfolioComposite.slidingDateChange();
 			}
 		}
@@ -867,12 +873,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		}
 		this.chartDisplayStrategy.shutDownDisplay();
 	}
-	
-
-	public void resetChart() {
-		this.chartDisplayStrategy.resetChart();
-	}
-
 
 	public Integer getHighligtedId() {
 		return highligtedId;
@@ -918,8 +918,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	public List<SlidingPortfolioShare> getListShares() {
-		return listShares;
+	public List<SlidingPortfolioShare> getCurrentTabShareList() {
+		return currentTabShareList;
 	}
 
 
@@ -942,17 +942,30 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	//TODO Use a map and reuse the strategy instead of new so that u keep the state
 	public void setChartDisplayStrategy(ChartDisplayStrategy chartDisplayStrategy) {
 		
-		//XXX XXX
-		MainGui.viewEventsMenuItem.setSelection(false);
-		Listener[] listeners = MainGui.viewEventsMenuItem.getListeners(SWT.Selection);
-		((SelectionListener)((TypedListener)listeners[0]).getEventListener()).widgetSelected(null);
-		
 		this.chartDisplayStrategy = chartDisplayStrategy;
+		chartDisplayStrategy.resetChart();
+		
+		//XXX XXX
+		if (MainGui.viewEventsMenuItem.getSelection()) {
+			
+			MainGui.viewEventsMenuItem.setSelection(false);
+			Listener[] listeners = MainGui.viewEventsMenuItem.getListeners(SWT.Selection);
+			((SelectionListener)((TypedListener)listeners[0]).getEventListener()).widgetSelected(null);
+		} else {
+			updateCharts(getCurrentTabShareList(), true, false, false);
+		}
+		
+		
 	}
 
 
 	public Group getPopusGroup() {
 		return popusGroup;
+	}
+
+
+	public SlidingPortfolioShare getCurrentLineSelection() {
+		return portfolioComposite.getCurrentShareSelection();
 	}
 	
 }

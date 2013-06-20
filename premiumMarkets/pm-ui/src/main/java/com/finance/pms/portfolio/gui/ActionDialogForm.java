@@ -12,31 +12,42 @@ import com.finance.pms.ActionDialogAction;
 
 public class ActionDialogForm extends ActionDialog {
 
-	public Control control; 
-	public String name;
+	public Control[] controls; 
+	public Object[] values;
 	
 	public ActionDialogForm(Shell shell,String buttonText,  String formText, String title) {
 		super(shell, SWT.NONE, title, formText, null, buttonText, null);
 	}
 
-	public String getName() {
-		return name;
+	public Object[] getValues() {
+		return values;
 	}
 	
 
-	public void setControl(Control control) {
-		this.control = control;
-		if (this.control instanceof Text) {
-			this.control.addKeyListener(new KeyAdapter() {
-				@Override
-				public void keyReleased(KeyEvent evt) {
-					if (evt.keyCode == SWT.CR) {
-						action.action(valideButton1);
-						validerbutton1MouseDown(evt);
-					}
+	public void setControl(Control ... controls) {
+		this.controls = controls;
+		this.values = new Object[controls.length];
+		addListeners();
+	}
+
+	protected void addListeners() {
+		
+		if (controls.length == 1) {//XXX Well this is not very accurate and would make sense only with one control ...
+			for (Control control : controls) {
+				if (control instanceof Text) {
+					control.addKeyListener(new KeyAdapter() {
+						@Override
+						public void keyReleased(KeyEvent evt) {
+							if (evt.keyCode == SWT.CR) {
+								action.action(valideButton1);
+								validerbutton1MouseDown(evt);
+							}
+						}
+					});
 				}
-			});
+			}
 		}
+		
 	}
 	
 	public void setAction(ActionDialogAction actionDialogAction) {

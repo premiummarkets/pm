@@ -121,7 +121,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
 		}
 		
-		if (dataSetExceptions.size() > 0) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid dataset may invalidate further usage.");
+		if (dataSetExceptions.size() > 0) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set may invalidate further usage.");
 		
 		return symbolEventsForStock;
 		

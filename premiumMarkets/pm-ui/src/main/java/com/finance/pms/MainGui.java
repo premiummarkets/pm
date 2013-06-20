@@ -75,7 +75,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -230,7 +229,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "A new version is available!", "-------------  A new version is available -------------", null, "Clik to update. Close this popup otherwise.", new ActionDialogAction() {
 									
 									@Override
-									public void action(Button targetButton) {
+									public void action(Control targetControl) {
 										Program.launch("http://premiummarkets.elasticbeanstalk.com/html/PremiumMarkets.jnlp");
 										rootShellClosedRequested(null);
 									}
@@ -344,11 +343,11 @@ public class MainGui extends SashForm implements RefreshableView {
 								try {
 									Properties pbuild = new Properties();
 									pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
-									UserDialog dialog = new UserDialog(getShell(),SWT.NULL,
-"Premium Markets is an automated stock market analysis system.\n"+
-"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
-"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
-"\nPremium Markets\nCopyright (C) 2008-2012 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
+									UserDialog dialog = new UserDialog(getShell(),"Premium Markets is an automated stock market analysis system.\n"+
+									"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
+									"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
+									"\nPremium Markets\nCopyright (C) 2008-2012 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n",
+null);
 									dialog.open();				
 									
 								} catch (IOException e) {
@@ -485,14 +484,14 @@ public class MainGui extends SashForm implements RefreshableView {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NULL,  "Info",
-											"Run a neural network forecast on technical analysis is not available in this version\n"+
+											"Run a neural network forecast on technical analysis is not available in this version.\n"+
 											"This feature is part of the advance Premium Markets Forecast engine not included under this license.\n", 
 											null,
 											"Click here for more information and a workable demo.",
 											new ActionDialogAction() {
 
 										@Override
-										public void action(Button targetButton) {
+										public void action(Control targetControl) {
 											Program.launch("http://premiummarkets.elasticbeanstalk.com");
 
 										}
@@ -604,14 +603,14 @@ public class MainGui extends SashForm implements RefreshableView {
 										@Override
 										public void widgetSelected(SelectionEvent evt) {
 											ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NULL, "Info",
-													"Web recommendations and advice feature is not available in this open version\n"+ 
+													"Web recommendations and advice feature is not available in this open version.\n"+ 
 															"This feature is part of the advance Premium Markets Forecast engine not included under this license.\n",
 															null,
 															"Click here for more information and a workable demo.",
 													new ActionDialogAction() {
 	
 														@Override
-														public void action(Button targetButton) {
+														public void action(Control targetControl) {
 															Program.launch("http://premiummarkets.elasticbeanstalk.com");
 													}
 											});
@@ -819,10 +818,14 @@ public class MainGui extends SashForm implements RefreshableView {
 				try {
 					if (!display.readAndDispatch()) display.sleep();
 				} catch (Throwable e) {
-					LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
-					inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-					UserDialog dialog = new UserDialog(inst.getShell(),SWT.NULL, "An unhandled error as occurred.", e.getMessage());
-					dialog.open();
+					try {
+						LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
+						inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+						UserDialog dialog = new UserDialog(inst.getShell(),"An unhandled error occurred.", e.getMessage());
+						dialog.open();
+					} catch (Throwable e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 	
@@ -1149,9 +1152,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		}
 		if (isVisible() && !exceptions.isEmpty()) {
-				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, 
-						"Couldn't refresh views. "+
-						((allStocksEventModel.getViewStateParams() != null && allStocksEventModel.getViewStateParams().length >0)?allStocksEventModel.getViewStateParams()[0]:"")+"\n",
+				UserDialog dialog = new UserDialog(getShell(), "Couldn't refresh views. "+
+				((allStocksEventModel.getViewStateParams() != null && allStocksEventModel.getViewStateParams().length >0)?allStocksEventModel.getViewStateParams()[0]:"")+"\n", 
 						exceptions.toString());
 				dialog.open();
 		}

@@ -59,12 +59,6 @@ public class Transaction {
 		this.date = date;
 	}
 	
-//	public void resetAmount() {
-//		this.modtype = TransactionType.AIN;
-//		this.fullAmountIn = BigDecimal.ZERO;
-//		this.fullAmountOut =  BigDecimal.ZERO;
-//	}
-	
 	public BigDecimal getTransactionPrice() {
 		return transactionPrice;
 	}
@@ -72,8 +66,7 @@ public class Transaction {
 		this.transactionPrice = transactionSharePrice;
 	}
 	public void setTransactionSharePrice(Float transactionSharePrice) {
-		this.transactionPrice = 
-			new BigDecimal(transactionSharePrice.toString()).setScale(2,BigDecimal.ROUND_DOWN);
+		this.transactionPrice = new BigDecimal(transactionSharePrice.toString()).setScale(2,BigDecimal.ROUND_DOWN);
 	}
 	
 	public BigDecimal getQuantity() {

@@ -88,13 +88,13 @@ public class ZeroLagMACD extends TalibIndicator {
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number...indicatorParams) {
 		
-		ZeroLagEMASmoother fastZeroLagEMASmoother = new ZeroLagEMASmoother((Integer)indicatorParams[0]);
+		//FIXME //ZeroLagEMASmoother fastZeroLagEMASmoother = new ZeroLagEMASmoother((Integer)indicatorParams[0]);
 		//FIXME double[] fastSma = fastZeroLagEMASmoother.smooth(inData[0]);
-		MInteger fastBegIndx = fastZeroLagEMASmoother.getDoubleEmaOutBegIdx();
+		//FIXME //MInteger fastBegIndx = fastZeroLagEMASmoother.getDoubleEmaOutBegIdx();
 		
 		ZeroLagEMASmoother slowZeroLagEMASmoother = new ZeroLagEMASmoother((Integer)indicatorParams[1]);
 		//FIXME double[] slowSma = slowZeroLagEMASmoother.smooth(inData[0]);
-		MInteger slowBegIndx = fastZeroLagEMASmoother.getDoubleEmaOutBegIdx();
+		//FIXME //MInteger slowBegIndx = fastZeroLagEMASmoother.getDoubleEmaOutBegIdx();
 		
 		//FIXME
 		//		for (int i = 0; i < slowSma.length; i++) {

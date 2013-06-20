@@ -91,12 +91,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			parameterizedBuilder.enableFormula(identifier);
 
 		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula can't be enabled.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Formula can't be enabled.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			return;
 		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 		} 
@@ -117,12 +117,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			parameterizedBuilder.disableFormula(identifier);
 
 		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Formula can't be disabled.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Formula can't be disabled.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 			return;
 		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Found invalid formulas while storing data.", e.toString());
+			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
 
@@ -171,7 +171,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		for (int i = 0; i < identifier.length(); i++) {
 			char charAt = identifier.charAt(i);
 			if (!Character.isLetterOrDigit(charAt) && !Character.isWhitespace(charAt)) {
-				UserDialog dialog = new UserDialog(getShell(), SWT.NONE, "Please fill in a valid identifier", addMessage);
+				UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid identifier", addMessage);
 				dialog.open();
 				return false;
 			}

@@ -35,7 +35,7 @@ public class OperationBuilderDialog {
         Display display = parent.getDisplay();
         while (!shell.isDisposed()) {
                 try {
-                	 if (!display.readAndDispatch()) display.sleep();
+                	 if (display != null && !display.readAndDispatch()) display.sleep();
     			} catch (RuntimeException e) {
     				LOGGER.error("Error in OperationBuilderDialog Gui : " + e.getMessage(),e);
     			} catch (Error e) {

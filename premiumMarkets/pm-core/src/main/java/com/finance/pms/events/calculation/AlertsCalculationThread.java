@@ -76,7 +76,6 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		SymbolEvents ret = new SymbolEvents(portfolioShare.getStock());
 		
 		EventSignalConfig config = (EventSignalConfig) this.configs.get(Config.EVENT_SIGNAL_NAME);
-		//config.setSendAnalysisAlertEmails(true);
 		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 		
 		try {
@@ -93,9 +92,11 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(this.eventListName);
 
 				for (EventValue eventValue : calculatedEventsForCalculator.values()) {
+					
 					//Here eventListName must be = to portfolio name for alerts
 					EmailFilterEventSource msalert = (isUserPortfolio)? EmailFilterEventSource.PMUserAlert : EmailFilterEventSource.PMAutoAlert;
 					this.sendEvent(portfolioShare.getStock(), eventListName, eventValue, msalert, EventDefinition.ALERTTHRESHOLD);
+					
 				}
 
 				ret.addEventResultElement(calculatedEventsForCalculator, EventDefinition.ALERTTHRESHOLD);

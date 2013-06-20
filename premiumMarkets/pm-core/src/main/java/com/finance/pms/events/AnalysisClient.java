@@ -184,7 +184,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
     	
     	LOGGER.debug(
-    			"Email/Popup potential message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
+    			"Email/Popup potential (before filtering) message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
     			+ symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
  
     	Boolean sendMailEnabled = new Boolean(MainPMScmd.getPrefs().get("mail.infoalert.activated","false"));
@@ -195,8 +195,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				symbolEvents.getLastDate().getTime() >= EMAILSENDINGLFILTER.filterDate()
 				);
 		Boolean isValidEventSource =  symbolEvents.getStock().equals(ANY_STOCK) || PortfolioMgr.getInstance().isMonitoredForEvent(symbolEvents);
-		if 	( sendMailEnabled && isValidEventSource && isFiltered) {
-			LOGGER.info("Email/Popup potential message preview : "+eventType.name()+" "+eventInfoRef+" from "+source+" in "+ eventListName + " : "+symbolEvents.getStock().getFriendlyName()+", "+symbolEvents.toEMail());
+		if 	( sendMailEnabled && isValidEventSource && isFiltered ) {
+			LOGGER.info("Email/Popup message preview : "+eventType.name()+" "+eventInfoRef+" from "+source+" in "+ eventListName + " : "+symbolEvents.getStock().getFriendlyName()+", "+symbolEvents.toEMail());
 			this.sendMailEvent(symbolEvents, eventType, source, eventListName, eventInfoRef);
 		} 
     }

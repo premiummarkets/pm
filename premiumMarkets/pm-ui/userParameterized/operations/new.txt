@@ -1,1 +1,1 @@
-sma(10,close)
+stoch:SlowK(10,0,Sma,10,Sma,high,open,close)

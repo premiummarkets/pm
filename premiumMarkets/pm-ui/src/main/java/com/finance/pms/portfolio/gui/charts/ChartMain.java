@@ -651,6 +651,17 @@ public class ChartMain extends Chart {
 		}
 		
 	}
+  
+  public void resetLineChart() {
+	  Runnable runnable = new Runnable() {
+
+		  public void run() {
+			  mainPlot.setDataset(0, new TimeSeriesCollection());
+		  }
+	  };
+
+	  EventQueue.invokeLater(runnable);
+  }
 
 	public void resetBarChart() {
 		
@@ -702,7 +713,11 @@ public class ChartMain extends Chart {
 			}
 			
 		};
-		EventQueue.invokeLater(runnable);
+		try {
+			EventQueue.invokeAndWait(runnable);
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
 	}
 	
 	public void setMainYAxisLabel(final String label) {
