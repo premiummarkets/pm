@@ -31,6 +31,8 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -49,8 +51,9 @@ import com.finance.pms.portfolio.PortfolioShare;
 public class StripedCloseRelativeToBuyPrice extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToBuyPrice.class);
+	
+	NumberFormat pf = new DecimalFormat("#0.00 %");
 
-	/** The buy price. */
 	private BigDecimal buyPrice;
 	@SuppressWarnings("unused") //debug
 	private PortfolioShare portfolioShare;
@@ -97,6 +100,11 @@ public class StripedCloseRelativeToBuyPrice extends StripedCloseFunction {
 	@Override
 	public String lineToolTip() {
 		return "change to buy price";
+	}
+
+	@Override
+	public String formatYValue(Number yValue) {
+		return pf.format(yValue);
 	}
 
 

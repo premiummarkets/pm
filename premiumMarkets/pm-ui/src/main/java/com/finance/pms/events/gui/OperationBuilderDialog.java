@@ -74,5 +74,9 @@ public class OperationBuilderDialog {
 		
 	}
 
+	public Shell getShell() {
+		return shell;
+	}
+
 
 }

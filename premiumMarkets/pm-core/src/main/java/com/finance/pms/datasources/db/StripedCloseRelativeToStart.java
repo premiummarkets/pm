@@ -31,6 +31,8 @@
 package com.finance.pms.datasources.db;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -42,6 +44,8 @@ import com.finance.pms.portfolio.PortfolioShare;
 public class StripedCloseRelativeToStart extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToStart.class);
+	
+	NumberFormat pf = new DecimalFormat("#0.00 %");
 
 	public StripedCloseRelativeToStart(Date arbitraryStartDate, Date arbitraryEndDate) {
 		super(arbitraryEndDate);
@@ -87,6 +91,12 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	@Override
 	public String lineToolTip() {
 		return "change to period start";
+	}
+
+
+	@Override
+	public String formatYValue(Number yValue) {
+		return pf.format(yValue);
 	}
 
 

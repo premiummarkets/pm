@@ -197,6 +197,6 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	public EventDefinition getEventDefinition() {
-		return EventDefinition.PMRSIDIVERGENCE;
+		return EventDefinition.PMRSIDIVERGENCEOLD;
 	}
 }

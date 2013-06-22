@@ -29,7 +29,8 @@ public class NativeOperationsBasic  implements NativeOperations {
 	public Map<String, Operation> getOperations() {
 		Map<String, Operation> ret = new HashMap<String, Operation>();
 		for (Operation operation : operations) {
-			ret.put(operation.getReference().toLowerCase(), operation);
+			//TODO Lower?
+			ret.put(operation.getReference(), operation);
 		}
 		return ret;
 	}

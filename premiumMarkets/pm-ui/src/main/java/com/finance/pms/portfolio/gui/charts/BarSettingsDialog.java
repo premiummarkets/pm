@@ -5,6 +5,8 @@ import java.util.prefs.BackingStoreException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -26,22 +28,28 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.scoring.chartUtils.BarSettings;
 
 public class BarSettingsDialog {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(BarSettingsDialog.class);
 	
-	BarSettings barChartSettings;
 	private Shell shell;
 	private Shell parent;
+	private ChartsComposite chartTarget;
 
 	private ActionDialogAction action;
 
+	private BarSettings barChartSettings;
 	private Double initialAlphaDividend;
 	
-	public BarSettingsDialog(Shell parent, BarSettings barSettings, ActionDialogAction action) {
+	private Button isReachTop;
+
+	
+	public BarSettingsDialog(ChartsComposite chartTarget, BarSettings barSettings, ActionDialogAction action) {
 		this.barChartSettings = barSettings;
-		this.parent= parent;
+		this.parent= chartTarget.getShell();
+		this.chartTarget = chartTarget;
 		this.action = action;
 		initialAlphaDividend = barChartSettings.getAlphaDividend();
 	}
@@ -157,7 +165,7 @@ public class BarSettingsDialog {
 					
 				}
 			});
-			isZeroBase.setSelection(barChartSettings.getIsZerobased());
+			isZeroBase.setSelection(barChartSettings.getIsZeroBased());
 		}
 		{
 			final Button isGradient = new Button(shell, SWT.CHECK);
@@ -186,6 +194,48 @@ public class BarSettingsDialog {
 				}
 			});
 			isGradient.setSelection(barChartSettings.getIsGradiant());
+		}
+		{
+			isReachTop = new Button(shell, SWT.CHECK);
+			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			layoutData.horizontalSpan = 2;
+			isReachTop.setLayoutData(layoutData);
+			isReachTop.setBackground(MainGui.pOPUP_BG);
+			isReachTop.setFont(MainGui.DEFAULTFONT);
+			isReachTop.setText("Display side by side");
+			isReachTop.setToolTipText(
+					"Bar are displayed side by side, form top to bottom.\n" +
+					"For this to be working, the event validity days span has to be above the number of indicators involved.");
+			isReachTop.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					barChartSettings.setIsReachTop(isReachTop.getSelection());
+					//barChartSettings.setIsZerobased(true);
+					//barChartSettings.setMaxFill(chartTarget.getChartedEvtDefsTrends().size());
+					action.action(null);
+				}
+			});
+			isReachTop.addMouseMoveListener(new MouseMoveListener() {
+				
+				@Override
+				public void mouseMove(MouseEvent e) {
+					isReachTop.setToolTipText(
+							"Bar are displayed side by side, form top to bottom.\n" +
+							"For this to be working, the event validity days span has to be above the number of indicators involved.\n" +
+							"I.e. : "+chartTarget.getChartedEvtDefsTrends().size());
+				}
+			});
+			isReachTop.setSelection(barChartSettings.getIsReachTop());
 		}
 		{
 			final Spinner alphaSpinner = new Spinner(shell, SWT.WRAP|SWT.READ_ONLY);
@@ -224,6 +274,10 @@ public class BarSettingsDialog {
 		}
 
 		
+	}
+
+	public Shell getShell() {
+		return shell;
 	}
 
 }

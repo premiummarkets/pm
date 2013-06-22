@@ -193,6 +193,6 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	public EventDefinition getEventDefinition() {
-		return EventDefinition.PMMFIDIVERGENCE;
+		return EventDefinition.PMMFIDIVERGENCEOLD;
 	}
 }

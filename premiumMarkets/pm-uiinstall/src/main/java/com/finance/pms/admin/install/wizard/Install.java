@@ -54,6 +54,7 @@ import javax.swing.JRootPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jdesktop.swingworker.SwingWorker;
 
@@ -284,7 +285,7 @@ public class Install {
 			pfile = new File(InstallFolderPanel.getPmFolder().getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
 			props.load(propFileIS);
-			props.put("dbpath", installPath+File.separator+"derby"+File.separator);
+			props.put("dbpath", StringEscapeUtils.escapeJava(installPath)+File.separator+"derby"+File.separator);
 			props.store(new FileOutputStream(pfile), "Added settings properties for windows");
 
 		} catch (FileNotFoundException e) {

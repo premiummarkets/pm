@@ -1,4 +1,4 @@
-package com.finance.pms.portfolio.gui.charts;
+package com.finance.pms.events.scoring.chartUtils;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -9,16 +9,18 @@ public class BarSettings {
 	
 	public Double alphaDividend;
 	public int maxFill;
-	public Boolean isZerobased;
+	public Boolean isZeroBased;
 	public Boolean isGradiant;
+	public Boolean isReachTop;
 
 	
 	public BarSettings() {
 		super();
 		this.alphaDividend = MainPMScmd.getPrefs().getDouble("chart.alphaDividend", 2);
 		this.maxFill = MainPMScmd.getPrefs().getInt("chart.maxFill", 12);
-		this.isZerobased  = MainPMScmd.getPrefs().getBoolean("chart.isZeroBased", false);
+		this.isZeroBased  = MainPMScmd.getPrefs().getBoolean("chart.isZeroBased", false);
 		this.isGradiant = MainPMScmd.getPrefs().getBoolean("chart.isGradient", false);
+		this.isReachTop  = MainPMScmd.getPrefs().getBoolean("chart.isReachTop", false); //TODO?? => calculate some kind of density
 	}
 	
 	public Double getAlphaDividend() {
@@ -44,16 +46,16 @@ public class BarSettings {
 		}
 		this.maxFill = maxFill;
 	}
-	public Boolean getIsZerobased() {
-		return isZerobased;
+	public Boolean getIsZeroBased() {
+		return isZeroBased;
 	}
 	public void setIsZerobased(Boolean isZerobased) {
 		try {
-			MainPMScmd.getPrefs().putBoolean("chart.isZerobased", isZerobased);
+			MainPMScmd.getPrefs().putBoolean("chart.isZeroBased", isZerobased);
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}
-		this.isZerobased = isZerobased;
+		this.isZeroBased = isZerobased;
 	}
 	public Boolean getIsGradiant() {
 		return isGradiant;
@@ -65,6 +67,19 @@ public class BarSettings {
 			e.printStackTrace();
 		}
 		this.isGradiant = isGradiant;
+	}
+
+	public Boolean getIsReachTop() {
+		return isReachTop;
+	}
+
+	public void setIsReachTop(Boolean isReachTop) {
+		try {
+			MainPMScmd.getPrefs().putBoolean("chart.isReachTop", isReachTop);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		this.isReachTop = isReachTop;
 	}
 
 	

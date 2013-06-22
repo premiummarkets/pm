@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -49,6 +48,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartBarUtils;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
@@ -63,13 +63,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	protected static final String TRENDBUTTXT = "Chart Trends ...";
 	private static final String INDICATORSBUTTXT = "Chart Indicators ...";
 
-	private BarSettings barChartSettings;
+	private Button evtDefsTrendChartingBut;
+	private Button evtDefsChartingBut;
 	
 	private PopupMenu<EventInfo> evtDefTrendPopupMenu;
 	private PopupMenu<EventInfo> evtDefChartingPopupMenu;
-	private Button evtDefsTrendChartingBut;
-	private Button evtDefsChartingBut;
+
 	private ActionDialog eventRecalculationAck;
+
+	private BarSettings barChartSettings;
+	private BarSettingsDialog barSettingsDialog;
 	
 
 	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
@@ -163,7 +166,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
 		final EventRefreshController refreshHighlitedAnalysisController = refreshHighlightedAnalysisController();
 	
-		if (eventRecalculationAck == null && refreshHighlitedAnalysisController.isValidTask(TaskId.Analysis, slidingStartDate, EventModel.eventInfoChangeStamp)) {
+		if (eventRecalculationAck == null && refreshHighlitedAnalysisController.isValidTask(TaskId.Analysis, slidingStartDate)) {
 			
 			String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
 			String click = "Click to update calculations";
@@ -263,9 +266,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barsData = ChartBarUtils.buildBarsData(
 					selectedShare, chartTarget.getChartedEvtDefsTrends(), 
 					chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), eventsForStock, tuningRess, 
-					barChartSettings.alphaDividend, barChartSettings.maxFill, barChartSettings.isGradiant);
+					barChartSettings);
 			
-			chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings.isZerobased);
+			chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings);
 		
 		}
 		
@@ -286,7 +289,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		
 		SortedMap<Date, double[]> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, chartTarget.getChartedEvtDef());
 	
-		if (outputCache == null) {
+		if (outputCache == null || outputCache.isEmpty()) {
 			
 			//No indic found despite recalc
 			if (!recalculationGranted) {
@@ -332,15 +335,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					subMap = outputCache.subMap(this.chartTarget.getSlidingStartDate(), endPlus1);
 				}
 				
+				if (!subMap.isEmpty()) chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap);
+				
 			}
 			
-			try {
-				chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap);
-			} catch (NoSuchElementException e) {
-				UserDialog dialog = new UserDialog(chartTarget.getShell(), "I can't refresh Indicator Chart for "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+".\n If you cleared the calculation, try Refresh calculations.", 
-						"Because I could not find calculation results for : "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+". Please Refresh calculations or choose an other indicator.");
-				dialog.open();
-			}
+//			try {
+			
+//			} catch (NoSuchElementException e) {
+//				UserDialog dialog = new UserDialog(chartTarget.getShell(), "I can't refresh Indicator Chart for "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+".\n If you cleared the calculation, try Refresh calculations.", 
+//						"Because I could not find calculation results for : "+chartTarget.getChartedEvtDef().getEventDefinitionRef()+". Please Refresh calculations or choose an other indicator.");
+//				dialog.open();
+//			}
 		}
 		
 	}
@@ -450,9 +455,15 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						}
 					};
 					
-					BarSettingsDialog barSettingsDialog = new BarSettingsDialog(chartTarget.getShell(), barChartSettings, action);
-					Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-					barChartSettings = barSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
+					if (barSettingsDialog == null || barSettingsDialog.getShell().isDisposed()) {
+						barSettingsDialog = new BarSettingsDialog(chartTarget, barChartSettings, action);
+						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
+						barChartSettings = barSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
+					} else {
+						barSettingsDialog.getShell().setVisible(true);
+						barSettingsDialog.getShell().setActive();
+						barSettingsDialog.getShell().setFocus();
+					}
 
 				}
 			});
@@ -627,6 +638,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			
 			evtDefTrendPopupMenu.updateAction(action, availEventDefs, chartTarget.getChartedEvtDefsTrends());
 			evtDefTrendPopupMenu.getSelectionShell().setVisible(true);
+			evtDefTrendPopupMenu.getSelectionShell().setActive();
 			evtDefTrendPopupMenu.getSelectionShell().setFocus();
 			
 		}
@@ -675,6 +687,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			evtDefChartingPopupMenu.updateAction(action, availEventDefs, chartedEvtDefTmpSet);
 			evtDefChartingPopupMenu.getSelectionShell().setVisible(true);
+			evtDefChartingPopupMenu.getSelectionShell().setActive();
 			evtDefChartingPopupMenu.getSelectionShell().setFocus();
 
 		}

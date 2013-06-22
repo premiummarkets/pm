@@ -204,6 +204,8 @@ public class DbSettings extends Dialog {
 		getParent().setImage(new Image(getParent().getDisplay(),iconImg));
 		getParent().setText("Premium Markets - Settings");
 		getParent().setBackground(MainGui.pOPUP_BG);
+		getParent().setToolTipText("For more settings, see db.properties file at the root of the project installation folder.");
+		
 		GridLayout layout = new GridLayout();
 		this.getParent().setLayout(layout);
 		

@@ -41,7 +41,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	protected void initLists() throws NoSuchElementException {
 		
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException(descriptorReference);
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indic chart for (clear in progress??) : " + descriptorReference);
 			
 		SortedSet<OutputDescr> descriptionSet = new  TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
 			@Override

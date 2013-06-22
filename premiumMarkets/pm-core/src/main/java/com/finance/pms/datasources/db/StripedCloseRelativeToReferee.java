@@ -32,6 +32,8 @@ package com.finance.pms.datasources.db;
 
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -49,6 +51,8 @@ import com.finance.pms.portfolio.PortfolioShare;
 public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToReferee.class);
+	
+	NumberFormat pf = new DecimalFormat("#0.00 %");
 
 	Quotations relativeQuotations;
 
@@ -123,7 +127,12 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "change to referee "+relativeQuotations.getStock().getFriendlyName();
+		return "change to referee '"+relativeQuotations.getStock().getFriendlyName()+"'";
+	}
+
+	@Override
+	public String formatYValue(Number yValue) {
+		return pf.format(yValue);
 	}
 	
 

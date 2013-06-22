@@ -51,7 +51,7 @@ public final class MatrixFunctions {
         }
     }
 
-    static private void gj_echelonize(double[][] A) {
+    static void gj_echelonize(double[][] A) {
         int n = A.length;
         int m = A[0].length;
         int i = 0;
@@ -169,7 +169,7 @@ public final class MatrixFunctions {
         gj_echelonize(m);
         // extract result column
         ArrayList<Double> terms = new ArrayList<Double>();
-        int j = 0;
+      
         for (double[] mc : m) {
             terms.add(mc[p]);
         }

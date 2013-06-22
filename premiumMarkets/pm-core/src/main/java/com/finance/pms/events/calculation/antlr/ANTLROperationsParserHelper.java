@@ -61,7 +61,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 
 
 		} catch (ExitParsingException e) {
-			LOGGER.error("Operation "+parsedLine+" early exit : "+e + "cause : "+e.getCause());
+			LOGGER.debug("Operation "+parsedLine+" early exit : "+e + "cause : "+e.getCause());
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
@@ -100,10 +100,10 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				exceptionIndex = 0;
 				parser.indicatorexpr();
 			} catch (ExitParsingException e) {
-				LOGGER.info("Early exit : "+e);
+				LOGGER.debug("Early exit : "+e);
 			}
 			
-			LOGGER.info("Exception stack :"+ exceptions);
+			LOGGER.debug("Exception stack :"+ exceptions);
 			
 			System.out.println("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
@@ -346,7 +346,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 	
 					}
 					else {
-						LOGGER.warn("Unmached exception for errors "+exceptionHolder);
+						LOGGER.warn("Unmatched exception for errors "+exceptionHolder);
 					}
 					
 				}		
@@ -377,7 +377,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, suggFilter, "Invalid entry", "Please delete", null, filterPosition));
 			}
 			
-			LOGGER.info("Final position : "+state.tokenStartLine+", "+state.tokenStartCharPositionInLine);
+			LOGGER.debug("Final position : "+state.tokenStartLine+", "+state.tokenStartCharPositionInLine);
 			int finalCaretPosition = translatePositionToCaret(parsedLine, state.tokenStartLine, state.tokenStartCharPositionInLine);
 			if (parsedLine.length() > finalCaretPosition) {
 				String excedent = parsedLine.substring(finalCaretPosition, parsedLine.length());
@@ -405,8 +405,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				}
 			}
 			
-			LOGGER.info("Priority list : "+priorityList);
-			LOGGER.info("Next token alt : "+nextToken);
+			LOGGER.debug("Priority list : "+priorityList);
+			LOGGER.debug("Next token alt : "+nextToken);
 			
 			return nextToken;
 			
@@ -478,7 +478,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					foundMatch = true; // no exception was raised meaning match was found
 					//break;
 				} catch (Exception e) {
-					LOGGER.info("No matching op for "+parsedParam);
+					LOGGER.debug("No matching op for "+parsedParam);
 				}
 				break;
 			case MATYPE: //TODO Generalise to String parameter

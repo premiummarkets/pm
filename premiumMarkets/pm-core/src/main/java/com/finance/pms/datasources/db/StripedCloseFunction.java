@@ -111,4 +111,6 @@ public abstract class StripedCloseFunction {
 	
 	public abstract String lineToolTip();
 	
+	public abstract String formatYValue(Number yValue);
+	
 }

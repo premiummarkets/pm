@@ -51,7 +51,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.SortedMap;
 
 import javax.swing.ToolTipManager;
@@ -95,6 +94,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
@@ -174,7 +174,7 @@ public class ChartMain extends Chart {
 
 			final int kf = k;
 			final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-			final NumberFormat percentInstance = new DecimalFormat("#0.00 %");
+			//final NumberFormat percentInstance = new DecimalFormat("#0.00 %");
 			XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
 				public String generateToolTip(XYDataset dataset, int series, int item) {
@@ -189,8 +189,9 @@ public class ChartMain extends Chart {
 
 						String variationAddInfo = "";
 						if (!stripedCloseFunction.lineToolTip().isEmpty()) {
-							y = percentInstance.format(dataset.getYValue(series, item));
-							variationAddInfo = "<br>Variation : " + y + " " + stripedCloseFunction.lineToolTip();
+							//y = percentInstance.format(dataset.getYValue(series, item));
+							y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
+							variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
 						}
 
 						return "<html>" + "<font size='2'>" + "<b>" + portfolioShares.get(kf).getFreindlyName() + "</b> On the " + x + "<br>"
@@ -295,7 +296,7 @@ public class ChartMain extends Chart {
 	}
 	
 	
-	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx, final Boolean isZeroBased) {
+	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx, final BarSettings barSettings) {
 		
 		Runnable runnable = new Runnable() {
 			
@@ -305,10 +306,7 @@ public class ChartMain extends Chart {
 				
 				XYBarRenderer renderer = (XYBarRenderer) mainPlot.getRenderer(1);
 				renderer.removeAnnotations();
-				
-				//TODO review with the chart options
-				//renderer.setBase(serieDef.getBase());
-				//renderer.setUseYInterval(true);
+		
 				renderer.setMargin(0);
 				renderer.setBarPainter(new XYBarPainter() {
 					
@@ -319,8 +317,11 @@ public class ChartMain extends Chart {
 					@Override
 					public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base) {
 						
-						//System.out.printf("%f %f %f %f %d %f \n", bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight(), seriesIdx, barHeight);
-						if (isZeroBased) {
+						//System.out.printf("%f %f %f %f %d %d %d\n", bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight(), row/3, ((int) bar.getX()) % (barSeries.size()/3), row);
+						
+						if ( barSettings.getIsReachTop() && ((int) bar.getX()) % (barSeries.size()/3) != row/3 ) return;//TODO??
+						
+						if (barSettings.getIsZeroBased()) {
 							bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight());
 						} else {
 							int seriesIdx = (row/3) +1;
@@ -444,115 +445,120 @@ public class ChartMain extends Chart {
 		
 	}
 	
-	public void updateIndicDataSet(final EventInfo chartedEvtDef, final SortedMap<Date, double[]> serie) throws NoSuchElementException {
+	public void updateIndicDataSet(final EventInfo chartedEvtDef, final SortedMap<Date, double[]> serie) {
 
 		Runnable runnable = new Runnable() {
 			
 			public void run() {
 				
-				final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-				final NumberFormat numberFormat = new DecimalFormat("0.000000");
-				CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
-				
-				//Check if indic plot present
-				@SuppressWarnings("rawtypes")
-				List subplots = combinedDomainXYPlot.getSubplots();
-				if (subplots.size() == 1) {
-					XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
-					indicRenderer.setBaseItemLabelsVisible(true, false);
+				try {
+					final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
+					final NumberFormat numberFormat = new DecimalFormat("0.############");
+					CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
+					
+					//Check if indic plot present
+					@SuppressWarnings("rawtypes")
+					List subplots = combinedDomainXYPlot.getSubplots();
+					if (subplots.size() == 1) {
+						XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
+						indicRenderer.setBaseItemLabelsVisible(true, false);
 
-					indicPlot = new XYPlot(null, null, null, indicRenderer);
-					indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
-					indicPlot.setNoDataMessage("No indicator output is available. Check that the stocks and date ranges are valid.");
-					indicPlot.setDomainMinorGridlinesVisible(true);
-				}
-				indicPlot.clearRangeAxes();
-				
-				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
-				String[] eventDefDescriptorArray = new String[0];
-				if (eventDefDescriptor != null) {
-					eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
-				}
-				
-				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
-
-					//Build and add Data set for group
-					XYItemRenderer renderer = indicPlot.getRenderer(groupIdx);
-					if (renderer == null) {
-						renderer = new XYLineAndShapeRenderer(true, false);
-						renderer.setBaseItemLabelsVisible(true, false);
-						indicPlot.setRenderer(groupIdx, renderer);
+						indicPlot = new XYPlot(null, null, null, indicRenderer);
+						indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
+						indicPlot.setNoDataMessage("No indicator output is available. Check that the stocks and date ranges are valid.");
+						indicPlot.setDomainMinorGridlinesVisible(true);
 					}
-					ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
-					if (rangeAxis == null) {
-						rangeAxis = initYAxis();
-						if (groupIdx == 0) {
-							rangeAxis.setLabel(chartedEvtDef.getEventReadableDef());
-						} else {
-							rangeAxis.setVisible(false);
+					indicPlot.clearRangeAxes();
+					
+					final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
+					String[] eventDefDescriptorArray = new String[0];
+					if (eventDefDescriptor != null) {
+						eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
+					}
+					
+					for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
+
+						//Build and add Data set for group
+						XYItemRenderer renderer = indicPlot.getRenderer(groupIdx);
+						if (renderer == null) {
+							renderer = new XYLineAndShapeRenderer(true, false);
+							renderer.setBaseItemLabelsVisible(true, false);
+							indicPlot.setRenderer(groupIdx, renderer);
 						}
-						indicPlot.setRangeAxis(groupIdx, rangeAxis);
-						indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);
-					}
-					TimeSeriesCollection dataset = new TimeSeriesCollection();
-
-					Integer[] outputIndexes = eventDefDescriptor.getIndexesForGroup(groupIdx);
-					int serieIdx = 0;
-					for (int k = 0; k < outputIndexes.length; k++) {
-
-						int outputIdx = outputIndexes[k];
-						final String domain = eventDefDescriptorArray[outputIdx];
-						TimeSeries timeSerie = new TimeSeries(domain);
-						Boolean isNotNan = false;
-						for (Date date : serie.keySet()) {
-							double[] ds = serie.get(date);
-							RegularTimePeriod period = new Day(date);
-							Number value = ds[outputIdx];
-							isNotNan = isNotNan || (!((Double) value).isNaN() && !((Double) value).isInfinite());
-							//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
-							if (!((Double) value).isInfinite()) {
-								TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-								timeSerie.add(item, false);
+						ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
+						if (rangeAxis == null) {
+							rangeAxis = initYAxis();
+							if (groupIdx == 0) {
+								rangeAxis.setLabel(chartedEvtDef.getEventReadableDef());
+							} else {
+								rangeAxis.setVisible(false);
 							}
+							indicPlot.setRangeAxis(groupIdx, rangeAxis);
+							indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);
 						}
-						if (isNotNan) {
+						TimeSeriesCollection dataset = new TimeSeriesCollection();
 
-							dataset.addSeries(timeSerie);
+						Integer[] outputIndexes = eventDefDescriptor.getIndexesForGroup(groupIdx);
+						int serieIdx = 0;
+						for (int k = 0; k < outputIndexes.length; k++) {
 
-							renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
-							renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
-
-							XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-								public String generateToolTip(XYDataset dataset, int series, int item) {
-
-									String y = "NaN";
-									String x = "NaN";
-									try {
-										y = numberFormat.format(dataset.getYValue(series, item));
-										Date date = new Date((long) dataset.getXValue(series, item));
-										x = simpleDateFormat.format(date);
-										return "<html>" + "<font size='2'>" + "<b>" + domain + "</b> on the " + x + "<br>"
-												+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") + "</font>" + "</html>";
-									} catch (Exception e) {
-										LOGGER.debug(e, e);
-									}
-									return "NaN";
-
+							int outputIdx = outputIndexes[k];
+							final String domain = eventDefDescriptorArray[outputIdx];
+							TimeSeries timeSerie = new TimeSeries(domain);
+							Boolean isNotNan = false;
+							for (Date date : serie.keySet()) {
+								double[] ds = serie.get(date);
+								RegularTimePeriod period = new Day(date);
+								Number value = ds[outputIdx];
+								isNotNan = isNotNan || (!((Double) value).isNaN() && !((Double) value).isInfinite());
+								//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
+								if (!((Double) value).isInfinite()) {
+									TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+									timeSerie.add(item, false);
 								}
-							};
+							}
+							if (isNotNan) {
 
-							renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
-							serieIdx++;
+								dataset.addSeries(timeSerie);
+
+								renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
+								renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
+
+								XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+
+									public String generateToolTip(XYDataset dataset, int series, int item) {
+
+										String y = "NaN";
+										String x = "NaN";
+										try {
+											y = numberFormat.format(dataset.getYValue(series, item));
+											Date date = new Date((long) dataset.getXValue(series, item));
+											x = simpleDateFormat.format(date);
+											return "<html>" + "<font size='2'>" + "<b>" + domain + "</b> on the " + x + "<br>"
+													+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") + "</font>" + "</html>";
+										} catch (Exception e) {
+											LOGGER.debug(e, e);
+										}
+										return "NaN";
+
+									}
+								};
+
+								renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
+								serieIdx++;
+							}
+
 						}
 
+						indicPlot.setDataset(groupIdx, dataset);
 					}
-
-					indicPlot.setDataset(groupIdx, dataset);
-				}
-				//Combine
-				if (subplots.size() == 1) {
-					combinedDomainXYPlot.add(indicPlot, 1);
+					//Combine
+					if (subplots.size() == 1) {
+						combinedDomainXYPlot.add(indicPlot, 1);
+					}
+					
+				} catch (Exception e) {
+					LOGGER.warn("Can't refresh indic chart for (clear in progress??) : "+ e);
 				}
 			}
 			

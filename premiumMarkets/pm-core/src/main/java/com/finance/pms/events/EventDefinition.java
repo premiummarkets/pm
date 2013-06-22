@@ -166,7 +166,17 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new EventDefDescriptorStatic(null,null,null,null,null,null,"PARAMETERIZED",null,"PARAMETERIZED",null)),
 	
 	//End
-	INFINITE (999,"All", false, null);
+	INFINITE (999,"All", false, null), 
+	
+
+	PMRSIDIVERGENCEOLD (620,"Old RSI Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)), 
+	PMMFIDIVERGENCEOLD (621,"Old MFI Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)), 
+	PMSSTOCHDIVERGENCEOLD (622,"Old Stochastic Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)), 
+	PMCHAIKINOSCDIVERGENCEOLD (623,"Old Chaikin Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)),
+	NEURALOLD (703,"Old Neural", true, 
+			new  EventDefDescriptorStatic("Old Neural output", null, null, null, null, null,
+					"Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
+					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}));
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);

@@ -174,7 +174,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 
 	@Override
 	public EventDefinition getEventDefinition() {
-		return EventDefinition.PMCHAIKINOSCDIVERGENCE;
+		return EventDefinition.PMCHAIKINOSCDIVERGENCEOLD;
 	}
 
 }

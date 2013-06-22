@@ -92,6 +92,8 @@ public class EventTaskQueue {
 		synchronized (queueScanner) {
 			boolean hasItJustRunOrIsRunning = (lastRunningTask != null) && lastRunningTask.equals(task);
 			boolean isItScheduledLast = !tasks.isEmpty() && tasks.toArray()[0].equals(task);
+			
+			LOGGER.info("\n\tTask request :\n"+task+".\n\tLast Task :\n"+lastRunningTask+".\nValidity : has it just been or is running : "+hasItJustRunOrIsRunning+", is it queued to run last : "+isItScheduledLast);
 			return hasItJustRunOrIsRunning || isItScheduledLast;
 		}
 	}

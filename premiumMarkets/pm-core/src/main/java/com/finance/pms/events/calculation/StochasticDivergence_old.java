@@ -210,7 +210,7 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 
 	@Override
 	public EventDefinition getEventDefinition() {
-		return EventDefinition.PMSSTOCHDIVERGENCE;
+		return EventDefinition.PMSSTOCHDIVERGENCEOLD;
 	}
 
 }

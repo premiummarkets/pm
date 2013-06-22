@@ -69,7 +69,8 @@ public class NativeParametrizedIndicators {
 	public Map<String, Operation> getCalculators() {
 		Map<String, Operation> ret = new HashMap<String, Operation>();
 		for (Operation operation : calculators) {
-			ret.put(operation.getReference().toLowerCase(), operation);
+			//TODO lower?
+			ret.put(operation.getReference(), operation);
 		}
 		return ret;
 	}

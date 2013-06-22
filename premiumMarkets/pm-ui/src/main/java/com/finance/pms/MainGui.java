@@ -137,6 +137,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	private MenuItem eventsMenuItem;
 	private Menu eventsSubMenu;
 	public static MenuItem viewEventsMenuItem;
+	private OperationBuilderDialog builderDialog;
 	
 	private  MenuItem portfolioMenuItem;
 	public static Menu portfolioSubMenu;
@@ -462,10 +463,17 @@ null);
 							eventClean.setText("Parameterise and Create indicators ...");
 							eventClean.addSelectionListener(new SelectionAdapter() {
 
+								
 								@Override
 								public void widgetSelected(SelectionEvent e) {
-									OperationBuilderDialog builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
-									builderDialog.open();
+									if (builderDialog == null || builderDialog.getShell().isDisposed()) {
+										builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
+										builderDialog.open();
+									} else {
+										builderDialog.getShell().setVisible(true);
+										builderDialog.getShell().setActive();
+										builderDialog.getShell().setFocus();
+									}
 									if (!((ChartsComposite) chartsSash()).isDisposed()) ((ChartsComposite) chartsSash()).refreshView(new ArrayList<Exception>());
 								}
 								

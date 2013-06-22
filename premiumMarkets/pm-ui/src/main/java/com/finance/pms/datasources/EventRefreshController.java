@@ -163,7 +163,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 
 						eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 
-						tasksGroup.add(new EventRefreshTask(TaskId.FetchLists, eventModel.getViewStateParams()) {
+						tasksGroup.add(new EventRefreshTask(TaskId.FetchLists) {
 							public void run() {
 								try {
 									eventModel.callbackForlastListFetch();
@@ -182,7 +182,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				if (taskIds.contains(TaskId.FetchRecos)) {
 					//Add Fetch Reco to the queue
 					if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || isValidTask(lastTaskOfThisGroup)) {
-						tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos, eventModel.getViewStateParams()) {
+						tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos) {
 							public void run() {
 								try {
 									eventModel.callbackForReco();
@@ -201,7 +201,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 					
 					//Add Fetch Quotations
 					if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || isValidTask(lastTaskOfThisGroup)) {
-						tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations, eventModel.getViewStateParams()) {
+						tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations) {
 							public void run() {
 								try {
 									eventModel.callbackForlastQuotationFetch();
@@ -226,7 +226,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 						eventModel.resetAnalisysList();
 						eventModel.getAnalysisList().add("talib");
 						
-						tasksGroup.add(new EventRefreshTask(TaskId.Clean, eventModel.getViewStateParams()) {
+						tasksGroup.add(new EventRefreshTask(TaskId.Clean) {
 							public void run() {
 								try {
 									eventModel.callbackForAnalysisClean();
@@ -251,7 +251,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 						eventModel.resetAnalisysList();
 						eventModel.getAnalysisList().add("talib");
 						
-						tasksGroup.add(new EventRefreshTask(TaskId.Analysis, eventModel.getViewStateParams(), startAnalyseDate, EventModel.eventInfoChangeStamp) {
+						tasksGroup.add(new EventRefreshTask(TaskId.Analysis, startAnalyseDate) {
 							public void run() {
 								try {
 									eventModel.callbackForlastAnalyse(startAnalyseDate);
@@ -272,7 +272,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 					
 					//Add Alerts calc
 					if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || isValidTask(lastTaskOfThisGroup)) {
-						tasksGroup.add(new EventRefreshTask(TaskId.Alerts, eventModel.getViewStateParams()) {
+						tasksGroup.add(new EventRefreshTask(TaskId.Alerts) {
 							public void run() {
 								try {
 									eventModel.callbackForAlerts();
@@ -294,7 +294,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				
 
 				//Refresh view task
-				EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh, eventModel.getViewStateParams()) {
+				EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh) {
 					
 					public void run() {
 						
@@ -357,10 +357,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	
 	public boolean isValidTask(TaskId taskId, Object... addParams) {
 		
-		Object[] addParams2 = Arrays.copyOf(addParams, addParams.length+1);
-		addParams2[addParams.length]= EventModel.eventInfoChangeStamp;
-		
-		EventRefreshTask requestedTask = new EventRefreshTask(taskId, eventModel.getViewStateParams(), addParams2) {
+		EventRefreshTask requestedTask = new EventRefreshTask(taskId, addParams) {
 			@Override
 			public void run() {	
 			}
@@ -375,17 +372,25 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 		
 		private TaskId taskId;
 		private int paramSign;
+		private Object[] viewParams; //Debug
+		private Long eventInfoChangeStamp;
+		
 		private List<Object> addParams;
 		
-		public EventRefreshTask(TaskId taskId, Object[] viewParams, Object ... addParams) {
+		
+		private EventRefreshTask(TaskId taskId, Object ... addParams) {
 			super();
 			this.taskId = taskId;
 			this.paramSign = 0;
+			
+			viewParams = eventModel.getViewStateParams();
 			if (viewParams != null) {
 				for (Object object : viewParams) {
 					this.paramSign = this.paramSign + object.hashCode();
 				}
 			}
+			this.eventInfoChangeStamp = EventModel.eventInfoChangeStamp;
+			
 			if (addParams != null) {
 				this.addParams = new ArrayList<Object>();
 				this.addParams.addAll(Arrays.asList(addParams));
@@ -402,15 +407,16 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 		
 		@Override
 		public String toString() {
-			return taskId.name();
+			return "EventRefreshTask [taskId=" + taskId + ", paramSign=" + paramSign + ", eventInfoChangeStamp=" + eventInfoChangeStamp + ", addParams="+ addParams + "] " +
+					"viewParams : "+((viewParams != null)?Arrays.asList(viewParams):"None"); //Debug
 		}
-
 
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + paramSign;
+			result = prime * result + eventInfoChangeStamp.hashCode();
 			result = prime * result + addParams.size();
 			result = prime * result + ((taskId == null) ? 0 : taskId.hashCode());
 			return result;
@@ -428,12 +434,15 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 			EventRefreshTask other = (EventRefreshTask) obj;
 			if (paramSign != other.paramSign)
 				return false;
+			if (!eventInfoChangeStamp.equals(other.eventInfoChangeStamp))
+				return false;
 			if (!addParams.equals(other.addParams)) 
 				return false;
 			if (taskId != other.taskId)
 				return false;
 			return true;
 		}
+
 
 	}
 	

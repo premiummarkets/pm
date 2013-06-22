@@ -30,6 +30,8 @@
  */
 package com.finance.pms.datasources.db;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -45,6 +47,8 @@ import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 import com.finance.pms.portfolio.PortfolioShare;
 
 public class StripedCloseLogRoc extends StripedCloseFunction {
+	
+	private NumberFormat nf = new DecimalFormat("0.############ \u2030");
 	
 	private SortedMap<Date, double[]> houseDerivation;
 	private Date startDate;
@@ -100,7 +104,12 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "change to previous day (log ROC)";
+		return "logarithmic change to previous day";
+	}
+
+	@Override
+	public String formatYValue(Number yValue) {
+		return nf.format(yValue);
 	}
 
 }

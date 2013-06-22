@@ -55,6 +55,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.finance.pms.admin.install.FolderSelect;
 
 
@@ -185,7 +187,7 @@ public class InstallFolderPanel extends JPanel {
 		
 		
 		JPanel contentPanel2 = new JPanel();
-		contentPanel2.add(new JLabel("As it stores historical data, the software will need arround 1 GO bytes of disk."));
+		contentPanel2.add(new JLabel("As it stores historical data, the software will need around 1 GO bytes of disk."));
         
 		
 		contentPanel.add(contentPanel1,BorderLayout.WEST);
@@ -277,7 +279,7 @@ public class InstallFolderPanel extends JPanel {
 	protected static File setPmFolder(String updatedName) {
 		piggyMarketSqueakFolder = new File(updatedName + File.separator + Install.piggyMarketSqueak);
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
-		prefs.put("pm.default.install.folder", updatedName);
+		prefs.put("pm.default.install.folder", StringEscapeUtils.escapeJava(updatedName));
 		try {
 			prefs.flush();
 		} catch (BackingStoreException e) {

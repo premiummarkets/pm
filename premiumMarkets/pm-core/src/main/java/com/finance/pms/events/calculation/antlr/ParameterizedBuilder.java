@@ -240,13 +240,15 @@ public abstract class ParameterizedBuilder extends Observable {
 	public void addFormula(String identifier, String formula) throws IOException {
 		
 		try {
+			
 			Operation operation = parseFormula(identifier, formula);
 			saveUserOperation(identifier, formula);
 			currentOperations.put(operation.getReference(), operation);
-			currentOperations.get(operation.getReference()).setDisabled(false);
 			
 			File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 			disabledFormulaFile.delete();
+			currentOperations.get(operation.getReference()).setDisabled(false);
+			
 			
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -259,6 +261,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	public void removeFormula(String identifier) throws IOException {
 		
 		try {
+			
 			Operation operation = currentOperations.get(identifier);
 			
 			List<Operation> checkInUse = checkInUse(operation);
@@ -270,6 +273,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			disabledFormulaFile.delete();
 			
 			currentOperations.remove(identifier);
+			
 		} catch (Exception e) {
 			throw new IOException(e);
 		}

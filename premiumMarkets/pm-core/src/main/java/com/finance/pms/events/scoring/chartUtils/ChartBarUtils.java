@@ -23,7 +23,7 @@ public class ChartBarUtils {
 	public static SortedMap<DataSetBarDescr, SortedMap<Date, Double>> buildBarsData(
 			Stock selectedShare, Set<EventInfo> chartedEvtDefsTrends, 
 			Date start, Date end, SymbolEvents eventsForStock, Map<EventInfo, TuningResDTO> tuningRess, 
-			Double alphaDividende, int maxFill, Boolean isGradiant) {
+			BarSettings barSettings) {
 		
 		int chartedTrendsEvtDefsSize = chartedEvtDefsTrends.size();
 		
@@ -49,7 +49,7 @@ public class ChartBarUtils {
 						if (eventInfo.getIsContinous()) {
 							cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, 1);
 						} else {
-							cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, maxFill);
+							cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, barSettings.getMaxFill());
 						}
 		
 					}
@@ -60,23 +60,25 @@ public class ChartBarUtils {
 	
 			//Filling up to the end only for non continuous events
 			if (prevEventValue != null && !eventInfo.getIsContinous()) {
-				cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, end, maxFill);
+				cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, end,  barSettings.getMaxFill());
 			}
 	
-			int gradiant = (isGradiant)?serieIdx/3:1;
-			int alpha = 255 / (int) Math.ceil( alphaDividende*gradiant );
+			int gradiant = ( barSettings.getIsGradiant())?serieIdx/3:1;
+			int alpha = 255 / (int) Math.ceil(  barSettings.getAlphaDividend()*gradiant );
 			TuningResDTO tuningResDTO = tuningRess.get(eventInfo);
 			
 			DataSetBarDescr buyKey = 
 					new DataSetBarDescr(
 						serieIdx, 
 						eventInfo.info()+" buy", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-						0, new java.awt.Color(189,249,189, alpha), 10f);
+						//0, new java.awt.Color(189,249,189, alpha), 10f);
+						0, new java.awt.Color(0,255,0, alpha), 10f);
 			DataSetBarDescr sellKey = 
 					new DataSetBarDescr(
 						serieIdx-1, 
 						eventInfo.info()+" sell", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-						0, new java.awt.Color(246,173,173, alpha), 10f);
+						//0, new java.awt.Color(246,173,173, alpha), 10f);
+						0, new java.awt.Color(255,0,0, alpha), 10f);
 			DataSetBarDescr indeterKey = 
 					new DataSetBarDescr(
 						serieIdx-2, 
@@ -96,8 +98,11 @@ public class ChartBarUtils {
 			barData.put(sellKey, sellS.tailMap(start));
 			barData.put(indeterKey, indeterS.tailMap(start));
 	
-			//yValueFactor = yValueFactor - .9d/chartedTrendsEvtDefsSize;
-			yValueFactor = yValueFactor - 1d/chartedTrendsEvtDefsSize;
+			if (! barSettings.getIsReachTop()) {
+				//yValueFactor = yValueFactor - .9d/chartedTrendsEvtDefsSize;
+				yValueFactor = yValueFactor - 1d/chartedTrendsEvtDefsSize;
+			}
+			
 			serieIdx = serieIdx - 3;
 		}
 	
