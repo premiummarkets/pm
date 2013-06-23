@@ -48,4 +48,9 @@ public class MATypeValue extends Value<MAType> implements Cloneable {
 		return null;
 	}
 
+	@Override
+	public String getValueAsString() {
+		return maTypeValue.name();
+	}
+
 }

@@ -115,7 +115,8 @@ public abstract class ANTLRParserHelper {
 								"Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either :"+operation);
 					}
 					if (operand.getParameter() == null) {
-						String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValue(null).toString():null;
+						//String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValue(null).toString():null;
+						String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValueAsString():null;
 						editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString));
 					}
 				}
@@ -167,7 +168,7 @@ public abstract class ANTLRParserHelper {
 			if (currentTyping.equals(editorOpDescr.getName())) {//exact match
 				foundMatch = true;
 			} else if (editorOpDescr.getName().startsWith(currentTyping) && !currentTyping.equals(editorOpDescr.getName())) {//partial match
-				alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATA, editorOpDescr.getName(), editorOpDescr.getDescription(), editorOpDescr.getSynoptic(), null, highLighPosition));
+				alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATATOKEN, editorOpDescr.getName(), editorOpDescr.getDescription(), editorOpDescr.getSynoptic(), null, highLighPosition));
 				foundMatch = true;
 			}
 		}
@@ -175,7 +176,7 @@ public abstract class ANTLRParserHelper {
 			if (currentTyping.equals(editorOpDescr.getName())) {
 				foundMatch = true;
 			} else if (editorOpDescr.getName().startsWith(currentTyping) && !currentTyping.equals(editorOpDescr.getName())) {
-				alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATA, editorOpDescr.getName(), editorOpDescr.getDescription(),editorOpDescr.getSynoptic(), null, highLighPosition));
+				alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATATOKEN, editorOpDescr.getName(), editorOpDescr.getDescription(),editorOpDescr.getSynoptic(), null, highLighPosition));
 				foundMatch = true;
 			} 
 		}
@@ -197,7 +198,7 @@ public abstract class ANTLRParserHelper {
 				//boolean partialMatch = parsedText.length() >=3 && htoken.contains(parsedText);
 				boolean startsWithMatch = htoken.startsWith(parsedText);
 				if ((startsWithMatch) && !equalsMatch) {//partial match : adding
-					alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATA, htoken, descreptionPrefix + htoken, null, null, highLighPosition));
+					alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATATOKEN, htoken, descreptionPrefix + htoken, null, null, highLighPosition));
 					foundMatch = true;
 				}
 			} 

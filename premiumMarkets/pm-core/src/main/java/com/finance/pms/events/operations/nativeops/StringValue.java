@@ -22,7 +22,7 @@ public class StringValue extends Value<String> implements Cloneable  {
 
 	public StringValue(String value) {
 		super();
-		this.stringValue = value;
+		this.stringValue = value.replaceAll("\"", "");
 	}
 
 
@@ -33,7 +33,7 @@ public class StringValue extends Value<String> implements Cloneable  {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : value "+stringValue;
+		return this.getClass().getSimpleName() +" : value \""+stringValue+"\"";
 	}
 	
 	@Override
@@ -45,6 +45,11 @@ public class StringValue extends Value<String> implements Cloneable  {
 			LOGGER.error(e,e);
 		}
 		return null;
+	}
+
+	@Override
+	public String getValueAsString() {
+		return "\""+stringValue+"\"";
 	}
 
 }

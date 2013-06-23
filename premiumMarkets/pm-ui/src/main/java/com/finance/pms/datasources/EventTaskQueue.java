@@ -90,10 +90,20 @@ public class EventTaskQueue {
 	
 	public Boolean isLastTask(EventRefreshTask task) {
 		synchronized (queueScanner) {
-			boolean hasItJustRunOrIsRunning = (lastRunningTask != null) && lastRunningTask.equals(task);
-			boolean isItScheduledLast = !tasks.isEmpty() && tasks.toArray()[0].equals(task);
 			
-			LOGGER.info("\n\tTask request :\n"+task+".\n\tLast Task :\n"+lastRunningTask+".\nValidity : has it just been or is running : "+hasItJustRunOrIsRunning+", is it queued to run last : "+isItScheduledLast);
+			Boolean hasItJustRunOrIsRunning = (lastRunningTask != null) && lastRunningTask.equals(task);
+			
+			//boolean isItScheduledLast = !tasks.isEmpty() && tasks.toArray()[0].equals(task);
+			EventRefreshTask[] array = tasks.toArray(new EventRefreshTask[0]);
+			int i=array.length-1;
+			while (i >= 0 && array[i].getTaskId().equals(TaskId.ViewRefresh)) {
+				i--;
+			}
+			Boolean isItScheduledLast = i>=0 && array[i].equals(task);
+			
+			LOGGER.info("\n\tTask request :\n"+task+".\n\tLast Task :\n"+lastRunningTask+".\n" +
+					"Validity : has it just been or is running : "+hasItJustRunOrIsRunning+", is it queued to run last : "+isItScheduledLast+".\n" +
+					"Tasks queue : "+tasks.toString());
 			return hasItJustRunOrIsRunning || isItScheduledLast;
 		}
 	}

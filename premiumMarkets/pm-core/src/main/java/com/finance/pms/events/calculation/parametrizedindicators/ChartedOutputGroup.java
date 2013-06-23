@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 
 public class ChartedOutputGroup {
 
@@ -108,7 +108,7 @@ public class ChartedOutputGroup {
 		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.SIGNAL, outputIndex, null, outputName));
 	}
 
-	public void addConstant(String parentReference, Operation operation, DoubleValue doubleValue) {
+	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue) {
 		//String friendlyName = doubleValue.getNumberValue() + " " + namePrefix +" "+operation.getReferenceAsOperand();
 		String outputName = doubleValue.getNumberValue() +" ("+parentReference+" "+operation.getReferenceAsOperand()+")";
 		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.CONSTANT, null, doubleValue, outputName));

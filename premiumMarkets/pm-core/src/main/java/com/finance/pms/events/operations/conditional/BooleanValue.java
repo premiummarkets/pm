@@ -38,6 +38,11 @@ public class BooleanValue extends Value<Boolean> implements Cloneable {
 		}
 		return null;
 	}
+
+	@Override
+	public String getValueAsString() {
+		return value.toString();
+	}
 	
 
 }

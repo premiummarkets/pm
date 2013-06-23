@@ -22,6 +22,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescrip
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 

@@ -8,24 +8,24 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
-public class DoubleValue extends Value<Number> implements Cloneable  {
+public class NumberValue extends Value<Number> implements Cloneable  {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleValue.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(NumberValue.class);
 	
 	@XmlElement
 	Double numberValue;
 
 	@SuppressWarnings("unused")
-	private DoubleValue() {
+	private NumberValue() {
 		super();
 	}
 
-	public DoubleValue(Double value) {
+	public NumberValue(Double value) {
 		super();
 		this.numberValue = value;
 	}
 	
-	public DoubleValue(String value) {
+	public NumberValue(String value) {
 		super();
 		this.numberValue = Double.valueOf(value);
 	}
@@ -46,12 +46,17 @@ public class DoubleValue extends Value<Number> implements Cloneable  {
 	@Override
 	public Object clone() {
 		try {
-			DoubleValue clone = (DoubleValue) super.clone();
+			NumberValue clone = (NumberValue) super.clone();
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
 		return null;
+	}
+
+	@Override
+	public String getValueAsString() {
+		return numberValue.toString();
 	}
 
 }

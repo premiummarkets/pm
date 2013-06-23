@@ -19,8 +19,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 
@@ -42,7 +42,7 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 	}
 	
 	public HighsAndLowsCondition(String reference, String description) {
-		super(reference, description, new DoubleOperation("look back span in days"), new DoubleOperation("smoothed look back tolerance threshold period"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new NumberOperation("look back span in days"), new NumberOperation("smoothed look back tolerance threshold period"), new DoubleMapOperation("historical data input"));
 	}
 
 	public HighsAndLowsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -59,8 +59,8 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 	@Override
 	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Integer lookBackNbdays = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer lookBackSmoothedThreshPeriod = ((DoubleValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer lookBackNbdays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 		

@@ -577,7 +577,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			ActionDialogAction actionDialogAction = new ActionDialogAction() {
 				@Override
 				public void action(Control targetControl) {
-					actionDialog.values[0] = ((Text) targetControl).getText();
+					actionDialog.values[0] = exportPngFileName.getText();
 				}
 			};
 			actionDialog.setControl(exportPngFileName);

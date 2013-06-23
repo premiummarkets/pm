@@ -3,11 +3,14 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.tictactec.ta.lib.MAType;
 
+@XmlRootElement
 public class MATypeOperation extends Operation  implements LeafOperation {
 	
 	public MATypeOperation() {
@@ -18,7 +21,7 @@ public class MATypeOperation extends Operation  implements LeafOperation {
 		super(reference, reference);
 	}
 	
-	public MATypeOperation(String reference, String refAsOperand, String description, DoubleValue defaultValue) {
+	public MATypeOperation(String reference, String refAsOperand, String description, NumberValue defaultValue) {
 		super(reference, refAsOperand, description, defaultValue);
 	}
 

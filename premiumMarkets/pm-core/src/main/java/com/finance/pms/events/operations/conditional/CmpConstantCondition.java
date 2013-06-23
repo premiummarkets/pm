@@ -11,8 +11,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 
@@ -28,7 +28,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	
 
 	protected CmpConstantCondition(String reference, String description) {
-		super(reference, description, new DoubleOperation("threshold"), new DoubleOperation("time period over which it happens"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new DoubleMapOperation("historical data input"));
 	}
 
 	public CmpConstantCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -39,8 +39,8 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Double constant = ((DoubleValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		Integer overPeriod = ((DoubleValue) inputs.get(1)).getValue(targetStock).intValue();
+		Double constant = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
 		
 		BooleanMapValue outputs = new  BooleanMapValue();

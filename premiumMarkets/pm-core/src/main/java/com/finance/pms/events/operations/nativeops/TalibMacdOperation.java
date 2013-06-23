@@ -23,9 +23,9 @@ public class TalibMacdOperation extends TalibOperation {
 	public TalibMacdOperation() {
 		super(
 				"macd__", "Macd on any historical data series.", 
-				new DoubleOperation("number","macdFastPeriod","macd Fast period", new DoubleValue(12.0)), 
-				new DoubleOperation("number","macdSlowPeriod","macd Slow period",  new DoubleValue(26.0)), 
-				new DoubleOperation("number", "macdSignalPeriod", "macd Signal period",  new DoubleValue(9.0)),
+				new NumberOperation("number","macdFastPeriod","macd Fast period", new NumberValue(12.0)), 
+				new NumberOperation("number","macdSlowPeriod","macd Slow period",  new NumberValue(26.0)), 
+				new NumberOperation("number", "macdSignalPeriod", "macd Signal period",  new NumberValue(9.0)),
 				new DoubleMapOperation()
 			 );
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"macd","signal"})));
@@ -41,9 +41,9 @@ public class TalibMacdOperation extends TalibOperation {
 	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
 
 		//Param check
-		Integer fastPeriod = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer slowPeriod = ((DoubleValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer signalPeriod = ((DoubleValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer fastPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer slowPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer signalPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 
 		//Calc

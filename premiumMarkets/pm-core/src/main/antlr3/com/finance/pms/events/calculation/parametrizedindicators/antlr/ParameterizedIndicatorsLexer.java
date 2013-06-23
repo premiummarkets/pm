@@ -1,20 +1,15 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2013-06-09 23:02:40
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2013-06-23 15:36:59
  //lexer
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.IndsLexerDelegate;
 
-import com.finance.pms.events.calculation.antlr.IndsLexerDelegate;
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedIndicatorsLexer extends Lexer {
@@ -54,22 +49,22 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 	public static final int CrossUpConstantCondition=11;
 	public static final int CrossUpDoubleMapCondition=12;
 	public static final int DAYS=13;
-	public static final int Double=14;
-	public static final int DownRatioCondition=15;
-	public static final int EqualConstantCondition=16;
-	public static final int EqualDoubleMapCondition=17;
-	public static final int EventConditionHolder=18;
-	public static final int HigherHighCondition=19;
-	public static final int HigherLowCondition=20;
-	public static final int HistoricalData=21;
-	public static final int InfConstantCondition=22;
-	public static final int InfDoubleMapCondition=23;
-	public static final int LINE_COMMENT=24;
-	public static final int LowerHighCondition=25;
-	public static final int LowerLowCondition=26;
-	public static final int NOT=27;
-	public static final int NotDoubleMapCondition=28;
-	public static final int Number=29;
+	public static final int DownRatioCondition=14;
+	public static final int EqualConstantCondition=15;
+	public static final int EqualDoubleMapCondition=16;
+	public static final int EventConditionHolder=17;
+	public static final int HigherHighCondition=18;
+	public static final int HigherLowCondition=19;
+	public static final int HistoricalData=20;
+	public static final int InfConstantCondition=21;
+	public static final int InfDoubleMapCondition=22;
+	public static final int LINE_COMMENT=23;
+	public static final int LowerHighCondition=24;
+	public static final int LowerLowCondition=25;
+	public static final int NOT=26;
+	public static final int NotDoubleMapCondition=27;
+	public static final int Number=28;
+	public static final int NumberToken=29;
 	public static final int OPENPARENTEHSIS=30;
 	public static final int OR=31;
 	public static final int Operation=32;
@@ -888,10 +883,10 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 	}
 	// $ANTLR end "Operation"
 
-	// $ANTLR start "Number"
-	public final void mNumber() throws RecognitionException {
+	// $ANTLR start "NumberToken"
+	public final void mNumberToken() throws RecognitionException {
 		try {
-			int _type = Number;
+			int _type = NumberToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
 			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:236:7: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? )
 			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:236:10: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )?
@@ -1003,7 +998,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 			// do for sure before leaving
 		}
 	}
-	// $ANTLR end "Number"
+	// $ANTLR end "NumberToken"
 
 	// $ANTLR start "HistoricalData"
 	public final void mHistoricalData() throws RecognitionException {
@@ -1355,7 +1350,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 
 	@Override
 	public void mTokens() throws RecognitionException {
-		// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:8: ( AND | CLOSEPARENTEHSIS | COMMA | DAYS | NOT | OPENPARENTEHSIS | OR | PERCENT | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | Operation | Number | HistoricalData | WhiteChar | Tcheat | WS | COMMENT | LINE_COMMENT )
+		// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:8: ( AND | CLOSEPARENTEHSIS | COMMA | DAYS | NOT | OPENPARENTEHSIS | OR | PERCENT | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | Operation | NumberToken | HistoricalData | WhiteChar | Tcheat | WS | COMMENT | LINE_COMMENT )
 		int alt12=41;
 		alt12 = dfa12.predict(input);
 		switch (alt12) {
@@ -1598,49 +1593,49 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 				}
 				break;
 			case 35 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:233: Number
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:233: NumberToken
 				{
-				mNumber(); 
+				mNumberToken(); 
 
 				}
 				break;
 			case 36 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:240: HistoricalData
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:245: HistoricalData
 				{
 				mHistoricalData(); 
 
 				}
 				break;
 			case 37 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:255: WhiteChar
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:260: WhiteChar
 				{
 				mWhiteChar(); 
 
 				}
 				break;
 			case 38 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:265: Tcheat
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:270: Tcheat
 				{
 				mTcheat(); 
 
 				}
 				break;
 			case 39 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:272: WS
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:277: WS
 				{
 				mWS(); 
 
 				}
 				break;
 			case 40 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:275: COMMENT
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:280: COMMENT
 				{
 				mCOMMENT(); 
 
 				}
 				break;
 			case 41 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:283: LINE_COMMENT
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:1:288: LINE_COMMENT
 				{
 				mLINE_COMMENT(); 
 
@@ -2010,7 +2005,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		}
 		@Override
 		public String getDescription() {
-			return "1:1: Tokens : ( AND | CLOSEPARENTEHSIS | COMMA | DAYS | NOT | OPENPARENTEHSIS | OR | PERCENT | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | Operation | Number | HistoricalData | WhiteChar | Tcheat | WS | COMMENT | LINE_COMMENT );";
+			return "1:1: Tokens : ( AND | CLOSEPARENTEHSIS | COMMA | DAYS | NOT | OPENPARENTEHSIS | OR | PERCENT | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | Operation | NumberToken | HistoricalData | WhiteChar | Tcheat | WS | COMMENT | LINE_COMMENT );";
 		}
 		@Override
 		public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {

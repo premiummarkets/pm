@@ -13,8 +13,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
@@ -35,7 +35,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	}
 
 	public CrossConstantCondition(String reference, String description) {
-		super(reference, description, new DoubleOperation("threshold"), new DoubleOperation("dates comparison span"), new DoubleOperation("time period over which it happens"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new NumberOperation("threshold"), new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"), new DoubleMapOperation("historical data input"));
 	}
 	
 	public CrossConstantCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -46,9 +46,9 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Double constant = ((DoubleValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		Integer spanningShift = ((DoubleValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer overPeriod = ((DoubleValue) inputs.get(2)).getValue(targetStock).intValue();
+		Double constant = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);

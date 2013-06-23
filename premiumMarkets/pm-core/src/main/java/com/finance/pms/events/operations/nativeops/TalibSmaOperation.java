@@ -22,7 +22,7 @@ public class TalibSmaOperation extends TalibOperation {
 	
 	public TalibSmaOperation() {
 		super("sma__", "Sma on any on any historical data series.",  
-				new DoubleOperation("number","smaPeriod","Sma period", new DoubleValue(200.0)), 
+				new NumberOperation("number","smaPeriod","Sma period", new NumberValue(200.0)), 
 			    new DoubleMapOperation());
 	}
 	
@@ -36,7 +36,7 @@ public class TalibSmaOperation extends TalibOperation {
 	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
 
 		//Param check
-		Integer period = ((DoubleValue)inputs.get(0)).getValue(targetStock).intValue();
+		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
 
 		//Calc

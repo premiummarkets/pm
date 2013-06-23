@@ -29,7 +29,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 
 	public ParameterizedOperationBuilder(NativesXmlManager nativesXmlManager, TalibOperationGenerator talibOperationGenerator) {
 		super();
-		operationPackage = new String[] {"com.finance.pms.events.operations.nativeops."};
+		operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLROperationsParserHelper();
 		
 		userOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "operations");

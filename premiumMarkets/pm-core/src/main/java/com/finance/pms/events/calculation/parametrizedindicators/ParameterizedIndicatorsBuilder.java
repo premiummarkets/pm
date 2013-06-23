@@ -38,7 +38,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	public ParameterizedIndicatorsBuilder() {
 		
 		super();
-		operationPackage = new String[] {"com.finance.pms.events.operations.conditional.", "com.finance.pms.events.operations.nativeops."};
+		operationPackages = new String[] {"com.finance.pms.events.operations.conditional.", "com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLRIndicatorsParserHelper();
 		
 		userOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "indicators");

@@ -20,7 +20,7 @@ public class PMAroonOperation extends PMIndicatorOperation {
 	protected static MyLogger LOGGER = MyLogger.getLogger(PMAroonOperation.class);
 	
 	public PMAroonOperation() {
-		super("aroon_", "Aroon indicator house made", new DoubleOperation("number","aroonPeriod","Aroon period", new DoubleValue(25.0)));
+		super("aroon_", "Aroon indicator house made", new NumberOperation("number","aroonPeriod","Aroon period", new NumberValue(25.0)));
 		setAvailableOutputSelectors(new ArrayList<String>( Arrays.asList(new String[]{"down","up"})));
 	}
 	
@@ -34,7 +34,7 @@ public class PMAroonOperation extends PMIndicatorOperation {
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
-		Integer period = ((DoubleValue)inputs.get(0)).getValue(targetStock).intValue();
+		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {

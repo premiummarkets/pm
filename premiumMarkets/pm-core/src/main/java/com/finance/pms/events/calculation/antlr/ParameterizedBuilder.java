@@ -32,7 +32,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedBuilder.class);
 	
-	protected String[] operationPackage;
+	protected String[] operationPackages;
 	protected File userOperationsDir;
 	protected File disabledUserOperationsDir;
 	protected ANTLRParserHelper antlrParser;
@@ -151,7 +151,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		}
 
 		//Else we instantiate a new one (in that case all the operands must be present)
-		for (String opPackage : operationPackage) {
+		for (String opPackage : operationPackages) {
 
 			try {
 

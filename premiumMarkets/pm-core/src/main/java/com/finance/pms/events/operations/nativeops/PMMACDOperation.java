@@ -20,9 +20,9 @@ public class PMMACDOperation extends PMIndicatorOperation {
 	public PMMACDOperation() {
 		super(
 				"macd_", "House made MACD on close historical data",
-				new DoubleOperation("number","macdFastPeriod","Macd Fast period", new DoubleValue(12.0)), 
-				new DoubleOperation("number","macdSlowPeriod","Macd Slow period",  new DoubleValue(26.0)), 
-				new DoubleOperation("number", "macdSignalPeriod", "Macd Signal period",  new DoubleValue(9.0))
+				new NumberOperation("number","macdFastPeriod","Macd Fast period", new NumberValue(12.0)), 
+				new NumberOperation("number","macdSlowPeriod","Macd Slow period",  new NumberValue(26.0)), 
+				new NumberOperation("number", "macdSignalPeriod", "Macd Signal period",  new NumberValue(9.0))
 			);
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"macd","history","signal"})));
 	}
@@ -38,9 +38,9 @@ public class PMMACDOperation extends PMIndicatorOperation {
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
-		Integer fastPeriod = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer slowPeriod = ((DoubleValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer signalPeriod = ((DoubleValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer fastPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer slowPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer signalPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		
 		DoubleMapValue ret = new DoubleMapValue();
 		try {

@@ -17,7 +17,7 @@ public class PMSMAOperation extends PMIndicatorOperation {
 	protected static MyLogger LOGGER = MyLogger.getLogger(PMSMAOperation.class);
 	
 	public PMSMAOperation() {
-		super("sma_", "House made SMA on close historical data", new DoubleOperation("number","smaPeriod","Sma period", new DoubleValue(200.0)));
+		super("sma_", "House made SMA on close historical data", new NumberOperation("number","smaPeriod","Sma period", new NumberValue(200.0)));
 	}
 	
 	public PMSMAOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -31,7 +31,7 @@ public class PMSMAOperation extends PMIndicatorOperation {
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
-		Integer period = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer period = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {

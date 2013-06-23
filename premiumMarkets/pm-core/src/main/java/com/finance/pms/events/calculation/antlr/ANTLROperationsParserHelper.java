@@ -186,11 +186,17 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 										AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken()+"" , "Syntax suggestion", 
 										"Insert a '"+exceptionHolder.getExpectedToken()+"' to close "+exceptionHolder.getNeedsClosing().getName()+" statement.", null, position));
 								if (exceptionHolder.getNeedsClosing().undeterministicParamCount()) {
-									altPrioListForTokType(priorityList, AltType.SUGGESTION, 10).add(new Alternative(AltType.SUGGESTION,TokenType.SYNTAX, ",", "Syntax suggestion", "Insert a comma to add up arguments to "+exceptionHolder.getNeedsClosing().getName(), null, position));
+									altPrioListForTokType(priorityList, AltType.SUGGESTION, 10)
+									.add(new Alternative(
+											AltType.SUGGESTION,TokenType.SYNTAX, ",", "Syntax suggestion", 
+											"Insert a comma to add up arguments to "+exceptionHolder.getNeedsClosing().getName(), null, position));
 								}
 							}
 						} else {//Other syntax
-							altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken() , "Syntax suggestion", "Insert a '"+exceptionHolder.getExpectedToken()+"'", null, position));
+							altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).
+							add(new Alternative(
+									AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken() , 
+									"Syntax suggestion", "Insert a '"+exceptionHolder.getExpectedToken()+"'", null, position));
 						}
 					} 
 					else if (exception instanceof EarlyExitException) {
@@ -258,7 +264,9 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 								//int[] deletePosition = new int[]{exception.line,exception.charPositionInLine+currentOutput.length()-1};
 								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry", "Condition on historical output excepted.", null, position));
 							}
-							if (!alternatives.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(alternatives);
+							if (!alternatives.isEmpty()) {
+								altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(alternatives);
+							}
 						} 
 						else {
 							int[] position = new int[]{exception.line, exception.charPositionInLine -1};
@@ -272,7 +280,6 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				//Errors
 				} else {
 					if  (exception instanceof InvalidOperationException)  {
-						//String currentOpStr =  ((InvalidOperationException) exception).getCurrentToken();
 						String currentOpStr =  ((InvalidOperationException) exception).token.getText();
 						currentOpStr = (currentOpStr !=null)?currentOpStr: " ";
 						int[] position = new int[]{exception.line, exception.charPositionInLine - (currentOpStr.length() + 1)};
@@ -282,6 +289,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						//Nothing
 					} 
 					else if (exception instanceof ParamsCountException) {
+						//FIXME the position is wrong when the param is a sub op (it doesn't take in account the params of the sub op them selves)
 						ParamsCountException pce = (ParamsCountException)exception;
 						int[] position = new int[]{exception.line, exception.charPositionInLine + pce.getParsedTxt().length()-1};
 						switch (pce.getQualifier()) {
@@ -304,7 +312,10 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							deleteFilter = false;
 							int[] commaPosition = new int[]{exception.line, exception.charPositionInLine + pce.getParsedTxt().length() -1};
 							altPrioListForTokType(
-									priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION,TokenType.SYNTAX, ",",  "Syntax suggestion", "Insert a Comma to add up arguments to "+currentOp.getName(), null, commaPosition));	
+									priorityList, AltType.SUGGESTION, 0)
+									.add(
+											new Alternative(AltType.SUGGESTION,TokenType.SYNTAX, ",",  "Syntax suggestion", "Insert a Comma to add up arguments to "+currentOp.getName(), null, commaPosition)
+									);	
 							}
 							break;
 						}  
@@ -406,7 +417,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			}
 			
 			LOGGER.debug("Priority list : "+priorityList);
-			LOGGER.debug("Next token alt : "+nextToken);
+			LOGGER.debug("Next token alternatives : "+nextToken);
 			
 			return nextToken;
 			
@@ -452,24 +463,35 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			
 			Param param = (currentOp.undeterministicParamCount())?currentOp.getParams().get(0):currentOp.getParams().get(commaPosition);
 			String parsedParam =  currentOp.getParsedParma(commaPosition);
-			
-			//parsedParam = (parsedParam != null && !parsedParam.isEmpty())?parsedParam:currentTyping;
+	
 			parsedParam = (currentTyping != null && !currentTyping.isEmpty())?currentTyping:parsedParam;
 			parsedParam = (parsedParam == null)?"":parsedParam;
 			
 			Boolean foundMatch = false;
 			switch (param.getParamType()) {
-			case CONSTANT:
+			case NUMBER:
 				if (!parsedParam.isEmpty()) {
 					Double.valueOf(parsedParam);//Test the typing as double
 					foundMatch = true;
 				} else {
 					String paramAltStr = (param.getParamName() == null)?"Number Argument":param.getParamName();
-					alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.CONSTANT, paramAltStr, param.getParamDescription(),param.getParamSynoptic(), param.getParamDefault(), highLighPosition));
+					String sringParamDefault = (param.getParamDefault() == null)?"0.0" :param.getParamDefault();
+					alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.CONSTANTTOKEN, paramAltStr, param.getParamDescription(),param.getParamSynoptic(), sringParamDefault, highLighPosition));
 					foundMatch = true;
 				}
 				break;
-			case DOUBLEMAP:
+			case STRING: 
+				if (!parsedParam.isEmpty()) {//Test typing as valid string
+					if (!parsedParam.matches("\"[a-zA-Z](\")?")) throw new IllegalArgumentException(parsedParam + " is not a string of letters");
+					foundMatch = true;
+				} else {
+					String paramAltStr = (param.getParamName() == null)?"String of Letters Argument":param.getParamName();
+					String sringParamDefault = (param.getParamDefault() == null)?"\"\"" :param.getParamDefault();
+					alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.CONSTANTTOKEN, paramAltStr, param.getParamDescription(),param.getParamSynoptic(), sringParamDefault, highLighPosition));
+					foundMatch = true;
+				}
+				break;
+			case DATA:
 				//stock outputs
 				foundMatch = addSuggsAsAlts(alternatives, parsedParam, highLighPosition, EditorLexerDelegate.HISTORICALDATA_TOKENS, "stock historical ");
 				//ops outputs
@@ -481,7 +503,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					LOGGER.debug("No matching op for "+parsedParam);
 				}
 				break;
-			case MATYPE: //TODO Generalise to String parameter
+			case MATYPE:
 				foundMatch = addSuggsAsAlts(alternatives, parsedParam, highLighPosition, EditorIndsLexerDelegate.MATYPES_TOKENS, "moving average type ");
 				break;
 			}

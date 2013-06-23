@@ -5,11 +5,11 @@
             <reference>sma_</reference>
             <description>House made SMA on close historical data</description>
             <operands>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>smaPeriod</referenceAsOperand>
                     <description>Sma period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>200.0</numberValue>
                     </defaultValue>
                     <operands/>
@@ -47,11 +47,11 @@
             <reference>sma__</reference>
             <description>Sma on any on any historical data series.</description>
             <operands>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>smaPeriod</referenceAsOperand>
                     <description>Sma period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>200.0</numberValue>
                     </defaultValue>
                     <operands/>
@@ -70,11 +70,11 @@
             <reference>aroon_</reference>
             <description>Aroon indicator house made</description>
             <operands>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>aroonPeriod</referenceAsOperand>
                     <description>Aroon period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>25.0</numberValue>
                     </defaultValue>
                     <operands/>
@@ -90,11 +90,11 @@
             <reference>logroc</reference>
             <description>Roc logarithmic over a period</description>
             <operands>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>logRocPeriod</referenceAsOperand>
                     <description>Roc period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>21.0</numberValue>
                     </defaultValue>
                     <operands/>
@@ -113,31 +113,31 @@
             <reference>macd_</reference>
             <description>House made MACD on close historical data</description>
             <operands>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>macdFastPeriod</referenceAsOperand>
                     <description>Macd Fast period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>12.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
                     <description>Macd Slow period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>26.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
                     <description>Macd Signal period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>9.0</numberValue>
                     </defaultValue>
                     <operands/>
@@ -179,31 +179,31 @@
             <reference>macd__</reference>
             <description>Macd on any historical data series.</description>
             <operands>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>macdFastPeriod</referenceAsOperand>
                     <description>macd Fast period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>12.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
                     <description>macd Slow period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>26.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
-                <operand xsi:type="doubleOperation">
+                <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
                     <description>macd Signal period</description>
-                    <defaultValue xsi:type="doubleValue">
+                    <defaultValue xsi:type="numberValue">
                         <numberValue>9.0</numberValue>
                     </defaultValue>
                     <operands/>

@@ -14,8 +14,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 /**
@@ -32,7 +32,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	
 	
 	public CrossDoubleMapCondition(String reference, String description) {
-		super(reference, description, new DoubleOperation("dates comparison span"), new DoubleMapOperation(reference+ "left operand (data)"), new DoubleMapOperation(reference+ "right operand (signal)"));
+		super(reference, description, new NumberOperation("dates comparison span"), new DoubleMapOperation(reference+ "left operand (data)"), new DoubleMapOperation(reference+ "right operand (signal)"));
 	}
 	
 	public CrossDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -43,7 +43,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Integer spanningShift = ((DoubleValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
 		

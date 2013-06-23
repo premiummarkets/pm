@@ -14,8 +14,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.TalibOperation;
@@ -46,7 +46,7 @@ public class TalibGenericOperation extends TalibOperation {
 				MATypeOperation maType = new MATypeOperation("moving average type", inConstantName, inConstantName + ". One of "+EnumSet.allOf(MAType.class), null);
 				overridingOperands.add(maType);
 			} else {
-				DoubleOperation constant = new DoubleOperation("number", inConstantName, inConstantName, null);
+				NumberOperation constant = new NumberOperation("number", inConstantName, inConstantName, null);
 				overridingOperands.add(constant);
 			}
 		}
@@ -87,8 +87,8 @@ public class TalibGenericOperation extends TalibOperation {
 		List<Object> inConstants = new ArrayList<Object>();
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Value<?> value = inputs.get(i);
-			if (value instanceof DoubleValue) {
-				inConstants.add(((DoubleValue) value).getValue(targetStock).intValue());
+			if (value instanceof NumberValue) {
+				inConstants.add(((NumberValue) value).getValue(targetStock).intValue());
 				args[i+argShift] = inConstants.get(i);
 			}
 			else if (value instanceof MATypeValue) {

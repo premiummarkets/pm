@@ -1128,9 +1128,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 						try {
 							PortfolioComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING));
-//							while (tabSelectionRunning && SpringContext.getSingleton().isActive()) {
-//								Thread.sleep(1000);
-//							}
 							if (SpringContext.getSingleton().isActive()) {
 								QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), chartsComposite.getSlidingStartDate(), EventSignalConfig.getNewDate(), true, portfolioShare.getTransactionCurrency(), 0, 0);
 							} else {

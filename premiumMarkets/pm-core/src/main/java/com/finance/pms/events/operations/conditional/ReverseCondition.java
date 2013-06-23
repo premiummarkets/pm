@@ -10,8 +10,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 
@@ -29,7 +29,7 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 
 	private ReverseCondition() {
 		super("historical data reverse", "True when a time series reverses up or down", 
-		new DoubleOperation("direction"), new DoubleOperation("change ratio"), new DoubleOperation("dates comparison span"), new DoubleMapOperation("historical data input"));
+		new NumberOperation("direction"), new NumberOperation("change ratio"), new NumberOperation("dates comparison span"), new DoubleMapOperation("historical data input"));
 	}
 
 	public ReverseCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -41,9 +41,9 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 	
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Double direction = ((DoubleValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		Double changeRatio = ((DoubleValue) inputs.get(1)).getValue(targetStock).doubleValue();
-		Integer spanningPeriod = ((DoubleValue) inputs.get(2)).getValue(targetStock).intValue();
+		Double direction = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Double changeRatio = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
+		Integer spanningPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningPeriod.intValue(), false, false);

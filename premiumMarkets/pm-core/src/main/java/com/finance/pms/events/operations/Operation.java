@@ -22,13 +22,13 @@ import com.finance.pms.events.operations.conditional.MultiMapValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.StandAloneCondition;
-import com.finance.pms.events.operations.conditional.StringOperation;
 import com.finance.pms.events.operations.nativeops.ArithmeticOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
-import com.finance.pms.events.operations.nativeops.DoubleValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 /**
@@ -37,7 +37,7 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
  **/
 @XmlRootElement
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formula", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector"} )
-@XmlSeeAlso({ArithmeticOperation.class,Condition.class, DoubleOperation.class, DoubleMapOperation.class, EventConditionHolder.class, StringOperation.class})
+@XmlSeeAlso({ArithmeticOperation.class,Condition.class, NumberOperation.class, DoubleMapOperation.class, EventConditionHolder.class, StringOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -187,7 +187,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			chartedOutputGroup = targetStock.setMain(mainOp);
 			//add the constant
 			int thresholdOpPosition = ((OnThresholdCondition)this).inputThresholdPosition();
-			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (DoubleValue) operandsOutputs.get(thresholdOpPosition));
+			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
 			
 		} else if (this instanceof StandAloneCondition) {
 			
@@ -321,7 +321,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	@Override
 	public String toString() {
 		ArrayList<Operation> parents = new ArrayList<Operation>();
-		//if (this.formula != null) parents.add(this);
 		return toString(parents);
 	}
 	
@@ -332,7 +331,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private String toString(List<Operation> parents) {
 		
-		//parents.add(this);
 		if (this.formula != null) parents.add(this);
 		String opreandStr = "[";
 		
@@ -390,7 +388,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-			//throw new CloneNotSupportedException(e.getMessage());
 		}
 		return null;
 	}
@@ -413,7 +410,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	public String name() {
-		//return reference+((outputSelector != null)? ":"+outputSelector : "");
 		return reference;
 	}
 

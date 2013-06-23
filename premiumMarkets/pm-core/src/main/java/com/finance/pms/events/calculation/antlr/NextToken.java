@@ -8,7 +8,7 @@ import com.finance.pms.events.calculation.antlr.ANTLRParserHelper.AltType;
 
 public class NextToken {
 	
-	public enum TokenType {CONSTANT,DATA,SYNTAX,DELETE,KEYWORDS};
+	public enum TokenType {CONSTANTTOKEN,DATATOKEN,SYNTAX,DELETE,KEYWORDS};
 	
 	private List<Alternative> alternatives;
 	

@@ -16,7 +16,7 @@ public class PMHouseTrendOperation extends PMIndicatorOperation {
 	private static MyLogger LOGGER = MyLogger.getLogger(PMHouseTrendOperation.class);
 	
 	public PMHouseTrendOperation() {
-		super("logroc", "Roc logarithmic over a period", new DoubleOperation("number", "logRocPeriod", "Roc period", new DoubleValue(21.0)), new DoubleMapOperation());
+		super("logroc", "Roc logarithmic over a period", new NumberOperation("number", "logRocPeriod", "Roc period", new NumberValue(21.0)), new DoubleMapOperation());
 	}
 	
 	public PMHouseTrendOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -30,7 +30,7 @@ public class PMHouseTrendOperation extends PMIndicatorOperation {
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
-		Integer period = ((DoubleValue)inputs.get(0)).getValue(targetStock).intValue();
+		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
 
 		//Cacl

@@ -912,9 +912,9 @@ public class OperationBuilderComposite extends Composite {
 		String replaced = preCaret;
 		String preCaretAfterRepalcement = preCaret;
 		switch(alt.getTokenType()) {
-		case CONSTANT:
+		case CONSTANTTOKEN:
 			{
-				String replacement = (alt.getDefaultValue() != null)?alt.getDefaultValue():"0";
+				String replacement = (alt.getDefaultValue() != null)?alt.getDefaultValue():"";
 				int startOfInstert = startOfInsert(preCaret, replacement);	
 				String keptPreCaret = preCaret.substring(0,startOfInstert);
 				int endOfInsert = endOfInsertToNextStop(postCaret, syntaxTokens());
@@ -931,7 +931,7 @@ public class OperationBuilderComposite extends Composite {
 				replaced = preCaret+replacement+keptPostCaret;
 			}
 			break;	
-		case DATA:
+		case DATATOKEN:
 		case KEYWORDS:
 			{
 				String replacement  = tableItem.getText();
@@ -1055,7 +1055,7 @@ public class OperationBuilderComposite extends Composite {
 	protected void filterOutUnWantedDeletes(NextToken errorToken, NextToken nextToken) {
 		List<Alternative> filteredErrorAlts = new ArrayList<Alternative>(errorToken.getAlternatives());
 		for (Alternative errorAlt : errorToken.getAlternatives()) {
-			boolean isDataOrConstSuggs = errorAlt.getTokenType().equals(TokenType.DATA) || errorAlt.getTokenType().equals(TokenType.CONSTANT);//TODO add an other AltType to avoid filtering here
+			boolean isDataOrConstSuggs = errorAlt.getTokenType().equals(TokenType.DATATOKEN) || errorAlt.getTokenType().equals(TokenType.CONSTANTTOKEN);//TODO add an other AltType to avoid filtering here
 			if (isDataOrConstSuggs) {
 				filteredErrorAlts.remove(errorAlt); 
 			} else {
@@ -1137,7 +1137,7 @@ public class OperationBuilderComposite extends Composite {
 		
 		for (Alternative alternative : alternatives) {
 			
-			if (alternative.getTokenType().equals(TokenType.DATA)) continue;
+			if (alternative.getTokenType().equals(TokenType.DATATOKEN)) continue;
 
 			int lineNum = alternative.getHighLighPosition()[0];
 			int endLineOffset = alternative.getHighLighPosition()[1];

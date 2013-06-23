@@ -6,14 +6,16 @@ import java.util.Set;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.DoubleOperation;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
+import com.finance.pms.events.operations.nativeops.StringOperation;
 
 public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 	
 	public enum ParamType {
 		
-		CONSTANT(DoubleOperation.class, "Number"), DOUBLEMAP (DoubleMapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType");
+		//TODO MAType could just be a String as well, no need for a particular case here
+		NUMBER(NumberOperation.class, "Number"), DATA (DoubleMapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String");
 		
 		Class<? extends Operation> operandClass;
 		String typeDescr;
@@ -27,26 +29,28 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 			for (ParamType paramType : ParamType.values()) {
 				if (paramType.operandClass.isAssignableFrom(operandClass2)) return paramType;
 			}
-			throw new RuntimeException();
+			throw new RuntimeException("No Param type for : "+operandClass2);
 		}
 		
 		public static ParamType valueOfTokenName(String tokenName, Set<EditorOpDescr> allOps) {
 			
 			tokenName = tokenName.split(":")[0];
 			
-			if (tokenName.equals("Double")) {
-				return CONSTANT;
+			if (tokenName.equals("Number")) {
+				return NUMBER;
 			} else if (tokenName.equals("StockOperation")) {
-				return DOUBLEMAP;
-			} else if (tokenName.equals("MAType")) {//TODO Generalise to String??
+				return DATA;
+			} else if (tokenName.equals("MAType")) {
 				return MATYPE;
+			} else if (tokenName.equals("String")) {
+				return STRING;
 			}
 			else {
 				for (EditorOpDescr editorOpDescr : allOps) {
-					if (editorOpDescr.getName().equals(tokenName)) return DOUBLEMAP;
+					if (editorOpDescr.getName().equals(tokenName)) return DATA;
 				}
 				for (String stockoutput : EditorLexerDelegate.HISTORICALDATA_TOKENS) {
-					if (stockoutput.equals(tokenName)) return DOUBLEMAP;
+					if (stockoutput.equals(tokenName)) return DATA;
 				}
 			}
 
@@ -146,9 +150,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 
 	@Override
 	public int compareTo(EditorOpDescr o) {
-//		int compare = o.getName().length() - this.getName().length();
-//		if (compare == 0) 
-			int compare = this.getName().compareTo(o.getName());
+		int compare = this.getName().compareTo(o.getName());
 		return compare;
 	}
 

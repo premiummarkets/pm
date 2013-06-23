@@ -6,8 +6,9 @@ options {
 	ASTLabelType=CommonTree;
 }
 tokens {
-  Double;
+  Number;
   MAType;
+  String;
   StockOperation;
   OperationOutput;
 }
@@ -122,10 +123,9 @@ userop :
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
   
 params : param (',' param)* -> param+ ;
-param : Number ->  ^(Double Number) | MATypeToken -> ^(MAType MATypeToken) | operand ;
+param : NumberToken ->  ^(Number NumberToken) | MATypeToken -> ^(MAType MATypeToken) | StringToken ->  ^(String StringToken) |operand ;
 operand : stockhistory -> stockhistory | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) ;
-//outputSelector : OutputSelector -> OutputSelector ;
 
 HistoricalData
      : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low'  | 'volume')
@@ -139,8 +139,11 @@ Nativeop
 Userop 
      : {runtimeUserOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
      ;
-Number 
+NumberToken 
      : ('0'..'9')+ ('.' ('0'..'9')+)?
+     ;
+StringToken
+     : '"' ('a'..'z' | 'A'..'Z' | '.')+ '"'
      ;
 OutputSelector
      :	':' ('a'..'z' | 'A'..'Z')+

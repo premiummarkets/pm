@@ -48,7 +48,8 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 	public static final List<String> HISTORICALDATA_TOKENS = new ArrayList<String>(Arrays.asList("close","open","high","low","volume"));
 	//TODO name tokens should be an enum and have a TokenType for each value.
 	//TODO merge syntax in LexerDelegate and this?
-	public static final List<String> NAMED_TOKENS = new ArrayList<String>(Arrays.asList("WhiteChar","COMMA","PERCENT","DAYS","OPENPARENTEHSIS","CLOSEPARENTEHSIS", "Number","HistoricalData", "AND","OR"));
+	public static final List<String> NAMED_TOKENS = 
+			new ArrayList<String>(Arrays.asList("WhiteChar","COMMA","PERCENT","DAYS","OPENPARENTEHSIS","CLOSEPARENTEHSIS","NumberToken","HistoricalData","AND","OR"));
 	
 	private static final String WHITECHARVALUE = " ";
 	
@@ -266,10 +267,10 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					}
 					break;
 				}
-				else if (expectedTxt != null && expectedTxt.equals("Number")) {
+				else if (expectedTxt != null && expectedTxt.equals("NumberToken")) {
 					if (eofToken) {
 						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1)
-						.add(new Alternative(AltType.SUGGESTION, TokenType.CONSTANT, exceptionHolder.getExpectedToken(), "Insert", "Condition threshold expected", "0.0", eofPosition));
+						.add(new Alternative(AltType.SUGGESTION, TokenType.CONSTANTTOKEN, "Number", "Insert", "Condition threshold expected", "0.0", eofPosition));
 					} else {
 						altPrioListForTokType(priorityList, AltType.DELETE, -1)
 						.add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid or Incomplete Entry", "Number expected.", null, deletePosition));
