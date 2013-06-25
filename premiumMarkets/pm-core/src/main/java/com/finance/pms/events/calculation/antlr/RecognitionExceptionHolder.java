@@ -4,7 +4,11 @@ import java.util.List;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.finance.pms.admin.install.logging.MyLogger;
+
 public class RecognitionExceptionHolder {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(RecognitionExceptionHolder.class);
 	
 	private int index;
 	
@@ -36,10 +40,15 @@ public class RecognitionExceptionHolder {
 	
 	
 	public String toCsv() {
-		return index+"\\,"+
-				exception.getClass().getSimpleName()+"\\,"+(char)exception.c+"\\,"+(char)exception.getUnexpectedType()+"\\,"+exception.line+"\\,"+exception.charPositionInLine+"\\,"+
-				eToString+"\\,"+msg+"\\,"+ 
-				ruleStack+"\\,"+needsClosing+"\\,"+expectedToken;
+		try {
+			return index+"\\,"+
+					exception.getClass().getSimpleName()+"\\,"+(char)exception.c+"\\,"+(char)exception.getUnexpectedType()+"\\,"+exception.line+"\\,"+exception.charPositionInLine+"\\,"+
+					eToString+"\\,"+msg+"\\,"+ 
+					ruleStack+"\\,"+needsClosing+"\\,"+expectedToken;
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+			return "Error extracting exception information :"+e.toString();
+		}
 	}
 
 	public int getIndex() {

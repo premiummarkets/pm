@@ -28,7 +28,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	
 
 	protected CmpConstantCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it true"), new DoubleMapOperation("historical data input"));
 	}
 
 	public CmpConstantCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -39,23 +39,45 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Double constant = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Double threshold = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
+		Integer forPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
 		BooleanMapValue outputs = new  BooleanMapValue();
+		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
 
 		for (Date date : data.keySet()) {
 			Double current = data.get(date);
 			
 			@SuppressWarnings("unchecked")
-			Boolean conditionCheck = conditionCheck(current, constant);
+			Boolean conditionCheck = conditionCheck(current, threshold);
 			if (conditionCheck != null) {
 				
-				if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
+				if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
+					
+					underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
+					
+					if (conditionCheck && forPeriod > 0) {
+						Calendar startForPeriodCal = Calendar.getInstance();
+						startForPeriodCal.setTime(date);
+						QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
+						Date startForPeriod = startForPeriodCal.getTime();
+						if (startForPeriod.before(data.firstKey())) {
+							conditionCheck = false;
+						} else {
+							SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
+							for (Boolean previousValue : forPeriodData.values()) {
+								conditionCheck = conditionCheck && previousValue;
+								if (!previousValue) break;
+							}
+						}
+					}
+					
 					outputs.getValue(targetStock).put(date, conditionCheck);
+					
 				}
-				
+
 				if (conditionCheck && overPeriod > 0) {
 					Calendar endOverPeriodCal = Calendar.getInstance();
 					endOverPeriodCal.setTime(date);
@@ -80,7 +102,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	
 	@Override
 	public int mainInputPosition() {
-		return 2;
+		return 3;
 	}
 	
 	

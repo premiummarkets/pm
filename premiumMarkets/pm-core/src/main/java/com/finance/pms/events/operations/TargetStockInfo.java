@@ -171,8 +171,9 @@ public class TargetStockInfo {
 			return chartedDesrc.getContainer();
 			
 		} else {
-			throw new RuntimeException("No historical output not found for "+operation);
+			throw new RuntimeException("No historical output not found. The main output must be a DoubleOperation: "+operation.getClass()+" for "+operation);
 		}
+		
 	}
 	
 	public Integer getIndexOfChartableOutput(Operation operation) {

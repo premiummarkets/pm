@@ -39,7 +39,7 @@ public class TalibOperationGenerator {
 		for (Method method : methods) {
 			
 			//Filter out
-			if (method.getName().equals("TA_INT_VAR")) continue;
+			if (method.getName().matches("TA_INT_.*")) continue;
 
 			//Generate
 			try {
@@ -61,8 +61,12 @@ public class TalibOperationGenerator {
 							if (parameterTypes[paramShift].isArray() && parameterTypes[paramShift].getComponentType().equals(Double.TYPE)) {
 								inDataNames.add(addParam(params, paramShift, "inData"));
 							} 
-							else if (parameterTypes[paramShift].equals(Integer.TYPE)) {
+							else if (parameterTypes[paramShift].equals(Integer.TYPE) || parameterTypes[paramShift].equals(Double.TYPE)) {
 								//first constant, end inData
+								break;
+							}
+							else if (parameterTypes[paramShift].equals(MInteger.class)) {
+								//first MInteger, No constant, end inData
 								break;
 							}
 							else {
@@ -73,7 +77,7 @@ public class TalibOperationGenerator {
 						
 						//inConstants
 						while (paramShift < parameterTypes.length) {
-							if (parameterTypes[paramShift].equals(Integer.TYPE) || parameterTypes[paramShift].equals(MAType.class)) {
+							if (parameterTypes[paramShift].equals(Integer.TYPE)  || parameterTypes[paramShift].equals(Double.TYPE) || parameterTypes[paramShift].equals(MAType.class)) {
 								inConstantsNames.add(addParam(params, paramShift, "inConstant"));
 							} 
 							else if (parameterTypes[paramShift].equals(MInteger.class)) {
@@ -86,13 +90,19 @@ public class TalibOperationGenerator {
 							paramShift++;
 						}
 						
-						if (parameterTypes[paramShift++].equals(MInteger.class) && parameterTypes[paramShift++].equals(MInteger.class)) {//Two MIntegers
+						if (parameterTypes[paramShift++].equals(MInteger.class) && parameterTypes[paramShift++].equals(MInteger.class)) {//We skip Two MIntegers (outBegIdx and outNBElement)
 							
 							while (paramShift < parameterTypes.length) {
-								if (parameterTypes[paramShift].isArray() && parameterTypes[paramShift].getComponentType().equals(Double.TYPE)) {
+								if (parameterTypes[paramShift].isArray() && parameterTypes[paramShift].getComponentType().equals(Double.TYPE)) { //Double output
 									String addParam = addParam(params, paramShift, "outData");
-									if (!addParam.equals("Real")) outDataNames.add(addParam);
+									//if (!addParam.equals("Real")) outDataNames.add(addParam);
+									outDataNames.add(addParam);
 								} 
+								else if (parameterTypes[paramShift].isArray() && parameterTypes[paramShift].getComponentType().equals(Integer.TYPE)) { //Integer output
+									String addParam = addParam(params, paramShift, "outData");
+									//if (!addParam.equals("Integer")) outDataNames.add(addParam);
+									outDataNames.add(addParam);
+								}
 								else {
 									throw new UnsupportedOperationException(parameterTypes[paramShift] + " is not Double[]");
 								}
@@ -102,8 +112,8 @@ public class TalibOperationGenerator {
 						}
 						
 						String desrc = method.getName();
-						if (talibDescription.containsKey(method.getName())) {
-							desrc = talibDescription.get(method.getName());
+						if (talibDescription.containsKey(method.getName().toLowerCase())) {
+							desrc = talibDescription.get(method.getName().toLowerCase());
 						} else {
 							desrc = ParameterizedOperationBuilder.readableCamelCase(desrc);
 						}
@@ -115,7 +125,11 @@ public class TalibOperationGenerator {
 				}
 				
 			} catch (UnsupportedOperationException e) {
-				LOGGER.debug("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
+				if (!e.getMessage().contains("class [F is neither")) {
+					LOGGER.warn("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
+				} else {
+					LOGGER.debug("Ignored Float talib entry : "+method.getName() + " cause : "+e.getMessage());
+				}
 			}
 		}
 		

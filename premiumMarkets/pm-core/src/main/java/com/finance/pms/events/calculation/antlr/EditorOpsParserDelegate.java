@@ -191,11 +191,12 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			} else if (son instanceof CommonTree) {
 				CommonTree cTree = ((CommonTree)son);
 				paramTxt = ((CommonTree) son).getText();
-				//FIXME where does that stock comes form (obsolete?) => use ParamType enum ?
-				if (paramTxt.equals("Number") || paramTxt.equals("Stock")  || paramTxt.equals("MAType") || paramTxt.equals("String")) {
+				if (paramTxt.equals("Number") || paramTxt.equals("MAType") || paramTxt.equals("String")) {
 					paramTxt = cTree.getChild(0).getText();
+				} else if (paramTxt.equals("StockOperation")) {
+					paramTxt = cTree.getChild(0).getChild(0).getText();
 				} else {
-					paramTxt = cTree.getText();
+					paramTxt = cTree.getText() + ((cTree.getChildren()!= null)?"("+getTheSonOf(cTree.getChildren().toArray(new Object[] {}))+")":"");
 				}
 			}
 
@@ -216,10 +217,12 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			location[1] = ((CommonErrorNode) son).start.getCharPositionInLine();
 		} else if (son instanceof CommonTree) {
 			CommonTree cTree = ((CommonTree)son);
-			//FIXME where does that stock comes form (obsolete?) => use ParamType enum ?
-			if (cTree.getText().equals("Number") || cTree.getText().equals("Stock") || cTree.getText().equals("MAType") || cTree.getText().equals("String") ) {
+			if (cTree.getText().equals("Number") || cTree.getText().equals("MAType") || cTree.getText().equals("String") ) {
 				location[0] = cTree.getChild(0).getLine();
 				location[1] = cTree.getChild(0).getCharPositionInLine();
+			} else if (cTree.getText().equals("StockOperation")) {
+				location[0] = cTree.getChild(0).getChild(0).getLine();
+				location[1] = cTree.getChild(0).getChild(0).getCharPositionInLine();
 			} else {
 				location[0] = cTree.getLine();
 				location[1] = cTree.getCharPositionInLine();

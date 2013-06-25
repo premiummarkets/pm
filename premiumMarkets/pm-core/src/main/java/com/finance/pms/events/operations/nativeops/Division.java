@@ -10,7 +10,7 @@ import com.finance.pms.events.operations.Operation;
 public class Division extends ArithmeticOperation {
 
 	public Division() {
-		super("division_", "Division of two historical data series", new DoubleMapOperation("dividende"), new DoubleMapOperation("divisor"));
+		super("division_", "Division of two historical data series", new DoubleMapOperation("dividend"), new DoubleMapOperation("divisor"));
 	}
 	
 	public Division(ArrayList<Operation> operands, String outputSelector) {

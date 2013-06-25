@@ -68,6 +68,18 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		}
 		return map;
 	}
+	
+	protected SortedMap<Date, Double> arrayToMap(Set<Date> dateKeySet, int[] array, int shift) {
+		int j = 0;
+		SortedMap<Date, Double> map = new TreeMap<Date, Double>();
+		for (Date date : dateKeySet){
+			if ((j >= shift) && (j- shift) < array.length) {
+				map.put(date, new Double(array[j - shift]));
+			}
+			j++;
+		}
+		return map;
+	}
 
 	protected double[] mapToArray(SortedMap<Date, Double> map) {
 		double[] array = new double[map.size()];

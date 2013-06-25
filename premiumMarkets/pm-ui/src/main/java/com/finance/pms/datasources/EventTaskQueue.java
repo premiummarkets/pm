@@ -45,7 +45,6 @@ public class EventTaskQueue {
 							
 						} catch (Throwable e) {
 							LOGGER.error(e,e);
-							//task.getExceptions().add(e);
 						}
 						
 					}
@@ -93,7 +92,6 @@ public class EventTaskQueue {
 			
 			Boolean hasItJustRunOrIsRunning = (lastRunningTask != null) && lastRunningTask.equals(task);
 			
-			//boolean isItScheduledLast = !tasks.isEmpty() && tasks.toArray()[0].equals(task);
 			EventRefreshTask[] array = tasks.toArray(new EventRefreshTask[0]);
 			int i=array.length-1;
 			while (i >= 0 && array[i].getTaskId().equals(TaskId.ViewRefresh)) {

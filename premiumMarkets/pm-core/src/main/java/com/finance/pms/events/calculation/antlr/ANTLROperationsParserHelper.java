@@ -31,7 +31,7 @@ import com.finance.pms.events.operations.parameterized.antlr.ParameterizedOperat
 
 public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 	
-	static MyLogger LOGGER = MyLogger.getLogger(ANTLROperationsParserHelper.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ANTLROperationsParserHelper.class);
 	
 	public static int exceptionIndex;
 	
@@ -105,11 +105,11 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			
 			LOGGER.debug("Exception stack :"+ exceptions);
 			
-			System.out.println("---------------------------------------------------");
+			LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-					System.out.println(parsedLine+"\\,"+exceptionHolder.toCsv());
+				LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
 			}
-			System.out.println("---------------------------------------------------");
+			LOGGER.debug("---------------------------------------------------");
 			
 			//Filter
 			String suggFilter = "";
@@ -170,7 +170,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				
 				//Alt options
 				//Suggestions
-				if (exception.c == Token.EOF) { 
+				boolean isInputNumber = exception.token !=null && exception.token.getText() != null && !exception.token.getText().isEmpty() && Character.isDigit(exception.token.getText().charAt(0));
+				if (exception.c == Token.EOF || isInputNumber ) { 
 					if (exception instanceof NoViableAltException) {//NoViableAltException + EOF : FILTER
 						if (exceptionHolder.getRuleStack().size() == 2) {//No operation yet, first typing : fill up all ops
 							fillUpOps = true;

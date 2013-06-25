@@ -56,13 +56,14 @@ public class TalibGenericOperation extends TalibOperation {
 		}
 		this.setOperands(overridingOperands);
 		
-		this.setAvailableOutputSelectors(outDataNames);
+		if (outDataNames.size() > 1) this.setAvailableOutputSelectors(outDataNames);
 	}
 
 	@Override
 	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
 		
-		int outSize = (getAvailableOutputSelectors().isEmpty())?1:outDataNames.size();
+		//int outSize = (getAvailableOutputSelectors().isEmpty())?1:outDataNames.size();
+		int outSize = outDataNames.size();
 		Object[] args = new Object[2+inDataNames.size()+inConstantsNames.size()+2+outSize];
 		int argShift = 2;
 			
@@ -83,7 +84,7 @@ public class TalibGenericOperation extends TalibOperation {
 		args[0] = startIdx;
 		args[1] = endIdx;
 		
-		//Param check
+		//Constants
 		List<Object> inConstants = new ArrayList<Object>();
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Value<?> value = inputs.get(i);
@@ -106,13 +107,22 @@ public class TalibGenericOperation extends TalibOperation {
 		argShift = argShift + 2;
 				
 		//N outputs
-		List<double[]> outDatas = new ArrayList<double[]>();
-		if (getAvailableOutputSelectors().isEmpty()) { //only one output available
-			outDatas.add(new double[endIdx-startIdx]);
-			args[argShift] = outDatas.get(0);
+		List<Object> outDatas = new ArrayList<Object>();
+		if (getAvailableOutputSelectors().isEmpty()) { //only one output available (could be int[] or double[])
+			
+			if (outDataNames.get(0).contains("Integer")) {
+				outDatas.add(new int[endIdx-startIdx+1]);
+				args[argShift] = outDatas.get(0);
+				
+			} else {
+				outDatas.add(new double[endIdx-startIdx+1]);
+				args[argShift] = outDatas.get(0);
+				
+			}
+			
 		} else {
-			for (int i = 0; i < outSize; i++) { //several outputs available
-				outDatas.add(new double[endIdx-startIdx]);
+			for (int i = 0; i < outSize; i++) { //several outputs available (we assume double[] ...)//XXX
+				outDatas.add(new double[endIdx-startIdx+1]);
 				args[i+argShift] = outDatas.get(i);
 			}
 		}
@@ -128,11 +138,17 @@ public class TalibGenericOperation extends TalibOperation {
 
 		//N selector ~ N outputs
 		if (getAvailableOutputSelectors().isEmpty()) {
-			return arrayToMap(dateKeySet, outDatas.get(0), outBegIdx.value);
+			
+			if (outDataNames.get(0).contains("Integer")) {
+				return arrayToMap(dateKeySet,  (int[]) outDatas.get(0), outBegIdx.value);
+			} else {
+				return arrayToMap(dateKeySet,  (double[]) outDatas.get(0), outBegIdx.value);
+			}
+			
 		} else {
-			for (int i = 0; i < outSize; i++) {
+			for (int i = 0; i < outSize; i++) {//several outputs available (we assume double[] ...)//XXX
 				if (getOutputSelector().equals(outDataNames.get(i))){
-					return arrayToMap(dateKeySet, outDatas.get(i), outBegIdx.value);
+					return arrayToMap(dateKeySet, (double[]) outDatas.get(i), outBegIdx.value);
 				}
 			}
 		}

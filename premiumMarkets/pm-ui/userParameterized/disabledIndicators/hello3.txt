@@ -1,0 +1,2 @@
+is bullish when (close crosses down historical close);
+is bearish when (close crosses down historical close);

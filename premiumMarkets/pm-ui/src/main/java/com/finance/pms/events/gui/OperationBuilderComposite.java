@@ -483,7 +483,7 @@ public class OperationBuilderComposite extends Composite {
 			}
 		});
 
-		if (editorListeners.get(FocusListener.class) != null) editor.removeFocusListener((FocusListener) editorListeners.get(FocusListener.class));
+		if (editorListeners.get(FocusListener.class) != null) editor.removeListener(SWT.FocusOut, (Listener) editorListeners.get(FocusListener.class));
 		Listener focusOutListener = new Listener() {
 			public void handleEvent(Event event) {
 				/* async is needed to wait until focus reaches its new Control */

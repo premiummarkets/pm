@@ -867,12 +867,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void columnPack(TreeColumn treeColumn) {
-//		treeColumn.pack();
-//		int maxSize = (this.getSize().x-ctrlComposite.getSize().x)/columnsHeaders.length;
-//		int minSize = 70;
-//		int packedActualSize = treeColumn.getWidth();
-//		if (minSize < maxSize && maxSize < packedActualSize) treeColumn.setWidth(maxSize);
-		
+
 		int minSize = 70;
 		int availableSize = (this.getSize().x-ctrlComposite.getSize().x)/columnsHeaders.length;
 		if (availableSize <= minSize) {
@@ -954,10 +949,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void refreshTabs() {
+		
+		int selectedTab = eventsCTabFolder.getSelectionIndex();
 		for (int i = 0; i < tabs.length; i++) {
 			cTabTrees.get(i).removeAll();
 			updateTree(i);
 		}
+		sortedColumn = 2*(selectedTab+1);
 	}
 
 	private void setCrit(String infCritp, String supCritp, String dateCrit) {

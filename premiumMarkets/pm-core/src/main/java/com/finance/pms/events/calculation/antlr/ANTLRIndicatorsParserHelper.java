@@ -128,11 +128,11 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 			LOGGER.info("Exception stack :"+ exceptions);
 
-			System.out.println("---------------------------------------------------");
+			LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-				System.out.println(parsedLine+"\\,"+exceptionHolder.toCsv());
+				LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
 			}
-			System.out.println("---------------------------------------------------");
+			LOGGER.debug("---------------------------------------------------");
 
 			SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList = new TreeMap<AltType, SortedMap<Integer,LinkedList<Alternative>>>(new Comparator<AltType>() {
 

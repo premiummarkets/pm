@@ -53,45 +53,30 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.CalculationQuotations;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
-import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator {
-	
-	//public static final int HOUSETRENDPERIOD = 1;
-	//public static final int QUOTESMTHPERIOD = 21;
-	private SMA sma;
-	private Integer smaQuotationStartDateIdx;
 
 	private SortedMap<Date, double[]> houseTrend;
 	private int houseTrendPeriod;
-	private int houseTrendQuoteSmthPeriod;
-	
 	
 	public HouseTrendDerivation(EventInfo eventInfo, Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency) throws NotEnoughDataException, TalibException, NoQuotationsException  {
 		super(stock, firstDate, lastDate, calculationCurrency);
 		
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 		this.houseTrendPeriod = eventSignalConfig.getRocNNeuralHouseTrendPeriod();
-		this.houseTrendQuoteSmthPeriod = eventSignalConfig.getRocNNeuralQuoteSmthPeriod();
 
-		sma = new SMA(stock, houseTrendQuoteSmthPeriod, firstDate, lastDate, calculationCurrency,  2*(7*Math.max(houseTrendQuoteSmthPeriod,houseTrendPeriod)/5), 0);
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, firstDate);
-		
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, lastDate);
-		isValidData(stock, sma, firstDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-		
 		HouseTrendSmoother  houseTrendSmoother = new HouseTrendSmoother(houseTrendPeriod);
-		SortedMap<Date, double[]> mapFromSma = QuotationsFactories.getFactory().buildMapFromQuotationsClose(new CalculationQuotations(stock, sma.getStripedData(0), calculationCurrency));
-		houseTrend = houseTrendSmoother.smooth(mapFromSma, false);
+		SortedMap<Date, double[]> mapFromQuotationsClose = QuotationsFactories.getFactory().buildMapFromQuotationsClose(this.getCalculatorQuotationData());
+		houseTrend = houseTrendSmoother.smooth(mapFromQuotationsClose, false);
+		
 		
 	}
 	
@@ -127,12 +112,12 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
-		return getDaysSpan() <= indicatorIndex && indicatorIndex < sma.getSma().length;
+		return getDaysSpan() <= indicatorIndex;
 	}
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, SMA DATE, SMA QUOTE, SMA , House Drv, smth House Drv, bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, House Trend, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
 	}
@@ -141,21 +126,14 @@ public class HouseTrendDerivation  extends TalibIndicatorsCompositionCalculator 
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.HOUSETREND, EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.HOUSETREND, EventType.BULLISH));
+		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate, EventDefinition.HOUSETREND, EventType.BEARISH));
+		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate, EventDefinition.HOUSETREND, EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		
-		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
-		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, smaQuotationStartDateIdx);
-		
-		double[] smthOutput = this.houseTrend.get(calculatorDate);
+
+		double[] htOutput = this.houseTrend.get(calculatorDate);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
-			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," 
-			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-			+ this.sma.getSma()[smaIndex] + "," 
-			+ this.calculationOutput().get(calculatorDate)[0] + "," 
-			+ ((smthOutput != null)?smthOutput[0]:Double.NaN);
+			+ ((htOutput != null)?htOutput[0]:Double.NaN);
 		
 		if (bearishEventValue != null) {
 			line = line + "," + calculatorClose + ",0,";
