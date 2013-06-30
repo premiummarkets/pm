@@ -48,7 +48,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Observable;
@@ -89,11 +91,14 @@ import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
+import com.finance.pms.datasources.EventTaskQueue;
+import com.finance.pms.datasources.InvalidEventRefreshTask;
 import com.finance.pms.datasources.RefreshAllEventStrategyEngine;
 import com.finance.pms.datasources.RefreshFourToutStrategyEngine;
 import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
 import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.ShareListInfo;
+import com.finance.pms.datasources.TaskId;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
@@ -161,10 +166,10 @@ public class MainGui extends SashForm implements RefreshableView {
 	private LogComposite logComposite;
 	
 
-	private EventModel<RefreshAllEventStrategyEngine> allStocksEventModel;
-	private EventModel<RefreshMonitoredStrategyEngine> monitoredStocksEventModel;
-	private EventModel<RefreshPortfolioStrategyEngine> portfolioStocksEventModel;
-	private EventModel<RefreshFourToutStrategyEngine> fourToutStrategyEventModel;
+	private EventModel<RefreshAllEventStrategyEngine, Collection<ShareListInfo>> allStocksEventModel;
+	private EventModel<RefreshMonitoredStrategyEngine, Collection<Stock>> monitoredStocksEventModel;
+	private EventModel<RefreshPortfolioStrategyEngine, Collection<Stock>> portfolioStocksEventModel;
+	private EventModel<RefreshFourToutStrategyEngine, Object> fourToutStrategyEventModel;
 
 	public static Color eVENTS_LIGHT;
 	public static Color eVENTS_DARKER;
@@ -473,7 +478,7 @@ public class MainGui extends SashForm implements RefreshableView {
 										builderDialog.getShell().setActive();
 										builderDialog.getShell().setFocus();
 									}
-									if (!((ChartsComposite) chartsSash()).isDisposed()) ((ChartsComposite) chartsSash()).refreshView(new ArrayList<Exception>());
+									//if (!((ChartsComposite) chartsSash()).isDisposed()) ((ChartsComposite) chartsSash()).refreshView(new ArrayList<Exception>());
 								}
 								
 							});
@@ -494,7 +499,7 @@ public class MainGui extends SashForm implements RefreshableView {
 											"Run a neural network forecast on technical analysis is not available in this version.\n"+
 											"This feature is part of the advance Premium Markets Forecast engine not included under this license.\n", 
 											null,
-											"Click here for more information and a workable demo.",
+											"Click here for more information and a workable demo",
 											new ActionDialogAction() {
 
 										@Override
@@ -523,8 +528,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									// updateEventRefreshModelState( Boolean dofetchQuotes, )
+									portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
 									super.widgetSelected(evt);
@@ -538,8 +542,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+									monitoredStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
 									super.widgetSelected(evt);
@@ -550,14 +553,16 @@ public class MainGui extends SashForm implements RefreshableView {
 							final MenuItem refreshInflation = new MenuItem(quotationMenu, SWT.CASCADE);
 							refreshInflation.setText("Refresh Inflation data");
 							refreshInflation.addSelectionListener(new EventRefreshController(fourToutStrategyEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								
+								@SuppressWarnings("unchecked")
 								@Override
 								public void widgetSelected(SelectionEvent evt) {										
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 									
-									eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+									fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 									Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
-									eventModel.setViewStateParams(inflationStock);
-									// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
+									fourToutStrategyEventModel.setViewStateParams(inflationStock);
+									
 									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
 									super.widgetSelected(evt);
@@ -579,23 +584,37 @@ public class MainGui extends SashForm implements RefreshableView {
 							refreshStockListMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
 							refreshStockListMenuItem.setText("Add or Update a Stock list ...");
 							refreshStockListMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								
+								private void superwidgetSelected() {
+									super.widgetSelected(null);
+								}
+								
+								@SuppressWarnings("unchecked")
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
-
-									ShareListUpdateDialog shareListUpdate = new ShareListUpdateDialog(getShell(), SWT.NONE);
-									shareListUpdate.open();
-									Providers provider = shareListUpdate.getProvider();
-									if (provider != null && shareListUpdate.getIsOk()) {
+									
+									final ShareListUpdateDialog instance = new ShareListUpdateDialog(getShell(), SWT.NONE);
+									ActionDialogAction actionDialogAction = new ActionDialogAction() {
 										
-										allStocksEventModel.setViewStateParams(new ShareListInfo(Providers.providerShareListName(provider)));
-										LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-										eventModel.setLastListFetch(EventModel.DEFAULT_DATE);
-										// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
-										this.updateEventRefreshModelState(0l, TaskId.FetchLists);
-										initRefreshAction();
-										super.widgetSelected(evt);
+										@Override
+										public void action(Control targetControl) {
+											
+											Providers provider = instance.getProvider();
+											if (provider != null && instance.getIsOk()) {
+												
+												allStocksEventModel.setViewStateParams(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
+												LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+												allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
+												updateEventRefreshModelState(0l, TaskId.FetchLists);
+												initRefreshAction();
+												superwidgetSelected();
 
-									}
+											}
+										}
+									};
+									instance.setAction(actionDialogAction);
+									instance.open();
+							
 								}
 							});
 						}
@@ -613,7 +632,7 @@ public class MainGui extends SashForm implements RefreshableView {
 													"Web recommendations and advice feature is not available in this open version.\n"+ 
 															"This feature is part of the advance Premium Markets Forecast engine not included under this license.\n",
 															null,
-															"Click here for more information and a workable demo.",
+															"Click here for more information and a workable demo",
 													new ActionDialogAction() {
 	
 														@Override
@@ -1111,24 +1130,21 @@ public class MainGui extends SashForm implements RefreshableView {
 	public void setCursor(Cursor cursor) {
 		
 		synchronized (mainMenu) {
-			
+
 			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
 				cursorCpt --;
 				if (cursorCpt > 0) {
 					return;
 				} 
-				if (cursorCpt <= 0) {
-					cursor = CursorFactory.getCursor(SWT.CURSOR_ARROW);
-				} 
 			} else {
 				cursorCpt++;
 			}
-			
-		}
 
-		for (Control control : winTable) {
-			if (control != null) {
-				control.setCursor(cursor);
+
+			for (Control control : winTable) {
+				if (control != null) {
+					control.setCursor(cursor);
+				}
 			}
 		}
 
@@ -1150,6 +1166,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		mainMenu.setEnabled(false);
 		logComposite.initRefresh(this);	
+		
 	}
 
 	@Override
@@ -1163,10 +1180,34 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		}
 		if (isVisible() && !exceptions.isEmpty()) {
-				UserDialog dialog = new UserDialog(getShell(), "Couldn't refresh views. "+
-				((allStocksEventModel.getViewStateParams() != null && allStocksEventModel.getViewStateParams().length >0)?allStocksEventModel.getViewStateParams()[0]:"")+"\n", 
-						exceptions.toString());
+			
+			for (final Exception exception : exceptions) {
+				
+				if (exception instanceof InvalidEventRefreshTask) {
+					
+					ActionDialogAction action = new ActionDialogAction() {
+						@Override
+						public void action(Control targetControl) {
+							EventTaskQueue.getSingleton().tamperTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
+						}
+					};
+					ActionDialog dialog = new ActionDialog(getShell(), 
+							SWT.NONE, 
+							"Force request", "Your last request has already been fulfilled sometime today.", 
+							"It should not need update but you still can force and run it again by pressing the button bellow and run your request again.",
+							"Invalidate previous calculation results for this request", action);
+					exceptions.clear();
+					dialog.open();
+					break;
+				}
+			}
+			
+			if (!exceptions.isEmpty()) {
+				UserDialog dialog = new UserDialog(getShell(), 
+						"A slight problem occurred while running your last request. "+
+								((allStocksEventModel.getViewParamRoot() != null)? allStocksEventModel.getViewParamRoot().iterator().next():"")+"\n", exceptions.toString());
 				dialog.open();
+			}
 		}
 		
 	}

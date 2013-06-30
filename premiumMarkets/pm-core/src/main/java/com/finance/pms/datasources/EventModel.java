@@ -34,7 +34,9 @@ import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,13 +50,10 @@ import org.apache.commons.httpclient.HttpException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
@@ -66,7 +65,7 @@ import com.finance.pms.events.scoring.dto.TuningResDTO;
  * 
  * @author Guillaume Thoreton
  */
-public class EventModel<T extends EventModelStrategyEngine> {
+public class EventModel<T extends EventModelStrategyEngine, X> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PropertyChangeListener.class);
 	
@@ -77,27 +76,32 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	private ArrayList<String> analysisList;
 	private T eventRefreshStrategyEngine;
 	private Set<Observer> engineObservers;
-	private Object[] viewStateParams;
+	Collection<? extends Object>[] viewStateParams;
 	
-	private static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
-	private static Map<Stock, Map<EventInfo, UpdateStamp>> cacheTimeStamps = new HashMap<Stock, Map<EventInfo, UpdateStamp>>();
-	public static Long eventInfoChangeStamp = 0l;
+	static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+	static Long eventInfoChangeStamp = 0l;
 
 	static class EventDefCacheEntry {
 		
 		SortedMap<Date, double[]> outputMap;
+		UpdateStamp updateStamp;
 		
-		public EventDefCacheEntry(SortedMap<Date, double[]> outputMap) {
+		public EventDefCacheEntry(SortedMap<Date, double[]> outputMap, UpdateStamp updateStamp) {
 			super();
 			this.outputMap = outputMap;
+			this.updateStamp = updateStamp;
 		}
 
 		public SortedMap<Date, double[]> getOutputMap() {
 			return outputMap;
 		}
+
+		public UpdateStamp getUpdateStamp() {
+			return updateStamp;
+		}
 	}
 	
-	enum OutStampState {OK,FAILING, DIRTY};
+	enum OutStampState {OK,FAILING,DIRTY,EMPTY};
 	
 	public static class UpdateStamp {
 		private Date start;
@@ -152,6 +156,10 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		public void setDirty() {
 			this.outputState = OutStampState.DIRTY;
 		}
+
+		public boolean isInvalid() {
+			return this.outputState.equals(OutStampState.DIRTY) || this.outputState.equals(OutStampState.EMPTY);
+		}
 	}
 
 	public static Date DEFAULT_DATE;
@@ -164,16 +172,16 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		}
 	}
 	
-	public static Map<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine>> models = new HashMap<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine>>();
+	public static Map<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine, ?>> models = new HashMap<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine, ?>>();
 
 	
 	@SuppressWarnings("unchecked")
-	public static <T extends EventModelStrategyEngine> EventModel<T> getInstance(T modelStrategyEngine, Observer... modelObserver)  {
+	public static <T extends EventModelStrategyEngine, X> EventModel<T,X> getInstance(T modelStrategyEngine, Observer... modelObserver)  {
 		
 		try {
-			EventModel<T> eventModel = (EventModel<T>) models.get(modelStrategyEngine.getClass());
+			EventModel<T,X> eventModel = (EventModel<T,X>) models.get(modelStrategyEngine.getClass());
 			if (eventModel == null) {
-				eventModel = new EventModel<T>(modelStrategyEngine);	
+				eventModel = new EventModel<T,X>(modelStrategyEngine);	
 				models.put(modelStrategyEngine.getClass(), eventModel);
 			}
 			
@@ -195,16 +203,24 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	
 	public static void dirtyCacheFor(EventInfo eventInfo) {
 		
-		for (Stock stock : cacheTimeStamps.keySet()) {
-			Map<EventInfo, UpdateStamp> stockTimeStamps = cacheTimeStamps.get(stock);
-			if (stockTimeStamps != null) {
-				UpdateStamp updateStamp = stockTimeStamps.get(eventInfo);
-				if (updateStamp != null) {
-					updateStamp.setDirty();
+		for (Stock stock : outputCache.keySet()) {
+			Map<EventInfo, EventDefCacheEntry> cache4Stock = outputCache.get(stock);
+			if (cache4Stock != null) {
+				EventDefCacheEntry eventDefCacheEntry = cache4Stock.get(eventInfo);
+				if (eventDefCacheEntry != null) {
+					UpdateStamp updateStamp = eventDefCacheEntry.getUpdateStamp();
+					if (updateStamp != null) {
+						updateStamp.setDirty();
+					}
 				}
 			}
 		}
 		
+	}
+	
+	public static Long updateEventInfoStamp() {
+		eventInfoChangeStamp = new Date().getTime();
+		return eventInfoChangeStamp;
 	}
 	
 	/**
@@ -244,7 +260,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 
 
 	/**
-	 * Callback forlast analyse.
+	 * Callback for last analyse.
 	 * 		
 	 * @author Guillaume Thoreton
 	 * @throws NotEnoughDataException 
@@ -254,45 +270,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	//However bounds date won't be valid and recorded until all events are successfully calculated.
 	//Hence the user will systematically be asked for recalculation if all events are not valid.
 	public synchronized void callbackForlastAnalyse(Date startAnalyseDate) throws NotEnoughDataException {
-		
-		Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput = eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams);
-		
-		if (callbackForlastAnalyseOutput != null) {
-			
-			//Update cache
-			outputCache.putAll(callbackForlastAnalyseOutput);
-
-			//Update cache bounds records
-			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
-			Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
-			Set<EventInfo> indicators = EventDefinition.loadMaxPassPrefsEventInfo();
-			
-			Boolean isAllEventsOk = true;
-			String msg = "";
-			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
-				//update time stamp cache
-				Boolean isAllEventsOkForStock = true;
-				for (EventInfo eventDefinition : indicators) {
-					EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
-					Map<EventInfo, UpdateStamp> timeStamps4Stock = cacheTimeStamps.get(stock);
-					if (timeStamps4Stock == null) {
-						timeStamps4Stock = new HashMap<EventInfo, EventModel.UpdateStamp>();
-						cacheTimeStamps.put(stock, timeStamps4Stock);
-					}
-					Boolean isFailing = false;
-					if (evtDefRes == null) {
-						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' is failing for " + stock.getFriendlyName() + "\n";
-						isAllEventsOkForStock = false;
-						isFailing = true;
-					} 
-					timeStamps4Stock.put(eventDefinition, new UpdateStamp(datedeb, datefin, isFailing));
-				}
-				isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
-			}
-			
-			if (!isAllEventsOk) throw new RuntimeException("\nCause : "+msg);
-			
-		}
+		eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams);
 	}
 	
 	public void callbackForAlerts() throws InterruptedException {
@@ -301,7 +279,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	}
 
 	/**
-	 * Callback forlast list fetch.
+	 * Callback for last list fetch.
 	 * 
 	 * @author Guillaume Thoreton
 	 * @throws HttpException 
@@ -326,16 +304,7 @@ public class EventModel<T extends EventModelStrategyEngine> {
 	
 	public void callbackForAnalysisClean() {
 		
-		Boolean deleteAll = eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, viewStateParams);
-		if (deleteAll) {
-			outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
-			cacheTimeStamps = new HashMap<Stock, Map<EventInfo,UpdateStamp>>();
-		} else {
-			for (Object stock : viewStateParams) {
-				outputCache.remove((Stock)stock);
-				cacheTimeStamps.remove((Stock)stock);
-			}
-		}
+		eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, viewStateParams);
 		
 	}
 
@@ -441,12 +410,29 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		return engineObservers;
 	}
 
-	public synchronized void setViewStateParams(Object... viewStateParams) {
-		this.viewStateParams = viewStateParams;	
+	@SuppressWarnings("unchecked")
+	public X getViewParamRoot() {
+		return (X) eventRefreshStrategyEngine.getViewParamRoot(viewStateParams);
 	}
-
-	public Object[] getViewStateParams() {
-		return viewStateParams;
+	
+	@SuppressWarnings("unchecked")
+	public void setViewStateParams(X rootParam, Collection<? extends Object>... otherParams) {
+		
+		 Collection<? extends Object>[] setViewStateParams = eventRefreshStrategyEngine.setViewStateParams(rootParam, otherParams);
+		 
+		 if (setViewStateParams != null) {
+			 
+			 if (this.viewStateParams == null) this.viewStateParams = new Collection[setViewStateParams.length];
+			 for (int i = 0; i < setViewStateParams.length; i++) {
+				 if (setViewStateParams[i] != null) {
+					 this.viewStateParams[i] = setViewStateParams[i];
+				 }
+			 }
+			 
+		 } else {
+			 this.viewStateParams = null;
+		 }
+		 
 	}
 	
 	public SortedMap<Date, double[]> getOutputCache(Stock stock, EventInfo eventDefinition) {
@@ -473,12 +459,13 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		
 	}
 	
-	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end, Map<EventInfo, UpdateStamp> notUptoDateStamps, Calendar minDate, EventInfo ...eventInfos) {
+	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end, Set<EventInfo> notUpToDateEventInfos, Calendar minDate, EventInfo ...eventInfos) {
 		
 		if (eventInfos.length == 0) return false;
 		
-		Map<EventInfo, UpdateStamp> updateStamps = cacheTimeStamps.get(stock);
-		if (updateStamps == null) {
+		Map<EventInfo, EventDefCacheEntry> cacheEntry4Stock = outputCache.get(stock);
+		if (cacheEntry4Stock == null) {
+			notUpToDateEventInfos.addAll(Arrays.asList(eventInfos));
 			return true;
 		}
 		
@@ -491,9 +478,10 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		
 		Boolean needsUpdate = false;
 		for (EventInfo eventInfo : eventInfos) {
-			UpdateStamp updateStamp = updateStamps.get(eventInfo);
-			if (updateStamp == null || updateStamp.isDirty() || start.before(updateStamp.start) || end.after(updateStamp.end)) {
-				notUptoDateStamps.put(eventInfo, updateStamp);
+			EventDefCacheEntry cacheEntry = cacheEntry4Stock.get(eventInfo);
+			if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before( cacheEntry.getUpdateStamp().start) || end.after( cacheEntry.getUpdateStamp().end)) {
+				LOGGER.info("Events : "+eventInfo.getEventReadableDef()+" needs update : time stamp is "+((cacheEntry == null || cacheEntry.getOutputMap() == null)?"null": cacheEntry.getUpdateStamp().start+ " to "+ cacheEntry.getUpdateStamp().end)+". and requested is "+start + " to "+end);
+				notUpToDateEventInfos.add(eventInfo);
 				needsUpdate = true;
 			}
 		}
@@ -502,10 +490,25 @@ public class EventModel<T extends EventModelStrategyEngine> {
 		
 	}
 	
-	public static Long updateEventInfoStamp() {
-		eventInfoChangeStamp = new Date().getTime();
-		return eventInfoChangeStamp;
+	public int[] viewParamPositionsFor(TaskId taskId) {
+		int[] otherViewParamPositionsFor = eventRefreshStrategyEngine.otherViewParamPositionsFor(taskId);
+		int[] copyOf = new int[otherViewParamPositionsFor.length+1];
+		copyOf[0] = 0;
+		for (int i = 0; i < otherViewParamPositionsFor.length; i++) {
+			copyOf[i+1] = otherViewParamPositionsFor[i];
+		}
+		return copyOf;
 	}
-	
+
+
+	public void resetViewStateParams() {
+		this.viewStateParams = null;
+		
+	}
+
+
+	public boolean allowsTaskReset() {
+		return eventRefreshStrategyEngine.allowsTaskReset();
+	}
 	
 } 

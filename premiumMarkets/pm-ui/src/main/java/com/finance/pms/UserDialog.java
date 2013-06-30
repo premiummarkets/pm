@@ -36,11 +36,11 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.TypedEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -134,8 +134,13 @@ public class UserDialog extends Dialog {
 				errorLabel1.pack();
 				if (errorLabel1.getSize().y < 100) ((GridData)errorLabel1.getLayoutData()).heightHint = 100;
 			}
-			getParent().layout();
+			
 			getParent().pack();
+			if (textArea != null) {
+				Point computeSize = textArea.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				textArea.setSize(textArea.getSize().x, Math.max(computeSize.y, 200));
+			}
+			getParent().layout();
 			
 			
 			getParent().open();
@@ -143,18 +148,18 @@ public class UserDialog extends Dialog {
 			boolean setFocus2 = valideButton1.setFocus();
 			LOGGER.info("Dialog focus : "+setFocus+" , dialog button focuses : "+setFocus2);
 			
-			Display display = getParent().getDisplay();
-			while (!getParent().isDisposed() && getParent().isVisible()) {
-				try {
-					if (!display.readAndDispatch()) display.sleep();
-				} catch (RuntimeException e) {
-					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in Error Dialog Gui : ",e);
-				} catch (Error e) {
-					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in  Gui : ",e);
-				}
-			}
+//			Display display = getParent().getDisplay();
+//			while (!getParent().isDisposed() && getParent().isVisible()) {
+//				try {
+//					if (!display.readAndDispatch()) display.sleep();
+//				} catch (RuntimeException e) {
+//					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in Error Dialog Gui : ",e);
+//				} catch (Error e) {
+//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in  Gui : ",e);
+//				}
+//			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}

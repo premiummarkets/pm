@@ -117,7 +117,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private List<SlidingPortfolioShare> currentTabShareList;
 
 	private Integer highligtedId;
-	private EventModel<RefreshChartHightlited> hightlitedEventModel;
+	private EventModel<RefreshChartHightlited, Stock> hightlitedEventModel;
 	
 	private ChartPanel mainChartPanel;
 	private Composite mainChartComposite;
@@ -155,7 +155,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.slidingEndDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.YEAR, -1);
-		this.slidingStartDate = calendar.getTime();
+		this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
 		
 		this.logComposite = logComposite;
 		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHightlited(), logComposite);
@@ -198,6 +198,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
+	@SuppressWarnings("unchecked")
 	void updateCharts(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean portfolioHasChanged, Boolean grantEventsUpdate) {
 		
 		stripedCloseFunction.updateStartDate(slidingStartDate);
@@ -211,22 +212,22 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					getHightlitedEventModel().setViewStateParams(getCurrentTabShareList().get(previousSelection).getStock());
 					setHighligtedId(previousSelection);
 				} else {
-					getHightlitedEventModel().setViewStateParams();
+					getHightlitedEventModel().resetViewStateParams();
 					setHighligtedId(null);
 				}
 				
 				chartDisplayStrategy.lightResetChart();
 			} 
 		} else {
-			getHightlitedEventModel().setViewStateParams();
+			getHightlitedEventModel().resetViewStateParams();
 			setHighligtedId(null);
 			chartDisplayStrategy.lightResetChart();
 		} 
 		
 		
-		Object[] viewStateParams = hightlitedEventModel.getViewStateParams();
-		if (viewStateParams != null && viewStateParams.length > 0) {
-			chartDisplayStrategy.highLight(getHighligtedId(), (Stock) viewStateParams[0], grantEventsUpdate);
+		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
+		if (viewStateParams != null) {
+			chartDisplayStrategy.highLight(getHighligtedId(),viewStateParams, grantEventsUpdate);
 		}
 
 	}
@@ -660,7 +661,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
     	Calendar calendar = Calendar.getInstance();
     	calendar.setTime(minDate);
     	calendar.add(Calendar.DAY_OF_YEAR, nbDaySinceMin.intValue());
-    	slidingStartDate = calendar.getTime();
+    	slidingStartDate = DateFactory.midnithDate(calendar.getTime());
     	
     	startDateLabel.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate));
     	startDateLabel.setFont(MainGui.DEFAULTFONT);
@@ -708,7 +709,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
     	Calendar calendar = Calendar.getInstance();
     	calendar.setTime(minDate);
     	calendar.add(Calendar.DAY_OF_YEAR, nbDaySinceMin.intValue());
-    	slidingEndDate = calendar.getTime();
+    	slidingEndDate = DateFactory.midnithDate(calendar.getTime());
     	
     	endDateLabel.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
     	endDateLabel.setFont(MainGui.DEFAULTFONT);
@@ -801,20 +802,19 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	@Override
 	public void refreshView(List<Exception> exceptions) {
 		
-		Object[] viewStateParams = hightlitedEventModel.getViewStateParams();
-		if (viewStateParams != null && viewStateParams.length == 1) {
+		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
+		if (viewStateParams != null) {
 			
 			checkChartSelectionValidity();
-			chartDisplayStrategy.highLight(highligtedId, (Stock) viewStateParams[0], false);
+			chartDisplayStrategy.highLight(highligtedId, viewStateParams, false);
 			
 		}
 		chartDisplayStrategy.refreshView(exceptions);
 		
-		if (viewStateParams != null && viewStateParams.length == 1 && isVisible()) {
+		if (viewStateParams != null && isVisible()) {
 			for (Exception exception : exceptions) {
 				if (exception instanceof EventRefreshException) {
-					UserDialog dialog = new UserDialog(ChartsComposite.this.getShell(), "Couldn't refresh all analysis for "+((Stock) viewStateParams[0]).getFriendlyName()+". Check that date bounds are not out of range.", 
-							exceptions.toString());
+					UserDialog dialog = new UserDialog(ChartsComposite.this.getShell(), "Couldn't update all trends and indicators calculations for "+viewStateParams.getFriendlyName()+". Check that date bounds are not out of range.", exceptions.toString());
 					exceptions.clear();
 					dialog.open();
 					break;
@@ -884,15 +884,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	public EventModel<RefreshChartHightlited> getHightlitedEventModel() {
+	public EventModel<RefreshChartHightlited, Stock> getHightlitedEventModel() {
 		return hightlitedEventModel;
 	}
-
-
-	public void setHightlitedEventModel(EventModel<RefreshChartHightlited> hightlitedEventModel) {
-		this.hightlitedEventModel = hightlitedEventModel;
-	}
-
 
 	public Set<EventInfo> getChartedEvtDefsTrends() {
 		return chartedEvtDefsTrends;
@@ -967,5 +961,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public SlidingPortfolioShare getCurrentLineSelection() {
 		return portfolioComposite.getCurrentShareSelection();
 	}
+
 	
 }

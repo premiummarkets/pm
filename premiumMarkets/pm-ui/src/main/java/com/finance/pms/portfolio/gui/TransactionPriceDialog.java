@@ -48,13 +48,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -99,6 +99,8 @@ public class TransactionPriceDialog {
 
 	Transaction transaction;
 	Composite portfolioTable;
+
+	private ActionDialogAction action;
 
 	
 	/**
@@ -387,18 +389,18 @@ public class TransactionPriceDialog {
 			}
 			dialogShell.layout();
 			dialogShell.open();
-			Display display = dialogShell.getDisplay();
-			while (!dialogShell.isDisposed()) {
-				try {
-					if (!display.readAndDispatch()) display.sleep();
-				} catch (RuntimeException e) {
-					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);
-				} catch (Error e) {
-					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in  Gui : ",e);
-				}
-			}
+//			Display display = dialogShell.getDisplay();
+//			while (!dialogShell.isDisposed()) {
+//				try {
+//					if (!display.readAndDispatch()) display.sleep();
+//				} catch (RuntimeException e) {
+//					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);
+//				} catch (Error e) {
+//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in  Gui : ",e);
+//				}
+//			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
@@ -412,7 +414,7 @@ public class TransactionPriceDialog {
 	 * @author Guillaume Thoreton
 	 */
 	private void newTransactionValidateButtonMouseDown(EventObject evt) {
-		LOGGER.debug("Transaction : " +this.transaction);
+		this.action.action(null);
 		dialogShell.close();
 	}
 
@@ -480,6 +482,12 @@ public class TransactionPriceDialog {
 		}
 		
 		return result;
+		
+	}
+
+
+	public void setAction(ActionDialogAction action) {
+		this.action= action;
 		
 	}
 	

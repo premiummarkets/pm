@@ -1,12 +1,13 @@
 package com.finance.pms.datasources;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventRefreshController.EventRefreshTask;
-import com.finance.pms.datasources.EventRefreshController.TaskId;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class EventTaskQueue {
@@ -17,13 +18,14 @@ public class EventTaskQueue {
 
 	private LinkedBlockingQueue<EventRefreshTask> tasks;
 	private Thread queueScanner;
-	private EventRefreshTask lastRunningTask;
+	private Map<TaskId,EventRefreshTask> lastRunningTasks;
 	
 
 	private EventTaskQueue() {
 		super();
 		
 		tasks = new LinkedBlockingQueue<EventRefreshTask>();
+		lastRunningTasks = new HashMap<TaskId, EventRefreshTask>();
 		
 		Runnable runnable = new Runnable() {
 
@@ -39,7 +41,7 @@ public class EventTaskQueue {
 						
 						try {		
 							
-							if (!task.getTaskId().equals(TaskId.ViewRefresh)) lastRunningTask = task;
+							if (!task.getTaskId().equals(TaskId.ViewRefresh)) lastRunningTasks.put(task.getTaskId(), task);
 							ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, task.getConfig());
 							task.run();	
 							
@@ -73,7 +75,6 @@ public class EventTaskQueue {
 		}
 	}
 	
-
 	public void offerTasks(List<EventRefreshTask> eventRefreshTasks) {
 		synchronized (queueScanner) {
 			tasks.addAll(eventRefreshTasks);
@@ -90,19 +91,26 @@ public class EventTaskQueue {
 	public Boolean isLastTask(EventRefreshTask task) {
 		synchronized (queueScanner) {
 			
-			Boolean hasItJustRunOrIsRunning = (lastRunningTask != null) && lastRunningTask.equals(task);
+			Boolean hasItJustRunOrIsRunning = ( lastRunningTasks.get(task.getTaskId()) != null ) && lastRunningTasks.get(task.getTaskId()).contains(task);
 			
 			EventRefreshTask[] array = tasks.toArray(new EventRefreshTask[0]);
 			int i=array.length-1;
 			while (i >= 0 && array[i].getTaskId().equals(TaskId.ViewRefresh)) {
 				i--;
 			}
-			Boolean isItScheduledLast = i>=0 && array[i].equals(task);
+			Boolean isItScheduledLast = i>=0 && array[i].contains(task);
 			
-			LOGGER.info("\n\tTask request :\n"+task+".\n\tLast Task :\n"+lastRunningTask+".\n" +
+			LOGGER.info("\n\tTask request :\n"+task+".\n\tLast Task :\n"+lastRunningTasks+".\n" +
 					"Validity : has it just been or is running : "+hasItJustRunOrIsRunning+", is it queued to run last : "+isItScheduledLast+".\n" +
 					"Tasks queue : "+tasks.toString());
 			return hasItJustRunOrIsRunning || isItScheduledLast;
+		}
+	}
+	
+	public void tamperTasksCreationDates(TaskId ...taskIds) {
+		for (TaskId taskToReset : taskIds) {
+			EventRefreshTask eventRefreshTask = lastRunningTasks.get(taskToReset);
+			if (eventRefreshTask != null) eventRefreshTask.setTaskCreationStamp(0l);
 		}
 	}
 

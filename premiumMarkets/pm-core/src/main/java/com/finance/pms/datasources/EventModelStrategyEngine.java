@@ -31,25 +31,33 @@
 package com.finance.pms.datasources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.apache.commons.httpclient.HttpException;
 
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
  * The Interface EventRefreshModelDelegate.
  * 
  * @author Guillaume Thoreton
  */
-public interface EventModelStrategyEngine {
+public abstract class EventModelStrategyEngine {
 
 	/**
 	 * Sets the last list fetch.
@@ -91,11 +99,96 @@ public interface EventModelStrategyEngine {
 	public abstract Date getLastAnalyse(Date oldLastAnalyse);
 
 
-	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) throws HttpException;
-	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) throws StockNotFoundException;
-	public abstract Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) throws NotEnoughDataException;
-	public abstract void callbackForAlerts(Set<Observer> engineObservers, Object...viewStateParams) throws InterruptedException;
+	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws HttpException;
+	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws StockNotFoundException;
+	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
+	public abstract void callbackForAlerts(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws InterruptedException;
 	public abstract void  callbackForReco(Set<Observer> engineObservers);
-	public abstract Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object...viewStateParams);
+	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams);
+	public abstract Object getViewParamRoot(Collection<? extends Object>...viewStateParams);
+	public abstract Collection<? extends Object>[] setViewStateParams(Object rootParam, Collection<? extends Object>... otherParams);
+	public abstract int[] otherViewParamPositionsFor(TaskId taskId);
+	public abstract boolean allowsTaskReset();
+	
+	public void postCallBackForClean(boolean deleteAll, Stock... cleanedStocks) {
+		
+		if (deleteAll) {
+			EventModel.outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+			
+		} else {
+			SortedSet<EventInfo> eventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
+			for (Object stock : cleanedStocks) {
+				Map<EventInfo, EventDefCacheEntry> outCache4Stock = EventModel.outputCache.get(stock);
+				
+				if (outCache4Stock != null) {
+					for (EventInfo eventInfo : eventDefs) {
+						outCache4Stock.remove(eventInfo);
+					}
+				}
+			}
+		}
+	}
+	
+	public void postCallBackForAnalysis(Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput) {
+		
+		if (callbackForlastAnalyseOutput != null) {
+			
+			//Update cache
+			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
+				Map<EventInfo, EventDefCacheEntry> map4Stock = EventModel.outputCache.get(stock);
+				if (map4Stock == null) {
+					EventModel.outputCache.put(stock, callbackForlastAnalyseOutput.get(stock));
+				} else {
+					map4Stock.putAll(callbackForlastAnalyseOutput.get(stock));
+				}
+			}
+		
+
+			Set<EventInfo> indicators = EventDefinition.loadMaxPassPrefsEventInfo();
+			
+			Boolean isAllEventsOk = true;
+			String msg = "";
+			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
+				
+				Boolean isAllEventsOkForStock = true;
+				for (EventInfo eventDefinition : indicators) {
+					EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
+
+					if (evtDefRes == null || evtDefRes.getUpdateStamp() == null || evtDefRes.getUpdateStamp().isFailing()) {
+						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' is failing for " + stock.getFriendlyName() + "\n";
+						isAllEventsOkForStock = false;
+					} 
+					
+				}
+				isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
+			}
+			
+			if (!isAllEventsOk) throw new RuntimeException("\nCause : "+msg);
+			
+		}
+	}
+	
+	//At the moment, the event are filter in three Categories only : 1rst Pass 2nd Pass and a special case for Parameterised
+	//The is a coarse filter TODO : refine
+	//The issues :
+	//Neural needs the first pass indicators as in the db.prors and hence these can't be individually tampered
+	//The parameterised could be tampered with a review of the EventSignalConfig.getAllTechIndicatorsSorted as it loads all current EventConditionHolders in the current implementation.
+	protected void tamperEventConfig(Collection<EventInfo> viewStateParams) {
+		EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
+	
+		//TODO add a setParameterized in EventConfig to refine the filter?  
+		Set<String> indepIndicators = new HashSet<String>();
+		for (EventInfo eventInfo : viewStateParams) {
+			if (eventConfig.getIndepIndicators().contains(eventInfo)) {
+				indepIndicators.add(eventInfo.getEventDefinitionRef());
+			}
+			if (eventInfo.getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
+				indepIndicators.add(EventDefinition.PARAMETERIZED.name());
+			}
+		}
+	
+		eventConfig.setIndepIndicators(new ArrayList<String>(indepIndicators));
+		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, eventConfig);
+	}
 
 }

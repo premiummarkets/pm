@@ -13,6 +13,7 @@ import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
 import com.finance.pms.events.operations.nativeops.PMHouseTrendOperation;
+import com.finance.pms.events.operations.nativeops.PMInvHouseTrendOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMSMAOperation;
 import com.finance.pms.events.operations.nativeops.Product;
@@ -24,7 +25,7 @@ import com.finance.pms.events.operations.nativeops.TalibSmaOperation;
 
 public class NativesXmlManager {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(NativeOperationsBasic.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(NativesXmlManager.class);
 	
 	protected String xmlfile; //= System.getProperty("installdir")+File.separator+"nativeops.xml";
 	
@@ -64,6 +65,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(houseTrendOperation);
 		PMAroonOperation pmAroonOperation = new PMAroonOperation();
 		nativeOperations.addOperation(pmAroonOperation);
+		PMInvHouseTrendOperation invHouseTrendOperation = new PMInvHouseTrendOperation();
+		nativeOperations.addOperation(invHouseTrendOperation);
 		
 		//saveNativeOperations(nativeOperations);
 		return nativeOperations;

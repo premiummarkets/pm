@@ -109,6 +109,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
 	private SortedSet<EventInfo> allTechIndicatorsSortedCache= null;
 	private SortedSet<EventInfo> allEventInfos = null;
+	private SortedSet<EventInfo> allParameterized = null;
 
 	
 	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getPrefs().get("event.buytrigger", "3"));
@@ -219,6 +220,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	public List<EventInfo> getIndepIndicators() {
 		return this.indicatorsStringToEventDefs(this.indepIndicators);
 	}
+
 	
 	@SuppressWarnings("unchecked")
 	public SortedSet<EventInfo> getAllTechIndicatorsSorted(Boolean refreshCache) {
@@ -243,17 +245,30 @@ public class EventSignalConfig extends Config implements Cloneable {
 				if (maxPass > 1) {
 
 					List<EventInfo> indepIndicators = this.getIndepIndicators();
-					if (PARAMETERIZEDINDICATORSBUILDER == null) PARAMETERIZEDINDICATORSBUILDER = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
+					
 					for (EventInfo eventDefinition : indepIndicators) {
 
 						if (eventDefinition.getEventDefinitionRef().equals(EventDefinition.PARAMETERIZED.name())) {
+							
+							if (PARAMETERIZEDINDICATORSBUILDER == null) PARAMETERIZEDINDICATORSBUILDER = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
 							@SuppressWarnings("rawtypes")
 							Collection values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
 							allTechIndicatorsSortedCacheTmp.remove(EventDefinition.PARAMETERIZED);
 							allTechIndicatorsSortedCacheTmp.addAll(values);
-
+							
+							TreeSet<EventInfo> allParameterizedTmp = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
+								@Override
+								public int compare(EventInfo o1, EventInfo o2) {
+									return o1.getEventDefinitionRef().compareTo(o2.getEventDefinitionRef());
+								}
+							});
+							allParameterizedTmp.addAll(values);
+							this.allParameterized = Collections.unmodifiableSortedSet(allParameterizedTmp);
+							
 						} else {
+							
 							allTechIndicatorsSortedCacheTmp.add(eventDefinition);
+							
 						}
 
 					}
@@ -285,6 +300,16 @@ public class EventSignalConfig extends Config implements Cloneable {
 		}
 		
 		return allEventInfos;
+	}
+	
+
+	public SortedSet<EventInfo> getAllParameterized() {
+		
+		if (allParameterized == null) {
+			getAllTechIndicatorsSorted(false);
+		}
+		
+		return allParameterized;
 	}
 
 	public Integer getBuyEventTriggerThreshold() {
@@ -425,10 +450,14 @@ public class EventSignalConfig extends Config implements Cloneable {
 	}
 
 	public void setIndicators(List<String> indicators) {
+		
 		this.indicators = indicators;
+		
 		this.indicatorSortedCache = null;
 		this.allTechIndicatorsSortedCache = null;
 		this.allEventInfos = null;
+		this.allParameterized = null;
+		
 	}
 
 	public void setAnalysis(String analysis) {
@@ -562,9 +591,13 @@ public class EventSignalConfig extends Config implements Cloneable {
 	}
 
 	public void setIndepIndicators(List<String> indepIndicators) {
+		
 		this.indepIndicators = indepIndicators;
+		
 		this.allTechIndicatorsSortedCache = null;
 		this.allEventInfos = null;
+		this.allParameterized = null;
+		
 	}
 	
 	public void setIndepIndicators(String... indepIndicators) {

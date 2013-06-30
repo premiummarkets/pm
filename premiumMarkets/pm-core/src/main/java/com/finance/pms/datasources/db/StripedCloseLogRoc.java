@@ -104,7 +104,7 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "logarithmic change to previous day";
+		return "change to previous day (log ROC)";
 	}
 
 	@Override

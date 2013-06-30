@@ -555,7 +555,7 @@ public class OperationBuilderComposite extends Composite {
 	
 	protected void handleSaveAndSelection() {
 		
-		int selectionIndex = formulaReference.getSelectionIndex();
+		//int selectionIndex = formulaReference.getSelectionIndex();
 		String id = getFormatedReferenceTxt();
 		
 		if (!isSaved) {
@@ -566,24 +566,33 @@ public class OperationBuilderComposite extends Composite {
 				isSaved = saveOrUpdateFormula(id, true);
 			}
 			
-			if (isSaved) {
-				
-				savingAttemptStarted = false;
+			updateOpCombo(id);
+			
+		}
+	}
 
-				formulaReference.removeAll();
-				updateCombo();
-				if (selectionIndex == -1) {
-					String[] items = formulaReference.getItems();
-					for (int i = 0; i <items.length; i++) {
-						if (id.equals(items[i])) {
-							selectionIndex = i;
-							break;
-						}
+	protected void updateOpCombo(String operationRef) {
+		
+		int comboSelectionIdx = formulaReference.getSelectionIndex();
+		
+		if (isSaved) {
+			
+			savingAttemptStarted = false;
+
+			formulaReference.removeAll();
+			updateCombo();
+			if (comboSelectionIdx == -1) {
+				String[] items = formulaReference.getItems();
+				for (int i = 0; i <items.length; i++) {
+					if (operationRef.equals(items[i])) {
+						comboSelectionIdx = i;
+						break;
 					}
 				}
-				forceSelection(selectionIndex);
 			}
+			forceSelection(comboSelectionIdx);
 		}
+		
 	}
 
 	protected void addExtratButtons() {
@@ -684,9 +693,9 @@ public class OperationBuilderComposite extends Composite {
 		return hasChanged;
 	}
 	
-	private Boolean saveOrUpdateFormula(String identifier, Boolean checkOverWrite) {
+	private Boolean saveOrUpdateFormula(final String identifier, Boolean checkOverWrite) {
 		
-		String formula = formatedEditorTxt();
+		final String formula = formatedEditorTxt();
 		if (formula == null || formula.isEmpty()) {
 			UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid formula", null);
 			dialog.open();
@@ -699,17 +708,28 @@ public class OperationBuilderComposite extends Composite {
 		//Already exist warning
 		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
 		if (existingOp != null && checkOverWrite) {
-			ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "Identifier already exists", "Identifier "+existingOp.getReference()+" already exists", null, "Write over", new ActionDialogAction() {
+
+			ActionDialogAction action = new ActionDialogAction() {
 				@Override
 				public void action(Control targetControl) {
+					isSaved = false;
+					updateOpCombo(identifier);
 					formulaReference.forceFocus();
+					 doSaveFormula(identifier, formula);
 				}
-			});
+			};
+			ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "Identifier already exists", "Identifier "+existingOp.getReference()+" already exists", null, "Write over", action);
 			dialog.open();
-			if (!dialog.getIsOk()) {
-				return false;
-			}
+			
+			return false;
+			
 		}
+		
+		return doSaveFormula(identifier, formula);
+		
+	}
+
+	protected Boolean doSaveFormula(final String identifier, String formula) {
 		
 		//Save formula
 		try {
@@ -739,7 +759,6 @@ public class OperationBuilderComposite extends Composite {
 		
 		previousCalcsAsDirty(identifier);
 		return true;
-		
 	}
 
 	protected Boolean isNativeOp(String identifier, Operation existingOp) {

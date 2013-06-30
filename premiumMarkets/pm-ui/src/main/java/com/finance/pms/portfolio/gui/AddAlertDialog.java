@@ -33,6 +33,8 @@ package com.finance.pms.portfolio.gui;
 import java.math.BigDecimal;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Point;
@@ -41,7 +43,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -51,6 +52,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -82,6 +84,8 @@ public class AddAlertDialog extends Dialog {
 
 	private Table alertTableUp;
 	private Table alertTableDown;
+
+	private ActionDialogAction action;
 	
 	protected enum Modtype {QUANTITY,AIN,AOUT};
 	
@@ -97,7 +101,6 @@ public class AddAlertDialog extends Dialog {
 		try {
 			String dbfile = args[0];
 			SpringContext ctx = new SpringContext(dbfile);
-			//ctx.setDataSource(dbfile);
 			ctx.setMasSource(dbfile,"false");
 			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
 			ctx.refresh();
@@ -109,9 +112,10 @@ public class AddAlertDialog extends Dialog {
 	
 	
 
-	public AddAlertDialog(Shell parent, PortfolioShare portfolioShare) {
+	public AddAlertDialog(Shell parent, PortfolioShare portfolioShare, ActionDialogAction action) {
 		super(parent);
 		this.portfolioShare = portfolioShare;
+		this.action = action;
 		
 	}
 
@@ -144,6 +148,17 @@ public class AddAlertDialog extends Dialog {
 	
 			dialogShell.setText("Add an alert on threshold crossing");
 			dialogShell.setBackground(MainGui.pOPUP_BG);
+			
+			
+			dialogShell.addDisposeListener(new DisposeListener() {
+				
+				@Override
+				public void widgetDisposed(DisposeEvent e) {
+					action.action(null);
+					
+				}
+			});
+			
 			{
 				alertSettingLabel = new Label(dialogShell, SWT.NONE);
 				alertSettingLabel.setText("Threshold price ");
@@ -262,18 +277,18 @@ public class AddAlertDialog extends Dialog {
 			
 			dialogShell.layout();
 			dialogShell.open();
-			Display display = dialogShell.getDisplay();
-			while (!dialogShell.isDisposed()) {
-				try {
-					if (!display.readAndDispatch()) display.sleep();
-				} catch (RuntimeException e) {
-					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);
-				} catch (Error e) {
-					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in  Gui : ",e);
-				}
-			}
+//			Display display = dialogShell.getDisplay();
+//			while (!dialogShell.isDisposed()) {
+//				try {
+//					if (!display.readAndDispatch()) display.sleep();
+//				} catch (RuntimeException e) {
+//					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);
+//				} catch (Error e) {
+//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in  Gui : ",e);
+//				}
+//			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}

@@ -28,7 +28,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	
 
 	protected CmpConstantCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it true"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"), new DoubleMapOperation("historical data input"));
 	}
 
 	public CmpConstantCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -59,14 +59,16 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 					underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
 					
 					if (conditionCheck && forPeriod > 0) {
+						
 						Calendar startForPeriodCal = Calendar.getInstance();
 						startForPeriodCal.setTime(date);
 						QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
 						Date startForPeriod = startForPeriodCal.getTime();
+						
+						SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
 						if (startForPeriod.before(data.firstKey())) {
-							conditionCheck = false;
+							conditionCheck = null;
 						} else {
-							SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
 							for (Boolean previousValue : forPeriodData.values()) {
 								conditionCheck = conditionCheck && previousValue;
 								if (!previousValue) break;
@@ -74,11 +76,11 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 						}
 					}
 					
-					outputs.getValue(targetStock).put(date, conditionCheck);
+					if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
 					
 				}
 
-				if (conditionCheck && overPeriod > 0) {
+				if (conditionCheck != null && conditionCheck && overPeriod > 0) {
 					Calendar endOverPeriodCal = Calendar.getInstance();
 					endOverPeriodCal.setTime(date);
 					QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);

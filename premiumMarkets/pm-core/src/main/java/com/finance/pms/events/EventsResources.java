@@ -386,6 +386,8 @@ public class EventsResources {
 	
 	public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Boolean isPersisted, Set<EventInfo> eventDefinitions, String... eventListNames) {
 		
+		if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		
 		if (!isEventCached && !isPersisted) {
 			String message = "Inconsistency : Events are neither persisted or cached.";
 			LOGGER.error(message, new Exception());
@@ -429,6 +431,8 @@ public class EventsResources {
 
 	
 	public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Boolean isPersisted, Set<EventInfo> eventDefinitions, String... eventListNames) {
+		
+		if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 		
 		if (!isEventCached && !isPersisted) {
 			String message = "Inconsistency : Events are neither persisted or cached.";
@@ -745,7 +749,8 @@ public class EventsResources {
 	 */
 	public void updateEventsTabsByCriteriaAndDate(Date date, Integer inf, Integer sup, PonderationRule pr, Set<EventInfo> indicators, String eventListNames) throws InvalidAlgorithmParameterException {
 		
-		List<SymbolEvents> all = SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), true, indicators, eventListNames), pr);
+		
+		List<SymbolEvents> all = (indicators != null)?SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), true, indicators, eventListNames), pr):new ArrayList<SymbolEvents>();
 		int indexSup = 0;
 		int indexInf = all.size() - 1;
 		
@@ -792,10 +797,10 @@ public class EventsResources {
 		
 	}
 	
-	public void filterOutCurrentMarketEvents(Object... shareLists) {
+	public void filterOutCurrentMarketEvents(ShareListInfo... shareLists) {
 		
 		Collection<Stock> selectedSharelists = new ArrayList<Stock>();
-		for (Object shareList : shareLists) {
+		for (ShareListInfo shareList : shareLists) {
 			Set<Stock> stocksList = DataSource.getInstance().loadStocksList(((ShareListInfo) shareList).info());
 			selectedSharelists.addAll(stocksList);
 		}
@@ -965,6 +970,9 @@ public class EventsResources {
 	
 	public void crudDeleteEventsForStock(Stock stock, String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
 		
+		for (EventInfo eventInfo : indicators) {
+			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		}
 		
 		//Cash
 		if (isEventCached) {
@@ -989,6 +997,10 @@ public class EventsResources {
 
 
 	public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
+		
+		for (EventInfo eventInfo : indicators) {
+			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		}
 		
 		//Cash
 		if (isEventCached) {

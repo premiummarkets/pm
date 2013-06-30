@@ -34,12 +34,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Observer;
 
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
@@ -47,6 +46,7 @@ import com.finance.pms.RefreshableView;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.threads.ObserverMsg;
 
 
@@ -55,13 +55,11 @@ import com.finance.pms.threads.ObserverMsg;
  * 
  * @author Guillaume Thoreton
  */
-public class EventRefreshController implements MouseListener, SelectionListener {
+public class EventRefreshController implements  SelectionListener { //MouseListener,
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(EventRefreshController.class);
 	
-	public enum TaskId {FetchLists,FetchQuotations,FetchRecos,Clean,Alerts,Analysis,ViewRefresh};
-	
-	protected EventModel<? extends EventModelStrategyEngine> eventModel;
+	protected EventModel<? extends EventModelStrategyEngine, ?> eventModel;
 	private RefreshableView view;
 	Config config;
 	
@@ -79,7 +77,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public EventRefreshController(EventModel<? extends EventModelStrategyEngine> refreshModel, RefreshableView view, Config config) {
+	public EventRefreshController(EventModel<? extends EventModelStrategyEngine, ?> refreshModel, RefreshableView view, Config config) {
 		
 		this.config = config;
 		this.view = view;
@@ -92,18 +90,18 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 		
 	}
 	
-	@Override
-	public void mouseDoubleClick(MouseEvent arg0) {
-	}
+//	@Override
+//	public void mouseDoubleClick(MouseEvent arg0) {
+//	}
+//
+//	@Override
+//    public void mouseUp(MouseEvent arg0) {
+//	}
 
-	@Override
-    public void mouseUp(MouseEvent arg0) {
-	}
-
-	@Override
-	public void mouseDown(MouseEvent arg0) {
-		this.refreshAction(view.getAnalysisStartDate());
-	}
+//	@Override
+//	public void mouseDown(MouseEvent arg0) {
+//		this.refreshAction(view.getAnalysisStartDate());
+//	}
 	
 	@Override
 	public void widgetDefaultSelected(SelectionEvent arg0) {
@@ -130,7 +128,6 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	 * @author Guillaume Thoreton
 	 * @param viewStateParams 
 	 */
-	//public void updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey) {
 	//The order of the tasks is not important but the last one!
 	public void updateEventRefreshModelState(Long taskKey, TaskId ... taskIds) {
 
@@ -147,19 +144,24 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	private synchronized void refreshAction(final Date startAnalyseDate) {
 		
 			final List<Exception> exceptions = new ArrayList<Exception>();
+			Boolean taskIsValid = true;//Only on task is last of the group so this boolean should be affected once and only once.
+			TaskId lastTaskOfThisGroup = null;
 			
 			try {
-				
-				TaskId lastTaskOfThisGroup = null;
-				if (taskIds != null && !taskIds.isEmpty()) lastTaskOfThisGroup = taskIds.get(taskIds.size() -1);
+			
+				if (taskIds != null && !taskIds.isEmpty()) {
+					lastTaskOfThisGroup = taskIds.get(taskIds.size() -1);
+				} else {
+					
+					return;
+				}
 
 				
 				List<EventRefreshTask> tasksGroup = new ArrayList<EventRefreshController.EventRefreshTask>();
 				
-				if (taskIds.contains(TaskId.FetchLists) && isFetchListStocks() ) {	
+				if (taskIds.contains(TaskId.FetchLists) ) { // && isFetchListStocks() ) {	
 
-					//Add Fetch List to the queue
-					if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || isValidTask(lastTaskOfThisGroup)) {
+					if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || (taskIsValid = isValidTask(lastTaskOfThisGroup)) ) {
 
 						eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 
@@ -169,38 +171,43 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 									eventModel.callbackForlastListFetch();
 									eventModel.setLastListFetch(currentDate);
 								} catch (Throwable e) { 
+									LOGGER.warn(e,e);
 									exceptions.add(new StockListRefreshException(e));
 								}
 							}
 						});
 					} else {
+						
 						return;
 					}
 
 				}
 				
 				if (taskIds.contains(TaskId.FetchRecos)) {
-					//Add Fetch Reco to the queue
-					if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || isValidTask(lastTaskOfThisGroup)) {
+					
+					if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || (taskIsValid = isValidTask(lastTaskOfThisGroup)) ) {
+						
 						tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos) {
 							public void run() {
 								try {
 									eventModel.callbackForReco();
 								} catch (Throwable e) {
+									LOGGER.warn(e,e);
 									exceptions.add(new RecoRefreshException(e));
 								}
 							}
 						});
 					} else {
+						
 						return;
 					}
 					
 				}
 				
-				if (taskIds.contains(TaskId.FetchQuotations) && isFetchQuotes()) {
+				if (taskIds.contains(TaskId.FetchQuotations) ) { // && isFetchQuotes()) {
 					
-					//Add Fetch Quotations
-					if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || isValidTask(lastTaskOfThisGroup)) {
+					if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || (taskIsValid = isValidTask(lastTaskOfThisGroup) )) {
+						
 						tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations) {
 							public void run() {
 								try {
@@ -208,20 +215,21 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 									eventModel.setLastQuotationFetch(currentDate);
 									eventModel.resetLastAnalyse();
 								} catch (Throwable e) {
+									LOGGER.warn(e,e);
 									exceptions.add(new QuotatationRefreshException(e));
 								}
 							}
 						});
 					} else {
+						
 						return;
 					}
 				
 				}
 				
 				if (taskIds.contains(TaskId.Clean)) {
-				
-					//Add clear Analysis
-					if (!lastTaskOfThisGroup.equals(TaskId.Clean) || isValidTask(lastTaskOfThisGroup)) {
+	
+					if (!lastTaskOfThisGroup.equals(TaskId.Clean) || (taskIsValid = isValidTask(lastTaskOfThisGroup)) ) {
 
 						eventModel.resetAnalisysList();
 						eventModel.getAnalysisList().add("talib");
@@ -232,12 +240,14 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 									eventModel.callbackForAnalysisClean();
 									eventModel.resetLastAnalyse();
 								} catch (Throwable e) {
+									LOGGER.warn(e,e);
 									exceptions.add(new EventRefreshException(e));
 								}
 							}
 
 						});
 					} else {
+						
 						return;
 					}
 					
@@ -245,8 +255,7 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				
 				if (taskIds.contains(TaskId.Analysis)) {
 					
-					//Add Analysis
-					if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || isValidTask(lastTaskOfThisGroup, startAnalyseDate)) {
+					if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || (taskIsValid = isValidTask(lastTaskOfThisGroup, startAnalyseDate)) ) {
 						
 						eventModel.resetAnalisysList();
 						eventModel.getAnalysisList().add("talib");
@@ -257,12 +266,15 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 									eventModel.callbackForlastAnalyse(startAnalyseDate);
 									eventModel.setLastAnalyse(currentDate);
 								} catch (Throwable e) {
+									LOGGER.warn(e,e);
 									exceptions.add(new EventRefreshException(e));
 								}
 							}
 
 						});
+						
 					} else {
+						
 						return;
 					}
 				}
@@ -270,28 +282,29 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				//TODO you need add params for alters as well or you can't run it twice ...
 				if (taskIds.contains(TaskId.Alerts)) {
 					
-					//Add Alerts calc
-					if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || isValidTask(lastTaskOfThisGroup)) {
+					if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || (taskIsValid = isValidTask(lastTaskOfThisGroup)) ) {
 						tasksGroup.add(new EventRefreshTask(TaskId.Alerts) {
 							public void run() {
 								try {
 									eventModel.callbackForAlerts();
 								} catch (Throwable e) {
+									LOGGER.warn(e,e);
 									exceptions.add(new EventRefreshException(e));
 								}
 							}
 						});
 					} else {
+						
 						return;
 					}
 				}
-				
 				
 				EventTaskQueue.getSingleton().offerTasks(tasksGroup);
 				
 				
 			} finally {
 				
+				if (!taskIsValid && eventModel.allowsTaskReset()) exceptions.add(new InvalidEventRefreshTask(lastTaskOfThisGroup));
 
 				//Refresh view task
 				EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh) {
@@ -299,7 +312,8 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 					public void run() {
 						
 						try {
-							//Notifiy observers
+							
+							//Notify observers
 							for (Observer obs : eventModel.getEngineObservers()) {
 								obs.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.DONE, taskKey));
 							}
@@ -309,7 +323,6 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 								public void run() {
 									view.endRefreshAction(exceptions);
 								}
-
 							});
 							
 						} catch (Exception e) {
@@ -325,35 +338,35 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	
 
 
-	/**
-	 * Fetch list of quotes.
-	 * 
-	 * @return true, if isfetch list of quotes
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	private Boolean isFetchListStocks() {
-	
-		Date lastListFetch = eventModel.getLastListFetch();
-		LOGGER.debug("Last list update asked from event composite window was on the : "+lastListFetch);
-		return lastListFetch.before(currentDate);
-		
-	}
-	
-	/**
-	 * Fetch quotes.
-	 * 
-	 * @return true, if checks if is fetch quotes
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	private Boolean isFetchQuotes() {
-		
-		Date lastFetch = eventModel.getLastQuotationFetch();
-		LOGGER.debug("Last quotation asked from event composite window was on the : " + lastFetch);
-		return lastFetch.before(currentDate);
-
-	}
+//	/**
+//	 * Fetch list of quotes.
+//	 * 
+//	 * @return true, if isfetch list of quotes
+//	 * 
+//	 * @author Guillaume Thoreton
+//	 */
+//	private Boolean isFetchListStocks() {
+//	
+//		Date lastListFetch = eventModel.getLastListFetch();
+//		LOGGER.debug("Last list update asked from event composite window was on the : "+lastListFetch);
+//		return lastListFetch.before(currentDate);
+//		
+//	}
+//	
+//	/**
+//	 * Fetch quotes.
+//	 * 
+//	 * @return true, if checks if is fetch quotes
+//	 * 
+//	 * @author Guillaume Thoreton
+//	 */
+//	private Boolean isFetchQuotes() {
+//		
+//		Date lastFetch = eventModel.getLastQuotationFetch();
+//		LOGGER.debug("Last quotation asked from event composite window was on the : " + lastFetch);
+//		return lastFetch.before(currentDate);
+//
+//	}
 	
 	public boolean isValidTask(TaskId taskId, Object... addParams) {
 		
@@ -371,30 +384,42 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 	abstract class EventRefreshTask implements Runnable {
 		
 		private TaskId taskId;
-		private int paramSign;
-		private Object[] viewParams; //Debug
 		private Long eventInfoChangeStamp;
+		private Long taskCreationStamp;
 		
+		private List<List<? extends Object>> taskViewParams;
 		private List<Object> addParams;
+		private int[] viewParamPositions;
+
 		
-		
-		private EventRefreshTask(TaskId taskId, Object ... addParams) {
+		private EventRefreshTask(TaskId taskId, Object... addParams) {
+			
 			super();
 			this.taskId = taskId;
-			this.paramSign = 0;
-			
-			viewParams = eventModel.getViewStateParams();
-			if (viewParams != null) {
-				for (Object object : viewParams) {
-					this.paramSign = this.paramSign + object.hashCode();
-				}
-			}
 			this.eventInfoChangeStamp = EventModel.eventInfoChangeStamp;
-			
+
+			this.taskViewParams = new ArrayList<List<? extends Object>>();
+			Collection<? extends Object>[] eMviewParams = eventModel.viewStateParams;
+			if (eMviewParams != null) {
+				for (Collection<? extends Object> collection : eMviewParams) {
+					ArrayList<Object> collectionClone = new ArrayList<Object>();
+					if (collection != null) {
+						collectionClone.addAll(collection);
+						this.taskViewParams.add(collectionClone);
+					} else {
+						collectionClone.add(null);
+					}
+				}
+			} 
+			this.taskCreationStamp = DateFactory.midnithDate(new Date()).getTime();
+
+			this.addParams = new ArrayList<Object>();
 			if (addParams != null) {
-				this.addParams = new ArrayList<Object>();
 				this.addParams.addAll(Arrays.asList(addParams));
 			}
+			
+			viewParamPositions = eventModel.viewParamPositionsFor(taskId);
+			
 		}
 		
 		public TaskId getTaskId() {
@@ -405,23 +430,17 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 			return config;
 		}
 		
-		@Override
-		public String toString() {
-			return "EventRefreshTask [taskId=" + taskId + ", paramSign=" + paramSign + ", eventInfoChangeStamp=" + eventInfoChangeStamp + ", addParams="+ addParams + "] " +
-					"viewParams : "+((viewParams != null)?Arrays.asList(viewParams):"None"); //Debug
-		}
 
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + paramSign;
-			result = prime * result + eventInfoChangeStamp.hashCode();
-			result = prime * result + addParams.size();
+			result = prime * result + ((addParams == null) ? 0 : addParams.hashCode());
+			result = prime * result + ((eventInfoChangeStamp == null) ? 0 : eventInfoChangeStamp.hashCode());
 			result = prime * result + ((taskId == null) ? 0 : taskId.hashCode());
+			result = prime * result + ((taskViewParams == null) ? 0 : taskViewParams.hashCode());
 			return result;
 		}
-
 
 		@Override
 		public boolean equals(Object obj) {
@@ -429,18 +448,90 @@ public class EventRefreshController implements MouseListener, SelectionListener 
 				return true;
 			if (obj == null)
 				return false;
-			if (!(obj instanceof EventRefreshTask))
+			if (getClass() != obj.getClass())
 				return false;
 			EventRefreshTask other = (EventRefreshTask) obj;
-			if (paramSign != other.paramSign)
+			if (addParams == null) {
+				if (other.addParams != null)
+					return false;
+			} else if (!addParams.equals(other.addParams))
 				return false;
-			if (!eventInfoChangeStamp.equals(other.eventInfoChangeStamp))
-				return false;
-			if (!addParams.equals(other.addParams)) 
+			if (eventInfoChangeStamp == null) {
+				if (other.eventInfoChangeStamp != null)
+					return false;
+			} else if (!eventInfoChangeStamp.equals(other.eventInfoChangeStamp))
 				return false;
 			if (taskId != other.taskId)
 				return false;
+			if (taskViewParams == null) {
+				if (other.taskViewParams != null)
+					return false;
+			} else if (!taskViewParams.equals(other.taskViewParams))
+				return false;
 			return true;
+		}
+
+
+	
+
+		public boolean contains(EventRefreshTask other) {
+			
+			try {
+				
+				if (this.taskCreationStamp < other.taskCreationStamp) return false;
+				
+				if (!eventInfoChangeStamp.equals(other.eventInfoChangeStamp))
+					return false;
+				if (taskId != other.taskId)
+					return false;
+				
+				if (!taskViewParams.equals(other.taskViewParams)) {
+
+					for (int i = 0; i < viewParamPositions.length; i++) {
+
+						if (taskViewParams.get(viewParamPositions[i]) == null) {//A null array means all for the sub set. So it contains : we skip
+							continue;
+						} else if (i > other.viewParamPositions.length || other.taskViewParams.get(other.viewParamPositions[i]) == null) {//other presents a null or absent array means it wants all so cannot be contained => false.
+							return false;
+						} else {//we check element one by one
+							for (Object viewParam : other.taskViewParams.get(other.viewParamPositions[i])) {
+								if (!taskViewParams.get(viewParamPositions[i]).contains(viewParam)) return false;
+							}
+						}
+						
+					}
+					
+				}
+					
+				if (addParams.isEmpty() && other.addParams.isEmpty()) return true;
+				if (addParams.size() != other.addParams.size()) return false;
+				
+				for (int i = 0; i < other.addParams.size(); i++) {
+					if ( addParams.get(i) instanceof Date && other.addParams.get(i) instanceof Date && ((Date)addParams.get(i)).after((Date)other.addParams.get(i)) ) {
+						return false;
+					}
+					else if (!addParams.contains(other.addParams.get(i))) {
+						return false;
+					}
+				}
+				
+			} catch (Exception e) {
+				LOGGER.error(e,e);
+				return false;
+			}
+			
+			return true;
+		
+		}
+
+		@Override
+		public String toString() {
+			return "EventRefreshTask [taskId=" + taskId + ", eventInfoChangeStamp=" + eventInfoChangeStamp + ", taskCreationStamp=" + taskCreationStamp
+					+ ", viewParamPositions=" + Arrays.toString(viewParamPositions) + ", taskViewParams=" + taskViewParams + ", addParams=" + addParams + "]";
+		}
+
+		public void setTaskCreationStamp(Long taskCreationStamp) {
+			this.taskCreationStamp = taskCreationStamp;
 		}
 
 

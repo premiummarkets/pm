@@ -129,7 +129,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		
 		this.stockList = new StockList();
 		this.caller = composite;
-		//this.tabIdx = tabIdx;
 		biggerFont =  MainGui.DEFAULTFONT;
 	}
 
@@ -142,10 +141,15 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 */
 	public static void main(String[] args) {
 		SpringContext ctx = new SpringContext(args[0]);
-		//ctx.setDataSource(args[0]);
 		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
 		ctx.refresh();
-		showUI(0, new ArrayList<PortfolioShare>(), new Shell(), null);
+		NewPortfolioItemDialog inst = showUI(0, new ArrayList<PortfolioShare>(), new Shell(), null);
+		
+		try {
+			inst.swtLoop();
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+		}
 		
 	}
 
@@ -181,12 +185,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 			runningInst = inst;
 
-			try {
-				inst.swtLoop();
-			} catch (Exception e) {
-				LOGGER.error(e, e);
-				throw e;
-			}
 
 		} catch (Exception e) {
 
@@ -753,7 +751,10 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	private void addAction(Set<Stock> stocks, BigDecimal quantity, MonitorLevel monitorLevel) {
 		PortfolioComposite portfolioComposite = (PortfolioComposite) caller;
 		int currentTabSelection = portfolioComposite.getCurrentTabSelection();
-		if (currentTabSelection != -1) portfolioComposite.addShares(currentTabSelection, stocks, quantity, monitorLevel);
+		if (currentTabSelection != -1) {
+			portfolioComposite.addShares(currentTabSelection, stocks, quantity, monitorLevel);
+			portfolioComposite.refreshPortfolioTotalsInfos(currentTabSelection);
+		}
 	}
 	
 

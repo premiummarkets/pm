@@ -96,14 +96,13 @@ public class OTFTuningFinalizer {
 		Date endCalcRes = (calcOutput.size() > 0 && calcOutput.lastKey().after(endDate))? calcOutput.lastKey() : endDate;
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
-		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endCalcRes)+" with "+evtDef+".\n";
+		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
 
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 		String trendFile = "noOutputAvailable";
 		String chartFile = "noChartAvailable";
 		BigDecimal totProfit = BigDecimal.ONE;
-		
-		//EventType prevEventType = EventType.NONE;
+
 		EventType prevEventType = null;
 		PeriodRatingDTO period = new PeriodRatingDTO();
 		
@@ -143,42 +142,44 @@ public class OTFTuningFinalizer {
 
 			//Other init
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 0, 0);
-			BigDecimal lastClose = quotations.getClosestCloseForDate(endCalcRes);
+			BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
 
 			Pattern pattern = Pattern.compile("config : (.*) es : ");
 			DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
 
 			Calendar currentDate = zeroTimeDate(startDate);
 			
-			//TODO of any use??? Fill training quotations + calc output up to start date
-			if (generateBuySellCsv) {
-				while (currentDate.getTime().before(startDate)) {
-					String line  = simpleDateFormat.format(currentDate.getTime());
-					BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-					double[] output = calcOutput.get(currentDate.getTime());
-					String outputString = (output == null)?"NaN":output[0]+"";
-					line = line + ", " + closeForDate + ", , ";
-					line = line + ", " + outputString; 		
-					line = line + "\n";
-					bufferedWriter.write(line);
-					QuotationsFactories.getFactory().incrementDate(currentDate, 1);
-				}
-			}
+//			//Fill training quotations + calc output up to start date //TODO is this of any use???
+//			if (generateBuySellCsv) {
+//				while (currentDate.getTime().before(startDate)) {
+//					String line  = simpleDateFormat.format(currentDate.getTime());
+//					BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+//					double[] output = calcOutput.get(currentDate.getTime());
+//					String outputString = (output == null)?"NaN":output[0]+"";
+//					line = line + ", " + closeForDate + ", , ";
+//					line = line + ", " + outputString; 		
+//					line = line + "\n";
+//					bufferedWriter.write(line);
+//					QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+//				}
+//			}
 
 			BigDecimal big2 = BigDecimal.ONE;
 
 			Iterator<EventValue> eventsIt = eventListForEvtDef.iterator();
 			EventValue currentEvent = null;
+			Date firstEventDate = null;
 			//We fetch the first event
 			if (eventsIt.hasNext()) {
 				currentEvent = eventsIt.next();
+				firstEventDate = currentEvent.getDate();
 			}
 
 			BigDecimal prevCloseForDate = quotations.getClosestCloseForDate(currentDate.getTime());
 			SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
 			SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 			
-			while (currentDate.getTime().before(endCalcRes) || currentDate.getTime().compareTo(endCalcRes) == 0) {
+			while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
 				
 				BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
 				
@@ -192,9 +193,11 @@ public class OTFTuningFinalizer {
 				while (currentEvent != null && currentDate.getTime().after(currentEvent.getDate()) && eventsIt.hasNext()) {
 					currentEvent = eventsIt.next();
 				}
+				
 				//We process the event when reached
 				if (currentEvent != null && currentDate.getTime().compareTo(currentEvent.getDate()) == 0) {
 
+					//TODO : remove this config match
 					try {
 						String message = currentEvent.getMessage();
 						Matcher matcher = pattern.matcher(message);
@@ -212,11 +215,10 @@ public class OTFTuningFinalizer {
 					}
 
 					EventType eventType = currentEvent.getEventType();
-					if (prevEventType == null || !prevEventType.equals(eventType)) {//Trend change or first trend
+					if (prevEventType == null || !prevEventType.equals(eventType)) {//Trend change or First trend
 
 						//TO
-						//if (!prevEventType.equals(EventType.NONE)) {
-						if (prevEventType != null) {//Not the first trend
+						if (prevEventType != null) {//Not the First trend : we cummulate
 
 							BigDecimal pPriceChange = closeForDate.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
 
@@ -228,19 +230,29 @@ public class OTFTuningFinalizer {
 
 							//Profit for period
 							if (eventType.equals(EventType.BEARISH)) {//sell
+								
+								LOGGER.info(
+										"Sell : Compound profit is "+totProfit+" at "+currentDate.getTime()+
+										". New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevCloseForDate+" : "+closeForDate+"-"+prevCloseForDate+"/"+prevCloseForDate+"="+pPriceChange);
+								
 								totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+								
+								LOGGER.info("New Compound at "+currentDate.getTime()+" : prevTotProfit*("+pPriceChange+"+1)="+totProfit);
 							}				
 						}
 
-						//FROM
+						//FROM //First trend or start of a new one
 						//Period
 						period.setTrend(eventType.toString());
 						period.setFrom(currentEvent.getDate());
 
-						//Csv First trend change
+						//Csv Trend change
 						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
 							if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
 							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+							
+							LOGGER.info("Buy : Compound profit at "+totProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
+							
 						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
 							if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
 							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
@@ -303,7 +315,7 @@ public class OTFTuningFinalizer {
 				bufferedWriter.flush();
 			}
 			
-			//Not enought data we stop
+			//Not enough data we stop
 			if (prevEventType == null || calcOutput.size() == 0) {
 				
 				String message = "No trend forecast events were found after calculation.\n";
@@ -361,13 +373,14 @@ public class OTFTuningFinalizer {
 			totProfit = totProfit.subtract(BigDecimal.ONE);
 
 			//Finalise trend
-			period.setTo(endCalcRes);
+			period.setTo(endDate);
 			period.setPriceChange(pPriceChange);
 			periods.add(period);	
 			
 			//Buy and hold profit
-			BigDecimal firstClose = quotations.getClosestCloseForDate(startDate);
+			BigDecimal firstClose = quotations.getClosestCloseForDate(firstEventDate);
 			BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
+			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
 			
 			return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, calcOutput.firstKey(), calcOutput.lastKey());
 			

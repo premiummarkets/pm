@@ -171,15 +171,22 @@ constant :  NumberToken -> ^(Number NumberToken) ;
 
 opcmpcondition [CommonTree firstOp] : 
 
-  'is above historical' WhiteChar operand -> ^(SupDoubleMapCondition {$firstOp} operand) |
-  'is below historical' WhiteChar operand -> ^(InfDoubleMapCondition {$firstOp} operand) |
-  'equals historical' WhiteChar operand -> ^(EqualDoubleMapCondition {$firstOp} operand) |
+  ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
+   ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(SupDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
+  ('is below historical' WhiteChar operand -> ^(InfDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) ) 
+    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(InfDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
+  ('equals historical' WhiteChar operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
+    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
   
-  ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) {$firstOp} operand))
-        ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$firstOp} operand) )? |
+  ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
+        ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+          WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS 
+          -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$firstOp} operand) )? |
         
-  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) {$firstOp} operand)) 
-       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$firstOp} operand) )?;
+  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"])  {$firstOp} operand)) 
+       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
+         WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS 
+         -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$firstOp} operand) )?;
        
 
 constantcmp [CommonTree firstOp] :
@@ -204,7 +211,7 @@ presetcondition [CommonTree firstOp]  :
       ( WhiteChar 'more than' WhiteChar percentup=constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
       -> ^(ReverseCondition ^(Number NumberToken["1"]) {$percentup.tree} {$spanningNbDays.tree} {$firstOp}) )? |
       
-  ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Number NumberToken["1.0"])  ^(Number NumberToken["0.0"]) {$firstOp})) 
+  ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp})) 
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(DownRatioCondition {$percentdown.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$firstOp}) )? |
   ('goes up more than' WhiteChar percentup=constant PERCENT -> ^(UpRatioCondition constant ^(Number NumberToken["1.0"])  ^(Number NumberToken["0.0"]) {$firstOp})) 
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(UpRatioCondition {$percentup.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$firstOp}) )? |

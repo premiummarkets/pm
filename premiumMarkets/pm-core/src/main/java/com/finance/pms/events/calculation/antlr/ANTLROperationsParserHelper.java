@@ -240,8 +240,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					} 
 					else if  (exception instanceof InvalidOperationException)  {
 						//String currentOpStr =  ((InvalidOperationException) exception).getCurrentToken();
-						String currentOpStr =  ((InvalidOperationException) exception).token.getText();
-						currentOpStr = (currentOpStr !=null)?currentOpStr: " ";
+						String currentOpStr = (((InvalidOperationException) exception).token != null)?((InvalidOperationException) exception).token.getText():null;
+						currentOpStr = (currentOpStr != null)?currentOpStr: " ";
 						int[] position = new int[]{exception.line, exception.charPositionInLine + currentOpStr.length()-1-1};
 						altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry",  " Invalid operation eof", null, position));
 					}

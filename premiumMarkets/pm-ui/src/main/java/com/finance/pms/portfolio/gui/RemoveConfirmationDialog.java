@@ -47,6 +47,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
 
@@ -77,6 +78,8 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	private BigDecimal percentageFall;
 
 	private boolean monitor;
+
+	private ActionDialogAction action;
 
 	/**
 	 * The main method.
@@ -246,18 +249,18 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 
 			dialogShell.pack();
 			dialogShell.open();
-			Display display = dialogShell.getDisplay();
-			while (!dialogShell.isDisposed()) {
-				try {
-					if (!display.readAndDispatch()) display.sleep();
-				} catch (RuntimeException e) {
-					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in Error Dialog Gui : ",e);
-				} catch (Error e) {
-					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in  Gui : ",e);
-				}
-			}
+//			Display display = dialogShell.getDisplay();
+//			while (!dialogShell.isDisposed()) {
+//				try {
+//					if (!display.readAndDispatch()) display.sleep();
+//				} catch (RuntimeException e) {
+//					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in Error Dialog Gui : ",e);
+//				} catch (Error e) {
+//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
+//					LOGGER.debug("Error in  Gui : ",e);
+//				}
+//			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
@@ -272,6 +275,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 	 */
 	private void closeMouseDown() {
 		dialogShell.dispose();
+		action.action(null);
 	}
 
 	public Boolean getCanceled() {
@@ -302,6 +306,11 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 			monitroPortfolioName = monitoringPortfolioTxt.getText();
 			percentageFall = BigDecimal.valueOf(Double.valueOf(alertPercentageTxt.getText()));
 		}
+	}
+
+	public void setAction(ActionDialogAction action) {
+		this.action = action;
+		
 	}
 
 }

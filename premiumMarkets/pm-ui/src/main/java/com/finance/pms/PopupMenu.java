@@ -13,7 +13,6 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -33,9 +32,10 @@ public class PopupMenu<T extends InfoObject>  {
 	
 	private Boolean unableSelectAll;
 	private ActionDialogAction action;
+	private boolean disposeOnDeactivate;
 
 
-	public PopupMenu(Composite rootParent, Control controlParent, Set<T> availableOptSet, Set<T> selectionList, Boolean unableSelectAll, int style, ActionDialogAction action) {
+	public PopupMenu(Composite rootParent, Control controlParent, Set<T> availableOptSet, Set<T> selectionList, Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, ActionDialogAction action) {
 		super();
 		this.rootParent = rootParent;
 		this.controlParent = controlParent;
@@ -54,6 +54,7 @@ public class PopupMenu<T extends InfoObject>  {
 		this.unableSelectAll = unableSelectAll;
 		
 		this.action = action;
+		this.disposeOnDeactivate = disposeOnDeactivate;
 		
 	}
 
@@ -69,11 +70,10 @@ public class PopupMenu<T extends InfoObject>  {
 		selectionShell.setFont(MainGui.CONTENTFONT);
 		
 		selectionShell.addListener(SWT.Deactivate, new Listener() {
+			
 			public void handleEvent(Event e){	
-				if (action == null) {
+				if (disposeOnDeactivate) {
 					selectionShell.dispose();
-				} else {
-					
 				}
 			}
 		});
@@ -98,14 +98,14 @@ public class PopupMenu<T extends InfoObject>  {
 		
 		selectionShell.open();
 		
-		Display display = selectionShell.getDisplay();
-		while (!selectionShell.isDisposed () && selectionShell.isVisible ()) {
-			if (!display.readAndDispatch()) display.sleep();
-		}
-		
-		if (!selectionShell.isDisposed ()) {
-			selectionShell.dispose();
-		}
+//		Display display = selectionShell.getDisplay();
+//		while (!selectionShell.isDisposed () && selectionShell.isVisible ()) {
+//			if (!display.readAndDispatch()) display.sleep();
+//		}
+//		
+//		if (!selectionShell.isDisposed ()) {
+//			selectionShell.dispose();
+//		}
 				
 	}
 
@@ -180,7 +180,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.remove(buttonInfo);
 					}
 					
-					if (action != null) action.action(button);
+					if (action != null ) action.action(button);
 			
 				}
 				

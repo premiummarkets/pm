@@ -78,8 +78,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	 * @param observers 
 	 * @throws WarningException 
 	 */
-	public ParameterizedCalculator(
-			EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers) 
+	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers) 
 			throws WarningException  {
 		
 		super(stock);		

@@ -43,10 +43,11 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 		
 		Double direction = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Double changeRatio = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
-		Integer spanningPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer spanningShift = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningPeriod.intValue(), false, false);
+		if (spanningShift == 0) spanningShift = 1;
+		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 		
 		BooleanMapValue outputs = new  BooleanMapValue();

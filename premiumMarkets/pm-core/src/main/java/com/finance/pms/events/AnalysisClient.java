@@ -189,11 +189,16 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
  
     	Boolean sendMailEnabled = new Boolean(MainPMScmd.getPrefs().get("mail.infoalert.activated","false"));
     	
-		Boolean isFiltered = (
-				EMAILSENDINGLFILTER != null && symbolEvents.getEventDefList().size() == 1 && 
-				EMAILSENDINGLFILTER.filtered().contains(symbolEvents.getEventDefList().iterator().next()) && 
-				symbolEvents.getLastDate().getTime() >= EMAILSENDINGLFILTER.filterDate()
+		Boolean isFiltered = 
+				(
+					!source.equals(EmailFilterEventSource.PMTAEvents) ||
+					(
+						EMAILSENDINGLFILTER != null && symbolEvents.getEventDefList().size() == 1 && 
+						EMAILSENDINGLFILTER.filtered().contains(symbolEvents.getEventDefList().iterator().next()) && 
+						symbolEvents.getLastDate().getTime() >= EMAILSENDINGLFILTER.filterDate()
+					)
 				);
+	
 		Boolean isValidEventSource =  symbolEvents.getStock().equals(ANY_STOCK) || PortfolioMgr.getInstance().isMonitoredForEvent(symbolEvents);
 		if 	( sendMailEnabled && isValidEventSource && isFiltered ) {
 			LOGGER.info("Email/Popup message preview : "+eventType.name()+" "+eventInfoRef+" from "+source+" in "+ eventListName + " : "+symbolEvents.getStock().getFriendlyName()+", "+symbolEvents.toEMail());

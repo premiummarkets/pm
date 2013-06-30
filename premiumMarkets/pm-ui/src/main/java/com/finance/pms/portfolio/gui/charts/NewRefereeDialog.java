@@ -30,6 +30,7 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -151,7 +152,13 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	protected void addSelection(Set<Stock> stocks) {
 		this.selectedStocks = stocks;
 		
-		UserDialog inst = new UserDialog(getShell(), "Added referee : "+stocks,null);
+		String friendlyName = "NONE";
+		Iterator<Stock> iterator = stocks.iterator();
+		if (iterator.hasNext()) {
+			friendlyName = iterator.next().getFriendlyName();
+		}
+		
+		UserDialog inst = new UserDialog(getShell(), "Added referee : "+friendlyName,null);
 		inst.open();
 	}	
 	

@@ -14,7 +14,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -84,16 +83,16 @@ public class BarSettingsDialog {
 		shell.pack();
         
         shell.open();
-        Display display = parent.getDisplay();
-        while (!shell.isDisposed()) {
-                try {
-                	 if (!display.readAndDispatch()) display.sleep();
-    			} catch (RuntimeException e) {
-    				LOGGER.error("Error in OperationBuilderDialog Gui : " + e.getMessage(),e);
-    			} catch (Error e) {
-    				LOGGER.error("Error in  Gui : " + e.getMessage(),e);
-    			}
-        }
+//        Display display = parent.getDisplay();
+//        while (!shell.isDisposed()) {
+//                try {
+//                	 if (!display.readAndDispatch()) display.sleep();
+//    			} catch (RuntimeException e) {
+//    				LOGGER.error("Error in OperationBuilderDialog Gui : " + e.getMessage(),e);
+//    			} catch (Error e) {
+//    				LOGGER.error("Error in  Gui : " + e.getMessage(),e);
+//    			}
+//        }
         
         return barChartSettings;
         

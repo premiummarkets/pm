@@ -51,6 +51,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
+		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 		
@@ -63,7 +64,6 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(previous, current, constant);
 				if (conditionCheck != null) {
-					//outputs.getValue(targetStock).put(date, conditionCheck);
 					
 					if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
 						outputs.getValue(targetStock).put(date, conditionCheck);

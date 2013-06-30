@@ -297,7 +297,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		
 		try {
 			
-			LOGGER.guiInfo("Storing pass "+passNumber+" events ("+allEvents.size()+" sets), from "+startDate+" to "+endDate);
+			LOGGER.guiInfo("Storing pass "+passNumber+" events ("+allEvents.size()+" stocks), from "+startDate+" to "+endDate);
 			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
 			
 			for (Observer observer : observers) {

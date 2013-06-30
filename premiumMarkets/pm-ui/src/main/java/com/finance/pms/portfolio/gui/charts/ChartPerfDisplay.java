@@ -56,6 +56,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 
@@ -105,8 +106,9 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			closeFunctionBut = new Button(popupButtonsGroup, SWT.PUSH);
 			closeFunctionBut.setFont(MainGui.DEFAULTFONT);
 			closeFunctionBut.setText("Comparison mode ...");
-			//closeFunctionBut.setToolTipText(cmpModeToolTipRoot+"The current comparison mode is '"+chartTarget.getStripedCloseFunction().lineToolTip()+"'");
+			
 			final Set<TransfoInfo> transfos = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
+					
 					new TransfoInfo("Change to Buy price", new ActionDialogAction() {
 
 						@Override
@@ -189,18 +191,26 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 				private void handleEvent(final Button closeFunctionBut, final Set<TransfoInfo> transfos) {
 					
-					Set<TransfoInfo> selectTransfo = new HashSet<TransfoInfo>();
+					final Set<TransfoInfo> selectTransfo = new HashSet<TransfoInfo>();
 					for (TransfoInfo transfoInfo : transfos) {
 						if (chartTarget.getStripedCloseFunction().lineToolTip().toLowerCase().contains(transfoInfo.info().toLowerCase())) {
 							selectTransfo.add(transfoInfo);
 						}
 					}
-					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, false, SWT.RADIO, null);
-					popupMenu.open();
-					for (TransfoInfo selctTransUnic : selectTransfo) {
-						selctTransUnic.action.action(null);
-					}
 					
+					ActionDialogAction actionDialogAction = new ActionDialogAction() {
+						
+						@Override
+						public void action(Control targetControl) {
+							for (TransfoInfo selctTransUnic : selectTransfo) {
+								selctTransUnic.action.action(null);
+							}
+							
+						}
+					};
+					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, true, false, SWT.RADIO, actionDialogAction);
+					popupMenu.open();
+						
 				}
 
 				@Override
@@ -226,13 +236,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 				private void hideShowShares(final Button hideStock) {
 					
-					Set<SlidingPortfolioShare> displayedShares = new HashSet<SlidingPortfolioShare>();
-
-					
-					List<SlidingPortfolioShare> currentTabShareList = chartTarget.getCurrentTabShareList();
+					final Set<SlidingPortfolioShare> displayedShares = new HashSet<SlidingPortfolioShare>();
+					final List<SlidingPortfolioShare> currentTabShareList = chartTarget.getCurrentTabShareList();
 					
 					SlidingPortfolioShare selectedPS = chartTarget.getCurrentLineSelection();
-					TreeSet<SlidingPortfolioShare> availShares = new TreeSet<SlidingPortfolioShare>(currentTabShareList);
+					final TreeSet<SlidingPortfolioShare> availShares = new TreeSet<SlidingPortfolioShare>(currentTabShareList);
 					if (selectedPS != null) availShares.remove(selectedPS);
 					
 					if (availShares.size() > 0) {
@@ -242,19 +250,26 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								displayedShares.add(slidingPortfolioShare);
 							} 
 						}
-
-						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, availShares , displayedShares, true, SWT.CHECK, null);
-						popupMenu.open();
-						if (!isShutDown) {
-							for (SlidingPortfolioShare slidingPortfolioShare : availShares) {
-								if (displayedShares.contains(slidingPortfolioShare)) {
-									slidingPortfolioShare.setDisplayOnChart(true);
-								} else {
-									slidingPortfolioShare.setDisplayOnChart(false);
+						
+						ActionDialogAction action = new ActionDialogAction() {
+							
+							@Override
+							public void action(Control targetControl) {
+								if (!isShutDown) {
+									for (SlidingPortfolioShare slidingPortfolioShare : availShares) {
+										if (displayedShares.contains(slidingPortfolioShare)) {
+											slidingPortfolioShare.setDisplayOnChart(true);
+										} else {
+											slidingPortfolioShare.setDisplayOnChart(false);
+										}
+									}
+									chartTarget.updateCharts(currentTabShareList, true, true, false);
 								}
 							}
-							chartTarget.updateCharts(currentTabShareList, true, true, false);
-						}
+						};
+						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, availShares , displayedShares, true, true, SWT.CHECK, action);
+						popupMenu.open();
+						
 					}
 
 				}
@@ -329,7 +344,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				MainPMScmd.getPrefs().put("charts.referee", referree.getSymbol());
 
 			} catch (Exception e) {
-				UserDialog inst = new UserDialog(chartTarget.getShell(), "Invalid referee : "+referree.getFriendlyName()+"\n"+e, null);
+				UserDialog inst = new UserDialog(chartTarget.getShell(), "Sorry. Invalid referee : "+referree.getFriendlyName()+"\n"+e, null);
 				inst.open();
 			} finally {
 				chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -388,9 +403,9 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	@Override
 	public int retreivePreviousSelection() {
 		
-		if (chartTarget.getHightlitedEventModel().getViewStateParams() != null && chartTarget.getHightlitedEventModel().getViewStateParams().length == 1) {
-			//highLight(chartTarget.getHighligtedId(), (Stock) chartTarget.getHightlitedEventModel().getViewStateParams()[0], true);
-			Stock stock = (Stock) chartTarget.getHightlitedEventModel().getViewStateParams()[0];
+		if (chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
+			
+			Stock stock = chartTarget.getHightlitedEventModel().getViewParamRoot();
 			int cpt = 0;
 			for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
 				if (stock.equals(slidingPortfolioShare.getStock())) return cpt;

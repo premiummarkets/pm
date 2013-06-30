@@ -31,7 +31,7 @@
 package com.finance.pms.datasources;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +50,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
+import com.finance.pms.datasources.EventModel.UpdateStamp;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
@@ -65,15 +66,15 @@ import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
-public abstract class UserContentStrategyEngine implements EventModelStrategyEngine {
+public abstract class UserContentStrategyEngine extends EventModelStrategyEngine {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) {
+	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) {
 		LOGGER.debug("No list update available for this model.");
 	}
 
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) throws StockNotFoundException {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws StockNotFoundException {
 		
 		LOGGER.guiInfo("Task : Updating quotations");
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
@@ -85,15 +86,12 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 	}
 
 	@SuppressWarnings("unchecked")
-	private void updateQuotations(QuotationUpdate quotationUpdate, Object... viewStateParams) throws StockNotFoundException {
-		
-		@SuppressWarnings("rawtypes")
-		List stockList = Arrays.asList(viewStateParams);
-		quotationUpdate.getQuotesFor(stockList);
+	private void updateQuotations(QuotationUpdate quotationUpdate, Collection<? extends Object>... viewStateParams) throws StockNotFoundException {
+		quotationUpdate.getQuotesFor((Collection<Stock>) viewStateParams[0]);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) throws NotEnoughDataException {
+	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
 
 		if (viewStateParams == null || viewStateParams.length == 0) throw new java.lang.UnsupportedOperationException("You  must select a stock before running an analysis.");
 
@@ -107,7 +105,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 
 		@SuppressWarnings("rawtypes")
-		List stockList = new ArrayList(Arrays.asList(viewStateParams));
+		List<Stock> stockList = new ArrayList(viewStateParams[0]);
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected, please adjust", new Throwable());
@@ -132,7 +130,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			//Pass one
 			Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 			try {
-				runPassOne = runPassOne(actionThread);
+				runPassOne = runPassOne(actionThread, DateFactory.midnithDate(startAnalyseDate), DateFactory.midnithDate(EventSignalConfig.getNewDate()));
 			} catch (Exception e) {
 				LOGGER.error(e,e);
 			}
@@ -142,7 +140,7 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			if (maxPass == 2) {
 				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 				try {
-					runPassTwo = runPassTwo(actionThread);
+					runPassTwo = runPassTwo(actionThread, DateFactory.midnithDate(startAnalyseDate), DateFactory.midnithDate(EventSignalConfig.getNewDate()));
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 				}
@@ -159,8 +157,8 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			} 
 		}
 
-
-		return outputRet;
+		postCallBackForAnalysis(outputRet);
+		
 	}
 	
 	public void callbackForReco(Set<Observer> engineObservers) {
@@ -197,15 +195,16 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 		return (oldLastAnalyse == null)?EventModel.DEFAULT_DATE:oldLastAnalyse;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object... viewStateParams) {
+	public void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) {
 		
 		for (Observer observer : engineObservers) {
-			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, viewStateParams.length));
+			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, viewStateParams[0].size()));
 		}
 	
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		for (Object stock : viewStateParams) {
+		for (Stock stock : (Collection<Stock>)viewStateParams[0]) {
 			
 			LOGGER.guiInfo("Task : Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
 			
@@ -218,11 +217,12 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			
 		}
 		
-		return false;
+		//return false;
+		postCallBackForClean(false, viewStateParams[0].toArray(new Stock[0]));
 		
 	}
 
-	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
 		
 		
 		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
@@ -232,10 +232,10 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			passTwoOutput = e1.getCalculatedOutput();
 		}
 	
-		return finalising(actionThread, passTwoOutput);
+		return finalising(actionThread, passTwoOutput, start, end);
 	}
 
-	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread) throws InterruptedException {
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
 		
 		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
 		try {
@@ -244,13 +244,13 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 			passOneOutput = e1.getCalculatedOutput();
 		}
 	
-		return finalising(actionThread, passOneOutput);
+		return finalising(actionThread, passOneOutput, start, end);
 		
 	}
 
 	protected abstract String passOneOverwriteMode();
 	
-	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput) {
+	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end) {
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 		for (Stock stock : passOutput.keySet()) {
@@ -259,7 +259,11 @@ public abstract class UserContentStrategyEngine implements EventModelStrategyEng
 				ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
 				for (EventInfo evtDef : map4Stock.keySet()) {
 					SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
-					if (map4EvtDef != null) ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef));
+					if (map4EvtDef != null) {
+						ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false)));
+					} else {
+						ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true)));
+					}
 				}
 			}
 		}

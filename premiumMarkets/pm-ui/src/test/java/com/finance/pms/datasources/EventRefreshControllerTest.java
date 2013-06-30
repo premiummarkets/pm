@@ -39,7 +39,6 @@ import junit.framework.TestCase;
 
 import org.apache.commons.httpclient.HttpException;
 import org.easymock.EasyMock;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Display;
 
 import com.finance.pms.MainPMScmd;
@@ -83,7 +82,7 @@ public class EventRefreshControllerTest extends TestCase {
 	Display display;
 	
 	/** The refresh model. */
-	EventModel<EventModelStrategyEngine> refreshModel;
+	EventModel<EventModelStrategyEngine, Object> refreshModel;
 
 	
 	//default
@@ -119,7 +118,6 @@ public class EventRefreshControllerTest extends TestCase {
 		
 		providers = EasyMock.createMock(Providers.class);
 		springContext = EasyMock.createMock(SpringContext.class);
-		//Providers.APPLICATION_CONTEXT = springContext;
 		indicatorCalculationService = EasyMock.createMock(IndicatorsCalculationService.class);
 		quotationUpdate = EasyMock.createMock(QuotationUpdate.class);
 		eventsComposite = EasyMock.createMock(EventsComposite.class);
@@ -646,7 +644,7 @@ private void endTest() {
  */
 private void mouseDown(EventRefreshController eventRefreshController) {
 	//FIXME eventRefreshController.updateEventRefreshModelState(dofetchListOfQuotes, dofetchQuotes, doAnalyse, false, false, false, 0l);
-	eventRefreshController.mouseDown((MouseEvent) org.easymock.EasyMock.anyObject());
+	//eventRefreshController.mouseDown((MouseEvent) org.easymock.EasyMock.anyObject());
 }
 
 

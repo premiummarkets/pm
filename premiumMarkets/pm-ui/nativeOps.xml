@@ -47,6 +47,29 @@
             </operands>
             <availableOutputSelectors/>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmInvHouseTrendOperation">
+            <reference>InverseLogroc</reference>
+            <description>Inverse Roc logarithmic over a period</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>logRocPeriod</referenceAsOperand>
+                    <description>Roc period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>21.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmAroonOperation">
             <reference>aroon_</reference>
             <description>Aroon indicator house made</description>

@@ -33,8 +33,8 @@ package com.finance.pms.events.gui;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -59,7 +59,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -70,6 +69,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
+import com.finance.pms.ActionDialog;
+import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.LogComposite;
@@ -85,10 +86,14 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.EventRefreshException;
+import com.finance.pms.datasources.EventTaskQueue;
+import com.finance.pms.datasources.InvalidEventRefreshTask;
 import com.finance.pms.datasources.RefreshAllEventStrategyEngine;
 import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
 import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.ShareListInfo;
+import com.finance.pms.datasources.TaskId;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EmailSendingFilter;
@@ -116,7 +121,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
 public class EventsComposite extends Composite implements RefreshableView {
 
 	public static MyLogger LOGGER = MyLogger.getLogger(EventsComposite.class);
-	
+
 	private Boolean needInit = true;
 
 	private CTabFolder eventsCTabFolder;
@@ -132,7 +137,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private Text buyCriteriaWeigthtext;
 	private Label dateCriteriaLabel;
 	private Text dateCriteriatext;
-	
+
 	private Group stockFilterButGrp;
 	private Button moniteredFilterbutton;
 	private Button portfolioFilterbutton;
@@ -143,14 +148,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private Group computeButtonGroup;
 	private Button quotationBox;
 	private Button quotationListBox;
-	private Button refreshMonitored;
-	private Button refreshPortfolios;
-	private Button refreshSelectedMarkets;
+	private Button refreshCompute;
 
 	private Group evtFilterButGrp;
 	private Button evtFilterLatestTick;
 	private Set<EventInfo> selectedEventInfos;
-	private EventsActionSort action ;
+	private Set<ShareListInfo> selectedShareLists;
+	private EventsActionSort action;
 
 	private Integer infCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.inf", "-1")); // -2;
 	private Integer supCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.sup", "1")); // 4;
@@ -166,14 +170,18 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private final String[] sortableColumnsAttAccesors = { "getSymbol", "getSymbolName", "getWeight", "getDate", "getEventDef", "getEventType" };
 	private Integer sortedColumn;
 
-	private EventModel<RefreshAllEventStrategyEngine> allStocksEventModel;
-	private EventModel<RefreshMonitoredStrategyEngine> monitoredStocksEventModel;
-	private EventModel<RefreshPortfolioStrategyEngine> portfolioStocksEventModel;
-	
+	private EventModel<RefreshAllEventStrategyEngine, Collection<ShareListInfo>> allStocksEventModel;
+	private EventModel<RefreshMonitoredStrategyEngine, Collection<Stock>> monitoredStocksEventModel;
+	private EventModel<RefreshPortfolioStrategyEngine, Collection<Stock>> portfolioStocksEventModel;
+
 	private Shell treeRowToolTip;
 
 	private Button sendNotifs;
 
+	private SelectionListener refreshComputeCurrentListener;
+	private EventRefreshController refreshMonitoredListner;
+	private EventRefreshController refreshPortfoliosListener;
+	private EventRefreshController refreshMarketsListener;
 
 	public EventsComposite(Composite parent, int style, LogComposite logComposite) {
 		super(parent, style);
@@ -183,24 +191,23 @@ public class EventsComposite extends Composite implements RefreshableView {
 		allStocksEventModel = EventModel.getInstance(new RefreshAllEventStrategyEngine());
 		monitoredStocksEventModel = EventModel.getInstance(new RefreshMonitoredStrategyEngine());
 		portfolioStocksEventModel = EventModel.getInstance(new RefreshPortfolioStrategyEngine(), logComposite);
-		
+
 		Calendar newDate = Calendar.getInstance();
 		newDate.setTime(EventSignalConfig.getNewDate());
 		nbDaysFilter = new Integer(MainPMScmd.getPrefs().get("gui.crit.filternbdays", "5"));
-		
+
 		selectedEventInfos = new HashSet<EventInfo>();
 		selectedEventInfos.add(EventDefinition.PMSMAREVERSAL);
 		setAction(new EventsActionSort(new LatestEventsAllIndDefsPonderationRule(), selectedEventInfos.toArray(new EventInfo[0])));
-		
+
 		initGUI();
 	}
 
 	public void initData() {
 
 		setFilter(StocksActionFilter.FILTERMONITORED);
-		sortOnWeigthCriteriasActions();
-		reloadTabs();
-			
+		sortAndReload();
+
 		needInit = false;
 	}
 
@@ -215,14 +222,14 @@ public class EventsComposite extends Composite implements RefreshableView {
 			this.setLayout(thisLayout);
 			this.setBackground(MainGui.eVENTS_DARKER);
 			this.addListener(SWT.Show, new Listener() {
-				
+
 				@Override
 				public void handleEvent(Event event) {
-					if (EventsComposite.this.getSendNotifs().getSelection()){
+					if (EventsComposite.this.getSendNotifs().getSelection()) {
 						AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
 						AnalysisClient.setEmailSendingFilter(new EmailSendingFilter(getFilterDate(), selectedEventInfos));
 					}
-					
+
 				}
 			});
 			this.addListener(SWT.Hide, new Listener() {
@@ -233,9 +240,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 					AnalysisClient.clearEmailSendingFilter();
 				}
 			});
-			
+
 			this.addControlListener(new ControlListener() {
-				
+
 				@Override
 				public void controlResized(ControlEvent e) {
 					int treeIdx = eventsCTabFolder.getSelectionIndex();
@@ -244,13 +251,13 @@ public class EventsComposite extends Composite implements RefreshableView {
 						columnPack(treeColumn);
 					}
 				}
-				
+
 				@Override
 				public void controlMoved(ControlEvent e) {
-					
+
 				}
 			});
-			
+
 			{
 				eventsCTabFolder = new CTabFolder(this, SWT.NONE);
 				GridData cTabFolder1LData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -271,7 +278,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			cmpLayout.marginWidth = 0;
 			ctrlComposite.setLayout(cmpLayout);
 			ctrlComposite.setBackground(MainGui.eVENTS_LIGHT);
-		
+
 			{
 				trendFilterGrp = new Group(ctrlComposite, SWT.NONE);
 				GridData criteriasgroupLData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -299,8 +306,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 							setCrit(sellCriteriaWeigthtext.getText(), buyCriteriaWeigthtext.getText(), dateCriteriatext.getText());
 						}
 					};
-					buyCriteriaWeigthtext.addListener (SWT.FocusOut, listener);
-					buyCriteriaWeigthtext.addListener (SWT.DefaultSelection, listener);
+					buyCriteriaWeigthtext.addListener(SWT.FocusOut, listener);
+					buyCriteriaWeigthtext.addListener(SWT.DefaultSelection, listener);
 				}
 				{
 					sellCriteriaWeigthLabel = new Label(trendFilterGrp, SWT.CENTER);
@@ -319,8 +326,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 							setCrit(sellCriteriaWeigthtext.getText(), buyCriteriaWeigthtext.getText(), dateCriteriatext.getText());
 						}
 					};
-					sellCriteriaWeigthtext.addListener (SWT.FocusOut, listener);
-					sellCriteriaWeigthtext.addListener (SWT.DefaultSelection, listener);
+					sellCriteriaWeigthtext.addListener(SWT.FocusOut, listener);
+					sellCriteriaWeigthtext.addListener(SWT.DefaultSelection, listener);
 				}
 				{
 					final Text dateFilterText = new Text(trendFilterGrp, SWT.NONE);
@@ -328,12 +335,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 					dateFilterText.setLayoutData(sellCriteriaDatetextLData);
 					dateFilterText.setFont(MainGui.CONTENTFONT);
 					dateFilterText.setText(nbDaysFilter.toString());
-					dateFilterText.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getFilterDate()));
+					dateFilterText.setToolTipText("From the " + new SimpleDateFormat("dd MMM yyyy").format(getFilterDate()));
 					Listener listener = new Listener() {
 						public void handleEvent(Event e) {
 							try {
-								nbDaysFilter = Integer.valueOf(dateFilterText.getText());
-								dateFilterText.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getFilterDate()));
+								nbDaysFilter = Integer.valueOf(dateFilterText.getText().trim());
+								dateFilterText.setToolTipText("From the " + new SimpleDateFormat("dd MMM yyyy").format(getFilterDate()));
 								eventFilterChange(selectedEventInfos);
 							} catch (NumberFormatException pe) {
 								UserDialog inst = new UserDialog(EventsComposite.this.getShell(), pe.getMessage(), null);
@@ -342,8 +349,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 							}
 						}
 					};
-					dateFilterText.addListener (SWT.FocusOut, listener);
-					dateFilterText.addListener (SWT.DefaultSelection, listener);
+					dateFilterText.addListener(SWT.FocusOut, listener);
+					dateFilterText.addListener(SWT.DefaultSelection, listener);
 				}
 				{
 					Label dateFilterLabel = new Label(trendFilterGrp, SWT.PUSH | SWT.CENTER);
@@ -364,14 +371,14 @@ public class EventsComposite extends Composite implements RefreshableView {
 				evtFilterButGrp.setText("Event filter :");
 				evtFilterButGrp.setFont(MainGui.DEFAULTFONT);
 				evtFilterButGrp.setBackground(MainGui.eVENTS_LIGHT);
-				
+
 				{
 					evtFilterLatestTick = new Button(evtFilterButGrp, SWT.CHECK);
 					evtFilterLatestTick.setFont(MainGui.DEFAULTFONT);
 					evtFilterLatestTick.setText("Last Trend only");
-					evtFilterLatestTick.setToolTipText(
-							"When ticked, only events of the most recent Trend (Bullish/Bearish) are gathered over the period. Events from the same indicator are counted only once.\n" +
-							"If ticked off all events are gathered indiscriminately over the period, meaning that the result will be : the number of Bullish events minus the number of Bearish events.");
+					evtFilterLatestTick
+							.setToolTipText("When ticked, only events of the most recent Trend (Bullish/Bearish) are gathered over the period. Events from the same indicator are counted only once.\n"
+									+ "If ticked off all events are gathered indiscriminately over the period, meaning that the result will be : the number of Bullish events minus the number of Bearish events.");
 					evtFilterLatestTick.addSelectionListener(new SelectionListener() {
 
 						@Override
@@ -394,11 +401,25 @@ public class EventsComposite extends Composite implements RefreshableView {
 					selectedEventInfosFilterButton.setText("Indicators filter ...");
 					selectedEventInfosFilterButton.addMouseListener(new MouseAdapter() {
 						@Override
-						public void mouseDown(MouseEvent evt) {
-					
-							PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton,  EventDefinition.loadMaxPassPrefsEventInfo(), selectedEventInfos, true, SWT.CHECK, null);
+						public void mouseDown(final MouseEvent evt) {
+
+							ActionDialogAction actionDialogAction = new ActionDialogAction() {
+
+								@Override
+								public void action(Control targetControl) {
+									try {
+										((Button) targetControl).getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+										eventFilterChange(selectedEventInfos);
+									} finally {
+										((Button) targetControl).getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
+								}
+							};
+
+							PopupMenu<EventInfo> popupMenu = 
+									new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton, EventDefinition.loadMaxPassPrefsEventInfo(), selectedEventInfos, true, true, SWT.CHECK, actionDialogAction);
 							popupMenu.open();
-							eventFilterChange(selectedEventInfos);
+
 						}
 					});
 				}
@@ -424,14 +445,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 						public void mouseDown(MouseEvent evt) {
 
 							setFilter(StocksActionFilter.FILTERMONITORED);
-							try {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-								sortOnWeigthCriteriasActions();
-								reloadTabs();
-							} finally {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-							}
-							
+
+							refreshCompute.removeSelectionListener(refreshComputeCurrentListener);
+							refreshComputeCurrentListener = refreshMonitoredListner;
+							refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+							sortAndReload();
+
 						}
 					});
 					moniteredFilterbutton.setSelection(true);
@@ -446,13 +465,11 @@ public class EventsComposite extends Composite implements RefreshableView {
 						@Override
 						public void mouseDown(MouseEvent evt) {
 							setFilter(StocksActionFilter.FILTERPORTFOLIO);
-							try {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-								sortOnWeigthCriteriasActions();
-								reloadTabs();
-							} finally {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-							}
+
+							refreshCompute.removeSelectionListener(refreshComputeCurrentListener);
+							refreshComputeCurrentListener = refreshPortfoliosListener;
+							refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+							sortAndReload();
 						}
 					});
 				}
@@ -463,6 +480,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 					selectedMarketsFilterbutton.setText(StocksActionFilter.FILTERMARKETS.getText());
 					selectedMarketsFilterbutton.setFont(MainGui.DEFAULTFONT);
 					selectedMarketsFilterbutton.addMouseListener(new MouseAdapter() {
+
 						@Override
 						public void mouseDown(MouseEvent evt) {
 							setFilter(StocksActionFilter.FILTERMARKETS);
@@ -478,23 +496,35 @@ public class EventsComposite extends Composite implements RefreshableView {
 							for (String shareListName : PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames()) {
 								shareLists.add(new ShareListInfo(shareListName));
 							}
-							@SuppressWarnings("rawtypes")
-							Set selectedShareLists = new HashSet();
-							Object[] viewStateParams = allStocksEventModel.getViewStateParams();
+
+							selectedShareLists = new HashSet<ShareListInfo>();
+							Collection<ShareListInfo> viewStateParams = allStocksEventModel.getViewParamRoot();
 							if (viewStateParams != null) {
-								selectedShareLists.addAll(Arrays.asList(viewStateParams));
+								selectedShareLists.addAll(viewStateParams);
 							}
-							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, selectedMarketsFilterbutton, shareLists, selectedShareLists, true, SWT.CHECK, null);
+
+							ActionDialogAction action = new ActionDialogAction() {
+
+								@Override
+								public void action(Control targetControl) {
+									allStocksEventModel.setViewStateParams(selectedShareLists);
+
+									refreshCompute.removeSelectionListener(refreshComputeCurrentListener);
+									refreshComputeCurrentListener = refreshMarketsListener;
+									refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+
+									try {
+										((Button) targetControl).getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+										sortAndReload();
+									} finally {
+										((Button) targetControl).getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
+
+								}
+							};
+							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, selectedMarketsFilterbutton, shareLists, selectedShareLists, true, true, SWT.CHECK, action);
 							popupMenu.open();
-							allStocksEventModel.setViewStateParams(selectedShareLists.toArray());
-							
-							try {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-								sortOnWeigthCriteriasActions();
-								reloadTabs();
-							} finally {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-							}
+
 						}
 					});
 				}
@@ -507,14 +537,28 @@ public class EventsComposite extends Composite implements RefreshableView {
 					allStocksFilteButton.addMouseListener(new MouseAdapter() {
 						@Override
 						public void mouseDown(MouseEvent evt) {
+							
+							refreshCompute.removeSelectionListener(refreshComputeCurrentListener);
+							refreshComputeCurrentListener = new SelectionListener() {
+								
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									handle();
+								}
+								
+								@Override
+								public void widgetDefaultSelected(SelectionEvent e) {
+									handle();
+								}
+
+								private void handle() {
+									UserDialog dialog = new UserDialog(getShell(), "Compute All Stock is not implemented for potential performances issues.\nChoose among Monitored, All Portfolios or Markets in the Stock filter.", null);
+									dialog.open();
+								}
+							};
+							
 							setFilter(StocksActionFilter.ALLSTOCKS);
-							try {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-								sortOnWeigthCriteriasActions();
-								reloadTabs();
-							} finally {
-								EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-							}
+							sortAndReload();
 						}
 					});
 				}
@@ -529,25 +573,24 @@ public class EventsComposite extends Composite implements RefreshableView {
 				computeButtonGroup.setText("Compute :");
 				computeButtonGroup.setFont(MainGui.DEFAULTFONT);
 				computeButtonGroup.setBackground(MainGui.eVENTS_LIGHT);
-				String notificationNote = 
-						"By default, Notifications are sent for all stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
-						"Notifications can also be filtered according to your potential 'alert on events' settings for each lines in your portfolio.\n"+
-						"Then the 'Trend' and 'Event' filters above will apply.";
+				String notificationNote = "By default, Notifications are sent for all stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n"
+						+ "Notifications can also be filtered according to your potential 'alert on events' settings for each lines in your portfolio.\n"
+						+ "Then the 'Trend filter' and 'Event filter' filters set for this view will apply.";
 				{
 					dateCriteriatext = new Text(computeButtonGroup, SWT.NONE);
 					GridData sellCriteriaDatetextLData = new GridData(SWT.FILL, SWT.TOP, true, false);
 					dateCriteriatext.setLayoutData(sellCriteriaDatetextLData);
 					dateCriteriatext.setFont(MainGui.CONTENTFONT);
 					dateCriteriatext.setText(nbMonthsAnalysis.toString());
-					dateCriteriatext.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getAnalysisStartDate()));
+					dateCriteriatext.setToolTipText("From the " + new SimpleDateFormat("dd MMM yyyy").format(getAnalysisStartDate()));
 					Listener listener = new Listener() {
 						public void handleEvent(Event e) {
-							setCrit(sellCriteriaWeigthtext.getText(), buyCriteriaWeigthtext.getText(), dateCriteriatext.getText());
-							dateCriteriatext.setToolTipText("From the "+new SimpleDateFormat("dd MMM yyyy").format(getAnalysisStartDate()));
+							setCrit(sellCriteriaWeigthtext.getText().trim(), buyCriteriaWeigthtext.getText().trim(), dateCriteriatext.getText().trim());
+							dateCriteriatext.setToolTipText("From the " + new SimpleDateFormat("dd MMM yyyy").format(getAnalysisStartDate()));
 						}
 					};
-					dateCriteriatext.addListener (SWT.FocusOut, listener);
-					dateCriteriatext.addListener (SWT.DefaultSelection, listener);
+					dateCriteriatext.addListener(SWT.FocusOut, listener);
+					dateCriteriatext.addListener(SWT.DefaultSelection, listener);
 				}
 				{
 					dateCriteriaLabel = new Label(computeButtonGroup, SWT.PUSH | SWT.CENTER);
@@ -559,23 +602,24 @@ public class EventsComposite extends Composite implements RefreshableView {
 				{
 					sendNotifs = new Button(computeButtonGroup, SWT.CHECK);
 					GridData group1LData2 = new GridData(SWT.FILL, SWT.TOP, true, false);
-					group1LData2.horizontalSpan =2;
+					group1LData2.horizontalSpan = 2;
 					sendNotifs.setLayoutData(group1LData2);
 					sendNotifs.setText("Notify me");
-					sendNotifs.setToolTipText("For this to work, make sure your email settings are up to date in 'Settings' menu.\n"+notificationNote);
+					sendNotifs.setToolTipText("For this to work, make sure your email settings are up to date in 'Settings' menu.\n" + notificationNote);
 					sendNotifs.setFont(MainGui.DEFAULTFONT);
 					sendNotifs.setSelection(true);
 					sendNotifs.addSelectionListener(new SelectionListener() {
-						
+
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							handle();
 						}
+
 						@Override
 						public void widgetDefaultSelected(SelectionEvent e) {
 							handle();
 						}
-						
+
 						private void handle() {
 							if (sendNotifs.getSelection()) {
 								AnalysisClient.addEmailMsgQeueingFilter(EmailFilterEventSource.PMTAEvents);
@@ -591,110 +635,85 @@ public class EventsComposite extends Composite implements RefreshableView {
 				{
 					quotationBox = new Button(computeButtonGroup, SWT.CHECK);
 					GridData group1LData2 = new GridData(SWT.FILL, SWT.TOP, true, false);
-					group1LData2.horizontalSpan =2;
+					group1LData2.horizontalSpan = 2;
 					quotationBox.setLayoutData(group1LData2);
 					quotationBox.setText("Update quotes");
-					quotationBox.setToolTipText("You can request for an update of the quotations before the calculation is done.\n This is recommended the first time in the day.");
+					quotationBox
+							.setToolTipText("You can request for an update of the quotations before the calculation is done.\n This is recommended the first time in the day.");
 					quotationBox.setFont(MainGui.DEFAULTFONT);
 					quotationBox.setSelection(true);
 
 					quotationListBox = new Button(computeButtonGroup, SWT.CHECK);
 					GridData group1LData = new GridData(SWT.FILL, SWT.TOP, true, false);
-					group1LData.horizontalSpan =2;
+					group1LData.horizontalSpan = 2;
 					quotationListBox.setLayoutData(group1LData);
 					quotationListBox.setText("Update lists");
-					quotationListBox.setToolTipText("In case you select one or several market lists, you can request for an update of the list before the calculation is done.\n However, this is time consuming.");
+					quotationListBox
+							.setToolTipText("In case you select one or several market lists, you can request for an update of the list before the calculation is done.\n However, this is time consuming.");
 					quotationListBox.setFont(MainGui.DEFAULTFONT);
 					quotationListBox.setSelection(false);
 				}
 				{
-					refreshMonitored = new Button(computeButtonGroup, SWT.PUSH | SWT.CENTER);
+					refreshCompute = new Button(computeButtonGroup, SWT.PUSH | SWT.CENTER);
 					GridData group1LData = new GridData(SWT.FILL, SWT.TOP, true, false);
 					group1LData.horizontalSpan = 2;
-					refreshMonitored.setLayoutData(group1LData);
-					refreshMonitored.setFont(MainGui.DEFAULTFONT);
-					refreshMonitored.setText(StocksActionFilter.FILTERMONITORED.getText());
-					refreshMonitored.setToolTipText(
-							"Will update the events calculation on Stocks marked as monitored (Bearish, Bullish or both) in your portfolios.\n" +
-							notificationNote+"\n");
-					refreshMonitored.addMouseListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+					refreshCompute.setLayoutData(group1LData);
+					refreshCompute.setFont(MainGui.DEFAULTFONT);
+					refreshCompute.setText("Run");
+					refreshCompute
+							.setToolTipText("Will update the events calculation on Stocks according to the the 'Event filter' and 'Stock filter' above.\n"
+									+ "Be aware that refreshing all indicators and full markets can lead to prohibitive computation time.\n" + notificationNote
+									+ "\n");
+					refreshMonitoredListner = new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
-						public void mouseDown(MouseEvent evt) {
-							//updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse,) 
-							List<TaskId> taskIds = new ArrayList<EventRefreshController.TaskId>();
+						public void widgetSelected(SelectionEvent evt) {
+
+							monitoredStocksEventModel.setViewStateParams(null, selectedEventInfos);
+							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
-							super.mouseDown(evt);
+							super.widgetSelected(evt);
 						}
-					});
-				}
-				{
-					refreshPortfolios = new Button(computeButtonGroup, SWT.PUSH | SWT.CENTER);
-					GridData group1LData = new GridData(SWT.FILL, SWT.TOP, true, false);
-					group1LData.horizontalSpan = 2;
-					refreshPortfolios.setLayoutData(group1LData);
-					refreshPortfolios.setFont(MainGui.DEFAULTFONT);
-					refreshPortfolios.setText(StocksActionFilter.FILTERPORTFOLIO.getText());
-					refreshPortfolios.setToolTipText(
-							"Will update the events calculation on all your portfolios.\n" + 
-							notificationNote);
-					refreshPortfolios.addMouseListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+					};
+					refreshPortfoliosListener = new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
-						public void mouseDown(MouseEvent evt) {
-							// updateEventRefreshModelState(Boolean dofetchListOfQuotes, Boolean dofetchQuotes, Boolean doAnalyse, Boolean doReco, Boolean doAnalysisClean, Boolean doAlerts, Long taskKey)
-							List<TaskId> taskIds = new ArrayList<EventRefreshController.TaskId>();
+						public void widgetSelected(SelectionEvent evt) {
+
+							portfolioStocksEventModel.setViewStateParams(null, null, selectedEventInfos);
+							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
-							super.mouseDown(evt);
+							super.widgetSelected(evt);
 						}
-					});
-				}
-				{
-					refreshSelectedMarkets = new Button(computeButtonGroup, SWT.PUSH | SWT.CENTER);
-					GridData group1LData = new GridData(SWT.FILL, SWT.TOP, true, false);
-					group1LData.horizontalSpan = 2;
-					refreshSelectedMarkets.setLayoutData(group1LData);
-					refreshSelectedMarkets.setText(StocksActionFilter.FILTERMARKETS.getText());
-					refreshSelectedMarkets.setFont(MainGui.DEFAULTFONT);
-					refreshSelectedMarkets.setToolTipText(
-							"Will update the events calculation on the market you have selected. Please be aware that this is time consuming.\n" + 
-							notificationNote);
-					refreshSelectedMarkets.addMouseListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+					};
+					refreshMarketsListener = new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
-						public void mouseDown(MouseEvent evt) {
+						public void widgetSelected(SelectionEvent evt) {
 
-							Set<ShareListInfo> shareLists = new HashSet<ShareListInfo>();
-							for (String shareListName : PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames()) {
-								shareLists.add(new ShareListInfo(shareListName));
-							}
-							@SuppressWarnings("rawtypes")
-							Set selectedShareLists = new HashSet();
-							Object[] viewStateParams = allStocksEventModel.getViewStateParams();
-							if (viewStateParams != null) {
-								selectedShareLists.addAll(Arrays.asList(viewStateParams));
-							}
-							PopupMenu<ShareListInfo> popupMenu = new PopupMenu<ShareListInfo>(EventsComposite.this, refreshSelectedMarkets, shareLists, selectedShareLists, true, SWT.CHECK, null);
-							popupMenu.open();
+							allStocksEventModel.setViewStateParams(selectedShareLists, selectedEventInfos);
 
-							allStocksEventModel.setViewStateParams(selectedShareLists.toArray());
 							
-							List<TaskId> taskIds = new ArrayList<EventRefreshController.TaskId>();
+							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
-
 							initRefreshAction();
-							super.mouseDown(evt);
+							super.widgetSelected(evt);
 						}
-					});
+					};
+
+					refreshComputeCurrentListener = refreshMonitoredListner;
+					refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+
 				}
+
 				computeButtonGroup.layout();
 			}
 
@@ -725,36 +744,40 @@ public class EventsComposite extends Composite implements RefreshableView {
 					GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 					tbTree.setLayoutData(layoutData);
 
-					tbTree.setFont(MainGui.CONTENTFONT);		
+					tbTree.setFont(MainGui.CONTENTFONT);
 					treeRowToolTip = null;
 					tbTree.addListener(SWT.MouseHover, new TableToolTip() {
-						
+
 						@Override
 						protected void buildAndShowToolTip(Event event) {
-							if (treeRowToolTip != null && !treeRowToolTip.isDisposed()) treeRowToolTip.dispose();
+							if (treeRowToolTip != null && !treeRowToolTip.isDisposed())
+								treeRowToolTip.dispose();
 
-							TreeItem item = tbTree.getItem(new Point (event.x, event.y));
-							
+							TreeItem item = tbTree.getItem(new Point(event.x, event.y));
+
 							if (item != null) {
-								
+
 								TreeItem parentItem = item.getParentItem();
 								if (parentItem != null) {
 									String mesg = ((EventValue) item.getData()).getMessage();
 									if (mesg != null && !mesg.isEmpty()) {
 										String newMsg = "";
-										if (!mesg.contains("\n")) { //Not already formated
+										if (!mesg.contains("\n")) { // Not
+																	// already
+																	// formated
 											int nbMsgCut = mesg.length();
 											int maxChars = 100;
-											for (int j = 0; j <= nbMsgCut/maxChars; j++) {
-												newMsg = newMsg + mesg.substring(j*maxChars, Math.min((j+1)*maxChars, mesg.length())) + "\n";
+											for (int j = 0; j <= nbMsgCut / maxChars; j++) {
+												newMsg = newMsg + mesg.substring(j * maxChars, Math.min((j + 1) * maxChars, mesg.length())) + "\n";
 											}
 										} else {
 											newMsg = mesg;
 										}
-										String info = parentItem.getText(1) + " ("+parentItem.getText(0)+") : \n"+item.getText(3)+"\n"+newMsg+"\n"+item.getText(5)+"\n";
-										
-										Point point = new Point (event.x, event.y);
-										Point map = getDisplay().map((Control)event.widget, null, point);
+										String info = parentItem.getText(1) + " (" + parentItem.getText(0) + ") : \n" + item.getText(3) + "\n" + newMsg + "\n"
+												+ item.getText(5) + "\n";
+
+										Point point = new Point(event.x, event.y);
+										Point map = getDisplay().map((Control) event.widget, null, point);
 										treeRowToolTip = showTooltip(null, map.x, map.y, info);
 									}
 								}
@@ -764,10 +787,11 @@ public class EventsComposite extends Composite implements RefreshableView {
 					tbTree.addListener(SWT.MouseExit, new Listener() {
 						@Override
 						public void handleEvent(Event event) {
-							if (treeRowToolTip != null && !treeRowToolTip.isDisposed()) treeRowToolTip.dispose();
+							if (treeRowToolTip != null && !treeRowToolTip.isDisposed())
+								treeRowToolTip.dispose();
 						}
 					});
-					
+
 					cTabTrees.add(i, tbTree);
 					cTabTrees.get(i).setSize(41, 11);
 					cTabTrees.get(i).setLinesVisible(false);
@@ -799,9 +823,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void updateTree(final int treeIdx) {
-		
+
 		for (int k = 0; k < eventsLists[treeIdx].size(); k++) {
-			//items symbols
+			// items symbols
 			TreeItem symbolEventsTableTreeItem = new TreeItem(cTabTrees.get(treeIdx), SWT.NONE);
 			SymbolEvents se = eventsLists[treeIdx].get(k);
 			symbolEventsTableTreeItem.setData(se);
@@ -814,7 +838,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			}
 		}
 
-		//column pack listener
+		// column pack listener
 		cTabTrees.get(treeIdx).addListener(SWT.Expand, new Listener() {
 
 			@Override
@@ -824,41 +848,43 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 					@Override
 					public void run() {
-						
-						//pack columns
+
+						// pack columns
 						int tcw = 0;
 						if (!treeItem.isDisposed()) {
-							
+
 							Tree tree = treeItem.getParent();
-							
-							//resize sash
-							//int evtCmpW = tcw + ctrlComposite.getSize().x + 20;
+
+							// resize sash
+							// int evtCmpW = tcw + ctrlComposite.getSize().x +
+							// 20;
 							Point computeSize = tree.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 							int evtCmpW = computeSize.x + ctrlComposite.getSize().x;
-							
-							int shellW  = ((SashForm)EventsComposite.this.getParent()).getSize().x;
-							int evtSashWeight = Math.min(90,100*evtCmpW/shellW);
-							SashForm sashParent = (SashForm)EventsComposite.this.getParent();
+
+							int shellW = ((SashForm) EventsComposite.this.getParent()).getSize().x;
+							int evtSashWeight = Math.min(90, 100 * evtCmpW / shellW);
+							SashForm sashParent = (SashForm) EventsComposite.this.getParent();
 							int actualTotWeight = 0;
 							for (int sashWeight : sashParent.getWeights()) {
 								actualTotWeight = actualTotWeight + sashWeight;
 							}
-							if ((100*sashParent.getWeights()[0]/actualTotWeight) < evtSashWeight) sashParent.setWeights(new int[]{evtSashWeight, 0, 100-evtSashWeight});
-							
-							//pack columns
+							if ((100 * sashParent.getWeights()[0] / actualTotWeight) < evtSashWeight)
+								sashParent.setWeights(new int[] { evtSashWeight, 0, 100 - evtSashWeight });
+
+							// pack columns
 							for (TreeColumn tc : tree.getColumns()) {
 								columnPack(tc);
 								tcw = tcw + tc.getWidth();
 							}
 						}
-						
+
 					}
 
 				});
 			}
 		});
 
-		//initial pack
+		// initial pack
 		TreeColumn[] columns = cTabTrees.get(treeIdx).getColumns();
 		for (TreeColumn treeColumn : columns) {
 			columnPack(treeColumn);
@@ -869,21 +895,21 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private void columnPack(TreeColumn treeColumn) {
 
 		int minSize = 70;
-		int availableSize = (this.getSize().x-ctrlComposite.getSize().x)/columnsHeaders.length;
+		int availableSize = (this.getSize().x - ctrlComposite.getSize().x) / columnsHeaders.length;
 		if (availableSize <= minSize) {
 			treeColumn.setWidth(minSize);
-		} 
-		else if (availableSize > minSize) {
+		} else if (availableSize > minSize) {
 			treeColumn.pack();
 			int actualPackedWidth = treeColumn.getWidth();
-			if (actualPackedWidth > availableSize) treeColumn.setWidth(availableSize);
+			if (actualPackedWidth > availableSize)
+				treeColumn.setWidth(availableSize);
 		}
 	}
 
 	private void subItems(TreeItem symbolEventsTableTreeItem, SymbolEvents se, Comparator<EventValue> comparator) {
-		
+
 		ArrayList<EventValue> dataResultsTableTreeItem = se.getSortedDataResultList(comparator);
-		
+
 		for (int l = 0; l < dataResultsTableTreeItem.size(); l++) {
 			TreeItem sousTableTreeItem = new TreeItem(symbolEventsTableTreeItem, SWT.NONE);
 			EventValue drv = dataResultsTableTreeItem.get(l);
@@ -892,43 +918,41 @@ public class EventsComposite extends Composite implements RefreshableView {
 			sousTableTreeItem.setText(4, drv.getEventDef().getEventReadableDef());
 			sousTableTreeItem.setText(5, String.valueOf(drv.getEventType()));
 		}
-		
+
 	}
 
 	private void stockFilter() {
-		try {
-			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-			switch (filter) {
-			case FILTERMONITORED:
-				EventsResources.getInstance().filterOutNonMonitoredEvents();
-				break;
-			case FILTERPORTFOLIO:
-				EventsResources.getInstance().filterOutNonPortofolioEvents();
-				break;
-			case FILTERMARKETS:
-				Object[] viewStateParams = allStocksEventModel.getViewStateParams();
-				if (viewStateParams != null) EventsResources.getInstance().filterOutCurrentMarketEvents(viewStateParams);
-				break;
-			case ALLSTOCKS:
-				EventsResources.getInstance().filterOutNone();
-				break;
-			}
-		} finally {
-			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+
+		switch (filter) {
+		case FILTERMONITORED:
+			EventsResources.getInstance().filterOutNonMonitoredEvents();
+			break;
+		case FILTERPORTFOLIO:
+			EventsResources.getInstance().filterOutNonPortofolioEvents();
+			break;
+		case FILTERMARKETS:
+			Collection<ShareListInfo> viewStateParams = allStocksEventModel.getViewParamRoot();
+			if (viewStateParams != null)
+				EventsResources.getInstance().filterOutCurrentMarketEvents(viewStateParams.toArray(new ShareListInfo[0]));
+			break;
+		case ALLSTOCKS:
+			EventsResources.getInstance().filterOutNone();
+			break;
 		}
 	}
 
 	private void sortOnWeigthCriteriasActions() {
-		
+
 		try {
 			Date filterDateStart = getFilterDate();
-			EventsResources.getInstance().updateEventsTabsByCriteriaAndDate(filterDateStart, infCrit, supCrit, action.getPonderationRule(), action.getIndicators(), IndicatorCalculationServiceMain.UI_ANALYSIS);
+			EventsResources.getInstance().updateEventsTabsByCriteriaAndDate(filterDateStart, infCrit, supCrit, action.getPonderationRule(),
+					action.getIndicators(), IndicatorCalculationServiceMain.UI_ANALYSIS);
 			stockFilter();
 
 		} catch (InvalidAlgorithmParameterException e) {
 			UserDialog inst = new UserDialog(this.getShell(), e.toString(), null);
 			inst.open();
-		} 
+		}
 	}
 
 	protected Date getFilterDate() {
@@ -949,17 +973,17 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void refreshTabs() {
-		
+
 		int selectedTab = eventsCTabFolder.getSelectionIndex();
 		for (int i = 0; i < tabs.length; i++) {
 			cTabTrees.get(i).removeAll();
 			updateTree(i);
 		}
-		sortedColumn = 2*(selectedTab+1);
+		sortedColumn = 2 * (selectedTab + 1);
 	}
 
 	private void setCrit(String infCritp, String supCritp, String dateCrit) {
-		
+
 		try {
 			infCrit = Integer.parseInt(infCritp);
 			MainPMScmd.getPrefs().put("gui.crit.inf", infCritp);
@@ -968,7 +992,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			inst.open();
 			sellCriteriaWeigthtext.setText(this.infCrit.toString());
 		}
-		
+
 		try {
 			supCrit = Integer.parseInt(supCritp);
 			MainPMScmd.getPrefs().put("gui.crit.sup", supCritp);
@@ -977,32 +1001,36 @@ public class EventsComposite extends Composite implements RefreshableView {
 			inst.open();
 			buyCriteriaWeigthtext.setText(this.supCrit.toString());
 		}
-		
+
 		try {
 			nbMonthsAnalysis = Integer.valueOf(dateCrit);
 		} catch (NumberFormatException e) {
 			UserDialog inst = new UserDialog(this.getShell(), e.getMessage(), null);
 			inst.open();
 			dateCriteriatext.setText(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
-		} finally {
-			//
 		}
-		
+
 		try {
-			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-			sortOnWeigthCriteriasActions();
-			reloadTabs();
+			sortAndReload();
 		} catch (Exception e1) {
 			UserDialog dialog = new UserDialog(this.getShell(), "Invalid date : " + dateCriteriatext, null);
 			dialog.open();
-		} finally {
-			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
-		
+
 		try {
 			MainPMScmd.getPrefs().flush();
 		} catch (BackingStoreException e) {
 			LOGGER.warn("Can't save preferences", e);
+		}
+	}
+
+	protected void sortAndReload() {
+		try {
+			EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+			sortOnWeigthCriteriasActions();
+			reloadTabs();
+		} finally {
+			EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
 	}
 
@@ -1015,66 +1043,62 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void sortColumn(int tabNum, int colNum) {
-		
+
 		try {
 			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 			String sortAttAcc = sortableColumnsAttAccesors[colNum];
 			if (sortAttAcc != null) {
 
-				switch(colNum) {
-				case 2 :
-				{
+				switch (colNum) {
+				case 2: {
 					List<SymbolEvents> sortedColumnItems = new ArrayList<SymbolEvents>();
 					sortedColumnItems.addAll(eventsLists[tabNum]);
-					if (sortedColumn != null && sortedColumn.equals(colNum*(tabNum+1)))  {
+					if (sortedColumn != null && sortedColumn.equals(colNum * (tabNum + 1))) {
 						Collections.reverse(sortedColumnItems);
 					} else {
 						SymbolEvents.sortList(sortedColumnItems, new SymbolEventComparator((tabNum == 1), sortAttAcc, this.action.getPonderationRule()));
 					}
 					eventsLists[tabNum] = sortedColumnItems;
-					//Refresh
+					// Refresh
 					cTabTrees.get(tabNum).removeAll();
 					updateTree(tabNum);
-					sortedColumn = colNum*(tabNum+1);
+					sortedColumn = colNum * (tabNum + 1);
 					break;
 				}
-				case 3 :
-				case 4 :
-				case 5 :
-				{
+				case 3:
+				case 4:
+				case 5: {
 					TreeItem[] selection = cTabTrees.get(tabNum).getSelection();
 					if (selection != null && selection.length == 1 && selection[0].getExpanded()) {
 						selection[0].removeAll();
 						SymbolEvents se = (SymbolEvents) selection[0].getData();
-						Boolean isAsc = (sortedColumn == null || !sortedColumn.equals(colNum*(tabNum+1)));
+						Boolean isAsc = (sortedColumn == null || !sortedColumn.equals(colNum * (tabNum + 1)));
 						subItems(selection[0], se, new EventValuesComparator(isAsc, sortAttAcc));
 						selection[0].setExpanded(true);
 						if (isAsc) {
-							sortedColumn =  colNum*(tabNum+1);
+							sortedColumn = colNum * (tabNum + 1);
 						} else {
 							sortedColumn = null;
 						}
 					}
 					break;
 				}
-				default :
-				{
+				default: {
 					List<SymbolEvents> sortedColumnItems = new ArrayList<SymbolEvents>();
 					sortedColumnItems.addAll(eventsLists[tabNum]);
-					if (sortedColumn != null && sortedColumn.equals(colNum*(tabNum+1)))  {
+					if (sortedColumn != null && sortedColumn.equals(colNum * (tabNum + 1))) {
 						Collections.reverse(sortedColumnItems);
 					} else {
 						SymbolEvents.sortList(sortedColumnItems, new SymbolEventComparator(true, sortAttAcc));
 					}
 					eventsLists[tabNum] = sortedColumnItems;
-					//Refresh
+					// Refresh
 					cTabTrees.get(tabNum).removeAll();
 					updateTree(tabNum);
-					sortedColumn = colNum*(tabNum+1);
+					sortedColumn = colNum * (tabNum + 1);
 				}
 				}
-				
-				
+
 			}
 
 		} finally {
@@ -1085,12 +1109,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 	public void initRefreshAction() {
 
 		getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-		refreshMonitored.setEnabled(false);
-		refreshSelectedMarkets.setEnabled(false);
-		refreshPortfolios.setEnabled(false);
+		refreshCompute.setEnabled(false);
 		logComposite.initRefresh(this);
 	}
-
 
 	@Override
 	public void endRefreshAction(List<Exception> exceptions) {
@@ -1104,9 +1125,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	private void enableRefreshButtons() {
 
-		refreshMonitored.setEnabled(true);
-		refreshSelectedMarkets.setEnabled(true);
-		refreshPortfolios.setEnabled(true);
+		refreshCompute.setEnabled(true);
 	}
 
 	/**
@@ -1116,17 +1135,31 @@ public class EventsComposite extends Composite implements RefreshableView {
 	 */
 	@Override
 	public void refreshView(List<Exception> exceptions) {
-		
-		// Refresh view
-		//eventFilterComboRefresh();
-		sortOnWeigthCriteriasActions();
-		reloadTabs();
+
+		sortAndReload();
 		enableRefreshButtons();
 
 		if (isVisible()) {
-			for (Exception exception : exceptions) {
+			for (final Exception exception : exceptions) {
 				if (exception instanceof EventRefreshException) {
-					UserDialog dialog = new UserDialog(getShell(), "Couldn't refresh all events. Check that date bounds are not out of range.", exceptions.toString());
+					UserDialog dialog = new UserDialog(getShell(), "Couldn't update all trends and events calculations. Check that date bounds are not out of range.", exceptions.toString());
+					exceptions.clear();
+					dialog.open();
+					break;
+				}
+				if (exception instanceof InvalidEventRefreshTask) {
+
+					ActionDialogAction action = new ActionDialogAction() {
+						@Override
+						public void action(Control targetControl) {
+							EventTaskQueue.getSingleton().tamperTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
+						}
+					};
+					ActionDialog dialog = new ActionDialog(getShell(), 
+							SWT.NONE, 
+							"Force request", "Your last request has already been fulfilled sometime today.", 
+							"It should not need update but you still can force and run it again by pressing the button bellow and run your request again.",
+							"Invalidate previous calculation results for this request", action);
 					exceptions.clear();
 					dialog.open();
 					break;
@@ -1139,43 +1172,29 @@ public class EventsComposite extends Composite implements RefreshableView {
 		Calendar newDate = Calendar.getInstance();
 		newDate.setTime(EventSignalConfig.getNewDate());
 		newDate.add(Calendar.MONTH, -nbMonthsAnalysis);
-		return newDate.getTime();
+		return DateFactory.midnithDate(newDate.getTime());
 	}
 
 	private void eventFilterChange(final Set<EventInfo> eventDefs) {
-		
+
 		if (eventDefs == null || eventDefs.isEmpty()) {
+
 			EventsResources.getInstance().resetSortLists();
 			reloadTabs();
 
 		} else {
 
-			Display.getDefault().asyncExec(new Runnable() {
-				
-				public void run() {
+			Integer sellEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold();
+			Integer buyEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
+			PonderationRule ponderationRule = (evtFilterLatestTick.getSelection()) ? new LatestEventsAllIndDefsPonderationRule() : new DefaultPonderationRule(
+					sellEventTriggerThreshold, buyEventTriggerThreshold);
+			EventInfo[] eventDefArray = eventDefs.toArray(new EventInfo[0]);
+			setAction(new EventsActionSort(ponderationRule, eventDefArray));
 
-					try {
+			sortAndReload();
 
-						getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-
-						Integer sellEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold();
-						Integer buyEventTriggerThreshold = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
-						PonderationRule ponderationRule = (evtFilterLatestTick.getSelection())?new LatestEventsAllIndDefsPonderationRule():new DefaultPonderationRule(sellEventTriggerThreshold, buyEventTriggerThreshold);
-						EventInfo[] eventDefArray = eventDefs.toArray(new EventInfo[0]);
-						setAction(new EventsActionSort(ponderationRule, eventDefArray));
-
-						sortOnWeigthCriteriasActions();
-						reloadTabs();
-
-					} finally {
-						getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-					}
-
-				}
-
-			});
 		}
-		
+
 		AnalysisClient.setEmailSendingFilter(new EmailSendingFilter(getFilterDate(), eventDefs));
 	}
 
@@ -1183,9 +1202,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 	public void setVisible(boolean visible) {
 		try {
 			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-			if (needInit) initData();
-		}
-		finally {
+			if (needInit)
+				initData();
+		} finally {
 			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
 		super.setVisible(visible);

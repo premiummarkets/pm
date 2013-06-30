@@ -350,7 +350,11 @@ public enum EventDefinition implements Serializable, EventInfo {
 	public static SortedSet<EventInfo> loadMaxPassPrefsEventInfo() {
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 		return eventSignalConfig.getAllTechIndicatorsSorted(false);
-		
+	}
+	
+	public static SortedSet<EventInfo> loadAllParameterized() {
+		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+		return eventSignalConfig.getAllParameterized();
 	}
 
 	public static synchronized SortedSet<EventInfo> refreshMaxPassPrefsEventInfo() {

@@ -40,7 +40,7 @@ public class BarSettings {
 	}
 	public void setMaxFill(int maxFill) {
 		try {
-			MainPMScmd.getPrefs().putDouble("chart.maxFill", maxFill);
+			MainPMScmd.getPrefs().putInt("chart.maxFill", maxFill);
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}

@@ -318,8 +318,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.formula = formula;
 	}
 
-	@Override
-	public String toString() {
+	public String toFullString() {
 		ArrayList<Operation> parents = new ArrayList<Operation>();
 		return toString(parents);
 	}
@@ -487,6 +486,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public String getOperationReference() {
 		return operationReference;
+	}
+
+	@Override
+	public String toString() {
+		return "Operation [formula=" + formula + ", reference=" + reference + ", description=" + description + ", referenceAsOperand=" + referenceAsOperand+ 
+				", operationReference=" + operationReference + ", availableOutputSelectors=" + availableOutputSelectors + ", outputSelector="+ outputSelector + ", disabled=" + disabled + "]";
 	}
 
 }

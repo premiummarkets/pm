@@ -31,6 +31,7 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
@@ -44,6 +45,9 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 
 /**
@@ -64,7 +68,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	protected CmpDoubleMapCondition(String reference, String description) {
-		super(reference, description, new DoubleMapOperation(reference+ " left operand"), new DoubleMapOperation(reference+ " right operand"));
+		super(reference, description, new NumberOperation("length of time over which it is true"), new DoubleMapOperation(reference+ " left operand"), new DoubleMapOperation(reference+ " right operand"));
 	}
 
 	public CmpDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -75,24 +79,46 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(0)).getValue(targetStock);
-		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
+		Integer forPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
+		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
 		
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		fullKeySet.addAll(firstOp.keySet());
 		fullKeySet.addAll(secondOp.keySet());
 		
 		BooleanMapValue outputs = new  BooleanMapValue();
+		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
 
 		for (Date date : fullKeySet) {
 			Double firstV = firstOp.get(date);
 			Double secondV = secondOp.get(date);
 			if (firstV != null && !firstV.isNaN() && secondV != null && !secondV.isNaN()) {
+				
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(firstV, secondV);
-				if (conditionCheck != null) {
-					outputs.getValue(targetStock).put(date, conditionCheck);
+				
+				underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
+				
+				if (conditionCheck && forPeriod > 0) {
+					
+					Calendar startForPeriodCal = Calendar.getInstance();
+					startForPeriodCal.setTime(date);
+					QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
+					Date startForPeriod = startForPeriodCal.getTime();
+					
+					SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
+					if (startForPeriod.before(fullKeySet.first())) {
+						conditionCheck = null;
+					} else {
+						for (Boolean previousValue : forPeriodData.values()) {
+							conditionCheck = conditionCheck && previousValue;
+							if (!previousValue) break;
+						}
+					}
 				}
+				
+				if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
 			}
 		}
 		
@@ -101,12 +127,12 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 
 	@Override
 	public int inputSignalPosition() {
-		return 1;
+		return 2;
 	}
 	
 	@Override
 	public int mainInputPosition() {
-		return 0;
+		return 1;
 	}
 	
 	

@@ -10,7 +10,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-@XmlSeeAlso({PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMHouseTrendOperation.class})
+@XmlSeeAlso({PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMHouseTrendOperation.class, PMInvHouseTrendOperation.class})
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 
 	@SuppressWarnings("unused")

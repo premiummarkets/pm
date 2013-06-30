@@ -36,6 +36,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -75,8 +76,8 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			    GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
 			    logDisplayGD.horizontalSpan=4;
 			    logDisplay.setLayoutData(logDisplayGD);
-			   
 				logDisplay.setFont(MainGui.DEFAULTFONT);
+				logDisplay.setForeground(new Color(getDisplay(),255,0,0));
 			}
 			{
 				progressBar = new ProgressBar(this, SWT.SMOOTH);
@@ -85,6 +86,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				progressBar.setLayoutData(logDisplayGD);
 				
 				progressBar.setFont(MainGui.DEFAULTFONT);
+				//progressBar.setForeground(new Color(getDisplay(),255,0,0));
 				progressBar.setMaximum(100);
 				progressBar.setSelection(0);
 				progressBar.setVisible(true);

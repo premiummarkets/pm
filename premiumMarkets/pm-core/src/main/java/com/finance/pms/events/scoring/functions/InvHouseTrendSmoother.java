@@ -40,7 +40,9 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class InvHouseTrendSmoother extends Smoother {
+import org.apache.commons.lang.NotImplementedException;
+
+public class InvHouseTrendSmoother extends Smoother  implements SSmoother {
 	
 	private int period;
 	private SortedMap<Date, double[]> pQs;
@@ -105,6 +107,44 @@ public class InvHouseTrendSmoother extends Smoother {
 			double value = prevQ * Math.pow(10, currentHouseTrendValue);
 					
 			ret.put(keys.get(keysIdx), new double[]{value});
+		}
+
+		return ret;
+	}
+
+	@Override
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> houseTrend, Boolean fixLag) {
+		
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		List<Date> keys = new ArrayList<Date>();
+
+		Date start;
+		if (pQs != null) {
+			
+			throw new NotImplementedException();
+			
+		} else {
+
+			start = houseTrend.firstKey();
+			keys.add(start);
+			ret.put(start, 0.00001);
+
+		}
+		
+		SortedMap<Date, Double> houseTrendTail = houseTrend.tailMap(start);
+		List<Double> htValues = new ArrayList<Double>(houseTrendTail.values());
+		List<Date> htKeys = new ArrayList<Date>(houseTrendTail.keySet());
+		
+		keys.addAll(htKeys);
+		
+		int keysIdx = 0;
+		for (int htValuesIdx = 0; htValuesIdx < htValues.size(); htValuesIdx++) {
+			keysIdx = htValuesIdx + period;
+			double prevQ = ret.get(keys.get(keysIdx-period));
+			double currentHouseTrendValue = htValues.get(htValuesIdx);
+			double value = prevQ * Math.pow(10, currentHouseTrendValue);
+					
+			ret.put(keys.get(keysIdx), value);
 		}
 
 		return ret;

@@ -28,13 +28,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.UserDialog;
@@ -76,6 +76,7 @@ public class ShareListUpdateDialog extends Dialog {
 	protected Providers provider;
 	private Boolean isOk = false;
 
+	private ActionDialogAction actionDialogAction;
 
 	public ShareListUpdateDialog(Shell parent, int style) {
 		
@@ -84,10 +85,12 @@ public class ShareListUpdateDialog extends Dialog {
 				
 		biggerFont = MainGui.DEFAULTFONT;
 		
+		initGui();
+		
 	}
-	
-	
-	public void open() {
+
+
+	protected void initGui() {
 		
 		GridLayout layout = new GridLayout();
 		getParent().setLayout(layout);
@@ -99,7 +102,7 @@ public class ShareListUpdateDialog extends Dialog {
 			
 			existingGroup.setBackground(MainGui.pOPUP_GRP);
 			existingGroup.setFont(biggerFont);
-			existingGroup.setText("Select an exising list to update in your database - then click 'Update an existing list' to proceed");
+			existingGroup.setText("Select an existing list to update in your database - then click 'Update an existing list' to proceed");
 
 			GridData gridData = new GridData(SWT.FILL,SWT.TOP,true, false);
 			existingGroup.setLayoutData(gridData);
@@ -156,7 +159,7 @@ public class ShareListUpdateDialog extends Dialog {
 			existDersc.setVisible(true);
 			
 			{
-				Button valideButton1 = new Button(existingGroup, SWT.PUSH | SWT.CENTER);
+				final Button valideButton1 = new Button(existingGroup, SWT.PUSH | SWT.CENTER);
 				valideButton1.setLayoutData(new GridData(SWT.RIGHT,SWT.TOP,false, false));
 				valideButton1.setText("Update an existing list");
 				valideButton1.setToolTipText("The updated content will be available for addition in portoflios using 'Add shares ...' in 'Portfolios' menu");
@@ -169,7 +172,13 @@ public class ShareListUpdateDialog extends Dialog {
 							SharesListId.updatePrefs(provider.getSharesListIdEnum().getSharesListCmdParam(), Indice.formatSet(provider.getIndices()),  MarketQuotationProviders.YAHOO.getCmdParam());
 							isOk = true;
 						}
-						getParent().dispose();
+						try {
+							getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							ShareListUpdateDialog.this.actionDialogAction.action(valideButton1);
+						} finally {
+							getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+						}
+						
 					}
 				});
 			}
@@ -183,7 +192,7 @@ public class ShareListUpdateDialog extends Dialog {
 			
 			newGroup.setFont(biggerFont);
 			newGroup.setBackground(MainGui.pOPUP_GRP);
-			newGroup.setText("Or download a new list from the internet - then click 'Download a new list' to proceed");
+			newGroup.setText("Or download a new list from the Internet - then click 'Download a new list' to proceed");
 			
 
 			GridLayout ngL = new GridLayout();
@@ -322,10 +331,10 @@ public class ShareListUpdateDialog extends Dialog {
 			});
 			
 			{
-				Button valideButton1 = new Button(newGroup, SWT.PUSH | SWT.CENTER);
+				final Button valideButton1 = new Button(newGroup, SWT.PUSH | SWT.CENTER);
 				valideButton1.setLayoutData(new GridData(SWT.RIGHT,SWT.TOP,false, false));
 				valideButton1.setText("Download a new list");
-				valideButton1.setToolTipText("The downloaded content will be available for addition in portoflios using 'Add shares ...' in 'Portfolios' menu");
+				valideButton1.setToolTipText("The downloaded content will be available for addition in portfolios using 'Add shares ...' in 'Portfolios' menu");
 				valideButton1.setFont(MainGui.DEFAULTFONT);
 				valideButton1.addMouseListener(new MouseAdapter() {
 					@Override
@@ -335,7 +344,8 @@ public class ShareListUpdateDialog extends Dialog {
 							SharesListId.updatePrefs(provider.getSharesListIdEnum().getSharesListCmdParam(), Indice.formatSet(provider.getIndices()),  MarketQuotationProviders.YAHOO.getCmdParam());
 							isOk = true;
 						}
-						getParent().dispose();
+						//getParent().dispose();
+						ShareListUpdateDialog.this.actionDialogAction.action(valideButton1);
 					}
 				});
 			}
@@ -452,7 +462,7 @@ public class ShareListUpdateDialog extends Dialog {
 				currencyFactorTxt.setFont(MainGui.CONTENTFONT);
 				String curFactToolTip = "This is to deal with quotations available in fractions of the main currency.\n" +
 						"For instance for quotations in Pence, we use GBP as currency but specify a unit factor 100 here for conversion purpose.\n" +
-						"It is usally oik to leave it as one.";
+						"It is usually OK to leave it as one.";
 				currencyFactorLab.setToolTipText(curFactToolTip);
 				currencyFactorTxt.setToolTipText(curFactToolTip);
 				currencyFactorTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -486,9 +496,9 @@ public class ShareListUpdateDialog extends Dialog {
 					}
 				});
 				symbolExtTxt.setEditable(true);
-				String extToolTip = "The extention is specific to the quotation provider.\n" +
-						"This will be part of the url to retreive the stock quotations (usually as an extension of the symbol or isin).\n" +
-						"Every provider as its own set of extentions.";
+				String extToolTip = "The extension is specific to the quotation provider.\n" +
+						"This will be part of the URL to retrieve the stock quotations (usually as an extension of the symbol or ISIN).\n" +
+						"Every provider as its own set of extensions.";
 				extLab.setToolTipText(extToolTip);
 				symbolExtTxt.setToolTipText(extToolTip);
 				symbolExtTxt.setFont(MainGui.CONTENTFONT);
@@ -544,7 +554,7 @@ public class ShareListUpdateDialog extends Dialog {
 				newShareValidateButtonLData.horizontalAlignment=SWT.END;
 				manualAddOkButton.setLayoutData(newShareValidateButtonLData);
 				manualAddOkButton.setText("Insert the above");
-				manualAddOkButton.setToolTipText("The inserted stock will be available in the UNKNOWN list for addition in portoflios using 'Add shares ...' in 'Portfolios' menu");
+				manualAddOkButton.setToolTipText("The inserted stock will be available in the UNKNOWN list for addition in portfolios using 'Add shares ...' in 'Portfolios' menu");
 				manualAddOkButton.setFont(MainGui.DEFAULTFONT);
 				manualAddOkButton.addMouseListener(new MouseAdapter() {
 					@Override
@@ -563,7 +573,7 @@ public class ShareListUpdateDialog extends Dialog {
 			}
 			{
 				String toolTipTxt = "The file format is CSV and the content must be one line per stock.\n" +
-						"Each line containing the following : symbol,isin,sector,type,market,currency factor,quotation provider\n" +
+						"Each line containing the following : symbol,ISIN,sector,type,market,currency factor,quotation provider\n" +
 						"Please refer to the manual insertion form above for the different options and fields details.\n" +
 						"Alternatively have a look at the sample file : list_test.txt";
 				insertFromFileGroup = new Group(userFeedGroup, SWT.NONE);
@@ -579,16 +589,17 @@ public class ShareListUpdateDialog extends Dialog {
 				Button insertFromFile = new Button(insertFromFileGroup, SWT.PUSH);
 				insertFromFile.setLayoutData(new GridData(SWT.END,SWT.DEFAULT,true,false));
 				insertFromFile.setText("Insert your own file of stocks ...");
-				insertFromFile.setToolTipText("The inserted stocks will be available in the UNKNOWN list for addition in portoflios using 'Add shares ...' in 'Portfolios' menu.\n"+toolTipTxt);
+				insertFromFile.setToolTipText("The inserted stocks will be available in the UNKNOWN list for addition in portfolios using 'Add shares ...' in 'Portfolios' menu.\n"+toolTipTxt);
 				insertFromFile.setFont(MainGui.DEFAULTFONT);
 				insertFromFile.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent evt) {
-						getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+						
 						try {
+							getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 							portfolioAddSharesFromFileMouseDown(evt);
 						} finally {
-							getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						}
 					}
 				});
@@ -598,21 +609,27 @@ public class ShareListUpdateDialog extends Dialog {
 		
 		getParent().layout();
 		getParent().pack();
+			
+	}
+
+
+	public void open() {
+		
 		getParent().open();
 		
-		
-		Display display = getParent().getDisplay();
-		while (!getParent().isDisposed()) {
-			try {
-				if (!display.readAndDispatch()) display.sleep();
-			} catch (RuntimeException e) {
-				LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-				LOGGER.debug("Error in Error Dialog Gui : ",e);
-			} catch (Error e) {
-				LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-				LOGGER.debug("Error in  Gui : ",e);
-			}
-		}
+//		Display display = getParent().getDisplay();
+//		while (!getParent().isDisposed()) {
+//			try {
+//				if (!display.readAndDispatch())
+//					display.sleep();
+//			} catch (RuntimeException e) {
+//				LOGGER.error("Error in Error dialog Gui : " + e.getMessage(), e);
+//				LOGGER.debug("Error in Error Dialog Gui : ", e);
+//			} catch (Error e) {
+//				LOGGER.error("Error in  Gui : " + e.getMessage(), e);
+//				LOGGER.debug("Error in  Gui : ", e);
+//			}
+//		}
 		
 	}
 	
@@ -645,23 +662,24 @@ public class ShareListUpdateDialog extends Dialog {
 			sharesListForThisListProvider.addShare(newStock);
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 		} catch (StockNotFoundException e) {
-			UserDialog inst = new UserDialog(getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", 
-					(e.getMessage() != null)?e.getMessage():e.toString());
+			UserDialog inst = new UserDialog(
+							getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		}
 	}
 	
 	private void validateNewManualShare(Text symbolTxt,  Text isinTxt,  Text nameTxt,  CCombo typeCombo, CCombo marketCombo,  Text  currencyFactorTxt, CCombo provCombo) {
-		getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+		
 		try {
+			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 			portfolioInsertShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
-			UserDialog inst = new UserDialog(getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", 
-					(e.getMessage() != null)?e.getMessage():e.toString());
+			UserDialog inst = new UserDialog(
+					getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		} finally {
-			getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));	
 		}
 	}
 	
@@ -720,6 +738,12 @@ public class ShareListUpdateDialog extends Dialog {
 			paramsForm.setText("");
 			getParent().getShell().pack();
 		}
+	}
+
+
+	public void setAction(ActionDialogAction actionDialogAction) {
+		this.actionDialogAction = actionDialogAction;
+		
 	}
 
 }

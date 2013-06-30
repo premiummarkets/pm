@@ -33,8 +33,8 @@ package com.finance.pms.datasources;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 
@@ -48,10 +48,8 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -69,7 +67,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * 
  * @author Guillaume Thoreton
  */
-public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
+public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine {
 	
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(RefreshAllEventStrategyEngine.class);
@@ -78,82 +76,109 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 		
 	}
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, Object...viewStateParams) throws HttpException {
+	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws HttpException {
 		
-		LOGGER.debug("Updating list of shares  : "+viewStateParams);
-		for (Object shareList : viewStateParams) {
-			
-			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
-			String marketQuotationsProviders = MainPMScmd.getPrefs().get("quotes.provider","yahoo");
-			MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);
-			
-			provider.addObservers(engineObservers);
-			provider.updateStockListFromWeb(marketQuotationProvider);
-		}
-		
-	}
-
-	
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Object...viewStateParams) {
-		
-		QuotationUpdate quotationUpdate = new QuotationUpdate();
-		
-		LOGGER.debug("Fetching all quotations");
-		quotationUpdate.addObservers(engineObservers);
-		for (Object shareList : viewStateParams) {
-			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
-			quotationUpdate.getQuotesForSharesListInDB(provider.getSharesListIdEnum().getSharesListCmdParam(), provider.getIndices());
-
-		}
-	}
-
-	
-	public Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Object...viewStateParams) {
-		
-		for (Object shareList : viewStateParams) {
-			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
-			SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
-			
-			//Dates check
-			Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
-			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
-
-			//Init
-			String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
-			String[] analysers = new String[analisysList.size()];
-			for (int j = 0; j < analysers.length; j++) {
-				analysers[j] = analisysList.get(j);
+		if (viewStateParams.length != 0) {
+			LOGGER.debug("Updating list of shares  : "+viewStateParams[0]);
+			for (Object shareList : viewStateParams[0]) {
+				
+				Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+				String marketQuotationsProviders = MainPMScmd.getPrefs().get("quotes.provider","yahoo");
+				MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);
+				
+				provider.addObservers(engineObservers);
+				provider.updateStockListFromWeb(marketQuotationProvider);
 			}
-			for (int i = 0; i < analysers.length; i++) {
+		}
+		
+	}
 
-				LOGGER.debug("running analysis for " + analysers[i]);
-				IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+	
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) {
+		
+		if (viewStateParams.length != 0) {
+			
+			QuotationUpdate quotationUpdate = new QuotationUpdate();
 
-				ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
+			LOGGER.debug("Fetching all quotations");
+			quotationUpdate.addObservers(engineObservers);
+			for (Object shareList : viewStateParams[0]) {
+				Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+				quotationUpdate.getQuotesForSharesListInDB(provider.getSharesListIdEnum().getSharesListCmdParam(), provider.getIndices());
 
-				//Calculations
-				Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
-				IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
-						SpringContext.getSingleton(),
-						analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, export, engineObservers.toArray(new Observer[0]));
+			}
+		}
+	}
 
-				Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
-				try {
-					if (maxPass == 1) {
-						actionThread.runIndicatorsCalculationPassOne(true , "auto");
-					} else {
-						actionThread.runIndicatorsCalculationPassTwo(true);
+	
+	@SuppressWarnings("unchecked")
+	public void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) {
+		
+		if (viewStateParams.length  == 2) {//Tampering the config to recalculate only independent indicators that need to.
+			tamperEventConfig((Collection<EventInfo>) viewStateParams[1]);
+		} 
+		
+		if (viewStateParams.length != 0) {
+			for (Object shareList : viewStateParams[0]) {
+				Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+				SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
+
+				//Dates check
+				Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+				Date datedeb = DateFactory.midnithDate(startAnalyseDate);
+
+				//Init
+				String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
+				String[] analysers = new String[analisysList.size()];
+				for (int j = 0; j < analysers.length; j++) {
+					analysers[j] = analisysList.get(j);
+				}
+				for (int i = 0; i < analysers.length; i++) {
+
+					LOGGER.debug("running analysis for " + analysers[i]);
+					IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+
+					ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
+
+					//Calculations
+					Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
+					IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
+							SpringContext.getSingleton(),
+							analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
+							sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, export, engineObservers.toArray(new Observer[0]));
+
+					Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+					try {
+						if (maxPass == 1) {
+							actionThread.runIndicatorsCalculationPassOne(true , "auto");
+						} else {
+							actionThread.runIndicatorsCalculationPassTwo(true);
+						}
+					} catch (IncompleteDataSetException e) {
+						LOGGER.warn(e,e);
+					} catch (Exception e) {
+						LOGGER.error(e,e);
 					}
-				} catch (IncompleteDataSetException e) {
-					LOGGER.warn(e,e);
-				} catch (Exception e) {
-					LOGGER.error(e,e);
 				}
 			}
 		}
 		
-		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) {
+		
+		if (viewStateParams != null && viewStateParams.length  == 2) {//Tampering the config to recalculate only independent indicators that need to.
+			tamperEventConfig((Collection<EventInfo>) viewStateParams[1]);
+		}
+		
+		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+		EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
+		TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfs();
+		
+		//Delete all
+		postCallBackForClean(true);
 	}
 
 	
@@ -215,19 +240,60 @@ public class RefreshAllEventStrategyEngine implements EventModelStrategyEngine {
 	}
 
 	@Override
-	public Boolean callbackForAnalysisClean(Set<Observer> engineObservers, Object... viewStateParams) {
+	public void callbackForAlerts(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) {
+		throw new NotImplementedException();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Collection<ShareListInfo> getViewParamRoot(Collection<? extends Object>... viewStateParams) {
+		if (viewStateParams != null && viewStateParams.length != 0 && viewStateParams[0].size() > 0) {
+			return (Collection<ShareListInfo>) viewStateParams[0];
+		}
 		
-		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
-		TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfs();
+		return null;
 		
-		//Delete all
-		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Collection<? extends Object>[] setViewStateParams(Object rootParam, Collection<? extends Object>... otherParams) {
+
+		Collection<? extends Object>[] ret = new Collection[2];
+		
+		if (rootParam == null) {
+			ret[0] = null;
+		} else {
+			if (rootParam instanceof Collection) {
+				ret[0] = (Collection<ShareListInfo>) rootParam;
+			} else {
+				throw new IllegalArgumentException("ExpectingCollection<ShareListInfo>");
+			}
+		}
+		
+		if (otherParams.length != 0) {
+			for (int i = 1; i < ret.length; i++) {
+				ret[i] = (i-1 < otherParams.length)?otherParams[i-1]:null;
+			}
+		}
+		
+		return ret;
 	}
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Object... viewStateParams) {
-		throw new NotImplementedException();
+	public int[] otherViewParamPositionsFor(TaskId taskId) {
+		switch (taskId) {
+		case Analysis:
+		case Clean :
+			return new int[]{1};
+		default :
+			return new int[]{};
+		}
+	}
+
+	@Override
+	public boolean allowsTaskReset() {
+		return true;
 	}
 
 }

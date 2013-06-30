@@ -33,7 +33,6 @@ package com.finance.pms.events.calculation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +44,6 @@ import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
-import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -54,7 +52,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
-import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
@@ -110,18 +107,20 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		return eventCalculations;
 	}
 
-	@SuppressWarnings("unchecked")
+//	@SuppressWarnings("unchecked")
 	private List<EventInfo> subEventInfosForRequested(EventDefinition eventDefinition) {
 		
 		List<EventInfo> ret = new ArrayList<EventInfo>();
 		switch(eventDefinition) {
 		case PARAMETERIZED :
-			ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
-			@SuppressWarnings("rawtypes")
-			Collection values = parameterizedIndicatorsBuilder.getUserEnabledOperations().values();
-			ret.addAll(values);
+//			ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
+//			@SuppressWarnings("rawtypes")
+//			Collection values = parameterizedIndicatorsBuilder.getUserEnabledOperations().values();
+//			ret.addAll(values);
+			ret.addAll(EventDefinition.loadAllParameterized());
 			break;
-		default : ret.add(eventDefinition);
+		default : 
+			ret.add(eventDefinition);
 		}
 		return ret;
 	}
@@ -167,8 +166,30 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 
 		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
 			if (checkWanted(eventDefinition)) {
+				
 				LOGGER.info("cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
-				EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
+				
+//				if (eventDefinition.equals(EventDefinition.PARAMETERIZED)) {
+//					
+//					EventInfo[] eventDefsArray = EventDefinition.loadAllParameterized().toArray(new EventInfo[0]);
+//					
+//					if (LOGGER.isInfoEnabled()) {
+//						String paramEvtString = "";
+//						for (EventInfo eventInfo : eventDefsArray) {
+//							paramEvtString = "," + paramEvtString + eventInfo.getEventReadableDef();
+//						}
+//						LOGGER.info("cleaning PARAMETERIZED "+paramEvtString+" BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
+//					}
+//					
+//					EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefsArray);
+//					
+//				} else {
+//					EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
+//				}
+				
+				List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
+				EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, subEventInfosForRequested.toArray(new EventInfo[0]));
+				
 			}
 		}
 	}

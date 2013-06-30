@@ -16,7 +16,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
@@ -139,6 +138,7 @@ public class NewCurrencyStockDialog extends Dialog {
 					Set<Stock> stocks = new TreeSet<Stock>();
 					stocks.add(currencyStock);
 					((PortfolioComposite) caller).addShares(tabIx, stocks, BigDecimal.ONE , MonitorLevel.BEARISH);
+					((PortfolioComposite) caller).refreshPortfolioTotalsInfos(((PortfolioComposite) caller).getCurrentTabSelection());
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 
@@ -154,18 +154,18 @@ public class NewCurrencyStockDialog extends Dialog {
 		getParent().open();
 		
 		
-		Display display = getParent().getDisplay();
-		while (!getParent().isDisposed()) {
-			try {
-				if (!display.readAndDispatch()) display.sleep();
-			} catch (RuntimeException e) {
-				LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-				LOGGER.debug("Error in Error Dialog Gui : ",e);
-			} catch (Error e) {
-				LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-				LOGGER.debug("Error in  Gui : ",e);
-			}
-		}
+//		Display display = getParent().getDisplay();
+//		while (!getParent().isDisposed()) {
+//			try {
+//				if (!display.readAndDispatch()) display.sleep();
+//			} catch (RuntimeException e) {
+//				LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
+//				LOGGER.debug("Error in Error Dialog Gui : ",e);
+//			} catch (Error e) {
+//				LOGGER.error("Error in  Gui : "+e.getMessage(),e);
+//				LOGGER.debug("Error in  Gui : ",e);
+//			}
+//		}
 		
 	}
 	
