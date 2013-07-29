@@ -40,11 +40,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -64,6 +66,13 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 	
 	private SMA sma;
 	private Integer smaQuotationStartDateIdx;
+	
+	public StochasticDivergence_old(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
+//		fastKLookBackPeriod = 14;
+//		slowKSmaPeriod = 3;
+//		slowDSmaPeriod = 3;
+		this(stock, new StochasticOscillator(stock, startDate, endDate, calculationCurrency, 14, 3, 3), new HouseAroon(stock,  startDate, endDate, calculationCurrency, 25) , startDate,endDate,calculationCurrency);
+	}
 
 	public StochasticDivergence_old(Stock stock, StochasticOscillator stochasticOscillator, HouseAroon aroon, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
@@ -90,7 +99,7 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 	@Override
 	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
 	
-		FormulatRes res = new FormulatRes(EventDefinition.PMSSTOCHDIVERGENCE);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
 		int stochIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.stochOsc, calculatorIndex, stochQuotationStartDateIdx);
@@ -162,8 +171,8 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSSTOCHDIVERGENCE, EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSSTOCHDIVERGENCE, EventType.BULLISH));
+		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate, getEventDefinition(), EventType.BEARISH));
+		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate, getEventDefinition(), EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
 		
 		int stochIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.stochOsc, calculatorIndex, stochQuotationStartDateIdx);

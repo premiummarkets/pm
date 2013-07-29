@@ -31,6 +31,7 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +60,7 @@ import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class ParameterizedCalculator extends EventCompostionCalculator {
 	
@@ -78,12 +80,32 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	 * @param observers 
 	 * @throws WarningException 
 	 */
-	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean export, Boolean persistTrainingEvents, Observer... observers) 
+	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) 
 			throws WarningException  {
 		
-		super(stock);		
-		targetStock = new TargetStockInfo(analyseName, stock, startDate, endDate);
+		super(stock);	
 		this.conditionHolder = (EventConditionHolder) eventInfo;
+		
+		//Adjust start
+		int operationStartDateShift = this.conditionHolder.operationStartDateShift();
+		Calendar adjustedStartCal = Calendar.getInstance();
+		adjustedStartCal.setTime(startDate);
+		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, -operationStartDateShift);
+		LOGGER.info(this.conditionHolder.getReference()+" start date shift to : "+operationStartDateShift+". Requested start : "+startDate+", calculated start : "+adjustedStartCal.getTime());
+		
+		//Adjust end
+		Date lastQuote = stock.getLastQuote();
+		Date adjustedEndDate;
+		if (lastQuote.before(endDate)) {
+			adjustedEndDate = lastQuote;
+			LOGGER.info(this.conditionHolder.getReference()+" end date shift to : "+operationStartDateShift+". Requested end : "+endDate+", calculated end : "+adjustedEndDate);
+		} else {
+			adjustedEndDate = endDate;
+		}
+		
+		//Target stock instance
+		this.targetStock = new TargetStockInfo(analyseName, stock, adjustedStartCal.getTime(), adjustedEndDate);
+		
 	}
 
 	@Override

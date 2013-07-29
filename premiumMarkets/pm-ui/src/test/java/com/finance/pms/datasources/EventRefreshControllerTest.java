@@ -82,11 +82,13 @@ public class EventRefreshControllerTest extends TestCase {
 	Display display;
 	
 	/** The refresh model. */
-	EventModel<EventModelStrategyEngine, Object> refreshModel;
+	@SuppressWarnings("rawtypes")
+	EventModel refreshModel;
 
 	
 	//default
 	/** The monitored only. */
+	@SuppressWarnings("rawtypes")
 	EventModelStrategyEngine monitoredOnly = new RefreshAllEventStrategyEngine();
 	
 	/** The start analyse date. */
@@ -219,6 +221,7 @@ public class EventRefreshControllerTest extends TestCase {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
+	@SuppressWarnings("unchecked")
 	private EventRefreshController initMonitored() {
 		monitoredOnly = new RefreshMonitoredStrategyEngine();
 		//FIXME
@@ -427,6 +430,7 @@ private void checkCallForQuotations() {
  * 
  * @author Guillaume Thoreton
  */
+@SuppressWarnings("unchecked")
 private EventRefreshController initNotMonitored() {
 	monitoredOnly = new RefreshAllEventStrategyEngine();
 	//FIXME
@@ -470,6 +474,7 @@ private void threadMessWait() {
  * @author Guillaume Thoreton
  * @throws HttpException 
  */
+@SuppressWarnings("unchecked")
 public void testCompleteAll() throws HttpException {
 	
 	EasyMock.checkOrder(quotationUpdate, true);

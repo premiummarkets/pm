@@ -188,6 +188,7 @@ public class TunedConfMgr {
 		
 	}
 	
+	//TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
 	public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
 		
 		Calendar dateDebCal = Calendar.getInstance();
@@ -216,12 +217,7 @@ public class TunedConfMgr {
 				Date pEndDate = slidingDateFinCal.getTime();
 				QuotationsFactories.getFactory().incrementDateLarge(slidingDateFinCal, -tuneFreq);
 				Date pStartDate = slidingDateFinCal.getTime();
-				if (pStartDate.after(dateDeb) || pStartDate.equals(dateDeb)) {
-					retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
-				} 
-				else if (retuneDates.isEmpty()) {
-					retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, dateDeb, dateFin));
-				}
+				retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
 			}
 
 		} else {
@@ -236,13 +232,18 @@ public class TunedConfMgr {
 		return tunedConfDAO;
 	}
 	
-	public static Date adjustStartDate(final Stock stock) {
+	public Date adjustStartDate(Stock stock) {
 		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(firstQuotationDateFromQuotations);
 		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, 200);
 		Date adjustedStartDate = adjustedStartCal.getTime();
 		return adjustedStartDate;
+	}
+	
+	public Date adjustEndDate(Stock stock) {
+		Date lastQuote = stock.getLastQuote();
+		return lastQuote;
 	}
 
 }

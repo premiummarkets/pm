@@ -1,23 +1,31 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2013-06-29 21:13:59
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2013-07-19 12:55:41
  //parser
     package com.finance.pms.events.operations.parameterized.antlr;
-    import com.finance.pms.events.calculation.antlr.IErrorReporter;
-    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-    import com.finance.pms.events.calculation.antlr.OpsParserDelegate;
-    import com.finance.pms.events.calculation.antlr.ParamsCountException;
-    import com.finance.pms.events.calculation.antlr.UnfinishedParameterException;
-     import com.finance.pms.events.calculation.antlr.InvalidOperationException;
-    import com.finance.pms.events.calculation.antlr.EditorOpDescr;
-    import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
-    import com.finance.pms.events.calculation.antlr.InvalidOperationException;
-
-
-import org.antlr.runtime.*;
-import java.util.Stack;
+    import java.util.ArrayList;
 import java.util.List;
-import java.util.ArrayList;
 
-import org.antlr.runtime.tree.*;
+import org.antlr.runtime.BitSet;
+import org.antlr.runtime.NoViableAltException;
+import org.antlr.runtime.Parser;
+import org.antlr.runtime.ParserRuleReturnScope;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.RecognizerSharedState;
+import org.antlr.runtime.RuleReturnScope;
+import org.antlr.runtime.Token;
+import org.antlr.runtime.TokenStream;
+import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.CommonTreeAdaptor;
+import org.antlr.runtime.tree.RewriteEarlyExitException;
+import org.antlr.runtime.tree.RewriteRuleSubtreeStream;
+import org.antlr.runtime.tree.RewriteRuleTokenStream;
+import org.antlr.runtime.tree.TreeAdaptor;
+
+import com.finance.pms.events.calculation.antlr.InvalidOperationException;
+import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
+import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+import com.finance.pms.events.calculation.antlr.OpsParserDelegate;
+import com.finance.pms.events.calculation.antlr.ParamsCountException;
+import com.finance.pms.events.calculation.antlr.UnfinishedParameterException;
 
 
 @SuppressWarnings("all")
@@ -104,7 +112,7 @@ public class ParameterizedOperationsParser extends Parser {
 	       return  parserDelegate.checkParamExhaust(opName, params);
 	     }
 	     
-	    private void  outputSelectorHint(String opToken, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException {
+	    private void  outputSelectorHint(Token opToken, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException, NoViableAltException {
 	        parserDelegate.outputSelectorHint(opToken, outputSelector);
 	    }
 
@@ -320,11 +328,11 @@ public class ParameterizedOperationsParser extends Parser {
 
 			}
 
-			outputSelectorHint((opName!=null?opName.getText():null), outSelect);
+			outputSelectorHint(opName, outSelect);
 			char_literal4=(Token)match(input,19,FOLLOW_19_in_nativeop140);  
 			stream_19.add(char_literal4);
 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:100: (pars+= params )?
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:95: (pars+= params )?
 			int alt3=2;
 			int LA3_0 = input.LA(1);
 			if ( (LA3_0==HistoricalData||(LA3_0 >= MATypeToken && LA3_0 <= Nativeop)||LA3_0==NumberToken||(LA3_0 >= StringToken && LA3_0 <= Userop)) ) {
@@ -332,7 +340,7 @@ public class ParameterizedOperationsParser extends Parser {
 			}
 			switch (alt3) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:101: pars+= params
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:96: pars+= params
 					{
 					pushFollow(FOLLOW_params_in_nativeop145);
 					pars=params();
@@ -351,7 +359,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal5);
 
 			// AST REWRITE
-			// elements: Nativeop, params, OutputSelector
+			// elements: Nativeop, OutputSelector, params
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -361,15 +369,15 @@ public class ParameterizedOperationsParser extends Parser {
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 			root_0 = (CommonTree)adaptor.nil();
-			// 121:157: -> ^( Nativeop ( ^( OperationOutput OutputSelector ) )? ( params )? )
+			// 121:152: -> ^( Nativeop ( ^( OperationOutput OutputSelector ) )? ( params )? )
 			{
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:160: ^( Nativeop ( ^( OperationOutput OutputSelector ) )? ( params )? )
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:155: ^( Nativeop ( ^( OperationOutput OutputSelector ) )? ( params )? )
 				{
 				CommonTree root_1 = (CommonTree)adaptor.nil();
 				root_1 = (CommonTree)adaptor.becomeRoot(stream_Nativeop.nextNode(), root_1);
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:171: ( ^( OperationOutput OutputSelector ) )?
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:166: ( ^( OperationOutput OutputSelector ) )?
 				if ( stream_OutputSelector.hasNext() ) {
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:171: ^( OperationOutput OutputSelector )
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:166: ^( OperationOutput OutputSelector )
 					{
 					CommonTree root_2 = (CommonTree)adaptor.nil();
 					root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(OperationOutput, "OperationOutput"), root_2);
@@ -380,7 +388,7 @@ public class ParameterizedOperationsParser extends Parser {
 				}
 				stream_OutputSelector.reset();
 
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:206: ( params )?
+				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:201: ( params )?
 				if ( stream_params.hasNext() ) {
 					adaptor.addChild(root_1, stream_params.nextTree());
 				}
@@ -480,7 +488,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal7);
 
 			// AST REWRITE
-			// elements: params, Userop
+			// elements: Userop, params
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 

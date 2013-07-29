@@ -11,12 +11,12 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
 
-public class PMHouseTrendOperation extends PMIndicatorOperation {
+public class PMHouseTrendOperation extends PMWithDataOperation {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(PMHouseTrendOperation.class);
 	
 	public PMHouseTrendOperation() {
-		super("logroc", "Roc logarithmic over a period", new NumberOperation("number", "logRocPeriod", "Roc period", new NumberValue(21.0)), new DoubleMapOperation());
+		super("logroc", "Roc logarithmic over a period", new NumberOperation("number", "logRocPeriod", "Roc period", new NumberValue(1.0)), new DoubleMapOperation());
 	}
 	
 	public PMHouseTrendOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -42,6 +42,11 @@ public class PMHouseTrendOperation extends PMIndicatorOperation {
 			LOGGER.error(e,e);
 		}
 		return ret;
+	}
+
+	@Override
+	public int operationStartDateShift() {
+		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue() + getOperands().get(1).operationStartDateShift();
 	}
 
 }

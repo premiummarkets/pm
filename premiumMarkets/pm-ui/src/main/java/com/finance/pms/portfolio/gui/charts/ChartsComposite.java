@@ -198,7 +198,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
-	@SuppressWarnings("unchecked")
 	void updateCharts(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean portfolioHasChanged, Boolean grantEventsUpdate) {
 		
 		stripedCloseFunction.updateStartDate(slidingStartDate);
@@ -209,17 +208,17 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				
 				int previousSelection = chartDisplayStrategy.retreivePreviousSelection();
 				if (previousSelection != -1) {
-					getHightlitedEventModel().setViewStateParams(getCurrentTabShareList().get(previousSelection).getStock());
+					getHightlitedEventModel().setViewParamRoot(getCurrentTabShareList().get(previousSelection).getStock());
 					setHighligtedId(previousSelection);
 				} else {
-					getHightlitedEventModel().resetViewStateParams();
+					getHightlitedEventModel().resetOtherViewParams();
 					setHighligtedId(null);
 				}
 				
 				chartDisplayStrategy.lightResetChart();
 			} 
 		} else {
-			getHightlitedEventModel().resetViewStateParams();
+			getHightlitedEventModel().resetOtherViewParams();
 			setHighligtedId(null);
 			chartDisplayStrategy.lightResetChart();
 		} 
@@ -290,28 +289,26 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						} catch (InterruptedException e1) {
 							e1.printStackTrace();
 						}
-						//synchronized (chartedEvtDef) {
-							if (!closeRequested) {
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										try {
-											if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
-												int cpt = 0;
-												while (chartPanelFocusGain && cpt < 200) {
-													Thread.sleep(10);
-													cpt++;
-												}
-												if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
-													mainChartComposite.forceFocus();
-												}
+						if (!closeRequested) {
+							Display.getDefault().asyncExec(new Runnable() {
+								public void run() {
+									try {
+										if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
+											int cpt = 0;
+											while (chartPanelFocusGain && cpt < 200) {
+												Thread.sleep(10);
+												cpt++;
 											}
-										} catch (Throwable e) {
-											LOGGER.warn(e,e);
+											if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
+												mainChartComposite.forceFocus();
+											}
 										}
+									} catch (Throwable e) {
+										LOGGER.warn(e,e);
 									}
-								});
-							}
-						//}
+								}
+							});
+						}
 					}
 					
 					@Override
@@ -713,15 +710,13 @@ public class ChartsComposite extends SashForm implements RefreshableView {
     	
     	endDateLabel.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
     	endDateLabel.setFont(MainGui.DEFAULTFONT);
+    	
+    	//EventSignalConfig.ENDDATE = slidingEndDate;
 	}
 	
 	protected void rootShellClosed(DisposeEvent evt) {
-		
-		//synchronized (chartedEvtDef) {
 			closeRequested = true;
 			SWT_AWT.getFrame(mainChartComposite).dispose();	
-		//}
-		
 	}
 
 
@@ -822,6 +817,13 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			}
 		}
 		
+		if (isVisible()) {
+			Shell[] childrenShells = this.getShell().getShells();
+			for (Shell child : childrenShells) {
+				if (child.getText().contains("Warning")) child.forceActive();
+			}
+		}
+		
 	}
 	
 
@@ -848,12 +850,21 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	@Override
 	public Date getAnalysisStartDate() {
 	
-		Calendar slidingStartCal = Calendar.getInstance();
-		slidingStartCal.setTime(this.slidingStartDate);
-		//-one Year To fill bar gap at the start of the chart (this is useful when bars are displayed in fill up mode)
+		//Calendar slidingStartCal = Calendar.getInstance();
+		//slidingStartCal.setTime(this.slidingStartDate);
+		////-one Year To fill bar gap at the start of the chart (this is useful when bars are displayed in fill up mode)
 		//QuotationsFactories.getFactory().incrementDateExtraLarge(slidingStartCal, -1);
-		return slidingStartCal.getTime();
+		//return slidingStartCal.getTime();
+		
+		return this.slidingStartDate;
 	}
+	
+
+	@Override
+	public Date getAnalysisEndDate() {
+		return this.slidingEndDate;
+	}
+
 
 
 	private void sliderChangesApply() {
@@ -961,6 +972,5 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public SlidingPortfolioShare getCurrentLineSelection() {
 		return portfolioComposite.getCurrentShareSelection();
 	}
-
 	
 }

@@ -101,7 +101,10 @@ public class Portfolio extends AbstractSharesList {
 		
 		PortfolioShare oldPortfolioShare;
 		if (sourcePortfolio != null && (oldPortfolioShare = sourcePortfolio.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin())) != null) {
-			for (AlertOnThreshold alert: oldPortfolioShare.getAlertsOnThresholdFor(AlertOnThresholdType.MANUAL)) {
+			for (AlertOnThreshold alert: oldPortfolioShare.getAlertsOnThresholdFor(AlertOnThresholdType.MANUALUP)) {
+				portfolioShare.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
+			}
+			for (AlertOnThreshold alert: oldPortfolioShare.getAlertsOnThresholdFor(AlertOnThresholdType.MANUALDOWN)) {
 				portfolioShare.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
 			}
 		}

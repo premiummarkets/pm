@@ -34,4 +34,9 @@ public class StringOperation extends Operation  implements LeafOperation {
 		return ((StringValue)inputs.get(0));
 	}
 
+	@Override
+	public int operationStartDateShift() {
+		return 0;
+	}
+
 }

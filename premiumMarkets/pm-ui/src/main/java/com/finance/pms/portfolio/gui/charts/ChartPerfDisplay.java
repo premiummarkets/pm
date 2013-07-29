@@ -56,7 +56,6 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 
@@ -66,7 +65,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		}
 		
 		chartTarget.setHighligtedId(idx);
-		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
+//		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
+		chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
 		
 		Boolean isShowing = checkIfShowing(selectedShare);
 		if (!isShowing) {
@@ -154,8 +154,10 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						@Override
 						public void action(Control targetControl) {
 
-							final String preferedRef = MainPMScmd.getPrefs().get("charts.referee", "Not Defined");
-							relativeIndexSetting(preferedRef);
+							String refereeRef = MainPMScmd.getPrefs().get("charts.referee", "Not Defined||-||Not Defined");
+							final String previousSymbol = refereeRef.split("||-||")[0];
+							final String previousIsin = refereeRef.split("||-||")[1];
+							relativeIndexSetting(previousSymbol);
 							chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
 							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
@@ -163,7 +165,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								public void action(Control targetControl) {
 									chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 									try {
-										Stock selectedReferee = selectReferee(preferedRef);
+										Stock selectedReferee = selectReferee(previousSymbol, previousIsin);
 										if (selectedReferee != null) {
 											relativeIndexSetting(selectedReferee.getName());
 											chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
@@ -174,8 +176,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								}
 							};
 							
-							final ActionDialog actionDialogForm = 
-									new ActionDialog(chartTarget.getShell(), SWT.NONE, "Select a new referee ...", "Current referee : "+preferedRef, null, "Select a new referee ...", actionDialogAction);
+							ActionDialog actionDialogForm = new ActionDialog(chartTarget.getShell(), SWT.NONE, "Select a new referee ...", "Current referee : "+previousSymbol, null, "Select a new referee ...", actionDialogAction);
 
 							actionDialogForm.open();
 
@@ -324,13 +325,13 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	 * @author Guillaume Thoreton
 	 * @param listShares 
 	 */
-	private Stock selectReferee(String previousSelection) {
+	private Stock selectReferee(String previousSymbol, String previousIsin) {
 
 		//Open selection window
 		NewRefereeDialog pItemDialog = (NewRefereeDialog) NewRefereeDialog.showUI(chartTarget.getShell(), chartTarget);
 		Set<Stock> listStock = pItemDialog.getSelectedStocks();
 		
-		Stock referree = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(previousSelection);
+		Stock referree = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
 		if (listStock != null && listStock.size() > 0) {
 
 			referree = listStock.iterator().next();
@@ -341,7 +342,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				QuotationUpdate quotationUpdate = new QuotationUpdate();
 				quotationUpdate.getQuotes(new StockList(listStock));
 				loadRefereeQuotations(referree);
-				MainPMScmd.getPrefs().put("charts.referee", referree.getSymbol());
+				MainPMScmd.getPrefs().put("charts.referee", referree.getSymbol()+"||-||"+referree.getIsin());
 
 			} catch (Exception e) {
 				UserDialog inst = new UserDialog(chartTarget.getShell(), "Sorry. Invalid referee : "+referree.getFriendlyName()+"\n"+e, null);

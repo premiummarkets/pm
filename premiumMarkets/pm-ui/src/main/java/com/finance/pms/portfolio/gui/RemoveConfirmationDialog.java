@@ -130,7 +130,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 			dialogShell.setBackground(MainGui.pOPUP_BG);
 			{
 				Errorlabel1 = new Label(dialogShell, SWT.NONE);
-				Errorlabel1.setText("Warning!");
+				Errorlabel1.setText("Your operation requires clearance of the line.");
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.horizontalSpan = 2;
 				Errorlabel1LData.verticalAlignment = GridData.FILL;
@@ -249,18 +249,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 
 			dialogShell.pack();
 			dialogShell.open();
-//			Display display = dialogShell.getDisplay();
-//			while (!dialogShell.isDisposed()) {
-//				try {
-//					if (!display.readAndDispatch()) display.sleep();
-//				} catch (RuntimeException e) {
-//					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-//					LOGGER.debug("Error in Error Dialog Gui : ",e);
-//				} catch (Error e) {
-//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-//					LOGGER.debug("Error in  Gui : ",e);
-//				}
-//			}
+			
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}

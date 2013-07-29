@@ -45,7 +45,6 @@ public class ChartedOutputGroup {
 		}
 
 		public String fullQualifiedName() {
-			//return ((container!=null && container.getThisDescription() != this)?container.getThisDescription().fullQualifiedName()+" : ":"")+friendlyName;
 			return ((container!=null)?container.getThisReference().getOperationReference()+" : ":"")+outputName;
 		}
 
@@ -92,7 +91,7 @@ public class ChartedOutputGroup {
 	
 	//Adding a main
 	public ChartedOutputGroup(Operation operation, int outputIndex) {
-		//String friendlyName = operation.aMoreFriendlyName();
+		
 		String outputName = operation.getReference();
 		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
 		
@@ -101,15 +100,15 @@ public class ChartedOutputGroup {
 		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
 	}
 	
-	public void addSignal(Operation operation, int outputIndex) {
-		//String friendlyName = operation.aMoreFriendlyName();
+	public OutputDescr addSignal(Operation operation, int outputIndex) {
 		String outputName = operation.getReference();
 		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
-		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.SIGNAL, outputIndex, null, outputName));
+		OutputDescr outputDescr = new OutputDescr(this, Type.SIGNAL, outputIndex, null, outputName);
+		this.components.put(new OutputReference(operation), outputDescr);
+		return outputDescr;
 	}
 
 	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue) {
-		//String friendlyName = doubleValue.getNumberValue() + " " + namePrefix +" "+operation.getReferenceAsOperand();
 		String outputName = doubleValue.getNumberValue() +" ("+parentReference+" "+operation.getReferenceAsOperand()+")";
 		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.CONSTANT, null, doubleValue, outputName));
 	}
@@ -119,7 +118,7 @@ public class ChartedOutputGroup {
 		this.components.put(new OutputReference(operation, outputKey), new OutputDescr(this, type, outputIndex, null, outputName));
 	}
 	
-	public OutputDescr mvComponentIn(OutputReference outputRef, OutputDescr outputDescr) {
+	public OutputDescr mvComponentInThisGrp(OutputReference outputRef, OutputDescr outputDescr) {
 		outputDescr.setContainer(this);
 		this.components.put(outputRef,outputDescr);
 		return outputDescr;
@@ -167,8 +166,5 @@ public class ChartedOutputGroup {
 	public String toString() {
 		return "ChartedOutputGroup [\n\t thisReference=" + thisReference + ", \n\t thisDescription=" + thisDescription + ", \n\t components=" + components + "]";
 	}
-	
-	
-
 
 }

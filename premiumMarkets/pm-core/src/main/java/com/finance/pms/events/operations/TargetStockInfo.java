@@ -38,7 +38,6 @@ public class TargetStockInfo {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + getOuterType().hashCode();
 			result = prime * result + ((outputReference == null) ? 0 : outputReference.hashCode());
 			return result;
 		}
@@ -52,18 +51,12 @@ public class TargetStockInfo {
 			if (getClass() != obj.getClass())
 				return false;
 			Output other = (Output) obj;
-			if (!getOuterType().equals(other.getOuterType()))
-				return false;
 			if (outputReference == null) {
 				if (other.outputReference != null)
 					return false;
 			} else if (!outputReference.equals(other.outputReference))
 				return false;
 			return true;
-		}
-
-		private TargetStockInfo getOuterType() {
-			return TargetStockInfo.this;
 		}
 
 		public Value<?> getOutputData() {
@@ -193,24 +186,25 @@ public class TargetStockInfo {
 		Integer indexOfOutput = getIndexOfChartableOutput(operation);
 		if (indexOfOutput != -1) {
 			Output output = gatheredChartableOutputs.get(indexOfOutput);
-			OutputDescr chartedDesrc = output.getChartedDescription();
-			if (chartedDesrc != null) {
+			OutputDescr chartedDescr = output.getChartedDescription();
+			if (chartedDescr != null) {
 				//Merge mainChartedGrp and existingChartedGrp if <> + maskType
-				ChartedOutputGroup existingChartedGrp = chartedDesrc.getContainer();
+				ChartedOutputGroup existingChartedGrp = chartedDescr.getContainer();
 				if (existingChartedGrp.equals(mainChartedGrp)) {
-					chartedDesrc.maskType(Type.SIGNAL);
+					chartedDescr.maskType(Type.SIGNAL);
 				} else {
 					OutputDescr existingChartedDesrc = existingChartedGrp.getThisDescription();
 					existingChartedDesrc.maskType(Type.BOTH);
-					mainChartedGrp.mvComponentIn(existingChartedGrp.getThisReference(), existingChartedDesrc);
+					mainChartedGrp.mvComponentInThisGrp(existingChartedGrp.getThisReference(), existingChartedDesrc);
 					for (OutputReference oldContentRef : existingChartedGrp.getComponents().keySet()) {
 						OutputDescr oldOutputDescr = existingChartedGrp.getComponents().get(oldContentRef);
-						mainChartedGrp.mvComponentIn(oldContentRef, oldOutputDescr);
+						mainChartedGrp.mvComponentInThisGrp(oldContentRef, oldOutputDescr);
 					}
 					this.chartedOutputGroups.remove(this.chartedOutputGroups.indexOf(existingChartedGrp));
 				}
 			} else {
-				mainChartedGrp.addSignal(operation, indexOfOutput);
+				chartedDescr = mainChartedGrp.addSignal(operation, indexOfOutput);
+				output.setChartedDescription(chartedDescr);
 			}
 		
 		} else {
@@ -243,7 +237,6 @@ public class TargetStockInfo {
 	public List<Output> getGatheredChartableOutputs() {
 		return gatheredChartableOutputs;
 	}
-
 
 
 }

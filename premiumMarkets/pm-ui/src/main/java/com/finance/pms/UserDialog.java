@@ -31,8 +31,8 @@
 package com.finance.pms;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.TypedEvent;
@@ -46,8 +46,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class ErrorDialog.
  * 
@@ -69,25 +67,32 @@ public class UserDialog extends Dialog {
 
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
-		super(new Shell(parent, SWT.SHEET | SWT.ON_TOP | SWT.RESIZE));
+		super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.SHEET | SWT.RESIZE));
+		//super(new Shell(new Shell(SWT.ON_TOP), SWT.SHEET | SWT.RESIZE));
 		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
 	
 	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
-		super(new Shell(parent,style));
+		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
+		//super(new Shell(new Shell(SWT.ON_TOP),style));
 		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
 	
 	protected UserDialog(Shell parent, int style, String title, String erreur, String addMessage) {
-		super(new Shell(parent, style));
+		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
+		//super(new Shell(new Shell(SWT.ON_TOP), style));
 		this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	
+	}
+	
+	public void open() {
+		open(true);
 	}
 
 	/**
@@ -95,23 +100,21 @@ public class UserDialog extends Dialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public void open() {
+	public void open(Boolean focusOnAckButton) {
 		try {
 
 			GridLayout dialogShellLayout = new GridLayout();
-			//dialogShellLayout.verticalSpacing = 10;
 			this.getParent().setLayout(dialogShellLayout);
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 			
 			if (erreur != null) {
 				errorLabel1 = new Text(getParent(), SWT.WRAP);
 				GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-				//layoutData.heightHint = 100;
 				errorLabel1.setLayoutData(layoutData);
 				errorLabel1.setFont(MainGui.DEFAULTFONT);
 				errorLabel1.setBackground(MainGui.pOPUP_BG);
 				errorLabel1.setText(cleanMsg(this.erreur, true));
-				//errorLabel1.pack();
+				errorLabel1.setEditable(false);
 				
 			}
 			if (addMessage != null) {
@@ -126,7 +129,6 @@ public class UserDialog extends Dialog {
 				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);
 				GridData validerbutton1LData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
 				valideButton1.setLayoutData(validerbutton1LData);
-				//Validerbutton1LData.horizontalAlignment = GridData.CENTER;
 				validationButtonTxtAndAction();
 			}
 			
@@ -144,22 +146,9 @@ public class UserDialog extends Dialog {
 			
 			
 			getParent().open();
-			boolean setFocus = getParent().setFocus();
-			boolean setFocus2 = valideButton1.setFocus();
-			LOGGER.info("Dialog focus : "+setFocus+" , dialog button focuses : "+setFocus2);
+			getParent().setActive();
+			if (focusOnAckButton) valideButton1.setFocus();
 			
-//			Display display = getParent().getDisplay();
-//			while (!getParent().isDisposed() && getParent().isVisible()) {
-//				try {
-//					if (!display.readAndDispatch()) display.sleep();
-//				} catch (RuntimeException e) {
-//					LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-//					LOGGER.debug("Error in Error Dialog Gui : ",e);
-//				} catch (Error e) {
-//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-//					LOGGER.debug("Error in  Gui : ",e);
-//				}
-//			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
@@ -184,13 +173,19 @@ public class UserDialog extends Dialog {
 				validerbutton1MouseDown(evt);
 			}
 		});
-		valideButton1.addKeyListener(new KeyAdapter() {
+		valideButton1.addKeyListener(new KeyListener() {
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (e.keyCode == SWT.CR || e.keyCode == SWT.SPACE) {
+				System.out.println("Key released : "+e.keyCode+","+e.character+","+e.doit);
+				if ((e.keyCode == SWT.CR || e.keyCode == SWT.SPACE)) {
 					validerbutton1MouseDown(e);
 				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				System.out.println("Key pressed : "+e.keyCode+","+e.character+","+e.doit);
 			}
 		
 		});

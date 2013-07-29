@@ -47,6 +47,7 @@ import javax.jms.Session;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
@@ -86,6 +87,9 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 
 	@Override
 	public void exportToFile(NavigableSet<ScreeningSupplementedStock> element) throws IOException {
+		
+		Boolean generateScreenerReports = MainPMScmd.getPrefs().getBoolean("screener.generatecsv", false);
+		if (!generateScreenerReports) return;
 		
 		writeFileHeader(fileName, header);
 		bufferedWriter.write(SEPARATOR+"Dividende : being overridden in this order :  from yahoo then reuters then bourso\n");

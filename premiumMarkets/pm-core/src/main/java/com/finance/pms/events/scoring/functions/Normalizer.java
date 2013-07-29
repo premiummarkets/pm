@@ -51,9 +51,10 @@ public class Normalizer {
 
 	private double max;
 	private double min;
-
-	public Normalizer(Date start, Date end, double minNorm, double maxNorm) {
-		super();
+	private boolean keepZero;
+	
+	public Normalizer(Date start, Date end, double minNorm, double maxNorm, boolean keepZero) {
+		
 		this.start = start;
 		
 		Calendar endCal = Calendar.getInstance();
@@ -63,6 +64,12 @@ public class Normalizer {
 
 		this.minNorm = minNorm;
 		this.maxNorm = maxNorm;
+		
+		this.keepZero = keepZero;
+	}
+
+	public Normalizer(Date start, Date end, double minNorm, double maxNorm) {
+		this(start, end, minNorm, maxNorm, false);
 	}
 
 
@@ -76,15 +83,10 @@ public class Normalizer {
 		if (data.get(data.firstKey()).length > 1) throw new NotImplementedException();
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
-		max = -Double.MAX_VALUE;
-		min = Double.MAX_VALUE;
-		SortedMap<Date, double[]> subD = data.subMap(start, end);
-		for (Date date : subD.keySet()) {
-			double value = data.get(date)[0];
-			if (value >= max) max = value;
-			if (value <= min) min = value;
-		}
 		
+		SortedMap<Date, double[]> subD = data.subMap(start, end);
+		
+		calculateMinMax(subD);
 		
 		for (Date date : subD.keySet()) {
 			double value = data.get(date)[0];
@@ -94,40 +96,60 @@ public class Normalizer {
 		return ret;
 		
 	}
-	
-	public SortedMap<Date, Double> sNormalised(SortedMap<Date, Double> data) {
 
-		//b = [(a - minA) / (maxA - minA)] * (maxNorm - minNorm) + minNorm 
-		//with maxNorm = 1 and minNorm = 0
-		//b = [(a - minA) / (maxA - minA)]
-
-		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+	private void calculateMinMax(SortedMap<Date, double[]> subD) {
+		
 		max = -Double.MAX_VALUE;
 		min = Double.MAX_VALUE;
-		SortedMap<Date, Double> subD = data.subMap(start, end);
+		
 		for (Date date : subD.keySet()) {
-			double value = data.get(date);
+			double value = subD.get(date)[0];
 			if (value >= max) max = value;
 			if (value <= min) min = value;
 		}
-
-		for (Date date : subD.keySet()) {
-			double value = data.get(date);
-			ret.put(date, ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm);
+		
+		if (keepZero) {
+			double biggestAbs = Math.max(Math.abs(max), Math.abs(min));
+			max = (max > 0)? biggestAbs: 0;
+			min = (min < 0)? -biggestAbs : 0;
 		}
-
-		return ret;
-
+		
 	}
+	
+	
+//	public SortedMap<Date, Double> sNormalised(SortedMap<Date, Double> data) {
+//
+//		//b = [(a - minA) / (maxA - minA)] * (maxNorm - minNorm) + minNorm 
+//		//with maxNorm = 1 and minNorm = 0
+//		//b = [(a - minA) / (maxA - minA)]
+//
+//		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+//		max = -Double.MAX_VALUE;
+//		min = Double.MAX_VALUE;
+//		SortedMap<Date, Double> subD = data.subMap(start, end);
+//		for (Date date : subD.keySet()) {
+//			double value = data.get(date);
+//			if (value >= max) max = value;
+//			if (value <= min) min = value;
+//		}
+//
+//		for (Date date : subD.keySet()) {
+//			double value = data.get(date);
+//			ret.put(date, ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm);
+//		}
+//
+//		return ret;
+//
+//	}
 
 
 	public double getNormalizedZero() {
-		if (max == 0 && min == 0) throw new RuntimeException("Uninitialized normalizer", new Exception());
+		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
 		return (-min/(max-min)) * (maxNorm - minNorm) + minNorm;
 	}
 	
 	public double getNormalizedValue(Double value) {
-		if (max == 0 && min == 0) throw new RuntimeException("Uninitialized normalizer", new Exception());
+		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
 		return (value-min/(max-min)) * (maxNorm - minNorm) + minNorm;
 	}
 	

@@ -48,7 +48,6 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		List<Object> params = new ArrayList<Object>();
 		if (paramsTree != null && paramsTree.size()==1) {
 			if (paramsTree.get(0) instanceof CommonTree && ((CommonTree)paramsTree.get(0)).isNil()) {//Root of several params
-				//params.addAll(children);
 				List<? extends Object> children = ((CommonTree) paramsTree.get(0)).getChildren();
 				for (Object param : children) {
 					if (param.toString().equals("StockOperation")) {
@@ -59,7 +58,6 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 				}
 				commas = params.size() -1;
 			} else {//One param
-				//params.add(((CommonTree) paramsTree.get(0)));
 				Object param = paramsTree.get(0);
 				if (param.toString().equals("StockOperation")) {
 					params.add(((CommonTree)param).getChild(0).getChild(0));
@@ -77,8 +75,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		for (; (currentParamPos < params.size()) && (currentParamPos < currentOp.getParams().size() || currentOp.undeterministicParamCount()); currentParamPos++) {
 
 			Object token = params.get(currentParamPos);
-			//currentOp.setLastParamParsed(currentParamPos, getTheSonOf(token));
-
+			
 			//Params Type check
 			ParamType paramType = null;
 

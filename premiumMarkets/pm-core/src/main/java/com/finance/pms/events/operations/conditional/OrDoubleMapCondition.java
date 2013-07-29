@@ -20,7 +20,6 @@ public class OrDoubleMapCondition extends BooleanDoubleMapCondition {
 
 	@Override
 	public Boolean conditionCheck(Comparable<Boolean>... ops) {
-		//return ops[0].compareTo(Boolean.TRUE) == 0 || ops[1].compareTo(Boolean.TRUE) == 0;
 		for (Comparable<Boolean> op : ops) {
 			if (op.compareTo(Boolean.TRUE) == 0) return true;
 		}
@@ -30,6 +29,11 @@ public class OrDoubleMapCondition extends BooleanDoubleMapCondition {
 	@Override
 	protected Boolean shortcutUnary() {
 		return true;
+	}
+
+	@Override
+	protected Boolean exactDataSet() {
+		return false;
 	}
 
 }

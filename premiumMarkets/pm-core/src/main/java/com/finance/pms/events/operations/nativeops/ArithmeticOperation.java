@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -50,5 +51,14 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	}
 	
 	public abstract Double twoOperandsOp(Double op0, Double op1);
+	
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = 0;
+		for (Operation operand : getOperands()) {
+			maxDateShift = Math.max(maxDateShift, operand.operationStartDateShift());
+		}
+		return maxDateShift;
+	}
 
 }

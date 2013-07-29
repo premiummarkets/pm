@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,22 +13,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.Queue;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.antlr.runtime.tree.CommonTree;
-import org.antlr.runtime.tree.DOTTreeGenerator;
-import org.antlr.stringtemplate.StringTemplate;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.EmptyMarker;
-import com.finance.pms.events.operations.EmptyOperationMarker;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 
 public abstract class ParameterizedBuilder extends Observable {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedBuilder.class);
+	
+	private Queue<FormulaParser> parsingQueue;
 	
 	protected String[] operationPackages;
 	protected File userOperationsDir;
@@ -55,7 +53,6 @@ public abstract class ParameterizedBuilder extends Observable {
 					i++;
 				}
 			}
-			//return (""+desrc.charAt(0)).toUpperCase() + desrc.toLowerCase().substring(1);
 			return (""+desrc.charAt(0)).toUpperCase() + desrc.substring(1);
 		} else {
 			return desrc.toUpperCase();
@@ -66,152 +63,16 @@ public abstract class ParameterizedBuilder extends Observable {
 	public ParameterizedBuilder() {
 		super();
 		currentOperations = new HashMap<String, Operation>();
-	}
-
-	protected Map<String, EmptyMarker> getEmptyMarkers() {
-		return EmptyOperationMarker.emptyOperations;
-	}
-
-	public Operation parse(String formula) throws Exception {
-		
-		CommonTree commonTree = antlrParser.buildTree(new StringInputStream(formula));
-		
-		if (LOGGER.isDebugEnabled()) {
-			DOTTreeGenerator gen = new DOTTreeGenerator();
-			StringTemplate st = gen.toDOT(commonTree);
-			LOGGER.debug(st);
-		}
-	  
-		Operation builtOperation = buildOperation(commonTree);
-		builtOperation.setFormula(formula);
-		return builtOperation;
+		parsingQueue = new ConcurrentLinkedQueue<FormulaParser>();
 	}
 	
-	protected Operation buildOperation(CommonTree commonTree) throws Exception {
-		
-		Operation operation = null;
-		if (commonTree != null ) {
-	
-			ArrayList<Operation> operands = new ArrayList<Operation>();
-			String outputSelector = null;
-			for ( int i = 0; i < commonTree.getChildCount(); i++ ) {
-				
-				CommonTree child = (CommonTree) commonTree.getChild(i);
-				Operation builtOperation = null;
-				if ((child.getChildCount() == 1 && child.getChild(0).getChildCount() == 0)) {
-					
-					if (child.getToken().getText().equals("OperationOutput")) {
-						//Output selector
-						 outputSelector = child.getChild(0).getText().replaceFirst(":", "");
-					} else {
-						//Value
-						builtOperation = buildLeafOperation(child);
-					}
-					
-				} else {
-					//Sub op
-					builtOperation = buildOperation(child);
-				}
-				
-				if (builtOperation != null) operands.add(builtOperation);
-			}
-	
-			//Node
-			operation = instanciateOperation(commonTree, operands, outputSelector);
-			
-			for ( int i = 0; i < operands.size(); i++ ) {
-				if (operands.get(i) instanceof EmptyOperationMarker) {
-					((EmptyOperationMarker) operands.get(i)).addParent(operation, i);
-				}
-			}
-	
-		}
-		
-		return operation;
-		
-	}
-
 	protected Operation fetchNativeOperation(String opRef) {
 		return getNativeOperations().get(opRef);
 	}
+	
 
-	@SuppressWarnings("unchecked")
-	private Operation instanciateOperation(CommonTree child, ArrayList<Operation> operands, String outputSelector) throws Exception {
-		
-		Operation nativeOperations = fetchNativeOperation(child.getText());
-		
-		//If there is a pre parameterised operation, we use it
-		if (nativeOperations != null) {
-			LOGGER.debug("Cloning pre parameterise op : "+nativeOperations);
-
-			Operation clone = (Operation) nativeOperations.clone();
-			clone.setOperands(operands);
-			clone.setOutputSelector(outputSelector);
-			return clone;
-		}
-
-		//Else we instantiate a new one (in that case all the operands must be present)
-		for (String opPackage : operationPackages) {
-
-			try {
-
-				String childText = opPackage + child.getToken().getText();
-				LOGGER.debug("Instantiating NON pre parameterise op : "+childText);
-
-				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
-				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
-				return constructor.newInstance(operands, outputSelector);
-
-			} catch (Exception e) {
-				LOGGER.debug(e.toString() + ", cause " + ((e.getCause() != null)?e.getCause().toString():"unknown")+". child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Can't Instantiate : "+opPackage);
-			}
-
-		}
-
-		//All above as failed : snd pass marker (for user defined operations)
-		LOGGER.warn("child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Error instantiating. Will be left empty for now.");
-		EmptyMarker emptyOperationMarker = getEmptyMarkerInstance(child);
-		emptyOperationMarker.setOperands(operands);
-		return (Operation) emptyOperationMarker;
-
-
-
-	}
-
-	protected EmptyMarker getEmptyMarkerInstance(CommonTree child) {
-		return EmptyOperationMarker.getInstance(child.getText(), "Empty "+child.getText());
-	}
-
-	@SuppressWarnings("unchecked")
-	private Operation buildLeafOperation(CommonTree child) throws Exception {
-		
-		String childTxt = child.getToken().getText();
-		String value = child.getChild(0).getText();
-		String valueClassName = "unknown";
-		String opClassName = "unknown";
-		try {
-			
-			valueClassName = "com.finance.pms.events.operations.nativeops."+childTxt + "Value";
-			opClassName = "com.finance.pms.events.operations.nativeops."+childTxt + "Operation";
-
-			Class<Value<?>> valueClass = (Class<Value<?>>) Class.forName(valueClassName);
-			Constructor<Value<?>> valueConstructor = valueClass.getConstructor(String.class);
-			Value<?> valueInstance = valueConstructor.newInstance(value);
-			
-			Class<Operation> opClass = (Class<Operation>) Class.forName(opClassName);
-			Constructor<Operation> opConstructor = opClass.getConstructor();
-			Operation opInstance = opConstructor.newInstance();
-			
-			opInstance.setParameter(valueInstance);
-			return opInstance;
-			
-		} catch (InvocationTargetException e) {
-			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName+", Const value : "+value, e);
-			throw e;
-		} catch (Exception e) {
-			LOGGER.error("Child obj : " + child + ", Class name :" + valueClassName+", Const value : "+value, e);
-			throw e;
-		}
+	protected Operation fetchUserOperation(String opRef) {
+		return getUserCurrentOperations().get(opRef);
 	}
 
 	public Map<String, Operation> getCurrentOperations() {
@@ -239,19 +100,40 @@ public abstract class ParameterizedBuilder extends Observable {
 	
 	public void addFormula(String identifier, String formula) throws IOException {
 		
+		FormulaParser formulaParser = null;
 		try {
 			
-			Operation operation = parseFormula(identifier, formula);
-			saveUserOperation(identifier, formula);
-			currentOperations.put(operation.getReference(), operation);
+			formulaParser = new FormulaParser(this, identifier, formula);
 			
-			File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
-			disabledFormulaFile.delete();
-			currentOperations.get(operation.getReference()).setDisabled(false);
+			runParsing(formulaParser);
 			
+			Operation operation = formulaParser.getBuiltOperation();	
+			
+			if (operation != null) {
+				saveUserOperation(identifier, formula);
+				Operation alreadyExists = currentOperations.get(operation.getReference());
+				if (alreadyExists != null) {
+					try {
+						replaceInUse(operation);
+					} catch (StackOverflowError e) {
+						throw new InstantiationException("Can't solve : "+formulaParser+". The operation is calling its self. Please fix.");
+					}
+				} 
+				currentOperations.put(operation.getReference(), operation);
+				
+				File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+				disabledFormulaFile.delete();
+				currentOperations.get(operation.getReference()).setDisabled(false);
+				
+			} else {
+				throw new InstantiationException("Can't solve : "+formulaParser+". Please fix.");
+			}
 			
 		} catch (Exception e) {
 			throw new IOException(e);
+			
+		} finally {
+			if (formulaParser != null) formulaParser.shutdown();
 		}
 		
 		updateCaches();
@@ -283,7 +165,9 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 	public abstract List<Operation> checkInUse(Operation operation);
-	
+
+	public abstract void replaceInUse(Operation operation);
+
 	public abstract List<Operation> notifyChanged(Operation operation);
 
 	
@@ -301,7 +185,6 @@ public abstract class ParameterizedBuilder extends Observable {
 		return operationUsing;
 	}
 	
-	
 	protected void actualCheckInUseRecusrsive(Collection<Operation> operations, Operation operationToCheck) {
 		
 		for (Operation operation : operations) {
@@ -311,6 +194,30 @@ public abstract class ParameterizedBuilder extends Observable {
 			if (operation.getOperands() != null) {
 				actualCheckInUseRecusrsive(operation.getOperands(), operationToCheck);
 			}
+		}
+	}
+	
+	protected void actualReplaceInUse(Collection<Operation> operations, Operation replacemetOp) {
+		
+		for (Operation operation : operations) {
+			actualReplacenUseRecusrsive(operation, replacemetOp);
+		}
+	}
+	
+	
+	protected void actualReplacenUseRecusrsive(Operation parent, Operation replacementOp) {
+		
+		List<Operation> operations = parent.getOperands();
+		for (int i = 0; i < operations.size(); i++) {
+			
+			//if (operations.get(i) != replacementOp && operations.get(i) instanceof DoubleMapOperation && replacementOp.getReference().equals(operations.get(i).getReference())) {
+			if (operations.get(i) instanceof DoubleMapOperation && replacementOp.getReference().equals(operations.get(i).getReference())) {
+				parent.replaceOperand(i, replacementOp);
+			}
+			if (operations.get(i).getOperands() != null) {
+				actualReplacenUseRecusrsive(operations.get(i), replacementOp);
+			}
+			
 		}
 	}
 	
@@ -375,13 +282,14 @@ public abstract class ParameterizedBuilder extends Observable {
 		
 	}
 	
-	protected  Map<String, Operation> reloadUserOperations(File operationsDir)  {
+	protected void reloadUserOperations(File operationsDir, Boolean disabled)  {
 		
-		Map<String, Operation> userOps = new HashMap<String, Operation>();
 		File[] list = operationsDir.listFiles();
 		for (File formulaFile : list) {
 			String opName = formulaFile.getName().replace(".txt","");
+			
 			try {
+				
 				BufferedReader bufferedReader = new BufferedReader(new FileReader(formulaFile));
 				String formula = bufferedReader.readLine();
 				String line = null;
@@ -389,28 +297,68 @@ public abstract class ParameterizedBuilder extends Observable {
 					formula = formula + "\n"+ line;
 				}
 				bufferedReader.close();
-				Operation parsedOp = parseFormula(opName, formula);
-				userOps.put(parsedOp.getReference(), parsedOp);
 				
+				FormulaParser formulaParser = new FormulaParser(this, opName, formula);
+				parsingQueue.offer(formulaParser);
+	
 			} catch (Exception e) {
 				LOGGER.warn(e);
 				moveToDisabled(opName);
 			}
 		}
-		return userOps;
-	}
-	
-	private Operation parseFormula(String identifier, String formula) throws InstantiationException {
-		Operation newOperation;
-		try {
-			newOperation = parse(formula);
-			if (newOperation == null) throw new java.lang.InstantiationException("The following formula is invalid '"+identifier+"' : "+formula);
-		} catch (Exception e) {
-			LOGGER.warn(e);
-			throw new java.lang.InstantiationException("The following formula contains invalid operation(s) '"+identifier+"' : "+formula+"\n\t Related exception : "+e.toString()+((e.getCause() != null)?"\n\t Related cause : "+e.getCause().toString():""));
+		
+		
+		while(!parsingQueue.isEmpty()) {
+			
+			SortedSet<FormulaParser> queueState = new TreeSet<FormulaParser>();
+			for (FormulaParser formulaParser : parsingQueue) {
+				queueState.add(formulaParser.clone());
+			}
+			
+			FormulaParser formulaParser = parsingQueue.poll();
+			
+			try {
+				
+				runParsing(formulaParser);
+				
+				Operation parsedOp = formulaParser.getBuiltOperation();	
+				if (parsedOp != null) {//Operation is complete
+					
+					LOGGER.info("Solved : "+parsedOp.getReference());
+					parsedOp.setDisabled(disabled);
+					currentOperations.put(parsedOp.getReference(), parsedOp);
+					
+				} else {//Operation not complete, we add it back to the queue
+					
+					if (queueState.contains(formulaParser)) {
+						LOGGER.info("Can't solve : "+formulaParser+". Disabling.");
+						formulaParser.shutdown();
+						moveToDisabled(formulaParser.getOperationName());
+					} else {
+						parsingQueue.offer(formulaParser);
+					}
+					
+				}
+				
+			} catch (Exception e) {
+				LOGGER.info("Error solving : "+formulaParser+". Disabling. Cause : "+e);
+				formulaParser.shutdown();
+				moveToDisabled(formulaParser.getOperationName());
+			}
+		
 		}
-		newOperation.setReference(identifier);
-		return newOperation;
+	}
+
+	protected void runParsing(FormulaParser formulaParser) {
+		formulaParser.resume();
+		
+		while (formulaParser.getHoldingThread() == null || (formulaParser.getHoldingThread().isAlive() && !formulaParser.getThreadSuspended()) ) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				LOGGER.error(e,e);
+			}
+		}
 	}
 
 	public void updateEditableOperationLists() {

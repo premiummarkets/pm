@@ -9,7 +9,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
@@ -34,6 +33,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Caret;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -52,6 +52,7 @@ import com.finance.pms.MainGui;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
+import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
@@ -77,10 +78,10 @@ public class OperationBuilderComposite extends Composite {
     private MainGui mainGuiParent;
 	
 	private Label errorLabel;
-	protected CCombo formulaReference;
+	protected Combo formulaReference;
 	protected StyledText editor;
-	Boolean isSaved;
-	Boolean savingAttemptStarted;
+	private Boolean isSaved;
+	private Boolean savingAttemptStarted;
 
 	private Table tokenAltsTable;
 	private Shell popupShell;
@@ -96,12 +97,15 @@ public class OperationBuilderComposite extends Composite {
 		SpringContext springContext = new SpringContext(args[0]);
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
+		
+		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 
 		final Shell shell = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM | SWT.RESIZE);
 		shell.setText("Parameterise and Create indicators ...");
 		shell.setLayout(new GridLayout());
 		
 		IndicatorBuilderComposite  builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());
+		//OperationBuilderComposite  builderComposite = new OperationBuilderComposite(shell, null);
 		builderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		builderComposite.parameterizedBuilder.updateEditableOperationLists();
 		
@@ -164,7 +168,7 @@ public class OperationBuilderComposite extends Composite {
 			formulaReferenceLabel.setFont(MainGui.DEFAULTFONT);
 			formulaReferenceLabel.setBackground(MainGui.pOPUP_BG);
 			
-			formulaReference = new CCombo(this, SWT.SINGLE);
+			formulaReference = new Combo(this, SWT.SINGLE|SWT.SIMPLE | SWT.V_SCROLL);
 			GridData refLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
 			refLayoutData.horizontalSpan = 2;
 			formulaReference.setLayoutData(refLayoutData);
@@ -218,7 +222,8 @@ public class OperationBuilderComposite extends Composite {
 						break;
 					default :
 						if (isSaved) {
-							clearEditor();
+							//clearEditor();
+							enableEditor();
 						}
 					}
 				}
@@ -335,6 +340,10 @@ public class OperationBuilderComposite extends Composite {
 		}
 		
 		this.layout();
+	}
+
+	protected void enableEditor() {
+		//Nothing
 	}
 
 	protected void initPopup() {
@@ -550,12 +559,11 @@ public class OperationBuilderComposite extends Composite {
 	
 	protected void clearEditor() {
 		editor.setText("");
-		errorLabel.setText("");
+		setErrorLabel("");
 	}
 	
 	protected void handleSaveAndSelection() {
 		
-		//int selectionIndex = formulaReference.getSelectionIndex();
 		String id = getFormatedReferenceTxt();
 		
 		if (!isSaved) {
@@ -672,7 +680,7 @@ public class OperationBuilderComposite extends Composite {
 		} else {
 			clearEditor();
 		}
-		errorLabel.setText("");
+		setErrorLabel("");
 	}
 
 	protected Boolean hasChanged(String oldId) {
@@ -708,14 +716,14 @@ public class OperationBuilderComposite extends Composite {
 		//Already exist warning
 		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
 		if (existingOp != null && checkOverWrite) {
+			
+			if (existingOp.getDisabled()) return true;
 
 			ActionDialogAction action = new ActionDialogAction() {
 				@Override
 				public void action(Control targetControl) {
-					isSaved = false;
+					isSaved = doSaveFormula(identifier, formula);
 					updateOpCombo(identifier);
-					formulaReference.forceFocus();
-					 doSaveFormula(identifier, formula);
 				}
 			};
 			ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "Identifier already exists", "Identifier "+existingOp.getReference()+" already exists", null, "Write over", action);
@@ -754,7 +762,6 @@ public class OperationBuilderComposite extends Composite {
 			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
 			LOGGER.warn(e,e);
 			dialog.open();
-			//return true;
 		} 
 		
 		previousCalcsAsDirty(identifier);
@@ -877,12 +884,8 @@ public class OperationBuilderComposite extends Composite {
 	void updateCombo() {
 		
 		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
-		SortedSet<String> itemSet = new TreeSet<String>();
-		for (String id : allOps.keySet()) {
-			if (allOps.get(id).getFormula() != null) {
-				itemSet.add(id);
-			}
-		}
+		
+		SortedSet<String> itemSet = new TreeSet<String>(allOps.keySet());
 		formulaReference.setItems(itemSet.toArray(new String[0]));
 		
 		updateEditableOperationLists();
@@ -896,7 +899,7 @@ public class OperationBuilderComposite extends Composite {
 	}
 
 
-	private void forceSelection(int selected) {
+	void forceSelection(int selected) {
 		
 		if (selected != -1 && selected < formulaReference.getItemCount()) {
 			formulaReference.select(selected);
@@ -1030,9 +1033,8 @@ public class OperationBuilderComposite extends Composite {
 
 	private synchronized void buildPopupAlternatives() {
 		
-		errorLabel.setText("");
+		setErrorLabel("");
 		editor.setStyleRange(null);
-		this.layout();
 
 		int caretPosition = editor.getCaretOffset();
 		String rawEditorTxt = editor.getText();
@@ -1057,7 +1059,7 @@ public class OperationBuilderComposite extends Composite {
 			editorStylingsAndErrorLabel(errorToken.getAlternatives());
 		}
 		
-		//build suggestion
+		//Build suggestion
 		if (nextToken != null && nextToken.getAlternatives().size() > 0) {
 			if (nextToken.getAlternatives().size() > 0) {
 				buildPopupAlternativesFor(nextToken);
@@ -1105,7 +1107,6 @@ public class OperationBuilderComposite extends Composite {
 				String token = data.getAltString();
 				String description = (data.getDescription() != null)?data.getDescription()+"    ":"    ";
 				String synoptic = (data.getSynoptic() != null && data.getDefaultValue() == null)?data.getSynoptic():((data.getDefaultValue() != null)?data.getDefaultValue():"");
-				//synoptic = synoptic.replaceAll("\n", Text.DELIMITER);
 				
 				if(i < items.length) {
 					items[i].setData(data);
@@ -1190,14 +1191,27 @@ public class OperationBuilderComposite extends Composite {
 			//error Msg
 			String syno = (alternative.getSynoptic() == null)?"":" : "+ alternative.getSynoptic();
 			String addErrorTxt = "@ line " + lineNum + ", start column " + endLineOffset + " : " + alternative.getAltString() + "\n" + alternative.getDescription() + syno;
-			errorLabel.setText(addErrorTxt.replaceAll("\n", Text.DELIMITER).replace(". ", "."+Text.DELIMITER));
-			this.layout();
+			//errorLabel.setText(addErrorTxt.replaceAll("\n", Text.DELIMITER).replace(". ", "."+Text.DELIMITER));
+			setErrorLabel(addErrorTxt.replaceAll("\n", Text.DELIMITER).replace(". ", "."+Text.DELIMITER));
+			
 			return true; //TODO several highlight alts??!
 
 		}
 		
 		//No highlight
 		return false;
+	}
+	
+	private void setErrorLabel(String error) {
+		
+		errorLabel.setText(error);
+		
+		//this.getParent().pack();
+		this.getShell().layout();
+		Point size = this.getShell().getSize();
+		Point computeSize = this.getShell().computeSize(size.x, SWT.DEFAULT);
+		this.getShell().setSize(size.x,Math.max(size.y,computeSize.y));
+		
 	}
 
 	public ComboUpdateMonitor getComboUpdateMonitor() {

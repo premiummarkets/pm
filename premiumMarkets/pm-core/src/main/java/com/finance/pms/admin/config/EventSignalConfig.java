@@ -102,8 +102,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private BigDecimal sellLimitToPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalert", "0.2")).setScale(2);
 	private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalertguard", "0.1")).setScale(2);
 	private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getPrefs().get("event.expectedrate", "0.05")).setScale(2);
-	//private Boolean sendAnalysisEventMsg = new Boolean(MainPMScmd.getPrefs().get("event.sendAnalysisEventMsg", "false"));
-	
+
 	private List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));
 	private SortedSet<EventInfo> indicatorSortedCache = null;
 	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
@@ -250,11 +249,9 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 						if (eventDefinition.getEventDefinitionRef().equals(EventDefinition.PARAMETERIZED.name())) {
 							
-							if (PARAMETERIZEDINDICATORSBUILDER == null) PARAMETERIZEDINDICATORSBUILDER = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
-							@SuppressWarnings("rawtypes")
-							Collection values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
-							allTechIndicatorsSortedCacheTmp.remove(EventDefinition.PARAMETERIZED);
-							allTechIndicatorsSortedCacheTmp.addAll(values);
+							if (PARAMETERIZEDINDICATORSBUILDER == null && SpringContext.getSingleton().containsBean("parameterizedIndicatorsBuilder")) {
+								PARAMETERIZEDINDICATORSBUILDER = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
+							}
 							
 							TreeSet<EventInfo> allParameterizedTmp = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
 								@Override
@@ -262,7 +259,15 @@ public class EventSignalConfig extends Config implements Cloneable {
 									return o1.getEventDefinitionRef().compareTo(o2.getEventDefinitionRef());
 								}
 							});
-							allParameterizedTmp.addAll(values);
+							
+							if (PARAMETERIZEDINDICATORSBUILDER != null) {
+								@SuppressWarnings("rawtypes")
+								Collection values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
+								allTechIndicatorsSortedCacheTmp.remove(EventDefinition.PARAMETERIZED);
+								allTechIndicatorsSortedCacheTmp.addAll(values);
+								allParameterizedTmp.addAll(values);
+							}
+							
 							this.allParameterized = Collections.unmodifiableSortedSet(allParameterizedTmp);
 							
 						} else {
@@ -639,10 +644,14 @@ public class EventSignalConfig extends Config implements Cloneable {
 		EventSignalConfig clone = new EventSignalConfig();
 		try {
 			clone = (EventSignalConfig) super.clone();
-			clone.indicators = new ArrayList<String>(this.indicators);
-			clone.indepIndicators = new ArrayList<String>(this.indepIndicators);
-			clone.sellIndicators = new ArrayList<String>(this.sellIndicators);
+			clone.allEventInfos = (this.allEventInfos != null)?new TreeSet<EventInfo>(this.allEventInfos):null;
+			clone.allParameterized = (this.allParameterized != null)?new TreeSet<EventInfo>(this.allParameterized):null;
+			clone.allTechIndicatorsSortedCache = (this.allTechIndicatorsSortedCache != null)?new TreeSet<EventInfo>(this.allTechIndicatorsSortedCache):null;
 			clone.buyIndicators = new ArrayList<String>(this.buyIndicators);
+			clone.indepIndicators = new ArrayList<String>(this.indepIndicators);
+			clone.indicators = new ArrayList<String>(this.indicators);
+			clone.indicatorSortedCache =  (this.indicatorSortedCache != null)?new TreeSet<EventInfo>(this.indicatorSortedCache):null;
+			clone.sellIndicators = new ArrayList<String>(this.sellIndicators);
 		} catch (Exception e) {
 			LOGGER.error(e);
 		}

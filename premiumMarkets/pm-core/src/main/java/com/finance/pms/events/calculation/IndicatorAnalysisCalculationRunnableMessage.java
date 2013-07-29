@@ -66,7 +66,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Integer passNumber;
 	private String passOneRecalculationMode;
 	
-	private Boolean export;
+//	private Boolean export;
 	private Currency calculationCurrency;
 	private Boolean persistEvents;
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
@@ -77,14 +77,14 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
-													Collection<Stock> shareList, Date datedeb, Date datefin, Boolean export, Observer... observers) {
+													Collection<Stock> shareList, Date datedeb, Date datefin, Observer... observers) {
 		super(999, springContext, eventListName);
 		this.periodType = periodType;
 		this.analyzer = analyzer;
 		this.datefin = datefin;
 		this.datedeb = datedeb;
 		this.shareList = shareList;
-		this.export = export;
+//		this.export = export;
 		//calculationCurrency is null the stock currency will be used
 		this.observers = observers;
 		
@@ -92,8 +92,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
-													Stock oneStock, Date datedeb, Date datefin, Boolean export, Currency calculationCurrency, Observer... observers) {
-		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, export);
+													Stock oneStock, Date datedeb, Date datefin, Currency calculationCurrency, Observer... observers) {
+		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin);
 		this.calculationCurrency = calculationCurrency;
 		this.observers = observers;
 	}
@@ -131,7 +131,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,getConfigs().get(Config.INDICATOR_PARAMS_NAME));
 
-			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, export, persistEvents, passOneRecalculationMode, observers);
+			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, persistEvents, passOneRecalculationMode, observers);
 			
 		} catch (IncompleteDataSetException e) {
 			exception = e;

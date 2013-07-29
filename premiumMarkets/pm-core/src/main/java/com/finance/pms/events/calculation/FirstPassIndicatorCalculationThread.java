@@ -97,7 +97,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
 				Set<Observer> observers, Boolean keepCache,Queue queue,JmsTemplate jmsTemplate, Boolean persistEvents) throws NotEnoughDataException {
 		
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, false, keepCache, persistEvents, null, queue, jmsTemplate);
+		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, keepCache, persistEvents, null, queue, jmsTemplate);
 	}
 
 	@Override
@@ -138,10 +138,12 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	@Override
 	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws IncompleteDataSetException {
 		
+		LOGGER.info("First pass wanted events : "+getWantedEventCalculations());
+		
 		//TODO get formulas stored in DB or from spring config
 		Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
 		
-		//List of Event Compositions to be calculated
+		//List of Indicators to be calculated
 		MACD macd = null;
 		SMA sma200 = null;
 		RSI rsi = null;
@@ -153,6 +155,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		ChaikinOscillator chaikinOscillator = null;
 		HouseAroon aroon = null;
 	
+		//Which EventCompositions have been found a wanted in the EventConfig (indicators field)
 		boolean zeroCrossMACDWanted = checkWanted(EventDefinition.PMMACDZEROCROSS);
 		boolean signalCrossMACDWanted = checkWanted(EventDefinition.PMMACDSIGNALCROSS);
 		boolean smaReversalWanted = checkWanted(EventDefinition.PMSMAREVERSAL);
@@ -171,9 +174,12 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		boolean chaikinOscThresholdWanted =  checkWanted(EventDefinition.PMCHAIKINOSCTHRESHOLD);
 		boolean stochThresholdWanted = checkWanted(EventDefinition.PMSSTOCHTHRESHOLD);
 		
-//		boolean parameterizedWanted = checkWanted(EventDefinition.PARAMETRIZED);
+		boolean mighyChaikinWanted = checkWanted(EventDefinition.PMMIGHTYCHAIKIN);
+		boolean mfiDivergenceOldWanted = checkWanted(EventDefinition.PMMFIDIVERGENCEOLD);
+		boolean rsiDivergenceOldWanted = checkWanted(EventDefinition.PMRSIDIVERGENCEOLD);
+		boolean stochDivergenceOldWanted = checkWanted(EventDefinition.PMSSTOCHDIVERGENCEOLD);
 		
-		//Which Indicators
+		//Indicators status
 		boolean isSMA200Ok = true;
 		boolean isMACDOk = true;
 		boolean isOBVOk = true;
@@ -185,7 +191,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		boolean isAroonOk = true;
 		boolean isChaikinOscOk = true;
 
-		
+		//Indicators init
 		if (mfiDivergenceWanted || zeroCrossMACDWanted || signalCrossMACDWanted || rsiThresholdCrossWanted || stddevCrossWanted) {
 			try {
 				sma200 = new SMA(stock, 200, startDate, endDate, calculationCurrency);
@@ -201,7 +207,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			}
 		}
 		
-		if (stochDivergenceWanted) {
+		if (stochDivergenceWanted || stochDivergenceOldWanted) {
 			try {
 				aroon = new HouseAroon(stock,  startDate, endDate, calculationCurrency, 25);
 			} catch (NoQuotationsException e) {
@@ -230,7 +236,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				LOGGER.error(e,e);
 			}
 		}
-		if (rsiThresholdCrossWanted || rsiDivergenceWanted) {
+		if (rsiThresholdCrossWanted || rsiDivergenceWanted || rsiDivergenceOldWanted) {
 			try {
 				rsi = new RSI(stock, rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold, startDate, endDate, calculationCurrency);
 			} catch (NoQuotationsException e) {
@@ -258,7 +264,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				LOGGER.error(e,e);
 			}
 		}
-		if (mfiDivergenceWanted || mfiThresholdWanted) {
+		if (mfiDivergenceWanted || mfiThresholdWanted || mfiDivergenceOldWanted) {
 			try {
 				mfi = new MFI(stock, mfiTimePeriod, mfiLowerThres, mfiUpperThres, startDate, endDate, calculationCurrency);
 			} catch (NoQuotationsException e) {
@@ -273,7 +279,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			}
 		}
 	
-		if (stochDivergenceWanted || stochThresholdWanted) {
+		if (stochDivergenceWanted || stochThresholdWanted || stochDivergenceOldWanted) {
 			try {
 				stoch = new StochasticOscillator(stock, startDate, endDate, calculationCurrency, fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 			} catch (NoQuotationsException e) {
@@ -303,7 +309,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			}
 		}
 		
-		if (chaikinOscDivergenceWanted || chaikinOscThresholdWanted) {
+		if (chaikinOscDivergenceWanted || chaikinOscThresholdWanted || mighyChaikinWanted) {
 			try {
 				chaikinOscillator = new ChaikinOscillator(stock, startDate, endDate, calculationCurrency);
 			} catch (NoQuotationsException e) {
@@ -333,7 +339,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			}
 		}
 		
-		//Which Calculators
+		//EventCompositions status
 		boolean zeroCrossMACDOk = true;;
 		boolean signalCrossMACDOk = true;
 		boolean smaReversalOk = true;
@@ -346,12 +352,19 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		boolean variationOk = true;
 		boolean stddevCrossOk = true;
 		boolean stockDivergenceOk = true;
-		boolean chaikinDivergenceOk = true;
+		boolean accDistDivergenceOk = true;
 		boolean aroonTrendOk = true;
 		boolean chaikinOscDivergenceOk = true;
 		boolean chaikinOscThresholdOk = true;
 		boolean stochThresholdOk = true;
 		
+		boolean mightyChaikinOk = true;
+		boolean stochDivergenceOldOk = true;
+		boolean mfiDivergenceOldOk = true;
+		boolean rsiDivergenceOldOk = true;
+		
+		
+		//EventCompostions init
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		if (zeroCrossMACDWanted && isMACDOk && isSMA200Ok) {
 			try {
@@ -493,7 +506,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				} else {
 					LOGGER.error("Failed calculation : "+warnMessage("ChaikinDivergence", new Date(), new Date()), e);
 				}
-				chaikinDivergenceOk = false;
+				accDistDivergenceOk = false;
 			}
 		}
 		
@@ -566,11 +579,62 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			}
 		}
 		
+		//Events old divergences (Before high and low change) !ChaikinOscillatorDivergence_old is still in use as MighyChaikin
+		if (mighyChaikinWanted & isChaikinOk) {
+			try {
+				eventCalculations.add(new ChaikinOscillatorDivergence_old(stock, chaikinOscillator, startDate, endDate, calculationCurrency));
+			} catch (NotEnoughDataException e) {
+				if (e.getShiftedStartDate() != null) {
+					LOGGER.warn(warnMessage("ChaikinOscillatorDivergence_old", startDate, endDate) + butMessage(simpleDateFormat, e));
+				} else {
+					LOGGER.warn("Failed calculation : "+warnMessage("ChaikinOscillatorDivergence_old", new Date(), new Date()), e);
+				}
+				mightyChaikinOk = false;
+			}
+		}
+		if (rsiDivergenceOldWanted && isRSIOk) {
+			try {
+				eventCalculations.add(new RSIDivergence_old(stock, rsi, startDate, endDate, calculationCurrency));
+			} catch (NotEnoughDataException e) {
+				if (e.getShiftedStartDate() != null) {
+					LOGGER.warn(warnMessage("RSIDivergence_old", startDate, endDate) + butMessage(simpleDateFormat, e));
+				} else {
+					LOGGER.warn("Failed calculation : "+warnMessage("RSIDivergence_old", new Date(), new Date()), e);
+				}
+				rsiDivergenceOldOk = false;
+			}
+		}
+		if (mfiDivergenceOldWanted && isMFIOk) {
+			try {
+				eventCalculations.add(new MFIDivergence_old(stock, mfi, startDate, endDate, calculationCurrency));
+			} catch (NotEnoughDataException e) {
+				if (e.getShiftedStartDate() != null) {
+					LOGGER.warn(warnMessage("MFIDivergence_old", startDate, endDate) + butMessage(simpleDateFormat, e));
+				} else {
+					LOGGER.warn("Failed calculation : "+warnMessage("MFIDivergence_old", new Date(), new Date()), e);
+				}
+				mfiDivergenceOldOk = false;
+			}
+		}
+		if (stochDivergenceOldWanted && isStochOk && isAroonOk) {
+			try {
+				eventCalculations.add(new StochasticDivergence_old(stock, stoch, aroon, startDate, endDate, calculationCurrency));
+			} catch (NotEnoughDataException e) {
+				if (e.getShiftedStartDate() != null) {
+					LOGGER.warn(warnMessage("StochasticDivergence_old", startDate, endDate) + butMessage(simpleDateFormat, e));
+				} else {
+					LOGGER.warn("Failed calculation : "+warnMessage("StochasticDivergence_old", new Date(), new Date()), e);
+				}
+				stochDivergenceOldOk = false;
+			}
+		}
+		
 		if (
 				!rsiDivergenceOk|| !zeroCrossMACDOk || !signalCrossMACDOk || !smaReversalOk || !rsiThresholdCrossOk ||
 				!obvDivergenceOk || !mfiDivergenceOk || !mfiThresholdOk || !varianceOk || 
 				!variationOk || !stddevCrossOk || !stockDivergenceOk ||
-				!chaikinDivergenceOk || !aroonTrendOk|| !chaikinOscDivergenceOk || !stochThresholdOk || !chaikinOscThresholdOk
+				!accDistDivergenceOk || !aroonTrendOk|| !chaikinOscDivergenceOk || !stochThresholdOk || !chaikinOscThresholdOk ||
+				!rsiDivergenceOldOk || !mfiDivergenceOldOk || !mightyChaikinOk || !stochDivergenceOldOk
 				
 			) {
 			
@@ -580,10 +644,12 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 							"obvDivergenceOk, mfiDivergenceOk, mfiThresholdOk, varianceOk, " +
 							"variationOk, stddevCrossOk, stockDivergenceOk, " +
 							"chaikinDivergenceOk, aroonTrendOk, chaikinOscDivergenceOk, stochThresholdOk, chaikinOscThresholdOk"+
+							"mfiDivergenceOldOk,rsiDivergenceOldOk,stochDivergenceOldOk,mightyChaikinOk : " +
 							rsiDivergenceOk+","+zeroCrossMACDOk +", "+ signalCrossMACDOk+", "+ smaReversalOk+", "+rsiThresholdCrossOk+", "+ 
 							obvDivergenceOk+", "+ mfiDivergenceOk+", "+ mfiThresholdOk+", "+ varianceOk+", "+  
 							variationOk+", "+ stddevCrossOk+", "+stockDivergenceOk+", "+
-							chaikinDivergenceOk+","+aroonTrendOk+","+chaikinOscDivergenceOk+","+stochThresholdOk+", "+chaikinOscThresholdOk;
+							accDistDivergenceOk+","+aroonTrendOk+","+chaikinOscDivergenceOk+","+stochThresholdOk+", "+chaikinOscThresholdOk+
+							mfiDivergenceOldOk+","+rsiDivergenceOldOk+","+stochDivergenceOldOk+","+mightyChaikinOk;
 			LOGGER.warn(error);
 			
 			throw new IncompleteDataSetException(stock, eventCalculations, error);

@@ -46,7 +46,7 @@ public class RecognitionExceptionHolder {
 					eToString+"\\,"+msg+"\\,"+ 
 					ruleStack+"\\,"+needsClosing+"\\,"+expectedToken;
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error("Can't extract info from "+exception.toString()+ " : "+e,e);
 			return "Error extracting exception information :"+e.toString();
 		}
 	}

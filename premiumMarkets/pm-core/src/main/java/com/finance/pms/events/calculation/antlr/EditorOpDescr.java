@@ -48,6 +48,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 			else {
 				for (EditorOpDescr editorOpDescr : allOps) {
 					if (editorOpDescr.getName().equals(tokenName)) return DATA;
+					if (editorOpDescr.getName().startsWith(tokenName)) return null;
 				}
 				for (String stockoutput : EditorLexerDelegate.HISTORICALDATA_TOKENS) {
 					if (stockoutput.equals(tokenName)) return DATA;

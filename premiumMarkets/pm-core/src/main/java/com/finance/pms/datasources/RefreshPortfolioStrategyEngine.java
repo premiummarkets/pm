@@ -33,12 +33,14 @@ package com.finance.pms.datasources;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Observer;
 import java.util.Set;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
+import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
@@ -49,7 +51,7 @@ import com.finance.pms.portfolio.UserPortfolio;
 
 
 
-public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
+public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Collection<Stock>> {
 	
 	@Override
 	protected String passOneOverwriteMode() {
@@ -57,11 +59,11 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 	}
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) throws InterruptedException {
+	public void callbackForAlerts(Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) throws InterruptedException {
 		
 		Date endDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 		
-		UserPortfolio[] userPortfolios = viewStateParams[1].toArray(new UserPortfolio[0]);
+		UserPortfolio[] userPortfolios = viewStateParams[0].toArray(new UserPortfolio[0]);
 		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), IndicatorCalculationServiceMain.UI_ANALYSIS, endDate, userPortfolios);
 		alertOnThresholdAnalyser.runAlertsOnThresholdCalculation();
 		
@@ -69,70 +71,18 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) {
-		super.callbackForlastListFetch(engineObservers, viewStateParams[0]);
+	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate , Date endAnalysisDate, Set<Observer> engineObservers, Collection<Stock> rootParam,Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
+		
+		tamperEventConfig((Collection<EventInfo>) viewStateParams[1]);
+		super.callbackForlastAnalyse(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) throws StockNotFoundException {
-		super.callbackForlastQuotationFetch(engineObservers, viewStateParams[0]);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
-		if (viewStateParams.length  == 3) {//Tampering the config to recalculate only independent indicators that need to.
-			tamperEventConfig((Collection<EventInfo>) viewStateParams[2]);
-		} 
-		super.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams[0]);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) {
-		if (viewStateParams.length  == 3) {//Tampering the config to recalculate only independent indicators that need to.
-			tamperEventConfig((Collection<EventInfo>) viewStateParams[2]);
-		} 
-		super.callbackForAnalysisClean(engineObservers, viewStateParams[0]);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Collection<Stock> getViewParamRoot(Collection<? extends Object>... viewStateParams) {
+	public void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) {
 		
-		if (viewStateParams != null && viewStateParams.length != 0) {
-			return (Collection<Stock>) viewStateParams[0];
-		}
-		
-		return null;
-		
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Collection<? extends Object>[] setViewStateParams(Object rootParam, Collection<? extends Object>... otherParams) {
-		
-		Collection<? extends Object>[] ret = new Collection[3];
-		
-		if (rootParam == null) {
-			ret[0] = null;
-		} else {
-			if (rootParam instanceof Collection) {
-				ret[0] = (Collection<Stock>) rootParam;
-			} else {
-				throw new IllegalArgumentException("Expecting Collection<Stock>");
-			}
-		}
-		
-		if (otherParams.length != 0) {
-			for (int i = 1; i < ret.length; i++) {
-				ret[i] = (i-1 < otherParams.length)?otherParams[i-1]:null;
-			}
-		}
-		
-		return ret;
-		
+		tamperEventConfig((Collection<EventInfo>) viewStateParams[1]);
+		super.callbackForAnalysisClean(engineObservers,rootParam);
 	}
 	
 	@Override
@@ -140,9 +90,9 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 		switch (taskId) {
 		case Analysis:
 		case Clean :
-			return new int[]{2};
-		case Alerts :
 			return new int[]{1};
+		case Alerts :
+			return new int[]{0};
 		default :
 			return new int[]{};
 		}
@@ -151,6 +101,22 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine {
 	@Override
 	public boolean allowsTaskReset() {
 		return true;
+	}
+
+	@Override
+	public int otherViewParamLength() {
+		return 2;
+	}
+
+	@Override
+	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
+		quotationUpdate.getQuotesFor(rootParam);
+		
+	}
+
+	@Override
+	protected List<Stock> buildStockListFrom(Collection<Stock> rootParam) {
+		return new ArrayList<Stock>(rootParam);
 	}
 
 }

@@ -32,12 +32,16 @@ package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.alerts.AlertOnThreshold;
+import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -138,34 +142,18 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return currentDate;
 	}
 
-	public Boolean getSlidingEnd() {
-		return slidingEnd;
-	}
-
 	public void setSlidingEnd(Boolean sliding) {
 		this.slidingEnd = sliding;
-	}
-
-	public Date getStart() {
-		return start;
 	}
 
 	public void setStart(Date start) {
 		this.start = start;
 	}
 
-	public Date getEnd() {
-		return end;
-	}
-
 	public void setEnd(Date end) {
 		this.end = end;
 	}
-
-	public Boolean getSlidingStart() {
-		return slidingStart;
-	}
-
+	
 	public void setSlidingStart(Boolean slidingStart) {
 		this.slidingStart = slidingStart;
 	}
@@ -249,15 +237,12 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
-	public String toString() {
-		return "SlidingPortfolioShare [underLyingPortfolioShare=" + underLyingPortfolioShare + ", displayOnChart=" + displayOnChart + "]";
-	}
-
-	@Override
 	public void addAlertOnEvent(String eventInfoReference, MonitorLevel monitorLevel, String optionalMessage) {
 		underLyingPortfolioShare.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
 		super.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
 	}
+	
+	
 
 	@Override
 	public void clearAlertOnEvent() {
@@ -270,9 +255,49 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
+	public String toString() {
+		return "SlidingPortfolioShare [underLyingPortfolioShare=" + underLyingPortfolioShare + ", displayOnChart=" + displayOnChart + "]";
+	}
+
+	@Override
 	public String tootTip() {
-		//return info();
 		return "";
+	}
+
+	public void addWeigthedZeroProfitAlertGuard(BigDecimal price, String message) {
+		underLyingPortfolioShare.addWeigthedZeroProfitAlertGuard(price, message);
+	}
+
+	public PortfolioShare resetCrossDown(AlertOnThreshold alert, BigDecimal crossingPrice) {
+		return underLyingPortfolioShare.resetCrossDown(alert, crossingPrice);
+	}
+
+	public PortfolioShare resetCrossUp(AlertOnThreshold alert, BigDecimal crossingPrice) {
+		return underLyingPortfolioShare.resetCrossUp(alert, crossingPrice);
+	}
+
+	public void addAlertOnThreshold(ThresholdType threshold, BigDecimal value, AlertOnThresholdType alertType, String message) {
+		underLyingPortfolioShare.addAlertOnThreshold(threshold, value, alertType, message);
+	}
+
+	public HashSet<AlertOnThreshold> getAlertsOnThresholdFor(AlertOnThresholdType alertType) {
+		return underLyingPortfolioShare.getAlertsOnThresholdFor(alertType);
+	}
+
+	public Set<AlertOnThreshold> getAlertsOnThreshold() {
+		return underLyingPortfolioShare.getAlertsOnThreshold();
+	}
+
+	public Set<AlertOnThreshold> getAlertsOnThresholdUp() {
+		return underLyingPortfolioShare.getAlertsOnThresholdUp();
+	}
+
+	public Set<AlertOnThreshold> getAlertsOnThresholdDown() {
+		return underLyingPortfolioShare.getAlertsOnThresholdDown();
+	}
+
+	public Set<AlertOnEvent> getAlertsOnEvent() {
+		return underLyingPortfolioShare.getAlertsOnEvent();
 	}
 
 }

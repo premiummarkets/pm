@@ -643,7 +643,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	public void addSimpleAlertOnThreshold(ThresholdType threshold, BigDecimal value, String message) {
-		this.addAlertOnThreshold(threshold, value, AlertOnThresholdType.MANUAL, message);
+		if (threshold.equals(ThresholdType.UP)) this.addAlertOnThreshold(threshold, value, AlertOnThresholdType.MANUALUP, message);
+		if (threshold.equals(ThresholdType.DOWN)) this.addAlertOnThreshold(threshold, value, AlertOnThresholdType.MANUALDOWN, message);
 	}
 
 	public PortfolioShare resetCrossDown(AlertOnThreshold alert, BigDecimal crossingPrice) {
@@ -661,7 +662,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			case BELOW_PRICE_CHANNEL:
 				this.resetAlertLimitBelow(alert, crossingPrice);
 				break;
-			case MANUAL:
+			case MANUALUP:
+			case MANUALDOWN:
 				this.removeAlertOnThreshold(alert);
 				break;
 			default:
@@ -692,7 +694,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			case ABOVE_PRICE_CHANNEL:
 				this.resetAlertLimitAbove(alert, crossingPrice);
 				break;
-			case MANUAL:
+			case MANUALUP:
+			case MANUALDOWN:
 				this.removeAlertOnThreshold(alert);
 				break;
 			default:

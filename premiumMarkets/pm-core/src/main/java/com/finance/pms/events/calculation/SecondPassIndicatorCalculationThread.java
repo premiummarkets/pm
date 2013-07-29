@@ -63,8 +63,8 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	protected SecondPassIndicatorCalculationThread(
 			Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
 			Set<Observer> observers, Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators,
-			Boolean export, Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistEvents, Boolean persistTrainingEvents) throws NotEnoughDataException {
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, export, keepCache, persistEvents, persistTrainingEvents, eventQueue, jmsTemplate);
+			Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistEvents, Boolean persistTrainingEvents) throws NotEnoughDataException {
+		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, keepCache, persistEvents, persistTrainingEvents, eventQueue, jmsTemplate);
 		
 		this.availableSecondPassIndicatorCalculators = availableSecondPassIndicatorCalculators;
 	
@@ -107,16 +107,12 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		return eventCalculations;
 	}
 
-//	@SuppressWarnings("unchecked")
+
 	private List<EventInfo> subEventInfosForRequested(EventDefinition eventDefinition) {
 		
 		List<EventInfo> ret = new ArrayList<EventInfo>();
 		switch(eventDefinition) {
 		case PARAMETERIZED :
-//			ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = (ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder");
-//			@SuppressWarnings("rawtypes")
-//			Collection values = parameterizedIndicatorsBuilder.getUserEnabledOperations().values();
-//			ret.addAll(values);
 			ret.addAll(EventDefinition.loadAllParameterized());
 			break;
 		default : 
@@ -134,8 +130,8 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		
 		try {
 			
-			Constructor<EventCompostionCalculator> constructor = eventCompositionCalculator.getConstructor(EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Boolean.class, Boolean.class, Observer[].class);
-			return constructor.newInstance(eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, export, persistTrainingEvents, observers);
+			Constructor<EventCompostionCalculator> constructor = eventCompositionCalculator.getConstructor(EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Boolean.class, Observer[].class);
+			return constructor.newInstance(eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, persistTrainingEvents, observers);
 		
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof WarningException || e.getCause() instanceof NotEnoughDataException) {
@@ -168,24 +164,6 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			if (checkWanted(eventDefinition)) {
 				
 				LOGGER.info("cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
-				
-//				if (eventDefinition.equals(EventDefinition.PARAMETERIZED)) {
-//					
-//					EventInfo[] eventDefsArray = EventDefinition.loadAllParameterized().toArray(new EventInfo[0]);
-//					
-//					if (LOGGER.isInfoEnabled()) {
-//						String paramEvtString = "";
-//						for (EventInfo eventInfo : eventDefsArray) {
-//							paramEvtString = "," + paramEvtString + eventInfo.getEventReadableDef();
-//						}
-//						LOGGER.info("cleaning PARAMETERIZED "+paramEvtString+" BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
-//					}
-//					
-//					EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefsArray);
-//					
-//				} else {
-//					EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, eventDefinition);
-//				}
 				
 				List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
 				EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, subEventInfosForRequested.toArray(new EventInfo[0]));

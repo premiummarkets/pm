@@ -130,7 +130,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 			LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-				LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
 			}
 			LOGGER.debug("---------------------------------------------------");
 
@@ -557,6 +557,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 
 	private SortedSet<EditorOpDescr> filterParamLessOps(Set<EditorOpDescr> ops) {
+		
 		SortedSet<EditorOpDescr>  paramLessOps = new TreeSet<EditorOpDescr>(new Comparator<EditorOpDescr>() {
 			@Override
 			public int compare(EditorOpDescr o1, EditorOpDescr o2) {
@@ -568,6 +569,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 			if (editorOpDescr.getParams().size() == 0) paramLessOps.add(editorOpDescr);
 		}
 		return paramLessOps;
+		
 	}
 
 }

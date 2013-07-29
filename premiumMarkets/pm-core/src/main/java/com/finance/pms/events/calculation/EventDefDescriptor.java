@@ -19,6 +19,10 @@ public interface EventDefDescriptor {
 
 	int getGroupsCount();
 
-	Integer[] getIndexesForGroup(int j);
+	Integer[] getOutputIndexesForGroup(int j);
+
+	Integer[] getThresholdsIdx(int grpIdx);
+
+	String getMainLabelForGroup(int groupIdx);
 
 }

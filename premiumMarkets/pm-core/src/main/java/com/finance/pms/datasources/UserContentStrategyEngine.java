@@ -66,15 +66,15 @@ import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
-public abstract class UserContentStrategyEngine extends EventModelStrategyEngine {
+public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEngine<X> {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) {
+	public void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) {
 		LOGGER.debug("No list update available for this model.");
 	}
 
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws StockNotFoundException {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws StockNotFoundException {
 		
 		LOGGER.guiInfo("Task : Updating quotations");
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
@@ -82,18 +82,12 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 		LOGGER.debug("Fetching monitored quotations");
 		quotationUpdate.addObservers(engineObservers);
 		
-		updateQuotations(quotationUpdate, viewStateParams);
+		updateQuotations(quotationUpdate, rootParam);
 	}
 
-	@SuppressWarnings("unchecked")
-	private void updateQuotations(QuotationUpdate quotationUpdate, Collection<? extends Object>... viewStateParams) throws StockNotFoundException {
-		quotationUpdate.getQuotesFor((Collection<Stock>) viewStateParams[0]);
-	}
+	protected abstract void updateQuotations(QuotationUpdate quotationUpdate, X rootParam) throws StockNotFoundException;
 
-	@SuppressWarnings("unchecked")
-	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
-
-		if (viewStateParams == null || viewStateParams.length == 0) throw new java.lang.UnsupportedOperationException("You  must select a stock before running an analysis.");
+	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
 
 		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
 		String[] analysers = new String[analysisList.size()];
@@ -101,14 +95,13 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 			analysers[j] = analysisList.get(j);
 		}
 
-		Date datefin = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+		Date datefin = DateFactory.midnithDate(endAnalysisDate);
 		Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 
-		@SuppressWarnings("rawtypes")
-		List<Stock> stockList = new ArrayList(viewStateParams[0]);
+		List<Stock> stockList = buildStockListFrom(rootParam);
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected, please adjust", new Throwable());
+		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected. Select a stock to analyse first.", new Throwable());
 		
 		for (int i = 0; i < analysers.length; i++) {
 
@@ -118,19 +111,17 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 
-			Boolean export = MainPMScmd.getPrefs().getBoolean("perceptron.exportoutput", false);
-
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 					SpringContext.getSingleton(), 
 					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-					stockList, datedeb, datefin, export, engineObservers.toArray(new Observer[0]));
+					stockList, datedeb, datefin, engineObservers.toArray(new Observer[0]));
 
 			Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
 
 			//Pass one
 			Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 			try {
-				runPassOne = runPassOne(actionThread, DateFactory.midnithDate(startAnalyseDate), DateFactory.midnithDate(EventSignalConfig.getNewDate()));
+				runPassOne = runPassOne(actionThread, datedeb, datefin);
 			} catch (Exception e) {
 				LOGGER.error(e,e);
 			}
@@ -140,7 +131,7 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 			if (maxPass == 2) {
 				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 				try {
-					runPassTwo = runPassTwo(actionThread, DateFactory.midnithDate(startAnalyseDate), DateFactory.midnithDate(EventSignalConfig.getNewDate()));
+					runPassTwo = runPassTwo(actionThread, datedeb, datefin);
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 				}
@@ -161,6 +152,8 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 		
 	}
 	
+	protected abstract List<Stock> buildStockListFrom(X rootParam);
+
 	public void callbackForReco(Set<Observer> engineObservers) {
 		throw new NotImplementedException();
 	}
@@ -195,16 +188,17 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 		return (oldLastAnalyse == null)?EventModel.DEFAULT_DATE:oldLastAnalyse;
 	}
 
-	@SuppressWarnings("unchecked")
+
 	@Override
-	public void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<? extends Object>... viewStateParams) {
+	public void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>... viewStateParams) {
 		
+		List<Stock> builtStockList = buildStockListFrom(rootParam);
 		for (Observer observer : engineObservers) {
-			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, viewStateParams[0].size()));
+			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, builtStockList.size()));
 		}
 	
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		for (Stock stock : (Collection<Stock>)viewStateParams[0]) {
+		for (Stock stock : builtStockList) {
 			
 			LOGGER.guiInfo("Task : Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
 			
@@ -216,9 +210,8 @@ public abstract class UserContentStrategyEngine extends EventModelStrategyEngine
 			}
 			
 		}
-		
-		//return false;
-		postCallBackForClean(false, viewStateParams[0].toArray(new Stock[0]));
+
+		postCallBackForClean(false, builtStockList.toArray(new Stock[0]));
 		
 	}
 

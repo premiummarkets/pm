@@ -64,5 +64,17 @@ public class CurvesMultiplication implements CurvesOperation, CurvesConstantOper
 		return ret;
 
 	}
+	
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> data1, Double d) {
+
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		for (Date date : data1.keySet()) {
+			Double ds1 = data1.get(date);
+			ret.put(date, ds1 * d);
+		}
+
+		return ret;
+
+	}
 
 }

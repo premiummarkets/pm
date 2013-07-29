@@ -37,7 +37,7 @@ import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class CurvesSubstraction implements CurvesOperation, CurvesConstantOperation {
+public class CurvesSubtraction implements CurvesOperation, CurvesConstantOperation {
 	
 	public SortedMap<Date, double[]> operate(SortedMap<Date, double[]> data1, SortedMap<Date, double[]> data2) {
 		
@@ -59,6 +59,17 @@ public class CurvesSubstraction implements CurvesOperation, CurvesConstantOperat
 		for (Date date : data1.keySet()) {
 			double[] ds1 = data1.get(date);
 			ret.put(date, new double[]{ds1[0] - d});
+		}
+
+		return ret;
+	}
+	
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> data1, Double d) {
+
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		for (Date date : data1.keySet()) {
+			Double ds1 = data1.get(date);
+			ret.put(date, ds1 - d);
 		}
 
 		return ret;

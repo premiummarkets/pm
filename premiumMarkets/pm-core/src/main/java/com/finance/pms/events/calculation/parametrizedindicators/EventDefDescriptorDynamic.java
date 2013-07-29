@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 
 public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	
@@ -41,7 +42,17 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	protected void initLists() throws NoSuchElementException {
 		
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indic chart for (clear in progress??) : " + descriptorReference);
+		initDescriptionsList();
+		
+		descripitonArrays = new String[descripitonList.size()];
+		for (int i = 0; i < descripitonList.size(); i++) {
+			descripitonArrays[i] = descripitonList.get(i).fullQualifiedName();
+		}
+		
+	}
+
+	protected void initDescriptionsList() {
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
 			
 		SortedSet<OutputDescr> descriptionSet = new  TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
 			@Override
@@ -56,12 +67,6 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		}		
 		descripitonList = new ArrayList<ChartedOutputGroup.OutputDescr>();
 		descripitonList.addAll(descriptionSet);
-		
-		descripitonArrays = new String[descripitonList.size()];
-		for (int i = 0; i < descripitonList.size(); i++) {
-			descripitonArrays[i] = descripitonList.get(i).fullQualifiedName();
-		}
-		
 	}
 
 	@Override
@@ -153,7 +158,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Integer[] getIndexesForGroup(int j) {
+	public Integer[] getOutputIndexesForGroup(int j) {
 		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(j);
 		Integer[] ret = new Integer[chartedOutputGroup.getComponents().size()+1];
 		ret[0] = chartedOutputGroup.getThisDescription().getOutputIndex();
@@ -179,6 +184,37 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	public String getBearishDescription() {
 		return bearishDescription;
+	}
+
+	@Override
+	public Integer[] getThresholdsIdx(int grpIdx) {
+		
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
+		
+		List<Integer> thresholdsIdxs = new ArrayList<Integer>();
+		SortedSet<OutputDescr> descriptionSet = new  TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
+			@Override
+			public int compare(OutputDescr o1, OutputDescr o2) {
+				return o1.getOutputIndex().compareTo(o2.getOutputIndex());
+			}
+		});
+		
+		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(grpIdx);
+		descriptionSet.add(chartedOutputGroup.getThisDescription());
+		descriptionSet.addAll(chartedOutputGroup.getComponents().values());
+		
+		for (OutputDescr outputDescr : descriptionSet) {
+			if (outputDescr.getType().equals(Type.CONSTANT)) {
+				thresholdsIdxs.add(outputDescr.getOutputIndex());
+			}
+		}
+		
+		return thresholdsIdxs.toArray(new Integer[0]);
+	}
+
+	@Override
+	public String getMainLabelForGroup(int groupIdx) {
+		return chartedOutputGroups.get(groupIdx).getThisReference().getReference();
 	}
 
 }

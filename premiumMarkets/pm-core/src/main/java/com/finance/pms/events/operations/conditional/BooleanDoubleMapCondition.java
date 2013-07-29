@@ -50,11 +50,13 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 				Boolean currentOp = map.get(date);
 				if (currentOp != null) {
 					currentOps.add(currentOp);
-				} else {
-					gruyere = true;
-					break;
+				} 
+				else if (exactDataSet()) {
+						gruyere = true;
+						break; 
 				}
 			}
+			
 			if (!gruyere) {
 				Boolean conditionCheck = conditionCheck(currentOps.toArray(new Boolean[0]));
 				if (conditionCheck != null) {
@@ -68,6 +70,8 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 	}
 	
 	protected abstract Boolean shortcutUnary();
+	
+	protected abstract Boolean exactDataSet();
 
 	
 }

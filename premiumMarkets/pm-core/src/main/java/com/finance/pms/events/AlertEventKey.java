@@ -54,7 +54,6 @@ public class AlertEventKey extends EventKey {
 	public AlertEventKey(Date date, String eventInfoReference, String eventType, String alertType) throws NoSuchFieldException {
 		super();
 		this.date = date;
-		//this.eventdef = EventDefinition.valueOfEventInfo(eventInfoReference);
 		this.eventdef = EventDefinition.valueOf(eventInfoReference);
 		this.eventType = EventType.valueOf(eventType.charAt(0));
 		this.alertType = AlertOnThresholdType.valueOf(alertType);

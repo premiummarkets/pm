@@ -89,7 +89,7 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 		} else {
 			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
 		}
-		LOGGER.debug("smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		int j = 0;

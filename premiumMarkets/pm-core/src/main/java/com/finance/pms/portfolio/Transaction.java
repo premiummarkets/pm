@@ -38,7 +38,7 @@ public class Transaction {
 	
 	public enum TransactionType {AIN,AOUT,NULL};
 	
-	private BigDecimal transactionPrice;
+	private BigDecimal transactionSharePrice;
 	private BigDecimal quantity;
 	private BigDecimal fullAmountIn;
 	private BigDecimal fullAmountOut;
@@ -54,19 +54,17 @@ public class Transaction {
 		this.fullAmountIn = previousAmountIn;
 		this.fullAmountOut = previousAmountOut;
 		this.quantity = quantity;
-		this.transactionPrice = transactionSharePrice;
+		this.transactionSharePrice = transactionSharePrice;
 		this.modtype = modtype;
 		this.date = date;
 	}
 	
-	public BigDecimal getTransactionPrice() {
-		return transactionPrice;
+	public BigDecimal getTransactionSharePrice() {
+		return transactionSharePrice;
 	}
-	public void setTransactionPrice(BigDecimal transactionSharePrice) {
-		this.transactionPrice = transactionSharePrice;
-	}
+
 	public void setTransactionSharePrice(Float transactionSharePrice) {
-		this.transactionPrice = new BigDecimal(transactionSharePrice.toString()).setScale(2,BigDecimal.ROUND_DOWN);
+		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(2,BigDecimal.ROUND_DOWN);
 	}
 	
 	public BigDecimal getQuantity() {
@@ -80,7 +78,7 @@ public class Transaction {
 	}
 	
 	public BigDecimal amount() {
-		return this.quantity.multiply(this.transactionPrice).setScale(2,BigDecimal.ROUND_HALF_UP);
+		return this.quantity.multiply(this.transactionSharePrice).setScale(2,BigDecimal.ROUND_HALF_UP);
 	}
 
 	
@@ -121,7 +119,7 @@ public class Transaction {
 
 	@Override
 	public String toString() {
-		return "Transaction [transactionPrice=" + transactionPrice + ", quantity=" + quantity + ", fullAmountIn=" + fullAmountIn
+		return "Transaction [transactionPrice=" + transactionSharePrice + ", quantity=" + quantity + ", fullAmountIn=" + fullAmountIn
 				+ ", fullAmountOut=" + fullAmountOut + ", modtype=" + modtype + ", date=" + date + "]";
 	}
 	

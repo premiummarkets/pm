@@ -277,6 +277,8 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getPrefs().put("talib.daysbackwardday", props.getProperty("talib.daysbackwardday"));
 			if (props.containsKey("autoporfolio.generatecsv"))
 				MainPMScmd.getPrefs().put("autoporfolio.generatecsv", props.getProperty("autoporfolio.generatecsv"));
+			if (props.containsKey("autoporfolio.generatepng"))
+				MainPMScmd.getPrefs().put("autoporfolio.generatepng", props.getProperty("autoporfolio.generatepng"));
 			
 			
 			//Quotes

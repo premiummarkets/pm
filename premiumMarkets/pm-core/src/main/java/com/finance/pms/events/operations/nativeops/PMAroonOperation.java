@@ -15,7 +15,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.talib.indicators.TalibException;
 
 @XmlRootElement
-public class PMAroonOperation extends PMIndicatorOperation {
+public class PMAroonOperation extends PMDataFreeOperation {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PMAroonOperation.class);
 	
@@ -41,13 +41,13 @@ public class PMAroonOperation extends PMIndicatorOperation {
 			HouseAroon arron = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
 			
 			if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("down")) {
-				return outputToMap(targetStock, arron, arron.getOutAroonDown());
+				return doubleArrayMapToDoubleMap(targetStock, arron, arron.getOutAroonDown());
 			}
 			else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("up")) {
-				return outputToMap(targetStock, arron, arron.getOutAroonUp());
+				return doubleArrayMapToDoubleMap(targetStock, arron, arron.getOutAroonUp());
 			} else {
 				//error
-				return outputToMap(targetStock, arron, arron.getOutputData());
+				return doubleArrayMapToDoubleMap(targetStock, arron, arron.getOutputData());
 			}
 			
 		} catch (NoQuotationsException e) {

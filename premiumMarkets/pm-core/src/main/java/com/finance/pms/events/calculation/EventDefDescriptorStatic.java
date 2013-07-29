@@ -149,7 +149,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
 
 	@Override
-	public Integer[] getIndexesForGroup(int j) {
+	public Integer[] getOutputIndexesForGroup(int j) {
 		String[] descriptionArray = descriptionArray();
 		List<Integer> ret = new ArrayList<Integer>();
 		for (int i = 0; i < descriptionArray.length; i++) {
@@ -200,6 +200,18 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 		Object[] paramsValues = (paramsMethods != null)?configParams(paramsMethods):new Object[0];
 		if (paramsValues != null) return String.format(description, paramsValues);
 		return description;
+	}
+
+
+	@Override
+	public Integer[] getThresholdsIdx(int groupIdx) {
+		return new Integer[0];
+	}
+
+
+	@Override
+	public String getMainLabelForGroup(int groupIdx) {
+		return (mainIndicator != null)?mainIndicator:"";
 	}
 	
 

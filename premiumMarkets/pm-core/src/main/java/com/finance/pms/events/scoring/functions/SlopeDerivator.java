@@ -57,6 +57,7 @@ public class SlopeDerivator implements DiscretDerivator, SDiscretDerivator {
 	public SortedMap<Date, double[]> derivateDiscret(SortedMap<Date, double[]> data) {
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
+		if (data.size() < 1) return ret;
 
 		List<double[]> values = new ArrayList<double[]>(data.values());
 		List<Date> keys = new ArrayList<Date>(data.keySet());

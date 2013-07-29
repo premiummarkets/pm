@@ -98,7 +98,7 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		} finally {
-			if (LOGGER.isDebugEnabled()) {
+			if (LOGGER.isTraceEnabled()) {
 				exportToCSV(edata, eventListName);
 			}
 		}

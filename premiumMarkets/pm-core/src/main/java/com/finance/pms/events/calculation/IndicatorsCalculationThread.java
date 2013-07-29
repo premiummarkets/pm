@@ -60,18 +60,16 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationThread.class);
 
 	protected Stock stock;
-	protected Boolean export;
 	protected Boolean persistTrainingEvents;
 	private Boolean persistEvents;
 
 	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
-											Set<Observer> observers, Boolean export, Boolean keepCache, Boolean persistEvents, Boolean persistTrainingEvents, 
+											Set<Observer> observers, Boolean keepCache, Boolean persistEvents, Boolean persistTrainingEvents, 
 											Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
 		
 		super(startDate, endDate, eventListName, calculationCurrency, observers, keepCache, eventQueue, jmsTemplate);
 		
 		this.stock = stock;
-		this.export = export;
 		this.persistTrainingEvents = persistTrainingEvents;
 		this.persistEvents = persistEvents;
 	}
@@ -141,6 +139,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		for (EventCompostionCalculator evtCalculator: evtCalculators ) {
 			
 			try {
+				
 				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(this.eventListName);
 				
 				if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {

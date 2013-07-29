@@ -88,7 +88,7 @@ public class OTFTuningFinalizer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(OTFTuningFinalizer.class);
 
-	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, SortedMap<Date, double[]> calcOutput,  Boolean generateSmaCmpOutChart, EventInfo evtDef, Observer observer, Boolean isEventsPersisted) throws NotEnoughDataException {
+	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, SortedMap<Date, double[]> calcOutput, EventInfo evtDef, Observer observer, Boolean isEventsPersisted) throws NotEnoughDataException {
 
 		if (calcOutput == null) calcOutput = new TreeMap<Date,double[]>();
 		if (!calcOutput.isEmpty() && calcOutput.firstKey().before(startDate)) calcOutput = calcOutput.tailMap(startDate);
@@ -107,6 +107,7 @@ public class OTFTuningFinalizer {
 		PeriodRatingDTO period = new PeriodRatingDTO();
 		
 		Boolean generateBuySellCsv = MainPMScmd.getPrefs().getBoolean("autoporfolio.generatecsv", true);
+		Boolean generateSmaCmpOutChart =  MainPMScmd.getPrefs().getBoolean("autoporfolio.generatepng", true);
 
 		try {
 			
@@ -148,21 +149,6 @@ public class OTFTuningFinalizer {
 			DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
 
 			Calendar currentDate = zeroTimeDate(startDate);
-			
-//			//Fill training quotations + calc output up to start date //TODO is this of any use???
-//			if (generateBuySellCsv) {
-//				while (currentDate.getTime().before(startDate)) {
-//					String line  = simpleDateFormat.format(currentDate.getTime());
-//					BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-//					double[] output = calcOutput.get(currentDate.getTime());
-//					String outputString = (output == null)?"NaN":output[0]+"";
-//					line = line + ", " + closeForDate + ", , ";
-//					line = line + ", " + outputString; 		
-//					line = line + "\n";
-//					bufferedWriter.write(line);
-//					QuotationsFactories.getFactory().incrementDate(currentDate, 1);
-//				}
-//			}
 
 			BigDecimal big2 = BigDecimal.ONE;
 
@@ -298,10 +284,12 @@ public class OTFTuningFinalizer {
 					
 				}
 
-				double[] output = calcOutput.get(currentDate.getTime());
-				String outputString =(output == null)?"NaN":output[0]+"";
 				
 				if (generateBuySellCsv) {
+					
+					double[] output = calcOutput.get(currentDate.getTime());
+					String outputString =(output == null)?"NaN":output[0]+"";
+					
 					line = line + ", "+outputString;
 					line = line + "\n";
 					bufferedWriter.write(line);
@@ -316,7 +304,7 @@ public class OTFTuningFinalizer {
 			}
 			
 			//Not enough data we stop
-			if (prevEventType == null || calcOutput.size() == 0) {
+			if (prevEventType == null || (calcOutput.size() == 0 && (generateBuySellCsv || generateSmaCmpOutChart))) {
 				
 				String message = "No trend forecast events were found after calculation.\n";
 				
@@ -382,7 +370,13 @@ public class OTFTuningFinalizer {
 			BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
 			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
 			
-			return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, calcOutput.firstKey(), calcOutput.lastKey());
+			Date outputFirstKey = startDate;
+			Date outputLastKey = endDate;
+			if (!calcOutput.isEmpty()) {
+				outputFirstKey = calcOutput.firstKey();
+				outputLastKey = calcOutput.lastKey();
+			}
+			return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, outputFirstKey, outputLastKey);
 			
 
 		} catch (NoQuotationsException e) {
@@ -541,10 +535,11 @@ public class OTFTuningFinalizer {
 	 * @param tuningRes
 	 * @param endDate 
 	 * @param startDate 
+	 * @param calculatedRating 
 	 * @return
 	 * @throws IOException
 	 */
-	public FinalRating exportConfigRating(String analysisName, TuningResDTO tuningRes, Date startDate, Date endDate) throws IOException {
+	public void exportConfigRating(String analysisName, TuningResDTO tuningRes, Date startDate, Date endDate, FinalRating calculatedRating) throws IOException {
 				
 			String fileName = "tmp" + File.separator + analysisName + "_ConfigRating.csv";
 			File configRatings = new File(System.getProperty("installdir") + File.separator + fileName);
@@ -580,12 +575,12 @@ public class OTFTuningFinalizer {
 			fileWriter.write("total , profit : "+tuningRes.getProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
 			tuningRes.setConfigRatingFile(fileName);
 			
-			FinalRating calculatedRating = this.calculateRating(tuningRes);
+			//FinalRating calculatedRating = this.calculateRating(tuningRes);
 			fileWriter.write("rating , "+calculatedRating);
 				
 			fileWriter.close();
 			
-			return calculatedRating;
+			//return calculatedRating;
 	}
 
 	private Validity smoothedPeriodValidity(PeriodRatingDTO periodRatingDTO, Double totalPriceChange) {

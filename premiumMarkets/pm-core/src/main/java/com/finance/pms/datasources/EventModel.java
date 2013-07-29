@@ -45,6 +45,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.httpclient.HttpException;
 
@@ -65,7 +66,7 @@ import com.finance.pms.events.scoring.dto.TuningResDTO;
  * 
  * @author Guillaume Thoreton
  */
-public class EventModel<T extends EventModelStrategyEngine, X> {
+public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PropertyChangeListener.class);
 	
@@ -76,7 +77,10 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 	private ArrayList<String> analysisList;
 	private T eventRefreshStrategyEngine;
 	private Set<Observer> engineObservers;
-	Collection<? extends Object>[] viewStateParams;
+	
+	X rootViewParam;
+	Collection<? extends Object>[] otherViewParams;
+	
 	
 	static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	static Long eventInfoChangeStamp = 0l;
@@ -172,14 +176,15 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 		}
 	}
 	
-	public static Map<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine, ?>> models = new HashMap<Class<? extends EventModelStrategyEngine>, EventModel<? extends EventModelStrategyEngine, ?>>();
+	@SuppressWarnings("rawtypes")
+	public static Map<Class<? extends EventModelStrategyEngine>, EventModel> models = new HashMap<Class<? extends EventModelStrategyEngine>, EventModel>();
 
 	
-	@SuppressWarnings("unchecked")
-	public static <T extends EventModelStrategyEngine, X> EventModel<T,X> getInstance(T modelStrategyEngine, Observer... modelObserver)  {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T extends EventModelStrategyEngine<X>, X> EventModel<T,X> getInstance(T modelStrategyEngine, Observer... modelObserver)  {
 		
 		try {
-			EventModel<T,X> eventModel = (EventModel<T,X>) models.get(modelStrategyEngine.getClass());
+			EventModel eventModel = models.get(modelStrategyEngine.getClass());
 			if (eventModel == null) {
 				eventModel = new EventModel<T,X>(modelStrategyEngine);	
 				models.put(modelStrategyEngine.getClass(), eventModel);
@@ -245,6 +250,8 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 		this.eventRefreshStrategyEngine = modelStrategyEngine;
 		this.engineObservers = new HashSet<Observer>();
 		
+		this.resetOtherViewParams();
+		
 	}
 	
 	/**
@@ -263,18 +270,19 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 	 * Callback for last analyse.
 	 * 		
 	 * @author Guillaume Thoreton
+	 * @param endAnalysisDate 
 	 * @throws NotEnoughDataException 
 	 * @throws IncompleteDataSetException 
 	 */
 	//Output can still be available if all events have not been calculated successfully
 	//However bounds date won't be valid and recorded until all events are successfully calculated.
 	//Hence the user will systematically be asked for recalculation if all events are not valid.
-	public synchronized void callbackForlastAnalyse(Date startAnalyseDate) throws NotEnoughDataException {
-		eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, engineObservers, viewStateParams);
+	public synchronized void callbackForlastAnalyse(Date startAnalyseDate, Date endAnalysisDate) throws NotEnoughDataException {
+		eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootViewParam, otherViewParams);
 	}
 	
 	public void callbackForAlerts() throws InterruptedException {
-		eventRefreshStrategyEngine.callbackForAlerts(engineObservers, viewStateParams);
+		eventRefreshStrategyEngine.callbackForAlerts(engineObservers, rootViewParam, otherViewParams);
 		
 	}
 
@@ -285,7 +293,7 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 	 * @throws HttpException 
 	 */
 	public synchronized void callbackForlastListFetch() throws HttpException {
-		eventRefreshStrategyEngine.callbackForlastListFetch(engineObservers, viewStateParams);		
+		eventRefreshStrategyEngine.callbackForlastListFetch(engineObservers, rootViewParam, otherViewParams);		
 	}
 	
 	public synchronized void callbackForReco() {
@@ -299,12 +307,11 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 	 * @throws StockNotFoundException 
 	 */
 	public synchronized void callbackForlastQuotationFetch() throws StockNotFoundException {
-		eventRefreshStrategyEngine.callbackForlastQuotationFetch(engineObservers, viewStateParams);
+		eventRefreshStrategyEngine.callbackForlastQuotationFetch(engineObservers, rootViewParam, otherViewParams);
 	}
 	
 	public void callbackForAnalysisClean() {
-		
-		eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, viewStateParams);
+		eventRefreshStrategyEngine.callbackForAnalysisClean(engineObservers, rootViewParam, otherViewParams);
 		
 	}
 
@@ -409,30 +416,26 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 	public Set<Observer> getEngineObservers() {
 		return engineObservers;
 	}
-
-	@SuppressWarnings("unchecked")
+	
 	public X getViewParamRoot() {
-		return (X) eventRefreshStrategyEngine.getViewParamRoot(viewStateParams);
+		return this.rootViewParam;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public void setViewStateParams(X rootParam, Collection<? extends Object>... otherParams) {
-		
-		 Collection<? extends Object>[] setViewStateParams = eventRefreshStrategyEngine.setViewStateParams(rootParam, otherParams);
-		 
-		 if (setViewStateParams != null) {
-			 
-			 if (this.viewStateParams == null) this.viewStateParams = new Collection[setViewStateParams.length];
-			 for (int i = 0; i < setViewStateParams.length; i++) {
-				 if (setViewStateParams[i] != null) {
-					 this.viewStateParams[i] = setViewStateParams[i];
-				 }
-			 }
-			 
-		 } else {
-			 this.viewStateParams = null;
-		 }
-		 
+	public void setViewParamRoot(X rootParam) {
+		this.rootViewParam = rootParam;
+	}
+	
+	public void setViewParam(int paramIdx, Collection<? extends Object> otherParams) {
+		if (this.otherViewParams == null) {
+			resetOtherViewParams();
+		}
+		this.otherViewParams[paramIdx] = (otherParams != null)?new ArrayList<Object>(otherParams):null;
+	}
+
+
+	protected void checkNumberOfOtherParams(Collection<? extends Object>... otherViewParams) {
+		int otherViewParamLength = eventRefreshStrategyEngine.otherViewParamLength();
+		if ( (otherViewParamLength > 0 && otherViewParams == null) || (otherViewParamLength != -1 && otherViewParamLength != otherViewParams.length)) throw new IllegalArgumentException("Expecting "+otherViewParamLength+" parameter  but have "+otherViewParams);
 	}
 	
 	public SortedMap<Date, double[]> getOutputCache(Stock stock, EventInfo eventDefinition) {
@@ -446,16 +449,19 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 	
 	public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, Date start, Date end) {
 		Map<EventInfo, EventDefCacheEntry> stockMap = outputCache.get(stock);
+		
+		SortedMap<Date, double[]> outputMap = new TreeMap<Date, double[]>();
 		EventDefCacheEntry eventDefCacheEntry = null;
 		if (stockMap != null && (eventDefCacheEntry = stockMap.get(eventDefinition)) != null) {
-			try {
-				return tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefCacheEntry.getOutputMap(), false, eventDefinition, tuningResObs, true);
-			} catch (NotEnoughDataException e) {
-				LOGGER.warn(e,e);
-				return null;
-			}
+			outputMap = eventDefCacheEntry.getOutputMap();
 		}
-		return null;
+		
+		try {
+			return tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, outputMap, eventDefinition, tuningResObs, true);
+		} catch (NotEnoughDataException e) {
+			LOGGER.warn(e,e);
+			return null;
+		}
 		
 	}
 	
@@ -469,7 +475,7 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 			return true;
 		}
 		
-		Date adjustStartDate = TunedConfMgr.adjustStartDate(stock);
+		Date adjustStartDate = TunedConfMgr.getInstance().adjustStartDate(stock);
 		
 		if (start.before(adjustStartDate)) {
 			start = adjustStartDate;
@@ -490,20 +496,14 @@ public class EventModel<T extends EventModelStrategyEngine, X> {
 		
 	}
 	
+	
 	public int[] viewParamPositionsFor(TaskId taskId) {
-		int[] otherViewParamPositionsFor = eventRefreshStrategyEngine.otherViewParamPositionsFor(taskId);
-		int[] copyOf = new int[otherViewParamPositionsFor.length+1];
-		copyOf[0] = 0;
-		for (int i = 0; i < otherViewParamPositionsFor.length; i++) {
-			copyOf[i+1] = otherViewParamPositionsFor[i];
-		}
-		return copyOf;
+		return eventRefreshStrategyEngine.otherViewParamPositionsFor(taskId);
 	}
 
-
-	public void resetViewStateParams() {
-		this.viewStateParams = null;
-		
+	@SuppressWarnings("unchecked")
+	public void resetOtherViewParams() {
+		this.otherViewParams = (eventRefreshStrategyEngine.otherViewParamLength() != -1)?new Collection[eventRefreshStrategyEngine.otherViewParamLength()]:null;
 	}
 
 

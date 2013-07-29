@@ -1,6 +1,7 @@
 package com.finance.pms.events.gui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Group;
@@ -9,9 +10,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.finance.pms.MainGui;
 
 public class OperationBuilderDialog {
-	
-//	private static MyLogger LOGGER = MyLogger.getLogger(OperationBuilderDialog.class);
-	
+
 	protected Shell shell;
 	protected Shell parent;
 
@@ -22,24 +21,17 @@ public class OperationBuilderDialog {
 		this.mainGui = mainGui;
 	}
 
-	public Object open() {
+	public Object open(Point location, int width) {
 	
         shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
         shell.setText("Premium Markets - Parameterise and Create indicators ...");
         
         initGui();
         
+        shell.setLocation(location);
+        Point computeSize = shell.computeSize(width, SWT.DEFAULT);
+        shell.setSize(computeSize);
         shell.open();
-//        Display display = parent.getDisplay();
-//        while (!shell.isDisposed()) {
-//                try {
-//                	 if (display != null && !display.readAndDispatch()) display.sleep();
-//    			} catch (RuntimeException e) {
-//    				LOGGER.error("Error in OperationBuilderDialog Gui : " + e.getMessage(),e);
-//    			} catch (Error e) {
-//    				LOGGER.error("Error in  Gui : " + e.getMessage(),e);
-//    			}
-//        }
         
         return null;
         

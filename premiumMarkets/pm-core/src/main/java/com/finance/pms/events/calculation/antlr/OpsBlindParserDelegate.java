@@ -17,7 +17,7 @@ public class OpsBlindParserDelegate implements OpsParserDelegate {
 	}
 
 	@Override
-	public void outputSelectorHint(String opToken, Token outputSelector) throws MissingOutputSelectorException {
+	public void outputSelectorHint(Token opToken, Token outputSelector) throws MissingOutputSelectorException {
 		
 	}
 

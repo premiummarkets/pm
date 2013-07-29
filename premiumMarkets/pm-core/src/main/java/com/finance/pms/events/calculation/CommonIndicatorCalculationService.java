@@ -107,7 +107,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	@Override
 	protected Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-			String periodType, Boolean keepCache, Integer passNumber, Boolean export, Boolean persistEvents,  String passOneCalcMode, Observer...observers) 
+			String periodType, Boolean keepCache, Integer passNumber, Boolean persistEvents, String passOneCalcMode, Observer...observers) 
 					throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
 		//TODO deal with the periodType
@@ -129,7 +129,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		}
 		
 		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
-		return this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, export, persistEvents, passOneCalcMode, observers);
+		return this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, persistEvents, passOneCalcMode, observers);
 		
 	}
 
@@ -151,7 +151,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	 */
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
 				Collection<Stock> stList, Date startDate, Date endDate, 
-				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean export, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
+				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
 				throws IncompleteDataSetException {
 		
 		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
@@ -178,14 +178,24 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				Currency stockCalcCurrency = (calculationCurrency == null)? stock.getMarketValuation().getCurrency() : calculationCurrency;
 				
 				//Adjust calculation date to available quotes
-				Date adjustedStartDate = TunedConfMgr.adjustStartDate(stock);
+				Date adjustedStartDate = TunedConfMgr.getInstance().adjustStartDate(stock);
 				if (adjustedStartDate.before(startDate) || adjustedStartDate.equals(startDate)) {
 					adjustedStartDate = startDate;
 				} else {
-					LOGGER.info("Calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
+					LOGGER.info("Start date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " now starting on "+adjustedStartDate);
 				}
 				if (adjustedStartDate.after(endDate) || adjustedStartDate.equals(endDate)) {
 					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
+					continue;
+				}
+				Date adjustedEndDate = TunedConfMgr.getInstance().adjustEndDate(stock);
+				if (adjustedEndDate.after(endDate) || adjustedEndDate.equals(endDate)) {
+					adjustedEndDate = endDate;
+				} else {
+					LOGGER.info("End Date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " now starting on  "+adjustedEndDate);
+				}
+				if (adjustedEndDate.before(adjustedStartDate) || adjustedEndDate.equals(adjustedStartDate)) {
+					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+adjustedEndDate);
 					continue;
 				}
 				
@@ -194,16 +204,16 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					
 					//Date bounds setting
 					TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName());
-					CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, adjustedStartDate, endDate);
+					CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, adjustedStartDate, adjustedEndDate);
 					if (passOneCalcMode.equals("auto")) {
-						endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-						calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, adjustedStartDate, endDate);
+						adjustedEndDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, adjustedEndDate);
+						calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, adjustedStartDate, adjustedEndDate);
 					}
 					if (passOneCalcMode.equals("reset")) {
-						endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+						adjustedEndDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, adjustedEndDate);
 						tunedConf.setLastCalculationStart(adjustedStartDate);
-						tunedConf.setLastCalculationEnd(endDate);
-						calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, adjustedStartDate, endDate);
+						tunedConf.setLastCalculationEnd(adjustedEndDate);
+						calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, adjustedStartDate, adjustedEndDate);
 					}
 					
 					//if We inc or reset, tuned conf last event will need update : We add it in the map
@@ -221,7 +231,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					} else {
 						
 						LOGGER.info(
-								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+adjustedStartDate+" to "+endDate+". "+
+								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+adjustedStartDate+" to "+adjustedEndDate+". "+
 								"No recalculation needed calculation bound is "+ calculationBounds.toString());
 					}
 					
@@ -229,8 +239,8 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				} else {// pass 2
 					
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
-							stock, adjustedStartDate, endDate, stockCalcCurrency, eventListName, obsSet,
-							availSecondPIndCalculators, export, keepCache, eventQueue, jmsTemplate, persistEvents, true);
+							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
+							availSecondPIndCalculators, keepCache, eventQueue, jmsTemplate, persistEvents, true);
 					
 					
 				}
@@ -297,14 +307,23 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		
 		try {
 			
-			LOGGER.guiInfo("Storing pass "+passNumber+" events ("+allEvents.size()+" stocks), from "+startDate+" to "+endDate);
+			if (LOGGER.isInfoEnabled()) {
+			int nbEvents = 0;
+			String eventDefs = "";
+			for (SymbolEvents se : allEvents) {
+				eventDefs = eventDefs + se.getEventDefList().toString();
+				nbEvents = nbEvents + se.getSortedDataResultList().size();
+			}
+				LOGGER.info("Storing pass "+passNumber+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
+				LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+ allEvents.size()+" stocks), from "+startDate+" to "+endDate);
+			}
 			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
 			
 			for (Observer observer : observers) {
 				observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.NONE));
 			}
 			
-		} catch (Exception e) {
+		} catch (Exception e) {	
 			isDataSetComplete = false;
 			if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
 				LOGGER.warn("Intercepted : "+e+" -> IncompleteDataset");

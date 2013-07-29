@@ -82,5 +82,14 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 	public int mainInputPosition() {
 		return 3;
 	}
+	
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
+		for (int i = 2; i < mainInputPosition(); i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
+	}
 
 }

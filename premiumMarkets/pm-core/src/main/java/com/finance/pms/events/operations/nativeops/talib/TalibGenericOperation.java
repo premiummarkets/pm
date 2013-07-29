@@ -62,11 +62,34 @@ public class TalibGenericOperation extends TalibOperation {
 	@Override
 	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
 		
-		//int outSize = (getAvailableOutputSelectors().isEmpty())?1:outDataNames.size();
+		int inDataNamesArgsIdx = 2;
+		int constantArgIdx = inDataNamesArgsIdx+inDataNames.size();
+		int outEleIdx = constantArgIdx + inConstantsNames.size();
+		int outDataArgIdx = outEleIdx + 2;
 		int outSize = outDataNames.size();
-		Object[] args = new Object[2+inDataNames.size()+inConstantsNames.size()+2+outSize];
-		int argShift = 2;
-			
+		
+		Object[] args = new Object[outDataArgIdx + outSize];
+		
+		
+		//Constants
+		List<Object> inConstants = new ArrayList<Object>();
+
+		for (int i = 0; i < inConstantsNames.size(); i++) {
+			Value<?> value = inputs.get(i);
+			if (value instanceof NumberValue) {
+				int intValue = ((NumberValue) value).getValue(targetStock).intValue();
+				inConstants.add(intValue);
+				args[i + constantArgIdx] = inConstants.get(i);
+			}
+			else if (value instanceof MATypeValue) {
+				inConstants.add(((MATypeValue) value).getValue(targetStock));
+				args[i + constantArgIdx] = inConstants.get(i);
+			}
+			else {
+				throw new TalibException("In constant type not supported :" + value, new Throwable());
+			}
+		}
+		
 		//N input data
 		int startIdx = 0;
 		int endIdx = Integer.MAX_VALUE;
@@ -77,53 +100,32 @@ public class TalibGenericOperation extends TalibOperation {
 			endIdx  = Math.min(endIdx, inData.size()-1);
 			dateKeySet.addAll(inData.keySet());
 			inDatas.add(mapToArray(inData));
-			args[i+argShift]=inDatas.get(i);
+			args[i+inDataNamesArgsIdx]=inDatas.get(i);
 		}
-		argShift = argShift + inDataNames.size();
 		
 		args[0] = startIdx;
 		args[1] = endIdx;
 		
-		//Constants
-		List<Object> inConstants = new ArrayList<Object>();
-		for (int i = 0; i < inConstantsNames.size(); i++) {
-			Value<?> value = inputs.get(i);
-			if (value instanceof NumberValue) {
-				inConstants.add(((NumberValue) value).getValue(targetStock).intValue());
-				args[i+argShift] = inConstants.get(i);
-			}
-			else if (value instanceof MATypeValue) {
-				inConstants.add(((MATypeValue) value).getValue(targetStock));
-				args[i+argShift] = inConstants.get(i);
-			}
-			else {
-				throw new TalibException("In constant type not supported :" + value, new Throwable());
-			}
-		}
-		argShift = argShift + inConstantsNames.size();
+		//OutElements
+		args[outEleIdx] = outBegIdx;
+		args[outEleIdx+1] = outNBElement;
 		
-		args[argShift] = outBegIdx;
-		args[argShift+1] = outNBElement;
-		argShift = argShift + 2;
-				
 		//N outputs
 		List<Object> outDatas = new ArrayList<Object>();
 		if (getAvailableOutputSelectors().isEmpty()) { //only one output available (could be int[] or double[])
 			
 			if (outDataNames.get(0).contains("Integer")) {
 				outDatas.add(new int[endIdx-startIdx+1]);
-				args[argShift] = outDatas.get(0);
-				
+				args[outDataArgIdx] = outDatas.get(0);
 			} else {
 				outDatas.add(new double[endIdx-startIdx+1]);
-				args[argShift] = outDatas.get(0);
-				
+				args[outDataArgIdx] = outDatas.get(0);
 			}
 			
 		} else {
 			for (int i = 0; i < outSize; i++) { //several outputs available (we assume double[] ...)//XXX
 				outDatas.add(new double[endIdx-startIdx+1]);
-				args[i+argShift] = outDatas.get(i);
+				args[i+outDataArgIdx] = outDatas.get(i);
 			}
 		}
 
@@ -154,6 +156,26 @@ public class TalibGenericOperation extends TalibOperation {
 		}
 		
 		throw new TalibException("Ooops", new Exception());
+	}
+
+	@Override
+	public int operationStartDateShift() {
+		
+		int thisOperationStartShift = 0;
+		for (int i = 0; i < inConstantsNames.size(); i++) {
+			Operation numberOperand = getOperands().get(i);
+			if (numberOperand instanceof NumberOperation) {
+				int constant = ((NumberValue)numberOperand.getParameter()).getValue(null).intValue();
+				thisOperationStartShift = thisOperationStartShift + constant;
+			}
+		}
+		
+		int operandsOperationStartShift = 0;
+		for (int i = inConstantsNames.size(); i < inDataNames.size() + inConstantsNames.size(); i++) {
+			operandsOperationStartShift = Math.max(getOperands().get(i).operationStartDateShift(), operandsOperationStartShift);
+		}
+		
+		return (thisOperationStartShift + operandsOperationStartShift)*7/5;
 	}
 
 }

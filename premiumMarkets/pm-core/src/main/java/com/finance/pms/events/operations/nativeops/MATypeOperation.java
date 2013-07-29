@@ -30,4 +30,9 @@ public class MATypeOperation extends Operation  implements LeafOperation {
 		return ((MATypeValue)inputs.get(0));
 	}
 
+	@Override
+	public int operationStartDateShift() {
+		return 0;
+	}
+
 }

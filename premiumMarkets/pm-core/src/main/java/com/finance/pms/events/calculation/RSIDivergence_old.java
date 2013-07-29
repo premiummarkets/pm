@@ -37,11 +37,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -60,6 +62,13 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	
 	RSI rsi;
 	private Integer rsiQuotationStartDateIdx;
+	
+	public RSIDivergence_old(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
+//		private Integer rsiTimePeriod = 14;
+//		private Integer rsiUpperThreshold = 70;
+//		private Integer rsiLowerThreshold = 30;
+		this(stock,new RSI(stock, 14, 70, 30, startDate, endDate, calculationCurrency), startDate,endDate,calculationCurrency);
+	}
 	
 	public RSIDivergence_old(Stock stock, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
@@ -86,7 +95,7 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
 		
 		
-		FormulatRes res = new FormulatRes(EventDefinition.PMRSIDIVERGENCE);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
 		int rsiIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx);
@@ -151,8 +160,8 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	@Override
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSIDIVERGENCE,EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSIDIVERGENCE,EventType.BULLISH));
+		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate, getEventDefinition(),EventType.BEARISH));
+		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate, getEventDefinition(),EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
 		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =

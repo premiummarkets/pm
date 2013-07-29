@@ -56,7 +56,7 @@ tokens {
        return  parserDelegate.checkParamExhaust(opName, params);
      }
      
-    private void  outputSelectorHint(String opToken, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException {
+    private void  outputSelectorHint(Token opToken, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException, NoViableAltException {
         parserDelegate.outputSelectorHint(opToken, outputSelector);
     }
 
@@ -118,7 +118,7 @@ indicatorexpr : expression -> expression ;
 expression : nativeop | userop;
 
 nativeop : 
- opName=Nativeop ( outSelect=OutputSelector )? {outputSelectorHint($opName.text, $outSelect);} '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')' -> ^(Nativeop ^(OperationOutput OutputSelector)? params?);
+ opName=Nativeop ( outSelect=OutputSelector )? {outputSelectorHint($opName, $outSelect);} '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')' -> ^(Nativeop ^(OperationOutput OutputSelector)? params?);
 userop : 
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
   
@@ -143,7 +143,7 @@ NumberToken
      : ('0'..'9')+ ('.' ('0'..'9')+)?
      ;
 StringToken
-     : '"' ('a'..'z' | 'A'..'Z' | '.')+ '"'
+     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_')+ '"'
      ;
 OutputSelector
      :	':' ('a'..'z' | 'A'..'Z')+

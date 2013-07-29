@@ -115,7 +115,7 @@ public abstract class CurvesComparator {
 
 				double dataMedian = median(amplNormData.values());
 				double refDataMedian = median(subRefData.values());
-				CurvesSubstraction curvesSubstraction = new CurvesSubstraction();
+				CurvesSubtraction curvesSubstraction = new CurvesSubtraction();
 				SortedMap<Date, double[]> synchedData = curvesSubstraction.operate(amplNormData, dataMedian-refDataMedian);
 
 				SortedMap<Date, double[]> normalisedRefData = normalize(refSlotStart, refSlotEnd, subRefData);

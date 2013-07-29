@@ -26,37 +26,24 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibSmaOperation">
             <reference>sma__</reference>
-            <description>Sma on any on any historical data series.</description>
+            <description>SMA on any on any historical data series.</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>smaPeriod</referenceAsOperand>
-                    <description>Sma period</description>
+                    <description>SMA period</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>200.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmInvHouseTrendOperation">
-            <reference>InverseLogroc</reference>
-            <description>Inverse Roc logarithmic over a period</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>logRocPeriod</referenceAsOperand>
-                    <description>Roc period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>21.0</numberValue>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>doFixlag</referenceAsOperand>
+                    <description>artificially fix the SMA lag</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>FALSE</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -99,7 +86,7 @@
                     <referenceAsOperand>logRocPeriod</referenceAsOperand>
                     <description>Roc period</description>
                     <defaultValue xsi:type="numberValue">
-                        <numberValue>21.0</numberValue>
+                        <numberValue>1.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -153,6 +140,33 @@
                 <availableOutputSelector>history</availableOutputSelector>
                 <availableOutputSelector>signal</availableOutputSelector>
             </availableOutputSelectors>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmMightyChaikinOperation">
+            <reference>chaikin_</reference>
+            <description>Chaikin indicator house made</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Fast Period</referenceAsOperand>
+                    <description>Not implemented - Chaikin fast period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>3.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Slow Period</referenceAsOperand>
+                    <description>Not implemented - Chaikin slow period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>10.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="division">
             <reference>division_</reference>

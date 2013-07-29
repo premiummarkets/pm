@@ -28,4 +28,9 @@ public class NotDoubleMapCondition extends BooleanDoubleMapCondition {
 		return false;
 	}
 
+	@Override
+	protected Boolean exactDataSet() {
+		return true;
+	}
+
 }

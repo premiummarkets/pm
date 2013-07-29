@@ -507,8 +507,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 								@Override
 								public void action(Control targetControl) {
-									allStocksEventModel.setViewStateParams(selectedShareLists);
-
+									//allStocksEventModel.setViewStateParams(selectedShareLists);
+									allStocksEventModel.setViewParamRoot(selectedShareLists);
+									
 									refreshCompute.removeSelectionListener(refreshComputeCurrentListener);
 									refreshComputeCurrentListener = refreshMarketsListener;
 									refreshCompute.addSelectionListener(refreshComputeCurrentListener);
@@ -668,7 +669,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
 
-							monitoredStocksEventModel.setViewStateParams(null, selectedEventInfos);
+							//monitoredStocksEventModel.setViewStateParams(null, selectedEventInfos);
+							monitoredStocksEventModel.setViewParam(0, selectedEventInfos);
+							
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
@@ -682,7 +685,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
 
-							portfolioStocksEventModel.setViewStateParams(null, null, selectedEventInfos);
+							//portfolioStocksEventModel.setViewStateParams(null, null, selectedEventInfos);
+							portfolioStocksEventModel.setViewParam(1,selectedEventInfos);
+							
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
@@ -696,8 +701,9 @@ public class EventsComposite extends Composite implements RefreshableView {
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
 
-							allStocksEventModel.setViewStateParams(selectedShareLists, selectedEventInfos);
-
+							//allStocksEventModel.setViewStateParams(selectedShareLists, selectedEventInfos);
+							allStocksEventModel.setViewParamRoot(selectedShareLists);
+							allStocksEventModel.setViewParam(0, selectedEventInfos);
 							
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
@@ -1152,18 +1158,25 @@ public class EventsComposite extends Composite implements RefreshableView {
 					ActionDialogAction action = new ActionDialogAction() {
 						@Override
 						public void action(Control targetControl) {
-							EventTaskQueue.getSingleton().tamperTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
+							EventTaskQueue.getSingleton().invalidateTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
 						}
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
 							SWT.NONE, 
-							"Force request", "Your last request has already been fulfilled sometime today.", 
-							"It should not need update but you still can force and run it again by pressing the button bellow and run your request again.",
+							"Force request", "This request has already been fulfilled sometime today.", 
+							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
 							"Invalidate previous calculation results for this request", action);
 					exceptions.clear();
 					dialog.open();
 					break;
 				}
+			}
+		}
+		
+		if (isVisible()) {
+			Shell[] childrenShells = this.getShell().getShells();
+			for (Shell child : childrenShells) {
+				if (child.getText().contains("Warning")) child.forceActive();
 			}
 		}
 	}
@@ -1174,6 +1187,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 		newDate.add(Calendar.MONTH, -nbMonthsAnalysis);
 		return DateFactory.midnithDate(newDate.getTime());
 	}
+
+	@Override
+	public Date getAnalysisEndDate() {
+		return DateFactory.midnithDate(new Date());
+	}
+	
 
 	private void eventFilterChange(final Set<EventInfo> eventDefs) {
 
@@ -1213,5 +1232,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 	public Button getSendNotifs() {
 		return sendNotifs;
 	}
+
 
 }

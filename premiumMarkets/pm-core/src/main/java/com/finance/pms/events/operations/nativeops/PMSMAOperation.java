@@ -12,7 +12,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.talib.indicators.SMA;
 
 @XmlRootElement
-public class PMSMAOperation extends PMIndicatorOperation {
+public class PMSMAOperation extends PMDataFreeOperation {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(PMSMAOperation.class);
 	
@@ -36,7 +36,7 @@ public class PMSMAOperation extends PMIndicatorOperation {
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
 			SMA sma = new SMA(targetStock.getStock(), period, targetStock.getStartDate(), targetStock.getEndDate(), null);
-			return outputToMap(targetStock, sma, sma.getOutputData());
+			return doubleArrayMapToDoubleMap(targetStock, sma, sma.getOutputData());
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);

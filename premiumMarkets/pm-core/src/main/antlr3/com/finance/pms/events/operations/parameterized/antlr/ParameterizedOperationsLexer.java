@@ -1,16 +1,20 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2013-06-29 21:13:59
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2013-07-19 12:55:41
  //lexer
     package com.finance.pms.events.operations.parameterized.antlr;
-    import com.finance.pms.events.calculation.antlr.IErrorReporter;
-    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-    import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
-    
- 
+    import org.antlr.runtime.BaseRecognizer;
+import org.antlr.runtime.CharStream;
+import org.antlr.runtime.DFA;
+import org.antlr.runtime.EarlyExitException;
+import org.antlr.runtime.FailedPredicateException;
+import org.antlr.runtime.IntStream;
+import org.antlr.runtime.Lexer;
+import org.antlr.runtime.MismatchedSetException;
+import org.antlr.runtime.NoViableAltException;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.RecognizerSharedState;
 
-import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
+import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
 
 @SuppressWarnings("all")
 public class ParameterizedOperationsLexer extends Lexer {
@@ -636,17 +640,17 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = StringToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' )+ '\"' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' )+ '\"'
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"' )
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"'
 			{
 			match('\"'); 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' )+
+			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+
 			int cnt8=0;
 			loop8:
 			while (true) {
 				int alt8=2;
 				int LA8_0 = input.LA(1);
-				if ( (LA8_0=='.'||(LA8_0 >= 'A' && LA8_0 <= 'Z')||(LA8_0 >= 'a' && LA8_0 <= 'z')) ) {
+				if ( (LA8_0=='.'||(LA8_0 >= 'A' && LA8_0 <= 'Z')||LA8_0=='_'||(LA8_0 >= 'a' && LA8_0 <= 'z')) ) {
 					alt8=1;
 				}
 
@@ -654,7 +658,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				case 1 :
 					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
-					if ( input.LA(1)=='.'||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
+					if ( input.LA(1)=='.'||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
 						input.consume();
 					}
 					else {

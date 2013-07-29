@@ -4,32 +4,23 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.annotation.PostConstruct;
 
-import org.antlr.runtime.tree.CommonTree;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
-import com.finance.pms.events.operations.EmptyMarker;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
-@Service("parameterizedIndicatorsBuilder")
+//@Service("parameterizedIndicatorsBuilder")
 public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	
-	//private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsBuilder.class);
-	
-	@Autowired
+	//@Autowired
 	ParameterizedOperationBuilder parameterizedOperationBuilder;
 	
-	//For tests
 	public ParameterizedIndicatorsBuilder(ParameterizedOperationBuilder parameterizedOperationBuilder) {
 		this();
 		this.parameterizedOperationBuilder = parameterizedOperationBuilder;
@@ -64,7 +55,6 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 				if (arg != null)  {
 					
 					List<Operation> checkInUse = actualCheckInUse(currentOperations.values(), (Operation)arg);
-					//if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ (Operation)arg +"' is used by "+checkInUse+". Please delete these first.");
 					if (!checkInUse.isEmpty()) throw new InUsedExecption(checkInUse);
 
 				} else {
@@ -76,19 +66,18 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	}
 
 	private void resetUserOperations() {
-		Map<String, Operation> loadedUserOperations = reloadUserOperations(userOperationsDir);
-		currentOperations.putAll(loadedUserOperations);
-		
-		Map<String, Operation> loadedDisabledUserOperations = reloadUserOperations(disabledUserOperationsDir);
-		for (Operation disabledOp : loadedDisabledUserOperations.values()) {
-			disabledOp.setDisabled(true);
-		}
-		currentOperations.putAll(loadedDisabledUserOperations);
+		reloadUserOperations(userOperationsDir, false);
+		reloadUserOperations(disabledUserOperationsDir, true);
 	}
 
 	@Override
 	protected Operation fetchNativeOperation(String opRef) {
 		return parameterizedOperationBuilder.getCurrentOperations().get(opRef);
+	}
+	
+	@Override
+	protected Operation fetchUserOperation(String opRef) {
+		return parameterizedOperationBuilder.getUserCurrentOperations().get(opRef);
 	}
 
 	@Override
@@ -104,8 +93,13 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	//Is called when Indicators are changed
 	@Override
 	public List<Operation> checkInUse(Operation operation) {
-		//We don't check root operations
+		//We don't check root indicator operations as they can't be reused
 		return new ArrayList<Operation>();
+	}
+
+	@Override
+	public void replaceInUse(Operation operation) {
+		//We don't check root indicator operations as they can't be reused
 	}
 	
 	@Override
@@ -120,15 +114,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		EventDefinition.refreshMaxPassPrefsEventInfo();
 	}
 
-	@Override
-	protected EmptyMarker getEmptyMarkerInstance(CommonTree child) {
-		throw new UnsupportedOperationException("Empty user operation "+child);
-	}
 
-
-	
-	
-	
 	
 	
 }

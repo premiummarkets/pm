@@ -37,7 +37,8 @@ public enum AlertOnThresholdType {
 	BELOW_PRICE_CHANNEL ("Below channel threshold reached"), //
 	ABOVE_TAKE_PROFIT_LIMIT ("Above take profit threshold limit"), //
 	BELOW_ZERO_WEIGHTED_PROFIT_LIMIT ("Below take 0% weighted profit limit"), //
-	MANUAL ("User threshold reached");
+	MANUALUP ("User threshold up reached"),
+	MANUALDOWN ("User threshold down reached");
 	
 	String text;
 

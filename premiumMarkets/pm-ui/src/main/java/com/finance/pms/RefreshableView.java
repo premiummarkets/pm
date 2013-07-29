@@ -46,5 +46,7 @@ public interface RefreshableView {
 	void refreshView(List<Exception> exceptions);
 	
 	Date getAnalysisStartDate();
+	
+	Date getAnalysisEndDate();
  	
 }

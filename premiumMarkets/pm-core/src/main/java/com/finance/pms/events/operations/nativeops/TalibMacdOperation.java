@@ -68,4 +68,11 @@ public class TalibMacdOperation extends TalibOperation {
 		
 	}
 
+	@Override
+	public int operationStartDateShift() {
+		return (((NumberValue)getOperands().get(1).getParameter()).getValue(null).intValue() + ((NumberValue)getOperands().get(2).getParameter()).getValue(null).intValue() + getOperands().get(3).operationStartDateShift())*7/5;
+	}
+	
+	
+
 }

@@ -67,5 +67,10 @@ public class StockOperation extends DoubleMapOperation {
 		
 		return new DoubleMapValue(buildSMapFromQuotations);
 	}
+
+	@Override
+	public int operationStartDateShift() {
+		return 0;
+	}
 	
 }

@@ -13,8 +13,8 @@ import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
 import com.finance.pms.events.operations.nativeops.PMHouseTrendOperation;
-import com.finance.pms.events.operations.nativeops.PMInvHouseTrendOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
+import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.PMSMAOperation;
 import com.finance.pms.events.operations.nativeops.Product;
 import com.finance.pms.events.operations.nativeops.Subtraction;
@@ -65,8 +65,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(houseTrendOperation);
 		PMAroonOperation pmAroonOperation = new PMAroonOperation();
 		nativeOperations.addOperation(pmAroonOperation);
-		PMInvHouseTrendOperation invHouseTrendOperation = new PMInvHouseTrendOperation();
-		nativeOperations.addOperation(invHouseTrendOperation);
+		PMMightyChaikinOperation pmMChaikinOperation = new PMMightyChaikinOperation();
+		nativeOperations.addOperation(pmMChaikinOperation);
 		
 		//saveNativeOperations(nativeOperations);
 		return nativeOperations;

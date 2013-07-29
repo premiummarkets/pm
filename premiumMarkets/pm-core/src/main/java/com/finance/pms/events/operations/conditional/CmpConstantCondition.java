@@ -106,7 +106,14 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	public int mainInputPosition() {
 		return 3;
 	}
-	
-	
+
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
+		for (int i = inputThresholdPosition()+1; i < mainInputPosition(); i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
+	}	
 
 }

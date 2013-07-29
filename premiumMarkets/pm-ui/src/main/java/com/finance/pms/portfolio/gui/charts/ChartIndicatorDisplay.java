@@ -69,9 +69,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private PopupMenu<EventInfo> evtDefChartingPopupMenu;
 
 	private ActionDialog eventRecalculationAck;
+	private UserDialog noIncatorSelectedDialog;
 
 	private BarSettings barChartSettings;
 	private BarSettingsDialog barSettingsDialog;
+
 	
 
 	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
@@ -92,7 +94,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 
-	@SuppressWarnings("unchecked")
+
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 
@@ -102,7 +104,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 		
 		chartTarget.setHighligtedId(idx);
-		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
+		chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
 
 		if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
 			chartTarget.getMainChartWraper().resetBarChart();
@@ -133,7 +135,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 									notUpToDateEventInfos, minDate, allEvtInfos.toArray(new EventInfo[0]));
 
 					if (needsUpdate) {
-						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), notUpToDateEventInfos, minDate);	
+						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), notUpToDateEventInfos, minDate);	
 					} 
 
 					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
@@ -154,39 +156,72 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		if (chartTarget.getChartedEvtDefsTrends().isEmpty()) chartTarget.getMainChartWraper().resetBarChart();
 		
 		if (chartTarget.getChartedEvtDefsTrends().isEmpty() && (chartTarget.getChartedEvtDef() == null || chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO))){
-			UserDialog dialog = new UserDialog(chartTarget.getShell(), "No Indicator or Trend is selected.\n Use the buttons below the chart to select your indicators and trends.", null);
-			dialog.open();
+				if ((noIncatorSelectedDialog == null || noIncatorSelectedDialog.getParent().isDisposed())) {
+				noIncatorSelectedDialog = new UserDialog(chartTarget.getShell(), "No Indicator or Trend is selected.\n Use the buttons below the chart to select your indicators and trends.", null);
+				noIncatorSelectedDialog.open();
+				} else {
+					//noIncatorSelectedDialog.getParent().setActive();
+				}
 		}
 		
 	}
 	
-	@SuppressWarnings("unchecked")
-	private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate, HashSet<EventInfo> notUpToDateEI, Calendar minDate) {
-			
-		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
-		final EventRefreshController refreshHighlitedAnalysisController = refreshHighlightedAnalysisController(notUpToDateEI);
 	
-		if ( (eventRecalculationAck == null || eventRecalculationAck.getParent().isDisposed()) && refreshHighlitedAnalysisController.isValidTask(TaskId.Analysis, slidingStartDate)) {
+	private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate, Date slidingEndDate, final HashSet<EventInfo> notUpToDateEI, Calendar minDate) {
+		
+		final RefreshableView parentView = (RefreshableView) chartTarget.getParent().getParent();
+		final EventRefreshController ctrller = new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 			
-			String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
-			String click = "Click to update calculations";
-			if (minDate.after(new Date(0))) msg = msg +"\nMinimun calculation date reached for this stock : "+new SimpleDateFormat("MMM dd yyyy").format(minDate);
-			for (EventInfo eventInfo : notUpToDateEI) {
-				msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 
+			@Override
+			public void widgetSelected(SelectionEvent evt) {
+				
+				LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
+			
+				EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
+		
+				this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
+				parentView.initRefreshAction();
+				super.widgetSelected(evt);
 			}
 		
-			ActionDialogAction action  = new ActionDialogAction() {
+		};
 	
-				@Override
-				public void action(Control targetControl) {
-					refreshHighlitedAnalysisController.widgetSelected(null);
-				}
+		@SuppressWarnings("unchecked")
+		boolean isValidTask = ctrller.isValidTask(TaskId.Analysis, selectedShare, new HashSet[]{notUpToDateEI}, slidingStartDate, slidingEndDate);
+		if (isValidTask) {
+			
+			chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
+			chartTarget.getHightlitedEventModel().setViewParam(0, notUpToDateEI);
+			
+			if (eventRecalculationAck == null || eventRecalculationAck.getParent().isDisposed()) {
 				
-			};
+				String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
+				String click = "Click to update calculations";
+				if (minDate.after(new Date(0))) msg = msg +"\nMinimun calculation date reached for this stock : "+new SimpleDateFormat("MMM dd yyyy").format(minDate);
+				for (EventInfo eventInfo : notUpToDateEI) {
+					if (chartTarget.getChartedEvtDefsTrends().contains(eventInfo) || chartTarget.getChartedEvtDef().equals(eventInfo)) {
+						msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 
+					}
+				}
+
+				ActionDialogAction action  = new ActionDialogAction() {
+
+					@Override
+					public void action(Control targetControl) {		
+						ctrller.widgetSelected(null);
+					}
+
+				};
+
+				eventRecalculationAck = new ActionDialog(chartTarget.getShell(), SWT.NONE, "Warning", msg, null, click, action);
+				eventRecalculationAck.open();
+				
+			} else  {
+				eventRecalculationAck.getParent().setActive();
+			}
 			
-			eventRecalculationAck = new ActionDialog(chartTarget.getDisplay().getActiveShell(), SWT.NULL, "Warning", msg, null, click, action);
-			eventRecalculationAck.open();
-			
+		} else {
+			if (eventRecalculationAck != null) eventRecalculationAck.getParent().dispose();
 		}
 		
 	}
@@ -451,38 +486,33 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		{
 			Button recalc =  new Button(popusGroup, SWT.PUSH);
 			recalc.setFont(MainGui.DEFAULTFONT);
-			recalc.setText("Force & Update Trends");
-			recalc.addSelectionListener(refreshHighlightedAnalysisController(null));
+			recalc.setText("Force&&Update Trends");
+			recalc.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), (RefreshableView)chartTarget.getParent().getParent(), ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
+				
+					EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
+				
+					Set<EventInfo> allSelectedEventInfos = chartTarget.getChartedEvtDefsTrends();
+					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allSelectedEventInfos.add(chartTarget.getChartedEvtDef());
+					
+					if (allSelectedEventInfos != null && !allSelectedEventInfos.isEmpty() && chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
+						chartTarget.getHightlitedEventModel().setViewParam(0, allSelectedEventInfos);
+					}
+					
+					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
+					((RefreshableView)chartTarget.getParent().getParent()).initRefreshAction();
+					super.widgetSelected(evt);
+				}
+			
+			});
 		}
 		
 		popusGroup.layout();
 		
 	}
-
-
-	@SuppressWarnings("unchecked")
-	protected EventRefreshController refreshHighlightedAnalysisController(final HashSet<EventInfo> notUpToDateEI) {
-		
-		return new EventRefreshController(chartTarget.getHightlitedEventModel(), (RefreshableView)chartTarget.getParent().getParent(), ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-			
-			@Override
-			public void widgetSelected(SelectionEvent evt) {
-				LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
-			
-				EventTaskQueue.getSingleton().tamperTasksCreationDates(TaskId.Analysis);
-			
-				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
-				if (notUpToDateEI != null && viewStateParams != null) chartTarget.getHightlitedEventModel().setViewStateParams(viewStateParams, notUpToDateEI);
-				
-				this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
-				((RefreshableView)chartTarget.getParent().getParent()).initRefreshAction();
-				super.widgetSelected(evt);
-			}
-		
-		};
-	
-	}
-
 
 	@Override
 	public void resetChart() {
@@ -523,10 +553,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		int cpt = 0;
 		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 			if (sShare.getDisplayOnChart()){
-				//chartTarget.getHightlitedEventModel().setViewStateParams(sShare.getStock());
-				//chartTarget.setHighligtedId(cpt);
-				//highLight(chartTarget.getHighligtedId(), (Stock) chartTarget.getHightlitedEventModel().getViewStateParams()[0], true);
-				//break;
 				return cpt;
 			}
 			cpt ++;

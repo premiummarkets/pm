@@ -160,6 +160,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 		//We gather only outputs for StockOperation and User formulas.
 		if ( (output instanceof DoubleMapValue && (operand.getFormula() != null)) || operand instanceof StockOperation) {
+		//Test if ( (output instanceof DoubleMapValue) || operand instanceof StockOperation) {
 			targetStock.addOutput(operand, output);
 		}
 		//We also gather extraneous chartable outputs from conditions
@@ -189,12 +190,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			int thresholdOpPosition = ((OnThresholdCondition)this).inputThresholdPosition();
 			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
 			
-		} else if (this instanceof StandAloneCondition) {
-			
+		} else if (this instanceof StandAloneCondition) {	
+			//pikup or create the group
 			int mainOpPosition = ((StandAloneCondition) this).mainInputPosition();
-			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
-				
-		} 
+			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));	
+		}
 		
 		return chartedOutputGroup;
  	}
@@ -251,7 +251,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	//Operands are set in the default constructor or unknown before usage 
-	//Either all the operands with no params are overridden or none at all. 
+	//Either all the operands (with no already set parameter) are overridden or none at all. 
 	//Hence an empty ArrayList as overriding operands means that no change will be made to this.operands
 	//A subset of operand will be rejected if it is not complementary of the parameters pre set to this.
 	//The case when this.operands is empty means that the operands and their number are unknown from a priory. In that case, we blindly add all the operands.
@@ -490,8 +490,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	@Override
 	public String toString() {
-		return "Operation [formula=" + formula + ", reference=" + reference + ", description=" + description + ", referenceAsOperand=" + referenceAsOperand+ 
+		return "Operation [ reference=" + reference + ", formula=" + ((formula != null)?formula.replaceAll("\n", " "):"null") + ", description=" + description + ", referenceAsOperand=" + referenceAsOperand+ 
 				", operationReference=" + operationReference + ", availableOutputSelectors=" + availableOutputSelectors + ", outputSelector="+ outputSelector + ", disabled=" + disabled + "]";
 	}
 
+	public void replaceOperand(int i, Operation replacementOp) {
+		this.operands.set(i, replacementOp);
+	}
+	
+	public abstract int operationStartDateShift();
 }

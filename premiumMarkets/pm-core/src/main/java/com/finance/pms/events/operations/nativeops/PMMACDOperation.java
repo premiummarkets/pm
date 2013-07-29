@@ -13,7 +13,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.talib.indicators.MACD;
 
 @XmlRootElement
-public class PMMACDOperation extends PMIndicatorOperation {
+public class PMMACDOperation extends PMDataFreeOperation {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(PMMACDOperation.class);
 	
@@ -47,13 +47,13 @@ public class PMMACDOperation extends PMIndicatorOperation {
 			MACD macd = new MACD(targetStock.getStock(), fastPeriod, slowPeriod, signalPeriod, targetStock.getStartDate(), targetStock.getEndDate(), null);
 	
 			if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("history")) {
-				return outputToMap(targetStock, macd, macd.getHistory());
+				return doubleArrayMapToDoubleMap(targetStock, macd, macd.getHistory());
 			}
 			else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("signal")) {
-				return outputToMap(targetStock, macd, macd.getSignal());
+				return doubleArrayMapToDoubleMap(targetStock, macd, macd.getSignal());
 			} else {
 				//macd
-				return outputToMap(targetStock, macd, macd.getOutputData());
+				return doubleArrayMapToDoubleMap(targetStock, macd, macd.getOutputData());
 			}
 			
 		} catch (Exception e) {

@@ -37,11 +37,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -60,6 +62,13 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	
 	SMA sma;
 	private Integer smaQuotationStartDateIdx;
+	
+	public MFIDivergence_old(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
+//		mfiTimePeriod = 14;
+//		mfiLowerThres = 20;
+//		mfiUpperThres = 80;
+		this(stock,new MFI(stock, 14, 20, 80, startDate, endDate, calculationCurrency), startDate,endDate,calculationCurrency);
+	}
 	
 	public MFIDivergence_old(Stock stock, MFI mfi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
@@ -86,7 +95,7 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.PMMFIDIVERGENCE);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
 		
 		int mfiIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx);
@@ -141,8 +150,8 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	@Override
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
-		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFIDIVERGENCE,EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFIDIVERGENCE,EventType.BULLISH));
+		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
+		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
 		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
 		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =

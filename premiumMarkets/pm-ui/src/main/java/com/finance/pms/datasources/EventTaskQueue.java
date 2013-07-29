@@ -41,7 +41,7 @@ public class EventTaskQueue {
 						
 						try {		
 							
-							if (!task.getTaskId().equals(TaskId.ViewRefresh)) lastRunningTasks.put(task.getTaskId(), task);
+							if (!task.getTaskId().equals(TaskId.ViewRefresh)) setLastTaskFor(task);
 							ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, task.getConfig());
 							task.run();	
 							
@@ -55,6 +55,11 @@ public class EventTaskQueue {
 					LOGGER.info(e);
 				}
 				
+			}
+
+			protected void setLastTaskFor(EventRefreshTask task) {
+				invalidateTasksCreationDates(task.getTaskId());
+				lastRunningTasks.put(task.getTaskId(), task);
 			}
 		};
 		
@@ -107,10 +112,14 @@ public class EventTaskQueue {
 		}
 	}
 	
-	public void tamperTasksCreationDates(TaskId ...taskIds) {
+	public void invalidateTasksCreationDates(TaskId ...taskIds) {
 		for (TaskId taskToReset : taskIds) {
-			EventRefreshTask eventRefreshTask = lastRunningTasks.get(taskToReset);
-			if (eventRefreshTask != null) eventRefreshTask.setTaskCreationStamp(0l);
+			for (TaskId supOrEqualTaskId : TaskId.values()) {
+				if (supOrEqualTaskId.ordinal() >= taskToReset.ordinal()) {
+					EventRefreshTask eventRefreshTask = lastRunningTasks.get(supOrEqualTaskId);
+					if (eventRefreshTask != null) eventRefreshTask.setTaskCreationStamp(0l);
+				}
+			}
 		}
 	}
 

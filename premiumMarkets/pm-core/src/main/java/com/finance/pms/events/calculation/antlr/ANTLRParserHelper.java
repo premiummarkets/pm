@@ -115,7 +115,6 @@ public abstract class ANTLRParserHelper {
 								"Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either :"+operation);
 					}
 					if (operand.getParameter() == null) {
-						//String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValue(null).toString():null;
 						String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValueAsString():null;
 						editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString));
 					}
@@ -139,7 +138,7 @@ public abstract class ANTLRParserHelper {
 			
 			//1rts level Operands sanity check
 			for (Operation operand : operation.getOperands()) {
-				if (operand.getParameter() == null) LOGGER.warn("Operands should be parameterized for user operation : "+operation);
+				if (operand.getParameter() == null) LOGGER.warn("Operands should be parameterised for user operation : "+operation);
 			}
 			
 			userCurrentOperationList.add(editorOpDescr);

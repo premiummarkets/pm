@@ -31,4 +31,9 @@ public class AndDoubleMapCondition extends BooleanDoubleMapCondition {
 		return true;
 	}
 
+	@Override
+	protected Boolean exactDataSet() {
+		return true;
+	}
+
 }

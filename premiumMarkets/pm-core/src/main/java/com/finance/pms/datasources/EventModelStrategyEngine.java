@@ -57,7 +57,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * 
  * @author Guillaume Thoreton
  */
-public abstract class EventModelStrategyEngine {
+public abstract class EventModelStrategyEngine<X> {
 
 	/**
 	 * Sets the last list fetch.
@@ -99,16 +99,18 @@ public abstract class EventModelStrategyEngine {
 	public abstract Date getLastAnalyse(Date oldLastAnalyse);
 
 
-	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws HttpException;
-	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws StockNotFoundException;
-	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
-	public abstract void callbackForAlerts(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams) throws InterruptedException;
-	public abstract void  callbackForReco(Set<Observer> engineObservers);
-	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<? extends Object>...viewStateParams);
-	public abstract Object getViewParamRoot(Collection<? extends Object>...viewStateParams);
-	public abstract Collection<? extends Object>[] setViewStateParams(Object rootParam, Collection<? extends Object>... otherParams);
+	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws HttpException;
+	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws StockNotFoundException;
+	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
+	public abstract void callbackForAlerts(Set<Observer> engineObservers,  X rootParam,  Collection<? extends Object>...viewStateParams) throws InterruptedException;
+	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams);
+	public abstract void callbackForReco(Set<Observer> engineObservers);
+	
 	public abstract int[] otherViewParamPositionsFor(TaskId taskId);
+	public abstract int otherViewParamLength();
+	
 	public abstract boolean allowsTaskReset();
+	
 	
 	public void postCallBackForClean(boolean deleteAll, Stock... cleanedStocks) {
 		
@@ -174,6 +176,11 @@ public abstract class EventModelStrategyEngine {
 	//Neural needs the first pass indicators as in the db.prors and hence these can't be individually tampered
 	//The parameterised could be tampered with a review of the EventSignalConfig.getAllTechIndicatorsSorted as it loads all current EventConditionHolders in the current implementation.
 	protected void tamperEventConfig(Collection<EventInfo> viewStateParams) {
+		
+		if (viewStateParams == null) {//A null value means all ie no filter : we don't tamper.
+			return;
+		}
+		
 		EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
 	
 		//TODO add a setParameterized in EventConfig to refine the filter?  
@@ -190,5 +197,6 @@ public abstract class EventModelStrategyEngine {
 		eventConfig.setIndepIndicators(new ArrayList<String>(indepIndicators));
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, eventConfig);
 	}
+
 
 }

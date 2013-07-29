@@ -134,7 +134,7 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 			
 		}
 		
-		if (LOGGER.isInfoEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothedThreshPeriod, data, sSmooth, reglines); 
+		if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothedThreshPeriod, data, sSmooth, reglines); 
 		
 		if (!reglines.isEmpty()) {
 			String smaKey = "SMA "+lookBackSmoothedThreshPeriod;
@@ -189,6 +189,15 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 		public int compareTo(ArrayList<Double> o) {
 			return this.hashCode() - o.hashCode();
 		}
-		
 	}
+	
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
+		for (int i = 0; i < mainInputPosition(); i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
+	}
+	
 }

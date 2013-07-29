@@ -2,6 +2,7 @@ package com.finance.pms.events.calculation.antlr;
 
 import java.util.List;
 
+import org.antlr.runtime.NoViableAltException;
 import org.antlr.runtime.Token;
 
 public interface OpsParserDelegate {
@@ -10,6 +11,6 @@ public interface OpsParserDelegate {
 	
 	public EditorOpDescr doesNeedClosing();
 
-	public void outputSelectorHint(String opToken, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException;
+	public void outputSelectorHint(Token opToken, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException, NoViableAltException;
 	
 }

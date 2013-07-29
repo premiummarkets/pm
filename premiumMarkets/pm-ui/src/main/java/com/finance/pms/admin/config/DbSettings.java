@@ -61,9 +61,11 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.MarketQuotationProviders;
 
 /**
  * The Class DbSettings.
@@ -80,25 +82,24 @@ public class DbSettings extends Dialog {
 	final private String pathToProps;
 	
 	/** The config tab. */
-	private final String[] configTab = { "EMail setting", "Feeds performance and defaults", "Data Connection", "Ta lib"};
-			//, "Http Connection" };
+	private final String[] configTab = { "EMail setting", "Feeds performance and defaults", "Database", "Technical analysis"};
 	
 	/** The configtab comment. */
 	private final String[] configtabComment = {
 			"Email setting - Please fill in",
-			"Feeds performance and defaults",
-			"Data Connection parameters - Change default data base connection",
-		    "Ta lib - Indicator calculation tunning"};
-			//"Http Connection - Fill in only to change web market access defaults" };
+			"Default quotations provider - Possible values : "+MarketQuotationProviders.YAHOO.getCmdParam()+","+MarketQuotationProviders.INVESTIR.getCmdParam()+","+MarketQuotationProviders.GOOGLE.getCmdParam(),
+			"Internal Data Base parameters - You normally don't have to change this.",
+		    "Technical analysis - Indicator calculation tuning"};
 	
 	/** The keys. */
 	private final String[][] keys = {
 			{ "mail.from", "mail.to", "mail.host", "mail.username", "mail.password", "mail.log.activated" },
-			{ "quotes.listfile", "quotes.listprovider", "quotes.provider", "analyse.mas.enable", "semaphore.nbthread" },
+			{ //"quotes.listfile", "quotes.listprovider", 
+				"quotes.provider", 
+			  //"analyse.mas.enable",	"semaphore.nbthread"
+			},
 			{ "software", "username", "password", "driver", "database", "dbpath", "db.poolsize" },
-			//{ "mas.poolsize", "mas.semaphore.nbthread", "mas.ctimeout", "mas.daysbackwardday", "mas.logserver" },
 			{ "talib.daysbackwardday" }};
-			//, { "http.login", "http.password", "http.poolsize" } };
 	
 	/** The key comments. */
 	private final String[][] keyComments = {
@@ -108,22 +109,24 @@ public class DbSettings extends Dialog {
 					"Smtp server login password", "Activate email error logging" 
 			},
 			{ 		
-					"File name for a potential supplement of stocks",
-					"Default web provider where you will retrieve the stocks list from ",
-					"Default web provider where you will get the quotations from ",
-					"Toogle MAS analysis availability in the Events Window",
-					"Number of concurrent threads running during calculations"
+					//"Default file name for a potential supplement of stocks",
+					//"Default web provider where you will retrieve the stocks list from ",
+					"Default quotations provider ",
+					//"Toogle MAS analysis availability in the Events Window",
+					//"Number of concurrent threads running during calculations"
 			},
-			{ "DataBase software name", "Server login name", "Server login password", 
+			{ 
+					"DataBase software name", "Database login user name", "Database login password", 
 					"DataBase software driver full Class name",
-					"Database name", "Database path", "Number of simultaneous connections" },
-			//{ "mas.poolsize", "mas.semaphore.nbthread", "mas.ctimeout", "mas.daysbackwardday", "mas.logserver" },
-			{ "Number of days the analysis should start before the choosen start date" }};
-			//{ "Server login name", "Server login password", "Number of simultaneous connections" } };
-	
+					"Database name", "Database path", "Number of simultaneous connections" 
+			},
+			{ 
+					"Number of additional analysis calculation days before every calculations" 
+			}};
+			
 	
 	/** The hidden keys. */
-	private final String hiddenKeys[] = {"mail.password", "password","http.password"};
+	private final String hiddenKeys[] = {"mail.password","password","http.password"};
 	
 	/** The hidden keys list. */
 	private  List<String> hiddenKeysList = Arrays.asList(hiddenKeys);
@@ -256,7 +259,15 @@ public class DbSettings extends Dialog {
 									keyVal[i] = (hiddenKeysList.contains(keys[j][i]))?new Text(tabGroup, SWT.NONE|SWT.PASSWORD):new Text(tabGroup, SWT.NONE);
 									keyVal[i].setFont(MainGui.CONTENTFONT);
 									keyVal[i].setLayoutData(gdVal);
-									keyVal[i].setText((propList.containsKey(keys[j][i]))?propList.getProperty(keys[j][i]):"");
+									
+									String defaultValue = "";
+									if (propList.containsKey(keys[j][i])) {
+										defaultValue = propList.getProperty(keys[j][i]);
+									} else {
+										defaultValue = MainPMScmd.getPrefs().get(keys[j][i],"");
+									}
+									keyVal[i].setText(defaultValue);
+									
 									final String key = keys[j][i];
 									keyVal[i].addModifyListener(new ModifyListener() {
 										public void modifyText(ModifyEvent e) {

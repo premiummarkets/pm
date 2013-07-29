@@ -135,5 +135,15 @@ public class EventConditionHolder extends Operation implements EventInfo {
 			return getEventReadableDef();
 		}
 	}
+
+	@Override
+	public int operationStartDateShift() {
+		return Math.max(getOperands().get(0).operationStartDateShift(), getOperands().get(1).operationStartDateShift());
+	}
+
+	@Override
+	public Integer getEventOccWeight() {
+		return 1;
+	}
 	
 }

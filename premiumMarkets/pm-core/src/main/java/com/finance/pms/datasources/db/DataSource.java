@@ -849,7 +849,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
-			executeUpdate(iq, 600);
+			executeUpdate(iq, 1200);
 			
 		} catch (SQLException e) {
 			LOGGER.warn("Ignoring deletion error : ",e);
@@ -862,7 +862,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			
 			Query iq = new Query("DELETE FROM "+ eventTableName + " WHERE "+EVENTS.ANALYSE_NAME+" = ?");
 			iq.addValue(analyseName);
-			executeUpdate(iq, 600);
+			executeUpdate(iq, 1200);
 			
 		} catch (SQLException e) {
 			LOGGER.error(e,e);
@@ -885,7 +885,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
-			executeUpdate(iq, 600);
+			executeUpdate(iq, 1200);
 			
 		} catch (SQLException e) {
 			LOGGER.error(e,e);

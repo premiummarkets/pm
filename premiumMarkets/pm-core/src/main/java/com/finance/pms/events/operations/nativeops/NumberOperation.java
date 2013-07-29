@@ -27,5 +27,10 @@ public class NumberOperation extends Operation  implements LeafOperation {
 	public NumberValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((NumberValue)inputs.get(0));
 	}
+
+	@Override
+	public int operationStartDateShift() {
+		return (getParameter() != null )?((NumberValue)getParameter()).getValue(null).intValue():0;
+	}
 	
 }

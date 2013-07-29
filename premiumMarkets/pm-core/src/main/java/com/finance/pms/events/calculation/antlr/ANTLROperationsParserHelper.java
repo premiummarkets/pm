@@ -107,7 +107,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			
 			LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-				LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
 			}
 			LOGGER.debug("---------------------------------------------------");
 			
@@ -180,7 +180,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					} 
 					else if (exception instanceof MismatchedTokenException) {
 						int[] position = new int[]{exception.line, exception.charPositionInLine-1};
-						if (exceptionHolder.getExpectedToken() != null && exceptionHolder.getExpectedToken().equals(")")) {// ")"
+						if (exceptionHolder.getExpectedToken() != null && exceptionHolder.getExpectedToken().equals(")")) {
 							if (exceptionHolder.getNeedsClosing() != null) {
 								altPrioListForTokType(priorityList, AltType.SUGGESTION, 10)
 								.add(new Alternative(
@@ -239,18 +239,22 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						}
 					} 
 					else if  (exception instanceof InvalidOperationException)  {
-						//String currentOpStr =  ((InvalidOperationException) exception).getCurrentToken();
-						String currentOpStr = (((InvalidOperationException) exception).token != null)?((InvalidOperationException) exception).token.getText():null;
-						currentOpStr = (currentOpStr != null)?currentOpStr: " ";
-						int[] position = new int[]{exception.line, exception.charPositionInLine + currentOpStr.length()-1-1};
-						altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry",  " Invalid operation eof", null, position));
+						if (exceptionHolder.getRuleStack().size() == 4 && exceptionHolder.getRuleStack().get(3).equals("outputSelectorHint") ) {//No operation yet, first typing : fill up all ops
+							suggFilter = (((InvalidOperationException) exception).token != null)?((InvalidOperationException) exception).token.getText():"";
+							fillUpOps = true;
+							deleteFilter = false;
+						} else {
+							String currentOpStr = (((InvalidOperationException) exception).token != null)?((InvalidOperationException) exception).token.getText():null;
+							currentOpStr = (currentOpStr != null)?currentOpStr: " ";
+							int[] position = new int[]{exception.line, exception.charPositionInLine + currentOpStr.length()-1-1};
+							altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry",  " Invalid operation EOF", null, position));
+						}
 					}
 					else if (exception instanceof MissingOutputSelectorException) {
 						List<Alternative> alternatives = new ArrayList<Alternative>();
 						MissingOutputSelectorException missingOutputSelectorException = (MissingOutputSelectorException) exception;
 						String[] expected = missingOutputSelectorException.getExpected();
 						currentOp = missingOutputSelectorException.getCurrentOp();
-						//String currentOutput = missingOutputSelectorException.getCurrentOutput();
 						String currentOutput = missingOutputSelectorException.token.getText();
 						currentOutput = (currentOutput == null || currentOutput.equals("<EOF>"))?"":currentOutput;
 						if (currentOp == null) {
@@ -262,7 +266,6 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							int[] position = new int[]{exception.line, exception.charPositionInLine -1};
 							Boolean foundMatching =addSuggsAsAlts(alternatives, currentOutput , position, "Output selector option required for "+currentOp.getName()+" : ", expected);
 							if (!foundMatching) {
-								//int[] deletePosition = new int[]{exception.line,exception.charPositionInLine+currentOutput.length()-1};
 								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry", "Condition on historical output excepted.", null, position));
 							}
 							if (!alternatives.isEmpty()) {
@@ -281,8 +284,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				//Errors
 				} else {
 					if  (exception instanceof InvalidOperationException)  {
-						String currentOpStr =  ((InvalidOperationException) exception).token.getText();
-						currentOpStr = (currentOpStr !=null)?currentOpStr: " ";
+						Token token = ((InvalidOperationException) exception).token;
+						String currentOpStr = (token !=null && token.getText() != null)? token.getText() : " ";
 						int[] position = new int[]{exception.line, exception.charPositionInLine - (currentOpStr.length() + 1)};
 						altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry", " Invalid operation", null, position));
 					}
@@ -340,7 +343,6 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						MissingOutputSelectorException missingOutputSelectorException = (MissingOutputSelectorException) exception;
 						String[] expected = missingOutputSelectorException.getExpected();
 						currentOp = missingOutputSelectorException.getCurrentOp();
-						//String currentOutput = missingOutputSelectorException.getCurrentOutput();
 						String currentOutput = missingOutputSelectorException.token.getText();
 						int[] position =  new int[]{exception.line, exception.charPositionInLine -1};
 						if ( currentOp != null && (currentOutput == null || currentOutput.isEmpty()) ) {

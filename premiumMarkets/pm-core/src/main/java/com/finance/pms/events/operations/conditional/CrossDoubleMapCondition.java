@@ -102,4 +102,13 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	public int inputSignalPosition() {
 		return 3;
 	}
+	
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = Math.max(getOperands().get(mainInputPosition()).operationStartDateShift(),getOperands().get(inputSignalPosition()).operationStartDateShift());
+		for (int i = 0; i < mainInputPosition(); i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
+	}
 }

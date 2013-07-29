@@ -135,5 +135,12 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 		return 1;
 	}
 	
-	
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = Math.max(getOperands().get(mainInputPosition()).operationStartDateShift(),getOperands().get(inputSignalPosition()).operationStartDateShift());
+		for (int i = 0; i < mainInputPosition(); i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
+	}
 }

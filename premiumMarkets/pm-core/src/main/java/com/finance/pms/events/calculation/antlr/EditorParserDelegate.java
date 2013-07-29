@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.NoViableAltException;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenStream;
 
@@ -48,14 +49,15 @@ public class EditorParserDelegate {
 		return allOps;
 	}
 
-	public void outputSelectorHint(String opName, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException {
+	public void outputSelectorHint(Token opName, Token outputSelector) throws MissingOutputSelectorException, InvalidOperationException, NoViableAltException {
 		
 	
 		EditorOpDescr currentOp = grabOpForToken(opName);
 		String outputSelectorStr = (outputSelector != null)? outputSelector.getText():null;
 		
 		if (currentOp == null) {
-			throw new InvalidOperationException(input, outputSelector, null);
+			//Partial op matching
+			throw new InvalidOperationException(input, opName, null);
 		}
 		
 		List<String> outputSelectors = currentOp.getOutputSelectors();
