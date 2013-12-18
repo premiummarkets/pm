@@ -112,10 +112,10 @@ public class Portfolio extends AbstractSharesList {
 	}
 	
 	
-	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException {
+	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException {
 		
 		if (quantity.compareTo(BigDecimal.ZERO) == 0 || buyPrice.compareTo(BigDecimal.ZERO) == 0) {
-			throw new InvalidQuantityException("Invalid Quantity : "+quantity+"; or buy price : "+buyPrice+" for "+stock, new Exception());
+			throw new InvalidQuantityException("Invalid Quantity : "+quantity+" or Invalid Buy Price : "+buyPrice+" for "+stock, new Exception());
 		}
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, currentDate, mLevel, trCurrency);
 		shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
@@ -134,16 +134,13 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 
-	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException  {
+	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) 
+			throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
 		
-		try {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate,true,transactionCurrency);
 			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
 			
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
-		} catch (NoQuotationsException e) {
-			throw new InvalidAlgorithmParameterException(e);
-		}
 	}
 	
 	public PortfolioShare addOrUpdateShareForAmount(Stock stock, BigDecimal unitAmount, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException {
@@ -216,7 +213,6 @@ public class Portfolio extends AbstractSharesList {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@Lob
 	private PonderationRule getBuyPonderationRule() {
 		return buyPonderationRule;
@@ -239,7 +235,6 @@ public class Portfolio extends AbstractSharesList {
 		this.buyPonderationRule = buyPonderationRule;
 	}
 
-	@SuppressWarnings("unused")
 	@Lob
 	private PonderationRule getSellPonderationRule() {
 		return sellPonderationRule;
@@ -273,9 +268,9 @@ public class Portfolio extends AbstractSharesList {
 		this.portfolioCurrency = portfolioCurrency;
 	}
 	
-	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, Date currentDate, MonitorLevel mLevel, Currency transactionCurrency) {
+	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, Date currentDate, MonitorLevel mLevel, Currency transactionCurrency) throws InvalidAlgorithmParameterException {
 		if (this.portfolioCurrency != null && !this.portfolioCurrency.equals(transactionCurrency)) {
-			throw new RuntimeException("Currency is inconsistent : portfolio currency is " + this.portfolioCurrency + " and " + stock.getSymbol() + " is " + transactionCurrency);
+			throw new InvalidAlgorithmParameterException("Currency is inconsistent : portfolio currency is " + this.portfolioCurrency + " and " + stock.getSymbol() + " is " + transactionCurrency);
 		}
 		//return super.getOrCreatePortfolioShare(stock, currentDate, mLevel, transactionCurrency);
 		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());

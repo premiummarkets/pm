@@ -32,10 +32,11 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		if (shortcutUnary() && inputs.size() == 1) return (BooleanMapValue) inputs.get(0);
+		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;
 		
 		List<SortedMap<Date, Boolean>> maps = new ArrayList<SortedMap<Date,Boolean>>();
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
-		for (Value<SortedMap<Date, Boolean>> input : inputs) {
+		for (Value<SortedMap<Date, Boolean>> input : checkedInputs) {
 			fullKeySet.addAll(input.getValue(targetStock).keySet());
 			maps.add(input.getValue(targetStock));
 		}

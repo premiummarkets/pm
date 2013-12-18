@@ -72,13 +72,15 @@ public class ChartBarUtils {
 						serieIdx, 
 						eventInfo.info()+" buy", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
 						//0, new java.awt.Color(189,249,189, alpha), 10f);
-						0, new java.awt.Color(0,255,0, alpha), 10f);
+						//0, new java.awt.Color(0,255,0, alpha), 10f);
+						0, new java.awt.Color(0,255,100, alpha), 10f);
 			DataSetBarDescr sellKey = 
 					new DataSetBarDescr(
 						serieIdx-1, 
 						eventInfo.info()+" sell", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
 						//0, new java.awt.Color(246,173,173, alpha), 10f);
-						0, new java.awt.Color(255,0,0, alpha), 10f);
+						//0, new java.awt.Color(255,0,0, alpha), 10f);
+						0, new java.awt.Color(240,72,20, alpha), 10f);
 			DataSetBarDescr indeterKey = 
 					new DataSetBarDescr(
 						serieIdx-2, 
@@ -98,8 +100,8 @@ public class ChartBarUtils {
 			barData.put(sellKey, sellS.tailMap(start));
 			barData.put(indeterKey, indeterS.tailMap(start));
 	
-			if (! barSettings.getIsReachTop()) {
-				//yValueFactor = yValueFactor - .9d/chartedTrendsEvtDefsSize;
+			//if (!barSettings.getSideBySide()) {
+			if (!barSettings.getIsReachTop()) {
 				yValueFactor = yValueFactor - 1d/chartedTrendsEvtDefsSize;
 			}
 			

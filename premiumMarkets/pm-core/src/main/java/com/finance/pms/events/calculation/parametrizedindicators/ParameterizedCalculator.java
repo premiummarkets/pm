@@ -115,7 +115,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 		if (conditionHolder.getFormula() != null) {
 			
-			conditionHolder.setOperandsParams(null, null, new StringValue(eventListName));
+			conditionHolder.setOperandsParams(null, null, null, new StringValue(eventListName));
 			EventDataValue run = (EventDataValue) conditionHolder.run(targetStock);
 
 			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
@@ -134,7 +134,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 				previousKey = currentKey;
 			}
 			
-			LOGGER.warn("Indeterministic events for parameterised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
+			LOGGER.warn("Indeterministic events for customised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
 			for (EventKey eventKey : toRemove) {
 				EventValue eventValue = returnedEvents.get(eventKey);
 				returnedEvents.remove(eventKey);
@@ -162,62 +162,69 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 		SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
 
-		List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
-		
-		List<Object> normOutputs = new ArrayList<Object>();
-		SortedSet<Date> fullDateSet = new TreeSet<Date>();
-	
-		//Add Double outputs
-		for (Output output : gatheredOutputs) {
-			SortedMap<Date, Double> data = ((DoubleMapValue) output.getOutputData()).getValue(targetStock);
-			normOutputs.add(data);
-			fullDateSet.addAll(data.keySet());
-		}
-		
-
-		//Add Constants
-		List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
-		for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
-			Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();
-			for (OutputDescr outputDescr : values) {
-				if (outputDescr.getType().equals(Type.CONSTANT)) {
-					normOutputs.add(outputDescr.getValue().getValue(targetStock));
-					outputDescr.setOutputIndex(normOutputs.size()-1);
-				}
-			}
-		}
-		
-		//Fill up outputs not attached
-		ChartedOutputGroup invisibleGroup = null;
-		for (int i = 0; i < gatheredOutputs.size(); i++) {
-			if (gatheredOutputs.get(i).getChartedDescription() == null) {
-				if (invisibleGroup == null ) invisibleGroup = new ChartedOutputGroup(gatheredOutputs.get(i).getOutputReference(), i);
-				invisibleGroup.getComponents().put(gatheredOutputs.get(i).getOutputReference(), invisibleGroup.new OutputDescr(invisibleGroup, Type.INVISIBLE, i, null, null));
-			}
-		}
+		try {
 			
-		((EventDefDescriptorDynamic) conditionHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
+			List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
+			
+			List<Object> normOutputs = new ArrayList<Object>();
+			SortedSet<Date> fullDateSet = new TreeSet<Date>();
 
-		//Build
-		for (Date date : fullDateSet) {
-
-			double[] retOutput = new double[normOutputs.size()]; 
-
-			int outputPosition = 0;
-			for (Object normOutput : normOutputs) {
-
-				if (normOutput instanceof SortedMap) {
-					
-					@SuppressWarnings("unchecked")
-					Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
-					retOutput[outputPosition] = translateOutputForCharting(ds2);
-				} 
-				else if (normOutput instanceof Double) {
-					retOutput[outputPosition] = (Double)normOutput;
-				}
-				outputPosition++;
+			//Add Double outputs
+			for (Output output : gatheredOutputs) {
+				SortedMap<Date, Double> data = ((DoubleMapValue) output.getOutputData()).getValue(targetStock);
+				normOutputs.add(data);
+				fullDateSet.addAll(data.keySet());
 			}
-			calculationOutput.put(date, retOutput);
+			
+
+			//Add Constants
+			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
+			for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
+				Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();
+				for (OutputDescr outputDescr : values) {
+					if (outputDescr.getType().equals(Type.CONSTANT)) {
+						normOutputs.add(outputDescr.getValue().getValue(targetStock));
+						outputDescr.setOutputIndex(normOutputs.size()-1);
+					}
+				}
+			}
+			
+			//Fill up outputs not attached
+			ChartedOutputGroup invisibleGroup = null;
+			for (int i = 0; i < gatheredOutputs.size(); i++) {
+				if (gatheredOutputs.get(i).getChartedDescription() == null) {
+					OutputReference outputReference = gatheredOutputs.get(i).getOutputReference();
+					if (invisibleGroup == null ) invisibleGroup = new ChartedOutputGroup(outputReference, i);
+					invisibleGroup.getComponents().put(outputReference, invisibleGroup. new OutputDescr(outputReference, invisibleGroup, Type.INVISIBLE, i, null));
+				}
+			}
+				
+			((EventDefDescriptorDynamic) conditionHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
+
+			//Build
+			for (Date date : fullDateSet) {
+
+				double[] retOutput = new double[normOutputs.size()]; 
+
+				int outputPosition = 0;
+				for (Object normOutput : normOutputs) {
+
+					if (normOutput instanceof SortedMap) {
+						
+						@SuppressWarnings("unchecked")
+						Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
+						retOutput[outputPosition] = translateOutputForCharting(ds2);
+					} 
+					else if (normOutput instanceof Double) {
+						retOutput[outputPosition] = (Double)normOutput;
+					}
+					outputPosition++;
+				}
+				calculationOutput.put(date, retOutput);
+			}
+			
+		} catch (Exception e) {
+			LOGGER.warn(e,e);
 		}
 
 		return calculationOutput;
@@ -236,6 +243,11 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMTAEvents;
+	}
+
+	@Override
+	protected Date rawDataStartDate(Date startDate, Date endDate) {
+		return startDate;
 	}
 
 }

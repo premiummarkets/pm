@@ -1,2 +1,2 @@
-is bullish when close makes a lower low spanning 40 days and chainkin makes a higher low spanning 40 days;
-is bearish when close makes a higher high spanning 40 days and chainkin makes a lower high spanning 40 days;
+is bullish when close makes a lower low spanning 20 days over 40 days and chainkin makes a higher low spanning 20 days over 40 days;
+is bearish when close makes a higher high spanning 20 days over 40 days and chainkin makes a lower high spanning 20 days over 40 days;

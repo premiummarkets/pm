@@ -1,7 +1,5 @@
 package com.finance.pms.events.calculation.antlr;
 
-import org.antlr.runtime.RecognitionException;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 
 
@@ -11,7 +9,7 @@ public class ExitParsingException extends RuntimeException {
 	
 	public static MyLogger LOGGER = MyLogger.getLogger(ParameterizedBuilder.class);
 	
-	public ExitParsingException(String msg, RecognitionException e) {
+	public ExitParsingException(String msg, Exception e) {
 		super(msg, e);
 	}
 	
@@ -19,6 +17,12 @@ public class ExitParsingException extends RuntimeException {
 	public ExitParsingException() {
 		super();
 		LOGGER.info("Getting out");
+	}
+
+
+	@Override
+	public String toString() {
+		return "ExitParsingException [getMessage()=" + getMessage() + ", getCause()=" + getCause() + ", toString()=" + super.toString() + "]";
 	}
 	
 }

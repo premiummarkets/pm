@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -63,7 +64,7 @@ public class SymbolEvents implements Serializable {
 	private static final long serialVersionUID = 4488655947887964613L;
 	
 	private Stock stock;
-	private SortedMap<EventKey, EventValue> dataResultMap;
+	private ConcurrentSkipListMap<EventKey, EventValue> dataResultMap;
 	private Set<String> eventDefList;
 	private EventState eventsState;
 	
@@ -78,38 +79,12 @@ public class SymbolEvents implements Serializable {
 	public SymbolEvents(Stock stock) {
 		super();
 		this.stock = stock;
-		this.dataResultMap= new TreeMap<EventKey, EventValue>();
+		this.dataResultMap= new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
 		this.eventsState = EventState.STATE_TERMINATED;
 	}
 
-	/**
-	 * Instantiates a new symbol events.
-	 * 
-	 * @param stock the stock
-	 * @param eventDefList the event def list
-	 * @param state the state
-	 * @param datatResultList the datat result list
-	 * @author Guillaume Thoreton
-	 */
-//	public SymbolEvents(Stock stock, SortedMap<EventKey, EventValue> dataResultList,List<String> eventDefList, EventState state) {	
-//		this.stock =stock;
-//		this.dataResultMap = dataResultList;
-//		this.eventDefList = eventDefList;
-//		this.eventsState = state;
-//	}
-//	
-//	public SymbolEvents(Stock stock, SortedMap<EventKey, EventValue> dataResultList,Set<EventInfo> eventDefList, EventState state) {	
-//		this.stock =stock;
-//		this.dataResultMap = dataResultList;
-//		this.eventDefList = new ArrayList<String>();
-//		for (EventInfo eventInfo : eventDefList) {
-//			this.eventDefList.add(eventInfo.getEventDefinitionRef());
-//		}
-//		this.eventsState = state;
-//	}
-	
-	public SymbolEvents(Stock stock, SortedMap<EventKey, EventValue> dataResultList,Collection<?> eventDefList, EventState state) {	
+	public SymbolEvents(Stock stock, ConcurrentSkipListMap<EventKey, EventValue> dataResultList,Collection<?> eventDefList, EventState state) {	
 		this.stock =stock;
 		this.dataResultMap = dataResultList;
 		this.eventDefList = new HashSet<String>();
@@ -123,7 +98,6 @@ public class SymbolEvents implements Serializable {
 		this.eventsState = state;
 	}
 	
-	
 	/**
 	 * Instantiates a new symbol events.
 	 * 
@@ -133,14 +107,14 @@ public class SymbolEvents implements Serializable {
 	 */
 	public SymbolEvents(Stock stock,EventState eState) {
 		this.stock = stock;
-		this.dataResultMap = new TreeMap<EventKey, EventValue>();
+		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
 		this.eventsState= eState;
 	}
 	
 	public SymbolEvents(EventMessageObject eventMessageObject) throws NoSuchFieldException {
 		
-		SortedMap<EventKey, EventValue> map= new TreeMap<EventKey, EventValue>();
+		ConcurrentSkipListMap<EventKey, EventValue> map= new ConcurrentSkipListMap<EventKey, EventValue>();
 		EventValue eventValue = eventMessageObject.getEventValue();
 		StandardEventKey key = new StandardEventKey(eventValue.getDate(), eventValue.getEventDef().getEventDefinitionRef(), eventValue.getEventType().getEventTypeChar().toString());
 		map.put(key, eventValue);
@@ -353,14 +327,30 @@ public class SymbolEvents implements Serializable {
 	
 
 	public void addEventResultElement(SortedMap<EventKey,EventValue> evl, Collection<?> edefl) {
-		for (Object eventInfo : edefl) {
-			if (eventInfo instanceof EventInfo) {
-				eventDefList.add(((EventInfo) eventInfo).getEventDefinitionRef());
-			} else {
-				eventDefList.add((String) eventInfo);
+		try {
+			
+			for (Object eventInfo : edefl) {
+				if (eventInfo instanceof EventInfo) {
+					eventDefList.add(((EventInfo) eventInfo).getEventDefinitionRef());
+				} else {
+					eventDefList.add((String) eventInfo);
+				}
 			}
+			this.dataResultMap.putAll(evl);
+			
+		} catch (RuntimeException e) {
+			String dataResult = "Current data result : \n";
+			for (EventKey key : this.dataResultMap.keySet()) {
+				 dataResult = dataResult + key+" ; "+this.dataResultMap.get(key) + "\n";
+			}
+			LOGGER.error(dataResult);
+			String addedEvents = "Added events : \n";
+			for (EventKey key : evl.keySet()) {
+				addedEvents = addedEvents +key+" ; "+evl.get(key) + "\n";
+			}
+			LOGGER.error(addedEvents);
+			throw e;
 		}
-		this.dataResultMap.putAll(evl);
 	}
 	
 	public void addEventResultElement(SortedMap<EventKey,EventValue> evl,  EventInfo eventDefinition) {

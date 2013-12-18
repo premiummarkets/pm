@@ -486,7 +486,9 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		}
 		if (transaction.getModtype().equals(TransactionType.AOUT)) {
 			BigDecimal newQuantity = transaction.getQuantity().subtract(this.getQuantity()).negate();
-			if (newQuantity.compareTo(BigDecimal.ZERO) < 0) throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
+			if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
+				throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
+			}
 			this.setQuantity(newQuantity);
 			this.setCashout(transaction.fullAmountOut());
 			if (propagate) this.portfolio.addAmountToTotalAmountOut(transaction.amount(), transactionCurrency, transaction.getDate());

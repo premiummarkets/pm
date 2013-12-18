@@ -40,8 +40,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeoutException;
 
 import com.finance.pms.MainPMScmd;
@@ -461,7 +460,7 @@ public class MasSource implements SourceConnector {
 		//String stocktrunc = stock.getSymbol().toLowerCase().substring(0,stock.getSymbol().length()-3);
 		String stocktrunc = stock.getSymbol().toLowerCase();
 		Map<Integer, String> el = sendEventListRequest(period_type, stocktrunc, connection);
-		SortedMap<EventKey, EventValue> ed = new TreeMap<EventKey, EventValue>();
+		ConcurrentSkipListMap<EventKey, EventValue> ed = new ConcurrentSkipListMap<EventKey, EventValue>();
 		SymbolEvents se;
 		if (el.size() > 0) {
 			//Cr�ation de la requete d'analyse. //cf. DATE_PARSING_UTILITIES
@@ -480,7 +479,7 @@ public class MasSource implements SourceConnector {
 			DataInspector di = connection.sendRequest(EVENT_DATA_REQUEST, eventsString.toString());
 			String results = di.getMessage();
 			if (di.getAckNumber() == MasConnection.OK) {
-				ed = (SortedMap<EventKey, EventValue>) ResultsParser.resultParser(results, new EventDataResultFormat());
+				ed = (ConcurrentSkipListMap<EventKey, EventValue>) ResultsParser.resultParser(results, new EventDataResultFormat());
 			} else {
 				LOGGER.warn("Wrong data results for symbol : " + stocktrunc);
 				LOGGER.warn("Response Ack : " + di.getAckNumber());

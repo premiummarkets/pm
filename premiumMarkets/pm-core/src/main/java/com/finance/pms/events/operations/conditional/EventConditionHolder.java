@@ -33,7 +33,8 @@ public class EventConditionHolder extends Operation implements EventInfo {
 	private EventDefDescriptorDynamic eventDefDescriptor;
 
 	public EventConditionHolder() {
-		super("eventconditionholder","eventconditionholder", new ArrayList<Operation>(Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new StringOperation("eventListName")})));
+		super("eventconditionholder","eventconditionholder", 
+		new ArrayList<Operation>(Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new StringOperation("eventListName")})));
 		eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
@@ -48,7 +49,8 @@ public class EventConditionHolder extends Operation implements EventInfo {
 		
 		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
-		StringValue eventListName = ((StringValue) inputs.get(2));
+		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2));
+		StringValue eventListName = ((StringValue) inputs.get(3));
 		
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		for (Date date :  bullishMap.getValue(targetStock).keySet()) {
@@ -61,7 +63,7 @@ public class EventConditionHolder extends Operation implements EventInfo {
 		for (Date date : bearishMap.getValue(targetStock).keySet()) {
 			if (bearishMap.getValue(targetStock).get(date)) {
 				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BEARISH);
-				EventValue iev = new StandardEventValue(date, this, EventType.BEARISH,  eventListName.getValue(targetStock));
+				EventValue iev = new StandardEventValue(date, this, EventType.BEARISH, eventListName.getValue(targetStock));
 				edata.put(iek, iev);
 			}
 		}
@@ -119,9 +121,11 @@ public class EventConditionHolder extends Operation implements EventInfo {
 			String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormula(), 0)[1];
 			this.eventDefDescriptor.setBullishDescription(FormulaUtils.bullishClause(indentedFormula));
 			this.eventDefDescriptor.setBearishDescription(FormulaUtils.bearishClause(indentedFormula));
+			this.eventDefDescriptor.setAlsoDisplayDescription(FormulaUtils.alsoDisplayClause(indentedFormula));
 		} else {
 			this.eventDefDescriptor.setBullishDescription("No description available");
 			this.eventDefDescriptor.setBearishDescription("No description available");
+			this.eventDefDescriptor.setAlsoDisplayDescription("No description available");
 		}
 	} 
 
@@ -130,7 +134,8 @@ public class EventConditionHolder extends Operation implements EventInfo {
 		if (eventDefDescriptor != null) {
 			return getEventReadableDef()+" :\n\n" +
 					eventDefDescriptor.getBullishDescription()+"\n\n"+
-					eventDefDescriptor.getBearishDescription();
+					eventDefDescriptor.getBearishDescription()+"\n\n"+
+					eventDefDescriptor.getAlsoDisplayDescription();
 		} else {
 			return getEventReadableDef();
 		}

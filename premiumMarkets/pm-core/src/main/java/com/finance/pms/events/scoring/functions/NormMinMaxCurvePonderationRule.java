@@ -51,7 +51,7 @@ class NormMinMaxCurvePonderationRule implements CurvePonderationRule {
 	@Override
 	public double weight(double curveValue, double ponderatorValue) {
 		
-		if (ponderatorValue < 0) throw new NotImplementedException("Ponderation values must be normalise between positive min and max.");
+		if (ponderatorValue < 0) throw new NotImplementedException("Ponderation values must be normalised between positive min and max.");
 		double weight = 1;
 		if (ponderatorValue >= ponderatorCenter) {
 			weight = ponderatorMax - ponderatorValue;

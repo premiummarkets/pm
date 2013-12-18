@@ -105,7 +105,7 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 
 	@Override
 	protected int getDaysSpan() {
-		return 60;
+		return 84;
 	}
 
 	@Override
@@ -136,6 +136,11 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected TalibIndicator getOscillator() {
 		return this.stochOsc;
+	}
+
+	@Override
+	protected Double getAlphaBalance() {
+		return (double) (getDaysSpan()/2);
 	}
 
 }

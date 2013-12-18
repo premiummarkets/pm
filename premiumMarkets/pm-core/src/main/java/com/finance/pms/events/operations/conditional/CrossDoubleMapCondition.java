@@ -32,9 +32,14 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class})
 public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 	
-	
+
+	@SuppressWarnings("unused")
+	private CrossDoubleMapCondition() {
+		super();
+	}
+
 	public CrossDoubleMapCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("dates comparison span"),  new NumberOperation("time period over which it happens"), new DoubleMapOperation(reference+ "left operand (data)"), new DoubleMapOperation(reference+ "right operand (signal)"));
+		super(reference, description, new NumberOperation("dates comparison span"),  new NumberOperation("time period over which it happens"), new DoubleMapOperation("'"+reference+ "' left operand (data)"), new DoubleMapOperation("'"+reference+ "' right operand (signal)"));
 	}
 	
 	public CrossDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {

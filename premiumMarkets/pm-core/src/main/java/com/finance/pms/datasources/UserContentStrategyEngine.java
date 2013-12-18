@@ -70,24 +70,28 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) {
+	public void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
 		LOGGER.debug("No list update available for this model.");
 	}
 
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws StockNotFoundException {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws StockNotFoundException {
 		
-		LOGGER.guiInfo("Task : Updating quotations");
+		LOGGER.guiInfo("Running task : Updating quotations");
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		
 		LOGGER.debug("Fetching monitored quotations");
 		quotationUpdate.addObservers(engineObservers);
 		
-		updateQuotations(quotationUpdate, rootParam);
+		//updateQuotations(quotationUpdate, rootParam);
+		updateQuotations(quotationUpdate, buildStockListFrom(rootParam));
 	}
 
-	protected abstract void updateQuotations(QuotationUpdate quotationUpdate, X rootParam) throws StockNotFoundException;
+	//protected abstract void updateQuotations(QuotationUpdate quotationUpdate, X rootParam) throws StockNotFoundException;
+	private void updateQuotations(QuotationUpdate quotationUpdate, List<Stock> stocks) throws StockNotFoundException {
+		quotationUpdate.getQuotesFor(stocks);
+	};
 
-	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
+	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
 
 		String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
 		String[] analysers = new String[analysisList.size()];
@@ -105,7 +109,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		
 		for (int i = 0; i < analysers.length; i++) {
 
-			LOGGER.guiInfo("Task : Analysing from "+datedeb+" to "+datefin);
+			LOGGER.guiInfo("Running task : Analysing from "+datedeb+" to "+datefin);
 			
 			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
@@ -190,7 +194,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 
 	@Override
-	public void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>... viewStateParams) {
+	public void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
 		
 		List<Stock> builtStockList = buildStockListFrom(rootParam);
 		for (Observer observer : engineObservers) {
@@ -200,7 +204,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
 		for (Stock stock : builtStockList) {
 			
-			LOGGER.guiInfo("Task : Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
+			LOGGER.guiInfo("Running task : Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
 			
 			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
 			TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);

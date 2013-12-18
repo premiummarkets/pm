@@ -19,7 +19,7 @@ public class OrDoubleMapCondition extends BooleanDoubleMapCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(Comparable<Boolean>... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Boolean>... ops) {
 		for (Comparable<Boolean> op : ops) {
 			if (op.compareTo(Boolean.TRUE) == 0) return true;
 		}

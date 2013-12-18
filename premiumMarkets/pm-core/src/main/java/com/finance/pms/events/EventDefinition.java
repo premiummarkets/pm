@@ -145,7 +145,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 	
 	//Neural related
 	NEURAL (503,"Neural", true, 
-			new  EventDefDescriptorStatic("Neural output", null, null, null, null, null,
+			new  EventDefDescriptorStatic("Second Neural output", "First Neural output", "Row output", null, null, null,
 					"Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
 					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}), 0),
 	VARIATION (504,"Variation", false, null, 0),
@@ -160,10 +160,15 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new  EventDefDescriptorStatic("First Neural output","Short Logarithmic ROC" , "Long Logarithmic ROC", "Second Neural output", "Short Roc Zero line", "Long Roc Zero line",
 					"First Neural(%d,%d) reverses down and Roc(%d,%d) crosses below 0\nOr Neural is down and Roc < 0",new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"},
 					"First Neural(%d,%d) reverses up and Roc(%d,%d) crosses above 0\nOr Neural is up and Roc > 0",new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
-	NEURALRONE (509,"Neural One reverse", true, 
-			new  EventDefDescriptorStatic("First Neural output", null, null, null, null, null,
+	NEURALRONE (509,"Neural Reverse One", true, 
+			new  EventDefDescriptorStatic("First Neural Smth output","First Neural output", "Row output", null, null, null,
 					"First Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
 					"First Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}), 0),
+	//TODO dynamic event descriptor
+	NEURALMIX (550,"Neural Mix", false, 
+			new  EventDefDescriptorStatic("First output", "Second output", null, null, null, null, 
+					"See source code. TODO : dynamic description", null, 
+					"See source code. TODO : dynamic description", null), 0),
 	
 	//Parameterised
 	PARAMETERIZED (900, "Parameterised Events", false, 

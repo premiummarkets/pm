@@ -19,7 +19,7 @@ public class FormulaUtils {
 		newCarretPosition = previousCaretPosition - (preCaret.length() - formatedPreCaret.length());
 		String formatedF = formatedPreCaret + formatedPostCaret;
 		
-		String[] keywordBeforeCR = new String[]{"is bullish when ", "is bearish when ", "is bearish if not bullish and ", "is bearish if not bullish or ", ";", "(", ")"};
+		String[] keywordBeforeCR = new String[]{"also display", "is bullish when ", "is bearish when ", "is bearish if not bullish and ", "is bearish if not bullish or ", ";", "(", ")"};
 		String[] keyWordAfterCR = new String[]{" or ", " and ", "(", ")"};
 
 		String indentStr = "";
@@ -87,13 +87,22 @@ public class FormulaUtils {
 	public static String bullishClause(String formula) {
 		formula = formula.replaceAll("\n", "_-_");
 		formula = formula.replaceAll("_-_;.*", "").replaceAll(";.*", "");
-		return formula.replaceAll("_-_", "\n");
+		return formula.replaceAll("_-_", "\n").replaceAll("\t", "\t\t");
 	}
 	
 	public static String bearishClause(String formula) {
 		formula = formula.replaceAll("\n", "_-_");
 		formula = formula.replaceAll(".*;.*is bearish", "is bearish").replaceAll(";.*", "");
-		return formula.replaceAll("_-_", "\n");
+		return formula.replaceAll("_-_", "\n").replaceAll("\t", "\t\t");
+	}
+	
+	public static String alsoDisplayClause(String formula) {
+		
+		if (!formula.contains("also display")) return "";
+		
+		formula = formula.replaceAll("\n", "_-_");
+		formula = formula.replaceAll(".*;.*also display", "Also available for display :").replaceAll(";.*", "");
+		return formula.replaceAll("_-_", "\n").replaceAll("\t", "\t\t");
 	}
 
 }

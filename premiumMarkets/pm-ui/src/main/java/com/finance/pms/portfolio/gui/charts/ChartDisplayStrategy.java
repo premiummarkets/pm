@@ -1,10 +1,15 @@
 package com.finance.pms.portfolio.gui.charts;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 
+import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.InfoObject;
@@ -60,6 +65,7 @@ public abstract class ChartDisplayStrategy {
 	}
 
 	protected ChartsComposite chartTarget;
+	private ActionDialog popupDialog;
 	
 	public abstract void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted);
 
@@ -100,5 +106,60 @@ public abstract class ChartDisplayStrategy {
 	public abstract void shutDownDisplay();
 
 	public abstract void updateButtonsToolTips();
+
+	public void slideChart(int increment) {
+		chartTarget.getMainChartWraper().slideChart(increment, chartTarget.getPlotChart());
+	}
+	
+	public void addVLineAt(Point2D point2D, Rectangle2D rectangle2D) {
+		chartTarget.getMainChartWraper().addVLineAt(point2D, rectangle2D);
+	}
+	
+	public Boolean removeVLineAt(Point2D point2D, Rectangle2D rectangle2D) {
+		return chartTarget.getMainChartWraper().removeVLineAt(point2D, rectangle2D);
+	}
+	
+	public void removeVLines() {
+		chartTarget.getMainChartWraper().removeVLines();
+	}
+	
+	public Boolean removeHLineAt(Point2D point2D, Rectangle2D rectangle2D) {
+		return chartTarget.getMainChartWraper().removeHLineAt(point2D, rectangle2D);
+	}
+	
+	public void removeHLines() {
+		chartTarget.getMainChartWraper().removeHLines();
+	}
+
+	protected void showPopupDialog(final String errorMessage, final String buttonTxt, final String addMessage, ActionDialogAction action) {
+		
+		if (action == null) {
+			action = new ActionDialogAction() {
+				@Override
+				public void action(Control targetControl) {
+				}
+			};
+		}
+		
+		final ActionDialogAction fAction = action;
+		Runnable runnable = new Runnable() {
+			public void run() {
+				if (popupDialog == null || popupDialog.getParent().isDisposed()) {
+					popupDialog = new ActionDialog(chartTarget.getShell(), SWT.NONE, "Warning", errorMessage, addMessage, buttonTxt, fAction);
+					popupDialog.open(true);
+				} else {
+					if (!popupDialog.sameDialog(errorMessage, addMessage, buttonTxt)) {
+						popupDialog.updateDialog("Warning", errorMessage, addMessage, buttonTxt, fAction);
+					}
+				}
+			}
+		};
+		Display.getDefault().syncExec(runnable);
+		
+	}
+
+	protected synchronized void hidePopupDialog() {
+		if (popupDialog != null) popupDialog.getParent().dispose();
+	}
 
 }

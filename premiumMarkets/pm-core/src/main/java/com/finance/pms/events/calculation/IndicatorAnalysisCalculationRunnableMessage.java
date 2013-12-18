@@ -65,8 +65,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	
 	private Integer passNumber;
 	private String passOneRecalculationMode;
-	
-//	private Boolean export;
+
 	private Currency calculationCurrency;
 	private Boolean persistEvents;
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
@@ -84,7 +83,6 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.datefin = datefin;
 		this.datedeb = datedeb;
 		this.shareList = shareList;
-//		this.export = export;
 		//calculationCurrency is null the stock currency will be used
 		this.observers = observers;
 		
@@ -118,6 +116,13 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		}
 		
 		if (exception != null) {
+			if (runIndicatorsCalculationRes != null && runIndicatorsCalculationRes != null) {
+				if (exception.getCalculatedOutput() == null) {
+					exception.setCalculatedOutput(runIndicatorsCalculationRes);
+				} else {
+					exception.getCalculatedOutput().putAll(runIndicatorsCalculationRes);
+				}
+			}
 			throw exception;
 		}
 		

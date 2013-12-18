@@ -26,7 +26,12 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  */
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {
 	
+	@SuppressWarnings("unused")
+	private CmpConstantCondition() {
+		super();
+	}
 
+	
 	protected CmpConstantCondition(String reference, String description) {
 		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"), new DoubleMapOperation("historical data input"));
 	}

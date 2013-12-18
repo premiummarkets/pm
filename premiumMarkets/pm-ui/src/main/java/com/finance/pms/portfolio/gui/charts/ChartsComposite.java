@@ -30,10 +30,17 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
+import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.security.InvalidParameterException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,11 +53,16 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.swing.JMenuItem;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -75,11 +87,9 @@ import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.RefreshableView;
-import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
-import com.finance.pms.datasources.EventRefreshException;
 import com.finance.pms.datasources.RefreshChartHightlited;
 import com.finance.pms.datasources.db.StripedCloseFunction;
 import com.finance.pms.datasources.db.StripedCloseRelativeToStart;
@@ -97,6 +107,8 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
  */
 public class ChartsComposite extends SashForm implements RefreshableView {
 
+
+	private static final int MINSLIDERVALUE = 1;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ChartsComposite.class);
 	
@@ -140,12 +152,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private Date slidingEndDate;
 	private Date firstStartDate;
 	private Date lastEndDate;
-
 	private Boolean sliderSelection;
+	
 	private Boolean closeRequested = false;
 
 	private Boolean chartPanelFocusGain;
-
+	private Integer clickPosition;
 
 	public ChartsComposite(Composite parent, int style, LogComposite logComposite) {
 		super(parent, style);
@@ -165,8 +177,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		
 		sliderSelection = false;
 		
-		this.setToolTipText("Sash : Click on this border and drag to resize");
-		super.setCursor(new Cursor(getDisplay(), SWT.CURSOR_CROSS));
+//		this.setToolTipText("Sash : Click on this border and drag to resize");
+//		super.setCursor(new Cursor(getDisplay(), SWT.CURSOR_CROSS));
 		
 		this.stripedCloseFunction = new StripedCloseRelativeToStart(slidingStartDate, slidingEndDate);
 		this.initGUI();
@@ -214,13 +226,15 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					getHightlitedEventModel().resetOtherViewParams();
 					setHighligtedId(null);
 				}
-				
 				chartDisplayStrategy.lightResetChart();
+				
 			} 
 		} else {
+			
 			getHightlitedEventModel().resetOtherViewParams();
 			setHighligtedId(null);
 			chartDisplayStrategy.lightResetChart();
+			
 		} 
 		
 		
@@ -256,13 +270,125 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			});
 			
 			{
+				try {
+					// Set cross-platform Java L&F (also called "Metal")
+					UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+				} 
+				catch (UnsupportedLookAndFeelException e) {
+					LOGGER.error(e);
+				}
+				catch (ClassNotFoundException e) {
+					LOGGER.error(e);
+				}
+				catch (InstantiationException e) {
+					LOGGER.error(e);
+				}
+				catch (IllegalAccessException e) {
+					LOGGER.error(e);
+				}
+				
 				mainChartComposite = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
-				Frame chartFrame = SWT_AWT.new_Frame(mainChartComposite);
+				final Frame chartFrame = SWT_AWT.new_Frame(mainChartComposite);
+				final Panel rootHeavyPanel = new Panel();
+				rootHeavyPanel.setLayout(new BorderLayout());
+				chartFrame.add(rootHeavyPanel);
+				
 				mainChartWraper = new ChartMain(ChartsComposite.DEFAULT_START_DATE, JFreeChartTimePeriod.DAY);
-				mainChartPanel = new ChartPanel(mainChartWraper.initChart(stripedCloseFunction), true, true, true, true, true);
+				mainChartPanel = new ChartPanel(mainChartWraper.initChart(stripedCloseFunction), true, true, true, false, true) {
+					private static final long serialVersionUID = 1L;
+						@Override
+					    public void restoreAutoBounds(){
+					        // Do nothing (disable mouse left drag zoom)
+					    }           
+				};
+				mainChartPanel.setMouseZoomable(false, false);
+				mainChartPanel.setMinimumDrawWidth(0);
+				mainChartPanel.setMinimumDrawHeight(0);
+				mainChartPanel.setMaximumDrawWidth(Display.getCurrent().getClientArea().width);
+				mainChartPanel.setMaximumDrawHeight(Display.getCurrent().getClientArea().height);
+					
+				JMenuItem lookAndFeelInfoItem = new JMenuItem("Look and feel Info");
+				lookAndFeelInfoItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						LOGGER.info(UIManager.getLookAndFeel());
+					}
+				});
+				mainChartPanel.getPopupMenu().add(lookAndFeelInfoItem);
+				JMenuItem deleteVLines = new JMenuItem("Remove vertical lines");
+				deleteVLines.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						chartDisplayStrategy.removeVLines();
+					}
+				});
+				mainChartPanel.getPopupMenu().add(deleteVLines);
+				JMenuItem deleteHLines = new JMenuItem("Remove horizontal lines");
+				deleteHLines.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						chartDisplayStrategy.removeHLines();
+					}
+				});
+				mainChartPanel.getPopupMenu().add(deleteHLines);
+				
+				mainChartPanel.addMouseListener(new ClickListener() {
+					
+					@Override
+					public void singleClick(final MouseEvent event) {
+
+						Display.getDefault().asyncExec(new Runnable() {
+
+							@Override
+							public void run() {
+								Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, event.getPoint().y);
+								if (isSlidingArea) return;
+
+								int button = event.getButton();
+								if (button == MouseEvent.BUTTON1) {
+									Point2D clickPoint = mainChartPanel.translateScreenToJava2D(event.getPoint());
+									Rectangle2D plotArea = mainChartPanel.getScreenDataArea();
+
+									if (plotArea.getMaxY() > clickPoint.getY() && clickPoint.getY() > plotArea.getY() && plotArea.getMaxX() > clickPoint.getX() && clickPoint.getX() > plotArea.getX()) {
+										chartDisplayStrategy.addVLineAt(clickPoint, plotArea);
+									}
+
+								}
+							}
+						});
+					}
+					
+					@Override
+					public void doubleClick(final MouseEvent event) {
+
+						Display.getDefault().asyncExec(new Runnable() {
+
+							@Override
+							public void run() {
+								Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, event.getPoint().y);
+								if (isSlidingArea) return;
+
+								int button = event.getButton();
+								if (button == MouseEvent.BUTTON1){
+									Point2D clickPoint = mainChartPanel.translateScreenToJava2D(event.getPoint());
+									Rectangle2D plotArea = mainChartPanel.getScreenDataArea();
+
+									if (plotArea.getMaxY() > clickPoint.getY() && clickPoint.getY() > plotArea.getY() && plotArea.getMaxX() > clickPoint.getX() && clickPoint.getX() > plotArea.getX()) {
+										chartDisplayStrategy.removeVLineAt(clickPoint, plotArea);
+										chartDisplayStrategy.removeHLineAt(clickPoint, plotArea);
+									}
+
+								}
+							}
+						});
+					}
+					
+				});
+				
+				//Slider
 				chartPanelFocusGain = false;
 				mainChartPanel.addMouseListener(new MouseAdapter() {
-
+					
 					@Override
 					public void mouseEntered(MouseEvent e) {
 						chartPanelFocusGain = true;
@@ -272,35 +398,100 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					public void mouseExited(MouseEvent e) {
 						chartPanelFocusGain = false;
 					}
-				});
-				
-				mainChartPanel.setDoubleBuffered(true);
-				mainChartPanel.setIgnoreRepaint(true);
-				mainChartPanel.setRefreshBuffer(true);
-				mainChartPanel.setInitialDelay(0);
-				mainChartPanel.setReshowDelay(Integer.MAX_VALUE);
-				mainChartPanel.addMouseMotionListener(new MouseMotionListener() {
 
 					@Override
-					public void mouseMoved(MouseEvent e) {
-						chartPanelFocusGain = true;
-						try {
-							Thread.sleep(500);
-						} catch (InterruptedException e1) {
-							e1.printStackTrace();
+					public void mousePressed(final MouseEvent e) {
+						Display.getDefault().syncExec(new Runnable() {
+
+							@Override
+							public void run() {
+								Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, e.getPoint().y);
+								if (isSlidingArea) {
+									clickPosition = e.getPoint().y;
+								} else {
+									clickPosition = null;
+								}
+							}
+							
+						});
+					}
+
+					@Override
+					public void mouseReleased(final MouseEvent e) {
+						Display.getDefault().syncExec(new Runnable() {
+							
+							@Override
+							public void run() {
+								if (clickPosition != null) {
+									int indicChartSlideIncrement = (int) ((((double) clickPosition - e.getPoint().y)/(double) mainChartComposite.getSize().y)*100);
+									chartDisplayStrategy.slideChart(indicChartSlideIncrement);
+								}
+								clickPosition = null;
+							}
+							
+						});
+					}
+	
+				});
+				
+				
+				//focus bizz (useful?)
+				mainChartPanel.addMouseMotionListener(new MouseMotionListener() {
+					
+					@Override
+					public void mouseMoved(final MouseEvent e) {
+						
+						//Sliding
+						if (!closeRequested) {
+							Display.getDefault().asyncExec(new Runnable() {
+								
+								@Override
+								public void run() {
+									
+									if (!closeRequested) {
+										try {
+											Cursor cursor = ChartsComposite.this.getCursor();
+											//if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS))) {
+											if (cursor == null || (!cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) && !cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {	
+												Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, e.getPoint().y);
+												if (isSlidingArea) {
+													ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_SIZENS));
+												} else {
+													ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+												}
+												
+											}
+											
+										} catch (Throwable e) {
+											try {
+												ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+											} catch (Throwable e1) {
+												LOGGER.warn(e1,e1);
+											}
+											LOGGER.warn(e,e);
+										}
+									}
+									
+								}
+							});
 						}
+						
+						
+						//Gain focus mgt						
 						if (!closeRequested) {
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
 									try {
-										if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
-											int cpt = 0;
-											while (chartPanelFocusGain && cpt < 200) {
-												Thread.sleep(10);
-												cpt++;
-											}
-											if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
-												mainChartComposite.forceFocus();
+										if (!closeRequested) {
+											if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
+												int cpt = 0;
+												while (chartPanelFocusGain && cpt < 200) {
+													Thread.sleep(10);
+													cpt++;
+												}
+												if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
+													mainChartComposite.forceFocus();
+												}
 											}
 										}
 									} catch (Throwable e) {
@@ -309,11 +500,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								}
 							});
 						}
+						
 					}
 					
 					@Override
 					public void mouseDragged(MouseEvent e) {
+						//Nothing
 					}
+					
 				});
 				
 				mainChartComposite.addKeyListener(new org.eclipse.swt.events.KeyListener() {
@@ -321,7 +515,17 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					@Override
 					public void keyReleased(org.eclipse.swt.events.KeyEvent e) {
 						if (((e.stateMask & SWT.CTRL) == SWT.CTRL) && ((e.stateMask & SWT.ALT) == SWT.ALT) && (e.keyCode == 'p')) {
-							chartDisplayStrategy.exportBarChartPng();
+							try {
+								chartDisplayStrategy.exportBarChartPng();
+							} catch (InvalidParameterException exception) {
+								chartDisplayStrategy.showPopupDialog( exception.getMessage(), "Ok", null, null);
+							}
+						}
+						if (e.keyCode == SWT.ARROW_UP) {
+							chartDisplayStrategy.slideChart(+1);
+						}
+						if (e.keyCode == SWT.ARROW_DOWN) {
+							chartDisplayStrategy.slideChart(-1);
 						}
 					}
 					
@@ -331,8 +535,26 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					}
 				});
 				
-				chartFrame.add(mainChartPanel);
+				mainChartComposite.addMouseTrackListener(new MouseTrackListener() {
+					
+					@Override
+					public void mouseHover(org.eclipse.swt.events.MouseEvent e) {
+					}
+					
+					@Override
+					public void mouseExit(org.eclipse.swt.events.MouseEvent e) {
+					}
+					
+					@Override
+					public void mouseEnter(org.eclipse.swt.events.MouseEvent e) {
+						mainChartPanel.requestFocusInWindow();
+					}
+				});
+				
+				rootHeavyPanel.add(mainChartPanel);
+				chartFrame.pack();
 				chartFrame.setVisible(true);
+				
 			}
 			{
 				chartBoutonsGroup = new Group(this, SWT.NONE);
@@ -489,8 +711,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									sliderStartDate.setSelection(0);
 									startSliderUpdateConditional(sliderStartDate, startDateLabel, sliderEndDate, endDateLabel);
 								} else {
-									UserDialog dialog = new UserDialog(getShell(), "To move the start date further forward, you will need to move the end date first.", null);
-									dialog.open();
+									chartDisplayStrategy.showPopupDialog("To move the start date further forward, you will need to move the end date first.", "Ok", null, null);
 								}
 							}
 
@@ -531,8 +752,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									sliderEndDate.setSelection(100);
 									endSliderUpdateConditional(sliderEndDate, endDateLabel, sliderStartDate, startDateLabel);
 								} else {
-									UserDialog dialog = new UserDialog(getShell(), "To move the end date further backward, you will need to move the start date first.", null);
-									dialog.open();
+									chartDisplayStrategy.showPopupDialog("To move the end date further backward, you will need to move the start date first.", "Ok", null, null);
 								}
 							}
 
@@ -625,16 +845,16 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		
 		Integer startSliderValue = sliderStartDate.getSelection();
 		
-		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= 10) {
-			if (sliderEndDate.getSelection() <= 90) {
-				int endValue = startSliderValue+10;
+		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= MINSLIDERVALUE) {
+			if (sliderEndDate.getSelection() <= 100-MINSLIDERVALUE) {
+				int endValue = startSliderValue+MINSLIDERVALUE;
 				sliderEndDate.setSelection(endValue);
 				endSliderUpdate(sliderEndDate, endDateLabel, endValue);
 			} else {
 				sliderEndDate.setSelection(99);
 				endSliderUpdate(sliderEndDate, endDateLabel, 99);
-				startSliderValue=90;
-				sliderStartDate.setSelection(90);
+				startSliderValue=100-MINSLIDERVALUE;
+				sliderStartDate.setSelection(100-MINSLIDERVALUE);
 			}
 
 		}
@@ -674,16 +894,16 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		
 		Integer sliderValue = sliderEndDate.getSelection();
     	
-		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= 10) {
-			if (sliderStartDate.getSelection() >= 10) {
-				int startValue = sliderValue-10;
+		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= MINSLIDERVALUE) {
+			if (sliderStartDate.getSelection() >= MINSLIDERVALUE) {
+				int startValue = sliderValue-MINSLIDERVALUE;
 				sliderStartDate.setSelection(startValue);
 				startSliderUpdate(sliderStartDate, startDateLabel, startValue);
 			} else {
 				sliderStartDate.setSelection(0);
 				startSliderUpdate(sliderStartDate, startDateLabel, 0);
-				sliderValue = 10;
-				sliderEndDate.setSelection(10);
+				sliderValue = MINSLIDERVALUE;
+				sliderEndDate.setSelection(MINSLIDERVALUE);
 			}
     	}
     	
@@ -710,13 +930,13 @@ public class ChartsComposite extends SashForm implements RefreshableView {
     	
     	endDateLabel.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
     	endDateLabel.setFont(MainGui.DEFAULTFONT);
-    	
-    	//EventSignalConfig.ENDDATE = slidingEndDate;
+
 	}
 	
 	protected void rootShellClosed(DisposeEvent evt) {
 			closeRequested = true;
-			SWT_AWT.getFrame(mainChartComposite).dispose();	
+			ChartsComposite.this.shutDownDisplay();
+			mainChartComposite.dispose();
 	}
 
 
@@ -742,14 +962,17 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 	@Override
-	public void setCursor(Cursor arg0) {
-		super.setCursor(arg0);
+	public void setCursor(Cursor cursor) {
+		super.setCursor(cursor);
 		
 		java.awt.Cursor awtPredefinedCursor;
-		if (arg0.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || arg0.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
+//		if (!arg0.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
+		if (cursor != null && ( cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS)) )) {
 			
-			if (arg0.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
+			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
+			} else if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS))) {
+				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR);
 			} else {
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
 			}
@@ -758,6 +981,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR);
 		}
 		
+	
 		SWT_AWT.getFrame(mainChartComposite).setCursor(awtPredefinedCursor); 
 		if ( mainChartPanel.getComponents().length > 0) {
 			mainChartPanel.getComponent(0).setCursor(awtPredefinedCursor);
@@ -797,6 +1021,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	@Override
 	public void refreshView(List<Exception> exceptions) {
 		
+		EventDefinition.refreshMaxPassPrefsEventInfo();
+		
 		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
 		if (viewStateParams != null) {
 			
@@ -805,17 +1031,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			
 		}
 		chartDisplayStrategy.refreshView(exceptions);
-		
-		if (viewStateParams != null && isVisible()) {
-			for (Exception exception : exceptions) {
-				if (exception instanceof EventRefreshException) {
-					UserDialog dialog = new UserDialog(ChartsComposite.this.getShell(), "Couldn't update all trends and indicators calculations for "+viewStateParams.getFriendlyName()+". Check that date bounds are not out of range.", exceptions.toString());
-					exceptions.clear();
-					dialog.open();
-					break;
-				}
-			}
-		}
 		
 		if (isVisible()) {
 			Shell[] childrenShells = this.getShell().getShells();
@@ -848,14 +1063,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
 	@Override
-	public Date getAnalysisStartDate() {
-	
-		//Calendar slidingStartCal = Calendar.getInstance();
-		//slidingStartCal.setTime(this.slidingStartDate);
-		////-one Year To fill bar gap at the start of the chart (this is useful when bars are displayed in fill up mode)
-		//QuotationsFactories.getFactory().incrementDateExtraLarge(slidingStartCal, -1);
-		//return slidingStartCal.getTime();
-		
+	public Date getAnalysisStartDate() {		
 		return this.slidingStartDate;
 	}
 	
@@ -948,19 +1156,18 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public void setChartDisplayStrategy(ChartDisplayStrategy chartDisplayStrategy) {
 		
 		this.chartDisplayStrategy = chartDisplayStrategy;
-		chartDisplayStrategy.resetChart();
+		this.chartDisplayStrategy.resetChart();
 		
 		//XXX XXX
 		if (MainGui.viewEventsMenuItem.getSelection()) {
-			
 			MainGui.viewEventsMenuItem.setSelection(false);
 			Listener[] listeners = MainGui.viewEventsMenuItem.getListeners(SWT.Selection);
 			((SelectionListener)((TypedListener)listeners[0]).getEventListener()).widgetSelected(null);
+			updateCharts(getCurrentTabShareList(), true, false, true);
 		} else {
-			updateCharts(getCurrentTabShareList(), true, false, false);
+			updateCharts(getCurrentTabShareList(), true, false, true);
 		}
-		
-		
+
 	}
 
 
@@ -972,5 +1179,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public SlidingPortfolioShare getCurrentLineSelection() {
 		return portfolioComposite.getCurrentShareSelection();
 	}
-	
+
+	public Rectangle2D getPlotChart() {
+		return this.mainChartPanel.getScreenDataArea();
+	}
 }

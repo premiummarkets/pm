@@ -111,12 +111,17 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 
 	@Override
 	protected int getDaysSpan() {
-		return 40;
+		return 42;
 	}
 
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMMFIDIVERGENCE;
+	}
+
+	@Override
+	protected Double getAlphaBalance() {
+		return (double) (getDaysSpan()/4);
 	}
 
 }

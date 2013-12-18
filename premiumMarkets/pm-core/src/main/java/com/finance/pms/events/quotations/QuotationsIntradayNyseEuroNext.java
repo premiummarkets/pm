@@ -100,6 +100,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 					
 				}
 			}
+			bufferedReader.close();
 			
 		} catch (FileNotFoundException e) {
 			LOGGER.error(e,e);

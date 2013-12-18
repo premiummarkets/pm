@@ -73,6 +73,11 @@ public class OnTheFlyRevesreCalcPeriod {
 				", periodStartDate="+  dateFormat.format(periodStartDate) + ", periodEndDate=" +  dateFormat.format(periodEndDate) + "]";
 	}
 	
+	public String toFileExtension() {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		return dateFormat.format(periodStartDate) + "_" +  dateFormat.format(periodEndDate);
+	}
+	
 	
 
 }

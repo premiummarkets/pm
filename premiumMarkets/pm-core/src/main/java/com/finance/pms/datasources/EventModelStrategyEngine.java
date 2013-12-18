@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.httpclient.HttpException;
 
@@ -50,6 +51,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
@@ -99,11 +101,11 @@ public abstract class EventModelStrategyEngine<X> {
 	public abstract Date getLastAnalyse(Date oldLastAnalyse);
 
 
-	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws HttpException;
-	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws StockNotFoundException;
-	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
-	public abstract void callbackForAlerts(Set<Observer> engineObservers,  X rootParam,  Collection<? extends Object>...viewStateParams) throws InterruptedException;
-	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, Collection<? extends Object>...viewStateParams);
+	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException;
+	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws StockNotFoundException;
+	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
+	public abstract void callbackForAlerts(Set<Observer> engineObservers,  X rootParam,  @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws InterruptedException;
+	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams);
 	public abstract void callbackForReco(Set<Observer> engineObservers);
 	
 	public abstract int[] otherViewParamPositionsFor(TaskId taskId);
@@ -170,11 +172,10 @@ public abstract class EventModelStrategyEngine<X> {
 		}
 	}
 	
-	//At the moment, the event are filter in three Categories only : 1rst Pass 2nd Pass and a special case for Parameterised
-	//The is a coarse filter TODO : refine
+	//At the moment, the event are filter in three Categories only : 1rst Pass 2nd Pass and a special case for Parameterised (with a  filter)
 	//The issues :
-	//Neural needs the first pass indicators as in the db.prors and hence these can't be individually tampered
-	//The parameterised could be tampered with a review of the EventSignalConfig.getAllTechIndicatorsSorted as it loads all current EventConditionHolders in the current implementation.
+	//Neural needs the first pass indicators as in the db.props and hence these can't be individually tampered
+	//TODO In the same way parameterised is filtered, Neural could be.
 	protected void tamperEventConfig(Collection<EventInfo> viewStateParams) {
 		
 		if (viewStateParams == null) {//A null value means all ie no filter : we don't tamper.
@@ -183,18 +184,20 @@ public abstract class EventModelStrategyEngine<X> {
 		
 		EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
 	
-		//TODO add a setParameterized in EventConfig to refine the filter?  
 		Set<String> indepIndicators = new HashSet<String>();
+		SortedSet<EventConditionHolder> filteredParameterised = new TreeSet<EventConditionHolder>();
 		for (EventInfo eventInfo : viewStateParams) {
 			if (eventConfig.getIndepIndicators().contains(eventInfo)) {
 				indepIndicators.add(eventInfo.getEventDefinitionRef());
 			}
 			if (eventInfo.getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
 				indepIndicators.add(EventDefinition.PARAMETERIZED.name());
+				filteredParameterised.add((EventConditionHolder) eventInfo);
 			}
 		}
 	
 		eventConfig.setIndepIndicators(new ArrayList<String>(indepIndicators));
+		if (!filteredParameterised.isEmpty()) eventConfig.setFilteredParameterised(filteredParameterised);
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, eventConfig);
 	}
 

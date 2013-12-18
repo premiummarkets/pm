@@ -35,12 +35,14 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.TypedEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -57,18 +59,14 @@ public class UserDialog extends Dialog {
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 
 
-	private Text errorLabel1;
-	private Text textArea;
+	private Text errorTxt;
+	private Text addMsgTxt;
 	private String erreur;
 	private String addMessage;
 	protected Button valideButton1;
-	
-	private Boolean isOk = false;
-
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
 		super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.SHEET | SWT.RESIZE));
-		//super(new Shell(new Shell(SWT.ON_TOP), SWT.SHEET | SWT.RESIZE));
 		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
@@ -76,7 +74,6 @@ public class UserDialog extends Dialog {
 	
 	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
 		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
-		//super(new Shell(new Shell(SWT.ON_TOP),style));
 		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
@@ -84,7 +81,6 @@ public class UserDialog extends Dialog {
 	
 	protected UserDialog(Shell parent, int style, String title, String erreur, String addMessage) {
 		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
-		//super(new Shell(new Shell(SWT.ON_TOP), style));
 		this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
@@ -95,12 +91,7 @@ public class UserDialog extends Dialog {
 		open(true);
 	}
 
-	/**
-	 * Open.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public void open(Boolean focusOnAckButton) {
+	public void open(final Boolean focusOnAckButton) {
 		try {
 
 			GridLayout dialogShellLayout = new GridLayout();
@@ -108,22 +99,23 @@ public class UserDialog extends Dialog {
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 			
 			if (erreur != null) {
-				errorLabel1 = new Text(getParent(), SWT.WRAP);
-				GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-				errorLabel1.setLayoutData(layoutData);
-				errorLabel1.setFont(MainGui.DEFAULTFONT);
-				errorLabel1.setBackground(MainGui.pOPUP_BG);
-				errorLabel1.setText(cleanMsg(this.erreur, true));
-				errorLabel1.setEditable(false);
+				errorTxt = new Text(getParent(), SWT.WRAP);
+				GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+				errorTxt.setLayoutData(layoutData);
+				errorTxt.setFont(MainGui.DEFAULTFONT);
+				errorTxt.setBackground(MainGui.pOPUP_BG);
+				errorTxt.setText(cleanMsg(this.erreur, true));
+				errorTxt.setEditable(false);
 				
 			}
 			if (addMessage != null) {
-				textArea = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
-				textArea.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-				textArea.setFont(MainGui.DEFAULTFONT);
-				textArea.setBackground(MainGui.pOPUP_BG);
-				textArea.setEditable(false);
-				textArea.setText(cleanMsg(this.addMessage, false));
+				addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
+				addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
+				addMsgTxt.setFont(MainGui.DEFAULTFONT);
+				addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
+				addMsgTxt.setEditable(false);
+				addMsgTxt.setCapture(false);
+				addMsgTxt.setText(cleanMsg(this.addMessage, false));
 			}
 			{
 				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);
@@ -132,32 +124,91 @@ public class UserDialog extends Dialog {
 				validationButtonTxtAndAction();
 			}
 			
-			if (errorLabel1 != null) {
-				errorLabel1.pack();
-				if (errorLabel1.getSize().y < 100) ((GridData)errorLabel1.getLayoutData()).heightHint = 100;
-			}
+			Listener listener = new Listener() {
+				
+				@Override
+				public void handleEvent(Event event) {
+					if (focusOnAckButton) {
+						valideButton1.setCapture(true);
+						valideButton1.forceFocus();
+					}
+				}
+			};
+			this.getParent().addListener(SWT.FocusIn,listener);
+			this.getParent().addListener(SWT.FOCUSED,listener);
+			this.getParent().addListener(SWT.Activate,listener);
 			
-			getParent().pack();
-			if (textArea != null) {
-				Point computeSize = textArea.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				textArea.setSize(textArea.getSize().x, Math.max(computeSize.y, 200));
-			}
-			getParent().layout();
+			layout();
 			
+			Point pt = getParent().getDisplay().getCursorLocation();
+			int x = Math.max(0, Math.min(getParent().getDisplay().getBounds().width-getParent().getSize().x, pt.x-getParent().getSize().x-10));
+			int y = Math.max(0, Math.min(getParent().getDisplay().getBounds().height-getParent().getSize().y, pt.y+10));
+			getParent().setLocation(x, y);
 			
 			getParent().open();
-			getParent().setActive();
-			if (focusOnAckButton) valideButton1.setFocus();
+			
+			getParent().getDisplay().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						getParent().setActive();
+					} catch (Exception e) {
+						LOGGER.warn(e, e);
+					}
+				}
+			});
+			
 			
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
 	}
 
+	protected void layout() {
+		
+		if (errorTxt != null) {
+			errorTxt.pack();
+			if (errorTxt.getSize().y < 100) ((GridData)errorTxt.getLayoutData()).heightHint = 100;
+		}
+	
+		if (addMsgTxt != null) {
+			//Point computeSize = addMsgTxt.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			//addMsgTxt.setSize(addMsgTxt.getSize().x, Math.max(computeSize.y, 200));
+			addMsgTxt.pack();
+			addMsgTxt.setSize(addMsgTxt.getSize().x+10, Math.max(addMsgTxt.getSize().y, 200));
+		}
+		
+		
+		getParent().layout();
+		getParent().pack();
+		
+	}
+	
+	public void updateDialog(String title, String erreur, String addMessage) {
+		
+		this.getParent().setText(title);
+		this.erreur = erreur;
+		this.addMessage = addMessage;
+		
+		if (erreur != null && errorTxt != null)  {
+			errorTxt.setText(cleanMsg(this.erreur, true));
+		}
+		if (addMessage != null && addMsgTxt != null) {
+			addMsgTxt.setText(cleanMsg(this.addMessage, false));
+		}
+		valideButton1.setText("Ok");
+		
+		layout();
+		
+		getParent().setActive();
+		valideButton1.setFocus();
+		
+	}
+
 	private String cleanMsg(String message, Boolean noCR) {
 	
 		String cleanMessage = message;
-		if (!noCR) cleanMessage = message.replaceAll("\\. ", ".\n"); //else cleanMessage = message.replaceAll("\\.\n", ". ").replaceAll("\n", ". ");
+		if (!noCR) cleanMessage = message.replaceAll("\\. ", ".\n");
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
 		
@@ -165,12 +216,13 @@ public class UserDialog extends Dialog {
 	}
 
 	protected void validationButtonTxtAndAction() {
+		
 		valideButton1.setText("Ok");
 		valideButton1.setFont(MainGui.DEFAULTFONT);
 		valideButton1.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent evt) {
-				validerbutton1MouseDown(evt);
+				validerbutton1MouseDown();
 			}
 		});
 		valideButton1.addKeyListener(new KeyListener() {
@@ -179,7 +231,7 @@ public class UserDialog extends Dialog {
 			public void keyReleased(KeyEvent e) {
 				System.out.println("Key released : "+e.keyCode+","+e.character+","+e.doit);
 				if ((e.keyCode == SWT.CR || e.keyCode == SWT.SPACE)) {
-					validerbutton1MouseDown(e);
+					validerbutton1MouseDown();
 				}
 			}
 			
@@ -192,20 +244,23 @@ public class UserDialog extends Dialog {
 			
 	}
 
-	/**
-	 * Validerbutton1 mouse down.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	protected void validerbutton1MouseDown(TypedEvent evt) {
-		isOk = true;
+	protected void validerbutton1MouseDown() {
 		getParent().dispose();
 	}
 
-	public Boolean getIsOk() {
-		return isOk;
+	public boolean sameDialog(String erreur, String addMessage) {
+		
+		if (this.addMessage == null) {
+			if (addMessage != null)
+				return false;
+		} else if (!this.addMessage.equals(addMessage))
+			return false;
+		if (this.erreur == null) {
+			if (erreur != null)
+				return false;
+		} else if (!this.erreur.equals(erreur))
+			return false;
+		return true;
 	}
 
 }

@@ -6,26 +6,31 @@ import java.util.Map;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.portfolio.InfoObject;
 
 public class ChartedOutputGroup {
 
 	public enum Type {MAIN, SIGNAL, BOTH, CONSTANT, MULTI, MULTISIGNAL, INVISIBLE};
 	
-	public class OutputDescr {
+	public class OutputDescr implements InfoObject, Comparable<OutputDescr>{
 		
+		OutputReference outputReference;
 		ChartedOutputGroup container;
-		String outputName;
 		Type type;
 		Integer outputIndex;
 		Value<?> value;
 		
-		public OutputDescr(ChartedOutputGroup container, Type type, Integer outputIndex, Value<?> value, String outputName) {
+		Boolean displayOnChart;
+		
+		public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, Value<?> value) {
 			super();
+			this.outputReference = outputReference;
 			this.container = container;
 			this.type = type;
 			this.outputIndex = outputIndex;
 			this.value = value;
-			this.outputName = outputName;
+			
+			this.displayOnChart = true;
 		}
 
 		public Type getType() {
@@ -45,12 +50,18 @@ public class ChartedOutputGroup {
 		}
 
 		public String fullQualifiedName() {
-			return ((container!=null)?container.getThisReference().getOperationReference()+" : ":"")+outputName;
+			String discriminentReference = outputReference.getReference();
+			if (outputReference.getIsLeaf()) {
+				discriminentReference = value.getValueAsString();
+			}
+			
+			String famillyName = outputReference.getOperationReference()+ ((outputReference.getOutputSelector() != null)?":"+outputReference.getOutputSelector():"");
+			return discriminentReference + " (" + famillyName + ") displayed as " + outputReference.getReferenceAsOperand();
 		}
 
 		@Override
 		public String toString() {
-			return "OutputDescr [name=" + outputName + ", type=" + type + ", outputIndex=" + outputIndex + ", value=" + value + "]";
+			return "OutputDescr [type=" + type + ", outputIndex=" + outputIndex + ", value=" + value + ", displayed="+displayOnChart+"]";
 		}
 
 		public ChartedOutputGroup getContainer() {
@@ -75,6 +86,36 @@ public class ChartedOutputGroup {
 		private void setContainer(ChartedOutputGroup container) {
 			this.container = container;
 		}
+
+		public Boolean getDisplayOnChart() {
+			return displayOnChart;
+		}
+
+		public void setDisplayOnChart(Boolean displayOnChart) {
+			this.displayOnChart = displayOnChart;
+		}
+
+		@Override
+		public String info() {
+			return fullQualifiedName();
+		}
+
+		@Override
+		public String tootTip() {
+			//return fullQualifiedName();
+			//return fullQualifiedName() + ((outputReference.getFormula() != null)?" "+outputReference.getFormula():"");
+			return (outputReference.getFormula() != null)?outputReference.getFormula():fullQualifiedName();
+		}
+
+		@Override
+		public int compareTo(OutputDescr o) {
+//			if (outputName != null && o.outputName != null && !outputName.equals(o.outputName)) {
+//				return outputName.compareTo(o.outputName);
+//			} else {
+//				return outputIndex.compareTo(o.outputIndex);
+//			}
+			return this.fullQualifiedName().compareTo(o.fullQualifiedName());
+		}
 	}
 	
 	OutputReference thisReference;
@@ -83,7 +124,7 @@ public class ChartedOutputGroup {
 	
 	//Non displayed group
 	public ChartedOutputGroup(OutputReference outputReference, int outputIndex) {
-		thisDescription = new OutputDescr(this, Type.INVISIBLE, outputIndex, null, null);
+		thisDescription = new OutputDescr(outputReference, this, Type.INVISIBLE, outputIndex, null);
 		thisReference = outputReference;
 		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
 	}
@@ -92,30 +133,36 @@ public class ChartedOutputGroup {
 	//Adding a main
 	public ChartedOutputGroup(Operation operation, int outputIndex) {
 		
-		String outputName = operation.getReference();
-		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
-		
-		thisDescription = new OutputDescr(this, Type.MAIN, outputIndex, null, outputName);
-		thisReference = new OutputReference(operation);
+//		String outputName = operation.getReference();
+//		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
+		OutputReference outputReference = new OutputReference(operation);
+		thisDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
+		thisReference = outputReference;
 		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
 	}
 	
 	public OutputDescr addSignal(Operation operation, int outputIndex) {
-		String outputName = operation.getReference();
-		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
-		OutputDescr outputDescr = new OutputDescr(this, Type.SIGNAL, outputIndex, null, outputName);
-		this.components.put(new OutputReference(operation), outputDescr);
+//		String outputName = operation.getReference();
+//		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
+		OutputReference outputReference = new OutputReference(operation);
+		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null);
+		this.components.put(outputReference, outputDescr);
 		return outputDescr;
 	}
 
 	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue) {
-		String outputName = doubleValue.getNumberValue() +" ("+parentReference+" "+operation.getReferenceAsOperand()+")";
-		this.components.put(new OutputReference(operation), new OutputDescr(this, Type.CONSTANT, null, doubleValue, outputName));
+//		String outputNameOverride = doubleValue.getNumberValue() +" ("+parentReference+" "+operation.getReferenceAsOperand()+")";
+		//OutputReference outputReference = new OutputReference(operation);
+		String referenceAsOperandOverride = parentReference+" "+operation.getReferenceAsOperand();
+		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, true, operation.getOperationReference()); 
+		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
 	}
 	
 	public void addAdditonalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
-		String outputName = outputKey + " ("+operation.getReference()+")";
-		this.components.put(new OutputReference(operation, outputKey), new OutputDescr(this, type, outputIndex, null, outputName));
+//		String outputName = outputKey + " ("+operation.getReference()+")";
+//		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
+		OutputReference outputReference = new OutputReference(operation, outputKey);
+		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null));
 	}
 	
 	public OutputDescr mvComponentInThisGrp(OutputReference outputRef, OutputDescr outputDescr) {

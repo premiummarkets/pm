@@ -99,12 +99,13 @@ public class TunedConfMgr {
 	public TunedConfMgr() {
 	}
 	
-	public TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName) {
+	public synchronized TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName) {
 		
 		TunedConfId tunedConfId = new TunedConfId(stock, configListFileName);
-		TunedConf stockPrevTunedConf = tunedConfDAO.loadTunedConf(tunedConfId);
+		TunedConf stockPrevTunedConf = getTunedConfDAO().loadTunedConf(tunedConfId);
 		if (stockPrevTunedConf == null) { //No prev conf : first calculation for this config file
 			stockPrevTunedConf = new TunedConf(stock, configListFileName);
+			getTunedConfDAO().saveOrUpdateTunedConfs(stockPrevTunedConf);
 		}
 		
 		return stockPrevTunedConf;
@@ -191,41 +192,9 @@ public class TunedConfMgr {
 	//TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
 	public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
 		
-		Calendar dateDebCal = Calendar.getInstance();
-		dateDebCal.setTime(dateDeb);
-		dateDebCal.set(Calendar.HOUR_OF_DAY,0);
-		dateDebCal.set(Calendar.MINUTE,0);
-		dateDebCal.set(Calendar.SECOND,0);
-		dateDebCal.set(Calendar.MILLISECOND,0);
-		Calendar dateFinCal = Calendar.getInstance();
-		dateFinCal.setTime(dateFin);
-		dateFinCal.set(Calendar.HOUR_OF_DAY,0);
-		dateFinCal.set(Calendar.MINUTE,0);
-		dateFinCal.set(Calendar.SECOND,0);
-		dateFinCal.set(Calendar.MILLISECOND,0);
-		Stack<OnTheFlyRevesreCalcPeriod> retuneDates = new Stack<OnTheFlyRevesreCalcPeriod>();
-		
-		if (tuneFreq > 0) {
-
-			Calendar slidingDateFinCal = Calendar.getInstance();
-			slidingDateFinCal.setTime(dateFin);
-			slidingDateFinCal.add(Calendar.DAY_OF_YEAR, 1); //for exclusive subsets fix
-
-			//Add previous periods
-			while (dateDebCal.getTime().before(slidingDateFinCal.getTime())) {
-
-				Date pEndDate = slidingDateFinCal.getTime();
-				QuotationsFactories.getFactory().incrementDateLarge(slidingDateFinCal, -tuneFreq);
-				Date pStartDate = slidingDateFinCal.getTime();
-				retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, pStartDate, pEndDate));
-			}
-
-		} else {
-			
-			retuneDates.add(new OnTheFlyRevesreCalcPeriod(dateDeb, dateFin, dateDeb, dateFin));
-		}
-		
-		return retuneDates;
+		PeriodSpliter periodSpliter = new PeriodSpliter();
+		//return periodSpliter.splitForward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
+		return periodSpliter.splitBackward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
 	}
 
 	public TunedConfDAO getTunedConfDAO() {

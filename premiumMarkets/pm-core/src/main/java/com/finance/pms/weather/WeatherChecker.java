@@ -348,5 +348,10 @@ public class WeatherChecker extends EventCompostionCalculator {
 		return EmailFilterEventSource.PMGlobalBuySell;
 	}
 	
+	@Override
+	protected Date rawDataStartDate(Date startDate, Date endDate) {
+		return startDate;
+	}
+	
 }
 

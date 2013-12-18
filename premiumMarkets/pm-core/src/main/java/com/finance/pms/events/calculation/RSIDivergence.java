@@ -71,7 +71,7 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	
 	@Override
 	protected int getDaysSpan() {
-		return 40;
+		return 42;
 	}
 
 	@Override
@@ -125,5 +125,10 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected TalibIndicator getOscillator() {
 		return this.rsi;
+	}
+
+	@Override
+	protected Double getAlphaBalance() {
+		return (double) (getDaysSpan()/4);
 	}
 }

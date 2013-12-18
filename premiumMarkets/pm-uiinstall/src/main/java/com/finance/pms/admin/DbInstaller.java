@@ -283,6 +283,7 @@ public class DbInstaller extends Observable {
 					System.out.println(statement + " Done!");
 				}
 			}
+			fr.close();
 			System.out.println("Drop constraints. Done!");
 		} catch (FileNotFoundException e) {
 			System.out.println("No constraints to drop.");
@@ -335,6 +336,7 @@ public class DbInstaller extends Observable {
 					System.out.println(statement + " Done!");
 				}
 			}
+			fr.close();
 			System.out.println("Keys. Done!");
 
 		} catch (FileNotFoundException e) {
@@ -367,6 +369,7 @@ public class DbInstaller extends Observable {
 					System.out.println(statement + " Done!");
 				}
 			}
+			fr.close();
 			System.out.println("Indexes. Done!");
 
 		} catch (FileNotFoundException e) {

@@ -39,8 +39,6 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -60,7 +58,7 @@ public class RefreshMonitoredStrategyEngine extends UserContentStrategyEngine<Co
 	}
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) {
+	public void callbackForAlerts(Set<Observer> engineObservers, Collection<Stock> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
 		throw new NotImplementedException();
 	}
 	
@@ -99,10 +97,10 @@ public class RefreshMonitoredStrategyEngine extends UserContentStrategyEngine<Co
 		return 1;
 	}
 
-	@Override
-	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
-		quotationUpdate.getQuotesFor(rootParam);
-	}
+//	@Override
+//	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
+//		quotationUpdate.getQuotesFor(rootParam);
+//	}
 
 	@Override
 	protected List<Stock> buildStockListFrom(Collection<Stock> rootParam) {

@@ -13,6 +13,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.mutable.MutableInt;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -57,22 +58,40 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 		int mfiIdx = getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx());
 		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), mfiIdx - idxSpan, mfiIdx));
 	
+//		Double[] priceLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(this.getCalculatorQuotationData().getCloseValues(), calculatorIndex - idxSpan, calculatorIndex));
+		
 		{
-			Boolean isPriceDown = this.getCalculatorQuotationData().get(calculatorIndex - idxSpan).getClose().compareTo(this.getCalculatorQuotationData().get(calculatorIndex).getClose()) > 0;
+//			Boolean isPriceDown = this.getCalculatorQuotationData().get(calculatorIndex - priceSpan).getClose().compareTo(this.getCalculatorQuotationData().get(calculatorIndex).getClose()) > 0;
+//			ArrayList<Double> priceRegline = new ArrayList<Double>();
+//			Boolean isPriceDown = highLowSolver.lowerHigh(priceLookBackP,new Double[0],priceRegline);
+//			Boolean isPriceDown = leftSigma/(priceSpan - priceSpan/2) > rightSigma/(priceSpan/2);
+			Boolean isPriceDown = false;
+			
 			Boolean isMfiUp = false;
 			Boolean isMfiDownThreshold = false;
-			if (isPriceDown) {
+			isMfiDownThreshold = isOscBelowLowerThreshold(idxSpan, mfiIdx);
 
-				isMfiDownThreshold = isOscBelowLowerThreshold(idxSpan, mfiIdx);
-				
-				if (isMfiDownThreshold) {
-					
-					ArrayList<Double> regline = new ArrayList<Double>();
-					isMfiUp = highLowSolver.higherLow(mfiLookBackP,new Double[0],regline);
-					
-					if (isMfiUp) addReglineOutput(higherLows, calculatorIndex, regline, idxSpan);
+			if (isMfiDownThreshold) {
+
+				ArrayList<Double> regline = new ArrayList<Double>();
+				MutableInt firstTroughIdx = new MutableInt(-1);
+				MutableInt lastTroughIdx = new MutableInt(-1);
+				isMfiUp = highLowSolver.higherLow(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstTroughIdx, lastTroughIdx);
+
+				if (isMfiUp) {
+					int coveredSpan = regline.size();
+					Double leftSigma = 0d;
+					for (int i = calculatorIndex - coveredSpan; i <= calculatorIndex - coveredSpan/2; i++) {
+						leftSigma = leftSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+					}	
+					Double rightSigma=0d;
+					for (int i = calculatorIndex - coveredSpan/2; i <= calculatorIndex; i++) {
+						rightSigma = rightSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+					}
+					isPriceDown = leftSigma/(coveredSpan - coveredSpan/2) > rightSigma/(coveredSpan/2);
+
+					if (isPriceDown) addReglineOutput(higherLows, calculatorIndex, regline, coveredSpan);
 				}
-				
 			}
 			
 			res.setBullishCrossOver(isPriceDown && isMfiDownThreshold && isMfiUp); 
@@ -82,21 +101,40 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 			
 		}
 		{
-			Boolean isPriceUp = this.getCalculatorQuotationData().get(calculatorIndex - idxSpan).getClose().compareTo(this.getCalculatorQuotationData().get(calculatorIndex).getClose()) < 0;
+//			Boolean isPriceUp = this.getCalculatorQuotationData().get(calculatorIndex - priceSpan).getClose().compareTo(this.getCalculatorQuotationData().get(calculatorIndex).getClose()) < 0;
+//			ArrayList<Double> priceRegline = new ArrayList<Double>();
+//			Boolean isPriceUp = highLowSolver.higherLow(priceLookBackP,new Double[0],priceRegline);
+//			Boolean isPriceUp =  leftSigma/(priceSpan - priceSpan/2) < rightSigma/(priceSpan/2);
+			Boolean isPriceUp = false;
+			
 			Boolean isMfiUpThreshold = false;
 			Boolean isMfiDown = false;
-			if (isPriceUp) {
-			
-				isMfiUpThreshold = isOcsAboveUpperThreshold(idxSpan, mfiIdx);
-	
-				if (isMfiUpThreshold) {
-					
-					ArrayList<Double> regline = new ArrayList<Double>();
-					isMfiDown = highLowSolver.lowerHigh(mfiLookBackP, new Double[0], regline);
-					
-					if (isMfiDown) addReglineOutput(lowerHighs, calculatorIndex, regline, idxSpan);
-					
+
+			isMfiUpThreshold = isOcsAboveUpperThreshold(idxSpan, mfiIdx);
+
+			if (isMfiUpThreshold) {
+
+				ArrayList<Double> regline = new ArrayList<Double>();
+				MutableInt firstTroughIdx = new MutableInt(-1);
+				MutableInt lastTroughIdx = new MutableInt(-1);
+				isMfiDown = highLowSolver.lowerHigh(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstTroughIdx, lastTroughIdx);
+
+				if (isMfiDown) {
+
+					int coveredSpan = regline.size();
+					Double leftSigma = 0d;
+					for (int i = calculatorIndex - coveredSpan; i <= calculatorIndex - coveredSpan/2; i++) {
+						leftSigma = leftSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+					}	
+					Double rightSigma=0d;
+					for (int i = calculatorIndex - coveredSpan/2; i <= calculatorIndex; i++) {
+						rightSigma = rightSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+					}
+					isPriceUp = leftSigma/(coveredSpan - coveredSpan/2) < rightSigma/(coveredSpan/2);
+
+					if (isPriceUp) addReglineOutput(lowerHighs, calculatorIndex, regline, coveredSpan);
 				}
+
 			}
 			
 			res.setBearishCrossBellow(isPriceUp && isMfiDown && isMfiUpThreshold);
@@ -165,15 +203,6 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 	}
 	
 	protected void addReglineOutput(SortedMap<Integer, Double> reglines, Integer calculatorIndex, ArrayList<Double> regline, Integer idxSpan) {
-
-//		int overlapFromKey = calculatorIndex-idxSpan-1;
-//		if (reglines.isEmpty() || (reglines.lastKey() < overlapFromKey)) {
-//			reglines.put(calculatorIndex - idxSpan, regline.get(0));
-//			reglines.put(calculatorIndex, regline.get(regline.size()-1));
-//			for (int i = calculatorIndex - idxSpan+1; i < calculatorIndex; i++) {
-//				reglines.put(i, Double.NaN);
-//			}
-//		}
 		
 		int gap = 0;
 		int overlapFromKey = calculatorIndex-idxSpan;
@@ -192,5 +221,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 		}
 			
 	}
+	
+	protected abstract Double getAlphaBalance();
 
 }

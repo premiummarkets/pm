@@ -60,6 +60,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -120,7 +122,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
  */
 public class MainGui extends SashForm implements RefreshableView { 
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(MainGui.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(MainGui.class);
 
 	private Integer cursorCpt = 0;
 
@@ -464,15 +466,16 @@ public class MainGui extends SashForm implements RefreshableView {
 						new MenuItem(eventsSubMenu, SWT.SEPARATOR);
 						{
 							MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
-							eventClean.setText("Parameterise and Create indicators ...");
+							eventClean.setText("Customise and Create calculators ...");
 							eventClean.addSelectionListener(new SelectionAdapter() {
 
 								@Override
 								public void widgetSelected(SelectionEvent e) {
 									if (builderDialog == null || builderDialog.getShell() == null || builderDialog.getShell().isDisposed()) {
 										builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
-										Rectangle parentBounds = chartsSash().getDisplay().map(chartsSash().getParent(), null, chartsSash().getBounds());
-										builderDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/9), chartsSash().getParent().getBounds().width -  chartsSash().getBounds().width);
+										//Rectangle parentBounds = chartsSash().getDisplay().map(chartsSash().getParent(), null, chartsSash().getBounds());
+										//builderDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/9), chartsSash().getParent().getBounds().width -  chartsSash().getBounds().width);
+										builderDialog.open(null, 0);
 									} else {
 										builderDialog.getShell().setVisible(true);
 										builderDialog.getShell().setActive();
@@ -527,6 +530,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+									portfolioStocksEventModel.setViewParamRoot(null); //reset (should mean all portfolio stocks)
 									portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 									initRefreshAction();
@@ -591,7 +595,7 @@ public class MainGui extends SashForm implements RefreshableView {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									
-									final ShareListUpdateDialog instance = new ShareListUpdateDialog(getShell(), SWT.NONE);
+									final ShareListUpdateDialog instance = new ShareListUpdateDialog(getShell());
 									ActionDialogAction actionDialogAction = new ActionDialogAction() {
 										
 										@Override
@@ -711,6 +715,8 @@ public class MainGui extends SashForm implements RefreshableView {
 	 */
 	public static void main(String[] args) {
 		
+		Display.setAppName("Premium Markets");
+		
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
@@ -718,6 +724,24 @@ public class MainGui extends SashForm implements RefreshableView {
 				e.printStackTrace();
 			}
 		});
+		
+		try {
+			// Set cross-platform Java L&F (also called "Metal")
+			UIManager.setLookAndFeel(
+					UIManager.getCrossPlatformLookAndFeelClassName());
+		} 
+		catch (UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+		catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		catch (InstantiationException e) {
+			e.printStackTrace();
+		}
+		catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
 		
 		try {
 			
@@ -767,24 +791,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			
 			shell.layout();
             shell.pack();            	
- 
 			shell.open();
-			
-			try {
-				
-				((PortfolioComposite)inst.portfolioSash()).updateMoniAndPSCachedModels();
-				
-				((PortfolioComposite)inst.portfolioSash()).tabBuildAllTabs(0, new Observer() {
-					
-					@Override
-					public void update(Observable o, Object arg) {
-						((PortfolioComposite)inst.portfolioSash()).backGroundLoadQuotationCache();
-					}
-				});
-
-			} catch (Exception e1) {
-				LOGGER.error(e1,e1);
-			}
 			
             //Shell
             {
@@ -846,6 +853,24 @@ public class MainGui extends SashForm implements RefreshableView {
 			
 			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 			
+			//Post inits
+			try {
+				
+				((PortfolioComposite)inst.portfolioSash()).updateMoniAndPSCachedModels();
+				((PortfolioComposite)inst.portfolioSash()).tabBuildAllTabs(0, new Observer() {
+					@Override
+					public void update(Observable o, Object arg) {
+						((PortfolioComposite)inst.portfolioSash()).backGroundLoadQuotationCache();
+					}
+				});
+				
+				ctx.postInit();
+				
+			} catch (Exception e1) {
+				LOGGER.error(e1,e1);
+			}
+			
+			//Event loop
 			System.out.println("IHM RUNNING");
 			while (!shell.isDisposed()) {
 				try {
@@ -947,8 +972,8 @@ public class MainGui extends SashForm implements RefreshableView {
 	 */
 	private void initContent() {
 		
-		sashes.setToolTipText("Sash : Click on this border and drag to resize");
-		sashes.setCursor(CursorFactory.getCursor(SWT.CURSOR_CROSS));
+		//sashes.setToolTipText("Sash : Click on this border and drag to resize");
+		//sashes.setCursor(CursorFactory.getCursor(SWT.CURSOR_CROSS));
 
 		EventsComposite eventC = new EventsComposite(sashes, SWT.NONE|SWT.BORDER, logComposite);
 		this.winTable[0] = eventC;
@@ -997,7 +1022,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(false);
 			sashes.setWeights(new int[]{100,0,0});
 			
-			((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
+			if ( this.isVisible() ) ((RefreshableView) eventsSash()).refreshView(new ArrayList<Exception>());
 		}
 		
 		if (!viewEventsMenuItem.getSelection() && !viewPortfolioMenuItem.getSelection()) {
@@ -1013,8 +1038,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{50,0,50});
 			
-			((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
-			((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
+			if ( this.isVisible() ) ((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
+			if ( this.isVisible() ) ((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
 		}
 		if (!viewEventsMenuItem.getSelection() && viewPortfolioMenuItem.getSelection()) {
 			eventsSash().setVisible(false);
@@ -1022,8 +1047,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{0,50,50});
 			
-			((RefreshableView)chartsSash()).refreshView(new ArrayList<Exception>());
-			((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
+			if ( this.isVisible() ) ((RefreshableView)chartsSash()).refreshView(new ArrayList<Exception>());
+			if ( this.isVisible() ) ((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
 		}
 
 	}
@@ -1058,16 +1083,24 @@ public class MainGui extends SashForm implements RefreshableView {
 	 */
 	private void closeMain() {
 		
-		Integer hintNumber = new Integer(MainPMScmd.getPrefs().get("email.hint","0"));
-		this.emailHint(hintNumber);
+		try {
+			
+			portfolioSash().setVisible(false);
+			this.getShell().setVisible(false);
+			this.winTable[0].dispose();
+			this.winTable[1].dispose();
+			this.winTable[2].dispose();
+			this.getShell().dispose();
+			
+			Integer hintNumber = new Integer(MainPMScmd.getPrefs().get("email.hint","0"));
+			this.emailHint(hintNumber);
+			
+			SpringContext.getSingleton().close();
+			
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
 		
-		portfolioSash().setVisible(false);
-		this.getShell().setVisible(false);
-		this.winTable[0].dispose();
-		this.winTable[1].dispose();
-		this.winTable[2].dispose();
-		this.getShell().dispose();
-		SpringContext.getSingleton().close();
 	}
 	
 	
@@ -1134,18 +1167,26 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 		synchronized (mainMenu) {
 
-			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
+//			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
+//				cursorCpt --;
+//				if (cursorCpt > 0) {
+//					return;
+//				} 
+//			} else {
+//				cursorCpt++;
+//			}
+			
+			if (cursor != null && (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {
+				cursorCpt++;
+			} else {
 				cursorCpt --;
 				if (cursorCpt > 0) {
 					return;
 				} 
-			} else {
-				cursorCpt++;
 			}
 
-
 			for (Control control : winTable) {
-				if (control != null) {
+				if (control != null && !control.isDisposed()) {
 					control.setCursor(cursor);
 				}
 			}
@@ -1159,7 +1200,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		try {
 			logComposite.endJob(exceptions);
 		} finally {
-			mainMenu.setEnabled(true);
 			this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
 	}
@@ -1167,7 +1207,6 @@ public class MainGui extends SashForm implements RefreshableView {
 	public void initRefreshAction() {
 		
 		setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-		mainMenu.setEnabled(false);
 		logComposite.initRefresh(this);	
 		
 	}
@@ -1196,9 +1235,9 @@ public class MainGui extends SashForm implements RefreshableView {
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
 							SWT.NONE, 
-							"Force request", "This request has already been fulfilled sometime today.", 
+							"Force request", exception +" has already been fulfilled sometime today.", 
 							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
-							"Invalidate previous calculation results for this request", action);
+							"Reset previous request", action);
 					exceptions.clear();
 					dialog.open();
 					break;

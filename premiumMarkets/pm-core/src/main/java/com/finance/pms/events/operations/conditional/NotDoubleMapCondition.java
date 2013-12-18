@@ -19,7 +19,7 @@ public class NotDoubleMapCondition extends BooleanDoubleMapCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(Comparable<Boolean>... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Boolean>... ops) {
 	   return !(Boolean)ops[0];
 	}
 

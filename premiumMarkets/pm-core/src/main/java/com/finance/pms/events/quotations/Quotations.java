@@ -107,7 +107,6 @@ public class Quotations {
 		if (!keepCache) {
 			requestedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
 		} else {
-			//synchronized (Quotations.object) {
 			synchronized(stock) {
 				requestedQuotationsData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
 				if (requestedQuotationsData == null) {

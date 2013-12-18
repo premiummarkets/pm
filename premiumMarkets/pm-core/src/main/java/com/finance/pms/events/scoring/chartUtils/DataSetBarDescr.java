@@ -140,6 +140,11 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		if (tuningRes == null) return Double.NaN;
 		return tuningRes.getProfit();
 	}
+	
+	public Double getStockPriceChange() {
+		if (tuningRes == null) return Double.NaN;
+		return tuningRes.getStockPriceChange();
+	}
 
 	public String getEventDisplayeDef() {
 		return eventDisplayeDef;

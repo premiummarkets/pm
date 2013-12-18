@@ -32,7 +32,8 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.Collection;
 
-import org.apache.commons.math.stat.descriptive.AbstractUnivariateStatistic;
+import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 public class ApacheStats {
 	
@@ -65,5 +66,15 @@ public class ApacheStats {
 		return statistic.evaluate(values);
 	}
 	
+	public double sEvaluateStdev(Collection<Double> subMap, double mean) {
+		double[] values = new double[subMap.size()];
+		int i = 0;
+		for (Double element : subMap) {
+			values[i] = element;
+			i++;
+		}
+		
+		return ((StandardDeviation)statistic).evaluate(values, mean);
+	}
 
 }

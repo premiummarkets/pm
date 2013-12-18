@@ -9,18 +9,18 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
+import com.finance.pms.events.scoring.functions.LeftShifter;
 
-public class PMHouseTrendOperation extends PMWithDataOperation {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(PMHouseTrendOperation.class);
-	
-	public PMHouseTrendOperation() {
-		super("logroc", "Roc logarithmic over a period", new NumberOperation("number", "logRocPeriod", "Roc period", new NumberValue(1.0)), new DoubleMapOperation());
+public class LeftShifterOperation extends PMWithDataOperation {
+
+
+	private static MyLogger LOGGER = MyLogger.getLogger(LeftShifterOperation.class);
+
+	public LeftShifterOperation() {
+		super("leftShifter", "Left shift", new NumberOperation("left shift span"), new DoubleMapOperation("Data to shift"));
 	}
-	
-	public PMHouseTrendOperation(ArrayList<Operation> operands, String outputSelector) {
-		//super("logroc", "Log roc over a period", operands);
+
+	public LeftShifterOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
@@ -28,18 +28,21 @@ public class PMHouseTrendOperation extends PMWithDataOperation {
 
 	@Override
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+
 		//Param check
-		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
+		int leftShiftSpan = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
 
-		//Cacl
+		//Calc
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-			HouseTrendSmoother houseTrend = new HouseTrendSmoother(period);
-			ret.getValue(targetStock).putAll(houseTrend.sSmooth(data, false));
+
+			LeftShifter<Double> leftShifter = new LeftShifter<Double>(leftShiftSpan, false, true);
+			SortedMap<Date, Double> shifted = leftShifter.shift(data);
+			ret.getValue(targetStock).putAll(shifted);
+
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
 		}
 		return ret;
 	}

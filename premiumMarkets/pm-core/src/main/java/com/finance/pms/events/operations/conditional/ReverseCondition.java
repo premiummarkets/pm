@@ -59,8 +59,8 @@ public class ReverseCondition extends Condition<Boolean>  implements StandAloneC
 			Double current = data.get(date);
 			Double previous = rightShiftedData.get(date);
 			if (previous != null && !previous.isNaN()) {
-				isUp = (current - previous)/Math.abs(previous) > changeRatio;
-				isDown = (current - previous)/Math.abs(previous) < -changeRatio;
+				isUp = (current - previous)/Math.abs(previous) > changeRatio/100;
+				isDown = (current - previous)/Math.abs(previous) < -changeRatio/100;
 				if (wasDown != null) {
 					Boolean reversalUp = wasDown && isUp;
 					Boolean reversalDown = wasUp && isDown;

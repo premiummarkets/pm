@@ -41,8 +41,9 @@ public class NewCurrencyStockDialog extends Dialog {
 
 	public NewCurrencyStockDialog(int tabIdx, Shell parent, int style, PortfolioComposite caller) {
 		
-		super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.SHELL_TRIM), style);
-		getParent().setText("Add a currency");
+		//super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.SHELL_TRIM), style);
+		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
+		getParent().setText("Premium Markets - Add a currency");
 		
 		this.caller = caller;
 		this.tabIx = tabIdx;

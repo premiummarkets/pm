@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
@@ -20,7 +19,7 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 public class RefreshChartHightlited extends UserContentStrategyEngine<Stock> {
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) {
+	public void callbackForAlerts(Set<Observer> engineObservers, Stock rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
 		throw new NotImplementedException();
 	}
 	
@@ -77,10 +76,10 @@ public class RefreshChartHightlited extends UserContentStrategyEngine<Stock> {
 		return 1;
 	}
 
-	@Override
-	protected void updateQuotations(QuotationUpdate quotationUpdate, Stock rootParam) throws StockNotFoundException {
-		quotationUpdate.getQuotesFor(Arrays.asList(new Stock[]{rootParam}));
-	}
+//	@Override
+//	protected void updateQuotations(QuotationUpdate quotationUpdate, Stock rootParam) throws StockNotFoundException {
+//		quotationUpdate.getQuotesFor(Arrays.asList(new Stock[]{rootParam}));
+//	}
 
 	@Override
 	protected List<Stock> buildStockListFrom(Stock rootParam) {

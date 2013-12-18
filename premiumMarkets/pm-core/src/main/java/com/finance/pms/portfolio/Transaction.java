@@ -50,7 +50,9 @@ public class Transaction {
 	throws InvalidQuantityException {
 		super();
 		
-		if (quantity.compareTo(BigDecimal.ZERO) < 0)  throw new InvalidQuantityException("The quantity can't be negative!",new Throwable());
+		if (quantity.compareTo(BigDecimal.ZERO) < 0)  {
+			throw new InvalidQuantityException("The quantity can't be negative!",new Throwable());
+		}
 		this.fullAmountIn = previousAmountIn;
 		this.fullAmountOut = previousAmountOut;
 		this.quantity = quantity;

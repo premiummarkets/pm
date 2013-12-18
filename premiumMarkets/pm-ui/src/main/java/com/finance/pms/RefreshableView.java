@@ -33,6 +33,7 @@ package com.finance.pms;
 import java.util.Date;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 
 public interface RefreshableView {
@@ -48,5 +49,7 @@ public interface RefreshableView {
 	Date getAnalysisStartDate();
 	
 	Date getAnalysisEndDate();
+	
+	void setCursor (Cursor cursor);
  	
 }

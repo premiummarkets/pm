@@ -71,26 +71,26 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	}
 
 	@Override
-	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws IncompleteDataSetException {
+	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(final Observer... observers) throws IncompleteDataSetException {
 		
-		Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
+		final Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
 		
 		Boolean isDataSetComplete = true;
 		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
 			if (checkWanted(eventDefinition)) {
 				try {
 					
-					Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
+					final Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
 					
 					List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
-					for (EventInfo eventInfo : eventInfos) {
+					
+					for (final EventInfo eventInfo : eventInfos) {
 						EventCompostionCalculator instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
 						eventCalculations.add(instanciatedECC);
 					}
 					
 				} catch (InvocationTargetException e) {
 					
-					//LOGGER.warn(e);
 					isDataSetComplete = false;
 					
 				} catch (Exception e) {

@@ -160,7 +160,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 		//We gather only outputs for StockOperation and User formulas.
 		if ( (output instanceof DoubleMapValue && (operand.getFormula() != null)) || operand instanceof StockOperation) {
-		//Test if ( (output instanceof DoubleMapValue) || operand instanceof StockOperation) {
 			targetStock.addOutput(operand, output);
 		}
 		//We also gather extraneous chartable outputs from conditions
@@ -174,7 +173,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		
 		ChartedOutputGroup chartedOutputGroup = null;
 		if (this instanceof OnSignalCondition) {//Operands outputs are grouped
-			//pikup or create the group
+			//pick up or create the group
 			int mainOpPosition = ((OnSignalCondition) this).mainInputPosition();
 			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
 			//add the signal
@@ -182,7 +181,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			targetStock.addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition));
 			
 		} else if ((this instanceof OnThresholdCondition)) {
-			//pikup or create the group
+			//pick up or create the group
 			int mainOpPosition = ((OnThresholdCondition) this).mainInputPosition();
 			Operation mainOp = operands.get(mainOpPosition);
 			chartedOutputGroup = targetStock.setMain(mainOp);
@@ -191,7 +190,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
 			
 		} else if (this instanceof StandAloneCondition) {	
-			//pikup or create the group
+			//pick up or create the group
 			int mainOpPosition = ((StandAloneCondition) this).mainInputPosition();
 			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));	
 		}
@@ -499,4 +498,5 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	public abstract int operationStartDateShift();
+	
 }

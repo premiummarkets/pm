@@ -2,12 +2,14 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
-import javax.annotation.PostConstruct;
+import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
@@ -38,27 +40,40 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		disabledUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "disabledIndicators");
 		if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
 		
+		trashUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "trashedIndicators");
+		if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
+		
 		NativeParametrizedIndicators nativeIndicatorsContainer = NativeParametrizedIndicators.loadNativeIndicators();
 		nativeOperations = nativeIndicatorsContainer.getCalculators();
-		currentOperations.putAll(nativeOperations);
+		getCurrentOperations().putAll(nativeOperations);
 	}
 
-	@PostConstruct
+//	@PostConstruct
 	public void init() {
 		
 		resetUserOperations();
 		
-		//Is called when operations are changed
+		//Is called when operations are deleted, changed or added
 		this.parameterizedOperationBuilder.addObserver(new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
-				if (arg != null)  {
-					
-					List<Operation> checkInUse = actualCheckInUse(currentOperations.values(), (Operation)arg);
+				
+				if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
+				
+				ObsMsg msg = (ObsMsg) arg;
+				
+				switch(msg.type) { 
+				case DELETE :
+					List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.operation);
 					if (!checkInUse.isEmpty()) throw new InUsedExecption(checkInUse);
-
-				} else {
+					break;
+				case CHANGE :	
+					actualReplaceInUse(getCurrentOperations().values(), msg.operation);
+					break;
+				case RESET :
 					resetUserOperations();
+					updateEditableOperationLists();
+					break;
 				}
 			}
 		});
@@ -78,6 +93,16 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	@Override
 	protected Operation fetchUserOperation(String opRef) {
 		return parameterizedOperationBuilder.getUserCurrentOperations().get(opRef);
+	}
+	
+	@Override
+	protected Operation fetchAsyncNativeOperation(String opRef) {
+		return parameterizedOperationBuilder.getCurrentOperations(false).get(opRef);
+	}
+
+	@Override
+	protected Operation fetchAsyncUserOperation(String opRef) {
+		return parameterizedOperationBuilder.getUserCurrentOperations(false).get(opRef);
 	}
 
 	@Override
@@ -110,11 +135,29 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	//Is called when Indicators are changed
 	@Override
-	protected void updateCaches() {
+	protected void updateCaches(Operation operation, Boolean isNewOp) {
 		EventDefinition.refreshMaxPassPrefsEventInfo();
 	}
 
+	@Override
+	public void resetCaches() {
+		throw new NotImplementedException();
+	}	
 
-	
+	@Override
+	protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
+		
+		String destFormula = sourceFormula;
+		for (String sourceOpRef : duplOperands.keySet()) {
+			destFormula = destFormula.replaceAll(" "+sourceOpRef+"( |;)", " "+duplOperands.get(sourceOpRef).getReference()+"$1");
+		}
+		
+		return destFormula;
+	}
+
+	@Override
+	protected ParameterizedBuilder subjacentDuplicator() {
+		return this.parameterizedOperationBuilder;
+	}
 	
 }

@@ -325,11 +325,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		
 		//PMTAEvents,PMScreening,PMUserScreening,PMAlert,PMUserAlert,PMAutoBuySell,PMUserBuySell,PMWeather 
 		switch(eventSource) {
-		case PMTAEvents:
-		case PMAutoScreening :
-		case PMAutoAlert:
-		case PMAutoBuySell:
-			break;
 		case PMUserScreening:
 			if (eMailTxt.contains("rank is Down")) {
 				evenTypeAdd = bearish;
@@ -353,6 +348,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				evenTypeAdd = bullish;
 			}
 			break;
+		default :
+			{}
 		}
 
 		return evenTypeAdd;

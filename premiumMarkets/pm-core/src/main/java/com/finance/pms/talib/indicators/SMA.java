@@ -77,7 +77,7 @@ public class SMA extends TalibIndicator {
 		RetCode rc = RetCode.Success;
 		Integer period = (Integer) indicatorsParams[0];
 		
-		if (period == 1) {
+		if (period <= 1) {
 			this.sma = Arrays.copyOfRange(inReal[0], startIdx, endIdx + 10);
 			outBegIdx = new MInteger();
 			outBegIdx.value = startIdx;

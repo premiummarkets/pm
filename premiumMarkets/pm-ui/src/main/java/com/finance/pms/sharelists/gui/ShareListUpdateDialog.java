@@ -78,9 +78,10 @@ public class ShareListUpdateDialog extends Dialog {
 
 	private ActionDialogAction actionDialogAction;
 
-	public ShareListUpdateDialog(Shell parent, int style) {
+	public ShareListUpdateDialog(Shell parent) {
 		
-		super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.RESIZE | SWT.SHELL_TRIM), style);
+		//super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.RESIZE | SWT.SHELL_TRIM), style);
+		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
 		getParent().setText("Premium Markets - Add or Update a Stock list");
 				
 		biggerFont = MainGui.DEFAULTFONT;
@@ -229,7 +230,7 @@ public class ShareListUpdateDialog extends Dialog {
 			paramsGroup.setVisible(false);
 			
 			Label paramsLabel = new Label(paramsGroup, SWT.NONE);
-			paramsLabel.setText("You have selected parametrisable list. You must parametrise it using the list below.\nYou can also directly type in a comma separated combination in the blank field.\nUse Ctrl F to search and Ctrl click for multi selection.");
+			paramsLabel.setText("You have selected a customisable list. You must customise it using the list below.\nYou can also directly type in a comma separated combination in the blank field.\nUse Ctrl F to search and Ctrl click for multi selection.");
 			paramsLabel.setBackground(MainGui.pOPUP_GRP);
 			paramsLabel.setFont(MainGui.CONTENTFONT);
 			

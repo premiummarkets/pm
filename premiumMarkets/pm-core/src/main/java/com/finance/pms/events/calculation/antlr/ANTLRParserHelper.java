@@ -175,7 +175,7 @@ public abstract class ANTLRParserHelper {
 			if (currentTyping.equals(editorOpDescr.getName())) {
 				foundMatch = true;
 			} else if (editorOpDescr.getName().startsWith(currentTyping) && !currentTyping.equals(editorOpDescr.getName())) {
-				alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATATOKEN, editorOpDescr.getName(), editorOpDescr.getDescription(),editorOpDescr.getSynoptic(), null, highLighPosition));
+				alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATATOKEN, editorOpDescr.getName(), editorOpDescr.getDescription(), editorOpDescr.getSynoptic(), null, highLighPosition));
 				foundMatch = true;
 			} 
 		}

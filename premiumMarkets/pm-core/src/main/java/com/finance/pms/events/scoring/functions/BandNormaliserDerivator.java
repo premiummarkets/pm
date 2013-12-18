@@ -40,11 +40,13 @@ public class BandNormaliserDerivator implements DiscretDerivator {
 	
 	private double lowThreshold;
 	private double highThreshold;
+	private Boolean flip;
 	
-	public BandNormaliserDerivator(double lowThreshold, double highThreshold) {
+	public BandNormaliserDerivator(double lowThreshold, double highThreshold, Boolean flip) {
 		super();
 		this.lowThreshold = lowThreshold;
 		this.highThreshold = highThreshold;
+		this.flip = flip;
 	}
 
 	@Override
@@ -58,10 +60,10 @@ public class BandNormaliserDerivator implements DiscretDerivator {
 			double retValue = 0.5;
 			double currentValue = values.get(i)[0];
 			if (currentValue < lowThreshold) {
-				retValue = 0;
+				retValue = (!flip)?0:1;
 			}
 			if (currentValue > highThreshold) {
-				retValue = 1;
+				retValue = (!flip)?1:0;
 			}
 			
 			ret.put(keys.get(i), new double[]{retValue});

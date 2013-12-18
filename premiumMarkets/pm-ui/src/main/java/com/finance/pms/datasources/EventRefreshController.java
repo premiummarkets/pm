@@ -30,6 +30,7 @@
  */
 package com.finance.pms.datasources;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import java.util.Observer;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
+import com.finance.pms.AudioPlayer;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -292,10 +294,10 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 				
 			} finally {
 				
-				if (!taskIsValid && eventModel.allowsTaskReset()) exceptions.add(new InvalidEventRefreshTask(lastTaskOfThisGroup));
+				if (!taskIsValid && eventModel.allowsTaskReset()) exceptions.add(new InvalidEventRefreshTask(lastTaskOfThisGroup, eventModel.rootViewParam));
 
 				//Refresh view task
-				EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh, eventModel.rootViewParam , eventModel.otherViewParams) {
+				EventTaskQueue.getSingleton().offerTask(new EventRefreshTask(TaskId.ViewRefresh, eventModel.rootViewParam, eventModel.otherViewParams) {
 					
 					public void run() {
 						
@@ -312,6 +314,13 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 									view.endRefreshAction(exceptions);
 								}
 							});
+							
+							try {
+								AudioPlayer.loadStream("ring", System.getProperty("installdir")+File.separator+"icons/telephone-ring-01_s.wav");
+								AudioPlayer.play("ring", false);
+							} catch (Exception e) {
+								LOGGER.warn(e,e);
+							}
 							
 						} catch (Exception e) {
 							LOGGER.error(e,e);
@@ -480,10 +489,19 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 					if (viewParamPositionsForTaskId.length != other.viewParamPositionsForTaskId.length) throw new Exception("Tasks are not comparable : "+this+" and "+other);
 
 					for (int i = 0; i < viewParamPositionsForTaskId.length; i++) {
+						
+						if (viewParamPositionsForTaskId[i] >= taskOtherParams.size() && other.viewParamPositionsForTaskId[i] >= other.taskOtherParams.size()) {//Both params required but not set? That should be a bug? We ignore?
+							LOGGER.warn("Other param required but not set? That should be a bug? We ignore and return true while comparing : "+this+ " and "+other, new Exception());
+							return true;
+						} else if (viewParamPositionsForTaskId[i] >= taskOtherParams.size()) {//This params required but not set we return false : this does not contains other
+							return false;
+						}  else if (other.viewParamPositionsForTaskId[i] >= other.taskOtherParams.size()) {//Other params required but not set we return true : this contains other
+							return true;
+						}
 
 						if (taskOtherParams.get(viewParamPositionsForTaskId[i]) == null) {//A null array means all for the sub set. So it contains : we skip
 							continue;
-						} else if (other.taskOtherParams.get(other.viewParamPositionsForTaskId[i]) == null) {//other presents a null array means it wants all so cannot be contained => false.
+						} else if (other.taskOtherParams.get(other.viewParamPositionsForTaskId[i]) == null) {//Other presents a null array means it wants all so cannot be contained => false.
 							return false;
 						} else {//we check element one by one
 							for (Object viewParam : other.taskOtherParams.get(other.viewParamPositionsForTaskId[i])) {

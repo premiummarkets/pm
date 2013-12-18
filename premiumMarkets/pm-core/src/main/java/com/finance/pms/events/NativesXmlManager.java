@@ -8,11 +8,14 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.Division;
+import com.finance.pms.events.operations.nativeops.FlipOperation;
+import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
-import com.finance.pms.events.operations.nativeops.PMHouseTrendOperation;
+import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.PMSMAOperation;
@@ -21,6 +24,9 @@ import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
 import com.finance.pms.events.operations.nativeops.TalibMacdOperation;
 import com.finance.pms.events.operations.nativeops.TalibSmaOperation;
+import com.finance.pms.events.operations.nativeops.UnaryDivision;
+import com.finance.pms.events.operations.nativeops.UnaryProduct;
+import com.finance.pms.events.operations.nativeops.UnarySum;
 
 
 public class NativesXmlManager {
@@ -50,6 +56,13 @@ public class NativesXmlManager {
 		Subtraction subtraction = new Subtraction();
 		nativeOperations.addOperation(subtraction);
 		
+		UnarySum unarySum = new UnarySum();
+		nativeOperations.addOperation(unarySum);
+		UnaryProduct unaryProduct = new UnaryProduct();
+		nativeOperations.addOperation(unaryProduct);
+		UnaryDivision unaryDivision = new UnaryDivision();
+		nativeOperations.addOperation(unaryDivision);
+		
 		//Talib
 		TalibMacdOperation talibMacdOperation = new TalibMacdOperation();
 		nativeOperations.addOperation(talibMacdOperation);
@@ -61,14 +74,21 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmmacdOperation);
 		PMSMAOperation pmsmaOperation = new PMSMAOperation();
 		nativeOperations.addOperation(pmsmaOperation);
-		PMHouseTrendOperation houseTrendOperation = new PMHouseTrendOperation();
+		PMLogRocOperation houseTrendOperation = new PMLogRocOperation();
 		nativeOperations.addOperation(houseTrendOperation);
 		PMAroonOperation pmAroonOperation = new PMAroonOperation();
 		nativeOperations.addOperation(pmAroonOperation);
 		PMMightyChaikinOperation pmMChaikinOperation = new PMMightyChaikinOperation();
 		nativeOperations.addOperation(pmMChaikinOperation);
 		
-		//saveNativeOperations(nativeOperations);
+		//Other
+		FlipOperation flipOperation = new FlipOperation();
+		nativeOperations.addOperation(flipOperation);
+		LeftShifterOperation leftShiterOperation = new LeftShifterOperation();
+		nativeOperations.addOperation(leftShiterOperation);
+		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
+		nativeOperations.addOperation(bandNormalizerOperation);
+		
 		return nativeOperations;
 	}
 

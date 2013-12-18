@@ -181,7 +181,6 @@
 	
 	<bean id="parameterizedOperationBuilder" class="com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder">
 		<constructor-arg type="com.finance.pms.events.NativesXmlManager" ref="nativesXmlManager"/>
-		<constructor-arg type="com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator" ref="talibOperationGenerator"/>
 	</bean>
 	
 	<bean id="parameterizedIndicatorsBuilder" class="com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder">

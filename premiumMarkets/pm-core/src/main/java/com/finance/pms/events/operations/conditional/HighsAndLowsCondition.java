@@ -6,13 +6,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import org.apache.commons.lang.mutable.MutableInt;
+
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -34,7 +38,9 @@ import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
  * 'spanning'
  * 
  */
-public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>> implements StandAloneCondition {
+@SuppressWarnings("rawtypes")
+@XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
+public abstract class HighsAndLowsCondition extends Condition<Comparable> implements StandAloneCondition {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
 
@@ -42,7 +48,11 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 	}
 	
 	public HighsAndLowsCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("look back span in days"), new NumberOperation("smoothed look back tolerance threshold period"), new DoubleMapOperation("historical data input"));
+		super(reference, description, 
+				new NumberOperation("minimum days span between two extremes"),
+				new NumberOperation("look back period in days"),
+				new NumberOperation("smoothing period for extremes inclusion edge (unused?)"),//UnUsed
+				new DoubleMapOperation("historical data input"));
 	}
 
 	public HighsAndLowsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -52,20 +62,24 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 
 	@Override
 	public int mainInputPosition() {
-		return 2;
+		return 3;
 	}
 
 
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, List<? extends Value> inputs) {
 		
-		Integer lookBackNbdays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
+		Double minimunNbDaysBetweenExtrs = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Integer lookBackNbdays = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 		
-		if (lookBackNbdays < 4) return new BooleanMultiMapValue(data.keySet(),false); //We need a least 3 days to draw one of these
+		if (minimunNbDaysBetweenExtrs < 4) return new BooleanMultiMapValue(data.keySet(),false); //We need a least 3 days to draw one of these
 		
+		if (lookBackNbdays == -1) {
+			lookBackNbdays = (int) (minimunNbDaysBetweenExtrs*4);
+		}
 		
 		SortedMap<Date, Double> sSmooth = new TreeMap<Date, Double>();
 		Date sSmoothFirstKey= new Date(0);
@@ -93,9 +107,19 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 					thresholdLookBackP = sSmooth.subMap(lookBackPeriodStart, date);
 				}
 			
-				ComparableArray regline = new ComparableArray();
+				ComparableArray<Double> regline = new ComparableArray<Double>();
+				MutableInt firstExtremeIdx = new MutableInt(-1);
+				MutableInt lastExtremeIdx = new MutableInt(-1);
+
+				Comparable periodDataOps = (Comparable)new ComparableArray<Double>(quotationLookBackP.values());
+				Comparable periodSmootherEdgeOps = (Comparable) new ComparableArray<Double>(thresholdLookBackP.values());
+				Comparable alphaBalanceOps = minimunNbDaysBetweenExtrs;
+				Comparable reglineOps = regline;
+				Comparable firstExtremeIdxOps = firstExtremeIdx;
+				Comparable lastExtremeIdxOps = lastExtremeIdx;
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(new ComparableArray(quotationLookBackP.values()), new ComparableArray(thresholdLookBackP.values()), regline);
+				Boolean conditionCheck = conditionCheck(periodDataOps, periodSmootherEdgeOps, alphaBalanceOps, reglineOps, firstExtremeIdxOps, lastExtremeIdxOps);
+				
 				if (conditionCheck != null) {
 					
 					outputs.getValue(targetStock).put(date, conditionCheck);
@@ -105,23 +129,25 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 						try {
 							
 							SortedMap<Date, Double> datesSubMap = data.subMap(lookBackPeriodStart, date);
-							List<Date> datesList = new ArrayList<Date>(datesSubMap.keySet());
+							ArrayList<Date> lbDates = new ArrayList<Date>(datesSubMap.keySet());
+							List<Date> regLineDates = lbDates.subList(lbDates.size() - regline.size(), lbDates.size());
 							
 							int gap = 0;
 							if (!reglines.isEmpty()) {
 								SortedMap<Date,Double> roomAvail = data.subMap(reglines.lastKey(), date);
-								while (roomAvail.size() <= datesSubMap.size() + 2 && gap < datesList.size()-1) {
+								int reglineSize = regLineDates.size();
+								while (roomAvail.size() <= reglineSize + 2 && gap + 1 < regLineDates.size()) {
 									gap++;
-									datesSubMap = data.subMap(datesList.get(gap), date);
+									reglineSize = data.subMap(regLineDates.get(gap), date).size();
 								}
 							}
 							
-							if (gap < datesList.size()) {
-								reglines.put(datesList.get(gap), regline.get(gap));
-								for (int i = gap+1; i < datesList.size()-1; i++) {
-									reglines.put(datesList.get(i), Double.NaN);
+							if (gap < regLineDates.size()) {
+								reglines.put(regLineDates.get(gap), regline.get(gap));
+								for (int i = gap+1; i < regLineDates.size()-1; i++) {
+									reglines.put(regLineDates.get(i), Double.NaN);
 								}
-								reglines.put(datesList.get(datesList.size()-1), regline.get(regline.size()-1));
+								reglines.put(regLineDates.get(regLineDates.size()-1), regline.get(regline.size()-1));
 							}
 							
 						} catch (Exception e) {
@@ -170,24 +196,6 @@ public abstract class HighsAndLowsCondition extends Condition<ArrayList<Double>>
 			regLineBuff.close();
 		} catch (IOException e) {
 			LOGGER.error(e,e);
-		}
-	}
-	
-	class ComparableArray extends ArrayList<Double> implements Comparable<ArrayList<Double>> {
-
-		private static final long serialVersionUID = -363699288012620328L;
-
-		public ComparableArray(Collection<Double> values) {
-			super(values);
-		}
-
-		public ComparableArray() {
-			super();
-		}
-
-		@Override
-		public int compareTo(ArrayList<Double> o) {
-			return this.hashCode() - o.hashCode();
 		}
 	}
 	

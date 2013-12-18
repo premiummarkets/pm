@@ -11,6 +11,9 @@ tokens {
   StockOperation ;
   OperationOutput ;
   Tcheat;
+  String;
+  
+  NullCondition;
   
   OrDoubleMapCondition ;
   AndDoubleMapCondition ;
@@ -41,6 +44,7 @@ tokens {
   
   OR ='or';
   AND ='and';
+  LENIENT='lenient';
   NOT='not';
   COMMA=';';
   OPENPARENTEHSIS='(';
@@ -137,21 +141,25 @@ tokens {
 }
 
 complete_expression :
-   bcond=bullish_condition bearish_condition[$bcond.tree] -> ^(EventConditionHolder bullish_condition bearish_condition StringOperation) 
+   bcond=bullish_condition bearish_condition[$bcond.tree] also_display -> ^(EventConditionHolder bullish_condition bearish_condition also_display StringOperation) 
    ;
 
 bullish_condition :
  'is bullish when' WhiteChar primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression
  ;
 bearish_condition[CommonTree bcond] :
- 'is bearish when' WhiteChar  primary_expression WhiteChar* COMMA -> primary_expression |
- bearish_not_bullish[$bcond] WhiteChar* COMMA -> bearish_not_bullish
+ 'is bearish when' WhiteChar  primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression |
+ bearish_not_bullish[$bcond] WhiteChar* COMMA WhiteChar* -> bearish_not_bullish
  ;
+ also_display :
+  'also display' WhiteChar primary_expression WhiteChar* COMMA -> ^(AndDoubleMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
+  -> NullCondition
+  ;
  
 bearish_not_bullish[CommonTree bcond] :
  'is bearish if not bullish' 
   (
-  WhiteChar AND WhiteChar primary_expression ->  ^(AndDoubleMapCondition ^(NotDoubleMapCondition {$bcond}) primary_expression)| 
+  WhiteChar AND WhiteChar primary_expression ->  ^(AndDoubleMapCondition ^(String StringToken["\"FALSE\""]) ^(NotDoubleMapCondition {$bcond}) primary_expression)| 
   WhiteChar OR WhiteChar  primary_expression ->  ^(OrDoubleMapCondition ^(NotDoubleMapCondition {$bcond}) primary_expression)|
   -> ^(NotDoubleMapCondition {$bcond})
   )
@@ -161,21 +169,30 @@ primary_expression :
  and_expression
  ;
  
-and_expression :  or_expression (WhiteChar AND WhiteChar or_expression)*  ->  ^(AndDoubleMapCondition or_expression or_expression*);
-or_expression :  atom (WhiteChar OR WhiteChar atom)*                      ->  ^(OrDoubleMapCondition atom atom*);
-atom : booleanhistory | '(' WhiteChar* primary_expression WhiteChar* ')' ->  primary_expression | 'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotDoubleMapCondition primary_expression);
+and_expression :  
+  or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)*  ->  ^(AndDoubleMapCondition {$lenientParam.tree}  or_expression or_expression*)
+  ;
+or_expression :  
+  atom (WhiteChar OR WhiteChar atom)* ->  ^(OrDoubleMapCondition atom atom*)
+  ;
+atom : 
+  booleanhistory | 
+  '(' WhiteChar* primary_expression WhiteChar* ')' ->  primary_expression | 
+  'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotDoubleMapCondition primary_expression)
+  ;
  
 booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree]  ->  presetcondition | opcmpcondition[$firstOp.tree]   ->  opcmpcondition| constantcmp[$firstOp.tree]   ->  constantcmp );
 operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) | opName = Operation {checkOperationValidity($opName);} -> Operation;
 constant :  NumberToken -> ^(Number NumberToken) ;
+lenient : (WhiteChar LENIENT  -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
 
 opcmpcondition [CommonTree firstOp] : 
 
   ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(SupDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
-  ('is below historical' WhiteChar operand -> ^(InfDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) ) 
+  ('is below historical' WhiteChar secondOp=operand -> ^(InfDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) ) 
     ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(InfDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
-  ('equals historical' WhiteChar operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
+  ('equals historical' WhiteChar secondOp=operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
     ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
   
   ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
@@ -211,29 +228,29 @@ presetcondition [CommonTree firstOp]  :
       ( WhiteChar 'more than' WhiteChar percentup=constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
       -> ^(ReverseCondition ^(Number NumberToken["1"]) {$percentup.tree} {$spanningNbDays.tree} {$firstOp}) )? |
       
-  ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp})) 
-      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(DownRatioCondition {$percentdown.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$firstOp}) )? |
-  ('goes up more than' WhiteChar percentup=constant PERCENT -> ^(UpRatioCondition constant ^(Number NumberToken["1.0"])  ^(Number NumberToken["0.0"]) {$firstOp})) 
-      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS -> ^(UpRatioCondition {$percentup.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$firstOp}) )? |
+  ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp})) 
+      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+        WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      -> ^(DownRatioCondition {$percentdown.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$forNbDays.tree} {$firstOp}) )? |
+  ('goes up more than' WhiteChar percentup=constant PERCENT -> ^(UpRatioCondition constant ^(Number NumberToken["1.0"])  ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp})) 
+      ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
+        WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      -> ^(UpRatioCondition {$percentup.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$forNbDays.tree} {$firstOp}) )? |
       
-  ('crosses up threshold' WhiteChar threshold=constant -> ^(CrossUpConstantCondition constant ^(Number NumberToken["1.0"])  ^(Number NumberToken["0.0"]) {$firstOp}))
+  ('crosses up threshold' WhiteChar threshold=constant -> ^(CrossUpConstantCondition constant ^(Number NumberToken["1.0"])  ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-      -> ^(CrossUpConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree}  {$firstOp}) )? |  
+      -> ^(CrossUpConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree} ^(Number NumberToken["0.0"]) {$firstOp}) )? |  
       
-  ('crosses down threshold' WhiteChar threshold=constant -> ^(CrossDownConstantCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp}))
+  ('crosses down threshold' WhiteChar threshold=constant -> ^(CrossDownConstantCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-      -> ^(CrossDownConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree}  {$firstOp}) )? |
+      -> ^(CrossDownConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree} ^(Number NumberToken["0.0"]) {$firstOp}) )? |
       
-  ('makes a higher high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherHighCondition constant ^(Number NumberToken["-1.0"]) {$firstOp}))
-       ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(HigherHighCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )? |
-  ('makes a higher low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherLowCondition constant ^(Number NumberToken["-1.0"]) {$firstOp}))
-       ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(HigherLowCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )? |
-  ('makes a lower high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerHighCondition constant ^(Number NumberToken["-1.0"]) {$firstOp}))
-       ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(LowerHighCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )? |
-  ('makes a lower low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerLowCondition constant ^(Number NumberToken["-1.0"]) {$firstOp}))
-       ( WhiteChar 'smoothing threshold' WhiteChar lookBackSmthPeriod=constant -> ^(LowerLowCondition {$nbDays.tree} {$lookBackSmthPeriod.tree} {$firstOp}) )?;
+  ('makes a higher high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherHighCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp})) |
+  ('makes a higher low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherLowCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp})) |
+  ('makes a lower high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerHighCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp})) |
+  ('makes a lower low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerLowCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp}));
 
 Operation 
       : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
@@ -242,6 +259,9 @@ Operation
 NumberToken
       :  ('-')? ('0'..'9')+ ('.' ('0'..'9')+)?
       ;
+StringToken
+     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_')* '"'
+     ;
       
 HistoricalData
 			: {runtimeHistoryOpAhead()}? => ( 'open' | 'close' | 'high' | 'low'  | 'volume' )
@@ -252,7 +272,7 @@ WhiteChar
       ;
       
 Tcheat
-     : ('a'..'z' | 'A'..'Z')+
+     : ('a'..'z' | 'A'..'Z' | '0'..'9')+
      ;
     
 //additionnal lexical rules (hidden chars)
@@ -265,3 +285,4 @@ COMMENT
 LINE_COMMENT
     : '//' ~('\n'|'\r')* '\r'? '\n' {$channel=HIDDEN;}
     ;
+    

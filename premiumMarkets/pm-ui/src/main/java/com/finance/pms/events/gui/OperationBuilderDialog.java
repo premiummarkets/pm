@@ -24,14 +24,16 @@ public class OperationBuilderDialog {
 	public Object open(Point location, int width) {
 	
         shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
-        shell.setText("Premium Markets - Parameterise and Create indicators ...");
+        shell.setText("Premium Markets - Customise and Create indicators ...");
         
         initGui();
         
-        shell.setLocation(location);
-        Point computeSize = shell.computeSize(width, SWT.DEFAULT);
-        shell.setSize(computeSize);
-        shell.open();
+        if (location != null) {
+			shell.setLocation(location);
+			Point computeSize = shell.computeSize(width, SWT.DEFAULT);
+			shell.setSize(computeSize);
+		}
+		shell.open();
         
         return null;
         
@@ -45,7 +47,7 @@ public class OperationBuilderDialog {
 		Group opGrp = new Group(shell, SWT.NONE);
 		opGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		opGrp.setLayout(new GridLayout());
-		opGrp.setText("Parameterise and Create indicators' calculation");
+		opGrp.setText("Customise and Create Operations");
 		opGrp.setFont(MainGui.DEFAULTFONT);
 		opGrp.setBackground(MainGui.pOPUP_GRP);
 		OperationBuilderComposite operationBuilderDialog = new OperationBuilderComposite(opGrp, mainGui);
@@ -54,13 +56,17 @@ public class OperationBuilderDialog {
 		Group indcGrp = new Group(shell, SWT.NONE);
 		indcGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		indcGrp.setLayout(new GridLayout());
-		indcGrp.setText("Parameterise and Create events' calculation");
+		indcGrp.setText("Customise and Create Trends Calculators");
 		indcGrp.setFont(MainGui.DEFAULTFONT);
 		indcGrp.setBackground(MainGui.pOPUP_GRP);
 		IndicatorBuilderComposite indicatorBuilderComposite = new IndicatorBuilderComposite(indcGrp, mainGui, operationBuilderDialog.getComboUpdateMonitor());
+		operationBuilderDialog.obsComboUpdateMonitor(indicatorBuilderComposite.getComboUpdateMonitor());
 		indicatorBuilderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
 		shell.layout();
+		
+		operationBuilderDialog.forceSelection(0);
+		indicatorBuilderComposite.forceSelection(0);
 		
 	}
 

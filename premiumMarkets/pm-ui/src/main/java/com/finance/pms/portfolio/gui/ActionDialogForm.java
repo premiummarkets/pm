@@ -18,6 +18,11 @@ public class ActionDialogForm extends ActionDialog {
 	public ActionDialogForm(Shell shell,String buttonText,  String formText, String title) {
 		super(shell, SWT.NONE, title, formText, null, buttonText, null);
 	}
+	
+	@Override
+	public void open() {
+		open(false);
+	}
 
 	public Object[] getValues() {
 		return values;
@@ -39,8 +44,7 @@ public class ActionDialogForm extends ActionDialog {
 						@Override
 						public void keyReleased(KeyEvent evt) {
 							if (evt.keyCode == SWT.CR) {
-								action.action(valideButton1);
-								validerbutton1MouseDown(evt);
+								doAction();
 							}
 						}
 					});

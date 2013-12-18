@@ -7,13 +7,21 @@ public class InvalidEventRefreshTask extends Exception {
 
 	
 	private TaskId taskId;
+	private Object rootViewParam;
 
-	public InvalidEventRefreshTask(TaskId lastTaskOfThisGroup) {
+	public InvalidEventRefreshTask(TaskId lastTaskOfThisGroup, Object rootViewParam) {
 		this.taskId = lastTaskOfThisGroup;
+		this.rootViewParam = rootViewParam;
 	}
 
 	public TaskId getTaskId() {
 		return taskId;
 	}
 
+	@Override
+	public String toString() {
+		return taskId.getDescr()+ ((rootViewParam !=null)?" for "+rootViewParam:"");
+	}
+	
+	
 }

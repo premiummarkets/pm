@@ -91,5 +91,9 @@ public class IncompleteDataSetException extends Exception {
 		return symbolEvents;
 	}
 
+	public void setCalculatedOutput(Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput) {
+		this.calculatedOutput = calculatedOutput;
+	}
+
 
 }

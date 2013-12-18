@@ -345,7 +345,7 @@ public class GnucashGetPriceHelper {
 				}
 			}
 			
-			bufferedWriter.flush();
+			bufferedWriter.close();
 
 		} finally {
 

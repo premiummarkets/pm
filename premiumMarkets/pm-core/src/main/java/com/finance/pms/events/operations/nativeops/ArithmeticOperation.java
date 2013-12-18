@@ -32,19 +32,24 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	@Override
 	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
+		if (inputs.size() == 0) return new DoubleMapValue();
+		if (inputs.size() == 1) return (DoubleMapValue) inputs.get(0);
+		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Double>>> checkedInputs = (List<Value<SortedMap<Date, Double>>>) inputs;
+		
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
-		for (Value<SortedMap<Date, Double>> input : inputs) {
+		for (Value<SortedMap<Date, Double>> input : checkedInputs) {
 			fullKeySet.addAll(input.getValue(targetStock).keySet());
 		}
 		
 		DoubleMapValue outputs = new  DoubleMapValue();
 		for (Date date : fullKeySet) {
-			Double output = 0d;
-			for (Value<SortedMap<Date, Double>> input : inputs) {
-				Double input1 = input.getValue(targetStock).get(date);
-				if (input1 != null && !input1.isNaN()) output = twoOperandsOp(output, input1);
+			Double leftOperand = checkedInputs.get(0).getValue(targetStock).get(date);
+			for (int i=1; i < checkedInputs.size(); i++) {
+				Value<SortedMap<Date, Double>> input = checkedInputs.get(i);
+				Double rightOperand = input.getValue(targetStock).get(date);
+				leftOperand = twoOperandsOp(leftOperand, rightOperand);
 			}
-			outputs.getValue(targetStock).put(date, output);
+			outputs.getValue(targetStock).put(date, leftOperand);
 		}
 		
 		return outputs;

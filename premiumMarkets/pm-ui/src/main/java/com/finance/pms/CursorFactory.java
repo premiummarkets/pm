@@ -33,6 +33,7 @@ package com.finance.pms;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 
@@ -41,6 +42,9 @@ public class CursorFactory {
 	private static Map<Integer,Cursor> cursorMap = new HashMap<Integer, Cursor>();
 	
 	public static Cursor getCursor(Integer style) {
+		
+		if (style == SWT.CURSOR_ARROW) return null;
+		
 		Cursor cursor = cursorMap.get(style);
 		if (cursor == null) {
 			cursor = new Cursor(Display.getDefault(), style);

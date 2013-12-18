@@ -30,6 +30,7 @@
  */
 package com.finance.pms.events.calculation;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,11 +38,15 @@ import java.util.List;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
@@ -91,22 +96,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			
 			setCalculationParameters();
 			
-			Set<EventCompostionCalculator> eventsCalculators;
-			
-			//Init calculators
-			try {
-				eventsCalculators = initIndicatorsAndCalculators(observers.toArray(new Observer[]{}));
-			} catch (IncompleteDataSetException e) {
-				dataSetExceptions.add(e);
-				eventsCalculators = e.getEventCalculations();
-			}
-			
-			//Run calculators
-			try {
-				calculateEventsForEachDateAndIndicatorComp(eventsCalculators, symbolEventsForStock, startDate, endDate, persistEvents, stock);
-			} catch (IncompleteDataSetException e) {
-				dataSetExceptions.add(e);
-			}
+			calculate(symbolEventsForStock, dataSetExceptions);
 			
 			LOGGER.debug("End analyse "+stock+" from "+startDate+" to "+endDate);
 			
@@ -125,9 +115,30 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		
 	}
 
+	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
+		
+		Set<EventCompostionCalculator> eventsCalculators;
+		
+		//Init calculators
+		try {
+			eventsCalculators = initIndicatorsAndCalculators(observers.toArray(new Observer[]{}));
+		} catch (IncompleteDataSetException e) {
+			dataSetExceptions.add(e);
+			eventsCalculators = e.getEventCalculations();
+		}
+		
+		//Run calculators
+		try {
+			calculateEventsForEachDateAndIndicatorComp(eventsCalculators, symbolEventsForStock, startDate, endDate, persistEvents, stock);
+		} catch (IncompleteDataSetException e) {
+			dataSetExceptions.add(e);
+		}
+		
+	}
+
 	abstract protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws NotEnoughDataException, IncompleteDataSetException;
 	
-	private void calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, SymbolEvents symbolEventsForStock, Date datedeb, Date datefin, Boolean persist, Stock stock) throws IncompleteDataSetException { 
+	private void calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, final SymbolEvents symbolEventsForStock, Date datedeb, Date datefin, Boolean persist, final Stock stock) throws IncompleteDataSetException { 
 
 		try {
 			cleanEventsFor(this.eventListName, datedeb, datefin, persist);
@@ -136,33 +147,58 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		}
 		
 		Boolean incomplete = false;
-		for (EventCompostionCalculator evtCalculator: evtCalculators ) {
-			
-			try {
-				
-				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(this.eventListName);
-				
-				if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
-					//Add events to total
-					symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, EventDefinition.loadMaxPassPrefsEventInfo());
-					
-					//Add events to compositor and send
-					SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
-					symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
-					sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
-				}
-				
-				//Add output to total
-				symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
-				
-			} catch (Exception e) {
-				LOGGER.warn(e);
-				incomplete = true;
-			}
+		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
+		final List<Exception> exceptions = new ArrayList<Exception>();
+		for (final EventCompostionCalculator evtCalculator: evtCalculators ) {
+
+				Runnable runnable = new Runnable() {
+					public void run() {
+						
+						try {
+							
+							ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, IndicatorsCalculationThread.this.configs.get(Config.EVENT_SIGNAL_NAME));
+							ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
+
+							
+							SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(IndicatorsCalculationThread.this.eventListName);
+							if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
+								//Add events to total
+								symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, EventDefinition.loadMaxPassPrefsEventInfo());
+
+								//Add events to compositor and send
+								SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
+								symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+								sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
+							}
+							//Add output to total
+							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
+							
+						} catch (Exception e) {
+							LOGGER.error(e,e);
+							exceptions.add(e);
+						}
+					}
+				};
+				executor.execute(runnable);
 			
 		}
 		
-		if (incomplete) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Some calculations have failed!");
+		executor.shutdown();
+		
+		try {
+			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			if (!awaitTermination) {
+				List<Runnable> shutdownNow = executor.shutdownNow();
+				LOGGER.error(shutdownNow, new Exception());
+				incomplete = true;
+			}
+		} catch (InterruptedException e) {
+			List<Runnable> shutdownNow = executor.shutdownNow();
+			LOGGER.error(shutdownNow, e);
+			incomplete = true;
+		}
+		
+		if (incomplete || !exceptions.isEmpty()) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Some calculations have failed!");
 		
 	}
 

@@ -121,7 +121,7 @@ public abstract class Exporter<T> {
 					List<EventValue> eventValues = symbolEvent.getSortedDataResultList();
 					EventValue eventValue = eventValues.get(eventValues.size()-1);
 					message.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name());
-					//EventsResources.getInstance().crudCreateEvents(message.getSymbolEvents(), true, eventListName);
+					
 					return message;
 				}
 			});

@@ -210,7 +210,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					
 					//Completion of new stock, only if the stock requires supplement of info or is not complete
 					if (supplementRequiered(stockFromWeb) || trendSuppNeeded) {
-						LOGGER.info("Ticker from web not in data base needs supplement and to be added to the market list ("+shareListDescrTxt+") : " + stockFromWeb);
+						LOGGER.info("Ticker from web not in database needs supplement and to be added to the market list ("+shareListDescrTxt+") : " + stockFromWeb);
 						StockSupplementRunnable stockSupRunnable = new StockSupplementRunnable(stockFromWeb, trendSuppNeeded);
 						for (Observer observer : observers) {
 							stockSupRunnable.addObserver(observer);
@@ -218,7 +218,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 						completedTrendSuppStocksFutures.add(executor.submit(stockSupRunnable));
 					
 					}  else {//We add it as is
-						LOGGER.info("Valid ticker from web not in data base needs to be added to the market list ("+shareListDescrTxt+") : " + stockFromWeb);
+						LOGGER.info("Valid ticker from web not in database needs to be added to the market list ("+shareListDescrTxt+") : " + stockFromWeb);
 						supplementedStockFromWeb.add(new ScreeningSupplementedStock(stockFromWeb));//We will need to add it in db as well
 						existingSharesList.addShare(stockFromWeb);
 						//inDBNewInList.add(foundStock);
@@ -226,7 +226,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					}
 					
 				} else {//The stock is in the db We add to the share list
-					LOGGER.info("Valid ticker is in the data base but needs to be added to the market list ("+shareListDescrTxt+") : " + foundStock);
+					LOGGER.info("Valid ticker is in the database but needs to be added to the market list ("+shareListDescrTxt+") : " + foundStock);
 					existingSharesList.addShare(foundStock);
 					inDBNewInList.add(foundStock);
 				} 

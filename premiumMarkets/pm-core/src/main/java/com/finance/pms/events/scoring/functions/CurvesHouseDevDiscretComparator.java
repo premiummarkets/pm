@@ -46,7 +46,7 @@ public class CurvesHouseDevDiscretComparator extends CurvesComparator {
 	@Override
 	protected SortedMap<Date, double[]> normalize(Date start, Date end, SortedMap<Date, double[]> data) {
 		//TODO
-		Normalizer normalizer = new Normalizer(start, end, 1, 2); //Norm necessary as HouseTrend doesn't support negative or zero values
+		Normalizer<double[]> normalizer = new Normalizer<double[]>(double[].class, start, end, 1, 2); //Norm necessary as HouseTrend doesn't support negative or zero values
 		SortedMap<Date, double[]> normalisedData = normalizer.normalised(data);
 		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother(9);
 		SortedMap<Date, double[]> houseTrend = houseTrendSmoother.smooth(normalisedData, null);

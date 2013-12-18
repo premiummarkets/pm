@@ -81,10 +81,9 @@ public class DosPathTest {
 				System.out.println(outLine);
 				bw.write(outLine+"\n");
 			}
-//			bw.write(dossedPath+"\n");
-//			bw.write(dossedPath1+"\n");
-	
-			bw.flush();
+
+			bw.close();
+			br.close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

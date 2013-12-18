@@ -45,19 +45,29 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	@Override
 	public void run() {
 		
-		this.holdingThread = Thread.currentThread();
+		//this.holdingThread = Thread.currentThread();
 		
 		try {
 			
 			builtOperation = parseFormula(operationName, formula);
 			
+		} catch (ExitParsingException e) {
+			interrupt();
+			LOGGER.error(this + "." + e.toString());
 		} catch (InterruptedException e) {
+			interrupt();
 			LOGGER.info(this + " has been shutdown.");
 		} catch (Exception e) {
+			interrupt();
 			LOGGER.warn(e);
 			parameterizedBuilder.moveToDisabled(operationName);
 		}
 		
+	}
+
+	private void interrupt() {
+		this.holdingThread = null;
+		this.shutdown = true;
 	}
 
 	private Operation parseFormula(String operationName, String formula) throws Exception {
@@ -180,11 +190,11 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	}
 	
 	private Operation fetchNativeOperation(String opRef) {
-		return parameterizedBuilder.fetchNativeOperation(opRef);
+		return parameterizedBuilder.fetchAsyncNativeOperation(opRef);
 	}
 	
 	private Operation fetchUserOperation(String opRef) {
-		return parameterizedBuilder.fetchUserOperation(opRef);
+		return parameterizedBuilder.fetchAsyncUserOperation(opRef);
 	}
 
 	
@@ -229,6 +239,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		
 		if (holdingThread == null) {//Not started yet
 			Thread thread = new Thread(this);
+			holdingThread = thread;
 			thread.start();
 		} else {//We resume
 			synchronized (this) {
@@ -318,6 +329,8 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		return clone;
 	}
 	
-	
+	protected boolean isThreadRunning() {
+		return (this.holdingThread == null && !this.shutdown) || (this.holdingThread != null && this.holdingThread.isAlive() && !this.threadSuspended);
+	}
 
 }

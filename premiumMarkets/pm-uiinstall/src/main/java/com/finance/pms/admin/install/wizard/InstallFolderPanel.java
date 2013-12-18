@@ -199,7 +199,7 @@ public class InstallFolderPanel extends JPanel {
 	protected File initDefaultInstallFolder() {
 		
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
-        File path = new File(prefs.get("pm.default.install.folder", System.getProperty("user.dir")));
+        File path = new File(StringEscapeUtils.unescapeJava(prefs.get("pm.default.install.folder", System.getProperty("user.dir"))));
         
 		//if (path != null &&  path.getParentFile() != null && path.getParentFile().exists()) {
         if (path != null && path.exists()) {

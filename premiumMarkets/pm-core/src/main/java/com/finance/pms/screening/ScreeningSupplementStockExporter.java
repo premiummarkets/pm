@@ -34,8 +34,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.NavigableSet;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -182,7 +181,7 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 	protected SymbolEvents constructEvent(
 			String eventListName, ScreeningSupplementedStock screenedStock, EventDefinition eventDefinition, Integer rank, Integer previousRank, EventType eventType, String message, Date eventDate) {
 		
-		SortedMap<EventKey, EventValue> eventMap = new TreeMap<EventKey, EventValue>();
+		ConcurrentSkipListMap<EventKey, EventValue> eventMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		
 		EventKey key = new StandardEventKey(eventDate, eventDefinition, eventType);
 		message = message + ". Rank is : --" + rank +"--";

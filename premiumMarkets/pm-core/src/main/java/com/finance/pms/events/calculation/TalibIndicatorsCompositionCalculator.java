@@ -43,7 +43,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.math.stat.regression.SimpleRegression;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -358,6 +358,11 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMTAEvents;
+	}
+
+	@Override
+	protected Date rawDataStartDate(Date startDate, Date endDate) {
+		return startDate;
 	}
 
 

@@ -137,6 +137,7 @@ public class WeatherExtractor {
 			weatherElement.setMinTemp(new Integer(values[3]));	
 			weatherElements.add(weatherElement);
 		}
+		bufferedReader.close();
 		return weatherElements;
 	}
 	

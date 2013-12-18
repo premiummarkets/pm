@@ -106,7 +106,7 @@ public class BaseCheckPanel extends JPanel implements HyperlinkListener {
         
         textLabel.setBackground(Color.gray);
         textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
-        textLabel.setText("Missing sample data base");
+        textLabel.setText("Missing sample database");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);
    

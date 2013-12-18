@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -17,11 +18,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorDynamic.class);
 
-	public static Color[][] COLORS = new  Color[][] {{Color.BLACK, Color.RED, Color.ORANGE},  {Color.BLUE, Color.MAGENTA, Color.CYAN}, {Color.GRAY, Color.PINK, Color.YELLOW}};
+	public static Color[][] COLORS = new  Color[][] {{Color.BLACK, Color.RED, new Color(0,128,0)},  {new Color(0,139,139), new Color(220,20,60), new Color(107,142,35)}, {Color.CYAN, Color.MAGENTA, Color.GREEN}, {Color.BLUE, new Color(128,0,0), new Color(128,128,0)}};
 	
 	private String descriptorReference;
 	private String bullishDescription;
 	private String bearishDescription;
+	private String alsoDisplayDescription;
 	
 	List<ChartedOutputGroup> chartedOutputGroups;
 	private String[] descripitonArrays;
@@ -52,7 +54,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	protected void initDescriptionsList() {
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for : " + descriptorReference+ ". There may be a clear in progress?");
 			
 		SortedSet<OutputDescr> descriptionSet = new  TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
 			@Override
@@ -71,12 +73,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String getHtmlBullishDescription() {
-		return bullishDescription.replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+		return bullishDescription.replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");
 	}
 
 	@Override
 	public String getHtmlBearishDescription() {
-		return bearishDescription.replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+		return bearishDescription.replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");
 	}
 
 	public void setChartedOutputGroups(List<ChartedOutputGroup> chartedOutputGroups, ChartedOutputGroup invisibleGroup) {
@@ -108,13 +110,16 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public Color getColor(int outputIdx) throws NoSuchElementException {
 		
-		int groupIdx = getGroupFor(outputIdx);
-		int alpha = 255 - 255*(groupIdx / COLORS.length)/getGroupsCount();
-		Color[] grpColors = COLORS[groupIdx % COLORS.length];
-		
 		if (descripitonList == null) {
 			initLists();
 		}
+		
+		int groupIdx = getGroupFor(outputIdx);
+		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
+		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
+		int alpha = (int) (155 +  100 - 100*((double)groupIdx)/getGroupsCount());
+		Color[] grpColors = COLORS[groupIdx % COLORS.length];
+		
 		switch (descripitonList.get(outputIdx).getType()) {
 		case CONSTANT :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/2);
@@ -174,8 +179,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		this.bullishDescription = bullishDescription;
 	}
 
-	public void setBearishDescription(String beraishDescription) {
-		this.bearishDescription = beraishDescription;
+	public void setBearishDescription(String bearishDescription) {
+		this.bearishDescription = bearishDescription;
 	}
 
 	public String getBullishDescription() {
@@ -215,6 +220,49 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public String getMainLabelForGroup(int groupIdx) {
 		return chartedOutputGroups.get(groupIdx).getThisReference().getReference();
+	}
+	
+	@Override
+	public Set<OutputDescr> allOutputs() {
+		
+		if (descripitonList == null) {
+			initLists();
+		}
+		
+		Set<OutputDescr> ret = new TreeSet<OutputDescr>();
+		for (final OutputDescr  outputDescr: descripitonList) {
+			if (!outputDescr.getType().equals(Type.INVISIBLE)) ret.add(outputDescr);
+		}
+		return ret;
+	}
+	
+	@Override
+	public Set<OutputDescr> displayedOutputs() {
+		
+		Set<OutputDescr> ret = new TreeSet<OutputDescr>();
+		for (final OutputDescr  outputDescr: allOutputs()) {
+			if (outputDescr.getDisplayOnChart()) ret.add(outputDescr);
+		}
+		return ret;
+		
+	}
+
+	@Override
+	public boolean isDisplayed(int outputIdx) {
+		
+		if (descripitonList == null) {
+			initLists();
+		}
+		
+		return descripitonList.get(outputIdx).getDisplayOnChart();
+	}
+
+	public String getAlsoDisplayDescription() {
+		return alsoDisplayDescription;
+	}
+
+	public void setAlsoDisplayDescription(String alsoDisplayDescription) {
+		this.alsoDisplayDescription = alsoDisplayDescription;
 	}
 
 }

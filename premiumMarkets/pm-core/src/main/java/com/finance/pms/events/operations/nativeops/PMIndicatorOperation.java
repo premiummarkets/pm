@@ -12,7 +12,10 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-@XmlSeeAlso({PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMHouseTrendOperation.class, PMMightyChaikinOperation.class})
+@XmlSeeAlso({
+	PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, 
+	FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class
+	})
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 
 	protected PMIndicatorOperation() {
@@ -51,9 +54,19 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
 		return doubleArrayMap;
 	}
 
-	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest) {
+	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest, int originIdx) {
 		for (Date date : origin.keySet()) {
-			dest.put(date, origin.get(date)[0]);
+			dest.put(date, origin.get(date)[originIdx]);
+		}
+	}	
+	
+	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest) {
+		transOutput(origin, dest, 0);
+	}
+	
+	protected void transInput(SortedMap<Date, Double> origin, SortedMap<Date, double[]> dest) {
+		for (Date date : origin.keySet()) {
+			dest.put(date, new double[]{origin.get(date)});
 		}
 	}	
 

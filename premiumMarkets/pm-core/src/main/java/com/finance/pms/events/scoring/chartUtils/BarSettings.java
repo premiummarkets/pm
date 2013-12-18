@@ -7,11 +7,12 @@ public class BarSettings {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(BarSettings.class);
 	
-	public Double alphaDividend;
-	public int maxFill;
-	public Boolean isZeroBased;
-	public Boolean isGradiant;
-	public Boolean isReachTop;
+	private Double alphaDividend;
+	private int maxFill;
+	private Boolean isZeroBased;
+	private Boolean isGradiant;
+	private Boolean sideBySide;
+	private Boolean isReachTop; 
 
 	
 	public BarSettings() {
@@ -19,8 +20,9 @@ public class BarSettings {
 		this.alphaDividend = MainPMScmd.getPrefs().getDouble("chart.alphaDividend", 5);
 		this.maxFill = MainPMScmd.getPrefs().getInt("chart.maxFill", 12);
 		this.isZeroBased  = MainPMScmd.getPrefs().getBoolean("chart.isZeroBased", false);
+		this.isReachTop =  MainPMScmd.getPrefs().getBoolean("chart.isReachTop", false);
 		this.isGradiant = MainPMScmd.getPrefs().getBoolean("chart.isGradient", false);
-		this.isReachTop  = MainPMScmd.getPrefs().getBoolean("chart.isReachTop", false); //TODO?? => calculate some kind of density
+		this.sideBySide  = MainPMScmd.getPrefs().getBoolean("chart.isSideBySide", false); //TODO?? => calculate some kind of density
 	}
 	
 	public Double getAlphaDividend() {
@@ -67,6 +69,19 @@ public class BarSettings {
 			e.printStackTrace();
 		}
 		this.isGradiant = isGradiant;
+	}
+
+	public Boolean getSideBySide() {
+		return sideBySide;
+	}
+
+	public void setSideBySide(Boolean isReachTop) {
+		try {
+			MainPMScmd.getPrefs().putBoolean("chart.isSideBySide", isReachTop);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		this.sideBySide = isReachTop;
 	}
 
 	public Boolean getIsReachTop() {

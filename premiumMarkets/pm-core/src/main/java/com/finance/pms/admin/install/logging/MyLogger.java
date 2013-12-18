@@ -607,9 +607,7 @@ public class MyLogger {
 	 */
 	public void guiInfo(Object message) {
 		delegateLogger.info(message);
-		//lastMessage = message.toString();
 		lastMsg.setLastMessage(message.toString());
-		
 	}
 
 	/**

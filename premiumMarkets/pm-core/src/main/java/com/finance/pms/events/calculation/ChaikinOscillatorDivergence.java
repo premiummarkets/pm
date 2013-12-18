@@ -86,7 +86,7 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 
 	@Override
 	protected int getDaysSpan() {
-		return 60;
+		return 84;
 	}
 
 	@Override
@@ -129,8 +129,10 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 		throw new NotImplementedException();
 	}
 
+	@Override
+	protected Double getAlphaBalance() {
+		return (double) (getDaysSpan()/2);
+	}
 
-
-
-
+	
 }

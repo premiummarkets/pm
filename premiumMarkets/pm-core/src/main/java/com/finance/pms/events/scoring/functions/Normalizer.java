@@ -40,9 +40,14 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public class Normalizer {
+public class Normalizer<T> {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(Normalizer.class);
+	
+	private Class<T> genType;
 	
 	private Date start;
 	private Date end;
@@ -53,7 +58,9 @@ public class Normalizer {
 	private double min;
 	private boolean keepZero;
 	
-	public Normalizer(Date start, Date end, double minNorm, double maxNorm, boolean keepZero) {
+	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, boolean keepZero) {
+		
+		this.genType = genType;
 		
 		this.start = start;
 		
@@ -68,42 +75,46 @@ public class Normalizer {
 		this.keepZero = keepZero;
 	}
 
-	public Normalizer(Date start, Date end, double minNorm, double maxNorm) {
-		this(start, end, minNorm, maxNorm, false);
+	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm) {
+		this(genType, start, end, minNorm, maxNorm, false);
 	}
 
 
-
-	public SortedMap<Date, double[]> normalised(SortedMap<Date, double[]> data) {
+	public SortedMap<Date, T> normalised(SortedMap<Date,T> data) {
 		
 		//b = [(a - minA) / (maxA - minA)] * (maxNorm - minNorm) + minNorm 
 		//with maxNorm = 1 and minNorm = 0
 		//b = [(a - minA) / (maxA - minA)]
+
+//		if (data.get(data.firstKey()).length > 1) {
+//			LOGGER.warn("Normalised data contains element value size > 1 is not supported. Only the first series will be normalised.");
+//		}
 		
-		if (data.get(data.firstKey()).length > 1) throw new NotImplementedException();
+		SortedMap<Date, T> ret = new TreeMap<Date, T>();
 		
-		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
-		
-		SortedMap<Date, double[]> subD = data.subMap(start, end);
+		SortedMap<Date, T> subD = data.subMap(start, end);
 		
 		calculateMinMax(subD);
 		
 		for (Date date : subD.keySet()) {
-			double value = data.get(date)[0];
-			ret.put(date, new double[]{ ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm});
+			//double value = data.get(date)[0];
+			double value = valueOf(subD.get(date));
+			//ret.put(date, new double[]{ ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm});
+			ret.put(date,  tOf(((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm));
 		}
 		
 		return ret;
 		
 	}
 
-	private void calculateMinMax(SortedMap<Date, double[]> subD) {
+	private void calculateMinMax(SortedMap<Date, T> subD) {
 		
 		max = -Double.MAX_VALUE;
 		min = Double.MAX_VALUE;
 		
 		for (Date date : subD.keySet()) {
-			double value = subD.get(date)[0];
+			//double value = subD.get(date)[0];
+			double value = valueOf(subD.get(date));
 			if (value >= max) max = value;
 			if (value <= min) min = value;
 		}
@@ -115,33 +126,6 @@ public class Normalizer {
 		}
 		
 	}
-	
-	
-//	public SortedMap<Date, Double> sNormalised(SortedMap<Date, Double> data) {
-//
-//		//b = [(a - minA) / (maxA - minA)] * (maxNorm - minNorm) + minNorm 
-//		//with maxNorm = 1 and minNorm = 0
-//		//b = [(a - minA) / (maxA - minA)]
-//
-//		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
-//		max = -Double.MAX_VALUE;
-//		min = Double.MAX_VALUE;
-//		SortedMap<Date, Double> subD = data.subMap(start, end);
-//		for (Date date : subD.keySet()) {
-//			double value = data.get(date);
-//			if (value >= max) max = value;
-//			if (value <= min) min = value;
-//		}
-//
-//		for (Date date : subD.keySet()) {
-//			double value = data.get(date);
-//			ret.put(date, ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm);
-//		}
-//
-//		return ret;
-//
-//	}
-
 
 	public double getNormalizedZero() {
 		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
@@ -151,6 +135,30 @@ public class Normalizer {
 	public double getNormalizedValue(Double value) {
 		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
 		return (value-min/(max-min)) * (maxNorm - minNorm) + minNorm;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private T tOf(Double destValueAti) {
+		
+		if (genType.isAssignableFrom(Double.class)) {
+			return (T) destValueAti;
+		} else if (genType.isArray() && genType.getComponentType().equals(Double.TYPE)) {
+			return (T) new double[]{destValueAti};
+		} else throw new NotImplementedException();
+		
+ 	}
+
+	private Double valueOf(T t) {
+		
+		if (t instanceof Double) {
+			return (Double) t;
+		} else if (t.getClass().isArray() &&t.getClass().getComponentType().equals(Double.TYPE)){
+			if (((double[]) t).length > 1) {
+				LOGGER.warn("Normalised data contains element value size > 1 is not supported. Only the first series will be normalised.");
+			}
+			return ((double[]) t)[0];
+		} else throw new NotImplementedException();
+		
 	}
 	
 }

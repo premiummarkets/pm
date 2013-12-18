@@ -127,7 +127,7 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "change to referee '"+relativeQuotations.getStock().getFriendlyName()+"'";
+		return "change to referee ("+relativeQuotations.getStock().getFriendlyName()+")";
 	}
 
 	@Override

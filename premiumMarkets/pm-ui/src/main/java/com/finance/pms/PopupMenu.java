@@ -37,9 +37,18 @@ public class PopupMenu<T extends InfoObject>  {
 	private boolean disposeOnDeactivate;
 	
 	private ActionDialogAction closeAction;
+	//private ActionDialogAction deactivateAction;
+	Boolean actionOnDeactivate;
+	
+	private String title;
 
 
-	public PopupMenu(Composite rootParent, Control controlParent, Set<T> availableOptSet, Set<T> selectionList, Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, ActionDialogAction action) {
+	public PopupMenu(
+			Composite rootParent, Control controlParent, 
+			Set<T> availableOptSet, Set<T> selectionList, 
+			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
+			ActionDialogAction selectAction) {
+		
 		super();
 		this.rootParent = rootParent;
 		this.controlParent = controlParent;
@@ -57,14 +66,29 @@ public class PopupMenu<T extends InfoObject>  {
 		
 		this.unableSelectAll = unableSelectAll;
 		
-		this.action = action;
+		this.action = selectAction;
 		this.disposeOnDeactivate = disposeOnDeactivate;
 		
+		this.title = "";
+		if (controlParent instanceof Button) {
+			title = ((Button) controlParent).getText();
+		} else {
+			title = controlParent.getShell().getText();
+		}
+
 	}
 	
-	public PopupMenu(Composite rootParent, Control controlParent, Set<T> availableOptSet, Set<T> selectionList, Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, ActionDialogAction action, ActionDialogAction closeAction) {
-		this(rootParent, controlParent, availableOptSet, selectionList, disposeOnDeactivate, unableSelectAll, style, action);
+	public PopupMenu(
+			Composite rootParent, Control controlParent, 
+			Set<T> availableOptSet, Set<T> selectionList, 
+			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
+			ActionDialogAction selectAction, ActionDialogAction closeAction, Boolean actionOnDeactivate) {
+		
+		this(rootParent, controlParent, availableOptSet, selectionList, disposeOnDeactivate, unableSelectAll, style, selectAction);
+		
 		this.closeAction = closeAction;
+		//this.deactivateAction = deactivateAction;
+		this.actionOnDeactivate = actionOnDeactivate;
 	}
 
 	public void open() {
@@ -74,18 +98,32 @@ public class PopupMenu<T extends InfoObject>  {
 	public void open(Point location, Boolean addWidth) {
 		
 		selectionShell = new Shell(rootParent.getShell(), SWT.SHELL_TRIM);
+
 		RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
 		rowLayout.wrap= true;
 		selectionShell.setLayout(rowLayout);
 		selectionShell.setFont(MainGui.CONTENTFONT);
+		selectionShell.setText(title);
 		
 		selectionShell.addListener(SWT.Deactivate, new Listener() {
 			
 			public void handleEvent(Event e){	
-				if (disposeOnDeactivate) {
+				//if (deactivateAction != null) deactivateAction.action(null);
+				if (disposeOnDeactivate) { 
 					selectionShell.dispose();
+				} else if (closeAction != null && actionOnDeactivate != null && actionOnDeactivate) {
+					closeAction.action(null);
 				}
 			}
+		});
+		
+		selectionShell.addListener(SWT.Activate, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				//Thread.dumpStack();
+			}
+			
 		});
 		
 		selectionShell.addDisposeListener(new DisposeListener() {
@@ -99,22 +137,30 @@ public class PopupMenu<T extends InfoObject>  {
 		
 		initPopup();
 		
+		//Size
+		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y), true);
+		selectionShell.setSize(computeSize.x,computeSize.y);
+		
+		//Location
 		if (location == null) {
 			
 			Rectangle parentShellBounds = rootParent.getShell().getBounds();
 			Rectangle parentBounds = controlParent.getParent().getBounds();
 			Rectangle pparentBounds = controlParent.getParent().getParent().getBounds();
-			selectionShell.setBounds(
-					parentShellBounds.x + pparentBounds.x +parentBounds.x + controlParent.getBounds().x,  
-					parentShellBounds.y + pparentBounds.y +parentBounds.y + controlParent.getBounds().y, 
-					selectionShell.getBounds().width, selectionShell.getBounds().height);
+			int x =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, parentShellBounds.x + pparentBounds.x +parentBounds.x + controlParent.getBounds().x));
+			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, parentShellBounds.y + pparentBounds.y +parentBounds.y + controlParent.getBounds().y));
+			selectionShell.setBounds(x, y, selectionShell.getBounds().width, selectionShell.getBounds().height);
 		} else {
 			
-			if (addWidth != null && addWidth) location.x = location.x + selectionShell.getSize().x;
-			selectionShell.setLocation(location);
+			if (addWidth != null && addWidth) {
+				location.x = location.x + selectionShell.getSize().x;
+			}
+			int x = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, location.x));
+			int y =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, location.y));
+			selectionShell.setLocation(x, y);
 			
 		}
-		
+				
 		selectionShell.open();
 				
 	}
@@ -208,9 +254,16 @@ public class PopupMenu<T extends InfoObject>  {
 		return selectionShell;
 	}
 
-	public void updateAction(ActionDialogAction action, Set<T> availEventDefs, Set<T> selectionSet) {
-		
+	public void updateAction(Set<T> availEventDefs, Set<T> selectionSet, ActionDialogAction action, ActionDialogAction closeAction, Boolean actionOnDeactivate) {
 		this.action = action;
+		this.closeAction = action;
+		//this.deactivateAction = deactivateAction;
+		this.actionOnDeactivate = actionOnDeactivate;
+		updatePopup(availEventDefs, selectionSet);
+		
+	}
+
+	private void updatePopup(Set<T> availEventDefs, Set<T> selectionSet) {
 		this.availableOptSet.clear();
 		this.availableOptSet.addAll(availEventDefs);
 		this.selectionSet = selectionSet;
@@ -221,5 +274,10 @@ public class PopupMenu<T extends InfoObject>  {
 		}
 		
 		initPopup();
+		
+		//Size
+		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y), true);
+		selectionShell.setSize(computeSize.x,computeSize.y);
 	}
+	
 }

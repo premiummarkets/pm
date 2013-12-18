@@ -249,9 +249,9 @@ public ProgressPanel() {
 
         jPanel1.setLayout(new java.awt.GridLayout(0, 1));
         
-        jLabel1.setText("Unpacking Premium Markets and a small sample data base.");
+        jLabel1.setText("Unpacking Premium Markets and a small sample database.");
         jLabel1.setFont(new java.awt.Font("MS Sans Serif", 1, 11));
-        jLabel2.setText("You will be invited to set up your specific market later on while running the tool.");
+        jLabel2.setText("You will be invited to set up your specific markets and stocks lists later on while running the software.");
         jLabel2.setFont(new java.awt.Font("MS Sans Serif", 1, 11));
       
         progressBar.setStringPainted(true);

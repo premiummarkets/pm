@@ -3,12 +3,16 @@ package com.finance.pms.events.calculation;
 import java.awt.Color;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 
@@ -213,6 +217,21 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	public String getMainLabelForGroup(int groupIdx) {
 		return (mainIndicator != null)?mainIndicator:"";
 	}
-	
+
+
+	public Set<OutputDescr> displayedOutputs() {
+		return new HashSet<ChartedOutputGroup.OutputDescr>();
+	}
+
+
+	public Set<OutputDescr> allOutputs() {
+		return new HashSet<ChartedOutputGroup.OutputDescr>();
+	}
+
+
+	@Override
+	public boolean isDisplayed(int outputIdx) {
+		return true;
+	}	
 
 }

@@ -16,7 +16,7 @@ public class CrossDownDoubleMapCondition extends CrossDoubleMapCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(Comparable<Double>... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
 		Double previousFirstOp = (Double) ops[0];
 		Double currentFirstOp = (Double) ops[1];
 		Double previousSecondOp = (Double) ops[2];

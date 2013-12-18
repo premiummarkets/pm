@@ -9,7 +9,7 @@ public class SupDoubleMapCondition extends CmpDoubleMapCondition {
 	
 
 	private SupDoubleMapCondition() {
-		super("historical superior", "True when the first time series value is strictly above the second one.");
+		super("historical superiority", "True when the first time series value is strictly above the second one.");
 	}
 	
 	public SupDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -18,7 +18,7 @@ public class SupDoubleMapCondition extends CmpDoubleMapCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(Comparable<Double>... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
 		return ops[0].compareTo((Double) ops[1]) > 0;
 	}
 

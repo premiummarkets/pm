@@ -433,7 +433,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	}
 
 
-	protected void checkNumberOfOtherParams(Collection<? extends Object>... otherViewParams) {
+	protected void checkNumberOfOtherParams(@SuppressWarnings("unchecked") Collection<? extends Object>... otherViewParams) {
 		int otherViewParamLength = eventRefreshStrategyEngine.otherViewParamLength();
 		if ( (otherViewParamLength > 0 && otherViewParams == null) || (otherViewParamLength != -1 && otherViewParamLength != otherViewParams.length)) throw new IllegalArgumentException("Expecting "+otherViewParamLength+" parameter  but have "+otherViewParams);
 	}
@@ -457,7 +457,17 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		}
 		
 		try {
-			return tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, outputMap, eventDefinition, tuningResObs, true);
+			
+			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, outputMap, eventDefinition, tuningResObs, true);
+			if (LOGGER.isDebugEnabled()) {
+				try {
+					tuningFinalizer.exportConfigRating(IndicatorCalculationServiceMain.UI_ANALYSIS, tuningRes, start, end, tuningFinalizer.calculateRating(tuningRes));
+				} catch (Exception e) {
+					LOGGER.warn(e,e);
+				}
+			}
+			return tuningRes;
+			
 		} catch (NotEnoughDataException e) {
 			LOGGER.warn(e,e);
 			return null;

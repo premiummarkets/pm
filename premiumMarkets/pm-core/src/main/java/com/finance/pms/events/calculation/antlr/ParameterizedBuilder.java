@@ -20,19 +20,35 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 
 public abstract class ParameterizedBuilder extends Observable {
 	
+	public enum ObsMsgType {DELETE,CHANGE, RESET};
+	 
+	protected class ObsMsg {
+		public ObsMsgType type;
+		public Operation  operation;
+		public ObsMsg(ObsMsgType type, Operation operation) {
+			super();
+			this.type = type;
+			this.operation = operation;
+		}
+	}
+	
 	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedBuilder.class);
 	
 	private Queue<FormulaParser> parsingQueue;
 	
 	protected String[] operationPackages;
+	
 	protected File userOperationsDir;
 	protected File disabledUserOperationsDir;
+	protected File trashUserOperationsDir;
+	
 	protected ANTLRParserHelper antlrParser;
 	
 	//Pre parameterised xml native ops.
@@ -66,24 +82,39 @@ public abstract class ParameterizedBuilder extends Observable {
 		parsingQueue = new ConcurrentLinkedQueue<FormulaParser>();
 	}
 	
+	public Map<String, Operation> getCurrentOperations() {
+		return getCurrentOperations(true);
+	}
+	
+	public Map<String, Operation> getCurrentOperations(boolean waitForSync) {
+		if (waitForSync) SpringContext.getSingleton().syncOnPostInit();
+		return currentOperations;
+	}
+
 	protected Operation fetchNativeOperation(String opRef) {
 		return getNativeOperations().get(opRef);
 	}
 	
-
+	protected Operation fetchAsyncNativeOperation(String opRef) {
+		return fetchNativeOperation(opRef);
+	}
+	
 	protected Operation fetchUserOperation(String opRef) {
 		return getUserCurrentOperations().get(opRef);
 	}
-
-	public Map<String, Operation> getCurrentOperations() {
-		return currentOperations;
+	
+	protected Operation fetchAsyncUserOperation(String opRef) {
+		return getUserCurrentOperations(false).get(opRef);
 	}
 	
-
 	public Map<String, Operation> getUserCurrentOperations() {
+		return getUserCurrentOperations(true);
+	}
+
+	public Map<String, Operation> getUserCurrentOperations(boolean waitForSync) {
 	
 		Map<String, Operation> map = new HashMap<String, Operation>();
-		for (Operation operation : currentOperations.values()) {
+		for (Operation operation : getCurrentOperations(waitForSync).values()) {
 			if (operation.getFormula() != null) map.put(operation.getReference(), operation);
 		}
 		return map;
@@ -92,7 +123,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	public Map<String, Operation> getUserEnabledOperations() {
 		
 		Map<String, Operation> map = new HashMap<String, Operation>();
-		for (Operation operation : currentOperations.values()) {
+		for (Operation operation : getCurrentOperations().values()) {
 			if (operation.getFormula() != null && !operation.getDisabled()) map.put(operation.getReference(), operation);
 		}
 		return map;
@@ -101,6 +132,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	public void addFormula(String identifier, String formula) throws IOException {
 		
 		FormulaParser formulaParser = null;
+		Boolean isNewOp = false;
 		try {
 			
 			formulaParser = new FormulaParser(this, identifier, formula);
@@ -110,24 +142,32 @@ public abstract class ParameterizedBuilder extends Observable {
 			Operation operation = formulaParser.getBuiltOperation();	
 			
 			if (operation != null) {
+				
 				saveUserOperation(identifier, formula);
-				Operation alreadyExists = currentOperations.get(operation.getReference());
-				if (alreadyExists != null) {
+				
+				Operation alreadyExists = getCurrentOperations().get(operation.getReference());
+				isNewOp = (alreadyExists == null);
+				
+				if (!isNewOp) {
 					try {
 						replaceInUse(operation);
 					} catch (StackOverflowError e) {
 						throw new InstantiationException("Can't solve : "+formulaParser+". The operation is calling its self. Please fix.");
 					}
 				} 
-				currentOperations.put(operation.getReference(), operation);
+				
+				getCurrentOperations().put(operation.getReference(), operation);
 				
 				File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 				disabledFormulaFile.delete();
-				currentOperations.get(operation.getReference()).setDisabled(false);
+				getCurrentOperations().get(operation.getReference()).setDisabled(false);
 				
 			} else {
 				throw new InstantiationException("Can't solve : "+formulaParser+". Please fix.");
 			}
+			
+			
+			updateCaches(operation, isNewOp);
 			
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -135,33 +175,75 @@ public abstract class ParameterizedBuilder extends Observable {
 		} finally {
 			if (formulaParser != null) formulaParser.shutdown();
 		}
-		
-		updateCaches();
-		
+	
 	}
 	
 	public void removeFormula(String identifier) throws IOException {
-		
+
 		try {
 			
-			Operation operation = currentOperations.get(identifier);
+			Operation operation = getCurrentOperations().get(identifier);
 			
 			List<Operation> checkInUse = checkInUse(operation);
 			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
 			
-			File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+			//Delete pre existing trashed
+			File formulaFile = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 			formulaFile.delete();
-			File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
-			disabledFormulaFile.delete();
+			//Move
+			Boolean moved = move(identifier, userOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
+			if (!moved) move(identifier, disabledUserOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
 			
-			currentOperations.remove(identifier);
+			getCurrentOperations().remove(identifier);
+			
+			
+			updateCaches(operation, true); //true because the dependency has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
+
 			
 		} catch (Exception e) {
 			throw new IOException(e);
 		}
+		
+	}
+	
+	public Operation duplicateOperation(Operation operation, Map<String, Operation> duplOperands) throws IOException { 
+		
+		List<Operation> operands = operation.getOperands();
+		
+		for (Operation operand : operands) {
+			if (!duplOperands.containsKey(operand.getReference())) {
+				Operation duplicatedOperation = subjacentDuplicator().duplicateOperation(operand, duplOperands);
+				if (duplicatedOperation != null) {
+					duplOperands.put(operand.getReference(), duplicatedOperation);
+				}
+			}
+		}
+		
+		if (operation.getFormula() != null) {
+			String duplReference = infereNextDuplIdx(operation.getReference());
+			String duplFormula = infererNewFormula(duplOperands, operation.getFormula());
+			addFormula(duplReference, duplFormula);
+			return getCurrentOperations().get(duplReference);
+		} else {
+			return null;
+		}
+		
+	}
 
-		updateCaches();
+	protected abstract String infererNewFormula(Map<String, Operation> duplOperands, String formula);
+	protected abstract ParameterizedBuilder subjacentDuplicator();
 
+	protected String infereNextDuplIdx(String sourceReference) {
+		
+		int idx = 0;
+		String destRef = null;
+		do {	
+			destRef  = sourceReference+"D"+idx;
+			idx++;
+		} while (getCurrentOperations().get(destRef) != null);
+		
+		return destRef;
+		
 	}
 
 	public abstract List<Operation> checkInUse(Operation operation);
@@ -188,12 +270,14 @@ public abstract class ParameterizedBuilder extends Observable {
 	protected void actualCheckInUseRecusrsive(Collection<Operation> operations, Operation operationToCheck) {
 		
 		for (Operation operation : operations) {
-			if (operation != operationToCheck && operation instanceof DoubleMapOperation && operationToCheck.getReference().equals(operation.getReference())) {
+			
+			if (operation instanceof DoubleMapOperation && operationToCheck.getReference().equals(operation.getReference())) {
 				throw new RuntimeException("'"+ operationToCheck.getReference() +"' is used by some other operations. Please delete these first.");
 			}
 			if (operation.getOperands() != null) {
 				actualCheckInUseRecusrsive(operation.getOperands(), operationToCheck);
 			}
+			
 		}
 	}
 	
@@ -210,7 +294,6 @@ public abstract class ParameterizedBuilder extends Observable {
 		List<Operation> operations = parent.getOperands();
 		for (int i = 0; i < operations.size(); i++) {
 			
-			//if (operations.get(i) != replacementOp && operations.get(i) instanceof DoubleMapOperation && replacementOp.getReference().equals(operations.get(i).getReference())) {
 			if (operations.get(i) instanceof DoubleMapOperation && replacementOp.getReference().equals(operations.get(i).getReference())) {
 				parent.replaceOperand(i, replacementOp);
 			}
@@ -224,7 +307,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	public void disableFormula(String identifier) throws IOException  {
 
-		Operation operation = currentOperations.get(identifier);
+		Operation operation = getCurrentOperations().get(identifier);
 		if (operation == null) return;
 		
 		try {
@@ -238,13 +321,13 @@ public abstract class ParameterizedBuilder extends Observable {
 			throw new IOException(e);
 		}
 
-		updateCaches();
+		updateCaches(operation, false);
 
 	}
 
 	public void enableFormula(String identifier) throws IOException {
 
-		Operation operation = currentOperations.get(identifier);
+		Operation operation = getCurrentOperations().get(identifier);
 		if (operation == null) return;
 
 		try {
@@ -256,16 +339,23 @@ public abstract class ParameterizedBuilder extends Observable {
 			throw new IOException(e);
 		}
 
-		updateCaches();
+		updateCaches(operation, false);
 
 	}
 	
-	protected abstract void updateCaches();
+	protected abstract void updateCaches(Operation operation, Boolean isNewOp);
 	
 	protected void moveToDisabled(String identifier) {
 		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 		File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 		formulaFile.renameTo(disabledFormulaFile);
+	}
+	
+	protected Boolean move(String identifier, String from, String to) {
+		File origFile = new File(from + File.separator + identifier+ ".txt");
+		File destFile = new File(to + File.separator + identifier+ ".txt");
+		
+		return origFile.renameTo(destFile);
 	}
 
 	private void moveToEnabled(String identifier) {
@@ -278,8 +368,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 		BufferedWriter outputStream = new BufferedWriter(new FileWriter(formulaFile));
 		outputStream.write(formula);
-		outputStream.flush();
-		
+		outputStream.close();
 	}
 	
 	protected void reloadUserOperations(File operationsDir, Boolean disabled)  {
@@ -310,12 +399,12 @@ public abstract class ParameterizedBuilder extends Observable {
 		
 		while(!parsingQueue.isEmpty()) {
 			
-			SortedSet<FormulaParser> queueState = new TreeSet<FormulaParser>();
-			for (FormulaParser formulaParser : parsingQueue) {
-				queueState.add(formulaParser.clone());
-			}
-			
 			FormulaParser formulaParser = parsingQueue.poll();
+			
+			SortedSet<String> unresolvedStuff = new TreeSet<String>();
+			for (FormulaParser fp : parsingQueue) {
+				unresolvedStuff.add(fp.getOperationName());
+			}
 			
 			try {
 				
@@ -324,14 +413,14 @@ public abstract class ParameterizedBuilder extends Observable {
 				Operation parsedOp = formulaParser.getBuiltOperation();	
 				if (parsedOp != null) {//Operation is complete
 					
-					LOGGER.info("Solved : "+parsedOp.getReference());
+					LOGGER.info(this.getClass().getSimpleName() + ", Solved : "+parsedOp.getReference());
 					parsedOp.setDisabled(disabled);
 					currentOperations.put(parsedOp.getReference(), parsedOp);
 					
-				} else {//Operation not complete, we add it back to the queue
+				} else {//Operation not complete, we add it back to the queue or disable it
 					
-					if (queueState.contains(formulaParser)) {
-						LOGGER.info("Can't solve : "+formulaParser+". Disabling.");
+					if (!unresolvedStuff.contains(formulaParser.getMissingReference())) {
+						LOGGER.info(this.getClass().getSimpleName() + ", Can't solve : "+formulaParser+". Disabling.");
 						formulaParser.shutdown();
 						moveToDisabled(formulaParser.getOperationName());
 					} else {
@@ -341,7 +430,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				}
 				
 			} catch (Exception e) {
-				LOGGER.info("Error solving : "+formulaParser+". Disabling. Cause : "+e);
+				LOGGER.info(this.getClass().getSimpleName() + ", Error solving : "+formulaParser+". Disabling. Cause : "+e);
 				formulaParser.shutdown();
 				moveToDisabled(formulaParser.getOperationName());
 			}
@@ -352,7 +441,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	protected void runParsing(FormulaParser formulaParser) {
 		formulaParser.resume();
 		
-		while (formulaParser.getHoldingThread() == null || (formulaParser.getHoldingThread().isAlive() && !formulaParser.getThreadSuspended()) ) {
+		while ( formulaParser.isThreadRunning() ) {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -398,5 +487,8 @@ public abstract class ParameterizedBuilder extends Observable {
 		}
 		return opStr;
 	}
+
+	public abstract void resetCaches();
+
 
 }

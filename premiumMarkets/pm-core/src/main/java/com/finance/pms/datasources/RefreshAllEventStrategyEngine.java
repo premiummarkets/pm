@@ -76,7 +76,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		
 	}
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, Collection<? extends Object>...viewStateParams) throws HttpException {
+	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException {
 
 		LOGGER.debug("Updating list of shares  : "+rootParam);
 		for (Object shareList : rootParam) {
@@ -92,7 +92,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	}
 
 	
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, Collection<? extends Object>...viewStateParams) {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
 
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 
@@ -228,7 +228,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	}
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, Collection<? extends Object>... viewStateParams) {
+	public void callbackForAlerts(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
 		throw new NotImplementedException();
 	}
 

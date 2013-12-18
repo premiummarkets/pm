@@ -7,8 +7,6 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 
 
@@ -21,7 +19,7 @@ public class RefreshFourToutStrategyEngine extends UserContentStrategyEngine<Obj
 	}
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Object rootParam, Collection<? extends Object>... viewStateParams) {
+	public void callbackForAlerts(Set<Observer> engineObservers, Object rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
 		throw new NotImplementedException();
 	}
 	
@@ -41,11 +39,11 @@ public class RefreshFourToutStrategyEngine extends UserContentStrategyEngine<Obj
 	}
 
 	
-	@Override
-	@SuppressWarnings("unchecked")
-	protected void updateQuotations(QuotationUpdate quotationUpdate, Object rootParam) throws StockNotFoundException {
-		quotationUpdate.getQuotesFor((List<Stock>) rootParam);
-	}
+//	@Override
+//	@SuppressWarnings("unchecked")
+//	protected void updateQuotations(QuotationUpdate quotationUpdate, Object rootParam) throws StockNotFoundException {
+//		quotationUpdate.getQuotesFor((List<Stock>) rootParam);
+//	}
 
 	@Override
 	@SuppressWarnings("unchecked")

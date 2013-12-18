@@ -36,8 +36,11 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,17 +52,21 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
-import org.apache.commons.math.stat.descriptive.rank.Median;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTextAnnotation;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
@@ -67,6 +74,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
@@ -82,14 +90,17 @@ import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.OHLCDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.Layer;
+import org.jfree.ui.LengthAdjustmentType;
+import org.jfree.ui.RectangleAnchor;
 import org.jfree.ui.RectangleEdge;
+import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.StripedCloseFunction;
-import com.finance.pms.datasources.db.StripedCloseRelativeToReferee;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
@@ -107,11 +118,12 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
  */
 public class ChartMain extends Chart {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToReferee.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ChartMain.class);
 	
 	public static final DateFormat DATE_FORMAT = DateFormat.getTimeInstance();
 	public static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat("#0.00 %");
 	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
+	private static final Integer CHARTS_TOTAL_WEIGHT = 100;
 	
 	private BarChartDisplayStrategy barChartDisplayStrategy; 
 
@@ -123,23 +135,27 @@ public class ChartMain extends Chart {
 	private XYPlot mainPlot;
 
 	private XYPlot indicPlot;
+	private Integer indicPlotWeight = CHARTS_TOTAL_WEIGHT/4;
+
+	private Map<Long, XYTextAnnotation> lineAnnotations;
 	
 	public ChartMain(Date startDate, JFreeChartTimePeriod jFreeTimePeriod) {
 		super();
+	
 		this.jFreeTimePeriod = jFreeTimePeriod;
 		UIManager.put("ToolTip.background", new java.awt.Color(239, 203, 152, 255));
 		UIManager.put("ToolTip.foreground", java.awt.Color.BLACK);
 		
-		ToolTipManager.sharedInstance().setInitialDelay(0);
-		ToolTipManager.sharedInstance().setReshowDelay(Integer.MAX_VALUE);
+		ToolTipManager.sharedInstance().setInitialDelay(100);
+		ToolTipManager.sharedInstance().setReshowDelay(0);
 		ToolTipManager.sharedInstance().setDismissDelay(120000);
-		ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
-		
+
 		XYBarRenderer.setDefaultShadowsVisible(false);
 		XYBarRenderer.setDefaultBarPainter(new StandardXYBarPainter());
-		
-		//barChartDisplayStrategy = new ChartBarOnQuotes(this);
+
 		barChartDisplayStrategy = new ChartBarSquare(this);
+		
+		lineAnnotations = new HashMap<Long, XYTextAnnotation>();
 		
 	}
 	
@@ -175,7 +191,6 @@ public class ChartMain extends Chart {
 
 			final int kf = k;
 			final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-			//final NumberFormat percentInstance = new DecimalFormat("#0.00 %");
 			XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
 				public String generateToolTip(XYDataset dataset, int series, int item) {
@@ -190,7 +205,6 @@ public class ChartMain extends Chart {
 
 						String variationAddInfo = "";
 						if (!stripedCloseFunction.lineToolTip().isEmpty()) {
-							//y = percentInstance.format(dataset.getYValue(series, item));
 							y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
 							variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
 						}
@@ -233,6 +247,7 @@ public class ChartMain extends Chart {
 				xAxis.setAutoRange(true);
 				xAxis.setTimeline(tradingTimeLine());
 				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
+				xAxis.setMinorTickMarksVisible(true);
 				if (jFreeTimePeriod.equals(JFreeChartTimePeriod.DAY)) xAxis.setDateFormatOverride(new SimpleDateFormat("dd MMM yy"));
 				
 				///	Y axis
@@ -264,12 +279,11 @@ public class ChartMain extends Chart {
 				mainPlot.setDataset(1, barDataset);
 				
 				//Indicator plot
-					//This is not created from start
-				
+				//This is not created from start
 				
 				//Combine
 				CombinedDomainXYPlot combinedDomainXYPlot = new CombinedDomainXYPlot(xAxis);
-				combinedDomainXYPlot.add(mainPlot, 3);
+				combinedDomainXYPlot.add(mainPlot, CHARTS_TOTAL_WEIGHT);
 				
 				//Create
 				ChartMain.this.jFreeChart = new JFreeChart(combinedDomainXYPlot);
@@ -308,7 +322,7 @@ public class ChartMain extends Chart {
 	}
 	
 	
-	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx, final BarSettings barSettings) {
+	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barSeries, final int lineSerieIdx, final BarSettings barSettings, final Rectangle2D plotArea) {
 		
 		Runnable runnable = new Runnable() {
 			
@@ -330,8 +344,7 @@ public class ChartMain extends Chart {
 					public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base) {
 						
 						//System.out.printf("%f %f %f %f %d %d %d\n", bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight(), row/3, ((int) bar.getX()) % (barSeries.size()/3), row);
-						
-						if ( barSettings.getIsReachTop() && ((int) bar.getX()) % (barSeries.size()/3) != row/3 ) return;//TODO??
+						if ( barSettings.getSideBySide() && ((int) bar.getX()) % (barSeries.size()/3) != row/3 ) return;//TODO??
 						
 						if (barSettings.getIsZeroBased()) {
 							bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight());
@@ -361,10 +374,12 @@ public class ChartMain extends Chart {
 					if (serieDef.isLabeled()) {
 						RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount() - 1, 0));
 						Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + percentInstance.format(serieDef.getProfit())+ ")", annTP.getFirstMillisecond(), annV);
+						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + percentInstance.format(serieDef.getProfit()) +" / "+ percentInstance.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
 						annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 						annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
-						annotation.setPaint(Color.GRAY);
+						annotation.setPaint(Color.BLUE);
+						Color transpWhite = new Color(1f, 1f, 1f, 0.5f);
+						annotation.setBackgroundPaint(transpWhite);
 						renderer.addAnnotation(annotation);
 					}
 
@@ -418,12 +433,13 @@ public class ChartMain extends Chart {
 				}
 				
 				mainPlot.setDataset(1, barDataSets);
+				
+				resetVerticalLines(plotArea);
 			}
 			
 		};
 		
 		EventQueue.invokeLater(runnable);
-		
 	}
 
 	/**
@@ -432,11 +448,12 @@ public class ChartMain extends Chart {
 	 * @param applyColors 
 	 * @param chartPanelComponent
 	 */
-	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors) {
+	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
 			
 			public void run() {
+				
 				XYDataset dataSet = buildLineDataSet(stripedCloseFunction, listShares, applyColors);
 				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
@@ -447,39 +464,42 @@ public class ChartMain extends Chart {
 					LOGGER.warn(e, e);
 					resetBarChart();
 					resetIndicChart();
-					updateLineDataSet(listShares, stripedCloseFunction, applyColors);
+					updateLineDataSet(listShares, stripedCloseFunction, applyColors, plotArea);
 				}
+				
+				resetVerticalLines(plotArea);
 			}
 			
 		};
 		
 		EventQueue.invokeLater(runnable);
-		
 	}
 	
-	public void updateIndicDataSet(final EventInfo chartedEvtDef, final SortedMap<Date, double[]> serie) {
+	public void updateIndicDataSet(final EventInfo chartedEvtDef, final SortedMap<Date, double[]> serie, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
 			
 			public void run() {
 				
 				try {
+					
 					final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
 					final NumberFormat numberFormat = new DecimalFormat("0.############");
 					CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
 					
 					//Check if indic plot present
-					@SuppressWarnings("rawtypes")
-					List subplots = combinedDomainXYPlot.getSubplots();
+					@SuppressWarnings("unchecked") List<XYPlot> subplots = combinedDomainXYPlot.getSubplots();
+					
 					if (subplots.size() == 1) {
 						XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
 						indicRenderer.setBaseItemLabelsVisible(true, false); //??
 
 						indicPlot = new XYPlot(null, null, null, indicRenderer);
-						indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
+						//indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
 						indicPlot.setNoDataMessage("No indicator output is available. Check that the stocks and date ranges are valid.");
 						indicPlot.setDomainMinorGridlinesVisible(true);
 					}
+					
 					indicPlot.clearRangeAxes();
 					
 					final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
@@ -488,7 +508,10 @@ public class ChartMain extends Chart {
 						eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
 					}
 					
+					int nbOfGroupsAlreadyDisplayed = 0;
 					for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
+						
+						Boolean groupIsDisplayed = false;
 						
 						//Renderer
 						XYItemRenderer renderer = indicPlot.getRenderer(groupIdx);
@@ -505,91 +528,117 @@ public class ChartMain extends Chart {
 						double groupMaxY = Double.MIN_VALUE;
 						double groupMinY = Double.MAX_VALUE;
 						for (int k = 0; k < outputIndexes.length; k++) {
-
-							int outputIdx = outputIndexes[k];
-							final String domain = eventDefDescriptorArray[outputIdx];
-							TimeSeries timeSerie = new TimeSeries(domain);
-							Boolean isNotNan = false;
-							for (Date date : serie.keySet()) {
-								double[] ds = serie.get(date);
-								RegularTimePeriod period = new Day(date);
-								Number value = ds[outputIdx];
-								isNotNan = isNotNan || (!((Double) value).isNaN() && !((Double) value).isInfinite());
-								//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
-								if (!((Double) value).isInfinite()) {
-									TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-									timeSerie.add(item, false);
-								}
-							}
 							
-							if (isNotNan) {//Series has values to display
+							int outputIdx = outputIndexes[k];
+							if (eventDefDescriptor.isDisplayed(outputIdx)) {
 								
-								groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
-								groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
-								
-								dataset.addSeries(timeSerie);
-
-								renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
-								renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
-
-								XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-									public String generateToolTip(XYDataset dataset, int series, int item) {
-
-										String y = "NaN";
-										String x = "NaN";
-										try {
-											y = numberFormat.format(dataset.getYValue(series, item));
-											Date date = new Date((long) dataset.getXValue(series, item));
-											x = simpleDateFormat.format(date);
-											return "<html>" + 
-														"<font size='2'>" + 
-															"<b>" + domain + "</b> on the " + x + "<br>"
-															+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
-														"</font>" + 
-													"</html>";
-										} catch (Exception e) {
-											LOGGER.debug(e, e);
-										}
-										return "NaN";
-
+								groupIsDisplayed = true;
+							
+								final String domain = eventDefDescriptorArray[outputIdx];
+								TimeSeries timeSerie = new TimeSeries(domain);
+								Boolean isNotNan = false;
+								for (Date date : serie.keySet()) {
+									double[] ds = serie.get(date);
+									RegularTimePeriod period = new Day(date);
+									Number value = ds[outputIdx];
+									isNotNan = isNotNan || (!((Double) value).isNaN() && !((Double) value).isInfinite());
+									//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
+									if (!((Double) value).isInfinite()) {
+										TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+										timeSerie.add(item, false);
 									}
-								};
-
-								renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
-								serieIdx++;
+								}
+								
+								if (isNotNan) {//Series has values to display
+									
+									groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
+									groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
+									
+									dataset.addSeries(timeSerie);
+	
+									renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
+									renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
+	
+									XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+	
+										public String generateToolTip(XYDataset dataset, int series, int item) {
+	
+											String y = "NaN";
+											String x = "NaN";
+											try {
+												y = numberFormat.format(dataset.getYValue(series, item));
+												Date date = new Date((long) dataset.getXValue(series, item));
+												x = simpleDateFormat.format(date);
+												return "<html>" + 
+															"<font size='2'>" + 
+																"<b>" + domain + "</b> on the " + x + "<br>"
+																+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
+															"</font>" + 
+														"</html>";
+											} catch (Exception e) {
+												LOGGER.debug(e, e);
+											}
+											return "NaN";
+	
+										}
+									};
+	
+									renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
+									serieIdx++;
+								}
+							
 							}
 
 						}
 						
 						//Y Axe for group
-						ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
-						if (rangeAxis == null) {
+						if (groupIsDisplayed) {
 							
-							double thresholdCenter = groupCenter(serie, eventDefDescriptor, groupIdx);
-							rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
-							
-							if ( groupIdx == 0 || groupIdx == 1) {
-								rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-							} else {
-								rangeAxis.setVisible(false);
+							ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
+							if (rangeAxis == null) {
+
+								double thresholdCenter = groupCenter(serie, eventDefDescriptor, groupIdx);
+								rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
+								
+								if (nbOfGroupsAlreadyDisplayed == 0) {
+									indicPlot.addRangeMarker(groupIdx, new ValueMarker(0), Layer.FOREGROUND, false);
+									indicPlot.setRangeGridlinesVisible(true);
+									AxisLocation location = AxisLocation.TOP_OR_LEFT;
+									indicPlot.setRangeAxisLocation(groupIdx, location);
+									rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
+								}
+								else if (nbOfGroupsAlreadyDisplayed <= 2) {
+									AxisLocation location = AxisLocation.TOP_OR_RIGHT;
+									indicPlot.setRangeAxisLocation(groupIdx, location);
+									rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
+								} 
+								else {
+									rangeAxis.setVisible(false);
+								}
+								
+								indicPlot.setRangeAxis(groupIdx, rangeAxis, true);
+								
+								nbOfGroupsAlreadyDisplayed++;
 							}
-							indicPlot.setRangeAxis(groupIdx, rangeAxis, true);
+
+							//Set group dateSet
+							indicPlot.setDataset(groupIdx, dataset);
+							if ( groupIdx != 0 ) indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);
+							
 						}
-						
-						//Set group dateSet
-						indicPlot.setDataset(groupIdx, dataset);
-						if ( groupIdx != 0 ) indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);
 						
 					}
 					
 					//Combine group
 					if (subplots.size() == 1) {
-						combinedDomainXYPlot.add(indicPlot, 1);
+						mainPlot.setWeight(CHARTS_TOTAL_WEIGHT - indicPlotWeight);
+						combinedDomainXYPlot.add(indicPlot, indicPlotWeight);
 					}
+
+					resetVerticalLines(plotArea);
 					
 				} catch (Exception e) {
-					LOGGER.warn("Can't refresh indicator chart for (clear in progress??) : "+ e);
+					LOGGER.warn("Can't refresh indicator chart : "+ e );
 				}
 			}
 
@@ -611,7 +660,6 @@ public class ChartMain extends Chart {
 		};
 		
 		EventQueue.invokeLater(runnable);
-
 	}
 
 	/**
@@ -681,7 +729,6 @@ public class ChartMain extends Chart {
 		};
 		
 		EventQueue.invokeLater(runnable);
-		
 	}
 	
 		
@@ -697,7 +744,7 @@ public class ChartMain extends Chart {
 			for (int i = 0; i < data.size(); i++) {
 				fos.write(df.format(data.get(i).getDate()) + "," + data.get(i).getClose() + "\n");
 			}
-			fos.flush();
+			fos.close();
 		} catch (IOException e) {
 			LOGGER.error("", e);
 		}
@@ -726,7 +773,6 @@ public class ChartMain extends Chart {
 		};
 		
 		EventQueue.invokeLater(runnable);
-		
 	}
 	
 	public void resetIndicChart() {
@@ -734,12 +780,17 @@ public class ChartMain extends Chart {
 		Runnable runnable = new Runnable() {
 			
 			public void run() {
-				if (indicPlot != null && ((CombinedDomainXYPlot) jFreeChart.getXYPlot()).getSubplots().size() == 2) {
+				@SuppressWarnings("unchecked") List<XYPlot> subplots = ((CombinedDomainXYPlot) jFreeChart.getXYPlot()).getSubplots();
+				if (indicPlot != null && subplots.size() == 2) {
+					
+					indicPlotWeight = subplots.get(1).getWeight();
+					
 					indicPlot.clearRangeAxes();
 					indicPlot.clearDomainAxes();
 					((CombinedDomainXYPlot) jFreeChart.getXYPlot()).remove(indicPlot);
 					indicPlot = null;
-				}
+					
+				} 
 			}
 			
 		};
@@ -788,5 +839,331 @@ public class ChartMain extends Chart {
 		
 		ChartUtilities.writeChartAsPNG(new FileOutputStream(new File(path)), this.jFreeChart, 700, 600);
 		
+	}
+
+	public void slideChart(int increment, Rectangle2D plotarea) {
+		
+		CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
+		@SuppressWarnings("unchecked") List<XYPlot> subplots = combinedDomainXYPlot.getSubplots();
+		
+		if (subplots.size() != 2) {
+			return;
+		} else {
+			int upChartweight = subplots.get(0).getWeight();
+			int newUpChartWeight = upChartweight-increment;
+			if (newUpChartWeight <= 0 || newUpChartWeight >= CHARTS_TOTAL_WEIGHT) return;
+			subplots.get(0).setWeight(newUpChartWeight);
+			int lowChartweight = subplots.get(1).getWeight();
+			int newLowChartWeight = lowChartweight+increment;
+			if (newLowChartWeight <= 0 || newLowChartWeight >= CHARTS_TOTAL_WEIGHT) return;
+			subplots.get(1).setWeight(newLowChartWeight);
+			indicPlotWeight = newLowChartWeight;
+			
+			resetVerticalLines(plotarea);
+		}
+		
+	}
+
+	public Boolean isSlidingArea(double chartY, double mouseY) {
+		
+		CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
+		@SuppressWarnings("unchecked") List<XYPlot> subplots = combinedDomainXYPlot.getSubplots();
+		double xAxisDim = 20;
+		
+		if (subplots.size() != 2) {
+			return false;
+		} else {
+			double mousePos = mouseY/(chartY-xAxisDim);
+			double slidingArea = (double)subplots.get(0).getWeight()/(double)CHARTS_TOTAL_WEIGHT;
+			if (slidingArea + .01 >= mousePos && mousePos >= slidingArea - .01) {
+				return true;
+			}
+		}
+		
+		return false;
 	}	
+	
+	public void addVLineAt(Point2D clickPoint, Rectangle2D plotArea) {
+		
+		ValueMarker vLineAt = checkVLineAt(clickPoint, plotArea);
+		List<ValueMarker> hLineAt = checkHLineAt(clickPoint, plotArea);
+
+		if (vLineAt == null) {
+			
+			if (hLineAt.size() > 0) {
+				for (ValueMarker valueMarker : hLineAt) {
+					removeHLine(valueMarker);
+				}
+			}
+			
+			long chartX = point2DToTime(clickPoint, plotArea);
+			ValueMarker vDomainMarker = new ValueMarker(chartX);
+			vDomainMarker.setPaint(Color.ORANGE);
+			vDomainMarker.setStroke(new BasicStroke(1.5f, BasicStroke.JOIN_MITER, BasicStroke.JOIN_MITER, 10.0f, new float[]{1.0f}, 0.0f)); //set the value new float[]{1.0f}as 1.0f to avoiding dashing of marker
+	
+			addVerticalLine(mainPlot, vDomainMarker);
+			if (indicPlot != null) {
+				addVerticalLine(indicPlot, vDomainMarker);
+			}
+			
+			XYTextAnnotation vLineLabel = createVLineAnnotation(chartX, plotArea.getHeight());
+			lineAnnotations.put(chartX, vLineLabel);
+			mainPlot.addAnnotation(vLineLabel);
+			
+		} else {
+			
+			removeVline(vLineAt);
+			
+			List<Double> chartYs = point2DToRange(clickPoint, plotArea);
+			
+			if (indicPlot == null || clickPoint.getY() < plotArea.getHeight()*((double)(CHARTS_TOTAL_WEIGHT - indicPlotWeight)/(double)CHARTS_TOTAL_WEIGHT)) {
+				
+				ValueMarker vRangeMarker = new ValueMarker(chartYs.get(0));
+				vRangeMarker.setPaint(Color.ORANGE);
+				vRangeMarker.setLabelAnchor(RectangleAnchor.LEFT);
+				vRangeMarker.setLabelTextAnchor(TextAnchor.BOTTOM_LEFT);
+				vRangeMarker.setLabelFont(mainYAxis.getTickLabelFont().deriveFont(8f));
+				vRangeMarker.setLabel(mainYAxis.getNumberFormatOverride().format(chartYs.get(0)));
+				vRangeMarker.setStroke(new BasicStroke(1.5f, BasicStroke.JOIN_MITER, BasicStroke.JOIN_MITER, 10.0f, new float[]{1.0f},0.0f)); //set the value new float[]{1.0f}as 1.0f to avoiding dashing of marker
+				mainPlot.addRangeMarker(vRangeMarker);
+				
+			} else {
+				for (int i= 0; i <indicPlot.getRangeAxisCount(); i++) {
+
+					Double value = chartYs.get(i);
+					
+					if (value != null) {
+						ValueMarker vRangeMarker = new ValueMarker(value);
+						vRangeMarker.setPaint(Color.ORANGE);
+						vRangeMarker.setLabelAnchor(RectangleAnchor.LEFT);
+						vRangeMarker.setLabelOffsetType(LengthAdjustmentType.CONTRACT);
+						vRangeMarker.setLabelOffset(new RectangleInsets(0, 50.0*i, 0, 0));
+						vRangeMarker.setLabelTextAnchor(TextAnchor.BOTTOM_LEFT);
+						vRangeMarker.setLabelFont(indicPlot.getRangeAxis(i).getTickLabelFont().deriveFont(8f));
+						NumberFormat numberFormatOverride = ((NumberAxis)indicPlot.getRangeAxis(i)).getNumberFormatOverride();
+						if (numberFormatOverride == null) numberFormatOverride = new DecimalFormat("#0.0000");
+						vRangeMarker.setLabel((i+1)+"/ "+numberFormatOverride.format(value));
+						vRangeMarker.setStroke(new BasicStroke(1.5f, BasicStroke.JOIN_MITER, BasicStroke.JOIN_MITER, 10.0f, new float[]{1.0f},0.0f)); //set the value new float[]{1.0f}as 1.0f to avoiding dashing of marker
+						indicPlot.addRangeMarker(i, vRangeMarker, Layer.FOREGROUND);
+					}
+					
+				}
+			}
+			
+		}
+		
+	}
+
+	protected XYTextAnnotation createVLineAnnotation(long chartX, double chartHeight) {
+		
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
+		double chartY = mainYAxis.getLowerBound()+ 35*mainYAxis.getRange().getLength() / (chartHeight*(CHARTS_TOTAL_WEIGHT-indicPlotWeight)/CHARTS_TOTAL_WEIGHT);
+		
+		XYTextAnnotation vLineLabel = new XYTextAnnotation(simpleDateFormat.format(chartX), chartX, chartY);
+		vLineLabel.setFont(mainYAxis.getTickLabelFont().deriveFont(8f));
+		vLineLabel.setRotationAnchor(TextAnchor.BASELINE_CENTER);
+		vLineLabel.setTextAnchor(TextAnchor.BASELINE_CENTER);
+		vLineLabel.setRotationAngle(-3.14 / 2);
+		vLineLabel.setPaint(Color.black);
+		
+		return vLineLabel;
+	}
+
+
+	private long point2DToTime(Point2D clickPoint, Rectangle2D plotArea) {
+		long chartX = (long) xAxis.java2DToValue(clickPoint.getX(), plotArea, mainPlot.getDomainAxisEdge());
+		long chartXRounded = DateFactory.midnithDate(new Date(chartX)).getTime();
+		chartXRounded = (chartX-chartXRounded > 24 * 3600 * 1000 /2)?chartXRounded+24 * 3600 * 1000:chartXRounded;
+		return chartX;
+	}
+	
+	private List<Double> point2DToRange(Point2D clickPoint, Rectangle2D plotArea) {
+
+		List<Double> chartY = new ArrayList<Double>();
+		double mainH = (indicPlot == null)? plotArea.getHeight() : plotArea.getHeight()*(double)(CHARTS_TOTAL_WEIGHT - indicPlotWeight)/(double)CHARTS_TOTAL_WEIGHT;
+		if (clickPoint.getY() < mainH) {
+			Rectangle2D.Double doubleRectanble = new Rectangle2D.Double(plotArea.getX(), plotArea.getY(), plotArea.getWidth(), mainH);
+			chartY.add(mainYAxis.java2DToValue(clickPoint.getY(), doubleRectanble, mainPlot.getRangeAxisEdge()));
+		} else {
+			Rectangle2D.Double doubleRectanble = new Rectangle2D.Double(plotArea.getX(), plotArea.getY() + mainH + 4, plotArea.getWidth(), plotArea.getHeight()*((double)(indicPlotWeight)/(double)CHARTS_TOTAL_WEIGHT));
+			int rangeAxisCount = indicPlot.getRangeAxisCount();
+			for (int i = 0; i < rangeAxisCount; i++) {
+				if (indicPlot.getRangeAxis(i) != null) {
+					chartY.add(indicPlot.getRangeAxis(i).java2DToValue(clickPoint.getY(), doubleRectanble, indicPlot.getRangeAxisEdge(i)));
+				} else {
+					chartY.add(null);
+				}
+			}
+		}
+		
+		return chartY;
+		
+	}
+	
+
+	public ValueMarker checkVLineAt(Point2D point2d, Rectangle2D rectangle2d) {
+		
+		Point2D lowerClickPoint = new Point( (int) point2d.getX()-1, (int)point2d.getY());
+		Point2D higherClickPoint = new Point( (int) point2d.getX()+1, (int)point2d.getY());
+		long lowerTime = point2DToTime(lowerClickPoint, rectangle2d);
+		long higherTime = point2DToTime(higherClickPoint, rectangle2d);
+		
+		@SuppressWarnings("unchecked")
+		Collection<ValueMarker> mainDomainMarkers = mainPlot.getDomainMarkers(Layer.FOREGROUND);
+		if (mainDomainMarkers != null) {
+			for (ValueMarker valueMarker : mainDomainMarkers) {
+				if (lowerTime <= valueMarker.getValue() && valueMarker.getValue() <= higherTime) {
+					return valueMarker;
+				}
+			}
+		}
+		
+		return null;
+		
+	}
+	
+	public List<ValueMarker> checkHLineAt(Point2D clickPoint, Rectangle2D plotArea) {
+		
+		double mainH = (indicPlot == null)? plotArea.getHeight() : plotArea.getHeight()*(double)(CHARTS_TOTAL_WEIGHT - indicPlotWeight)/(double)CHARTS_TOTAL_WEIGHT;
+		
+		List<ValueMarker> valueMarkers = new ArrayList<ValueMarker>();
+		if (clickPoint.getY() < mainH) {
+
+			Point2D lowerClickPoint = new Point( (int) clickPoint.getX(), (int) clickPoint.getY()+1);
+			Point2D higherClickPoint = new Point( (int) clickPoint.getX(), (int) clickPoint.getY()-1);
+			List<Double> lowerTime = point2DToRange(lowerClickPoint, plotArea);
+			List<Double> higherTime = point2DToRange(higherClickPoint, plotArea);
+			
+			@SuppressWarnings("unchecked")
+			Collection<ValueMarker> mainRangeMarkers = mainPlot.getRangeMarkers(Layer.FOREGROUND);
+			if (mainRangeMarkers != null) {
+				for (ValueMarker valueMarker : mainRangeMarkers) {
+					if (lowerTime.get(0) <= valueMarker.getValue() && valueMarker.getValue() <= higherTime.get(0)) {
+						valueMarkers.add(valueMarker);
+					}
+				}
+			}
+			
+		} else {
+
+			Point2D lowerClickPoint = new Point( (int) clickPoint.getX(), (int) clickPoint.getY()+1);
+			Point2D higherClickPoint = new Point( (int) clickPoint.getX(), (int) clickPoint.getY()-1);
+			List<Double> lowerTime = point2DToRange(lowerClickPoint, plotArea);
+			List<Double> higherTime = point2DToRange(higherClickPoint, plotArea);
+			
+			int rangeAxisCount = indicPlot.getRangeAxisCount();
+			for (int i = 0; i < rangeAxisCount; i++) {
+				@SuppressWarnings("unchecked")
+				Collection<ValueMarker> indicRangeMarkers = indicPlot.getRangeMarkers(i, Layer.FOREGROUND);
+				if (indicRangeMarkers != null) {
+					for (ValueMarker valueMarker : indicRangeMarkers) {
+						if (lowerTime.get(i) != null && higherTime.get(i) != null) {
+							if (lowerTime.get(i) <= valueMarker.getValue() && valueMarker.getValue() <= higherTime.get(i)) {
+								valueMarkers.add(valueMarker);
+							}
+						}
+					}
+				}
+			}
+			
+		}
+		
+		return valueMarkers;
+		
+	}
+	
+	public Boolean removeVLineAt(Point2D point2d, Rectangle2D rectangle2d) {
+		ValueMarker vLineAt = checkVLineAt(point2d, rectangle2d);
+		if (vLineAt != null) {
+			removeVline(vLineAt);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public Boolean removeHLineAt(Point2D point2d, Rectangle2D rectangle2d) {
+		List<ValueMarker> hLineAt = checkHLineAt(point2d, rectangle2d);
+		if (hLineAt.size() > 0) {
+			for (ValueMarker valueMarker : hLineAt) {
+				removeHLine(valueMarker);
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	protected void removeHLine(ValueMarker hLineAt) {
+		mainPlot.removeRangeMarker(hLineAt);
+		if (indicPlot != null) {
+			int rangeAxisCount = indicPlot.getRangeAxisCount();
+			for (int i = 0; i < rangeAxisCount; i++) {
+				indicPlot.removeRangeMarker(i, hLineAt, Layer.FOREGROUND);
+			}
+		}
+	}
+
+	private void removeVline(ValueMarker valueMarker) {
+		mainPlot.removeDomainMarker(valueMarker);
+		mainPlot.removeAnnotation(lineAnnotations.remove(new Double(valueMarker.getValue()).longValue()));
+		if (indicPlot != null) {
+			indicPlot.removeDomainMarker(valueMarker);
+		}
+	}
+	
+	private void addVerticalLine(XYPlot plot, Marker vLineDomainMarker) {
+		plot.addDomainMarker(vLineDomainMarker);
+	}
+
+	public void removeVLines() {
+		
+		mainPlot.clearDomainMarkers();
+		for (XYTextAnnotation lineAnnotation : lineAnnotations.values()) {
+			mainPlot.removeAnnotation(lineAnnotation);
+		}
+		lineAnnotations.clear();
+		
+		if (indicPlot != null) {
+			indicPlot.clearDomainMarkers();
+		}
+	}
+	
+	public void removeHLines() {
+		
+		mainPlot.clearRangeMarkers();
+		if (indicPlot != null) {
+			indicPlot.clearRangeMarkers();
+		}
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void resetVerticalLines(Rectangle2D plotArea) {
+		
+		Collection<ValueMarker> mainDomainMarkers = mainPlot.getDomainMarkers(Layer.FOREGROUND);
+		
+		Collection<ValueMarker> indicDomainMarkers = null;
+		if (indicPlot != null) {
+			indicDomainMarkers = indicPlot.getDomainMarkers(Layer.FOREGROUND);
+		}
+		
+		if (mainDomainMarkers != null) {
+			for (ValueMarker valueMarker : mainDomainMarkers) {
+				
+				XYTextAnnotation xyTextAnnotation = lineAnnotations.remove(new Double(valueMarker.getValue()).longValue());
+				mainPlot.removeAnnotation(xyTextAnnotation);
+				XYTextAnnotation newAnnotation = createVLineAnnotation(new Double(valueMarker.getValue()).longValue(), plotArea.getHeight());
+				mainPlot.addAnnotation(newAnnotation);
+				lineAnnotations.put(new Double(xyTextAnnotation.getX()).longValue(), newAnnotation);
+				
+				if (indicPlot != null && (indicDomainMarkers == null || !indicDomainMarkers.contains(valueMarker))) {					
+					indicPlot.addDomainMarker(valueMarker);
+				}
+				
+			}
+		}
+		
+	}
+
 }

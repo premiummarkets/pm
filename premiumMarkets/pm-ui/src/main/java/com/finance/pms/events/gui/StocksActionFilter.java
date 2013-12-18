@@ -40,10 +40,10 @@ package com.finance.pms.events.gui;
 public enum StocksActionFilter {
 	
 	ALLSTOCKS ("All Stocks"),
-	FILTERUSERSELECTION ("User selection"),
+	//FILTERUSERSELECTION ("User selection"),
 	FILTERMONITORED ("Monitored"),
-	FILTERPORTFOLIO ("All Portfolios"),
-	FILTERMARKETS ("Markets");
+	FILTERPORTFOLIO ("Portfolios ..."),
+	FILTERMARKETS ("Markets ...");
 	
 	/** The text. */
 	private String text;

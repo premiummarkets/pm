@@ -42,5 +42,7 @@ import java.util.SortedMap;
 public interface CurvesConstantOperation {
 	
 	public SortedMap<Date, double[]> operate(SortedMap<Date, double[]> data1, double constant);
+	
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> data1, Double constant);
 
 }

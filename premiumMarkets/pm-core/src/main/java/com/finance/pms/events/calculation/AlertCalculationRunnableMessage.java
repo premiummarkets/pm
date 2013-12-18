@@ -118,7 +118,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 				for (Future<SymbolEvents> future : futures) {
 					allEvents.add(future.get());
 				}
-				EventsResources.getInstance().crudCreateEvents(allEvents, true, portfolio.getName(), false, null);
+				EventsResources.getInstance().crudCreateEvents(allEvents, true, portfolio.getName());
 				
 			} catch (InterruptedException e) {
 				LOGGER.error(e,e);

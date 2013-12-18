@@ -123,7 +123,7 @@ userop :
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
   
 params : param (',' param)* -> param+ ;
-param : NumberToken ->  ^(Number NumberToken) | MATypeToken -> ^(MAType MATypeToken) | StringToken ->  ^(String StringToken) |operand ;
+param : NumberToken ->  ^(Number NumberToken) | MATypeToken -> ^(MAType MATypeToken) | StringToken ->  ^(String StringToken) | operand ;
 operand : stockhistory -> stockhistory | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) ;
 
@@ -140,7 +140,7 @@ Userop
      : {runtimeUserOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
      ;
 NumberToken 
-     : ('0'..'9')+ ('.' ('0'..'9')+)?
+     : ('-')? ('0'..'9')+ ('.' ('0'..'9')+)?
      ;
 StringToken
      : '"' ('a'..'z' | 'A'..'Z' | '.' | '_')+ '"'

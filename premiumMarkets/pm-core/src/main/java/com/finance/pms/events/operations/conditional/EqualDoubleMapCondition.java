@@ -9,7 +9,7 @@ public class EqualDoubleMapCondition extends CmpDoubleMapCondition {
 	
 
 	private EqualDoubleMapCondition() {
-		super("historical equal", "True when the first time series value is equal the second one.");
+		super("historical equality", "True when the first time series value is equal the second one.");
 	}
 	
 	public EqualDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -18,7 +18,7 @@ public class EqualDoubleMapCondition extends CmpDoubleMapCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(Comparable<Double>... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
 		return ops[0].compareTo((Double) ops[1])  == 0;
 	}
 

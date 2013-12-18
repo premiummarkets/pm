@@ -12,12 +12,23 @@ public class OutputReference implements Comparable<OutputReference> {
 	String referenceAsOperand;
 	Boolean isLeaf;
 	
+	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, Boolean isLeaf, String operationReference) {
+		this.reference = reference;
+		this.outputSelector = outputSelector;
+		this.formula = formula;
+		this.referenceAsOperand = referenceAsOperand;
+		this.isLeaf = isLeaf;
+		
+		this.operationReference = operationReference;
+	}
+	
 	public OutputReference(Operation operation) {
 		this.reference = operation.getReference();
-		this.outputSelector = (operation.getOutputSelector() != null)? operation.getOutputSelector() : operation.getReference();
+		//this.outputSelector = (operation.getOutputSelector() != null)? operation.getOutputSelector() : operation.getReference();
+		this.outputSelector  = operation.getOutputSelector();
 		this.formula = operation.getFormula();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
-		isLeaf = (operation instanceof LeafOperation);
+		this.isLeaf = (operation instanceof LeafOperation);
 		
 		this.operationReference = operation.getOperationReference();
 	}
@@ -27,7 +38,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.outputSelector = multiOutputDiscriminator;
 		this.formula = operation.getFormula();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
-		isLeaf = (operation instanceof LeafOperation);
+		this.isLeaf = (operation instanceof LeafOperation);
 		
 		this.operationReference = operation.getOperationReference();
 	}
@@ -41,7 +52,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		int result = 1;
 		result = prime * result + ((formula == null) ? 0 : formula.hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
-		result = prime * result + ((reference == null) ? 0 : reference.hashCode());
+		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
 		return result;
 	}
 	@Override
@@ -66,10 +77,10 @@ public class OutputReference implements Comparable<OutputReference> {
 				return false;
 		} else if (!outputSelector.equals(other.outputSelector))
 			return false;
-		if (reference == null) {
-			if (other.reference != null)
+		if (operationReference == null) {
+			if (other.operationReference != null)
 				return false;
-		} else if (!reference.equals(other.reference))
+		} else if (!operationReference.equals(other.operationReference))
 			return false;
 		return true;
 	}
@@ -77,27 +88,39 @@ public class OutputReference implements Comparable<OutputReference> {
 	@Override
 	public int compareTo(OutputReference o) {
 
-		int compareTo = this.reference.compareTo(o.reference);
+		int compareTo = this.operationReference.compareTo(o.operationReference);
 		if (compareTo == 0) {
-			compareTo = this.outputSelector.compareTo(o.outputSelector);
-			if (compareTo == 0) {
-				if (this.formula == null && o.formula == null) {
-					compareTo = 0;
-				} 
-				else if (this.formula == null) {
-					compareTo = 1;
-				}
-				else if (o.formula == null) {
-					compareTo = -1;
-				}
-				else {
-					compareTo = this.formula.compareTo(o.formula);
-				}
-				if (compareTo == 0 && isLeaf) {
-					compareTo = this.hashCode() - o.hashCode();
-				}
+			if (this.outputSelector == null && o.outputSelector == null) {
+				compareTo = 0;
+			} 
+			else if (this.outputSelector == null) {
+				compareTo = 1;
+			}
+			else if (o.outputSelector == null) {
+				compareTo = -1;
+			}
+			else {
+				compareTo = this.outputSelector.compareTo(o.outputSelector);
 			}
 		}
+		if (compareTo == 0) {
+			if (this.formula == null && o.formula == null) {
+				compareTo = 0;
+			} 
+			else if (this.formula == null) {
+				compareTo = 1;
+			}
+			else if (o.formula == null) {
+				compareTo = -1;
+			}
+			else {
+				compareTo = this.formula.compareTo(o.formula);
+			}
+		}
+		if (compareTo == 0 && isLeaf) {
+			compareTo = this.hashCode() - o.hashCode();
+		}
+		
 		return compareTo;
 	}
 
@@ -112,6 +135,22 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	public String getOperationReference() {
 		return operationReference;
+	}
+
+	public String getFormula() {
+		return formula;
+	}
+
+	public String getOutputSelector() {
+		return outputSelector;
+	}
+
+	public String getReferenceAsOperand() {
+		return referenceAsOperand;
+	}
+
+	public Boolean getIsLeaf() {
+		return isLeaf;
 	}
 	
 }

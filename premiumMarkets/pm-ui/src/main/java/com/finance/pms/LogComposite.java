@@ -86,7 +86,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				progressBar.setLayoutData(logDisplayGD);
 				
 				progressBar.setFont(MainGui.DEFAULTFONT);
-				//progressBar.setForeground(new Color(getDisplay(),255,0,0));
 				progressBar.setMaximum(100);
 				progressBar.setSelection(0);
 				progressBar.setVisible(true);
@@ -120,10 +119,12 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		long currentTime = (new Date()).getTime();
 		
 		long timeElapsed = (nbIterDone == 0)? 0 : (currentTime - startTime);
-		String timeElapsedStr = timeElapsed/(1000*60) + " minutes "+ (timeElapsed - (1000*60)*(timeElapsed/(1000*60)))/1000 + " seconds.";
 		
-		progressBarLabel.setText("Time elapsed : "+timeElapsedStr);
-		progressBarLabel.pack();
+		if (timeElapsed > 0) {
+			String timeElapsedStr = timeElapsed/(1000*60) + " minutes "+ (timeElapsed - (1000*60)*(timeElapsed/(1000*60)))/1000 + " seconds.";
+			progressBarLabel.setText("Time elapsed : " + timeElapsedStr);
+			progressBarLabel.pack();
+		}
 		
 		logDisplay.setText(MyLogger.lastMsg.getLastMessage());
 		logDisplay.setToolTipText(MyLogger.lastMsg.getLastMessage());

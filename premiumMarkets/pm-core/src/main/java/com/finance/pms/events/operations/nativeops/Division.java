@@ -20,7 +20,7 @@ public class Division extends ArithmeticOperation {
 
 	@Override
 	public Double twoOperandsOp(Double op0, Double op1) {
-		if (op1 == 0) return Double.NaN;
+		if ((op0 == null || op0.isNaN()) || (op1 == null || op1.isNaN()) || op1 == 0) return Double.NaN;
 		return op0/op1;
 	}
 

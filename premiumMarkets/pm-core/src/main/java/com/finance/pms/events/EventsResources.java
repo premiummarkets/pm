@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -51,8 +52,15 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.ShareListInfo;
@@ -87,6 +95,8 @@ public class EventsResources {
 	public List<SymbolEvents> midleList;
 	public List<SymbolEvents> finList;
 	public List<SymbolEvents> debList;
+	
+	Map<Stock, Lock> locks;
 	
 	//"EVENTS_PKEY" UNIQUE ( "SYMBOL", "ISIN",  "ANALYSENAME", "DATE", "EVENTDEFID", "EVENTDEFEXTENSION");
 	private class EventCacheEntry {
@@ -258,7 +268,24 @@ public class EventsResources {
 					sortedEventsForStock = new EventCacheEntryList(new EventCacheEntryComparator());
 					this.createEventsInSoftStockCache(symbolEvents.getStock(), sortedEventsForStock);
 				}
-				sortedEventsForStock.addAll(buildCacheEntriesFromSymbolEvents(symbolEvents));
+				
+				Collection<EventCacheEntry> builtCacheEntriesFromSymbolEvents = buildCacheEntriesFromSymbolEvents(symbolEvents);
+				try {
+					sortedEventsForStock.addAll(builtCacheEntriesFromSymbolEvents);
+				} catch (RuntimeException e) {
+					String currentCache = "Current cache entries :\n";
+					for (EventCacheEntry cacheEntry : sortedEventsForStock) {
+						currentCache = currentCache + cacheEntry + "\n";
+					}
+					LOGGER.error(currentCache);
+					String addedToCache = "Added cache entries :\n";
+					for (EventCacheEntry cacheEntry : builtCacheEntriesFromSymbolEvents) {
+						addedToCache = addedToCache + cacheEntry + "\n";
+					}
+					LOGGER.error(addedToCache);
+					throw e;
+				}
+				
 			}
 		}
 		
@@ -284,6 +311,8 @@ public class EventsResources {
 		isEventCached = new Boolean(eventCacheProp);
 		isCachePersistent = false;
 		
+		locks = new HashMap<Stock, Lock>();
+		
 		singleton = this;
 		
 	}
@@ -307,7 +336,7 @@ public class EventsResources {
 		
 		List<SymbolEvents> eventList = new ArrayList<SymbolEvents>();
 		eventList.add(symbolEvents);
-		crudCreateEvents(eventList, persist, analysisName, false, null);
+		crudCreateEvents(eventList, persist, analysisName);
 		
 	}
 	
@@ -348,7 +377,8 @@ public class EventsResources {
 		
 		List<EventCacheEntry> ret = new ArrayList<EventsResources.EventCacheEntry>();
 		for (EventKey eventKey : symbolEvents.getDataResultMap().keySet()) {
-			ret.add(new EventCacheEntry(eventKey, symbolEvents.getDataResultMap().get(eventKey)));
+			EventValue eventValue = symbolEvents.getDataResultMap().get(eventKey);
+			ret.add(new EventCacheEntry(eventKey, eventValue));
 		}
 		return ret;
 	}
@@ -567,11 +597,11 @@ public class EventsResources {
 	}
 	
 
-	public void crudCreateEvents(List<SymbolEvents> events, Boolean isDataPersisted, String eventListName, boolean preLockRequiered, String tableToLock) {
+	public void crudCreateEvents(List<SymbolEvents> events, Boolean isDataPersisted, String eventListName) {
 
 		if (isEventCached) {
 			if (isCachePersistent && !isDataPersisted) {
-				persitEvents(events, eventListName, EVENTSCACHETABLE, false, "");
+				persitEvents(events, eventListName, EVENTSCACHETABLE);
 			}
 
 			addEventsToCache(events, eventListName, !isDataPersisted);
@@ -580,84 +610,125 @@ public class EventsResources {
 		if (isDataPersisted || !isEventCached) {
 			
 			LOGGER.info("Storing Events in db cached is "+isEventCached+", persist is "+isDataPersisted+", other params "+eventListName);
-			persitEvents(events, eventListName, EVENTSTABLE, preLockRequiered, tableToLock);
+			persitEvents(events, eventListName, EVENTSTABLE);
 
 		} 
 	}
 
-	private void persitEvents(List<SymbolEvents> events, String eventListName, String eventTableName, boolean preLockRequiered, String tableToLock) {
+	private void persitEvents(List<SymbolEvents> events, String eventListName, String eventTableName) {
 		
-		ArrayList<Query> qInsert = new ArrayList<Query>();
-		ArrayList<Validatable> lqUpdate = new ArrayList<Validatable>();
-		buildUpdateValidatableList(events, qInsert, lqUpdate);
-
-		List<Validatable> lqRemainingInsert = new ArrayList<Validatable>();
-		int[] updated = new int[0];
-		try {
-
-			updated = DataSource.getInstance().executeBlockWithTimeStamp(lqUpdate, DataSource.EVENTS.getUPDATE(eventTableName), preLockRequiered, tableToLock);
-			
-			//Insert the raws not updated
-			for (int i=0;i<updated.length;i++) {
-				final Query query = qInsert.get(i);
-
-				if (updated[i] == 0) { //Raw not updated //XXX is 0 returned if the line is present but the update values are the same as the existing line?
-					
-					lqRemainingInsert.add(new StockToDB() {
-
-						private static final long serialVersionUID = -1418476918112988888L;
-
-						@Override
-						public Query toDataBase() {
-							return query;
-						}
-
-						@Override
-						public String toString() {
-							return query.toString();
-						}
-					});
-					
-				} else if (updated[i] != 1) {
-					LOGGER.error(
-							"Strange return from events update detected :\n" +
-							"Update request params :\n"+
-								DataSource.printHugeCollection(lqUpdate)+"\n" +
-							"Insert request params :\n"+
-								DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
-							"Update return was " +
-									Arrays.toString(updated)
-							);
-				}
+		SortedSet<Stock> lockIds = new TreeSet<Stock>();
+		for (SymbolEvents se : events) {
+			lockIds.add(se.getStock());
+		}
+		
+		//synchronized (locks) {
+			for (Stock stock : lockIds) {
+				Lock stockLock = locks.get(stock);
+				if (stockLock == null) {
+					stockLock = new ReentrantLock();
+					locks.put(stock, stockLock);
+				} 
+				stockLock.lock();
 			}
+		//}
+		
+		try {
+			DataSourceTransactionManager txManager = (DataSourceTransactionManager) SpringContext.getSingleton().getBean("txManager");
+
+			DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+			TransactionStatus status = txManager.getTransaction(def);
+
+			ArrayList<Query> qInsert = new ArrayList<Query>();
+			ArrayList<Validatable> lqUpdate = new ArrayList<Validatable>();
+			buildUpdateValidatableList(events, qInsert, lqUpdate);
+
+			List<Validatable> lqRemainingInsert = new ArrayList<Validatable>();
+			int[] updated = new int[0];
 
 			try {
-			
-				DataSource.getInstance().executeBlockWithTimeStamp(lqRemainingInsert, DataSource.EVENTS.getINSERT(eventTableName), preLockRequiered, tableToLock);
-				
-			} catch (Exception e) {
-				LOGGER.error(
-						"Pb inserting after updating events :\n" +
-						"Update request params :\n"+
-							DataSource.printHugeCollection(lqUpdate)+"\n" +
-						"Insert request params :\n"+
-							DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
-						"Update return was " + 
-							Arrays.toString(updated), e);
-			}
 
-		} catch (SQLException e) {
-			LOGGER.error("Pb update/insert events :\n" +
+				updated = DataSource.getInstance().executeBlockSerializedWithTimeStamp(lqUpdate, DataSource.EVENTS.getUPDATE(eventTableName));
+
+				//Insert the raws not updated
+				for (int i=0;i<updated.length;i++) {
+					
+					final Query query = qInsert.get(i);
+
+					if (updated[i] == 0) { //Raw not updated //XXX is 0 returned if the line is present but the update values are the same as the existing line?
+
+						lqRemainingInsert.add(new StockToDB() {
+
+							private static final long serialVersionUID = -1418476918112988888L;
+
+							@Override
+							public Query toDataBase() {
+								return query;
+							}
+
+							@Override
+							public String toString() {
+								return query.toString();
+							}
+						});
+
+					} else if (updated[i] != 1) {
+						LOGGER.error(
+								"Strange return from events update detected :\n" +
+										"Update request params :\n"+
+										DataSource.printHugeCollection(lqUpdate)+"\n" +
+										"Insert request params :\n"+
+										DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
+										"Update return was " +
+										Arrays.toString(updated)
+								);
+					}
+				}
+
+				try {
+
+					DataSource.getInstance().executeBlockSerializedWithTimeStamp(lqRemainingInsert, DataSource.EVENTS.getINSERT(eventTableName));
+
+				} catch (SQLException e) {
+					LOGGER.error(
+							"Pb inserting after updating events :\n" +
+									"Update request params :\n"+
+									DataSource.printHugeCollection(lqUpdate)+"\n" +
+									"Insert request params :\n"+
+									DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
+									"Update return was " + 
+									Arrays.toString(updated), e);
+					throw e;
+				}
+
+				txManager.commit(status);
+
+			} catch (SQLException e) {
+
+				txManager.rollback(status);
+
+				LOGGER.error("Pb update/insert events :\n" +
 						"Update request params :\n"+
-							DataSource.printHugeCollection(lqUpdate)+"\n" +
+						DataSource.printHugeCollection(lqUpdate)+"\n" +
 						"Insert request params :\n"+
-							DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
+						DataSource.printHugeCollection(lqRemainingInsert)+"\n" +
 						"Update return was " +
-							Arrays.toString(updated)
+						Arrays.toString(updated)
 						,e);
-			LOGGER.debug(e.getCause());
-			LOGGER.debug(e.getNextException());
+				LOGGER.debug(e.getCause());
+				LOGGER.debug(e.getNextException());
+
+			} 
+
+		} finally {
+			//synchronized (locks) {
+				for (Stock stock : lockIds) {
+					Lock stockLock = locks.get(stock);
+					stockLock.unlock();
+				}
+			//}
 		}
+		
 	}
 
 	/**

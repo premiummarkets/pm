@@ -47,7 +47,6 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.StochasticOscillator;
@@ -59,7 +58,7 @@ public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 	private StochasticOscillator stochasticOscillator;
 	private Integer stochQuotationStartDateIdx;
 
-	public StochasticThreshold(Stock stock, StochasticOscillator stochasticOscillator, HouseAroon aroon, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+	public StochasticThreshold(Stock stock, StochasticOscillator stochasticOscillator, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.stochasticOscillator = stochasticOscillator;
@@ -101,7 +100,6 @@ public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 	
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
-		if (indicator instanceof HouseAroon) return this.isInDataRange((HouseAroon)indicator, indicatorIndex);
 		if (indicator instanceof StochasticOscillator) return this.isInDataRange((StochasticOscillator)indicator, indicatorIndex);
 		throw new RuntimeException("Booo",new Throwable());
 	}
@@ -109,10 +107,6 @@ public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 	private Boolean isInDataRange(StochasticOscillator indicator, Integer indicatorIndex) {
 		return (getDaysSpan() < indicatorIndex) && (indicatorIndex < this.stochasticOscillator.getSlowK().length);
 		
-	}
-	
-	private boolean isInDataRange(HouseAroon sma, Integer index) {
-		return (0 < index && index < sma.getOutAroonUp().length);
 	}
 
 	@Override

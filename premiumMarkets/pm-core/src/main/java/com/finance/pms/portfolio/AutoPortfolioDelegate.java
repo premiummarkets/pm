@@ -40,8 +40,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -133,7 +133,7 @@ public class AutoPortfolioDelegate {
 						return "~";
 					}
 				},
-				new TreeMap<EventKey, EventValue>(),
+				new ConcurrentSkipListMap<EventKey, EventValue>(),
 				new ArrayList<String>(),
 				EventState.STATE_TERMINATED) {
 					
@@ -282,7 +282,7 @@ public class AutoPortfolioDelegate {
 							return "0";
 						}
 					},
-					new TreeMap<EventKey, EventValue>(),
+					new ConcurrentSkipListMap<EventKey, EventValue>(),
 					new ArrayList<String>(),
 					EventState.STATE_TERMINATED) {
 

@@ -86,7 +86,7 @@ public class LineFormaterTest extends TestCase {
 				System.out.println(stock);
 				//System.out.println(stock.size());
 			}
-			
+			reader.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

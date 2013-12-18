@@ -43,6 +43,7 @@ import com.finance.pms.talib.indicators.TalibCoreService;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
+//XXX sma 1 == shift 1 for convenience and backward compatibility in this implementation sma 1 == sma 0.
 public class TalibSmaSmoother extends Smoother implements SSmoother {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibSmaSmoother.class);
@@ -59,10 +60,7 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data , Boolean fixLag) {
 		
-		int lag = 0;
-		if (fixLag) {
-			lag = period / 2 + 1;
-		} 
+		int lag = lagCalc(fixLag, period); 
 		
 		MInteger outBegIdx = new MInteger();
 		MInteger outNBElement = new MInteger();
@@ -79,15 +77,21 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 		}
 		
 		RetCode rc;
-		if (period == 1) {
+		if (period <= 1) {
+			
+			period = 0; //XXX
 			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
 			outBegIdx = new MInteger();
 			outBegIdx.value = startIdx;
 			outNBElement = new MInteger();
 			outNBElement.value = endIdx - outBegIdx.value;
 			rc = RetCode.Success;
+			
+			
 		} else {
+			
 			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
+			
 		}
 		LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 		
@@ -108,10 +112,7 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 	@Override
 	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
 		
-		int lag = 0;
-		if (fixLag) {
-			lag = period / 2 + 1;
-		} 
+		int lag = lagCalc(fixLag, period);
 		
 		MInteger outBegIdx = new MInteger();
 		MInteger outNBElement = new MInteger();
@@ -128,13 +129,17 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 		}
 		
 		RetCode rc;
-		if (period == 1) {
+		if (period <= 1) {
+			
+			period = 0; //XXX
 			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
 			outBegIdx = new MInteger();
 			outBegIdx.value = startIdx;
 			outNBElement = new MInteger();
 			outNBElement.value = endIdx - outBegIdx.value;
 			rc = RetCode.Success;
+			
+			
 		} else {
 			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
 		}

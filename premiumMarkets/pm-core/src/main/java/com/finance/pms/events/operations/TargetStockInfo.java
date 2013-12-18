@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.WarningException;
@@ -12,7 +14,9 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.ChartableCondition;
+import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 
 public class TargetStockInfo {
@@ -100,7 +104,6 @@ public class TargetStockInfo {
 		Date lastQuote = stock.getLastQuote();
 		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : "+stock.toString());
 		this.startDate = startDate;
-		//this.endDate = (lastQuote.before(endDate))?lastQuote:endDate;
 		this.endDate = endDate;
 		
 		this.calculatedOutputsCache = new ArrayList<TargetStockInfo.Output>();
@@ -133,17 +136,31 @@ public class TargetStockInfo {
 	public void addOutput(Operation operation, Value<?> output) {
 		
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
-		if (alreadyCalculated != null) return;
+		if (alreadyCalculated != null) {
+			if (getIndexOfChartableOutput(operation) == -1) {
+				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), alreadyCalculated));
+			}
+			return;
+		}
 		
-		this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
-		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), output));
+		//this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
+		if (output instanceof MultiSelectorsValue) {
+			for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
+				String tamperedFormula = operation.getFormula().replaceAll(":.*\\(", ":"+selector+"(");
+				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), (operation instanceof LeafOperation), operation.getOperationReference());
+				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) output).getValue(selector)));
+			}
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), ((MultiSelectorsValue) output).getValue(((MultiSelectorsValue) output).getCalculationSelector())));
+		} else {
+			this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), output));
+		}
+		
 
 	}
 	
 	public void addExtraneousChartableOutput(Operation operation, DoubleMapValue output, String multiOutputDiscriminator) {
-		
 		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
-
 	}
 	
 	public ChartedOutputGroup setMain(Operation operation) {
@@ -164,7 +181,7 @@ public class TargetStockInfo {
 			return chartedDesrc.getContainer();
 			
 		} else {
-			throw new RuntimeException("No historical output not found. The main output must be a DoubleOperation: "+operation.getClass()+" for "+operation);
+			throw new RuntimeException("No historical output found. The main output must be a DoubleOperation: "+operation.getClass()+" for "+operation);
 		}
 		
 	}
@@ -238,5 +255,31 @@ public class TargetStockInfo {
 		return gatheredChartableOutputs;
 	}
 
-
+	public void printOutputs() {
+		
+		Set<Date> allKeys = new TreeSet<Date>();
+		String header = this.stock.getFriendlyName().replaceAll(",", " ") + ",";
+		
+		for (Output output : gatheredChartableOutputs) {
+			Value<?> outputData = output.getOutputData();
+			if (outputData instanceof DoubleMapValue) {
+				header = header + output.getOutputReference().getReference()+",";
+				Set<Date> keySet = ((DoubleMapValue)outputData).getValue(this).keySet();
+				allKeys.addAll(keySet);
+			}
+		}
+		System.out.println(header);
+	
+		for (Date date : allKeys) {
+			String line = date + ",";
+			for (Output output : gatheredChartableOutputs) {
+				Value<?> outputData = output.getOutputData();
+				if (outputData instanceof DoubleMapValue) {
+					line = line + ((DoubleMapValue)outputData).getValue(this).get(date) + ",";
+				}
+			}
+			System.out.println(line);
+		}
+		
+	}
 }

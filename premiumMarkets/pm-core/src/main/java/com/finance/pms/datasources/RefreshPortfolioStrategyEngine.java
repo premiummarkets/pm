@@ -40,13 +40,13 @@ import java.util.Set;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
-import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.AlertCalculationRunnableMessage;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.portfolio.Portfolio;
+import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.UserPortfolio;
 
 
@@ -82,9 +82,16 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 	public void callbackForAnalysisClean(Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) {
 		
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[1]);
-		super.callbackForAnalysisClean(engineObservers,rootParam);
+		super.callbackForAnalysisClean(engineObservers, rootParam);
 	}
 	
+
+//	@Override
+//	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
+//		quotationUpdate.getQuotesFor(rootParam);
+//		
+//	}
+
 	@Override
 	public int[] otherViewParamPositionsFor(TaskId taskId) {
 		switch (taskId) {
@@ -109,14 +116,19 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 	}
 
 	@Override
-	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
-		quotationUpdate.getQuotesFor(rootParam);
-		
-	}
-
-	@Override
+	//TODO use the portfolio list instead of the stocks list as param.
 	protected List<Stock> buildStockListFrom(Collection<Stock> rootParam) {
-		return new ArrayList<Stock>(rootParam);
+		if (rootParam == null) {
+			List<Stock> stocks = new ArrayList<Stock>();
+			for (Portfolio uPortfolio : PortfolioMgr.getInstance().getVisiblePortfolios()) {//XXX I should use the param 1 of otherViewParams instead. 
+				for (Stock stock : uPortfolio.getListShares().keySet()) {
+					stocks.add(stock);
+				}
+			}
+			return stocks;
+		} else {
+			return new ArrayList<Stock>(rootParam);
+		}
 	}
 
 }

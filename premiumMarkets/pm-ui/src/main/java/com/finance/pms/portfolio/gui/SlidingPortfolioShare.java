@@ -221,7 +221,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 
 	@Override
 	public String info() {
-		return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+		//return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+		return this.getStock().getFriendlyName();
 	}
 
 	public Boolean getDisplayOnChart() {
@@ -239,15 +240,13 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	@Override
 	public void addAlertOnEvent(String eventInfoReference, MonitorLevel monitorLevel, String optionalMessage) {
 		underLyingPortfolioShare.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
-		super.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
+		//super.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
 	}
-	
-	
 
 	@Override
 	public void clearAlertOnEvent() {
 		underLyingPortfolioShare.clearAlertOnEvent();
-		super.clearAlertOnEvent();
+		//super.clearAlertOnEvent();
 	}
 
 	public PortfolioShare getUnderLyingPortfolioShare() {

@@ -52,6 +52,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.events.pounderationrules.LatestEventsIndicatorOnlyPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
@@ -82,7 +83,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	
 	public static Date getNewDate() {
 		if (EventSignalConfig.ENDDATE != null) {
-			return EventSignalConfig.ENDDATE;
+			return new Date(EventSignalConfig.ENDDATE.getTime());
 		} else {
 			return new Date();
 		}
@@ -109,6 +110,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private SortedSet<EventInfo> allTechIndicatorsSortedCache= null;
 	private SortedSet<EventInfo> allEventInfos = null;
 	private SortedSet<EventInfo> allParameterized = null;
+	private SortedSet<EventConditionHolder> filteredParameterised = null;
 
 	
 	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getPrefs().get("event.buytrigger", "3"));
@@ -224,6 +226,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 	@SuppressWarnings("unchecked")
 	public SortedSet<EventInfo> getAllTechIndicatorsSorted(Boolean refreshCache) {
 		
+		SpringContext.getSingleton().syncOnPostInit();
+		
 		if (allTechIndicatorsSortedCache == null || refreshCache) {
 		
 			synchronized (LOGGER) {
@@ -261,8 +265,14 @@ public class EventSignalConfig extends Config implements Cloneable {
 							});
 							
 							if (PARAMETERIZEDINDICATORSBUILDER != null) {
+								
 								@SuppressWarnings("rawtypes")
-								Collection values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
+								Collection values;
+								if (this.filteredParameterised == null) {
+									values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
+								} else {
+									values = this.filteredParameterised;
+								}
 								allTechIndicatorsSortedCacheTmp.remove(EventDefinition.PARAMETERIZED);
 								allTechIndicatorsSortedCacheTmp.addAll(values);
 								allParameterizedTmp.addAll(values);
@@ -683,6 +693,10 @@ public class EventSignalConfig extends Config implements Cloneable {
 	}
 	public void setPerceptronTrainingPMEventOccLowerSpan(int trainingPMEventOccLowerSpan) {
 		this.perceptronTrainingPMEventOccLowerSpan = trainingPMEventOccLowerSpan;
+	}
+
+	public void setFilteredParameterised(SortedSet<EventConditionHolder> filteredParameterised) {
+		this.filteredParameterised = filteredParameterised;
 	}
 
 }

@@ -45,19 +45,19 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
+import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
+import com.finance.pms.threads.ConfigThreadLocal;
 
-
-// TODO: Auto-generated Javadoc
-/**
- * The Class SpringContext.
- * 
- * @author Guillaume Thoreton
- */
 public class SpringContext extends GenericApplicationContext {
 
 	private static SpringContext singleton;
 	
+	private Object postInitSync;
+	private Boolean postInit = false;
 	
 	public static SpringContext getSingleton() {
 		return singleton;
@@ -79,7 +79,6 @@ public class SpringContext extends GenericApplicationContext {
 	
 	public SpringContext(ConfigurableApplicationContext configurableApplicationContext) {
 		super(configurableApplicationContext);
-		//initPrefs(propsFile);
 		setDataSource();
 		singleton = this;
 	}
@@ -263,6 +262,7 @@ public class SpringContext extends GenericApplicationContext {
 			// Semaphore
 			putInPrefs("alertcalculator.semaphore.nbthread",props);
 			putInPrefs("indicatorcalculator.semaphore.nbthread",props);
+			putInPrefs("indicEventsCalculator.semaphore.eventthread",props);
 			putInPrefs("currencyconverter.semaphore.nbthread",props);
 			putInPrefs("marketlistretrieval.semaphore.nbthread",props);
 			putInPrefs("screeninginforetrieval.semaphore.nbthread",props);
@@ -474,6 +474,46 @@ public class SpringContext extends GenericApplicationContext {
 	private static void putInPrefs(String property, Properties props) {
 		if (props.containsKey(property))
 			MainPMScmd.getPrefs().put(property, props.getProperty(property));
+	}
+	
+	public void postInit() {
+
+		postInitSync = new Object();
+		postInit = true;
+
+		final TalibOperationGenerator talibOperationGenerator = SpringContext.getSingleton().getBean(TalibOperationGenerator.class);
+		final ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
+		final ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
+		
+		final EventSignalConfig config = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
+		
+		new Thread(new Runnable() {
+			public void run() {
+
+				synchronized (postInitSync) {
+					
+					ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
+					try {
+						parameterizedOperationBuilder.init(talibOperationGenerator);
+						parameterizedIndicatorsBuilder.init();
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						postInit = false;
+					}
+				}
+
+			}
+		}).start();
+
+	}
+	
+	public void syncOnPostInit() {
+		while (postInit) {
+			synchronized (postInitSync) {
+				//
+			}
+		}
 	}
 	
 }

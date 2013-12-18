@@ -215,10 +215,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			ret = (MyDBConnection) DataSource.getInstance().getThreadPool().getResource();
 			return ret;
 		} catch (InterruptedException e) {
-			LOGGER.error("Unable to get Connection. Is data base started?", e);
+			LOGGER.error("Unable to get Connection. Is database started?", e);
 			//System.exit(1);
 		} catch (TimeoutException e) {
-			LOGGER.error("Unable to get Connection. Is data base started? Thread lock ?", e);
+			LOGGER.error("Unable to get Connection. Is database started? Thread lock ?", e);
 		}
 		LOGGER.error("Unable to get Connection. For one reason or the other ...");
 		//System.exit(1);
@@ -1183,31 +1183,35 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return resReq;
 	}
 	
-	public int[] executeBlockWithTimeStamp(Collection<Validatable> qL, String preparedQuery, boolean preLockRequiered, String tableToLock) throws SQLException {
+	public int[] executeBlockSerializedWithTimeStamp(Collection<Validatable> qL, String preparedQuery) throws SQLException {
 		
 		MyDBConnection sdbcnx = this.getConnection(null);
+		int initialTransactionIsolation = sdbcnx.getConn().getTransactionIsolation();
+		sdbcnx.getConn().setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+		
+//		if (preLockRequiered) {
+//			int cpt = 0;
+//			while (cpt < 5) {
+//				try {
+//					Statement st = sdbcnx.getConn().createStatement();
+//					st.execute("LOCK TABLE EVENTS WRITE");
+//					break;
+//				} catch (Exception e) {
+//					LOGGER.warn("Attempt to lock table EVENTS nb "+cpt+" as failed. I will retry up to 10 times every minutes.",e,true);
+//					try {
+//						Thread.sleep(10000);
+//					} catch (InterruptedException e1) {
+//						LOGGER.error(e,e);
+//					}
+//					cpt++;
+//				}
+//			}
+//		}
+		
 		int[] resReq = {};
 		String debug = "";
 		PreparedStatement pst = sdbcnx.getConn().prepareStatement(preparedQuery);
 		try {
-			
-			if (preLockRequiered) {
-				int cpt = 0;
-				while (cpt < 10) {
-					try {
-						pst.execute("LOCK TABLES "+tableToLock+" WRITE");
-						break;
-					} catch (Exception e) {
-						LOGGER.warn("Attempt to lock table "+tableToLock+" nb "+cpt+" as failed. I will retry up to 10 times every minutes.",e,true);
-						try {
-							Thread.sleep(60000);
-						} catch (InterruptedException e1) {
-							LOGGER.error(e,e);
-						}
-						cpt++;
-					}
-				}
-			}
 			
 			Iterator<Validatable> qIt = qL.iterator();
 			LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
@@ -1222,6 +1226,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				pst.addBatch();
 			}
 			if (qL.size() > 0) resReq = pst.executeBatch();
+		
 			
 		} catch (SQLException e) {
 			
@@ -1234,12 +1239,12 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			
 		} finally {
 			
-			try {
-				if (preLockRequiered) pst.execute("UNLOCK TABLES");
-			} catch (Exception e) {
-				LOGGER.error(e,e);
-			}
-			
+//			try {
+//				if (preLockRequiered) pst.execute("UNLOCK TABLES");
+//			} catch (Exception e) {
+//				LOGGER.error(e,e);
+//			}
+			sdbcnx.getConn().setTransactionIsolation(initialTransactionIsolation);
 			DataSource.realesePoolConnection(sdbcnx);
 		}
 		return resReq;

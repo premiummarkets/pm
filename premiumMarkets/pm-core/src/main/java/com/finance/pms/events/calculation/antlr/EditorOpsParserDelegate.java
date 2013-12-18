@@ -29,9 +29,9 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		  super(input, runtimeNativeOps,runtimeUserOps);
 	      this.state = state;
 	      
-	      this.allNativeOps =  aggAllOperations(runtimeNativeOps, runtimeUserOps);
+	      this.allNativeOps = aggAllOperations(runtimeNativeOps, runtimeUserOps);
 	      
-	      this.needClosingOpsStack =  new LinkedList<EditorOpDescr>();
+	      this.needClosingOpsStack = new LinkedList<EditorOpDescr>();
 	  }
 
 
@@ -70,7 +70,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		
 		currentOp.setNbCommasParsed(commas);
 
-		System.out.println("checking params " + params + " against "+currentOp.getSynoptic());
+		System.out.println("Checking params " + params + " against "+currentOp.getSynoptic());
 		currentParamPos = 0;
 		for (; (currentParamPos < params.size()) && (currentParamPos < currentOp.getParams().size() || currentOp.undeterministicParamCount()); currentParamPos++) {
 

@@ -39,10 +39,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.InvalidAlgorithmParameterException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -56,7 +58,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.math.stat.descriptive.rank.Max;
+import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.springframework.stereotype.Service;
 
 import com.finance.pms.MainPMScmd;
@@ -93,23 +95,11 @@ public class OTFTuningFinalizer {
 		if (calcOutput == null) calcOutput = new TreeMap<Date,double[]>();
 		if (!calcOutput.isEmpty() && calcOutput.firstKey().before(startDate)) calcOutput = calcOutput.tailMap(startDate);
 		
-		Date endCalcRes = (calcOutput.size() > 0 && calcOutput.lastKey().after(endDate))? calcOutput.lastKey() : endDate;
-		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
 		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
-
-		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
-		String trendFile = "noOutputAvailable";
-		String chartFile = "noChartAvailable";
-		BigDecimal totProfit = BigDecimal.ONE;
-
-		EventType prevEventType = null;
-		PeriodRatingDTO period = new PeriodRatingDTO();
-		
-		Boolean generateBuySellCsv = MainPMScmd.getPrefs().getBoolean("autoporfolio.generatecsv", true);
-		Boolean generateSmaCmpOutChart =  MainPMScmd.getPrefs().getBoolean("autoporfolio.generatepng", true);
-
 		try {
+			
+			Date endCalcRes = (calcOutput.size() > 0 && calcOutput.lastKey().after(endDate))? calcOutput.lastKey() : endDate;
 			
 			//Grab calculated events
 			HashSet<EventInfo> eventDefinitions = new HashSet<EventInfo>();
@@ -124,259 +114,8 @@ public class OTFTuningFinalizer {
 				}
 			});
 			eventListForEvtDef.addAll(eventsCalculated.getDataResultMap().values());
-			
-			//Init output file
-			String endDateStamp = "";
-			if (MainPMScmd.getPrefs().getBoolean("perceptron.stampoutput", false)) {
-				endDateStamp = new SimpleDateFormat("yyyyMMdd").format(endDate);
-			}
-			
-			BufferedWriter bufferedWriter = null;
-			String fileName = "noOutputAvailable";
-			if (generateBuySellCsv) {
-				fileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol() + "_"+evtDef.info()+"_BuyAndSellRecords"+endDateStamp+".csv";
-				File file = new File(System.getProperty("installdir") + File.separator + fileName);
-				file.delete();
-				bufferedWriter = new BufferedWriter(new FileWriter(file));
-				bufferedWriter.write("Date, Quotations, Bearish, Bullish, Output \n");
-			}
-
-			//Other init
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 0, 0);
-			BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
-
-			Pattern pattern = Pattern.compile("config : (.*) es : ");
-			DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
-
-			Calendar currentDate = zeroTimeDate(startDate);
-
-			BigDecimal big2 = BigDecimal.ONE;
-
-			Iterator<EventValue> eventsIt = eventListForEvtDef.iterator();
-			EventValue currentEvent = null;
-			Date firstEventDate = null;
-			//We fetch the first event
-			if (eventsIt.hasNext()) {
-				currentEvent = eventsIt.next();
-				firstEventDate = currentEvent.getDate();
-			}
-
-			BigDecimal prevCloseForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-			SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
-			SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
-			
-			while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
 				
-				BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-				
-				String line = "";
-				if (generateBuySellCsv) {
-					line  = simpleDateFormat.format(currentDate.getTime());
-					line  = line + ", " + closeForDate;
-				}
-			
-				//Some events may have been skipped (ie WE events) and must be disregarded
-				while (currentEvent != null && currentDate.getTime().after(currentEvent.getDate()) && eventsIt.hasNext()) {
-					currentEvent = eventsIt.next();
-				}
-				
-				//We process the event when reached
-				if (currentEvent != null && currentDate.getTime().compareTo(currentEvent.getDate()) == 0) {
-
-					//TODO : remove this config match
-					try {
-						String message = currentEvent.getMessage();
-						Matcher matcher = pattern.matcher(message);
-						matcher.find();
-
-						String currentConfig = matcher.group(1);
-						if (!period.getConfigs().contains(currentConfig)) {
-							period.getConfigs().add(currentConfig);
-						}
-
-					} catch (Exception e) {
-						if (!period.getConfigs().contains("No_cfg_match_in_event_msg")) {
-							period.getConfigs().add("No_cfg_match_in_event_msg");
-						}
-					}
-
-					EventType eventType = currentEvent.getEventType();
-					if (prevEventType == null || !prevEventType.equals(eventType)) {//Trend change or First trend
-
-						//TO
-						if (prevEventType != null) {//Not the First trend : we cummulate
-
-							BigDecimal pPriceChange = closeForDate.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
-
-							//Period
-							period.setTo(currentEvent.getDate());
-							period.setPriceChange(pPriceChange);
-							periods.add(period);
-							period = new PeriodRatingDTO();
-
-							//Profit for period
-							if (eventType.equals(EventType.BEARISH)) {//sell
-								
-								LOGGER.info(
-										"Sell : Compound profit is "+totProfit+" at "+currentDate.getTime()+
-										". New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevCloseForDate+" : "+closeForDate+"-"+prevCloseForDate+"/"+prevCloseForDate+"="+pPriceChange);
-								
-								totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
-								
-								LOGGER.info("New Compound at "+currentDate.getTime()+" : prevTotProfit*("+pPriceChange+"+1)="+totProfit);
-							}				
-						}
-
-						//FROM //First trend or start of a new one
-						//Period
-						period.setTrend(eventType.toString());
-						period.setFrom(currentEvent.getDate());
-
-						//Csv Trend change
-						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
-							if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
-							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-							
-							LOGGER.info("Buy : Compound profit at "+totProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
-							
-						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
-							if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-						}
-						if (eventsIt.hasNext()) {
-							currentEvent = eventsIt.next();
-						}
-
-						if (!eventType.equals(EventType.NONE)){
-							prevEventType = eventType;
-							prevCloseForDate = closeForDate;
-						}
-						
-
-					} else {
-
-						//Csv No trend change
-						if (currentEvent.getEventType().equals(EventType.BULLISH)) {
-							if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
-							buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-						} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
-							if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-							sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-						}
-						if (eventsIt.hasNext()) {
-							currentEvent = eventsIt.next();
-						}
-					}
-
-				} else { //Filling up until the current event date is reached
-					
-					if (prevEventType == null) {
-						if (generateBuySellCsv) line = line + ", , ";
-					}
-					else if (prevEventType.equals(EventType.BULLISH)) {
-						if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
-						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-					} 
-					else if (prevEventType.equals(EventType.BEARISH)) {
-						if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-					}
-					
-				}
-
-				
-				if (generateBuySellCsv) {
-					
-					double[] output = calcOutput.get(currentDate.getTime());
-					String outputString =(output == null)?"NaN":output[0]+"";
-					
-					line = line + ", "+outputString;
-					line = line + "\n";
-					bufferedWriter.write(line);
-				}
-
-				QuotationsFactories.getFactory().incrementDate(currentDate, 1);
-				
-			}//End while
-
-			if (generateBuySellCsv) {
-				bufferedWriter.flush();
-			}
-			
-			//Not enough data we stop
-			if (prevEventType == null || (calcOutput.size() == 0 && (generateBuySellCsv || generateSmaCmpOutChart))) {
-				
-				String message = "No trend forecast events were found after calculation.\n";
-				
-				LOGGER.warn(noResMsg+message + ".\n" +
-						"Stock :"+ stock + "\n" +
-						"Available neural events  :"+ ((eventListForEvtDef == null)?"null":eventListForEvtDef.size()) + "\n" +
-						"Call Params : start "+startDate+", end "+endDate+", analysis "+analyseName+", event Def "+evtDef + "\n" +
-						"Output :  endCalc "+endCalcRes+", Calculated output size "+((calcOutput == null)?"null":calcOutput.size()));
-				
-				Date firstAvailDate = new Date(0);
-				Date lastAvailDate =  new Date(0);
-				if (quotations.size() > 0) {
-					firstAvailDate = quotations.getDate(quotations.getFirstDateShiftedIdx());
-					lastAvailDate = quotations.getDate(quotations.getLastDateIdx());
-				}
-				throw new NotEnoughDataException(stock, firstAvailDate, lastAvailDate, noResMsg+message, new Throwable());
-				
-			}
-			
-			//Enough data we throw up the things
-			
-			//PNG chart
-			if (generateBuySellCsv) trendFile = fileName;
-			
-			if (generateSmaCmpOutChart) {
-				
-				try {
-					
-					String chartFileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol()+ "_"+evtDef.info()+ "_OutChart"+endDateStamp+".png";
-					generateOutChart(chartFileName, calcOutput, quotations, buySerie, sellSerie);
-					observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output images generated ..."));
-					chartFile = chartFileName;
-					
-				} catch (NotEnoughDataException e) {
-					LOGGER.warn("Can't generate chart for "+stock,e, true);
-					chartFile = "noChartAvailable";
-				} catch (Exception e) {
-					LOGGER.error("Can't generate chart for "+stock,e);
-					chartFile = "noChartAvailable";
-				}
-				
-			} else {
-				chartFile = "noChartAvailable";
-			}
-			observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
-			
-			
-			BigDecimal pPriceChange = lastClose.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
-
-			//Finalise profit
-			if (prevEventType.equals(EventType.BULLISH)) {
-				totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
-			}
-			totProfit = totProfit.subtract(BigDecimal.ONE);
-
-			//Finalise trend
-			period.setTo(endDate);
-			period.setPriceChange(pPriceChange);
-			periods.add(period);	
-			
-			//Buy and hold profit
-			BigDecimal firstClose = quotations.getClosestCloseForDate(firstEventDate);
-			BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
-			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
-			
-			Date outputFirstKey = startDate;
-			Date outputLastKey = endDate;
-			if (!calcOutput.isEmpty()) {
-				outputFirstKey = calcOutput.firstKey();
-				outputLastKey = calcOutput.lastKey();
-			}
-			return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, outputFirstKey, outputLastKey);
+			return buildTuningRes(stock, startDate, endDate, endCalcRes, analyseName, calcOutput, eventListForEvtDef, noResMsg, evtDef.info(), observer);
 			
 
 		} catch (NoQuotationsException e) {
@@ -389,6 +128,278 @@ public class OTFTuningFinalizer {
 			LOGGER.error(noResMsg, e);
 			throw new NotEnoughDataException(stock, noResMsg, e);
 		}
+		
+	}
+
+	public TuningResDTO buildTuningRes(
+			Stock stock, Date startDate, Date endDate, Date endCalcRes, String analyseName,
+			SortedMap<Date, double[]> calcOutput, Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
+			throws IOException, NoQuotationsException, InvalidAlgorithmParameterException, NotEnoughDataException {
+		
+		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
+		String trendFile = "noOutputAvailable";
+		String chartFile = "noChartAvailable";
+		BigDecimal totProfit = BigDecimal.ONE;
+
+		EventType prevEventType = null;
+		PeriodRatingDTO period = new PeriodRatingDTO();
+		
+		Boolean generateBuySellCsv = MainPMScmd.getPrefs().getBoolean("autoporfolio.generatecsv", true);
+		Boolean generateSmaCmpOutChart =  MainPMScmd.getPrefs().getBoolean("autoporfolio.generatepng", true);
+		
+		//Init output file
+		String endDateStamp = "";
+		if (MainPMScmd.getPrefs().getBoolean("perceptron.stampoutput", false)) {
+			endDateStamp = new SimpleDateFormat("yyyyMMdd").format(endDate);
+		}
+		
+		BufferedWriter bufferedWriter = null;
+		String fileName = "noOutputAvailable";
+		if (generateBuySellCsv) {
+			fileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol() + "_"+evtDefInfo+"_BuyAndSellRecords"+endDateStamp+".csv";
+			File file = new File(System.getProperty("installdir") + File.separator + fileName);
+			file.delete();
+			bufferedWriter = new BufferedWriter(new FileWriter(file));
+			bufferedWriter.write("Date, Quotations, Bearish, Bullish, Output \n");
+		}
+
+		//Other init
+		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 0, 0);
+		BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
+
+		Pattern pattern = Pattern.compile("config : (.*) es : ");
+		DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+
+		Calendar currentDate = zeroTimeDate(startDate);
+
+		BigDecimal big2 = BigDecimal.ONE;
+
+		Iterator<EventValue> eventsIt = eventListForEvtDef.iterator();
+		EventValue currentEvent = null;
+		Date firstEventDate = null;
+		//We fetch the first event
+		if (eventsIt.hasNext()) {
+			currentEvent = eventsIt.next();
+			firstEventDate = currentEvent.getDate();
+		}
+
+		BigDecimal prevCloseForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+		SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
+		
+		while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
+			
+			BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+			
+			String line = "";
+			if (generateBuySellCsv) {
+				line  = simpleDateFormat.format(currentDate.getTime());
+				line  = line + ", " + closeForDate;
+			}
+		
+			//Some events may have been skipped (ie WE events) and must be disregarded
+			while (currentEvent != null && currentDate.getTime().after(currentEvent.getDate()) && eventsIt.hasNext()) {
+				currentEvent = eventsIt.next();
+			}
+			
+			//We process the event when reached
+			if (currentEvent != null && currentDate.getTime().compareTo(currentEvent.getDate()) == 0) {
+
+				//TODO : remove this config match
+				try {
+					String message = currentEvent.getMessage();
+					Matcher matcher = pattern.matcher(message);
+					matcher.find();
+
+					String currentConfig = matcher.group(1);
+					if (!period.getConfigs().contains(currentConfig)) {
+						period.getConfigs().add(currentConfig);
+					}
+
+				} catch (Exception e) {
+					if (!period.getConfigs().contains("No_cfg_match_in_event_msg")) {
+						period.getConfigs().add("No_cfg_match_in_event_msg");
+					}
+				}
+
+				EventType eventType = currentEvent.getEventType();
+				if (prevEventType == null || !prevEventType.equals(eventType)) {//Trend change or First trend
+
+					//TO
+					if (prevEventType != null) {//Not the First trend : we cummulate
+
+						BigDecimal pPriceChange = closeForDate.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
+
+						//Period
+						period.setTo(currentEvent.getDate());
+						period.setPriceChange(pPriceChange);
+						periods.add(period);
+						period = new PeriodRatingDTO();
+
+						//Profit for period
+						if (eventType.equals(EventType.BEARISH)) {//sell
+							
+							LOGGER.debug(
+									"Sell : Compound profit is "+totProfit+" at "+currentDate.getTime()+". " +
+									"New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevCloseForDate+" : "+closeForDate+"-"+prevCloseForDate+"/"+prevCloseForDate+"="+pPriceChange);
+							
+							totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+							
+							LOGGER.debug("New Compound at "+currentDate.getTime()+" : prevTotProfit*("+pPriceChange+"+1)="+totProfit);
+						}				
+					}
+
+					//FROM //First trend or start of a new one
+					//Period
+					period.setTrend(eventType.toString());
+					period.setFrom(currentEvent.getDate());
+
+					//Csv Trend change
+					if (currentEvent.getEventType().equals(EventType.BULLISH)) {
+						if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
+						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+						
+						LOGGER.debug("Buy : Compound profit at "+totProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
+						
+					} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
+						if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					}
+					if (eventsIt.hasNext()) {
+						currentEvent = eventsIt.next();
+					}
+
+					if (!eventType.equals(EventType.NONE)){
+						prevEventType = eventType;
+						prevCloseForDate = closeForDate;
+					}
+					
+
+				} else {
+
+					//Csv No trend change
+					if (currentEvent.getEventType().equals(EventType.BULLISH)) {
+						if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
+						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
+						if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					}
+					if (eventsIt.hasNext()) {
+						currentEvent = eventsIt.next();
+					}
+				}
+
+			} else { //Filling up until the current event date is reached
+				
+				if (prevEventType == null) {
+					if (generateBuySellCsv) line = line + ", , ";
+				}
+				else if (prevEventType.equals(EventType.BULLISH)) {
+					if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
+					buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+				} 
+				else if (prevEventType.equals(EventType.BEARISH)) {
+					if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
+					sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+				}
+				
+			}
+
+			
+			if (generateBuySellCsv) {
+				
+				double[] output = calcOutput.get(currentDate.getTime());
+				String outputString =(output == null)?"NaN":output[0]+"";
+				
+				line = line + ", "+outputString;
+				line = line + "\n";
+				bufferedWriter.write(line);
+			}
+
+			QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+			
+		}//End while
+
+		if (generateBuySellCsv) {
+			bufferedWriter.close();
+		}
+		
+		//Not enough data we stop
+		if (prevEventType == null || (calcOutput.size() == 0 && (generateBuySellCsv || generateSmaCmpOutChart))) {
+			
+			String message = "No trend forecast events were found after calculation.\n";
+			
+			LOGGER.warn(noResMsg+message + ".\n" +
+					"Stock :"+ stock + "\n" +
+					"Available neural events  :"+ ((eventListForEvtDef == null)?"null":eventListForEvtDef.size()) + "\n" +
+					"Call Params : start "+startDate+", end "+endDate+", analysis "+analyseName+", event Def "+evtDefInfo + "\n" +
+					"Output :  endCalc "+endCalcRes+", Calculated output size "+((calcOutput == null)?"null":calcOutput.size()));
+			
+			Date firstAvailDate = new Date(0);
+			Date lastAvailDate =  new Date(0);
+			if (quotations.size() > 0) {
+				firstAvailDate = quotations.getDate(quotations.getFirstDateShiftedIdx());
+				lastAvailDate = quotations.getDate(quotations.getLastDateIdx());
+			}
+			throw new NotEnoughDataException(stock, firstAvailDate, lastAvailDate, noResMsg+message, new Throwable());
+			
+		}
+		
+		//Enough data we throw up the things
+		
+		//PNG chart
+		if (generateBuySellCsv) trendFile = fileName;
+		
+		if (generateSmaCmpOutChart) {
+			
+			try {
+				
+				String chartFileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol()+ "_"+evtDefInfo+ "_OutChart"+endDateStamp+".png";
+				generateOutChart(chartFileName, calcOutput, quotations, buySerie, sellSerie);
+				observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output images generated ..."));
+				chartFile = chartFileName;
+				
+			} catch (NotEnoughDataException e) {
+				LOGGER.warn("Can't generate chart for "+stock,e, true);
+				chartFile = "noChartAvailable";
+			} catch (Exception e) {
+				LOGGER.error("Can't generate chart for "+stock,e);
+				chartFile = "noChartAvailable";
+			}
+			
+		} else {
+			chartFile = "noChartAvailable";
+		}
+		observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
+		
+		
+		BigDecimal pPriceChange = lastClose.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
+
+		//Finalise profit
+		if (prevEventType.equals(EventType.BULLISH)) {
+			totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+		}
+		totProfit = totProfit.subtract(BigDecimal.ONE);
+
+		//Finalise trend
+		period.setTo(endDate);
+		period.setPriceChange(pPriceChange);
+		periods.add(period);	
+		
+		//Buy and hold profit
+		BigDecimal firstClose = quotations.getClosestCloseForDate(firstEventDate);
+		BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
+		LOGGER.debug("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
+		
+		Date outputFirstKey = startDate;
+		Date outputLastKey = endDate;
+		if (!calcOutput.isEmpty()) {
+			outputFirstKey = calcOutput.firstKey();
+			outputLastKey = calcOutput.lastKey();
+		}
+		
+		return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, outputFirstKey, outputLastKey);
 		
 	}
 
@@ -544,26 +555,30 @@ public class OTFTuningFinalizer {
 			String fileName = "tmp" + File.separator + analysisName + "_ConfigRating.csv";
 			File configRatings = new File(System.getProperty("installdir") + File.separator + fileName);
 			FileWriter fileWriter = new FileWriter(configRatings);
-			fileWriter.write("config, cfg start, cfg end, trend start, trend end, length, price change, trend, success/failure, training volatility, calculation volatility \n");
+			fileWriter.write("config, cfg start, cfg end, trend start, trend end, length, price change, trend, success/failure, compound profit \n");
 
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
-			
+			Double compoundProfit = 1d;
 			for (PeriodRatingDTO periodRatingDTO : tuningRes.getPeriods()) {
 				
 				String successOrFailure = 
-						(	(periodRatingDTO.getTrend().equals(EventType.BULLISH.name()) && periodRatingDTO.getPriceChange() <= 0) || 
-							(periodRatingDTO.getTrend().equals(EventType.BEARISH.name()) && periodRatingDTO.getPriceChange() > 0) 	)?
+						(	
+							(periodRatingDTO.getTrend().equals(EventType.BULLISH.name()) && periodRatingDTO.getPriceChange() <= 0) || 
+							(periodRatingDTO.getTrend().equals(EventType.BEARISH.name()) && periodRatingDTO.getPriceChange() > 0) 	
+						)?
 						"FAILURE":"SUCCESS";
+
+				if (periodRatingDTO.getTrend().equals(EventType.BULLISH.name())) compoundProfit = compoundProfit* (periodRatingDTO.getPriceChange()+1);
 				
-				String cfgStr = dateFormat.format(periodRatingDTO.getFrom())+" , "+dateFormat.format(periodRatingDTO.getTo())+" , "+ periodRatingDTO.getPeriodLenght() + " , " +
-								periodRatingDTO.getPriceChange()+" , "+periodRatingDTO.getTrend() + " , " + successOrFailure;
+				String cfgStr = 
+						dateFormat.format(periodRatingDTO.getFrom())+" , "+dateFormat.format(periodRatingDTO.getTo())+" , "+ 
+						periodRatingDTO.getPeriodLenght() + " , " +periodRatingDTO.getPriceChange()+" , "+periodRatingDTO.getTrend() + " , " + successOrFailure + " , " + compoundProfit;
 				
 				if (periodRatingDTO.getConfigs().size() > 0) {
 					
 					for (String pConfig : periodRatingDTO.getConfigs()) {
 						String cfgStart = dateFormat.format(startDate);
 						String cfgEnd = dateFormat.format(endDate);
-						
 						fileWriter.write(pConfig + " , " + cfgStart + " , " + cfgEnd + " , " +cfgStr + "\n");
 					}
 					
@@ -572,15 +587,13 @@ public class OTFTuningFinalizer {
 				}
 				
 			}
+			
 			fileWriter.write("total , profit : "+tuningRes.getProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
 			tuningRes.setConfigRatingFile(fileName);
 			
-			//FinalRating calculatedRating = this.calculateRating(tuningRes);
-			fileWriter.write("rating , "+calculatedRating);
-				
+			fileWriter.write("rating , "+calculatedRating);		
 			fileWriter.close();
-			
-			//return calculatedRating;
+
 	}
 
 	private Validity smoothedPeriodValidity(PeriodRatingDTO periodRatingDTO, Double totalPriceChange) {

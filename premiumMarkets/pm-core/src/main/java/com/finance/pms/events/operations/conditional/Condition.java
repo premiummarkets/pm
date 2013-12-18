@@ -28,7 +28,7 @@ import com.finance.pms.events.operations.Value;
  */
 
 @XmlRootElement
-@XmlSeeAlso({CrossConstantCondition.class, BooleanDoubleMapCondition.class, CmpDoubleMapCondition.class})
+@XmlSeeAlso({ NullCondition.class, BooleanDoubleMapCondition.class, CmpDoubleMapCondition.class, CrossConstantCondition.class, CrossDoubleMapCondition.class, HighsAndLowsCondition.class})
 public class Condition<T> extends Operation {	
 	
 	protected Condition() {
@@ -47,7 +47,7 @@ public class Condition<T> extends Operation {
 		this(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 	
-	public Boolean conditionCheck(Comparable<T> ... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<T> ... ops) {
 		return false;
 	}
 

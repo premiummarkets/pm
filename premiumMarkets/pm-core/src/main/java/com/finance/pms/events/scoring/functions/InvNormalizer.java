@@ -38,11 +38,12 @@ import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.NotImplementedException;
-
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class InvNormalizer {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(InvNormalizer.class);
 	
 	private Date start;
 	private Date end;
@@ -72,7 +73,10 @@ public class InvNormalizer {
 		//with maxNorm = 1 and minNorm = 0
 		//b = [(a - minA) / (maxA - minA)]
 		
-		if (data.get(data.firstKey()).length > 1) throw new NotImplementedException();
+		//if (data.get(data.firstKey()).length > 1) throw new NotImplementedException();
+		if (data.get(data.firstKey()).length > 1) {
+			LOGGER.warn("InvNormalised data contains element value size > 1 is not supported. Only the first series will be InvNormalised.");
+		}
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		double max = -Double.MAX_VALUE;

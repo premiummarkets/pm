@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -38,8 +39,13 @@ public class TalibSmaOperation extends TalibOperation {
 		Boolean fixLag = Boolean.valueOf(((StringValue)inputs.get(1)).getValue(targetStock));
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
 		
-		TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
-		SortedMap<Date, Double> smoothed = smaSmoother.sSmooth(data, fixLag);
+		SortedMap<Date, Double> smoothed = null;
+		if (data.size() > period) {
+			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
+			smoothed = smaSmoother.sSmooth(data, fixLag);
+		} else {
+			smoothed = new TreeMap<Date, Double>();
+		}
 
 		return smoothed;
 	}

@@ -77,12 +77,13 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 			return (CommonTree) parser.complete_expression().getTree();
 
 		} catch (ExitParsingException e) {
-			LOGGER.error("Indicator "+parsedLine+" early exit : " + "cause : "+e.getCause());
-			throw e;
+			LOGGER.warn("Indicator "+parsedLine+" early exit : " + "cause : "+e.getCause());
+			throw new ExitParsingException("Indicator "+parsedLine+" early exit : " + "cause : "+e.getCause(), e);
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 			throw e;
+			
 		} 
 		
 	}
@@ -355,7 +356,14 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				
 				//Stack
-				if (lastStack.equals("bearish_condition")) {
+				if (lastStack.equals("lenient")) {
+					if (eofToken) {
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ";", "Insert", "End of the bullish/bearish condition", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, " or ", "Insert", "To add an 'or' condition", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, " and ", "Insert", "To  add an 'and' condition", null, eofPosition));
+					}
+				}
+				else if (lastStack.equals("bearish_condition")) {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
 					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt.equals(";")?"":tokenTxt, parsedLine, deletePosition, new String[]{"is bearish when", "is bearish if not bullish;", "is bearish if not bullish and", "is bearish if not bullish or"}, "To set the bearish condition : ", TokenType.KEYWORDS);
 					if (!foundMatch) {//&& deleteFilter) {
@@ -381,6 +389,15 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					} 
 					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
 				}
+				else if (lastStack.equals("also_display")) {
+					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
+					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"also display"}, "To set the additional display : ", TokenType.KEYWORDS);
+					if (!foundMatch) {
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'also display' expected", null, deletePosition));
+					} 
+					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
+				}
+				
 				else if (lastStack.equals("primary_expression") || lastStack.equals("atom")) {
 
 					//Open a new sub condition

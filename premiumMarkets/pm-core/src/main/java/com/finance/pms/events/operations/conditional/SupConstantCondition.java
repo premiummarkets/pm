@@ -17,7 +17,7 @@ public class SupConstantCondition extends CmpConstantCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(Comparable<Double> ... ops) {
+	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double> ... ops) {
 		return ops[0].compareTo((Double) ops[1])  > 0;
 	}
 

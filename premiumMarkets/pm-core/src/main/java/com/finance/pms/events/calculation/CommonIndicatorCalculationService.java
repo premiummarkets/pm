@@ -32,6 +32,7 @@ package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -54,8 +55,6 @@ import javax.jms.Queue;
 import org.springframework.jms.core.JmsTemplate;
 
 import com.finance.pms.MainPMScmd;
-import com.finance.pms.admin.config.Config;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -63,13 +62,8 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
-import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
-import com.finance.pms.events.scoring.TunedConfMgr.CalculationBounds;
-import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
 
@@ -154,8 +148,9 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
 				throws IncompleteDataSetException {
 		
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
+		
 		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
-		Map<Stock,TunedConf> tunedConfs = new HashMap<Stock, TunedConf>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
 		List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
@@ -169,7 +164,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		for (final Stock stock : stList) {
 			
 			try {
-				LOGGER.guiInfo("Calculation requested : pass "+passNumber+" events for stock "+stock.toString()+ " between "+startDate+" and "+endDate);
+				LOGGER.guiInfo("Calculation requested : pass "+passNumber+" events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
 
 				final Queue eventQueue = this.eventQueue;
 				final JmsTemplate jmsTemplate = this.jmsTemplate;
@@ -201,48 +196,17 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				
 				//Calculations
 				if (passNumber == 1) {//pass 1
-					
-					//Date bounds setting
-					TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName());
-					CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, adjustedStartDate, adjustedEndDate);
-					if (passOneCalcMode.equals("auto")) {
-						adjustedEndDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, adjustedEndDate);
-						calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, adjustedStartDate, adjustedEndDate);
-					}
-					if (passOneCalcMode.equals("reset")) {
-						adjustedEndDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, adjustedEndDate);
-						tunedConf.setLastCalculationStart(adjustedStartDate);
-						tunedConf.setLastCalculationEnd(adjustedEndDate);
-						calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, adjustedStartDate, adjustedEndDate);
-					}
-					
-					//if We inc or reset, tuned conf last event will need update : We add it in the map
-					if (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
-						tunedConfs.put(stock, tunedConf);
-					}
-					
-					//Calculation
-					if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
-						
-						calculationRunnableTarget = new FirstPassIndicatorCalculationThread(
-								stock, calculationBounds.getPmStart(), calculationBounds.getPmEnd(), stockCalcCurrency, eventListName, obsSet,
-								keepCache, eventQueue, jmsTemplate, persistEvents);
-						
-					} else {
-						
-						LOGGER.info(
-								"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+adjustedStartDate+" to "+adjustedEndDate+". "+
-								"No recalculation needed calculation bound is "+ calculationBounds.toString());
-					}
-					
-					
+
+					calculationRunnableTarget = new FirstPassIndicatorCalculationThread(
+							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
+							passOneCalcMode, keepCache, eventQueue, jmsTemplate, persistEvents);
+
 				} else {// pass 2
-					
+
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
 							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
 							availSecondPIndCalculators, keepCache, eventQueue, jmsTemplate, persistEvents, true);
-					
-					
+
 				}
 				
 				if (calculationRunnableTarget != null) {
@@ -286,38 +250,36 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 				calculatedOutputReturn.put(se.getStock(), calculationOutput);
 
-				//Save date bounds if exists
-				if (passNumber == 1 && se.getDataResultMap().size() > 0) {
-					TunedConf tunedConf = tunedConfs.get(se.getStock());
-					if (tunedConf != null) TunedConfMgr.getInstance().updateConf(tunedConf, se.getStock(), se.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
-				}
-
 			} catch (Exception e1) {
 
 				isDataSetComplete = false;
+				
 				if (e1.getCause() != null && e1.getCause() instanceof IncompleteDataSetException) {
+					LOGGER.warn(e1,e1);
 					failingStocks.addAll(((IncompleteDataSetException) e1.getCause()).getFailingStocks());
 					allEvents.addAll(((IncompleteDataSetException) e1.getCause()).getSymbolEvents());
 					calculatedOutputReturn.putAll(((IncompleteDataSetException) e1.getCause()).getCalculatedOutput());
 				} else {
 					LOGGER.error(e1,e1);
 				}
+				
 			}
 		}
 		
 		try {
 			
 			if (LOGGER.isInfoEnabled()) {
-			int nbEvents = 0;
-			String eventDefs = "";
-			for (SymbolEvents se : allEvents) {
-				eventDefs = eventDefs + se.getEventDefList().toString();
-				nbEvents = nbEvents + se.getSortedDataResultList().size();
-			}
+				int nbEvents = 0;
+				String eventDefs = "";
+				for (SymbolEvents se : allEvents) {
+					eventDefs = eventDefs + se.getEventDefList().toString();
+					nbEvents = nbEvents + se.getSortedDataResultList().size();
+				}
 				LOGGER.info("Storing pass "+passNumber+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
-				LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+ allEvents.size()+" stocks), from "+startDate+" to "+endDate);
+				LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+ allEvents.size()+" stocks), from "+dateFormat.format(startDate)+" to "+dateFormat.format(endDate));
 			}
-			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName, false, null);
+			
+			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName);
 			
 			for (Observer observer : observers) {
 				observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.NONE));
@@ -325,9 +287,13 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			
 		} catch (Exception e) {	
 			isDataSetComplete = false;
+			
 			if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
 				LOGGER.warn("Intercepted : "+e+" -> IncompleteDataset");
+			} else {
+				LOGGER.error(e,e);
 			}
+			
 		}
 		
 		

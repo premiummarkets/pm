@@ -57,11 +57,28 @@ public abstract class EventCompostionCalculator {
 	protected Integer calculationEndIdx;
 	protected Observer[] observers;
 	
-	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Integer calculatorIndexShift) throws NotEnoughDataException {
+	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Integer calculatorIndexShift) throws NotEnoughDataException {//With quotation init
 		super();
 		this.stock = stock;
+		initQuotationCache(stock, startDate, endDate, calculationCurrency, calculatorIndexShift);
+	}
+	
+	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Observer... observers) throws NotEnoughDataException {//With obs and No indexShift
+		this(stock, startDate, endDate, calculationCurrency, 0);
+		this.observers = observers;
+	}
+	
+	public EventCompostionCalculator(Stock stock) { //No quotation related calculator
+		this.stock = stock;
+	}
+	
+	public EventCompostionCalculator(Stock stock, Observer... observers) { //With obs and No quotation init
+		this.stock = stock;
+		this.observers = observers;
+	}
+	
+	protected void initQuotationCache(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Integer calculatorIndexShift) throws NotEnoughDataException {
 		try {
-			//TODO add dayspan to start shift
 			this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, calculationCurrency, calculatorIndexShift + 15, 0);
 			
 		} catch (NoQuotationsException e) {
@@ -69,15 +86,6 @@ public abstract class EventCompostionCalculator {
 		}
 		this.calculationStartIdx =  this.getCalculatorQuotationData().getClosestIndexForDate(0, startDate);
 		this.calculationEndIdx = this.getCalculatorQuotationData().getClosestIndexForDate(0, endDate);
-	}
-	
-	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Observer... observers) throws NotEnoughDataException {
-		this(stock, startDate, endDate, calculationCurrency, 0);
-		this.observers = observers;
-	}
-	
-	public EventCompostionCalculator(Stock stock) { //No quotation related calculator
-		this.stock = stock;
 	}
 
 	public abstract SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName);
@@ -115,5 +123,7 @@ public abstract class EventCompostionCalculator {
 			return Double.NaN;
 		}
 	}
+	
+	protected abstract Date rawDataStartDate(Date startDate, Date endDate);
 
 }

@@ -54,5 +54,23 @@ public abstract class Smoother {
 		}
 		return startIdx;
 	}
+	
+	protected int lagCalc(Boolean fixLag, int period) {
+		
+		int lag = 0;
+		if (fixLag) {
+			if (period <= 1) {
+				lag = 0;
+			}
+			else if (period <= 3)  {
+				lag = period/2;
+			}
+			else {
+				lag = period / 2 + 1;
+			}
+		}
+		
+		return lag;
+	}
 
 }

@@ -419,18 +419,27 @@ public class TransactionPriceDialog extends Dialog {
 		
 		Scanner scanner = new Scanner(formula);
 		Pattern pattern = Pattern.compile("\\s*[[-\\*][\\+/]]\\s*");
-		scanner.useDelimiter(pattern);
-		ArrayList<BigDecimal> nums = new ArrayList<BigDecimal>();
-		while (scanner.hasNextBigDecimal()) {
-			nums.add(scanner.nextBigDecimal().setScale(2, BigDecimal.ROUND_DOWN));
+		ArrayList<BigDecimal> nums;
+		try {
+			scanner.useDelimiter(pattern);
+			nums = new ArrayList<BigDecimal>();
+			while (scanner.hasNextBigDecimal()) {
+				nums.add(scanner.nextBigDecimal().setScale(2, BigDecimal.ROUND_DOWN));
+			}
+		} finally {
+			scanner.close();
 		}
 		
 		ArrayList<Character> ope = new ArrayList<Character>();
 		Scanner scanner2 = new Scanner(formula);
-		Pattern pattern2 = Pattern.compile("\\s*\\d+\\.?\\d*\\s*");
-		scanner2.useDelimiter(pattern2);
-		while (scanner2.hasNext()) {
-			ope.add(scanner2.next().charAt(0));
+		try {
+			Pattern pattern2 = Pattern.compile("\\s*\\d+\\.?\\d*\\s*");
+			scanner2.useDelimiter(pattern2);
+			while (scanner2.hasNext()) {
+				ope.add(scanner2.next().charAt(0));
+			}
+		} finally {
+			scanner2.close();
 		}
 		
 		BigDecimal result = nums.get(0);

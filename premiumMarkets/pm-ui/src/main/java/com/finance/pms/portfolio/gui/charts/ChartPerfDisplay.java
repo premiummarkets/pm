@@ -38,6 +38,8 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
 public class ChartPerfDisplay extends ChartDisplayStrategy {
 	
+	private static final String NOT_DEFINED = "Not Defined";
+
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartPerfDisplay.class);
 	
 	private Quotations refereeQuotations;
@@ -51,22 +53,23 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		super();
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
-		this.chartTarget.getMainChartWraper()
-				.initMainPlot(
-				ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
+		this.chartTarget.getMainChartWraper().initMainPlot(ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
 	}
 
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 
 		chartTarget.getMainChartWraper().setMainYAxisLabel("");
-		if (!chartTarget.isVisible() || idx == null || selectedShare == null ) {
+		if ( idx == null || selectedShare == null ) {
 			return;
 		}
 		
 		chartTarget.setHighligtedId(idx);
-//		chartTarget.getHightlitedEventModel().setViewStateParams(selectedShare);
 		chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
+		
+		if (chartTarget.isDisposed() || !chartTarget.isVisible()) {
+			return;
+		}
 		
 		Boolean isShowing = checkIfShowing(selectedShare);
 		if (!isShowing) {
@@ -80,7 +83,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		
 		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
 		
 		chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 3);
 	}
@@ -154,20 +157,21 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						@Override
 						public void action(Control targetControl) {
 
-							String refereeRef = MainPMScmd.getPrefs().get("charts.referee", "Not Defined||-||Not Defined");
-							final String previousSymbol = refereeRef.split("||-||")[0];
-							final String previousIsin = refereeRef.split("||-||")[1];
-							relativeIndexSetting(previousSymbol);
-							chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
+							String refereeRef = MainPMScmd.getPrefs().get("charts.referee", NOT_DEFINED+"||-||"+NOT_DEFINED);
+							final String previousSymbol = refereeRef.split("\\|\\|-\\|\\|")[0];
+							final String previousIsin = refereeRef.split("\\|\\|-\\|\\|")[1];
+							final Stock previousReferee = relativeToRefereeSetting(previousSymbol, previousIsin);
+							
+							if (previousReferee != null) chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
 							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action(Control targetControl) {
 									chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 									try {
-										Stock selectedReferee = selectReferee(previousSymbol, previousIsin);
+										Stock selectedReferee = selectNewReferee(previousReferee);
 										if (selectedReferee != null) {
-											relativeIndexSetting(selectedReferee.getName());
+											relativeToRefereeSetting(selectedReferee.getSymbol(), selectedReferee.getIsin());
 											chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
 										}
 									} finally {
@@ -176,7 +180,9 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								}
 							};
 							
-							ActionDialog actionDialogForm = new ActionDialog(chartTarget.getShell(), SWT.NONE, "Select a new referee ...", "Current referee : "+previousSymbol, null, "Select a new referee ...", actionDialogAction);
+							ActionDialog actionDialogForm = new ActionDialog(
+									chartTarget.getShell(), SWT.NONE, 
+									"Select a new referee ...", null, "Current referee : "+((previousReferee!=null)?previousReferee.getFriendlyName():NOT_DEFINED), "Select a new referee ...", actionDialogAction);
 
 							actionDialogForm.open();
 
@@ -187,10 +193,10 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {		
-					handleEvent(closeFunctionBut, transfos);
+					selectComparisonMode(closeFunctionBut, transfos);
 				}
 
-				private void handleEvent(final Button closeFunctionBut, final Set<TransfoInfo> transfos) {
+				private void selectComparisonMode(final Button closeFunctionBut, final Set<TransfoInfo> transfos) {
 					
 					final Set<TransfoInfo> selectTransfo = new HashSet<TransfoInfo>();
 					for (TransfoInfo transfoInfo : transfos) {
@@ -216,7 +222,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleEvent(closeFunctionBut, transfos);
+					selectComparisonMode(closeFunctionBut, transfos);
 				}
 			});
 
@@ -288,25 +294,27 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	}
 	
 	/**
-	 * @param selectReferreText 
+	 * @param previousSymbol 
+	 * @param previousIsin 
 	 * @throws InvalidAlgorithmParameterException 
 	 * 
 	 */
-	private void relativeIndexSetting(String selectReferreText) {
-		
-		if (selectReferreText != null && !"Your referee".equals(selectReferreText) && refereeQuotations != null && refereeQuotations.size() != 0) {
-			try {
-				chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
-			} catch (InvalidAlgorithmParameterException e) {
-				LOGGER.error("",e);
-			}
-		} else {
+	private Stock relativeToRefereeSetting(String previousSymbol, String previousIsin) {
 			
-			String preferedRef = MainPMScmd.getPrefs().get("charts.referee", "Not Defined");
-			Stock stock;
-			if (!preferedRef.equals("Not Defined")) {
+		if (previousSymbol != null && !NOT_DEFINED.equals(previousSymbol)) {//Already set
+			
+			if (refereeQuotations != null && refereeQuotations.size() != 0) {//Initialised
+				
 				try {
-					stock = DataSource.getInstance().loadStockBySymbol(preferedRef);
+					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+				} catch (InvalidAlgorithmParameterException e) {
+					LOGGER.error("",e);
+				}
+				
+			} else {//Not initialised
+				try {
+					//Stock stock = DataSource.getInstance().loadStockBySymbol(previousSymbol);
+					Stock stock = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
 					loadRefereeQuotations(stock);
 				} catch (Exception e) {
 					LOGGER.debug(e);
@@ -315,7 +323,10 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToBuyPrice());
 				}
 			}
-		}
+			
+		} 
+		
+		return  (refereeQuotations != null)?refereeQuotations.getStock():null;
 		
 	}	
 	
@@ -325,38 +336,48 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	 * @author Guillaume Thoreton
 	 * @param listShares 
 	 */
-	private Stock selectReferee(String previousSymbol, String previousIsin) {
+	private Stock selectNewReferee(Stock previousReferee) {
 
+		//Stock referree = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
+		Stock newReferree = previousReferee;
+		
 		//Open selection window
 		NewRefereeDialog pItemDialog = (NewRefereeDialog) NewRefereeDialog.showUI(chartTarget.getShell(), chartTarget);
 		Set<Stock> listStock = pItemDialog.getSelectedStocks();
 		
-		Stock referree = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
 		if (listStock != null && listStock.size() > 0) {
 
-			referree = listStock.iterator().next();
-
 			try {
+				newReferree = listStock.iterator().next();
+
 				chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-		
+
 				QuotationUpdate quotationUpdate = new QuotationUpdate();
 				quotationUpdate.getQuotes(new StockList(listStock));
-				loadRefereeQuotations(referree);
-				MainPMScmd.getPrefs().put("charts.referee", referree.getSymbol()+"||-||"+referree.getIsin());
+				loadRefereeQuotations(newReferree);
+				try {
+					MainPMScmd.getPrefs().put("charts.referee", newReferree.getSymbol()+"||-||"+newReferree.getIsin());
+					MainPMScmd.getPrefs().flush();
+				} catch (Exception e) {
+					LOGGER.warn(e,e);
+				}
 
 			} catch (Exception e) {
-				UserDialog inst = new UserDialog(chartTarget.getShell(), "Sorry. Invalid referee : "+referree.getFriendlyName()+"\n"+e, null);
+
+				UserDialog inst = new UserDialog(chartTarget.getShell(), "Sorry. Invalid referee : "+newReferree.getFriendlyName()+"\n"+e, null);
 				inst.open();
+				newReferree = previousReferee;
+
 			} finally {
 				chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 			}
 
-		} else if (pItemDialog instanceof NewRefereeDialog) {
+		} else {
 			UserDialog inst = new UserDialog(chartTarget.getShell(), "No referee selected please select a stock \n", null);
 			inst.open();
 		}
 
-		return referree;
+		return newReferree;
 
 	}
 	
@@ -392,7 +413,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
 		
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
 		
 	}
 
@@ -431,7 +452,16 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void shutDownDisplay() {
+
+		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
+			slidingPortfolioShare.setDisplayOnChart(false);
+		}
+		
+		chartTarget.getMainChartWraper().resetBarChart();
+		chartTarget.getMainChartWraper().resetIndicChart();
+		
 		isShutDown = true;
+		
 	}
 
 	@Override

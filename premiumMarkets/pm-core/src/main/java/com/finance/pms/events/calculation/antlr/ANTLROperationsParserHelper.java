@@ -236,6 +236,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 								deleteFilter = false;
 								}
 							} 
+						default:
+							{}
 						}
 					} 
 					else if  (exception instanceof InvalidOperationException)  {

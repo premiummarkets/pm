@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.NotImplementedException;
+
 public class CurvesSplitsSolver implements CurvesConstantOperation {
 
 	@Override
@@ -61,6 +63,11 @@ public class CurvesSplitsSolver implements CurvesConstantOperation {
 		
 		return ret;
 
+	}
+
+	@Override
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> data1, Double constant) {
+		throw new NotImplementedException();
 	}
 
 }

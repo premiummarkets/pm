@@ -42,7 +42,7 @@ public class BarSettingsDialog {
 	private BarSettings barChartSettings;
 	private Double initialAlphaDividend;
 	
-	private Button isReachTop;
+	private Button sideBySide;
 
 	
 	public BarSettingsDialog(ChartsComposite chartTarget, BarSettings barSettings, ActionDialogAction action) {
@@ -83,16 +83,6 @@ public class BarSettingsDialog {
 		shell.pack();
         
         shell.open();
-//        Display display = parent.getDisplay();
-//        while (!shell.isDisposed()) {
-//                try {
-//                	 if (!display.readAndDispatch()) display.sleep();
-//    			} catch (RuntimeException e) {
-//    				LOGGER.error("Error in OperationBuilderDialog Gui : " + e.getMessage(),e);
-//    			} catch (Error e) {
-//    				LOGGER.error("Error in  Gui : " + e.getMessage(),e);
-//    			}
-//        }
         
         return barChartSettings;
         
@@ -138,14 +128,43 @@ public class BarSettingsDialog {
 			
 		}
 		{
+			final Button isReachTop = new Button(shell, SWT.CHECK);
+			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			layoutData.horizontalSpan = 2;
+			isReachTop.setLayoutData(layoutData);
+			isReachTop.setBackground(MainGui.pOPUP_BG);
+			isReachTop.setFont(MainGui.DEFAULTFONT);
+			isReachTop.setText("Draw bars to the top");
+			isReachTop.setToolTipText("All the bars will at the top, overlapping each other with transparency.\nIf unchecked, bars stop at label level.");
+			isReachTop.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					barChartSettings.setIsReachTop(isReachTop.getSelection());
+					action.action(null);
+					
+				}
+			});
+			isReachTop.setSelection(barChartSettings.getIsReachTop());
+		}
+		{
 			final Button isZeroBase = new Button(shell, SWT.CHECK);
 			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
 			layoutData.horizontalSpan = 2;
 			isZeroBase.setLayoutData(layoutData);
 			isZeroBase.setBackground(MainGui.pOPUP_BG);
 			isZeroBase.setFont(MainGui.DEFAULTFONT);
-			isZeroBase.setText("Base bars at 0");
-			isZeroBase.setToolTipText("All the bars will start at zero, overlapping each other with transparency.\nIf unchecked, bars are stacked");
+			isZeroBase.setText("Draw bars to the base");
+			isZeroBase.setToolTipText("All the bars will start at zero, overlapping each other with transparency.\nIf unchecked, bars stop at label level.");
 			isZeroBase.addSelectionListener(new SelectionListener() {
 				
 				@Override
@@ -165,6 +184,46 @@ public class BarSettingsDialog {
 				}
 			});
 			isZeroBase.setSelection(barChartSettings.getIsZeroBased());
+		}
+		{
+			sideBySide = new Button(shell, SWT.CHECK);
+			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
+			layoutData.horizontalSpan = 2;
+			sideBySide.setLayoutData(layoutData);
+			sideBySide.setBackground(MainGui.pOPUP_BG);
+			sideBySide.setFont(MainGui.DEFAULTFONT);
+			sideBySide.setText("Display side by side");
+			sideBySide.setToolTipText(
+					"Bar are displayed side by side, form top to bottom.\n" +
+					"For this to be working, the event validity days span has to be above the number of indicators involved.");
+			sideBySide.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					barChartSettings.setSideBySide(sideBySide.getSelection());
+					action.action(null);
+				}
+			});
+			sideBySide.addMouseMoveListener(new MouseMoveListener() {
+				
+				@Override
+				public void mouseMove(MouseEvent e) {
+					sideBySide.setToolTipText(
+							"Bar are displayed side by side, form top to bottom.\n" +
+							"For this to be working, the event validity days span has to be above the number of indicators involved.\n" +
+							"I.e. : "+chartTarget.getChartedEvtDefsTrends().size());
+				}
+			});
+			sideBySide.setSelection(barChartSettings.getSideBySide());
 		}
 		{
 			final Button isGradient = new Button(shell, SWT.CHECK);
@@ -193,48 +252,6 @@ public class BarSettingsDialog {
 				}
 			});
 			isGradient.setSelection(barChartSettings.getIsGradiant());
-		}
-		{
-			isReachTop = new Button(shell, SWT.CHECK);
-			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
-			layoutData.horizontalSpan = 2;
-			isReachTop.setLayoutData(layoutData);
-			isReachTop.setBackground(MainGui.pOPUP_BG);
-			isReachTop.setFont(MainGui.DEFAULTFONT);
-			isReachTop.setText("Display side by side");
-			isReachTop.setToolTipText(
-					"Bar are displayed side by side, form top to bottom.\n" +
-					"For this to be working, the event validity days span has to be above the number of indicators involved.");
-			isReachTop.addSelectionListener(new SelectionListener() {
-				
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handle();
-				}
-				
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
-				}
-
-				private void handle() {
-					barChartSettings.setIsReachTop(isReachTop.getSelection());
-					//barChartSettings.setIsZerobased(true);
-					//barChartSettings.setMaxFill(chartTarget.getChartedEvtDefsTrends().size());
-					action.action(null);
-				}
-			});
-			isReachTop.addMouseMoveListener(new MouseMoveListener() {
-				
-				@Override
-				public void mouseMove(MouseEvent e) {
-					isReachTop.setToolTipText(
-							"Bar are displayed side by side, form top to bottom.\n" +
-							"For this to be working, the event validity days span has to be above the number of indicators involved.\n" +
-							"I.e. : "+chartTarget.getChartedEvtDefsTrends().size());
-				}
-			});
-			isReachTop.setSelection(barChartSettings.getIsReachTop());
 		}
 		{
 			final Spinner alphaSpinner = new Spinner(shell, SWT.WRAP|SWT.READ_ONLY);

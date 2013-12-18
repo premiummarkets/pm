@@ -168,14 +168,15 @@ public class DbSettings extends Dialog {
 	 * Instantiates a new db settings.
 	 * 
 	 * @param pathToProps the path to props
-	 * @param shell the shell
+	 * @param parent the shell
 	 * 
 	 * @author Guillaume Thoreton
 	 * @throws FileNotFoundException 
 	 */
-	public DbSettings(Shell shell, String pathToProps) throws FileNotFoundException {
+	public DbSettings(Shell parent, String pathToProps) throws FileNotFoundException {
 		
-		super(new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
+		//super(new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
+		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
 		
 		this.pathToProps = pathToProps;
 		this.propList = new Properties();

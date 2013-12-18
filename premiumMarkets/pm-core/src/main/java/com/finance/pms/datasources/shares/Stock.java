@@ -398,9 +398,6 @@ public class Stock extends Validatable {
 	}
 	
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		
@@ -411,12 +408,13 @@ public class Stock extends Validatable {
 			if (this.getMarketValuation() != null) {
 				currency = this.getMarketValuation().getCurrency();
 			}
-			String lastDateQ = null;
-			SimpleDateFormat dateFormat =new SimpleDateFormat("yyyy-MM-dd");
+			String lastDateQ = "None";
 			if (this.lastQuote != null) {
+				SimpleDateFormat dateFormat =new SimpleDateFormat("yyyy-MM-dd");
 				lastDateQ = dateFormat.format(this.lastQuote);
 			}
-			str = "Symbol :"+this.getSymbol()+"; Isin :"+this.getIsin()+"; Name :"+this.getName()+"; Currency :"+currency+"; Last date Q :"+lastDateQ;
+			//str = "Symbol :"+this.getSymbol()+"; Isin :"+this.getIsin()+"; Name :"+this.getName()+"; Currency :"+currency+"; Last date Q :"+lastDateQ;
+			str = getFriendlyName() + " last quote in " +currency+" on the "+lastDateQ;
 			
 		} catch (RuntimeException e) {
 			LOGGER.error("Can't print stock : "+this.symbol+";"+this.isin+";"+this.name+";"+lastQuote, e);
@@ -703,7 +701,6 @@ public class Stock extends Validatable {
 	public String getFriendlyName() {
 		return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
 	}
-
 	
 }
 

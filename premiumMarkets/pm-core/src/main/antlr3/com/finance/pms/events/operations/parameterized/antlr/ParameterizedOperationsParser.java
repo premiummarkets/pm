@@ -1,4 +1,4 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2013-07-19 12:55:41
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-01-02 14:01:39
  //parser
     package com.finance.pms.events.operations.parameterized.antlr;
     import java.util.ArrayList;
@@ -359,7 +359,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal5);
 
 			// AST REWRITE
-			// elements: Nativeop, OutputSelector, params
+			// elements: Nativeop, params, OutputSelector
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -488,7 +488,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal7);
 
 			// AST REWRITE
-			// elements: Userop, params
+			// elements: params, Userop
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -809,12 +809,12 @@ public class ParameterizedOperationsParser extends Parser {
 					}
 					break;
 				case 4 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:126:127: operand
+					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:126:128: operand
 					{
 					root_0 = (CommonTree)adaptor.nil();
 
 
-					pushFollow(FOLLOW_operand_in_param269);
+					pushFollow(FOLLOW_operand_in_param270);
 					operand14=operand();
 					state._fsp--;
 
@@ -884,7 +884,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:127:11: stockhistory
 					{
-					pushFollow(FOLLOW_stockhistory_in_operand277);
+					pushFollow(FOLLOW_stockhistory_in_operand278);
 					stockhistory15=stockhistory();
 					state._fsp--;
 
@@ -916,7 +916,7 @@ public class ParameterizedOperationsParser extends Parser {
 					root_0 = (CommonTree)adaptor.nil();
 
 
-					pushFollow(FOLLOW_expression_in_operand285);
+					pushFollow(FOLLOW_expression_in_operand286);
 					expression16=expression();
 					state._fsp--;
 
@@ -969,7 +969,7 @@ public class ParameterizedOperationsParser extends Parser {
 			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:14: ( HistoricalData -> ^( StockOperation ^( OperationOutput HistoricalData ) ) )
 			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:16: HistoricalData
 			{
-			HistoricalData17=(Token)match(input,HistoricalData,FOLLOW_HistoricalData_in_stockhistory293);  
+			HistoricalData17=(Token)match(input,HistoricalData,FOLLOW_HistoricalData_in_stockhistory294);  
 			stream_HistoricalData.add(HistoricalData17);
 
 			// AST REWRITE
@@ -1047,8 +1047,8 @@ public class ParameterizedOperationsParser extends Parser {
 	public static final BitSet FOLLOW_NumberToken_in_param232 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_MATypeToken_in_param245 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_StringToken_in_param257 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_operand_in_param269 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_stockhistory_in_operand277 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_expression_in_operand285 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_HistoricalData_in_stockhistory293 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_operand_in_param270 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_stockhistory_in_operand278 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_expression_in_operand286 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_HistoricalData_in_stockhistory294 = new BitSet(new long[]{0x0000000000000002L});
 }

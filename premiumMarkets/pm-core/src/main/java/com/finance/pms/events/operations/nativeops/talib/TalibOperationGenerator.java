@@ -27,7 +27,7 @@ public class TalibOperationGenerator {
 	
 	public TalibOperationGenerator() {
 		super();
-		initSynoData();
+		//initSynoData();
 	}
 
 	public Map<String, TalibGenericOperation> generate() {
@@ -145,7 +145,7 @@ public class TalibOperationGenerator {
 	}
 	
 
-	private void initSynoData() {
+	public void initSynoData() {
 		
 		talibDescription = new HashMap<String, String>();
 		talibSignatures = new HashMap<String, List<String>>();

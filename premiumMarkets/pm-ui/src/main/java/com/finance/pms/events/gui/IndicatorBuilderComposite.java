@@ -1,7 +1,9 @@
 package com.finance.pms.events.gui;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -17,6 +19,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.finance.pms.ActionDialogAction;
+import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.SpringContext;
@@ -38,10 +41,16 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			@Override
 			public void update(Observable o, Object arg) {
 				int comboSelectionIdx = formulaReference.getSelectionIndex();
-				updateCombo();
-				if (formulaReference.getItemCount() > 0) {
-					forceSelection(comboSelectionIdx % formulaReference.getItemCount());
+				
+				if (isSaved) {
+					updateCombo(false);
+					if (formulaReference.getItemCount() > 0) {
+						forceSelection(comboSelectionIdx % formulaReference.getItemCount());
+					}
+				} else {
+					updateEditableOperationLists();
 				}
+			
 			}
 		});
 	}
@@ -52,16 +61,46 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	}
 
 	protected String builderLabel() {
-		return "Events Calculator";
+		return "Trends Calculator";
 	}
 
 	@Override
 	protected void addExtratButtons() {
 		
 		{
+			Button duplicate = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.LEAD,SWT.TOP,true,false);
+			layoutData.horizontalSpan = 2;
+			duplicate.setLayoutData(layoutData);
+			duplicate.setText("Duplicate");
+			duplicate.setFont(MainGui.DEFAULTFONT);
+			duplicate.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handleDuplicateFormula();
+				}
+
+				private void handleDuplicateFormula() {
+					IndicatorBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+					try {
+						 duplicateFormula(getFormatedReferenceTxt());
+					} finally {
+						IndicatorBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+					}
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handleDuplicateFormula();
+				}
+			});
+		}
+		
+		{
 			disableFormula = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.END,SWT.TOP,true,false);
-			layoutData.horizontalSpan =2;
+			layoutData.horizontalSpan = 1;
 			disableFormula.setLayoutData(layoutData);
 			disableFormula.setText("Enable ...");
 			disableFormula.setFont(MainGui.DEFAULTFONT);
@@ -69,17 +108,17 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleEnableDisableFormula();
 				}
 
 				@SuppressWarnings({ "rawtypes", "unchecked" })
-				private void handle() {
+				private void handleEnableDisableFormula() {
 
 					final Set<EventConditionHolder> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
 					final Set<EventConditionHolder> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
 					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("eventconditionholder"));//XXX
 					
-					ActionDialogAction actionDialogAction = new ActionDialogAction() {
+					ActionDialogAction closeAction = new ActionDialogAction() {
 						
 						@Override
 						public void action(Control targetControl) {
@@ -90,21 +129,22 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 									if (!eventInfo.getDisabled()) disableFormula(eventInfo.getReference());
 								}
 							}
+							refreshViews();
 							checkBoxDisabled();
 						}
 					};
-					PopupMenu<EventConditionHolder> popupMenu = new PopupMenu<EventConditionHolder>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, true, true, SWT.CHECK, null, actionDialogAction);
+					PopupMenu<EventConditionHolder> popupMenu = new PopupMenu<EventConditionHolder>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, true, true, SWT.CHECK, null, closeAction, false);
 					popupMenu.open();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleEnableDisableFormula();
 				}
 			});
 			
-			
 		}
+		
 	}
 
 	private void enableFormula(String identifier) {
@@ -160,6 +200,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected void checkBoxDisabled() {
+		
 		if (formulaReference != null && formulaReference.getSelectionIndex() != -1 && formulaReference.getSelectionIndex() < formulaReference.getItems().length) {
 			String selectItem = formulaReference.getItem(formulaReference.getSelectionIndex());
 			Boolean disabled = parameterizedBuilder.getCurrentOperations().get(selectItem).getDisabled();
@@ -177,6 +218,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			editor.setEnabled(disableFormula.getEnabled());
 			editor.setEditable(disableFormula.getEnabled());
 		}
+		
 	}
 
 	@Override
@@ -224,9 +266,46 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		EventConditionHolder operation = (EventConditionHolder) parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		EventModel.dirtyCacheFor(operation);
 		EventModel.updateEventInfoStamp();
-		refreshViews();
+		
+	}
+
+	@Override
+	protected void deleteAllDisabledOrUnused() {
+		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
+		for (Operation indicator: allOps.values()) {
+			try {
+				if (indicator.getDisabled()) parameterizedBuilder.removeFormula(indicator.getReference());
+			} catch (IOException e) {
+				LOGGER.error(e,e);
+			}
+		}
+	}
+	
+
+	protected void duplicateFormula(String identifier) {
+		
+		if (!isValidId(identifier)) return;
+		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+		if (isNativeOp(identifier, existingOp)) return;
+		
+		try {
+			
+			Operation duplicatedOperation = parameterizedBuilder.duplicateOperation(existingOp, new HashMap<String, Operation>());
+			updateComboAndSelect(duplicatedOperation.getReference(), true);
+			
+		} catch (IOException e) {
+			UserDialog dialog = new UserDialog(getShell(), "Formula can't be duplicated.", e.toString());
+			LOGGER.warn(e, e);
+			dialog.open();
+			return;
+		} catch (Exception e) {
+			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
+			LOGGER.warn(e, e);
+			dialog.open();
+		}
 		
 	}
 		
+	
 
 }

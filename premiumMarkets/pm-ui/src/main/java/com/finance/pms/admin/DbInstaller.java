@@ -270,19 +270,22 @@ public class DbInstaller extends Observable {
 		String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
 		try {
 			File keysFile = new File(installPath + extractDirName + File.separator + "DROP.sql");
-			BufferedReader fr = new BufferedReader(new FileReader(keysFile));
 			String statement;
+			FileReader in = new FileReader(keysFile);
+			BufferedReader fr = new BufferedReader(in);
 			while ((statement = fr.readLine()) != null) {
 				if (!statement.isEmpty() && statement.length() > 2 && !statement.substring(0,2).equals("--")) {
 					try {
 						PreparedStatement ps = connection.prepareStatement(statement.substring(0, statement.length() - 1));
 						ps.execute();
 					} catch (java.sql.SQLException e) {
+						fr.close();
 						throw new OtherException(e);
 					}
 					System.out.println(statement + " Done!");
 				}
 			}
+			fr.close();
 			System.out.println("Drop constraints. Done!");
 		} catch (FileNotFoundException e) {
 			System.out.println("No constraints to drop.");
@@ -334,6 +337,7 @@ public class DbInstaller extends Observable {
 					System.out.println(statement + " Done!");
 				}
 			}
+			fr.close();
 			System.out.println("Keys. Done!");
 
 		} catch (FileNotFoundException e) {
@@ -360,6 +364,7 @@ public class DbInstaller extends Observable {
 					System.out.println(statement + " Done!");
 				}
 			}
+			fr.close();
 			System.out.println("Indexes. Done!");
 
 		} catch (FileNotFoundException e) {

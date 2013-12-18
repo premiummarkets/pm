@@ -218,5 +218,10 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMTAEvents;
 	}
+
+	@Override
+	protected Date rawDataStartDate(Date startDate, Date endDate) {
+		return startDate;
+	}
 	
 }

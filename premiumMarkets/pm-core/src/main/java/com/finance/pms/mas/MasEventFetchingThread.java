@@ -33,7 +33,7 @@ package com.finance.pms.mas;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -142,7 +142,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					if (nbretry == 3) {
 						symbolResults = 
 							new SymbolEvents(stock,
-									new TreeMap<EventKey, EventValue>(),
+									new ConcurrentSkipListMap<EventKey, EventValue>(),
 									new ArrayList<String>(),
 									EventState.STATE_ABORTEDRETRIED);
 						LOGGER.debug("Aborted after "+nbretry+ " retry "+stock+". On server port "+ c.get_portNumber());
@@ -150,7 +150,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					}
 				} catch (ApplicativeException e) { //MAS : applicative non recoverable
 					symbolResults = new SymbolEvents(stock,
-							new TreeMap<EventKey, EventValue>(),
+							new ConcurrentSkipListMap<EventKey, EventValue>(),
 							new ArrayList<String>(),
 							EventState.STATE_ABORTED);
 					LOGGER.debug("Aborted (MAS applicative) "+stock+". On server port "+ c.get_portNumber());
@@ -158,7 +158,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 			}
 		} catch (IOException e) { //unrecoverable
 			symbolResults = new SymbolEvents(stock,
-					new TreeMap<EventKey, EventValue>(),
+					new ConcurrentSkipListMap<EventKey, EventValue>(),
 					new ArrayList<String>(), 
 					EventState.STATE_ABORTED);
 			LOGGER.debug("Aborted "+stock+". On server port "+ c.get_portNumber(),e);
