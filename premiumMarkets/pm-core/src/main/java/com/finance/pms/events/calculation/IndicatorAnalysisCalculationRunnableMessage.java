@@ -5,13 +5,12 @@
  * In its advanced packaging, not provided under this license, it also includes :
  * Screening of financial web sites to pick up the best market shares, 
  * Price trend prediction based on stock market technical analysis and indexes rotation,
- * Around 80% of predicted trades more profitable than buy and hold, leading to 4 times 
- * more profit, while back testing over NYSE, NASDAQ, EURONEXT and LSE, Back testing, 
+ * With in mind beating buy and hold, Back testing, 
  * Automated buy sell email notifications on trend change signals calculated over markets 
  * and user defined portfolios. See Premium Markets FORECAST web portal at 
  * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
  * 
- * Copyright (C) 2008-2012 Guillaume Thoreton
+ * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
