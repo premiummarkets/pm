@@ -101,6 +101,7 @@ import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.datasources.TaskId;
 import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.ProvidersInflation;
@@ -472,8 +473,6 @@ public class MainGui extends SashForm implements RefreshableView {
 								public void widgetSelected(SelectionEvent e) {
 									if (builderDialog == null || builderDialog.getShell() == null || builderDialog.getShell().isDisposed()) {
 										builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
-										//Rectangle parentBounds = chartsSash().getDisplay().map(chartsSash().getParent(), null, chartsSash().getBounds());
-										//builderDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/9), chartsSash().getParent().getBounds().width -  chartsSash().getBounds().width);
 										builderDialog.open(null, 0);
 									} else {
 										builderDialog.getShell().setVisible(true);
@@ -603,7 +602,6 @@ public class MainGui extends SashForm implements RefreshableView {
 											Providers provider = instance.getProvider();
 											if (provider != null && instance.getIsOk()) {
 												
-												//allStocksEventModel.setViewStateParams(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
 												allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
 												LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 												allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
@@ -853,6 +851,14 @@ public class MainGui extends SashForm implements RefreshableView {
 			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 			
 			//Post inits
+			//first time update
+			Integer hintNumber = new Integer(MainPMScmd.getPrefs().get("email.hint","0"));
+			if (hintNumber == 0) {
+				LOGGER.info("First run : updating quotes");
+				QuotationUpdate quotationUpdate = new QuotationUpdate();
+				quotationUpdate.getQuotesForAllUserPortfoliosAndMonitored();
+			}
+			//load portfolios
 			try {
 				
 				((PortfolioComposite)inst.portfolioSash()).updateMoniAndPSCachedModels();
@@ -1165,15 +1171,6 @@ public class MainGui extends SashForm implements RefreshableView {
 	public void setCursor(Cursor cursor) {
 		
 		synchronized (mainMenu) {
-
-//			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
-//				cursorCpt --;
-//				if (cursorCpt > 0) {
-//					return;
-//				} 
-//			} else {
-//				cursorCpt++;
-//			}
 			
 			if (cursor != null && (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {
 				cursorCpt++;

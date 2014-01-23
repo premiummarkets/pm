@@ -62,6 +62,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
+import com.finance.pms.CursorFactory;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
@@ -153,75 +154,88 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
-		
-		chartTarget.getMainChartWraper().setMainYAxisLabel("");
-		if (idx == null || selectedShare == null ) {
-			return;
-		}
-
-		chartTarget.setHighligtedId(idx);
-		chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
-		
-		if (chartTarget.isDisposed() || !chartTarget.isVisible()) {
-			return;
-		}
-
-		if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
-			chartTarget.getMainChartWraper().resetBarChart();
-		} 
-		if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-			chartTarget.getMainChartWraper().resetIndicChart();
-		}
-		
-		hideAllButSelected(selectedShare);
-		
-		chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
-		chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 1);
-
-		if (!chartTarget.getChartedEvtDefsTrends().isEmpty() || !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {//Some thing has to be displayed
-				
-				//We try and run
-				try {
-					Set<EventInfo> allEvtInfos = chartTarget.initChartedEvtDefsTrendsSet();
-					allEvtInfos.addAll(chartTarget.getChartedEvtDefsTrends());
-					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allEvtInfos.add(chartTarget.getChartedEvtDef());
+	
+		try {
+			
+			this.chartTarget.getShell().setEnabled(false);
+			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+			
+			
+			chartTarget.getMainChartWraper().setMainYAxisLabel("");
+			if (idx == null || selectedShare == null ) {
+				return;
+			}
+	
+			chartTarget.setHighligtedId(idx);
+			chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
+			
+			if (chartTarget.isDisposed() || !chartTarget.isVisible()) {
+				return;
+			}
+	
+			if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
+				chartTarget.getMainChartWraper().resetBarChart();
+			} 
+			if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+				chartTarget.getMainChartWraper().resetIndicChart();
+			}
+			
+			hideAllButSelected(selectedShare);
+			
+			chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
+			chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 1);
+	
+			if (!chartTarget.getChartedEvtDefsTrends().isEmpty() || !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {//Some thing has to be displayed
 					
-					HashSet<EventInfo> notUpToDateEventInfos = new HashSet<EventInfo>();
-					Calendar minDate = Calendar.getInstance();
-					minDate.setTime(new Date(0));
-					Boolean needsUpdate = 
-							chartTarget.getHightlitedEventModel().cacheNeedsUpdateCheck(
-									selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
-									notUpToDateEventInfos, minDate, allEvtInfos.toArray(new EventInfo[0]));
-
-					if (needsUpdate) {
-						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), notUpToDateEventInfos, minDate);	
-					} 
-
-					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-						updateChartIndicator(selectedShare, recalculationGranted);
-					} else {
-						if (chartSettingsPopup!= null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
-							chartSettingsPopup.getSelectionShell().dispose();
+					//We try and run
+					try {
+						Set<EventInfo> allEvtInfos = chartTarget.initChartedEvtDefsTrendsSet();
+						allEvtInfos.addAll(chartTarget.getChartedEvtDefsTrends());
+						if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allEvtInfos.add(chartTarget.getChartedEvtDef());
+						
+						HashSet<EventInfo> notUpToDateEventInfos = new HashSet<EventInfo>();
+						Calendar minDate = Calendar.getInstance();
+						minDate.setTime(new Date(0));
+						Boolean needsUpdate = 
+								chartTarget.getHightlitedEventModel().cacheNeedsUpdateCheck(
+										selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
+										notUpToDateEventInfos, minDate, allEvtInfos.toArray(new EventInfo[0]));
+	
+						if (needsUpdate) {
+							eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), notUpToDateEventInfos, minDate);	
+						} 
+	
+						if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+							updateChartIndicator(selectedShare, recalculationGranted);
+						} else {
+							if (chartSettingsPopup!= null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
+								chartSettingsPopup.getSelectionShell().dispose();
+							}
 						}
+	
+						if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {		
+							updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, needsUpdate);
+						}
+	
+					} catch (Exception e) {
+						LOGGER.error(e,e);
 					}
-
-					if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {		
-						updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, needsUpdate);
-					}
-
-				} catch (Exception e) {
-					LOGGER.error(e,e);
-				}
-
-		} 
-
-		if (chartTarget.getChartedEvtDef() != null && chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) chartTarget.getMainChartWraper().resetIndicChart();
-		if (chartTarget.getChartedEvtDefsTrends().isEmpty()) chartTarget.getMainChartWraper().resetBarChart();
+	
+			} 
+	
+			if (chartTarget.getChartedEvtDef() != null && chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) chartTarget.getMainChartWraper().resetIndicChart();
+			if (chartTarget.getChartedEvtDefsTrends().isEmpty()) chartTarget.getMainChartWraper().resetBarChart();
+			
+			if (chartTarget.getChartedEvtDefsTrends().isEmpty() && (chartTarget.getChartedEvtDef() == null || chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO))){
+				    String errorMessage ="No Calculator or Trend is selected.\n Use the buttons below the chart to select a calculator and trends.";
+					showPopupDialog(errorMessage, "Ok", null, null);
+			}
 		
-		if (chartTarget.getChartedEvtDefsTrends().isEmpty() && (chartTarget.getChartedEvtDef() == null || chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO))){
-			    String errorMessage ="No Calculator or Trend is selected.\n Use the buttons below the chart to select a calculator and trends.";
-				showPopupDialog(errorMessage, "Ok", null, null);
+		} finally {
+			
+			this.chartTarget.getShell().setEnabled(true);
+			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			
 		}
 		
 	}
@@ -363,7 +377,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				}
 				//Missing bars
 				if (!needsUpdate && !noDataTrends.isEmpty()) {
-					String chartedEvtStr = EventDefinition.getEventDefSetAsString(", ", noDataTrends);
+					String chartedEvtStr = EventDefinition.getReadableEventDefSetAsString(", ", noDataTrends);
 					String errMsg = "No events are available for : " + chartedEvtStr + ".\nWithin the period you have selected "
 							+ selectedShare.getFriendlyName() + ".\n"
 							+ "If you just cleared the calculation results, you may want to Force and Update the calculations.";
@@ -757,8 +771,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			evtDefTrendPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), true);
 
 		} else {
-			
-			//Thread.dumpStack();
+
 			evtDefTrendPopupMenu.updateAction(availEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
 			evtDefTrendPopupMenu.getSelectionShell().setVisible(true);
 			if (activate) {
@@ -811,7 +824,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			
 		} else {
 
-			evtDefChartingPopupMenu.updateAction(availEventDefs, chartedEvtDefTmpSet , action, null, null);
+			evtDefChartingPopupMenu.updateAction(availEventDefs, chartedEvtDefTmpSet, action, null, null);
 			evtDefChartingPopupMenu.getSelectionShell().setVisible(true);
 			if (activatePopup) {
 				evtDefChartingPopupMenu.getSelectionShell().setActive();

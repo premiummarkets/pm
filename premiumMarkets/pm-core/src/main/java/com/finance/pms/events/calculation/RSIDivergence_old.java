@@ -189,7 +189,6 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 		return new double[]
 				{
 				this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)],
-				//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
 				this.rsi.getLowerThreshold(),
 				this.rsi.getUpperThreshold(),
 				};

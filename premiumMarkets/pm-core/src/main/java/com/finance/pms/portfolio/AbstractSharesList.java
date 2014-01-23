@@ -249,19 +249,19 @@ public abstract class AbstractSharesList extends Observable {
 	 }
 
 	 protected void addAmountToTotalAmountIn(BigDecimal newCashIn, Currency currency, Date currentDate) {
-		 if (this.totalInAmountEver == null) this.totalInAmountEver = new BigDecimal(0).setScale(2);
+		 if (this.totalInAmountEver == null) this.totalInAmountEver = new BigDecimal(0).setScale(4);
 		 this.totalInAmountEver = this.totalInAmountEver.add(newCashIn);
 	 }
 
 	 protected BigDecimal addAmountToTotalAmountOut(BigDecimal newCashOut, Currency currency, Date currentDate) {
-		 if (this.totalOutAmountEver == null) this.totalOutAmountEver = new BigDecimal(0).setScale(2);
+		 if (this.totalOutAmountEver == null) this.totalOutAmountEver = new BigDecimal(0).setScale(4);
 		 this.totalOutAmountEver = this.totalOutAmountEver.add(newCashOut);
 		 return newCashOut;
 	 }
 
-	 protected void removeAmountFromTotalAmount(PortfolioShare portfolioShare) {
-		 this.totalInAmountEver = this.totalInAmountEver.subtract(portfolioShare.getCashin());
-		 this.totalOutAmountEver = this.totalOutAmountEver.subtract(portfolioShare.getCashout());
+	 protected void removeAmountFromTotalAmount(BigDecimal cashIn, BigDecimal cashout, Currency transactionCurrency, Date currentDate) {
+		 this.totalInAmountEver = this.totalInAmountEver.subtract(cashIn);
+		 this.totalOutAmountEver = this.totalOutAmountEver.subtract(cashout);
 	 }
 
 	 public BigDecimal getTotalInAmountEver() {

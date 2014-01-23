@@ -176,7 +176,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				if (adjustedStartDate.before(startDate) || adjustedStartDate.equals(startDate)) {
 					adjustedStartDate = startDate;
 				} else {
-					LOGGER.info("Start date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " now starting on "+adjustedStartDate);
+					LOGGER.info("Start date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " is now starting on "+adjustedStartDate);
 				}
 				if (adjustedStartDate.after(endDate) || adjustedStartDate.equals(endDate)) {
 					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
@@ -186,7 +186,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				if (adjustedEndDate.after(endDate) || adjustedEndDate.equals(endDate)) {
 					adjustedEndDate = endDate;
 				} else {
-					LOGGER.info("End Date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " now starting on  "+adjustedEndDate);
+					LOGGER.info("End Date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " is now ending on  "+adjustedEndDate);
 				}
 				if (adjustedEndDate.before(adjustedStartDate) || adjustedEndDate.equals(adjustedStartDate)) {
 					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+adjustedEndDate);
@@ -270,12 +270,17 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			if (LOGGER.isInfoEnabled()) {
 				int nbEvents = 0;
 				String eventDefs = "";
+				String stocksNames = "";
+				String sep= "";
 				for (SymbolEvents se : allEvents) {
-					eventDefs = eventDefs + se.getEventDefList().toString();
+					stocksNames = stocksNames + sep + se.getStock().getSymbol();
+					eventDefs = eventDefs + sep + se.getEventDefList().toString();
+					sep = ",";
 					nbEvents = nbEvents + se.getSortedDataResultList().size();
 				}
-				LOGGER.info("Storing pass "+passNumber+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
-				LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+ allEvents.size()+" stocks), from "+dateFormat.format(startDate)+" to "+dateFormat.format(endDate));
+				String stocksHint = (allEvents.size() > 1)?allEvents.size()+ " stocks":stocksNames;
+				LOGGER.info("Storing pass "+passNumber+" for "+stocksHint+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
+				LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+stocksHint+"), from "+dateFormat.format(startDate)+" to "+dateFormat.format(endDate));
 			}
 			
 			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName);

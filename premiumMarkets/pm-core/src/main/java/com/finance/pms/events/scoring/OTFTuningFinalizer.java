@@ -88,6 +88,8 @@ import com.finance.pms.threads.ObserverMsg;
 public class OTFTuningFinalizer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(OTFTuningFinalizer.class);
+	
+	private BigDecimal stopLossThrRatio = new BigDecimal(MainPMScmd.getPrefs().get("indicator.stoplossratio","0"));
 
 	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, SortedMap<Date, double[]> calcOutput, EventInfo evtDef, Observer observer, Boolean isEventsPersisted) throws NotEnoughDataException {
 
@@ -135,11 +137,16 @@ public class OTFTuningFinalizer {
 			SortedMap<Date, double[]> calcOutput, Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
 			throws IOException, NoQuotationsException, InvalidAlgorithmParameterException, NotEnoughDataException {
 		
+		//stopLossThrRatio = new BigDecimal(".95"); //Test
+		
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 		String trendFile = "noOutputAvailable";
 		String chartFile = "noChartAvailable";
-		BigDecimal totProfit = BigDecimal.ONE;
-
+		BigDecimal trendFollowProfit = BigDecimal.ONE;
+		
+		BigDecimal stopLossProfit = BigDecimal.ONE;
+		BigDecimal stopLossThreshold = null;
+	
 		EventType prevEventType = null;
 		PeriodRatingDTO period = new PeriodRatingDTO();
 		
@@ -171,7 +178,7 @@ public class OTFTuningFinalizer {
 
 		Calendar currentDate = zeroTimeDate(startDate);
 
-		BigDecimal big2 = BigDecimal.ONE;
+		BigDecimal csvDispFactor = BigDecimal.ONE;
 
 		Iterator<EventValue> eventsIt = eventListForEvtDef.iterator();
 		EventValue currentEvent = null;
@@ -182,7 +189,9 @@ public class OTFTuningFinalizer {
 			firstEventDate = currentEvent.getDate();
 		}
 
-		BigDecimal prevCloseForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+		BigDecimal prevTrendClose = null;
+		BigDecimal prevStopLossClose = null;
+
 		SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
 		SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 		
@@ -202,7 +211,7 @@ public class OTFTuningFinalizer {
 			}
 			
 			//We process the event when reached
-			if (currentEvent != null && currentDate.getTime().compareTo(currentEvent.getDate()) == 0) {
+			if (currentEvent != null && currentDate.getTime().compareTo(currentEvent.getDate()) == 0) {//Event date reached
 
 				//TODO : remove this config match
 				try {
@@ -225,27 +234,68 @@ public class OTFTuningFinalizer {
 				if (prevEventType == null || !prevEventType.equals(eventType)) {//Trend change or First trend
 
 					//TO
-					if (prevEventType != null) {//Not the First trend : we cummulate
+					if (prevEventType != null) {//Not the First trend : we accumulate
 
-						BigDecimal pPriceChange = closeForDate.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
+						BigDecimal followpPriceChange = closeForDate.subtract(prevTrendClose).divide(prevTrendClose,10,RoundingMode.HALF_DOWN);
 
 						//Period
 						period.setTo(currentEvent.getDate());
-						period.setPriceChange(pPriceChange);
+						period.setPriceChange(followpPriceChange);
 						periods.add(period);
 						period = new PeriodRatingDTO();
 
 						//Profit for period
 						if (eventType.equals(EventType.BEARISH)) {//sell
 							
-							LOGGER.debug(
-									"Sell : Compound profit is "+totProfit+" at "+currentDate.getTime()+". " +
-									"New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevCloseForDate+" : "+closeForDate+"-"+prevCloseForDate+"/"+prevCloseForDate+"="+pPriceChange);
+							//Follow Profit
+							if (LOGGER.isDebugEnabled()) LOGGER.debug(
+									"Sell : Compound profit is "+trendFollowProfit+" at "+currentDate.getTime()+". " +
+									"New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevTrendClose+" : "+closeForDate+"-"+prevTrendClose+"/"+prevTrendClose+"="+followpPriceChange);
+							trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+							if (LOGGER.isDebugEnabled()) LOGGER.debug("New Compound at "+currentDate.getTime()+" : prevTotProfit*("+followpPriceChange+"+1)="+trendFollowProfit);
 							
-							totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+							//Stop Loss Profit
+							if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0) {
+								stopLossThreshold = closeForDate.multiply(stopLossThrRatio).setScale(10,RoundingMode.HALF_DOWN);
+								if (LOGGER.isDebugEnabled()) LOGGER.debug("Sell (set) : Stop loss profit is "+stopLossProfit+" at "+currentDate.getTime()+". Setting stop loss value ("+stopLossThrRatio+" ratio) : "+stopLossThreshold);
+							}
+						
+						}
+						else if (eventType.equals(EventType.BULLISH)) {//buy
 							
-							LOGGER.debug("New Compound at "+currentDate.getTime()+" : prevTotProfit*("+pPriceChange+"+1)="+totProfit);
-						}				
+							//Follow Profit
+							if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Compound profit at "+trendFollowProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
+						
+							//Stop Loss Profit
+							if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0) {
+								if (stopLossThreshold != null) {
+									stopLossThreshold = null;
+									if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy (reset as sell was not triggered) : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". Discarding stop loss threshold");
+								} else {
+									prevStopLossClose = closeForDate;
+									if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
+								}
+							}
+							
+						}
+						
+					} else {//First trend
+						
+						if (eventType.equals(EventType.BEARISH)) {//sell
+							//Nothing
+						} else if (eventType.equals(EventType.BULLISH)) {//buy
+							
+							//Follow Profit
+							prevTrendClose = quotations.getClosestCloseForDate(currentDate.getTime());
+							if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Compound profit at "+trendFollowProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
+							
+							//Stop Loss Profit
+							if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0) {
+								prevStopLossClose = closeForDate;
+								if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
+							}
+						}
+						
 					}
 
 					//FROM //First trend or start of a new one
@@ -253,56 +303,75 @@ public class OTFTuningFinalizer {
 					period.setTrend(eventType.toString());
 					period.setFrom(currentEvent.getDate());
 
-					//Csv Trend change
+					//Csv and Chart : Trend change
 					if (currentEvent.getEventType().equals(EventType.BULLISH)) {
-						if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
-						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
-						
-						LOGGER.debug("Buy : Compound profit at "+totProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
-						
+						if (generateBuySellCsv) line = line + ", , " + closeForDate.multiply(csvDispFactor);
+						if (generateSmaCmpOutChart) buySerie.put(currentDate.getTime(), closeForDate.doubleValue());	
 					} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
-						if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+						if (generateBuySellCsv) line = line + ", "+ closeForDate.multiply(csvDispFactor) + ", ";
+						if (generateSmaCmpOutChart) sellSerie.put(currentDate.getTime(), closeForDate.doubleValue());
 					}
+					
+					//Updating loop vars
 					if (eventsIt.hasNext()) {
 						currentEvent = eventsIt.next();
 					}
 
-					if (!eventType.equals(EventType.NONE)){
+					if (!eventType.equals(EventType.NONE)){//Trend change (ie new trend is not NONE)
 						prevEventType = eventType;
-						prevCloseForDate = closeForDate;
+						prevTrendClose = closeForDate;
 					}
 					
 
-				} else {
+				} else {//Same trend
 
-					//Csv No trend change
+					//Csv and Chart : No trend change
 					if (currentEvent.getEventType().equals(EventType.BULLISH)) {
-						if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
-						buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+						if (generateBuySellCsv) line = line + ", , " + prevTrendClose.multiply(csvDispFactor);
+						if (generateSmaCmpOutChart) buySerie.put(currentDate.getTime(), closeForDate.doubleValue());
 					} else if (currentEvent.getEventType().equals(EventType.BEARISH)) {
-						if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-						sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+						if (generateBuySellCsv) line = line + ", "+ prevTrendClose.multiply(csvDispFactor) + ", ";
+						if (generateSmaCmpOutChart) sellSerie.put(currentDate.getTime(), closeForDate.doubleValue());
 					}
+					
+					//Updating loop vars
 					if (eventsIt.hasNext()) {
 						currentEvent = eventsIt.next();
 					}
+					
 				}
 
-			} else { //Filling up until the current event date is reached
+			} else { //Event date NOT reached YET
 				
+				//Csv and Chart : Filling up until the current event date is reached
 				if (prevEventType == null) {
 					if (generateBuySellCsv) line = line + ", , ";
 				}
 				else if (prevEventType.equals(EventType.BULLISH)) {
-					if (generateBuySellCsv) line = line + ", , " + prevCloseForDate.multiply(big2);
-					buySerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					if (generateBuySellCsv) line = line + ", , " + prevTrendClose.multiply(csvDispFactor);
+					if (generateSmaCmpOutChart) buySerie.put(currentDate.getTime(), closeForDate.doubleValue());
 				} 
 				else if (prevEventType.equals(EventType.BEARISH)) {
-					if (generateBuySellCsv) line = line + ", "+ prevCloseForDate.multiply(big2) + ", ";
-					sellSerie.put(currentDate.getTime(), quotations.getClosestCloseForDate(currentDate.getTime()).doubleValue());
+					if (generateBuySellCsv) line = line + ", "+ prevTrendClose.multiply(csvDispFactor) + ", ";
+					if (generateSmaCmpOutChart) sellSerie.put(currentDate.getTime(), closeForDate.doubleValue());
 				}
 				
+			}
+			
+			//Stop Loss Profit (check for sell and adjustment)
+			if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0 && stopLossThreshold != null) {
+				if (closeForDate.compareTo(stopLossThreshold) <= 0) {//Price below stop loss : we sell
+					stopLossThreshold = null;
+					BigDecimal stopLossPriceChange = closeForDate.subtract(prevStopLossClose).divide(prevStopLossClose,10,RoundingMode.HALF_DOWN);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug(
+							"Sell : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". " +
+									"New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevStopLossClose+" : "+closeForDate+"-"+prevStopLossClose+"/"+prevStopLossClose+"="+stopLossPriceChange);
+					stopLossProfit = stopLossProfit.multiply(stopLossPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("New Stop loss Profit at "+currentDate.getTime()+" : prevStopLossProfit*("+stopLossPriceChange+"+1)="+stopLossProfit);
+				}
+				else if (closeForDate.multiply(stopLossThrRatio).setScale(10,RoundingMode.HALF_DOWN).compareTo(stopLossThreshold) > 0) {//Adjusting threshold upward
+					stopLossThreshold = closeForDate.multiply(stopLossThrRatio).setScale(10,RoundingMode.HALF_DOWN);
+				}
 			}
 
 			
@@ -347,9 +416,10 @@ public class OTFTuningFinalizer {
 		
 		//Enough data we throw up the things
 		
-		//PNG chart
+		//Csv file
 		if (generateBuySellCsv) trendFile = fileName;
 		
+		//PNG Chart
 		if (generateSmaCmpOutChart) {
 			
 			try {
@@ -372,24 +442,41 @@ public class OTFTuningFinalizer {
 		}
 		observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
 		
-		
-		BigDecimal pPriceChange = lastClose.subtract(prevCloseForDate).divide(prevCloseForDate,10,RoundingMode.HALF_DOWN);
+		BigDecimal followpPriceChange = lastClose.subtract(prevTrendClose).divide(prevTrendClose,10,RoundingMode.HALF_DOWN);
+		BigDecimal stopLosspPriceChange = (prevStopLossClose != null)?lastClose.subtract(prevStopLossClose).divide(prevStopLossClose,10,RoundingMode.HALF_DOWN):null;
 
-		//Finalise profit
-		if (prevEventType.equals(EventType.BULLISH)) {
-			totProfit = totProfit.multiply(pPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+		//Finalise profits
+		if (prevEventType.equals(EventType.BULLISH)) {//Trend is still bullish so we calculate the unrealised profit
+			
+			//Follow
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(
+					"Unreal : Compound profit is is "+trendFollowProfit+" at "+currentDate.getTime()+". " +
+					"Last price change is "+lastClose+" at "+currentDate.getTime()+", previous close "+prevTrendClose+" : "+lastClose+"-"+prevTrendClose+"/"+prevTrendClose+"="+followpPriceChange);
+			trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("New Compound Profit at "+currentDate.getTime()+" : prevTrendFollowProfit*("+followpPriceChange+"+1)="+trendFollowProfit);
+
+			//Stop loss
+			if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0 && prevStopLossClose != null) {
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(
+						"Unreal : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". " +
+						"Last price change is "+lastClose+" at "+currentDate.getTime()+", previous close "+prevStopLossClose+" : "+lastClose+"-"+prevStopLossClose+"/"+prevStopLossClose+"="+followpPriceChange);
+				stopLossProfit = stopLossProfit.multiply(stopLosspPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("New Stop loss Profit at "+currentDate.getTime()+" : prevStopLossProfit*("+stopLosspPriceChange+"+1)="+stopLossProfit);
+			}
+
 		}
-		totProfit = totProfit.subtract(BigDecimal.ONE);
+		trendFollowProfit = trendFollowProfit.subtract(BigDecimal.ONE);
+		stopLossProfit = stopLossProfit.subtract(BigDecimal.ONE);
 
 		//Finalise trend
 		period.setTo(endDate);
-		period.setPriceChange(pPriceChange);
+		period.setPriceChange(followpPriceChange);
 		periods.add(period);	
 		
 		//Buy and hold profit
 		BigDecimal firstClose = quotations.getClosestCloseForDate(firstEventDate);
 		BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
-		LOGGER.debug("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
 		
 		Date outputFirstKey = startDate;
 		Date outputLastKey = endDate;
@@ -398,7 +485,7 @@ public class OTFTuningFinalizer {
 			outputLastKey = calcOutput.lastKey();
 		}
 		
-		return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), totProfit, buyAndHoldProfit, outputFirstKey, outputLastKey);
+		return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), trendFollowProfit, stopLossProfit, buyAndHoldProfit, outputFirstKey, outputLastKey);
 		
 	}
 
@@ -533,7 +620,7 @@ public class OTFTuningFinalizer {
 	/**
 	 * 
 	 * Builds a *_ConfigRating.csv file for the stock containing the trend periods results of the stock tuning.
-	 * The from and to dates are the the date for the start of a trend (BULLISH/BEARISH) and the end of the trend.
+	 * The from and to dates are the date for the start of a trend (BULLISH/BEARISH) and the end of the trend.
 	 * The file contains one line per config elected over the tuning.
 	 * For each config its trend period of occurrence and the trend values during this period.
 	 * Hence you can have several lines with different configs over the same trend period where they were consecutively elected with the same trend results. 
@@ -587,7 +674,7 @@ public class OTFTuningFinalizer {
 				
 			}
 			
-			fileWriter.write("total , profit : "+tuningRes.getProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
+			fileWriter.write("total , profit : "+tuningRes.getFollowProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
 			tuningRes.setConfigRatingFile(fileName);
 			
 			fileWriter.write("rating , "+calculatedRating);		
@@ -723,7 +810,7 @@ public class OTFTuningFinalizer {
 			}
 		}
 		
-		FinalRating finalRating = tuningFinalizationRating(tuningRes.getProfit(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
+		FinalRating finalRating = tuningFinalizationRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
 		
 		//Test 
 		//finalRating.validity = Validity.SUCCESS;

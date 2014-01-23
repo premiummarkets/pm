@@ -36,7 +36,6 @@ import java.util.Set;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum Market.
  * 
@@ -94,7 +93,7 @@ public enum Market implements Serializable {
 	TASE ("TASE","TASE",Currency.ILS,BigDecimal.ONE,YahooMarketExtentions.TA, "UNKNOWN", "UNKNOWN",true, new String[]{"TA100"}),
 	HKSE ("HKSE","HKSE",Currency.HKD,BigDecimal.ONE,YahooMarketExtentions.HK, "UNKNOWN", "UNKNOWN",true, new String[]{"HSI"}),
 	
-	UNKNOWN ("UNKNOWN","Unknown",Currency.EUR,BigDecimal.ONE,YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{});
+	UNKNOWN ("UNKNOWN","Unknown",Currency.NAN,BigDecimal.ONE,YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{});
 	
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);
@@ -133,11 +132,6 @@ public enum Market implements Serializable {
 		this.yahooIndices = yahooIndices;
 	}
 
-	/**
-	 * Gets the friendly name.
-	 * 
-	 * @return the friendly name
-	 */
 	public String getFriendlyName() {
 		return friendlyName;
 	}
@@ -149,11 +143,6 @@ public enum Market implements Serializable {
 
 	public Currency getDefaultCurrency() {
 		return defaultCurrency;
-	}
-
-	@SuppressWarnings("unused")
-	private void setDefaultCurrency(Currency defaultCurrency) {
-		this.defaultCurrency = defaultCurrency;
 	}
 
 	public YahooMarketExtentions getYahooExtension() {
@@ -186,11 +175,6 @@ public enum Market implements Serializable {
 
 	public BigDecimal getDefaultCurrencyFactor() {
 		return defaultCurrencyFactor;
-	}
-
-	@SuppressWarnings("unused")
-	private void setDefaultCurrencyFactor(BigDecimal defaultCurrencyFactor) {
-		this.defaultCurrencyFactor = defaultCurrencyFactor;
 	}
 
 	public Boolean getHasStaticAllMarket() {

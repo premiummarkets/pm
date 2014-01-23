@@ -1059,7 +1059,7 @@ public class EventsResources {
 		
 		//DB
 		if (isDataPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(" ",indicators));
+			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",", indicators));
 			DataSource.getInstance().cleanEventsForAnalysisNameAndStock(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
 		}
 		
@@ -1089,7 +1089,7 @@ public class EventsResources {
 		
 		//DB
 		if (isDataPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(" ",indicators));
+			LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",",indicators));
 			DataSource.getInstance().cleanEventsForIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
 		}
 	}

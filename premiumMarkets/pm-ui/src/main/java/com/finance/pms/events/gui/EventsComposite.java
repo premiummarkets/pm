@@ -32,6 +32,7 @@ package com.finance.pms.events.gui;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.prefs.BackingStoreException;
 
 import org.eclipse.swt.SWT;
@@ -48,6 +50,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
@@ -144,8 +148,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private Button portfolioFilterbutton;
 	private Button allStocksFilteButton;
 	private Button marketsFilterbutton;
-	private StocksActionFilter filter = StocksActionFilter.ALLSTOCKS;
-
+	private StocksActionFilter filter;
+	
 	private Group computeButtonGroup;
 	private Button quotationBox;
 	private Button quotationListBox;
@@ -158,8 +162,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private Set<ShareListInfo> selectedShareLists;
 	private EventsActionSort action;
 
-	private Integer infCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.inf", "-1")); // -2;
-	private Integer supCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.sup", "1")); // 4;
+	private Integer infCrit; // -2; 
+	private Integer supCrit; // 4;
 	private Integer nbDaysFilter;
 
 	private Integer nbMonthsAnalysis;
@@ -184,32 +188,80 @@ public class EventsComposite extends Composite implements RefreshableView {
 	private EventRefreshController refreshMonitoredListner;
 	private EventRefreshController refreshPortfoliosListener;
 	private EventRefreshController refreshMarketsListener;
+	private SelectionListener refreshAllStocksListener;
 
 	public EventsComposite(Composite parent, int style, LogComposite logComposite) {
 		super(parent, style);
-
-		this.nbMonthsAnalysis = new Integer(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
+		
 		this.logComposite = logComposite;
 		allStocksEventModel = EventModel.getInstance(new RefreshAllEventStrategyEngine());
 		monitoredStocksEventModel = EventModel.getInstance(new RefreshMonitoredStrategyEngine());
 		portfolioStocksEventModel = EventModel.getInstance(new RefreshPortfolioStrategyEngine(), logComposite);
 
-		Calendar newDate = Calendar.getInstance();
-		newDate.setTime(EventSignalConfig.getNewDate());
-		nbDaysFilter = new Integer(MainPMScmd.getPrefs().get("gui.crit.filternbdays", "5"));
-
-		selectedEventInfos = new HashSet<EventInfo>();
-		selectedEventInfos.add(EventDefinition.PMSMAREVERSAL);
-		setAction(new EventsActionSort(new LatestEventsAllIndDefsPonderationRule(), selectedEventInfos.toArray(new EventInfo[0])));
-		
-		selectedPortfolios = new HashSet<ShareListInfo>();
+		loadPrefs();
 
 		initGUI();
 	}
 
+	private void loadPrefs() {
+		
+		this.infCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.inf", "-1"));
+		this.supCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.sup", "1"));
+		this.nbDaysFilter = new Integer(MainPMScmd.getPrefs().get("gui.crit.filternbdays", "5"));
+		this.nbMonthsAnalysis = new Integer(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
+
+		this.selectedEventInfos = new HashSet<EventInfo>();//These are initialised in the set visible as it requires knowledge of the EventInfos (async back ground loaded)
+
+		this.selectedPortfolios = new HashSet<ShareListInfo>();
+		List<String> previouslySelectedPortfolios = Arrays.asList(MainPMScmd.getPrefs().get("gui.crit.selectedportfolios", "").split(","));
+		for (String selectedPortfolio : previouslySelectedPortfolios) {
+			try {
+				AbstractSharesList portfolio = PortfolioMgr.getInstance().getPortfolio(selectedPortfolio);
+				this.selectedPortfolios.add(new ShareListInfo(portfolio.getName()));
+			} catch (IllegalArgumentException e) {
+				LOGGER.warn("Can't reload portfolio "+selectedPortfolio+". It may have been deleted. "+e);
+			}
+			
+		}
+		this.filter = StocksActionFilter.valueOf(MainPMScmd.getPrefs().get("gui.crit.sotckfilter", StocksActionFilter.ALLSTOCKS.name()));
+		
+	}
+	
+	private void savePrefs() {
+		
+		MainPMScmd.getPrefs().put("gui.crit.inf", this.infCrit.toString());
+		MainPMScmd.getPrefs().put("gui.crit.sup", this.supCrit.toString());
+		MainPMScmd.getPrefs().put("gui.crit.filternbdays", this.nbDaysFilter.toString());
+		MainPMScmd.getPrefs().put("gui.crit.calcnbmonths", this.nbMonthsAnalysis.toString());
+		MainPMScmd.getPrefs().put("gui.crit.selectedeventinfos", EventDefinition.getEventDefSetAsString(",",selectedEventInfos));
+		
+		String sps = "";
+		String sep = "";
+		for (ShareListInfo selectedPortfolio : this.selectedPortfolios) {
+			sps = sps + sep + selectedPortfolio.info();
+			sep = ",";
+		}
+		MainPMScmd.getPrefs().put("gui.crit.selectedportfolios", sps);
+		MainPMScmd.getPrefs().put("gui.crit.sotckfilter", this.filter.name());
+		
+		try {
+			MainPMScmd.getPrefs().flush();
+		} catch (BackingStoreException e) {
+			LOGGER.warn(e);
+		}
+		
+	}
+
 	public void initData() {
 
-		setFilter(StocksActionFilter.FILTERMONITORED);
+		//init events prefs
+		List<String> prefEventInfos = Arrays.asList(MainPMScmd.getPrefs().get("gui.crit.selectedeventinfos", EventDefinition.PMSMAREVERSAL.name()).split(","));
+		SortedSet<EventInfo> allKnownEventInfos = EventDefinition.loadMaxPassPrefsEventInfo();
+		for (EventInfo knownEventInfo : allKnownEventInfos) {
+			if (prefEventInfos.contains(knownEventInfo.getEventDefinitionRef())) selectedEventInfos.add(knownEventInfo);
+		}
+		setAction(new EventsActionSort(new LatestEventsAllIndDefsPonderationRule(), selectedEventInfos.toArray(new EventInfo[0])));
+		
 		sortAndReload();
 
 		needInit = false;
@@ -257,6 +309,15 @@ public class EventsComposite extends Composite implements RefreshableView {
 				public void controlMoved(ControlEvent e) {
 
 				}
+			});
+			
+			this.addDisposeListener(new DisposeListener() {
+				
+				@Override
+				public void widgetDisposed(DisposeEvent e) {
+					savePrefs();
+				}
+				
 			});
 
 			{
@@ -416,8 +477,10 @@ public class EventsComposite extends Composite implements RefreshableView {
 									}
 								}
 							};
-
-							PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton, EventDefinition.loadMaxPassPrefsEventInfo(), selectedEventInfos, true, true, SWT.CHECK, null, closeAction, false);
+							
+							SortedSet<EventInfo> allKnownEventInfos = EventDefinition.loadMaxPassPrefsEventInfo();
+							//popup
+							PopupMenu<EventInfo> popupMenu = new PopupMenu<EventInfo>(EventsComposite.this, selectedEventInfosFilterButton, allKnownEventInfos, selectedEventInfos, true, true, SWT.CHECK, null, closeAction, false);
 							popupMenu.open();
 
 						}
@@ -453,7 +516,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 						}
 					});
-					moniteredFilterbutton.setSelection(true);
 				}
 				{
 					portfolioFilterbutton = new Button(stockFilterButGrp, SWT.RADIO | SWT.LEAD);
@@ -570,23 +632,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 						public void mouseDown(MouseEvent evt) {
 							
 							refreshCompute.removeSelectionListener(refreshComputeCurrentListener);
-							refreshComputeCurrentListener = new SelectionListener() {
-								
-								@Override
-								public void widgetSelected(SelectionEvent e) {
-									handle();
-								}
-								
-								@Override
-								public void widgetDefaultSelected(SelectionEvent e) {
-									handle();
-								}
-
-								private void handle() {
-									UserDialog dialog = new UserDialog(getShell(), "Compute All Stock is not implemented for potential performances issues.\nChoose among Monitored, All Portfolios or Markets in the Stock filter.", null);
-									dialog.open();
-								}
-							};
+							refreshComputeCurrentListener = refreshAllStocksListener;
+							refreshCompute.addSelectionListener(refreshAllStocksListener);
 							
 							setFilter(StocksActionFilter.ALLSTOCKS);
 							sortAndReload();
@@ -692,7 +739,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 					refreshCompute.setFont(MainGui.DEFAULTFONT);
 					refreshCompute.setText("Run");
 					refreshCompute
-							.setToolTipText("Will update the events calculation on Stocks according to the the 'Event filter' and 'Stock filter' above.\n"
+							.setToolTipText("Will update the events calculation on Stocks according to the 'Event filter' and 'Stock filter' above.\n"
 									+ "Be aware that refreshing all calculators and full markets can lead to prohibitive computation time.\n" + notificationNote
 									+ "\n");
 					refreshMonitoredListner = new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
@@ -704,12 +751,18 @@ public class EventsComposite extends Composite implements RefreshableView {
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
+							taskIds.add(TaskId.Clean);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
 							super.widgetSelected(evt);
 						}
 					};
+					if (filter.equals(StocksActionFilter.FILTERMONITORED)) {
+						moniteredFilterbutton.setSelection(true);
+						refreshComputeCurrentListener = refreshMonitoredListner;
+						refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+					}
 					refreshPortfoliosListener = new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 					
 						@Override
@@ -723,12 +776,18 @@ public class EventsComposite extends Composite implements RefreshableView {
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
+							taskIds.add(TaskId.Clean);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
 							super.widgetSelected(evt);
 						}
 					};
+					if (filter.equals(StocksActionFilter.FILTERPORTFOLIO)) {
+						portfolioFilterbutton.setSelection(true);
+						refreshComputeCurrentListener = refreshPortfoliosListener;
+						refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+					}
 					refreshMarketsListener = new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
@@ -739,15 +798,43 @@ public class EventsComposite extends Composite implements RefreshableView {
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
+							taskIds.add(TaskId.Clean);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							initRefreshAction();
 							super.widgetSelected(evt);
 						}
 					};
+					if (filter.equals(StocksActionFilter.FILTERMARKETS)) {
+						marketsFilterbutton.setSelection(true);
+						refreshComputeCurrentListener = refreshMarketsListener;
+						refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+					}
+					refreshAllStocksListener = new SelectionListener() {
+						
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							handle();
+						}
+						
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							handle();
+						}
 
-					refreshComputeCurrentListener = refreshMonitoredListner;
-					refreshCompute.addSelectionListener(refreshComputeCurrentListener);
+						private void handle() {
+							UserDialog dialog = new UserDialog(getShell(), "Compute All Stock is not implemented for potential performances issues.\nChoose among Monitored, All Portfolios or Markets in the Stock filter.", null);
+							dialog.open();
+						}
+					};
+					if (filter.equals(StocksActionFilter.ALLSTOCKS)) {
+						allStocksFilteButton.setSelection(true);
+						refreshComputeCurrentListener = refreshAllStocksListener;
+						refreshCompute.addSelectionListener(refreshAllStocksListener);
+					}
+
+//					refreshComputeCurrentListener = refreshMonitoredListner;
+//					refreshCompute.addSelectionListener(refreshComputeCurrentListener);
 
 				}
 
@@ -1161,7 +1248,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 	}
 
 	private void enableRefreshButtons() {
-
 		refreshCompute.setEnabled(true);
 	}
 

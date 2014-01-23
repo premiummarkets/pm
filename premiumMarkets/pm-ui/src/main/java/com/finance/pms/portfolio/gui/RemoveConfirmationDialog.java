@@ -145,12 +145,11 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.horizontalSpan = 2;
 				applyToAmountCheck.setLayoutData(Errorlabel1LData);
-				applyToAmountCheck.setText("Apply line transactions amounts (money in and out) to portfolio totals.");
+				applyToAmountCheck.setText("Apply transaction to totals as if sold.");
 				applyToAmountCheck.setFont(MainGui.DEFAULTFONT);
 				applyToAmountCheck.setToolTipText(
 						"Ticking this box, will sell the share at the current price and apply the transaction to the portfolio totals. Aka we sell the line.\n" +
-						"If the box is left ticked off, the line transactions amounts (money in and out) will be subtracted from the total amounts as they are. " +
-						"All transactions on that line are then cancelled. Aka we delete the line.");
+						"If the box is left ticked off, the transaction amounts (money in and out) will be removed from the portfolio totals as they are. Aka as if the line had never been inserted.");
 			}
 			{
 				monitorCheck = new Button(dialogShell, SWT.CHECK);

@@ -58,6 +58,7 @@ import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.web.HttpSourceExchange;
 import com.finance.pms.datasources.web.MyBeanFactoryAware;
 import com.finance.pms.datasources.web.formaters.ImfCurrencyHistoryFormater;
+import com.finance.pms.events.calculation.DateFactory;
 
 public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAware {
 	
@@ -89,17 +90,17 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			NavigableSet<CurrencyRate> dbRates = new TreeSet<CurrencyRate>();
 			dbRates.addAll(currencyDao.getRates(fromCurrency,toCurrency));
 			
-			Calendar todayCal = Calendar.getInstance();
-			todayCal.set(Calendar.HOUR_OF_DAY, 0);
-			todayCal.set(Calendar.MINUTE, 0);
-			todayCal.set(Calendar.SECOND, 0);
-			todayCal.set(Calendar.MILLISECOND,0);
-			Date today = todayCal.getTime();
+//			Calendar todayCal = Calendar.getInstance();
+//			todayCal.set(Calendar.HOUR_OF_DAY, 0);
+//			todayCal.set(Calendar.MINUTE, 0);
+//			todayCal.set(Calendar.SECOND, 0);
+//			todayCal.set(Calendar.MILLISECOND,0);
+//			Date today = todayCal.getTime();
+			Date today = DateFactory.midnithDate(new Date());
 			
 			Date lastCurrencyRateDate = (!dbRates.isEmpty())?dbRates.last().getDate():new Date(1104537600000L); //date -d"01 January 2005" +%s
-			//todayCal.add(Calendar.DAY_OF_YEAR, getAvailableDayShift(todayCal));
-			Date lastAvail = todayCal.getTime();
-			if (dbRates.isEmpty() || lastCurrencyRateDate.before(lastAvail)) {
+//			Date lastAvail = todayCal.getTime();
+			if (dbRates.isEmpty() || lastCurrencyRateDate.before(today)) {
 
 				@SuppressWarnings("rawtypes")
 				List webRates = new ArrayList<Validatable>();
@@ -129,13 +130,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	}
 
-//	private int getAvailableDayShift(Calendar calendar) {
-//		if (calendar.get(Calendar.DAY_OF_WEEK) == 7 || calendar.get(Calendar.DAY_OF_WEEK) == 1) {
-//			return -4;
-//		}
-//		return -2;
-//	}
-
 	//We can convert only toward Base Unit not toward sub unit like pence for pound
 	public BigDecimal convert(MarketValuation fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
 		
@@ -156,7 +150,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			exchangeRate = fetchRateForDate(fromCurrency, toCurrency, date);
 		}
 		
-		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_DOWN);
+		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_UP);
 	}
 
 	private BigDecimal fetchRateForDate(Currency fromCurrency, Currency toCurrency, Date date) {

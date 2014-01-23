@@ -155,8 +155,8 @@ public abstract class EventModelStrategyEngine<X> {
 				
 				Boolean isAllEventsOkForStock = true;
 				for (EventInfo eventDefinition : indicators) {
+					
 					EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
-
 					if (evtDefRes == null || evtDefRes.getUpdateStamp() == null || evtDefRes.getUpdateStamp().isFailing()) {
 						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' is failing for " + stock.getFriendlyName() + "\n";
 						isAllEventsOkForStock = false;

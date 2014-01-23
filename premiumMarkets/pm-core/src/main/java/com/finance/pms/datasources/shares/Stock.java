@@ -92,7 +92,6 @@ public class Stock extends Validatable {
     private Date lastQuote;
     
     /** The provider type. */
-    //private  Market market;
     private  MarketValuation marketValuation;
     
     /** The market. */
@@ -144,17 +143,6 @@ public class Stock extends Validatable {
 		this.capitalisation = s.capitalisation;
 	}
 	
-	/**
- * Instantiates a new stock.
- * 
- * @param isin the isin
- * @param symbol the symbol
- * @param stockCat the stock cat
- * @param marketQuotationsProvider the market quotations provider
- * @param market the market list provider
- * 
- * @author Guillaume Thoreton
- */
 	@Deprecated
 	public Stock(String isin, String symbol, StockCategories stockCat, SymbolMarketQuotationProvider marketQuotationsProvider, MarketValuation market) {
 		this.marketValuation = market;
@@ -173,39 +161,6 @@ public class Stock extends Validatable {
 	    this.removable = true;
 	    
 	    this.tradingMode = TradingMode.CONTINUOUS;
-	    this.sectorHint = "";
-	    this.capitalisation = 0L;
-	}
-	
-	/**
-	 * Instantiates a new stock.
-	 * 
-	 * @param isin the isin
-	 * @param symbol the symbol
-	 * @param name the name
-	 * @param removable the removable
-	 * @param category the category
-	 * @param marketQuotationsProvider the market quotations provider
-	 * @param market the market list provider
-	 * 
-	 * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	@Deprecated
-	public Stock( String isin, String symbol, String name, Boolean removable,
-			StockCategories category, 
-			SymbolMarketQuotationProvider marketQuotationsProvider, MarketValuation market) 
-	throws InvalidAlgorithmParameterException {
-		this.marketValuation = market;
-		this.symbolMarketQuotationProvider = marketQuotationsProvider;
-	    this.setIsin(isin);
-	    this.setSymbol(symbol);
-	    this.name = name;
-	    this.removable = removable;
-	    this.category = category;
-	    
-	    this.tradingMode = TradingMode.UNKNOWN;
 	    this.sectorHint = "";
 	    this.capitalisation = 0L;
 	}
@@ -229,22 +184,6 @@ public class Stock extends Validatable {
 	    this.capitalisation = capitalisation;
 	}
 
-	/**
-	 * Instantiates a new stock.
-	 * 
-	 * @param isin the isin
-	 * @param symbol the symbol
-	 * @param name the name
-	 * @param removable the removable
-	 * @param category the category
-	 * @param lastquote the lastquote
-	 * @param marketQuotationsProvider the market quotations provider
-	 * @param market the market list provider
-	 * 
-	 * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public Stock(String isin, String symbol, String name, Boolean removable,
 			StockCategories category, Date lastquote, 
 			SymbolMarketQuotationProvider marketQuotationsProvider, 
@@ -630,21 +569,10 @@ public class Stock extends Validatable {
 		this.symbolMarketQuotationProvider = symbolMarketQuotationProvider;
 	}
 
-	/**
-	 * Sets the last quote.
-	 * 
-	 * @param lastQuote the new last quote
-	 */
 	public void setLastQuote(Date lastQuote) {
 		this.lastQuote = lastQuote;
 	}
 
-	/**
-	 * Gets the last quote.
-	 * 
-	 * @return the last quote
-	 */
-	//@Formula("(select max(quotations.date) from quotations where symbol = symbol and isin = isin)")
 	@Temporal(TemporalType.DATE)
 	public Date getLastQuote() {
 		return lastQuote;

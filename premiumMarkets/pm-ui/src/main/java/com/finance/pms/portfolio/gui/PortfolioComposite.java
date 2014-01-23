@@ -33,8 +33,8 @@ package com.finance.pms.portfolio.gui;
 import java.awt.Paint;
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -284,15 +284,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			return PortfolioMgr.getInstance().getVisiblePortfolios().get(tabIdx);
 		}
 		
-//		public List<List<SlidingPortfolioShare>> getAllSlidingShares() {
-//
-//			List<List<SlidingPortfolioShare>> allShareLists = new ArrayList<List<SlidingPortfolioShare>>();
-//			for (int i = 0; i < cTabItem.length; i++) {
-//				allShareLists.add(getSlidingSharesInTab(i));
-//			}
-//			return allShareLists;
-//		}
-		
 		private void updateMoniAndPSCachedModels() {
 			
 			Set<Stock> monitored = new HashSet<Stock>();
@@ -345,7 +336,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		public void run() {
 
-			//synchronized (PortfolioComposite.this) {
 			synchronized (this.portfolio) {
 
 				try {
@@ -384,11 +374,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 */
 	private enum Titles {
 		Name ("Stock", "Stock name."), 
-		BuyPrc ("Buy price", "Average unit buy price."), Close ("Close","Last unit close price available."), ZWProfPrc ("No profit price", "Minimum sell unit price for no loss including inflation.\nFormula : inflated(in-out)/quantity"), 
-		RProf ("Profit","Profit. Realized and unrealized.\nFormula : (unit close - average unit buy price)/average unit buy price"), UrProf ("Unreal Profit","Unrealized profit percentage.\nFormula : (value - (in-out)) / in"),
-		CashIn("Money in","Total money in over time for the line."), CashOut("Money out","Total money out over time."),
-		WUrProf ("Inflated Unreal Profit","Unrealized profit percentage including inflation.\nFormula : (value - (inflated(in-out)) / inflated(in)"), 
-		WCashIn("Inflated Money in","Inflation weighted money in."), WCashOut("Inflated Money out", "Inflation weighted money out."),
+		BuyPrc ("Buy price", "Average unit buy price."), Close ("Close","Last unit close price available."), ZWProfPrc ("Zero gain price", "Minimum unit sell price for no loss if including inflation.\nFormula : inflated(in-out)/quantity"), 
+		RProf ("% Gain","Realized and unrealized gain.\nFormula : (unit close - average unit buy price)/average unit buy price"), UrProf ("Unreal % Gain","Unrealized percent gain.\nFormula : (value - (in-out)) / in"),
+		CashIn("In","Total money in over time for the line."), CashOut("Out","Total money out over time."),
+		WUrProf ("Unr. Inflated % Gain","For gnucash portfolios only. Unrealized percent gain if including inflation.\nFormula : (value - (inflated(in-out)) / inflated(in)"), 
+		WCashIn("In Inflated","For gnucash portfolios only. Inflation weighted money in."), WCashOut("Out Inflated", "For gnucash portfolios only. Inflation weighted money out."),
 		Monitor("Monitor","Alert monitor level.\nDouble click to edit the value.\nAll lines with a monitor level different from NONE will generate notifications.");
 		
 		String toolTip;
@@ -458,10 +448,20 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			}	
 
 		});
+		
+		this.modelControler = new ModelController(logComposite);
+		this.setOrientation(SWT.VERTICAL);
+		
+		FontData[] fD = MainGui.DEFAULTFONT.getFontData();
+		fD[0].setHeight((int)(fD[0].getHeight()*1));
+		smallFont = new Font(getDisplay(),fD[0]);
+		
+		initGUI();
+		
 		this.addControlListener(new ControlListener() {	
 			@Override
 			public void controlResized(ControlEvent e) {
-				int tabIdx = portfolioCTabFolder1.getSelectionIndex();
+				int tabIdx =  portfolioCTabFolder1.getSelectionIndex();
 				if (tabIdx != -1) {
 					Table ttomod = (Table) cTabItem[tabIdx].getData();
 					packColumns(ttomod);
@@ -472,17 +472,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			}
 		});
 		
-		this.modelControler = new ModelController(logComposite);
-		this.setOrientation(SWT.VERTICAL);
-		
-		FontData[] fD = MainGui.DEFAULTFONT.getFontData();
-		fD[0].setHeight((int)(fD[0].getHeight()*1));
-		smallFont = new Font(getDisplay(),fD[0]);
-		
-//		this.setToolTipText("Sash : Click on this border and drag to resize");
-//		this.setCursor(CursorFactory.getCursor(SWT.CURSOR_CROSS));
-
-		initGUI();
 	}
 
 	/**
@@ -612,7 +601,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							private void handleRemoveShare() {
 								
 								try {
-									NewCurrencyStockDialog currencyStockDialog = new NewCurrencyStockDialog(portfolioCTabFolder1.getSelectionIndex(), getShell(), SWT.NONE, PortfolioComposite.this);
+									NewCurrencyStockDialog currencyStockDialog = new NewCurrencyStockDialog(getShell(), SWT.NONE, PortfolioComposite.this);
 									currencyStockDialog.open();
 								} catch (Exception e) {
 									LOGGER.error(e,e);
@@ -625,7 +614,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					}
 					{
 						MenuItem removeShare = new  MenuItem(MainGui.portfolioSubMenu, SWT.CASCADE);
-						removeShare.setText("Remove a share");
+						removeShare.setText("Remove a share or currency");
 						removeShare.addSelectionListener(new SelectionListener() {
 							@Override
 							public void  widgetSelected(SelectionEvent evt) {
@@ -634,15 +623,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							private void handleRemoveShare() {
 								try {
 									removeShare(true);
-									modelControler.updateMoniAndPSCachedModels();
 								} catch (InvalidQuantityException e) {
 									LOGGER.warn(e,e);
 									UserDialog errorDialog = new UserDialog(getShell(),e.getMessage(),null);
 									errorDialog.open();
 								}
-								int tabi = portfolioCTabFolder1.getSelectionIndex();
-								refreshPortfolioTotalsInfos(tabi);
-								refreshChartData(true, true);
 							}
 							@Override
 							public void widgetDefaultSelected(SelectionEvent evt) {
@@ -658,13 +643,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							@Override
 							public void widgetSelected(SelectionEvent evt) {
 								handleAddPortoflio();
-								refreshChartData(false, true);
 							}
 							@Override
 							public void widgetDefaultSelected(SelectionEvent evt) {
 								handleAddPortoflio();
-								refreshChartData(false, true);
-								
 							}
 						});
 					}
@@ -675,18 +657,19 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							
 							@Override
 							public void widgetSelected(SelectionEvent e) {
-								handleRemoveShare();
+								handleRemovePortoflio();
 								
 							}
 
-							protected void handleRemoveShare() {
+							protected void handleRemovePortoflio() {
 								
-								Portfolio portfolio = modelControler.getPortfolio(portfolioCTabFolder1.getSelectionIndex());
+								Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
 								ActionDialog errorDialog = new ActionDialog(getShell(),SWT.NONE,"Warning", null, null, "Please, confirm '"+portfolio.getName()+"' portfolio removal", new ActionDialogAction() {	
 									@Override
 									public void action(Control targetControl) {
 										removeSelectedPortfolio();
 										refreshChartData(false, false);
+										refreshPortfolioTotalsInfos(-1);
 									}
 								});
 								errorDialog.open();
@@ -695,7 +678,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							
 							@Override
 							public void widgetDefaultSelected(SelectionEvent e) {
-								handleRemoveShare();
+								handleRemovePortoflio();
 								
 							}
 						});
@@ -782,8 +765,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					{
 						GridData portfolioInfoItemsData = new GridData(GridData.FILL_HORIZONTAL);
 						Label text0 = new Label(portfolioInfosGroup, SWT.RIGHT);
-						text0.setText("Current real Gain : ");
-						text0.setToolTipText("Formula : Sum(out) - Sum(transaction buy price)\nNB : Transactions are stored for gnucash portfolios only. For other portfolios, this is equal to Sum(out).");
+						text0.setText("Realized Gain : ");
+						text0.setToolTipText("Formula : Sum(out) - Sum(transaction buy price)\nNB : Transactions are stored for gnucash portfolios only. For other portfolios, this is equal to Sum(out)-Sum(in).");
 						text0.setFont(MainGui.DEFAULTFONT);
 						text0.setBackground(MainGui.pORTFOLIO_LIGHT);
 						gain = new Text(portfolioInfosGroup, SWT.RIGHT);
@@ -793,7 +776,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						gain.setText("");
 						gain.setFont(MainGui.CONTENTFONT);
 						Label text2 = new Label(portfolioInfosGroup, SWT.RIGHT);
-						text2.setText("Unr. Gain since init : ");
+						text2.setText("Gain at date : ");
 						text2.setToolTipText("Formula : (value + Sum(out))- Sum(in)");
 						text2.setFont(MainGui.DEFAULTFONT);
 						text2.setBackground(MainGui.pORTFOLIO_LIGHT);
@@ -804,7 +787,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						unrealGain.setText("");
 						unrealGain.setFont(MainGui.CONTENTFONT);
 						Label text2c = new Label(portfolioInfosGroup, SWT.RIGHT);
-						text2c.setText("Unr. Profit %  since init : ");
+						text2c.setText("% Gain at date : ");
 						text2c.setToolTipText("Formula : ((value + Sum(out))- Sum(in)) /  Sum(in) ");
 						text2c.setFont(MainGui.DEFAULTFONT);
 						text2c.setBackground(MainGui.pORTFOLIO_LIGHT);
@@ -899,7 +882,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							protected void handle() {
 								slidingDateChange();
 								highLightSlidingColsAndInfos();
-								//sortColumn(Titles.UrProf.name());
 							}
 
 							public void widgetDefaultSelected(SelectionEvent e) {
@@ -921,7 +903,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	
 	private void highLightSlidingColsAndInfos() {
 		
-		int si = portfolioCTabFolder1.getSelectionIndex();
+		int si = selectedPortfolioIdx();
+		if (si == -1) return;
+		
 		CTabItem cTabItemElem = cTabItem[si];
 		
 		if (!cTabItemElem.isDisposed() && cTabItemElem.isShowing()) {
@@ -1014,22 +998,26 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 */
 	private void refreshChartData(Boolean isSamePortfolio, Boolean portfolioHasChanged) {
 		
-		int  tabIdx = portfolioCTabFolder1.getSelectionIndex();
-		packColumns((Table) portfolioCTabFolder1.getItem(tabIdx).getData());
-		
-		try {
-			this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-			refreshChartDataNoCursorChange(isSamePortfolio, portfolioHasChanged);
-		} finally {
-			this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+		int tabIdx = portfolioCTabFolder1.getSelectionIndex();
+		if (tabIdx != -1) {
+			packColumns((Table) portfolioCTabFolder1.getItem(tabIdx).getData());
+
+			try {
+				this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+				refreshChartDataNoCursorChange(isSamePortfolio, portfolioHasChanged);
+			} finally {
+				this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			}
+		} else {
+			chartsComposite.resetChart();
 		}
 		
 	}
 
 	private void refreshChartDataNoCursorChange(Boolean isSamePortfolio, Boolean hasChanged) {
 
-		int  tabIdx = portfolioCTabFolder1.getSelectionIndex();
-
+		int tabIdx = selectedPortfolioIdx();
+		
 		if (cTabItem.length > 0 && tabIdx != -1) {
 
 			chartsComposite.updateChartsWith(modelControler.getSlidingSharesInTab(tabIdx), isSamePortfolio, hasChanged);
@@ -1071,13 +1059,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			cTabItem = new CTabItem[visiblePortfolios.size()];
 			int tabIdxi=0;
 
-			
-			for (Portfolio portfolio : visiblePortfolios) {
-				
+			for (Portfolio portfolio : visiblePortfolios) {	
 				//Create tabs
 				tabAddOneTab(tabIdxi, portfolio);
-				tabIdxi++;
-				
+				tabIdxi++;	
 			}
 			
 			//Fill up first tab items
@@ -1216,8 +1201,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					
 					@Override
 					public void menuShown(MenuEvent e) {
-						menuItemBuy.setText("Buy "+modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), table.getSelectionIndex()).getFreindlyName()+" ...");
-						menuItemSell.setText("Sell "+modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), table.getSelectionIndex()).getFreindlyName()+" ...");
+						menuItemBuy.setText("Buy "+modelControler.getSlidingShareInTab(selectedPortfolioIdx(), table.getSelectionIndex()).getFreindlyName()+" ...");
+						menuItemSell.setText("Sell "+modelControler.getSlidingShareInTab(selectedPortfolioIdx(), table.getSelectionIndex()).getFreindlyName()+" ...");
 					}
 					
 					@Override
@@ -1295,7 +1280,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							int selectionIndex = table.getSelectionIndex();
 							if (selectionIndex != -1) {
 								
-								final SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), selectionIndex);
+								final SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
 								Point evtsAbsPos = getDisplay().map(table, null, event.y, event.x);
 				
 								ActionDialogAction action = new ActionDialogAction() {
@@ -1331,7 +1316,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							
 							int selectionIndex = table.getSelectionIndex();
 							if (selectionIndex != -1) {
-								final SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), selectionIndex);
+								final SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
 								
 								Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 								final SortedSet<EventInfo> selectedEventDefs = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
@@ -1383,7 +1368,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			table.addMouseListener(new MouseListener() {
 
 				public void mouseDoubleClick(MouseEvent event) {
-					
 					tabItemClickHandler(table, txtEditor, comboEditor, event);
 				}
 
@@ -1397,7 +1381,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						if (item != null) {
 							int selectionIndex = table.getSelectionIndex();
 							if (selectionIndex != -1) {
-								SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), selectionIndex);
+								SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
 								chartsComposite.highLight(selectionIndex, selectedShare.getStock(), true);
 							} 
 						} 
@@ -1411,6 +1395,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			});
 			
 			tableRowToolTip = null;
+			final SimpleDateFormat dateFormat  = new SimpleDateFormat("dd-MMM-yyyy");
+			//NumberFormat numberFormat = new DecimalFormat("0.0000#");
+			final NumberFormat numFormat = NumberFormat.getNumberInstance();
+			numFormat.setRoundingMode(RoundingMode.HALF_UP);
+			numFormat.setMinimumFractionDigits(4);
+			numFormat.setMaximumFractionDigits(4);
+			
 			table.addListener(SWT.MouseHover, new TableToolTip() {
 
 				@Override
@@ -1430,16 +1421,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 
 						//Show tip
-						SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), idx);
-						SimpleDateFormat dateFormat  = new SimpleDateFormat("dd-MMM-yyyy");
-						NumberFormat numberFormat = new DecimalFormat("0.00#");
+						SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), idx);
 						String[] infoItems = new String[6];
 						infoItems[0] = selectedShare.getFreindlyName();
 						infoItems[1] = "Buy Date : " + dateFormat.format(selectedShare.getBuyDate());
 						infoItems[2] = "Last Quote : " + dateFormat.format(selectedShare.getStock().getLastQuote());
 						infoItems[3] = "Quantity : " + selectedShare.getQuantity();
 						infoItems[4] = "Value : " + selectedShare.getTodaysValue() + " "+ selectedShare.getTransactionCurrency();
-						infoItems[5] = "Gain : Unreal " + numberFormat.format(selectedShare.getUnrealizedGain()) + " / Real" + numberFormat.format(selectedShare.getRealizedGain());
+						infoItems[5] = "Gain : Unreal " + signumRoundedFormat(numFormat, selectedShare.getUnrealizedGain()) + " / Real " + signumRoundedFormat(numFormat, selectedShare.getRealizedGain()) + " "+ selectedShare.getTransactionCurrency();
 						String shareInfo = infoItems[0] + "\n" + infoItems[1] + "\n" + infoItems[2] + "\n" + infoItems[3] + "\n" + infoItems[4]+ "\n" + infoItems[5];
 
 						Point point = new Point (event.x, event.y);
@@ -1526,45 +1515,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				comboEditor.setEditor(combo, item, column);
 				combo.setFocus();
 			} 
-//			else if (column != Titles.Monitor.ordinal()) { //Not Monitored Level Combo column
-//				final int col = column;
-//				final Text text = new Text(table, SWT.NONE);
-//				Listener textListener = new Listener() {
-//					@Override
-//					public void handleEvent(final Event e) {
-//						switch (e.type) {
-//							case SWT.FocusOut:
-//								item.setText(col, text.getText());
-//								item.setFont(MainGui.CONTENTFONT);
-//								text.dispose();
-//								break;
-//							case SWT.Traverse:
-//								switch (e.detail) {
-//									case SWT.TRAVERSE_RETURN:
-//										item.setText(col, text.getText());
-//										item.setFont(MainGui.CONTENTFONT);
-//										columnEditManagment(anciennesVal, item, table.getSelectionIndex(), col);
-//										// FALL THROUGH
-//										e.doit = false;
-//										break;
-//									case SWT.TRAVERSE_ESCAPE:
-//										text.dispose();
-//										e.doit = false;
-//										break;
-//								}
-//								break;
-//							}
-//					}
-//				};
-//				text.addListener(SWT.FocusOut, textListener);
-//				text.addListener(SWT.Traverse, textListener);
-//				txtEditor.setEditor(text, item, column);
-//				text.setText(item.getText(column));
-//				text.setFont(MainGui.CONTENTFONT);
-//				text.selectAll();
-//				text.setFocus();
-//				return;
-//			}
 		}
 	}
 
@@ -1592,27 +1542,37 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		LOGGER.debug("Tables Items :" + tableItem.getText(0) + ";" + tableItem.getText(1) + ";" + tableItem.getText(2) + ";" + tableItem.getText(3));
 		LOGGER.debug("Old Tables Items :" + anciennesVal.get(0) + ";" + anciennesVal.get(1) + ";" + anciennesVal.get(2) + ";"+ anciennesVal.get(3));
-		final int tabIdx = portfolioCTabFolder1.getSelectionIndex();
+		final int tabIdx = selectedPortfolioIdx();
 		try {
 			if (tableItem.getText(Titles.CashIn.ordinal()).equals("") || tableItem.getText(Titles.CashOut.ordinal()).equals("")) {
 				throw new Exception("All fields must be filled!");
 			}
 			
 			NumberFormat numberFormat = NumberFormat.getNumberInstance();
-			numberFormat.setMinimumFractionDigits(2);
-			numberFormat.setMaximumFractionDigits(2);
+			numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+			numberFormat.setMinimumFractionDigits(4);
+			numberFormat.setMaximumFractionDigits(4);
 			
-			BigDecimal cashIn = new BigDecimal(numberFormat.parse(tableItem.getText(Titles.CashIn.ordinal())).doubleValue());
-			BigDecimal cashOut = new BigDecimal(numberFormat.parse(tableItem.getText(Titles.CashOut.ordinal())).doubleValue());
+			BigDecimal editedCashIn = new BigDecimal(numberFormat.parse(tableItem.getText(Titles.CashIn.ordinal())).toString());
+			BigDecimal editedCashOut = new BigDecimal(numberFormat.parse(tableItem.getText(Titles.CashOut.ordinal())).toString());
 	
 			final SlidingPortfolioShare pstmp = modelControler.getSlidingShareInTab(tabIdx, rowIdx);
 			Titles titlesColumnValue = Titles.values()[columnIndex];
 			BigDecimal transactionPrice = pstmp.getTodaysCloseQuotation();
+			BigDecimal proposedQuantity = pstmp.getQuantity();
 			switch (titlesColumnValue) { //TODO ??re factor the modifs behavior in Portfolio Object it self??
-				case CashIn: //Cash in
+				case CashIn: //Buy
 				{
-					BigDecimal proposedQuantity = cashIn.subtract(pstmp.getCashin()).divide(transactionPrice,5,BigDecimal.ROUND_DOWN);
-					if (proposedQuantity.compareTo(BigDecimal.ZERO) == 0) proposedQuantity = pstmp.getQuantity();
+					if (editedCashIn.compareTo(pstmp.getCashin()) == 0) {//Not edited
+						//Nothing we keep the default
+					} else {
+						if (editedCashIn.compareTo(pstmp.getCashin()) <= 0) {
+							throw new InvalidAlgorithmParameterException("Cash in must be superior to : "+numberFormat.format(pstmp.getCashin()));
+						} else {
+							proposedQuantity = editedCashIn.subtract(pstmp.getCashin().setScale(4, BigDecimal.ROUND_DOWN)).divide(transactionPrice, 5, BigDecimal.ROUND_DOWN);
+						}
+					}
+						
 					final Transaction transaction = new Transaction(
 							pstmp.getCashin(),pstmp.getCashout(),
 							proposedQuantity,
@@ -1631,6 +1591,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								inst.open();
 								tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 								tableItem.setFont(MainGui.CONTENTFONT);
+							} finally {
+								refreshChartData(true, true);
+								refreshPortfolioTotalsInfos(tabIdx);
 							}
 	
 						}
@@ -1640,12 +1603,18 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	
 					break;
 				}
-				case CashOut: //Cash out
+				case CashOut: //Sell
 				{
-					if (cashOut.compareTo(BigDecimal.ZERO) == 0) cashOut = transactionPrice;
-					BigDecimal proposedQuantity = cashOut.subtract(pstmp.getCashout()).divide(transactionPrice,5,BigDecimal.ROUND_DOWN);
-					if (proposedQuantity.compareTo(pstmp.getQuantity()) <= 0) proposedQuantity = pstmp.getQuantity();
-					transactionPrice = cashOut.divide(proposedQuantity,10,BigDecimal.ROUND_DOWN);
+					if (editedCashOut.compareTo(pstmp.getCashout()) == 0) { //cashout NOT edited
+						//Nothing we keep the defaults
+					} else {// cash out edited
+						if (editedCashOut.compareTo(pstmp.getCashout()) <= 0) {
+							throw new InvalidAlgorithmParameterException("Cash out must be superior to : "+numberFormat.format(pstmp.getCashout()));
+						} else {
+							proposedQuantity = editedCashOut.subtract(pstmp.getCashout().setScale(4, BigDecimal.ROUND_DOWN)).divide(transactionPrice, 5, BigDecimal.ROUND_DOWN);
+						}
+					}
+					
 					final Transaction transaction = new Transaction(
 									pstmp.getCashin(), pstmp.getCashout(),
 									proposedQuantity,
@@ -1664,6 +1633,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								inst.open();
 								tableItem.setText(columnIndex, anciennesVal.get(columnIndex));
 								tableItem.setFont(MainGui.CONTENTFONT);
+							} finally {	
+								refreshChartData(true, true);
+								refreshPortfolioTotalsInfos(tabIdx);
 							}
 						}
 					};
@@ -1702,8 +1674,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			tableItem.setFont(MainGui.CONTENTFONT);
 		}
 
-		refreshChartData(true, true);
-		refreshPortfolioTotalsInfos(tabIdx);
 	}
 
 
@@ -1739,7 +1709,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				Table ttomod = (Table) cTabItem[tabIdx].getData();
 				
 				//Remove existing
-				portfolio.rawRemoveShare(portfolioShare);	
+				portfolio.rawRemoveShare(portfolioShare, transaction.getDate());	
 				ttomod.remove(rowIdx);
 			
 				//Then Add as new
@@ -1780,12 +1750,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	void refreshPortfolioTotalsInfos(Integer currentPortfolioTab) {
 		
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
-		numberFormat.setMinimumFractionDigits(2);
-		numberFormat.setMaximumFractionDigits(2);
+		numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+		numberFormat.setMinimumFractionDigits(0);
+		numberFormat.setMaximumFractionDigits(0);
 		
 		NumberFormat percentFormat = NumberFormat.getPercentInstance();
-		percentFormat.setMaximumFractionDigits(2);
-		percentFormat.setMinimumFractionDigits(2);
+		percentFormat.setRoundingMode(RoundingMode.HALF_UP);
+		percentFormat.setMaximumFractionDigits(0);
+		percentFormat.setMinimumFractionDigits(0);
 		
 		if (currentPortfolioTab != -1) {
 		
@@ -1797,26 +1769,45 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			} else {
 				currentDate = EventSignalConfig.getNewDate();
 			}
-
-			gain.setText(numberFormat.format(currentPortfolio.getGain(EventSignalConfig.getNewDate())));
-			
-			unrealGain.setText(numberFormat.format(currentPortfolio.getGainAmountUnrealizedForDate(currentDate)));
-			unrealProfit.setText(percentFormat.format(currentPortfolio.getProfitUnrealizedForDate(currentDate)));
-			value.setText(numberFormat.format(currentPortfolio.getValueForDate(currentDate)));
-
-
-			String totalInAmountEver = (currentPortfolio.getTotalInAmountEver() != null)? numberFormat.format(currentPortfolio.getTotalInAmountEver()) : "NaN";
-			amountIn.setText(totalInAmountEver);
-			String totalOutAmountEver = (currentPortfolio.getTotalOutAmountEver() != null)? numberFormat.format(currentPortfolio.getTotalOutAmountEver()) : "NaN";
-			amountOut.setText(totalOutAmountEver);
 			
 			Currency portfolioCurrency = currentPortfolio.inferPortfolioCurrency();
 			currency.setText(portfolioCurrency.toString());
+
+			gain.setText(numberFormat.format(currentPortfolio.getRealisedGain(EventSignalConfig.getNewDate()))+ " " + portfolioCurrency.toString());
+			
+			unrealGain.setText(signumRoundedFormat(numberFormat, currentPortfolio.getGainAmountUnrealizedForDate(currentDate))+ " " + portfolioCurrency.toString());
+			unrealProfit.setText(signumRoundedFormat(percentFormat,  currentPortfolio.getProfitUnrealizedForDate(currentDate)));
+			value.setText(numberFormat.format(currentPortfolio.getValueForDate(currentDate))+ " " + portfolioCurrency.toString());
+
+
+			String totalInAmountEver = (currentPortfolio.getTotalInAmountEver() != null)? numberFormat.format(currentPortfolio.getTotalInAmountEver()) : "NaN";
+			amountIn.setText(totalInAmountEver+ " " + portfolioCurrency.toString());
+			String totalOutAmountEver = (currentPortfolio.getTotalOutAmountEver() != null)? numberFormat.format(currentPortfolio.getTotalOutAmountEver()) : "NaN";
+			amountOut.setText(totalOutAmountEver+ " " + portfolioCurrency.toString());
 					
+		} else {
+			
+			gain.setText("");
+			unrealGain.setText("");
+			unrealProfit.setText("");
+			value.setText("");
+			amountIn.setText("");
+			amountOut.setText("");
+			currency.setText("");
+			
 		}
 		
 		totalsGroup.pack();
 		
+	}
+
+
+
+	protected String signumRoundedFormat(NumberFormat numberFormat, BigDecimal bigDecimalValue) {
+		int signum = bigDecimalValue.signum();
+		String signumTxt = (signum == -1)?"-":"";
+		String signumRoundedTxt = signumTxt+numberFormat.format(bigDecimalValue.abs());
+		return signumRoundedTxt;
 	}
 
 
@@ -1832,24 +1823,26 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		ti.setData(portfolioShare);
 		
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
-		numberFormat.setMinimumFractionDigits(2);
-		numberFormat.setMaximumFractionDigits(2);
+		numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+		numberFormat.setMinimumFractionDigits(4);
+		numberFormat.setMaximumFractionDigits(4);
 		NumberFormat percentFormat = NumberFormat.getPercentInstance();
+		percentFormat.setRoundingMode(RoundingMode.HALF_UP);
 		percentFormat.setMaximumFractionDigits(2);
 		percentFormat.setMinimumFractionDigits(2);
 		ti.setFont(smallFont);
 		ti.setText(Titles.Name.ordinal(), portfolioShare.getName());
+		ti.setText(Titles.Close.ordinal(), numberFormat.format(portfolioShare.getTodaysCloseQuotation()));
+		ti.setText(Titles.ZWProfPrc.ordinal(), numberFormat.format(portfolioShare.getPriceForZeroWeightedProfit()));
+		ti.setText(Titles.BuyPrc.ordinal(), numberFormat.format(portfolioShare.getAvgBuyPrice()));
+		ti.setText(Titles.UrProf.ordinal(), signumRoundedFormat(percentFormat, portfolioShare.getUnrealizedProfit()));
+		ti.setText(Titles.RProf.ordinal(), signumRoundedFormat(percentFormat, portfolioShare.getProfit()));
 		ti.setText(Titles.CashIn.ordinal(), numberFormat.format(portfolioShare.getCashin()));
 		ti.setText(Titles.CashOut.ordinal(), numberFormat.format(portfolioShare.getCashout()));
-		ti.setText(Titles.Close.ordinal(), numberFormat.format(portfolioShare.getTodaysCloseQuotation()));
-		ti.setText(Titles.BuyPrc.ordinal(), numberFormat.format(portfolioShare.getAvgBuyPrice()));
-		ti.setText(Titles.UrProf.ordinal(), percentFormat.format(portfolioShare.getUnrealizedProfit()));
-		ti.setText(Titles.RProf.ordinal(), percentFormat.format(portfolioShare.getProfit()));
 		InOutWeighted weightedInvested = portfolioShare.getWeightedInvested();
+		ti.setText(Titles.WUrProf.ordinal(), signumRoundedFormat(percentFormat, portfolioShare.getWeightedUnrealizedProfit()));
 		ti.setText(Titles.WCashIn.ordinal(), numberFormat.format(weightedInvested.getIn()));
 		ti.setText(Titles.WCashOut.ordinal(), numberFormat.format(weightedInvested.getOut()));
-		ti.setText(Titles.WUrProf.ordinal(), percentFormat.format(portfolioShare.getWeightedUnrealizedProfit()));
-		ti.setText(Titles.ZWProfPrc.ordinal(), numberFormat.format(portfolioShare.getPriceForZeroWeightedProfit()));
 		ti.setText(Titles.Monitor.ordinal(), portfolioShare.getMonitorLevel().getMonitorLevel());
 	
 	}
@@ -1863,7 +1856,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 */
 	private void sortColumn(String colStr) {
 
-		int tabindex = portfolioCTabFolder1.getSelectionIndex();
+		int tabindex = selectedPortfolioIdx();
 		if (tabindex == -1) return;
 		
 		List<SlidingPortfolioShare> list = new ArrayList<SlidingPortfolioShare>(modelControler.getSlidingSharesInTab(tabindex));
@@ -2075,13 +2068,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				actionDialog.values[0] = newPortfolioText.getText();
 				actionDialog.values[1] = Currency.valueOf(curCombo.getText());
 				addPortfolio((String)actionDialog.values[0], (Currency) actionDialog.values[1]);
+				refreshChartData(false, true);
 				refreshPortfolioTotalsInfos(portfolioCTabFolder1.getSelectionIndex());
 			}
 		};
 		actionDialog.setControl(newPortfolioText, curCombo);
 		actionDialog.setAction(actionDialogAction);
 		actionDialog.open();
-		
 		
 	}
 
@@ -2127,7 +2120,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	private void portfolioAddShareDialog(EventObject evt) {
 
-		int tabi = portfolioCTabFolder1.getSelectionIndex();
+		int tabi = selectedPortfolioIdx();
+		if (tabi == -1) return;
 		try {
 			//Open selection window
 			Collection<PortfolioShare> pSharesInTab = modelControler.getPortfolio(tabi).getListShares().values();
@@ -2138,8 +2132,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			UserDialog inst = new UserDialog(this.getShell(), "Error adding share. \n"+e,null);
 			inst.open();
 		}
-		
-		//refreshPortfolioTotalsInfos(tabi);
+
 	}
 	
 	
@@ -2287,13 +2280,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 */
 	private void removeShare(final Boolean ask4Apply) throws InvalidQuantityException {
 
-		final int tabi = portfolioCTabFolder1.getSelectionIndex();
+		final int tabi = selectedPortfolioIdx();
 		final Table ttomod = (Table) cTabItem[tabi].getData();
 		final int rowIndex = ttomod.getSelectionIndex();
 
 		if (rowIndex != -1) {
 			
-
 			final RemoveConfirmationDialog rcD = new RemoveConfirmationDialog(this.getShell(), ask4Apply);
 			rcD.open();
 			ActionDialogAction action = new ActionDialogAction() {
@@ -2313,7 +2305,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 					}
 					
-					
 					if (!rcD.getCanceled() || !ask4Apply) {
 						ttomod.remove(rowIndex);
 						if (rcD.getMonitorCheck()) {
@@ -2321,7 +2312,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 					}
 					
-					refreshPortfolioTotalsInfos(tabi);
+					modelControler.updateMoniAndPSCachedModels();
+					int tabi = selectedPortfolioIdx();
+					if (tabi != -1) {
+						refreshChartData(true, true);
+						refreshPortfolioTotalsInfos(tabi);
+					}
+					
 					
 				}
 			};
@@ -2334,11 +2331,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 
 	private void doRemoveShareFromPortfolio(int tabi, PortfolioShare portfolioShare, Boolean applyTransaction) throws InvalidQuantityException {
+		Date currentDate = EventSignalConfig.getNewDate();
 		if (applyTransaction) {
-			Date currentDate = EventSignalConfig.getNewDate();
 			modelControler.getPortfolio(tabi).removeOrUpdateShare(portfolioShare, portfolioShare.getQuantity(), currentDate, portfolioShare.getCloseQuotationFor(currentDate), TransactionType.AOUT);
 		} else {
-			modelControler.getPortfolio(tabi).rawRemoveShare(portfolioShare);
+			modelControler.getPortfolio(tabi).rawRemoveShare(portfolioShare, currentDate);
 		}
 	}
 
@@ -2362,7 +2359,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	public void tabResetAllTabs() {
 
-		int index = portfolioCTabFolder1.getSelectionIndex();
+		int index = selectedPortfolioIdx();
 		portfolioCTabFolder1.setSelection(-1);
 
 		for (int i = 0; i < cTabItem.length; i++) {
@@ -2370,9 +2367,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		}
 		cTabItem = new CTabItem[0];
 
-		tabBuildAllTabs(index);
-
-		portfolioCTabFolder1.setSelection(index);
+		if (index != -1) {
+			tabBuildAllTabs(index);
+			portfolioCTabFolder1.setSelection(index);
+		}
 
 	}
 
@@ -2385,7 +2383,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 * @author Guillaume Thoreton
 	 */
 	private void  removeSelectedPortfolio() {
-		int tabindex = portfolioCTabFolder1.getSelectionIndex();
+		int tabindex = selectedPortfolioIdx();
 		if (tabindex != -1) {
 			CTabItem tab = portfolioCTabFolder1.getSelection();
 			removePortfolio(tabindex, tab);
@@ -2408,7 +2406,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		Portfolio portfolioToRm = modelControler.getPortfolio(tabindex);
 		doRemovePortfolio(portfolioToRm);
 
-		//modelControler.removePortfolio(tabindex);
 		modelControler.updateMoniAndPSCachedModels();
 		
 	}
@@ -2526,6 +2523,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		tabUpdateItemsFromPortfolio(tabIdx, newPortfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
 		
 		refreshChartData(false, true);
+		refreshPortfolioTotalsInfos(tabIdx);
 	}
 
 
@@ -2552,7 +2550,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	public void slidingDateChange() {
 		
-		int si = portfolioCTabFolder1.getSelectionIndex();
+		int si = selectedPortfolioIdx();
 		
 		if (si != -1) {
 			List<SlidingPortfolioShare> slidingPSs = modelControler.getSlidingSharesInTab(si);
@@ -2667,9 +2665,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	public void refreshView(List<Exception> exceptions) {
 		
 		int tabindex = portfolioCTabFolder1.getSelectionIndex();
-		if (tabindex == -1) return;
 
-		tabUpdateItemsColors(tabindex);
+		refreshChartData(true, true);
+		refreshPortfolioTotalsInfos(tabindex);
+		
+		if (tabindex == -1) return;
 
 		if (isVisible()) {
 			for (final Exception exception : exceptions) {
@@ -2719,7 +2719,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 	
 	public int getCurrentTabSelection() {
-		return portfolioCTabFolder1.getSelectionIndex();
+		return selectedPortfolioIdx();
 	}
 	
 	public List<SlidingPortfolioShare> getCurrentTabContent() {
@@ -2727,7 +2727,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 	
 	public SlidingPortfolioShare getCurrentShareSelection() {
-		Table table = (Table)portfolioCTabFolder1.getSelection().getData();
+		Table table = (Table) portfolioCTabFolder1.getSelection().getData();
 		TableItem[] selection = table.getSelection();
 		if (selection.length == 1) return (SlidingPortfolioShare) selection[0].getData();
 		return null;
@@ -2743,8 +2743,21 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 
 	private void doChangeShareMoniLevel(final Table table, final CCombo combo) {
-		PortfolioShare pstmp =  modelControler.getSlidingShareInTab(portfolioCTabFolder1.getSelectionIndex(), table.getSelectionIndex());
+		PortfolioShare pstmp =  modelControler.getSlidingShareInTab(selectedPortfolioIdx(), table.getSelectionIndex());
 		pstmp.setMonitorLevel(MonitorLevel.valueOfString(combo.getText()));
+	}
+
+
+
+	private int selectedPortfolioIdx() {
+		int tabi = portfolioCTabFolder1.getSelectionIndex();
+		if (tabi == -1 && portfolioCTabFolder1.getItems().length == 0) {
+			String erreur = "No portfolio is defined at the moment.\nYou must create at least one portfolio for this to work.(Portfolios -> Add a portfolio...)";
+			UserDialog inst = new UserDialog(getShell(), erreur,null);
+			inst.open();
+			LOGGER.warn(erreur, new Exception());
+		}
+		return tabi;
 	}
 
 

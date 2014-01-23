@@ -129,7 +129,7 @@ public class TunedConfMgr {
 		
 		LOGGER.info(
 				stock.getSymbol() + " TunedConf before calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
-				"Requested calculation is from "+startDate+" to "+endDate+". ");
+				". Requested calculation is from "+startDate+" to "+endDate+". ");
 
 		//Setting PM events calculation date range
 		//We want the calculation from the start date onward but we don't want to recalculate already calculated PM events
@@ -173,7 +173,7 @@ public class TunedConfMgr {
 		LOGGER.info(
 				infoMsg +
 				"TunedConf after calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
-				"Requested calculation is from "+startDate+" to "+endDate+". "+
+				". Requested calculation is from "+startDate+" to "+endDate+". "+
 				"New calc ("+calcStatus+") will be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd);
 
 

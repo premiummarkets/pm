@@ -359,10 +359,5 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 		return EmailFilterEventSource.PMTAEvents;
 	}
 
-	@Override
-	protected Date rawDataStartDate(Date startDate, Date endDate) {
-		return startDate;
-	}
-
 
 }

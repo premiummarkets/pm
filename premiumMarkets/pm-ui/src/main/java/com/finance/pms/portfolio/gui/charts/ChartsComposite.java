@@ -197,11 +197,18 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		});
 	}
 
-
+	public void resetChart() {
+		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
+		getHightlitedEventModel().resetOtherViewParams();
+		setHighligtedId(null);
+		chartDisplayStrategy.resetChart();
+		
+	}
+	
 	public void updateChartsWith(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean hasChanged) {
 		
 		this.currentTabShareList = listShares;
-		updateCharts(this.portfolioComposite.getCurrentTabContent(), isSamePortfolio, hasChanged, false);
+		updateCharts(isSamePortfolio, hasChanged, false);
 		
 	}
 	
@@ -209,7 +216,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
-	void updateCharts(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean portfolioHasChanged, Boolean grantEventsUpdate) {
+	void updateCharts(Boolean isSamePortfolio, Boolean portfolioHasChanged, Boolean grantEventsUpdate) {
 		
 		stripedCloseFunction.updateStartDate(slidingStartDate);
 		stripedCloseFunction.updateEndDate(slidingEndDate);
@@ -1078,7 +1085,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		if (sliderSelection) {
 			synchronized (sliderEndDate) {
 				sliderSelection = false;
-				updateCharts(currentTabShareList, true, true, true);
+				updateCharts(true, true, true);
 				portfolioComposite.slidingDateChange();
 			}
 		}
@@ -1162,9 +1169,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			MainGui.viewEventsMenuItem.setSelection(false);
 			Listener[] listeners = MainGui.viewEventsMenuItem.getListeners(SWT.Selection);
 			((SelectionListener)((TypedListener)listeners[0]).getEventListener()).widgetSelected(null);
-			updateCharts(getCurrentTabShareList(), true, false, true);
+			updateCharts(true, false, true);
 		} else {
-			updateCharts(getCurrentTabShareList(), true, false, true);
+			updateCharts(true, false, true);
 		}
 
 	}

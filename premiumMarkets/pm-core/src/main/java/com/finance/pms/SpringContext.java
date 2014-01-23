@@ -347,6 +347,9 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("perceptron.exportoutput",props);
 			if (System.getProperty("neural.nbTrainingIter") != null) {
 				MainPMScmd.getPrefs().put("neural.nbTrainingIter", System.getProperty("neural.nbTrainingIter"));
+			}
+			else if (System.getProperty("PARAM1") != null) {
+				MainPMScmd.getPrefs().put("neural.nbTrainingIter", System.getProperty("PARAM1"));
 			} else {
 				putInPrefs("neural.nbTrainingIter",props);
 			}
@@ -363,6 +366,9 @@ public class SpringContext extends GenericApplicationContext {
 			//Sector
 			if (System.getProperty("sector.nbTrainingIter") != null) {
 				MainPMScmd.getPrefs().put("sector.nbTrainingIter", System.getProperty("sector.nbTrainingIter"));
+			}
+			else if (System.getProperty("PARAM2") != null) {
+				MainPMScmd.getPrefs().put("sector.nbTrainingIter", System.getProperty("PARAM2"));
 			} else {
 				putInPrefs("sector.nbTrainingIter",props);
 			}

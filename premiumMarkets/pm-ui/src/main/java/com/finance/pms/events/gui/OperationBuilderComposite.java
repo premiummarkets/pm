@@ -373,10 +373,10 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleDeleteOp();
 				}
 
-				private void handle() {
+				private void handleDeleteOp() {
 
 					int selectionIndex = formulaReference.getSelectionIndex();
 
@@ -399,7 +399,7 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleDeleteOp();
 				}
 			});
 		}
@@ -415,10 +415,10 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleDeleteUnused();
 				}
 
-				private void handle() {
+				private void handleDeleteUnused() {
 
 					ActionDialog errorDialog = new ActionDialog(getShell(),SWT.NONE,"Warning", null, null, "Please, confirm the deletion of all unused/disabled "+builderLabel()+".", new ActionDialogAction() {	
 						@Override
@@ -445,7 +445,7 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleDeleteUnused();
 				}
 			});
 		}
@@ -745,15 +745,13 @@ public class OperationBuilderComposite extends Composite {
 			savingAttemptStarted = false;
 			formulaReference.removeAll();
 			updateCombo(reciprocate);
-			//if (comboSelectionIdx == -1) {
-				String[] items = formulaReference.getItems();
-				for (int i = 0; i < items.length; i++) {
-					if (selectedOpRef.equals(items[i])) {
-						comboSelectionIdx = i;
-						break;
-					}
+			String[] items = formulaReference.getItems();
+			for (int i = 0; i < items.length; i++) {
+				if (selectedOpRef.equals(items[i])) {
+					comboSelectionIdx = i;
+					break;
 				}
-			//}
+			}
 			forceSelection(comboSelectionIdx);
 
 		}
@@ -774,13 +772,14 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleReloadOps();
 				}
 
-				private void handle() {
+				private void handleReloadOps() {
 					OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 					try {
 						 parameterizedBuilder.resetCaches();
+						 updateCombo(true);
 					} finally {
 						OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 					}
@@ -788,8 +787,9 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleReloadOps();
 				}
+				
 			});
 		}
 		

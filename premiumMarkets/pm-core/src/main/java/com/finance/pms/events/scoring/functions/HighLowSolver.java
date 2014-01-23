@@ -94,13 +94,16 @@ public class HighLowSolver {
 
 	protected boolean isDataBelowRegLine(Double[] periodData, int firstIntersctionIdx, Double slopeCoef, ArrayList<Double> regLine) {
 		boolean isTrue = true;
-		int regLineStartIdx = (int) (Math.max(firstIntersctionIdx - periodData.length*.1, 0));
+		int regLineStartIdx = (int) (Math.max(firstIntersctionIdx - ((double)periodData.length)*.2, 0));
 
 		int x1 = firstIntersctionIdx;
 		Double y1 = periodData[(int) x1];
 		int x0 = regLineStartIdx;
 		double y0 = y1 + slopeCoef*(x0 - x1);
-		regLine.add(y0);
+		for (int i = 0; i < x0; i++) {
+			regLine.add(Double.NaN);
+		}
+		regLine.add(y0); //i == x0
 		for (int i = x0+1; i < periodData.length; i++) {
 			y0 = (slopeCoef * 1) +  y0;
 			regLine.add(y0);
@@ -122,8 +125,7 @@ public class HighLowSolver {
 			LOGGER.debug("source : "+ source+ ", regLine coefficient "+slopeCoef);
 			LOGGER.debug("periodData,periodThreshCurve,extremes,dataSlope");
 			for (int i = 0; i < extrems.length; i++) {
-				LOGGER.debug(periodData[i]+","+periodSmoothedThresh[i]+","+extrems[i]+","+regLine.get(i));
-				
+				LOGGER.debug(periodData[i]+","+((periodSmoothedThresh != null && periodSmoothedThresh.length >0)?periodSmoothedThresh[i]:Double.NaN)+","+extrems[i]+","+regLine.get(i)); //((i < regLine.size())?regLine.get(i):Double.NaN));
 			}
 		}
 	}
@@ -131,8 +133,7 @@ public class HighLowSolver {
 	public Boolean lowerHigh(Double[] periodData, Double[] periodSmoothedCeiling, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstPeakIdx, MutableInt lastPeakIdx) {
 
 		MutableDouble amountBelowSmoothingCeiling = new MutableDouble(0);
-		
-		//Double[] highPeaks = highPeaks(firstPeakIdx, lastPeakIdx, amountBelowSmoothingCeiling, periodData, periodSmoothedCeiling).values().toArray(new Double[0]);
+
 		Double[] highPeaks = bestHighTangente(periodData, periodSmoothedCeiling, firstPeakIdx, lastPeakIdx, amountBelowSmoothingCeiling).values().toArray(new Double[0]);
 		if (firstPeakIdx.intValue() == -1) return false;
 		if (isNotBalanced(amountBelowSmoothingCeiling, firstPeakIdx.doubleValue(), lastPeakIdx.doubleValue(), periodData.length, alphaBalance)) return false;
@@ -231,7 +232,6 @@ public class HighLowSolver {
 		
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 		
-		//Double[] lowThrough = lowTroughs(periodData, periodSmotherFloor, firstThroughIdx, lastThroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		Double[] lowTroughs =  bestLowTangente(periodData,  periodSmoothedFloor,  firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		if (firstTroughIdx.intValue() == -1) return false;
 		if (isNotBalanced(amountAboveSmoothingFloor,firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), periodData.length, alphaBalance)) return false;
@@ -253,7 +253,6 @@ public class HighLowSolver {
 		
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
-		//Double[] lowTroughs = lowTroughs(periodData, periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		Double[] lowTroughs =  bestLowTangente(periodData, periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		if (firstTroughIdx.intValue() == -1) return false;
 		if (isNotBalanced(amountAboveSmoothingFloor, firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), periodData.length, alphaBalance)) return false;
@@ -280,13 +279,16 @@ public class HighLowSolver {
 
 	protected boolean isDataAboveRegLine(Double[] periodData, int firstIntersctionIdx, Double slopeCoef, ArrayList<Double> regLine) {
 		boolean isTrue = true;
-		int regLineStartIdx = (int) (Math.max(firstIntersctionIdx - periodData.length*.1, 0));
+		int regLineStartIdx = (int) (Math.max(firstIntersctionIdx - ((double)periodData.length)*.2, 0));
 		
 		int x1 = firstIntersctionIdx;
 		Double y1 = periodData[(int) x1];
 		int x0 = regLineStartIdx;
 		double y0 = y1 + slopeCoef*(x0 - x1);
-		regLine.add(y0);
+		for (int i = 0; i < x0; i++) {
+			regLine.add(Double.NaN);
+		}
+		regLine.add(y0); //i == x0
 		for (int i = x0+1; i < periodData.length; i++) {
 			y0 = (slopeCoef * 1) +  y0;
 			regLine.add(y0);

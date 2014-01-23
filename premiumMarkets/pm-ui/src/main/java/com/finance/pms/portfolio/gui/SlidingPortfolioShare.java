@@ -116,7 +116,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	public BigDecimal getProfit() {
-		return super.getProfit(EventSignalConfig.getNewDate());
+		//return super.getProfit(EventSignalConfig.getNewDate());
+		return super.getProfit(calcCurrentDate());
 	}
 
 	public BigDecimal getWeightedUnrealizedProfit() {
@@ -167,7 +168,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	
 
 	public BigDecimal getRealizedGain() {
-		return super.calculateGain(EventSignalConfig.getNewDate());
+		//return super.calculateGain(EventSignalConfig.getNewDate());
+		return this.getCashout();
 	}
 
 	@Override

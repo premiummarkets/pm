@@ -429,7 +429,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							.getString(SHARES.NAME_FIELD).trim(), rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs
 							.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
 							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),
-							//Market.valueOf(rs.getString(SHARES.MARKET).trim()),
 							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 							rs.getString(SHARES.SECTOR_HINT),
 							TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),

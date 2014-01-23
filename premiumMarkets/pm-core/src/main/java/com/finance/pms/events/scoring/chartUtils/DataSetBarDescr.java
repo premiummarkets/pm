@@ -33,6 +33,7 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
@@ -160,14 +161,20 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		String tuningResLabel = "";
 		if (tuningRes != null) {
 			NumberFormat percentInstance = new DecimalFormat("#0.00 %");
-			tuningResLabel = "Profit : "+ percentInstance.format(tuningRes.getProfit()) + " V. Price change : "+percentInstance.format(tuningRes.getStockPriceChange());
+			String stopLossString = (!MainPMScmd.getPrefs().get("indicator.stoplossratio","0").equals("0"))?", Profit (using stop losses) : "+percentInstance.format(tuningRes.getStopLossProfit()):"";
+			tuningResLabel = "Profit (compound) : " + percentInstance.format(tuningRes.getFollowProfit()) + stopLossString + " V. Price change : " + percentInstance.format(tuningRes.getStockPriceChange());
 		}
 		return tuningResLabel;
 	}
 	
-	public Double getProfit() {
+	public Double getFollowProfit() {
 		if (tuningRes == null) return Double.NaN;
-		return tuningRes.getProfit();
+		return tuningRes.getFollowProfit();
+	}
+	
+	public Double getStopLossProfit() {
+		if (tuningRes == null) return Double.NaN;
+		return tuningRes.getStopLossProfit();
 	}
 	
 	public Double getStockPriceChange() {

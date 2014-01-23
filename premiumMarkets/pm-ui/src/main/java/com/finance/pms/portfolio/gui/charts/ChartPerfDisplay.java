@@ -88,33 +88,45 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	@Override
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 
-		chartTarget.getMainChartWraper().setMainYAxisLabel("");
-		if ( idx == null || selectedShare == null ) {
-			return;
-		}
-		
-		chartTarget.setHighligtedId(idx);
-		chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
-		
-		if (chartTarget.isDisposed() || !chartTarget.isVisible()) {
-			return;
-		}
-		
-		Boolean isShowing = checkIfShowing(selectedShare);
-		if (!isShowing) {
-			for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
-				if (slidingPortfolioShare.getStock().equals(selectedShare)) {
-					slidingPortfolioShare.setDisplayOnChart(true);
-					break;
+		try {
+
+			this.chartTarget.getShell().setEnabled(false);
+			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+
+			chartTarget.getMainChartWraper().setMainYAxisLabel("");
+			if ( idx == null || selectedShare == null ) {
+				return;
+			}
+
+			chartTarget.setHighligtedId(idx);
+			chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
+
+			if (chartTarget.isDisposed() || !chartTarget.isVisible()) {
+				return;
+			}
+
+			Boolean isShowing = checkIfShowing(selectedShare);
+			if (!isShowing) {
+				for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
+					if (slidingPortfolioShare.getStock().equals(selectedShare)) {
+						slidingPortfolioShare.setDisplayOnChart(true);
+						break;
+					}
 				}
 			}
+
+			chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
+			chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
+			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
+
+			chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 3);
+
+		} finally {
+
+			this.chartTarget.getShell().setEnabled(true);
+			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+
 		}
-		
-		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
-		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
-		
-		chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 3);
 	}
 
 	@Override
@@ -146,7 +158,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						@Override
 						public void action(Control targetControl) {
 							chartTarget.setStripedCloseFunction( new StripedCloseRelativeToBuyPrice());
-							chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
+							chartTarget.updateCharts( true, true, false);
 						}
 					}),
 					new TransfoInfo("Change to Period start", new ActionDialogAction() {
@@ -154,7 +166,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						@Override
 						public void action(Control targetControl) {
 							chartTarget.setStripedCloseFunction( new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
-							chartTarget.updateCharts(chartTarget.getCurrentTabShareList(),  true, true, false);
+							chartTarget.updateCharts( true, true, false);
 						}
 					}),
 					new TransfoInfo("Change to Previous day (log ROC)", new ActionDialogAction() {
@@ -168,7 +180,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								public void action(Control targetControl) {
 									actionDialogForm.values[0] = Boolean.valueOf(((Button)actionDialogForm.controls[0]).getSelection()).toString();
 									chartTarget.setStripedCloseFunction( new StripedCloseLogRoc(actionDialogForm.values[0].equals(Boolean.TRUE.toString())));
-									chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
+									chartTarget.updateCharts( true, true, false);
 								}
 							};
 							Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
@@ -191,7 +203,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							final String previousIsin = refereeRef.split("\\|\\|-\\|\\|")[1];
 							final Stock previousReferee = relativeToRefereeSetting(previousSymbol, previousIsin);
 							
-							if (previousReferee != null) chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
+							if (previousReferee != null) chartTarget.updateCharts( true, true, false);
 							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
@@ -201,7 +213,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 										Stock selectedReferee = selectNewReferee(previousReferee);
 										if (selectedReferee != null) {
 											relativeToRefereeSetting(selectedReferee.getSymbol(), selectedReferee.getIsin());
-											chartTarget.updateCharts(chartTarget.getCurrentTabShareList(), true, true, false);
+											chartTarget.updateCharts( true, true, false);
 										}
 									} finally {
 										chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -299,7 +311,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 											slidingPortfolioShare.setDisplayOnChart(false);
 										}
 									}
-									chartTarget.updateCharts(currentTabShareList, true, true, false);
+									chartTarget.updateCharts(true, true, false);
 								}
 							}
 						};

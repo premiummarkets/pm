@@ -66,10 +66,10 @@ public class PopupMenu<T extends InfoObject>  {
 	private boolean disposeOnDeactivate;
 	
 	private ActionDialogAction closeAction;
-	//private ActionDialogAction deactivateAction;
 	Boolean actionOnDeactivate;
 	
 	private String title;
+	private Boolean hasChanged;
 
 
 	public PopupMenu(
@@ -104,7 +104,9 @@ public class PopupMenu<T extends InfoObject>  {
 		} else {
 			title = controlParent.getShell().getText();
 		}
-
+		
+		hasChanged = false;
+		
 	}
 	
 	public PopupMenu(
@@ -116,8 +118,11 @@ public class PopupMenu<T extends InfoObject>  {
 		this(rootParent, controlParent, availableOptSet, selectionList, disposeOnDeactivate, unableSelectAll, style, selectAction);
 		
 		this.closeAction = closeAction;
-		//this.deactivateAction = deactivateAction;
 		this.actionOnDeactivate = actionOnDeactivate;
+		
+		if (closeAction == null && actionOnDeactivate != null && actionOnDeactivate) throw new RuntimeException();
+		if (closeAction == null && selectAction == null) throw new RuntimeException();
+
 	}
 
 	public void open() {
@@ -136,12 +141,11 @@ public class PopupMenu<T extends InfoObject>  {
 		
 		selectionShell.addListener(SWT.Deactivate, new Listener() {
 			
-			public void handleEvent(Event e){	
-				//if (deactivateAction != null) deactivateAction.action(null);
+			public void handleEvent(Event e){
 				if (disposeOnDeactivate) { 
 					selectionShell.dispose();
-				} else if (closeAction != null && actionOnDeactivate != null && actionOnDeactivate) {
-					closeAction.action(null);
+				} else if (actionOnDeactivate != null && actionOnDeactivate) {
+					runCloseAction();
 				}
 			}
 		});
@@ -159,16 +163,12 @@ public class PopupMenu<T extends InfoObject>  {
 			
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
-				if (closeAction != null) closeAction.action(null);
+				runCloseAction();
 			}
 			
 		});
 		
 		initPopup();
-		
-		//Size
-		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y), true);
-		selectionShell.setSize(computeSize.x,computeSize.y);
 		
 		//Location
 		if (location == null) {
@@ -178,7 +178,9 @@ public class PopupMenu<T extends InfoObject>  {
 			Rectangle pparentBounds = controlParent.getParent().getParent().getBounds();
 			int x =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, parentShellBounds.x + pparentBounds.x +parentBounds.x + controlParent.getBounds().x));
 			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, parentShellBounds.y + pparentBounds.y +parentBounds.y + controlParent.getBounds().y));
-			selectionShell.setBounds(x, y, selectionShell.getBounds().width, selectionShell.getBounds().height);
+			//selectionShell.setBounds(x, y, selectionShell.getBounds().width, selectionShell.getBounds().height);
+			selectionShell.setLocation(x, y);
+			
 		} else {
 			
 			if (addWidth != null && addWidth) {
@@ -189,6 +191,10 @@ public class PopupMenu<T extends InfoObject>  {
 			selectionShell.setLocation(x, y);
 			
 		}
+		
+		//Size
+		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, selectionShell.getParent().getSize().y - 20), true);
+		selectionShell.setSize(computeSize.x,computeSize.y);
 				
 		selectionShell.open();
 				
@@ -214,6 +220,8 @@ public class PopupMenu<T extends InfoObject>  {
 				}
 				
 				private void handle() {
+					
+					hasChanged=true;
 					
 					if (selectAllBut.getSelection()) {
 						for (Control button : selectionShell.getChildren()) {
@@ -259,6 +267,8 @@ public class PopupMenu<T extends InfoObject>  {
 				
 				private void handleSelection(T buttonInfo, final Button button) {
 					
+					hasChanged=true;
+					
 					if (button.getSelection()) {
 						selectionSet.add(buttonInfo);
 					} else {
@@ -285,8 +295,7 @@ public class PopupMenu<T extends InfoObject>  {
 
 	public void updateAction(Set<T> availEventDefs, Set<T> selectionSet, ActionDialogAction action, ActionDialogAction closeAction, Boolean actionOnDeactivate) {
 		this.action = action;
-		this.closeAction = action;
-		//this.deactivateAction = deactivateAction;
+		this.closeAction = closeAction;
 		this.actionOnDeactivate = actionOnDeactivate;
 		updatePopup(availEventDefs, selectionSet);
 		
@@ -296,6 +305,7 @@ public class PopupMenu<T extends InfoObject>  {
 		this.availableOptSet.clear();
 		this.availableOptSet.addAll(availEventDefs);
 		this.selectionSet = selectionSet;
+		this.hasChanged=true;
 		
 		Control[] children = selectionShell.getChildren();
 		for (Control control : children) {
@@ -305,8 +315,15 @@ public class PopupMenu<T extends InfoObject>  {
 		initPopup();
 		
 		//Size
-		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y), true);
+		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y - 20), true);
 		selectionShell.setSize(computeSize.x,computeSize.y);
+	}
+
+	private void runCloseAction() {
+		if (closeAction != null && hasChanged) {
+			hasChanged = false;
+			closeAction.action(null);
+		}
 	}
 	
 }

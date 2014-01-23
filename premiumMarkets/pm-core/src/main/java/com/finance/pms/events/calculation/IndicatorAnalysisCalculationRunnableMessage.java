@@ -59,18 +59,15 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private final IndicatorsCalculationService analyzer;
 	private final Date datefin;
 	private final Date datedeb;
-	
 	private Collection<Stock> shareList;
+	private Observer[] observers;
+	private Currency calculationCurrency;
 	
 	private Integer passNumber;
+	private Boolean persistEvents;
 	private String passOneRecalculationMode;
 
-	private Currency calculationCurrency;
-	private Boolean persistEvents;
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
-	private Observer[] observers;
-
-
 	private IncompleteDataSetException exception;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
@@ -109,19 +106,15 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.persistEvents = persistEvents;
 		this.passOneRecalculationMode = passOneRecalculationMode;
 		
+		this.exception = null;
+		this.runIndicatorsCalculationRes = null;
+		
 		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
 		synchronized (syncObject) {
 			syncObject.wait();
 		}
 		
 		if (exception != null) {
-			if (runIndicatorsCalculationRes != null && runIndicatorsCalculationRes != null) {
-				if (exception.getCalculatedOutput() == null) {
-					exception.setCalculatedOutput(runIndicatorsCalculationRes);
-				} else {
-					exception.getCalculatedOutput().putAll(runIndicatorsCalculationRes);
-				}
-			}
 			throw exception;
 		}
 		

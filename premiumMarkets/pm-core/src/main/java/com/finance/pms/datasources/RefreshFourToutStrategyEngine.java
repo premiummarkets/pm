@@ -67,13 +67,6 @@ public class RefreshFourToutStrategyEngine extends UserContentStrategyEngine<Obj
 		return -1;
 	}
 
-	
-//	@Override
-//	@SuppressWarnings("unchecked")
-//	protected void updateQuotations(QuotationUpdate quotationUpdate, Object rootParam) throws StockNotFoundException {
-//		quotationUpdate.getQuotesFor((List<Stock>) rootParam);
-//	}
-
 	@Override
 	@SuppressWarnings("unchecked")
 	protected List<Stock> buildStockListFrom(Object rootParam) {

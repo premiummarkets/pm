@@ -117,11 +117,9 @@ public class PortfolioMgr implements ApplicationContextAware {
 	public AutoPortfolio getOrCreateAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
 		
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
-				
+		
 		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, eventSignalConfig);
-		
 		int index = this.portfolios.indexOf(autoPortfolio);
-		
 		if (index == -1) {	
 			
 			this.portfolios.add(autoPortfolio);
@@ -129,11 +127,13 @@ public class PortfolioMgr implements ApplicationContextAware {
 			return autoPortfolio;
 			
 		} else {
+			
 			AutoPortfolio existingAutoPortfolio = (AutoPortfolio) this.portfolios.get(index);
 			existingAutoPortfolio.setSellPonderationRule(sellPonderationRule);
 			existingAutoPortfolio.setBuyPonderationRule(buyPonderationRule);
 			existingAutoPortfolio.setEventSignalConfig(eventSignalConfig);
 			return existingAutoPortfolio;
+			
 		}
 	}
 

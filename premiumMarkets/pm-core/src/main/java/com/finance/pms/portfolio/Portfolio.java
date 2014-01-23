@@ -297,7 +297,19 @@ public class Portfolio extends AbstractSharesList {
 			newCashOut = PortfolioMgr.getInstance().getCurrencyConverter().convert(currency, Currency.EUR, newCashOut, date);
 		} 
 		return super.addAmountToTotalAmountOut(newCashOut, currency, date);
-	}	
+	}
+	
+
+	@Override
+	protected void removeAmountFromTotalAmount(BigDecimal cashIn, BigDecimal cashOut, Currency transactionCurrency, Date currentDate) {
+		if (this.portfolioCurrency == null) {  //Portfolio potentially hosting multiple transaction : we convert the total to EUR
+			cashOut = PortfolioMgr.getInstance().getCurrencyConverter().convert(transactionCurrency, Currency.EUR, cashOut, currentDate);
+			cashIn = PortfolioMgr.getInstance().getCurrencyConverter().convert(transactionCurrency, Currency.EUR, cashIn, currentDate);
+		} 
+		super.removeAmountFromTotalAmount(cashIn, cashOut, transactionCurrency, currentDate);
+	}
+	
+	
 	
 	public static String ACTUALYIELDBISHINT =  "(V-(I-O))/(I-O)";
 	@Transient
@@ -317,7 +329,7 @@ public class Portfolio extends AbstractSharesList {
 
 		Currency currency = inferPortfolioCurrency();
 
-		BigDecimal valueForDate = BigDecimal.ZERO.setScale(2);
+		BigDecimal valueForDate = BigDecimal.ZERO.setScale(4);
 		for (PortfolioShare portfolioShare: this.getListShares().values()) {
 			BigDecimal psValueForDate = portfolioShare.getValueForDate(date);
 			psValueForDate = PortfolioMgr.getInstance().getCurrencyConverter().convert(portfolioShare.getTransactionCurrency(), currency, psValueForDate, date);
@@ -365,18 +377,20 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Transient
-	public BigDecimal getGain(Date currentDate) {
-		BigDecimal gainAmount = BigDecimal.ZERO;
-		for (PortfolioShare portfolioShare : this.getListShares().values()) {
-			gainAmount = gainAmount.add(portfolioShare.calculateGain(currentDate));
-		}
-		return gainAmount;
+	public BigDecimal getRealisedGain(Date currentDate) {
+//		BigDecimal gainAmount = BigDecimal.ZERO;
+//		for (PortfolioShare portfolioShare : this.getListShares().values()) {
+//			gainAmount = gainAmount.add(portfolioShare.calculateGain(currentDate));
+//		}
+//		return gainAmount;
+		return this.getTotalOutAmountEver().subtract(this.getTotalInAmountEver());
 	}
 
-	public void rawRemoveShare(PortfolioShare portfolioShare) {
-		this.removeAmountFromTotalAmount(portfolioShare);
+	public void rawRemoveShare(PortfolioShare portfolioShare, Date currentDate) {
+		this.removeAmountFromTotalAmount(portfolioShare.getCashin(), portfolioShare.getCashout(), portfolioShare.getTransactionCurrency(), currentDate);
 		removeShareFromList(portfolioShare);
 		
 	}
+
 
 }

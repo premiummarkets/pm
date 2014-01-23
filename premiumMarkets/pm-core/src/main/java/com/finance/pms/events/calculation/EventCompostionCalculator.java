@@ -122,7 +122,5 @@ public abstract class EventCompostionCalculator {
 			return Double.NaN;
 		}
 	}
-	
-	protected abstract Date rawDataStartDate(Date startDate, Date endDate);
 
 }

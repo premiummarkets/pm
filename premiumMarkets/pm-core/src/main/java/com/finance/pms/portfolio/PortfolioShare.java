@@ -366,7 +366,11 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	public BigDecimal getProfit(Date currentDate) {
 		try {
-			return getCloseQuotationFor(currentDate).subtract(getAvgBuyPrice()).divide(getAvgBuyPrice(),10,BigDecimal.ROUND_DOWN);
+			if (getAvgBuyPrice().compareTo(BigDecimal.ZERO) != 0) {
+				return getCloseQuotationFor(currentDate).subtract(getAvgBuyPrice()).divide(getAvgBuyPrice(),10,BigDecimal.ROUND_DOWN);
+			} else {
+				return new BigDecimal("1.00");
+			}
 		} catch (ArithmeticException e) {
 			LOGGER.error(e,e);
 			return BigDecimal.ZERO;
@@ -383,8 +387,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		try {
 			InOutWeighted weightedInOut = this.getWeightedInvested(currentDate);
 			BigDecimal weightedInvestedStillIn = weightedInOut.getWeightedInvestedStillIn();
-			return 	this.getValueForDate(currentDate).subtract(weightedInvestedStillIn)
-					.divide(weightedInOut.getIn(),10,BigDecimal.ROUND_DOWN); //.multiply(new BigDecimal(100)).setScale(10,BigDecimal.ROUND_DOWN);
+			return 	this.getValueForDate(currentDate).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(),10,BigDecimal.ROUND_DOWN); 
 		} catch (ArithmeticException e) {
 			return BigDecimal.ZERO;
 		}
@@ -403,7 +406,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	@Transient
 	public BigDecimal getValueForDate(Date currentDate) {
-		return this.getQuantity().multiply(getCloseQuotationFor(currentDate)).setScale(2, BigDecimal.ROUND_HALF_UP);
+		//return this.getQuantity().multiply(getCloseQuotationFor(currentDate)).setScale(2, BigDecimal.ROUND_HALF_UP);
+		return this.getQuantity().multiply(getCloseQuotationFor(currentDate)).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 
 	/**
@@ -847,6 +851,11 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return new InOutWeighted(this.getCashin(), this.getCashout(), currentDate);
 	}
 	
+	/**
+	 * 
+	 * @deprecated This is done when loading the portfolio from gnucash
+	 */
+	@Deprecated
 	public BigDecimal calculateGain(Date currentDate) {
 		
 		BigDecimal profitAmount = BigDecimal.ZERO;
@@ -893,8 +902,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			}
 			
 		} else {
-			//return this.getCashout().subtract(this.getCashin());
-			return this.getCashout();
+			profitAmount = this.getCashout();
 		}
 		
 		return profitAmount;

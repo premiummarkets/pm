@@ -83,13 +83,6 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[1]);
 		super.callbackForAnalysisClean(engineObservers, rootParam);
 	}
-	
-
-//	@Override
-//	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
-//		quotationUpdate.getQuotesFor(rootParam);
-//		
-//	}
 
 	@Override
 	public int[] otherViewParamPositionsFor(TaskId taskId) {

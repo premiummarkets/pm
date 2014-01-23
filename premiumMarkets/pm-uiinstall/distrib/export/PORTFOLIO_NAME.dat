@@ -1,4 +1,4 @@
-"NSEINDICES,CNX100:NSE,NIFTY:NSE","ShareList",0.00,0.00,,,
-"Sample","default",152.32,0.00,,,
-"UNKNOWN","ShareList",121.26,0.00,,,
-"YAHOOINDICES,DJI:DJI,NDX:NASDAQ","ShareList",0.00,0.00,,,
+"NSEINDICES,CNX100:NSE,NIFTY:NSE","ShareList",,,,0.00,0.00
+"Sample","default",,,,152.32,0.00
+"UNKNOWN","ShareList",,,,121.26,0.00
+"YAHOOINDICES,DJI:DJI,NDX:NASDAQ","ShareList",,,,0.00,0.00

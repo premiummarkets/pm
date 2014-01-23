@@ -109,7 +109,6 @@ public class ShareListUpdateDialog extends Dialog {
 
 	public ShareListUpdateDialog(Shell parent) {
 		
-		//super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.RESIZE | SWT.SHELL_TRIM), style);
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
 		getParent().setText("Premium Markets - Add or Update a Stock list");
 				
@@ -374,8 +373,12 @@ public class ShareListUpdateDialog extends Dialog {
 							SharesListId.updatePrefs(provider.getSharesListIdEnum().getSharesListCmdParam(), Indice.formatSet(provider.getIndices()),  MarketQuotationProviders.YAHOO.getCmdParam());
 							isOk = true;
 						}
-						//getParent().dispose();
-						ShareListUpdateDialog.this.actionDialogAction.action(valideButton1);
+						try {
+							getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							ShareListUpdateDialog.this.actionDialogAction.action(valideButton1);
+						} finally  {
+							getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+						}
 					}
 				});
 			}

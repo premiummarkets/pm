@@ -96,11 +96,6 @@ public class RefreshMonitoredStrategyEngine extends UserContentStrategyEngine<Co
 		return 1;
 	}
 
-//	@Override
-//	protected void updateQuotations(QuotationUpdate quotationUpdate, Collection<Stock> rootParam) throws StockNotFoundException {
-//		quotationUpdate.getQuotesFor(rootParam);
-//	}
-
 	@Override
 	protected List<Stock> buildStockListFrom(Collection<Stock> rootParam) {
 		return new ArrayList<Stock>(rootParam);

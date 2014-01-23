@@ -180,21 +180,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 		
 	}
 
-	public List<EventInfo> indicatorsStringToEventDefs(List<String> eventDefinitionsNames) {
-		SortedSet<EventInfo> eventDefinitions = new  TreeSet<EventInfo>(new Comparator<EventInfo>() {
-			
-			public int compare(EventInfo o1, EventInfo o2) {
-				return o1.getEventDefId().compareTo(o2.getEventDefId());
-			}
-		});
-		for (String eventDefinitionsName : eventDefinitionsNames) {
-			eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
-		}
-		return new ArrayList<EventInfo>(eventDefinitions);
-	}
-
 	public List<EventInfo> getIndicators() {
-		return this.indicatorsStringToEventDefs(this.indicators);
+		return EventDefinition.indicatorsStringToEventDefs(this.indicators);
 	}
 	
 	public SortedSet<EventInfo> getIndicatorsSorted() {
@@ -218,7 +205,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	}
 	
 	public List<EventInfo> getIndepIndicators() {
-		return this.indicatorsStringToEventDefs(this.indepIndicators);
+		return EventDefinition.indicatorsStringToEventDefs(this.indepIndicators);
 	}
 
 	

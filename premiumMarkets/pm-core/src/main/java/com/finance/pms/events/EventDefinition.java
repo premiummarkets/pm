@@ -335,17 +335,41 @@ public enum EventDefinition implements Serializable, EventInfo {
 		return ret;
 	}
 	
+	
+	public static List<EventInfo> indicatorsStringToEventDefs(List<String> eventDefinitionsNames) {
+		SortedSet<EventInfo> eventDefinitions = new  TreeSet<EventInfo>(new Comparator<EventInfo>() {
+			
+			public int compare(EventInfo o1, EventInfo o2) {
+				return o1.getEventDefId().compareTo(o2.getEventDefId());
+			}
+		});
+		for (String eventDefinitionsName : eventDefinitionsNames) {
+			eventDefinitions.add(EventDefinition.valueOf(eventDefinitionsName));
+		}
+		return new ArrayList<EventInfo>(eventDefinitions);
+	}
+	
 	public static String getEventDefArrayAsString(String sepParam, EventInfo... definitions) {
 		String indicatorsStr = "";
 		String sep="";
 		for (EventInfo eventDefinition : definitions) {
-			indicatorsStr = indicatorsStr + sep +eventDefinition.getEventReadableDef();
+			indicatorsStr = indicatorsStr + sep +eventDefinition.getEventDefinitionRef();
 			sep = sepParam;
 		}
 		return indicatorsStr;
 	}
 	
 	public static String getEventDefSetAsString(String sepParam, Set<EventInfo> definitions) {
+		String indicatorsStr = "";
+		String sep="";
+		for (EventInfo eventDefinition : definitions) {
+			indicatorsStr = indicatorsStr + sep +eventDefinition.getEventDefinitionRef();
+			sep = sepParam;
+		}
+		return indicatorsStr;
+	}
+	
+	public static String getReadableEventDefSetAsString(String sepParam, Set<EventInfo> definitions) {
 		String indicatorsStr = "";
 		String sep="";
 		for (EventInfo eventDefinition : definitions) {

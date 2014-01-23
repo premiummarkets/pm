@@ -29,6 +29,7 @@
  */
 package com.finance.pms.datasources.web.currency;
 
+import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLException;
 
@@ -63,10 +64,14 @@ public class CurrencyStockBuilder {
 		
 		final String isinSymbol = target.name()+"Per"+referee.name();
 		String name = target.name()+" Per " +referee.name();
-		Stock currencyStock = new Stock(
+		
+		Stock currencyStock = DataSource.getInstance().getShareDAO().loadStockBy(isinSymbol, isinSymbol);
+		if (currencyStock == null) {
+			currencyStock = new Stock(
 				isinSymbol, isinSymbol, name, 
 				true, StockCategories.CURRENCY_RATE,
-				new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), new MarketValuation(Market.UNKNOWN), "", TradingMode.CONTINUOUS, 0l);
+				new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), new MarketValuation(Market.UNKNOWN, BigDecimal.ONE, target), "", TradingMode.CONTINUOUS, 0l);
+		}
 		
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		StockList stockList = new StockList();

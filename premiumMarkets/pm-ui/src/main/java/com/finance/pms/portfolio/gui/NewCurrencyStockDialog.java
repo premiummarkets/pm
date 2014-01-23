@@ -64,18 +64,14 @@ public class NewCurrencyStockDialog extends Dialog {
 
 	private Currency fromCurrency;
 	private Currency toCurrency;
-	private int tabIx;
 
 
-
-	public NewCurrencyStockDialog(int tabIdx, Shell parent, int style, PortfolioComposite caller) {
+	public NewCurrencyStockDialog(Shell parent, int style, PortfolioComposite caller) {
 		
-		//super(new Shell(parent, SWT.PRIMARY_MODAL | SWT.SHELL_TRIM), style);
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
 		getParent().setText("Premium Markets - Add a currency");
 		
 		this.caller = caller;
-		this.tabIx = tabIdx;
 				
 	}
 	
@@ -94,19 +90,20 @@ public class NewCurrencyStockDialog extends Dialog {
 		referenceCurrency.setText("Reference currency");
 		referenceCurrency.setBackground(MainGui.pOPUP_BG);
 		final CCombo fromCombo = new CCombo(getParent(), SWT.NONE);
+		fromCombo.setEditable(false);
 		fromCombo.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				handle();
+				handleSelectFromCurrency();
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				handle();
+				handleSelectFromCurrency();
 			}
 
-			private void handle() {
+			private void handleSelectFromCurrency() {
 				fromCurrency = Currency.valueOf(fromCombo.getItem(fromCombo.getSelectionIndex()));
 			}
 		});
@@ -115,19 +112,20 @@ public class NewCurrencyStockDialog extends Dialog {
 		targetCurrency.setText("Target currency");
 		targetCurrency.setBackground(MainGui.pOPUP_BG);
 		final CCombo toCombo = new CCombo(getParent(), SWT.NONE);
+		toCombo.setEditable(false);
 		toCombo.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				handle();
+				handleSelectToCurrency();
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				handle();
+				handleSelectToCurrency();
 			}
 
-			private void handle() {
+			private void handleSelectToCurrency() {
 				toCurrency = Currency.valueOf(toCombo.getItem(toCombo.getSelectionIndex()));
 			}
 		});
@@ -151,51 +149,45 @@ public class NewCurrencyStockDialog extends Dialog {
 		
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				handle();
+				handleSelectCurrencyExch();
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				handle();
+				handleSelectCurrencyExch();
 			}
 
-			private void handle() {
-				CurrencyStockBuilder currencyToStockBuilder = new CurrencyStockBuilder(fromCurrency, toCurrency);
+			private void handleSelectCurrencyExch() {
 				
+				CurrencyStockBuilder currencyToStockBuilder = new CurrencyStockBuilder(fromCurrency, toCurrency);
 				getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 				try {
 					Stock currencyStock = currencyToStockBuilder.buildStock();
 					Set<Stock> stocks = new TreeSet<Stock>();
 					stocks.add(currencyStock);
-					((PortfolioComposite) caller).addShares(tabIx, stocks, BigDecimal.ONE , MonitorLevel.BEARISH);
-					((PortfolioComposite) caller).refreshPortfolioTotalsInfos(((PortfolioComposite) caller).getCurrentTabSelection());
+					int currentTabSelection = ((PortfolioComposite) caller).getCurrentTabSelection();
+					if (currentTabSelection != -1) {
+						((PortfolioComposite) caller).addShares(currentTabSelection, stocks, BigDecimal.ONE, MonitorLevel.BEARISH);
+						((PortfolioComposite) caller).refreshPortfolioTotalsInfos(currentTabSelection);
+					}
 				} catch (Exception e) {
 					LOGGER.error(e,e);
-
 				} finally {
 					getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-
 				}
+				
 			}
 		});
+		
+		fromCombo.select(fromCombo.indexOf(Currency.EUR.name()));
+		toCombo.select(toCombo.indexOf(Currency.GBP.name()));
+		
+		fromCurrency = Currency.valueOf(fromCombo.getItem(fromCombo.getSelectionIndex()));
+		toCurrency = Currency.valueOf(toCombo.getItem(toCombo.getSelectionIndex()));
 		
 		getParent().layout();
 		getParent().pack();
 		getParent().open();
-		
-		
-//		Display display = getParent().getDisplay();
-//		while (!getParent().isDisposed()) {
-//			try {
-//				if (!display.readAndDispatch()) display.sleep();
-//			} catch (RuntimeException e) {
-//				LOGGER.error("Error in Error dialog Gui : "+e.getMessage(),e);
-//				LOGGER.debug("Error in Error Dialog Gui : ",e);
-//			} catch (Error e) {
-//				LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-//				LOGGER.debug("Error in  Gui : ",e);
-//			}
-//		}
 		
 	}
 	

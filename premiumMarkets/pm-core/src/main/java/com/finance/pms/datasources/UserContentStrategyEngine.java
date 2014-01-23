@@ -104,7 +104,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		List<Stock> stockList = buildStockListFrom(rootParam);
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected. Select a stock to analyse first.", new Throwable());
+		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected. Select a stock or a list of stocks to analyse before running this.", new Throwable());
 		
 		for (int i = 0; i < analysers.length; i++) {
 
@@ -219,7 +219,6 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	}
 
 	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
-		
 		
 		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
 		try {

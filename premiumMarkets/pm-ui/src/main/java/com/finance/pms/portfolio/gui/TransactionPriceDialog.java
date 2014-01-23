@@ -111,7 +111,6 @@ public class TransactionPriceDialog extends Dialog {
 			dialogShellLayout.numColumns = 3;
 			getParent().layout();			
 			getParent().setLayout(dialogShellLayout);
-			//getParent().setSize(400,400);
 			getParent().setBackground(MainGui.pOPUP_BG);
 			
 			SelectionListener pivotListener = new SelectionListener() {
@@ -355,8 +354,18 @@ public class TransactionPriceDialog extends Dialog {
 						ok = true;
 						reset = resetButton.getSelection();
 						
-						Float quantity = new Float(quantityText.getText());
-						Float amount = new Float(transactionAmountText.getText());
+						Float quantity = 0f;
+						try {
+							quantity = new Float(quantityText.getText());
+						} catch (NumberFormatException e) {
+							LOGGER.warn(e);
+						}
+						Float amount=0f;
+						try {
+							amount = new Float(transactionAmountText.getText());
+						} catch (NumberFormatException e) {
+							LOGGER.warn(e);
+						}
 						Float sp = (quantity != 0)?amount/quantity:1;
 						transaction.setQuantity(quantity);
 						transaction.setTransactionSharePrice(sp);
@@ -423,7 +432,7 @@ public class TransactionPriceDialog extends Dialog {
 			scanner.useDelimiter(pattern);
 			nums = new ArrayList<BigDecimal>();
 			while (scanner.hasNextBigDecimal()) {
-				nums.add(scanner.nextBigDecimal().setScale(2, BigDecimal.ROUND_DOWN));
+				nums.add(scanner.nextBigDecimal().setScale(4, BigDecimal.ROUND_DOWN));
 			}
 		} finally {
 			scanner.close();
@@ -441,18 +450,20 @@ public class TransactionPriceDialog extends Dialog {
 			scanner2.close();
 		}
 		
+		if (nums.size() == 0) return BigDecimal.ZERO;
+		
 		BigDecimal result = nums.get(0);
 		int numIndex = 1;
 		for (Character character:ope) {
 			switch(character) {
 				case '*' : 
-					result=result.multiply(nums.get(numIndex)).setScale(2, BigDecimal.ROUND_DOWN);
+					result=result.multiply(nums.get(numIndex)).setScale(4, BigDecimal.ROUND_DOWN);
 					break;
 				case '+' :
-					result=result.add(nums.get(numIndex)).setScale(2, BigDecimal.ROUND_DOWN);
+					result=result.add(nums.get(numIndex)).setScale(4, BigDecimal.ROUND_DOWN);
 					break;
 				case '/' :
-					result=result.divide(nums.get(numIndex),2,BigDecimal.ROUND_DOWN);
+					result=result.divide(nums.get(numIndex), 4, BigDecimal.ROUND_DOWN);
 					break;
 				case '-' :
 					result=result.subtract(nums.get(numIndex));
@@ -500,12 +511,9 @@ public class TransactionPriceDialog extends Dialog {
 				
 				Float amount = price*quantity;
 				transactionAmountText.setText(amount.toString());
-				//transaction.setTransactionPrice(amount);
 			} 
 			else if (changedField.equals("amount")) {
 				Float amount = new Float(transactionAmountText.getText());
-				//transaction.setTransactionPrice(amount);
-				
 				Float quantity = amount/price;
 				quantityText.setText(quantity.toString());
 				transaction.setQuantity(quantity);
@@ -519,11 +527,9 @@ public class TransactionPriceDialog extends Dialog {
 				
 				Float amount = quantity*price;
 				transactionAmountText.setText(amount.toString());
-				//transaction.setTransactionPrice(amount);
 			} 
 			else if (changedField.equals("amount")) {
 				Float amount = new Float(transactionAmountText.getText());
-				//transaction.setTransactionPrice(amount);
 				
 				Float price = amount/quantity;
 				sharePriceText.setText(price.toString());

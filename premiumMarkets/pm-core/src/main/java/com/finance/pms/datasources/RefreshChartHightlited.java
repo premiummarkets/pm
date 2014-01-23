@@ -105,11 +105,6 @@ public class RefreshChartHightlited extends UserContentStrategyEngine<Stock> {
 		return 1;
 	}
 
-//	@Override
-//	protected void updateQuotations(QuotationUpdate quotationUpdate, Stock rootParam) throws StockNotFoundException {
-//		quotationUpdate.getQuotesFor(Arrays.asList(new Stock[]{rootParam}));
-//	}
-
 	@Override
 	protected List<Stock> buildStockListFrom(Stock rootParam) {
 		if (rootParam == null) return new ArrayList<Stock>();

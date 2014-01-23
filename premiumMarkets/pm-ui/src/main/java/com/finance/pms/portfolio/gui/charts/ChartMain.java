@@ -95,6 +95,7 @@ import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.StripedCloseFunction;
 import com.finance.pms.events.EventInfo;
@@ -145,8 +146,9 @@ public class ChartMain extends Chart {
 		UIManager.put("ToolTip.background", new java.awt.Color(239, 203, 152, 255));
 		UIManager.put("ToolTip.foreground", java.awt.Color.BLACK);
 		
-		ToolTipManager.sharedInstance().setInitialDelay(100);
-		ToolTipManager.sharedInstance().setReshowDelay(0);
+		//ToolTipManager.sharedInstance().setInitialDelay(100);
+		ToolTipManager.sharedInstance().setInitialDelay(20);
+		//ToolTipManager.sharedInstance().setReshowDelay(0);
 		ToolTipManager.sharedInstance().setDismissDelay(120000);
 
 		XYBarRenderer.setDefaultShadowsVisible(false);
@@ -208,10 +210,14 @@ public class ChartMain extends Chart {
 							variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
 						}
 
-						return "<html>" + "<font size='2'>" + "<b>" + portfolioShares.get(kf).getFreindlyName() + "</b> On the " + x + "<br>"
-						+ "Open&nbsp;&nbsp;&nbsp;: " + closeForDate.getOpen() + "<br>" + "High&nbsp;&nbsp;&nbsp;: " + closeForDate.getHigh()
-						+ "<br>" + "Low&nbsp;&nbsp;&nbsp;&nbsp;: " + closeForDate.getLow() + "<br>" + "Close&nbsp;&nbsp;: "
-						+ closeForDate.getClose() + "<br>" + "Volume : " + closeForDate.getVolume() + variationAddInfo + "</font>" + "</html>";
+						return "<html>" + "<font size='2'>" + 
+								"<b>" + portfolioShares.get(kf).getFreindlyName() + "</b> On the " + x + "<br>"+ 
+								"Open&nbsp;&nbsp;&nbsp;: " + closeForDate.getOpen() + "<br>" + 
+								"High&nbsp;&nbsp;&nbsp;: " + closeForDate.getHigh() + "<br>" + 
+								"Low&nbsp;&nbsp;&nbsp;&nbsp;: " + closeForDate.getLow() + "<br>" + 
+								"Close&nbsp;&nbsp;: "+ closeForDate.getClose() + "<br>" + 
+								"Volume : " + closeForDate.getVolume() + variationAddInfo + 
+							"</font>" + "</html>";
 					} catch (Exception e) {
 						LOGGER.debug(e, e);
 					}
@@ -362,8 +368,8 @@ public class ChartMain extends Chart {
 				TimeSeries lineSerie = ((TimeSeriesCollection) mainPlot.getDataset(0)).getSeries(lineSerieIdx);
 				double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
 				int eventDefSerieIdx = 0;
-				final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-				final NumberFormat percentInstance = new DecimalFormat("#0.00 %");
+				final SimpleDateFormat df = new SimpleDateFormat("dd MMM yy");
+				final NumberFormat pf = new DecimalFormat("#0.00 %");
 				for (final DataSetBarDescr serieDef : barSeries.keySet()) {
 
 					TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(serieDef.getSerieName(), barSeries.get(serieDef), lineSerie);
@@ -373,7 +379,8 @@ public class ChartMain extends Chart {
 					if (serieDef.isLabeled()) {
 						RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount() - 1, 0));
 						Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + percentInstance.format(serieDef.getProfit()) +" / "+ percentInstance.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
+						String stopLossString = (!MainPMScmd.getPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
+						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + stopLossString + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
 						annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 						annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
 						annotation.setPaint(Color.BLUE);
@@ -393,7 +400,7 @@ public class ChartMain extends Chart {
 							try {
 
 								Date date = new Date((long) dataset.getXValue(series, item));
-								x = simpleDateFormat.format(date);
+								x = df.format(date);
 
 								switch (serieDef.getId() % 3) {
 								case 0:
@@ -408,9 +415,12 @@ public class ChartMain extends Chart {
 									break;
 								}
 
-								return "<html>" + "<font size='2'>" + "<b>" + serieDef.getStockDescr() + "</b><br>" + "<b>" + serieDef.getEventDisplayeDef()
-										+ "</b> on the " + x + "<br>" + "Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" + "Descr&nbsp;&nbsp;&nbsp;: " + desrc
-										+ "<br>" + "</font>" + "</html>";
+								return "<html>" + "<font size='2'>" + 
+											"<b>" + serieDef.getStockDescr() + "</b><br>" +
+											"<b>" + serieDef.getEventDisplayeDef()+ "</b> on the " + x + "<br>" +
+											"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
+											"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" + 
+										"</font>" + "</html>";
 
 							} catch (Exception e) {
 								LOGGER.debug(e, e);
@@ -457,6 +467,7 @@ public class ChartMain extends Chart {
 				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
+				xAxis.setRange(arbitraryStartDate, arbitraryEndDate);
 				try {
 					mainPlot.setDataset(dataSet);
 				} catch (IllegalArgumentException e) {
@@ -672,7 +683,7 @@ public class ChartMain extends Chart {
 		Date endDate = stripedCloseFunction.getArbitraryEndDate();
 		Quotations bdQuotes;
 		try {
-			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(),startDate,endDate,true, portfolioShare.getTransactionCurrency(),0,0);
+			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, portfolioShare.getTransactionCurrency(), 0, 0);
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);
 		}

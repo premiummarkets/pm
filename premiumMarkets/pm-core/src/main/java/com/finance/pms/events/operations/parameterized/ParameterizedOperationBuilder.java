@@ -151,8 +151,8 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 		List<String> crippled = resetUserOperations();
 		if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : "+crippled);
 		
+		//TODO Remove update here and in observer as they are done in combo update?
 		updateEditableOperationLists();
-
 		this.setChanged();
 		this.notifyObservers(new ObsMsg(ObsMsgType.RESET, null));
 		

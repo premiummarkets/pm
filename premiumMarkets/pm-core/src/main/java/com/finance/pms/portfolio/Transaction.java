@@ -65,7 +65,7 @@ public class Transaction {
 	}
 
 	public void setTransactionSharePrice(Float transactionSharePrice) {
-		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(2,BigDecimal.ROUND_DOWN);
+		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(4,BigDecimal.ROUND_DOWN);
 	}
 	
 	public BigDecimal getQuantity() {
@@ -79,7 +79,8 @@ public class Transaction {
 	}
 	
 	public BigDecimal amount() {
-		return this.quantity.multiply(this.transactionSharePrice).setScale(2,BigDecimal.ROUND_HALF_UP);
+		return this.quantity.multiply(this.transactionSharePrice).setScale(4, BigDecimal.ROUND_HALF_UP);
+		//return this.quantity.multiply(this.transactionSharePrice.setScale(2, BigDecimal.ROUND_DOWN)).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 
 	

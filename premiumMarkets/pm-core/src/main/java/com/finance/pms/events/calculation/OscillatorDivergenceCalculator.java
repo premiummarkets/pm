@@ -87,13 +87,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 		int mfiIdx = getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx());
 		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), mfiIdx - idxSpan, mfiIdx));
 	
-//		Double[] priceLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(this.getCalculatorQuotationData().getCloseValues(), calculatorIndex - idxSpan, calculatorIndex));
-		
 		{
-//			Boolean isPriceDown = this.getCalculatorQuotationData().get(calculatorIndex - priceSpan).getClose().compareTo(this.getCalculatorQuotationData().get(calculatorIndex).getClose()) > 0;
-//			ArrayList<Double> priceRegline = new ArrayList<Double>();
-//			Boolean isPriceDown = highLowSolver.lowerHigh(priceLookBackP,new Double[0],priceRegline);
-//			Boolean isPriceDown = leftSigma/(priceSpan - priceSpan/2) > rightSigma/(priceSpan/2);
 			Boolean isPriceDown = false;
 			
 			Boolean isMfiUp = false;
@@ -103,23 +97,28 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 			if (isMfiDownThreshold) {
 
 				ArrayList<Double> regline = new ArrayList<Double>();
-				MutableInt firstTroughIdx = new MutableInt(-1);
-				MutableInt lastTroughIdx = new MutableInt(-1);
-				isMfiUp = highLowSolver.higherLow(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstTroughIdx, lastTroughIdx);
+				MutableInt firstPeakIdx = new MutableInt(-1);
+				MutableInt lastPeakIdx = new MutableInt(-1);
+				isMfiUp = highLowSolver.higherLow(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstPeakIdx, lastPeakIdx);
 
 				if (isMfiUp) {
-					int coveredSpan = regline.size();
+					
+					//int coveredSpan = regline.size();
+					int firstPeakLeftShifted = (int) (Math.max(firstPeakIdx.intValue() - ((double)mfiLookBackP.length)*.1, 0));
+					int lastPeakRightShifted = (int) (Math.min(lastPeakIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1)); //lastPeakIdx.intValue();
+					int coveredSpan = lastPeakRightShifted - firstPeakLeftShifted;
 					Double leftSigma = 0d;
-					for (int i = calculatorIndex - coveredSpan; i <= calculatorIndex - coveredSpan/2; i++) {
+					int lastPeakCalculatorIdx = calculatorIndex - (regline.size() - lastPeakRightShifted);
+					for (int i = lastPeakCalculatorIdx - coveredSpan; i <= lastPeakCalculatorIdx - coveredSpan/2; i++) {
 						leftSigma = leftSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
 					}	
 					Double rightSigma=0d;
-					for (int i = calculatorIndex - coveredSpan/2; i <= calculatorIndex; i++) {
+					for (int i = lastPeakCalculatorIdx - coveredSpan/2; i <= lastPeakCalculatorIdx; i++) {
 						rightSigma = rightSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
 					}
 					isPriceDown = leftSigma/(coveredSpan - coveredSpan/2) > rightSigma/(coveredSpan/2);
 
-					if (isPriceDown) addReglineOutput(higherLows, calculatorIndex, regline, coveredSpan);
+					if (isPriceDown) addReglineOutput(higherLows, lastPeakCalculatorIdx, regline, coveredSpan, firstPeakLeftShifted, lastPeakRightShifted);
 				}
 			}
 			
@@ -130,10 +129,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 			
 		}
 		{
-//			Boolean isPriceUp = this.getCalculatorQuotationData().get(calculatorIndex - priceSpan).getClose().compareTo(this.getCalculatorQuotationData().get(calculatorIndex).getClose()) < 0;
-//			ArrayList<Double> priceRegline = new ArrayList<Double>();
-//			Boolean isPriceUp = highLowSolver.higherLow(priceLookBackP,new Double[0],priceRegline);
-//			Boolean isPriceUp =  leftSigma/(priceSpan - priceSpan/2) < rightSigma/(priceSpan/2);
+
 			Boolean isPriceUp = false;
 			
 			Boolean isMfiUpThreshold = false;
@@ -150,18 +146,22 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 
 				if (isMfiDown) {
 
-					int coveredSpan = regline.size();
+					//int coveredSpan = regline.size();
+					int firstTroughLeftShifted = (int) (Math.max(firstTroughIdx.intValue() - ((double)mfiLookBackP.length)*.1, 0));
+					int lastTroughRightShifted = (int) (Math.min(lastTroughIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1));
+					int coveredSpan = lastTroughRightShifted - firstTroughLeftShifted;
 					Double leftSigma = 0d;
-					for (int i = calculatorIndex - coveredSpan; i <= calculatorIndex - coveredSpan/2; i++) {
+					int lastTroughCalculatorIdx = calculatorIndex - (regline.size() -lastTroughRightShifted);
+					for (int i = lastTroughCalculatorIdx - coveredSpan; i <= lastTroughCalculatorIdx - coveredSpan/2; i++) {
 						leftSigma = leftSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
 					}	
 					Double rightSigma=0d;
-					for (int i = calculatorIndex - coveredSpan/2; i <= calculatorIndex; i++) {
+					for (int i = lastTroughCalculatorIdx - coveredSpan/2; i <= lastTroughCalculatorIdx; i++) {
 						rightSigma = rightSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
 					}
 					isPriceUp = leftSigma/(coveredSpan - coveredSpan/2) < rightSigma/(coveredSpan/2);
 
-					if (isPriceUp) addReglineOutput(lowerHighs, calculatorIndex, regline, coveredSpan);
+					if (isPriceUp) addReglineOutput(lowerHighs, lastTroughCalculatorIdx, regline, coveredSpan, firstTroughLeftShifted, lastTroughRightShifted);
 				}
 
 			}
@@ -231,19 +231,19 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 		return getOscillatorLowerThreshold() + "," + getOscillatorUpperThreshold();
 	}
 	
-	protected void addReglineOutput(SortedMap<Integer, Double> reglines, Integer calculatorIndex, ArrayList<Double> regline, Integer idxSpan) {
+	protected void addReglineOutput(SortedMap<Integer, Double> reglines, Integer calculatorIndex, ArrayList<Double> regline, Integer idxSpan, Integer firstExtIdx, Integer lastExtIdx) {
 		
 		int gap = 0;
 		int overlapFromKey = calculatorIndex-idxSpan;
 		if (!reglines.isEmpty()) {
-			while ( reglines.lastKey() >= overlapFromKey -1 && gap < regline.size()-1) {
+			while ( reglines.lastKey() >= overlapFromKey -1 && gap < (lastExtIdx-firstExtIdx) ) {
 				overlapFromKey++;
 				gap++;
 			}
 		}
-		if (gap < regline.size() -1) {
-			reglines.put(overlapFromKey, regline.get(gap));
-			reglines.put(calculatorIndex, regline.get(regline.size()-1));
+		if (gap < lastExtIdx) {
+			reglines.put(overlapFromKey, regline.get(gap + firstExtIdx));
+			reglines.put(calculatorIndex, regline.get(lastExtIdx));
 			for (int i = overlapFromKey + 1; i < calculatorIndex; i++) {
 				reglines.put(i, Double.NaN);
 			}
