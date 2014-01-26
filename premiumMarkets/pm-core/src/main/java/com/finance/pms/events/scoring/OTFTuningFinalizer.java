@@ -674,7 +674,7 @@ public class OTFTuningFinalizer {
 				
 			}
 			
-			fileWriter.write("total , profit : "+tuningRes.getFollowProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
+			fileWriter.write("total , return : "+tuningRes.getFollowProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
 			tuningRes.setConfigRatingFile(fileName);
 			
 			fileWriter.write("rating , "+calculatedRating);		

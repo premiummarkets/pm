@@ -539,7 +539,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			BigDecimal aboveSellLimit = augmentedCashin.subtract(this.getCashout()).divide(this.getQuantity(),4,BigDecimal.ROUND_CEILING);
 			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 4, BigDecimal.ROUND_CEILING).subtract(BigDecimal.ONE.setScale(4));
 			
-			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" profit. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
+			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" return. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
 			
 			addAboveTakeProfitAlert(aboveSellLimit,aboveMessage);
 			

@@ -355,7 +355,7 @@ public class MainGui extends SashForm implements RefreshableView {
 									UserDialog dialog = new UserDialog(getShell(),"Premium Markets is an automated stock market analysis system.\n"+
 									"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
 									"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
-									"\nPremium Markets\nCopyright (C) 2008-2013 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
+									"\nPremium Markets\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
 									dialog.open();				
 									
 								} catch (IOException e) {

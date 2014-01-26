@@ -38,7 +38,6 @@ package com.finance.pms.admin.install;
 public enum SystemTypes {
 	
 	LINUX ("Linux",".sh",".png", "script file"),
-	//MAC	("Mac","_mac.sh",".png"),
 	MAC	("Mac",".command",".png", "command file"),
 	WINDOWS ("Windows",".bat",".ico", "Windows batch file");
 

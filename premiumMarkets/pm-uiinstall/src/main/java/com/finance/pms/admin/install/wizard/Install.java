@@ -69,7 +69,7 @@ public class Install {
 	
 	public static final String archName = "PremiumMarkets.zip";
 	public static final String iconFile = "icons/icon";
-	public static final String backGround = "icons/squeakyPig.jpg";
+	public static final String backGround = "icons/squeakyPig.png";
 	public static final String license = "COPYING";
 	public static final String dbName = "derby";
 	public static final String piggyMarketSqueak = "PremiumMarkets";

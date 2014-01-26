@@ -374,10 +374,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	 */
 	private enum Titles {
 		Name ("Stock", "Stock name."), 
-		BuyPrc ("Buy price", "Average unit buy price."), Close ("Close","Last unit close price available."), ZWProfPrc ("Zero gain price", "Minimum unit sell price for no loss if including inflation.\nFormula : inflated(in-out)/quantity"), 
-		RProf ("% Gain","Realized and unrealized gain.\nFormula : (unit close - average unit buy price)/average unit buy price"), UrProf ("Unreal % Gain","Unrealized percent gain.\nFormula : (value - (in-out)) / in"),
+		BuyPrc ("Buy price", "Average unit buy price."), Close ("Close","Last unit close price available."), ZWProfPrc ("Zero return price", "Minimum unit sell price for no loss if including inflation.\nFormula : inflated(in-out)/quantity"), 
+		RProf ("Return","Realized and unrealized return.\nFormula : (unit close - average unit buy price)/average unit buy price"), UrProf ("Unreal return","Unrealized return.\nFormula : (value - (in-out)) / in"),
 		CashIn("In","Total money in over time for the line."), CashOut("Out","Total money out over time."),
-		WUrProf ("Unr. Inflated % Gain","For gnucash portfolios only. Unrealized percent gain if including inflation.\nFormula : (value - (inflated(in-out)) / inflated(in)"), 
+		WUrProf ("Unr. Inflated Return","For gnucash portfolios only. Unrealized return if including inflation.\nFormula : (value - (inflated(in-out)) / inflated(in)"), 
 		WCashIn("In Inflated","For gnucash portfolios only. Inflation weighted money in."), WCashOut("Out Inflated", "For gnucash portfolios only. Inflation weighted money out."),
 		Monitor("Monitor","Alert monitor level.\nDouble click to edit the value.\nAll lines with a monitor level different from NONE will generate notifications.");
 		
@@ -787,7 +787,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						gain.setText("");
 						gain.setFont(MainGui.CONTENTFONT);
 						Label text2c = new Label(portfolioInfosGroup, SWT.RIGHT);
-						text2c.setText("% Gain at date : ");
+						text2c.setText("Return at date : ");
 						text2c.setToolTipText("Formula : ((value + Sum(out))- Sum(in)) /  Sum(in) ");
 						text2c.setFont(MainGui.DEFAULTFONT);
 						text2c.setBackground(MainGui.pORTFOLIO_LIGHT);
