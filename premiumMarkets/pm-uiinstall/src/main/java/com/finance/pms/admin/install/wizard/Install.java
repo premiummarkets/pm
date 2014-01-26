@@ -36,7 +36,6 @@ import java.awt.event.MouseMotionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -187,6 +186,7 @@ public class Install {
 					Install.windowsPostInstall(InstallFolderPanel.getPmFolder().getAbsolutePath());
 					params = new String[] { guiShell, InstallFolderPanel.getPmFolder().getAbsolutePath()};
 				} else {
+					Install.unixPostInstall(InstallFolderPanel.getPmFolder().getAbsolutePath());
 					params = new String[] {"/bin/bash", guiShell, InstallFolderPanel.getPmFolder().getAbsolutePath() };
 				}
 
@@ -265,6 +265,32 @@ public class Install {
 	}
 	
 	
+	private static void unixPostInstall(String installPath) {
+		
+		//change exec modes
+		String[] runtimeParams = new String[]{"/bin/bash", installPath+File.separator+"shell"+File.separator+"changeMods.sh", installPath};
+		for (String string : runtimeParams) {
+			System.out.println("launch change exec mods params : "+string);
+		}
+		
+		try {
+			Runtime runtime = Runtime.getRuntime();
+			Process guiBatProcess = runtime.exec(runtimeParams, null, InstallFolderPanel.getPmFolder());
+			
+			BufferedReader input = new BufferedReader(new InputStreamReader(guiBatProcess.getInputStream()));
+			String line = null;
+			while ((line = input.readLine()) != null) {
+				System.out.println(line);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}   
+		
+		
+	}
+
+
 	/**
 	 * Windows post install.
 	 * 
@@ -287,11 +313,9 @@ public class Install {
 			props.put("dbpath", StringEscapeUtils.escapeJava(installPath)+File.separator+"derby"+File.separator);
 			props.store(new FileOutputStream(pfile), "Added settings properties for windows");
 
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		} 
 		
 		//desktop icon
 		Runtime runtime = Runtime.getRuntime();
@@ -309,7 +333,7 @@ public class Install {
 				System.out.println(line);
 			}
 			
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}   
 		

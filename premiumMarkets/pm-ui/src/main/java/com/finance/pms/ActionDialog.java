@@ -41,8 +41,9 @@ public class ActionDialog extends UserDialog {
 	protected ActionDialogAction action;
 	String actionTxt;
 
-	public ActionDialog(Shell parent, int style, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
-		super(parent, (style == SWT.NONE)?SWT.DIALOG_TRIM|SWT.RESIZE:style, title, erreur, addMessage);
+	public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
+		//super(parent, (style == SWT.NONE)? SWT.DIALOG_TRIM | SWT.RESIZE :style, title, erreur, addMessage);
+		super(parent, title, erreur, addMessage);
 		this.actionTxt = actionTxt;
 		this.action = action;
 		
@@ -50,7 +51,7 @@ public class ActionDialog extends UserDialog {
 	
 	@Override
 	public void open() {
-		open(false);
+		super.open();
 	}
 
 	@Override

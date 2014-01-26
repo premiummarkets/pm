@@ -97,7 +97,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	private static Font biggerFont;
 	enum Titles {Symbol,Isin,Name,Category};
 	
-	private Composite caller;
+	protected Composite caller;
 
 	
 	private Providers selectedProvider;
@@ -119,15 +119,15 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @param alreadyBought the already scaned
 	 * 
 	 * @author Guillaume Thoreton
-	 * @param composite 
+	 * @param caller 
 	 * @param tabIdx 
 	 */
-	public NewPortfolioItemDialog(Composite parent, int style, Composite composite) {
+	public NewPortfolioItemDialog(Composite parent, int style, Composite caller) {
 		
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
 		
 		this.stockList = new StockList();
-		this.caller = composite;
+		this.caller = caller;
 		biggerFont =  MainGui.DEFAULTFONT;
 	}
 
@@ -205,7 +205,8 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @param inst the inst
 	 * @param display the display
 	 */
-	public void swtLoop() {
+	@Deprecated
+	private void swtLoop() {
 		
 		while (!this.isDisposed() && !this.getShell().isDisposed()) {
 			try {
@@ -219,6 +220,10 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			}
 		}
 	}
+	
+	public void initGui(int stockSelectionMode) {
+		this.initGui(stockSelectionMode, true);
+	}
 
 	/**
 	 * Open.sharelistSelectionGroup
@@ -226,7 +231,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	 * @author Guillaume Thoreton
 	 * @param stockSelectionMode 
 	 */
-	public void initGui(int stockSelectionMode) {
+	protected void initGui(int stockSelectionMode, Boolean displayControls) {
 		
 		this.setLayout(new GridLayout());
 		this.setBackground(MainGui.pOPUP_BG);
@@ -509,6 +514,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		
 		
 		//Add ctrl composite
+		if (displayControls)
 		{
 		    
 			ctrlComposite = new Composite(this, SWT.NONE);

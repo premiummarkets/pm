@@ -321,6 +321,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			
 			Operation duplicatedOperation = parameterizedBuilder.duplicateOperation(existingOp, new HashMap<String, Operation>());
 			updateComboAndSelect(duplicatedOperation.getReference(), true);
+			refreshViews();
 			
 		} catch (IOException e) {
 			UserDialog dialog = new UserDialog(getShell(), "Formula can't be duplicated.", e.toString());

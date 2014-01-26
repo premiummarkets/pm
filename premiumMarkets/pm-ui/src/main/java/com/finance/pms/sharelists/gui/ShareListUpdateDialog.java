@@ -647,23 +647,7 @@ public class ShareListUpdateDialog extends Dialog {
 
 
 	public void open() {
-		
 		getParent().open();
-		
-//		Display display = getParent().getDisplay();
-//		while (!getParent().isDisposed()) {
-//			try {
-//				if (!display.readAndDispatch())
-//					display.sleep();
-//			} catch (RuntimeException e) {
-//				LOGGER.error("Error in Error dialog Gui : " + e.getMessage(), e);
-//				LOGGER.debug("Error in Error Dialog Gui : ", e);
-//			} catch (Error e) {
-//				LOGGER.error("Error in  Gui : " + e.getMessage(), e);
-//				LOGGER.debug("Error in  Gui : ", e);
-//			}
-//		}
-		
 	}
 	
 	private void updateComboSize() {

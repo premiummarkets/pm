@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.awt.BorderLayout;
+import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
@@ -407,7 +408,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 					@Override
 					public void mousePressed(final MouseEvent e) {
-						Display.getDefault().syncExec(new Runnable() {
+						Display.getDefault().asyncExec(new Runnable() {
 
 							@Override
 							public void run() {
@@ -424,7 +425,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 					@Override
 					public void mouseReleased(final MouseEvent e) {
-						Display.getDefault().syncExec(new Runnable() {
+						Display.getDefault().asyncExec(new Runnable() {
 							
 							@Override
 							public void run() {
@@ -971,8 +972,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public void setCursor(Cursor cursor) {
 		super.setCursor(cursor);
 		
-		java.awt.Cursor awtPredefinedCursor;
-//		if (!arg0.equals(CursorFactory.getCursor(SWT.CURSOR_ARROW))) {
+		final java.awt.Cursor awtPredefinedCursor;
 		if (cursor != null && ( cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS)) )) {
 			
 			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
@@ -987,11 +987,16 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR);
 		}
 		
-	
-		SWT_AWT.getFrame(mainChartComposite).setCursor(awtPredefinedCursor); 
-		if ( mainChartPanel.getComponents().length > 0) {
-			mainChartPanel.getComponent(0).setCursor(awtPredefinedCursor);
-		}
+		final Frame frame = SWT_AWT.getFrame(mainChartComposite);
+		Runnable runnable = new Runnable() {
+			public void run() {
+				frame.setCursor(awtPredefinedCursor);
+				if (mainChartPanel.getComponents().length > 0) {
+					mainChartPanel.getComponent(0).setCursor(awtPredefinedCursor);
+				}
+			}
+		};
+		EventQueue.invokeLater(runnable);
 		
 	}
 	

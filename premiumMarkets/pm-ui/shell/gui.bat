@@ -17,4 +17,4 @@ goto :cmd
 rem current folder : %CD%
 
 rem java -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path="%CD%\lib" -Dinstalldir="%CD%" -jar "%CD%\pm.jar" "%CD%\db.properties"
-java -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path="%CD%\lib" -Dinstalldir="%CD%" -jar "%CD%\pm.jar" "%CD%\db.properties"
+java -splash:"%CD%\icons\squeakyPig.jpg" -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path="%CD%\lib" -Dinstalldir="%CD%" -jar "%CD%\pm.jar" "%CD%\db.properties"

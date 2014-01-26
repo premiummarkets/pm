@@ -59,9 +59,6 @@ public class TextAreaStream extends OutputStream {
 				realPrintStream.append(text);
 			}
 		});
-//		out.append(text);
-//		realPrintStream.append(text);
-
 	}
 
 	@Override

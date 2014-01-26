@@ -40,8 +40,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -65,32 +63,35 @@ public class UserDialog extends Dialog {
 	protected Button valideButton1;
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
-		super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.SHEET | SWT.RESIZE));
+		//super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.SHEET | SWT.RESIZE));
+		//super(new Shell(new Shell(parent, SWT.ON_TOP), SWT.SHELL_TRIM | SWT.RESIZE));
+		super(new Shell(parent, SWT.SHELL_TRIM));
 		this.getParent().setText("Premium Markets - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
 	
-	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
-		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
-		this.getParent().setText("Premium Markets - Warning");
-		this.erreur = erreur;
-		this.addMessage = addMessage;
-	}
+//	public UserDialog(Shell parent, int style, String erreur, String addMessage) {
+//		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
+//		this.getParent().setText("Premium Markets - Warning");
+//		this.erreur = erreur;
+//		this.addMessage = addMessage;
+//	}
 	
-	protected UserDialog(Shell parent, int style, String title, String erreur, String addMessage) {
-		super(new Shell(new Shell(parent,SWT.ON_TOP), style));
+	protected UserDialog(Shell parent, String title, String erreur, String addMessage) {
+		//super(new Shell(new Shell(parent,SWT.ON_TOP), style));
+		super(new Shell(parent, SWT.SHELL_TRIM));
 		this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	
 	}
 	
-	public void open() {
-		open(true);
-	}
+//	public void open() {
+//		open(true);
+//	}
 
-	public void open(final Boolean focusOnAckButton) {
+	public void open() {
 		try {
 
 			GridLayout dialogShellLayout = new GridLayout();
@@ -123,19 +124,19 @@ public class UserDialog extends Dialog {
 				validationButtonTxtAndAction();
 			}
 			
-			Listener listener = new Listener() {
-				
-				@Override
-				public void handleEvent(Event event) {
-					if (focusOnAckButton) {
-						valideButton1.setCapture(true);
-						valideButton1.forceFocus();
-					}
-				}
-			};
-			this.getParent().addListener(SWT.FocusIn,listener);
-			this.getParent().addListener(SWT.FOCUSED,listener);
-			this.getParent().addListener(SWT.Activate,listener);
+//			Listener listener = new Listener() {
+//				
+//				@Override
+//				public void handleEvent(Event event) {
+//					if (focusOnAckButton) {
+//						valideButton1.setCapture(true);
+//						valideButton1.forceFocus();
+//					}
+//				}
+//			};
+//			this.getParent().addListener(SWT.FocusIn,listener);
+//			this.getParent().addListener(SWT.FOCUSED,listener);
+//			this.getParent().addListener(SWT.Activate,listener);
 			
 			layout();
 			

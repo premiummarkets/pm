@@ -79,7 +79,6 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 		LOGGER.debug("Updating list of shares  : "+rootParam);
 		for (Object shareList : rootParam) {
-
 			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
 			String marketQuotationsProviders = MainPMScmd.getPrefs().get("quotes.provider","yahoo");
 			MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);

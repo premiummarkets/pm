@@ -49,16 +49,13 @@ import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
-import com.finance.pms.UserDialog;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.StripedCloseLogRoc;
 import com.finance.pms.datasources.db.StripedCloseRelativeToReferee;
 import com.finance.pms.datasources.db.StripedCloseRelativeToStart;
-import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -199,10 +196,19 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						public void action(Control targetControl) {
 
 							String refereeRef = MainPMScmd.getPrefs().get("charts.referee", NOT_DEFINED+"||-||"+NOT_DEFINED);
-							final String previousSymbol = refereeRef.split("\\|\\|-\\|\\|")[0];
-							final String previousIsin = refereeRef.split("\\|\\|-\\|\\|")[1];
-							final Stock previousReferee = relativeToRefereeSetting(previousSymbol, previousIsin);
 							
+							String symbolSplit = NOT_DEFINED;
+							String isinSplit = NOT_DEFINED;
+							try {
+								symbolSplit = refereeRef.split("\\|\\|-\\|\\|")[0];
+								isinSplit = refereeRef.split("\\|\\|-\\|\\|")[1];
+							} catch (Exception e) {
+								LOGGER.warn("Invalid previous referee : "+refereeRef);
+							}
+							
+							final String previousSymbol = symbolSplit;
+							final String previousIsin = isinSplit;
+							final Stock previousReferee = relativeToRefereeSetting(previousSymbol, previousIsin);
 							if (previousReferee != null) chartTarget.updateCharts( true, true, false);
 							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
@@ -210,11 +216,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								public void action(Control targetControl) {
 									chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 									try {
-										Stock selectedReferee = selectNewReferee(previousReferee);
-										if (selectedReferee != null) {
-											relativeToRefereeSetting(selectedReferee.getSymbol(), selectedReferee.getIsin());
-											chartTarget.updateCharts( true, true, false);
-										}
+										selectNewReferee(previousReferee);
 									} finally {
 										chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 									}
@@ -222,7 +224,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							};
 							
 							ActionDialog actionDialogForm = new ActionDialog(
-									chartTarget.getShell(), SWT.NONE, 
+									chartTarget.getShell(), 
 									"Select a new referee ...", null, "Current referee : "+((previousReferee!=null)?previousReferee.getFriendlyName():NOT_DEFINED), "Select a new referee ...", actionDialogAction);
 
 							actionDialogForm.open();
@@ -334,96 +336,36 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		
 	}
 	
-	/**
-	 * @param previousSymbol 
-	 * @param previousIsin 
-	 * @throws InvalidAlgorithmParameterException 
-	 * 
-	 */
-	private Stock relativeToRefereeSetting(String previousSymbol, String previousIsin) {
-			
-		if (previousSymbol != null && !NOT_DEFINED.equals(previousSymbol)) {//Already set
-			
+	Stock relativeToRefereeSetting(String previousSymbol, String previousIsin) {
+
+		if (previousSymbol != null && !NOT_DEFINED.equals(previousSymbol)) {//already set
+
 			if (refereeQuotations != null && refereeQuotations.size() != 0) {//Initialised
-				
+
 				try {
 					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 				} catch (InvalidAlgorithmParameterException e) {
 					LOGGER.error("",e);
 				}
+
+			} else {//Set but not initialised
 				
-			} else {//Not initialised
 				try {
-					//Stock stock = DataSource.getInstance().loadStockBySymbol(previousSymbol);
 					Stock stock = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
 					loadRefereeQuotations(stock);
 				} catch (Exception e) {
-					LOGGER.debug(e);
-					UserDialog inst = new UserDialog(chartTarget.getShell(), "Referee unknown or no quotations", null);
-					inst.open();
+					LOGGER.warn("Unable to initialise referee "+previousSymbol+ " " + previousIsin);
 					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToBuyPrice());
 				}
 			}
-			
+
 		} 
-		
+
 		return  (refereeQuotations != null)?refereeQuotations.getStock():null;
-		
+
 	}	
 	
-	/**
-	 * Select referee.
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param listShares 
-	 */
-	private Stock selectNewReferee(Stock previousReferee) {
-
-		//Stock referree = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
-		Stock newReferree = previousReferee;
-		
-		//Open selection window
-		NewRefereeDialog pItemDialog = (NewRefereeDialog) NewRefereeDialog.showUI(chartTarget.getShell(), chartTarget);
-		Set<Stock> listStock = pItemDialog.getSelectedStocks();
-		
-		if (listStock != null && listStock.size() > 0) {
-
-			try {
-				newReferree = listStock.iterator().next();
-
-				chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-
-				QuotationUpdate quotationUpdate = new QuotationUpdate();
-				quotationUpdate.getQuotes(new StockList(listStock));
-				loadRefereeQuotations(newReferree);
-				try {
-					MainPMScmd.getPrefs().put("charts.referee", newReferree.getSymbol()+"||-||"+newReferree.getIsin());
-					MainPMScmd.getPrefs().flush();
-				} catch (Exception e) {
-					LOGGER.warn(e,e);
-				}
-
-			} catch (Exception e) {
-
-				UserDialog inst = new UserDialog(chartTarget.getShell(), "Sorry. Invalid referee : "+newReferree.getFriendlyName()+"\n"+e, null);
-				inst.open();
-				newReferree = previousReferee;
-
-			} finally {
-				chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-			}
-
-		} else {
-			UserDialog inst = new UserDialog(chartTarget.getShell(), "No referee selected please select a stock \n", null);
-			inst.open();
-		}
-
-		return newReferree;
-
-	}
-	
-
-	private void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
+	void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
 			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarketValuation().getCurrency(),0,0);
@@ -432,7 +374,13 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			throw new RuntimeException(e);
 		}
 	}
+	
 
+	private void selectNewReferee(Stock previousReferee) {
+		//Open selection window
+		NewRefereeDialog.showUI(chartTarget.getShell(), chartTarget, this);
+	}
+	
 	@Override
 	public void resetChart() {
 		

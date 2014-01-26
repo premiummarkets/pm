@@ -33,11 +33,9 @@ import java.awt.BorderLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
@@ -229,21 +227,27 @@ public class UpdateUrl extends JPanel {
 	 */
 	private void runLatest() {
 		
-		try {
-			String params[];
-			params = new String[] {
-					System.getProperty("java.home")+File.separator+"bin"+File.separator+"javaws",
-					"http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp/download"};
-			Process process = Runtime.getRuntime().exec(params);
-			String line = null;
-			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			while ((line = input.readLine()) != null) {
-				System.out.println(line);
-			}
-					
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+//		try {
+//			String params[];
+//			params = new String[] {
+//					System.getProperty("java.home")+File.separator+"bin"+File.separator+"javaws",
+//					"http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp/download"};
+//			Process process = Runtime.getRuntime().exec(params);
+//			String line = null;
+//			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//			while ((line = input.readLine()) != null) {
+//				System.out.println(line);
+//			}
+//					
+//		} catch (MalformedURLException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+		 try {
+			URI uri = new URI("http://premiummarkets.elasticbeanstalk.com/html/swtui.html#Download");
+			ProgressPanel.open(uri);
+		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
 	}

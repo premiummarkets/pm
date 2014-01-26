@@ -56,6 +56,7 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
      * 
      * @author Guillaume Thoreton
      */
+    @Deprecated
     public BaseCheckPanelDescriptor() {
         
         panel2 = new BaseCheckPanel();

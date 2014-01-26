@@ -29,7 +29,6 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
-import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -37,9 +36,13 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.UserDialog;
+import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 
 /**
@@ -50,8 +53,7 @@ import com.finance.pms.portfolio.gui.NewPortfolioItemDialog;
 public class NewRefereeDialog extends NewPortfolioItemDialog {
 	
 	private static NewPortfolioItemDialog runningInst = null;
-
-	private Set<Stock> selectedStocks;
+	private ChartPerfDisplay perfDisplay;
 	
 	/**
 	 * Instantiates a new new referee dialog.
@@ -60,11 +62,11 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * @param style the style
 	 * 
 	 * @author Guillaume Thoreton
-	 * @param composite 
+	 * @param caller 
 	 * @param tabIx 
 	 */
-	public NewRefereeDialog(Composite parent,int style, Composite composite) {
-		super(parent,style, composite);
+	public NewRefereeDialog(Composite parent,int style, Composite caller) {
+		super(parent,style, caller);
 	}
 	
 	
@@ -75,13 +77,13 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param shell 
-	 * @param composite 
+	 * @param caller 
 	 */
-	public static NewPortfolioItemDialog showUI(Shell shell, Composite composite) {
+	public static NewRefereeDialog showUI(Shell shell, Composite caller, ChartPerfDisplay perfDisplay) {
 		
 		if (NewRefereeDialog.runningInst != null && !NewRefereeDialog.runningInst.isDisposed()) {
 			NewRefereeDialog.runningInst.forceFocus();
-			return runningInst;
+			return (NewRefereeDialog) runningInst;
 		}
 
 		NewRefereeDialog inst = null;
@@ -91,21 +93,15 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 			piShell.setFont(MainGui.DEFAULTFONT);
 			piShell.setLayout(new FillLayout(SWT.VERTICAL));
 
-			inst = new NewRefereeDialog(piShell, SWT.RESIZE, composite);
+			inst = new NewRefereeDialog(piShell, SWT.RESIZE, caller);
 			inst.initGui(SWT.SINGLE);
+			inst.perfDisplay = perfDisplay;
 
 			piShell.layout();
 			piShell.pack();
 			piShell.open();
 
 			runningInst = inst;
-			
-			try {
-				inst.swtLoop();
-			} catch (Exception e) {
-				LOGGER.error(e, e);
-				throw e;
-			}
 
 		} catch (Exception e) {
 
@@ -124,18 +120,12 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 
 	@Override
 	public void initGui(int selectionMode) {
-		super.initGui(selectionMode);
-		this.ctrlComposite.dispose();
+		super.initGui(selectionMode, false);
 		
 		this.layout();
 		this.pack();
 		
 	}
-
-	public Set<Stock> getSelectedStocks() {
-		return selectedStocks;
-	}
-
 
 	@Override
 	protected String addListLabel() {
@@ -148,17 +138,58 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 
 
 	@Override
-	protected void addSelection(Set<Stock> stocks) {
-		this.selectedStocks = stocks;
-		
-		String friendlyName = "NONE";
-		Iterator<Stock> iterator = stocks.iterator();
-		if (iterator.hasNext()) {
-			friendlyName = iterator.next().getFriendlyName();
+	protected void addSelection(Set<Stock> listStock) {
+
+		Stock newReferree = null;
+		if (listStock != null && listStock.size() == 1) {//Referre selected
+
+			try {
+				newReferree = listStock.iterator().next();
+
+				getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+
+				QuotationUpdate quotationUpdate = new QuotationUpdate();
+				quotationUpdate.getQuotes(new StockList(listStock));
+				perfDisplay.loadRefereeQuotations(newReferree);
+				try {
+					MainPMScmd.getPrefs().put("charts.referee", newReferree.getSymbol()+"||-||"+newReferree.getIsin());
+					MainPMScmd.getPrefs().flush();
+				} catch (Exception e) {
+					LOGGER.warn(e,e);
+				}
+
+			} catch (Exception e) {
+
+				UserDialog inst = new UserDialog(getParent().getShell(), "Sorry. Invalid referee : "+newReferree.getFriendlyName()+"\n"+e, null);
+				inst.open();
+				
+			} finally {
+				getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			}
+			
+		} else {
+			
+			UserDialog inst = new UserDialog(((ChartsComposite)caller).getShell(), "No referee selected please select a stock \n", null);
+			inst.open();
+			
 		}
 		
-		UserDialog inst = new UserDialog(getShell(), "Added referee : "+friendlyName,null);
-		inst.open();
+		if (newReferree != null) {
+				
+				Stock relativeToRefereeSetting = perfDisplay.relativeToRefereeSetting(newReferree.getSymbol(), newReferree.getIsin());
+				
+				if (relativeToRefereeSetting != null) {
+					((ChartsComposite)caller).updateCharts( true, true, false);
+					UserDialog inst = new UserDialog(getParent().getShell(), "Added referee : "+((newReferree != null)?newReferree.getFriendlyName():"None"), null);
+					inst.open();
+				}
+				else {
+					UserDialog inst = new UserDialog(((ChartsComposite)caller).getShell(), "Referee unknown or no quotations available : "+newReferree.getFriendlyName(), null);
+					inst.open();
+				}
+				
+		}
+	
 	}	
 	
 }

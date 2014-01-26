@@ -62,11 +62,12 @@ public class PopupMenu<T extends InfoObject>  {
 	private Set<T> selectionSet;
 	
 	private Boolean unableSelectAll;
-	private ActionDialogAction action;
-	private boolean disposeOnDeactivate;
 	
+	private ActionDialogAction selectionAction;
 	private ActionDialogAction closeAction;
-	Boolean actionOnDeactivate;
+	
+	private boolean disposeOnDeactivate;
+	private Boolean actionateOnDeactivate;
 	
 	private String title;
 	private Boolean hasChanged;
@@ -95,7 +96,7 @@ public class PopupMenu<T extends InfoObject>  {
 		
 		this.unableSelectAll = unableSelectAll;
 		
-		this.action = selectAction;
+		this.selectionAction = selectAction;
 		this.disposeOnDeactivate = disposeOnDeactivate;
 		
 		this.title = "";
@@ -113,14 +114,14 @@ public class PopupMenu<T extends InfoObject>  {
 			Composite rootParent, Control controlParent, 
 			Set<T> availableOptSet, Set<T> selectionList, 
 			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
-			ActionDialogAction selectAction, ActionDialogAction closeAction, Boolean actionOnDeactivate) {
+			ActionDialogAction selectAction, ActionDialogAction closeAction, Boolean actionateOnDeactivate) {
 		
 		this(rootParent, controlParent, availableOptSet, selectionList, disposeOnDeactivate, unableSelectAll, style, selectAction);
 		
 		this.closeAction = closeAction;
-		this.actionOnDeactivate = actionOnDeactivate;
+		this.actionateOnDeactivate = actionateOnDeactivate;
 		
-		if (closeAction == null && actionOnDeactivate != null && actionOnDeactivate) throw new RuntimeException();
+		if (closeAction == null && actionateOnDeactivate != null && actionateOnDeactivate) throw new RuntimeException();
 		if (closeAction == null && selectAction == null) throw new RuntimeException();
 
 	}
@@ -139,25 +140,30 @@ public class PopupMenu<T extends InfoObject>  {
 		selectionShell.setFont(MainGui.CONTENTFONT);
 		selectionShell.setText(title);
 		
-		selectionShell.addListener(SWT.Deactivate, new Listener() {
-			
-			public void handleEvent(Event e){
+		Listener deactivateListener = new Listener() {
+
+			@Override
+			public void handleEvent(Event e) {
+
+				Control control = selectionShell.getDisplay().getCursorControl(); 
+				for (Control child : selectionShell.getChildren()) {
+					if (control == child) return;
+				}
+				
+				deactivate();
+			}
+
+			protected void deactivate() {
 				if (disposeOnDeactivate) { 
 					selectionShell.dispose();
-				} else if (actionOnDeactivate != null && actionOnDeactivate) {
+				} else if (actionateOnDeactivate != null && actionateOnDeactivate) {
 					runCloseAction();
 				}
 			}
-		});
-		
-		selectionShell.addListener(SWT.Activate, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				//Thread.dumpStack();
-			}
 			
-		});
+		};
+		selectionShell.addListener(SWT.MouseExit, deactivateListener);
+		selectionShell.addListener(SWT.Deactivate, deactivateListener);
 		
 		selectionShell.addDisposeListener(new DisposeListener() {
 			
@@ -237,7 +243,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.clear();
 					}
 					
-					if (action != null) action.action(selectAllBut);
+					if (selectionAction != null) selectionAction.action(selectAllBut);
 					
 				}
 				
@@ -275,7 +281,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.remove(buttonInfo);
 					}
 					
-					if (action != null ) action.action(button);
+					if (selectionAction != null ) selectionAction.action(button);
 			
 				}
 				
@@ -293,10 +299,10 @@ public class PopupMenu<T extends InfoObject>  {
 		return selectionShell;
 	}
 
-	public void updateAction(Set<T> availEventDefs, Set<T> selectionSet, ActionDialogAction action, ActionDialogAction closeAction, Boolean actionOnDeactivate) {
-		this.action = action;
+	public void updateAction(Set<T> availEventDefs, Set<T> selectionSet, ActionDialogAction selectionAction, ActionDialogAction closeAction, Boolean actionOnDeactivate) {
+		this.selectionAction = selectionAction;
 		this.closeAction = closeAction;
-		this.actionOnDeactivate = actionOnDeactivate;
+		this.actionateOnDeactivate = actionOnDeactivate;
 		updatePopup(availEventDefs, selectionSet);
 		
 	}

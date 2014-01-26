@@ -22,7 +22,7 @@ http://premiummarkets.elasticbeanstalk.com for documentation and a free workable
 
 License jargon :
 
-Copyright (C) 2008-2012 Guillaume Thoreton
+Copyright (C) 2008-2014 Guillaume Thoreton
 
 This file is part of Premium Markets.
 

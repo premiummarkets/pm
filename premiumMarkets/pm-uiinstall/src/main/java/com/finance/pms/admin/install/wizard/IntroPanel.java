@@ -141,7 +141,7 @@ public class IntroPanel extends JPanel {
 			
 			JButton button = new JButton();
 			button.setText("<HTML>" +
-					"<FONT color=\"red\">I would also like to bring to your attention that Premium Markets annonces its NEW Forecast engine!<br/>"+
+					"<FONT color=\"red\">I would also like to bring to your attention that Premium Markets announces its NEW Forecast engine!<br/>"+
 					"Click <FONT color=\"#000099\"><blink><U>http://premiummarkets.elasticbeanstalk.com/</U></blink></FONT> for a preview and a free workable demo.</FONT></HTML>");
 			//button.setHorizontalAlignment(SwingConstants.LEFT);
 			button.setBorderPainted(false);

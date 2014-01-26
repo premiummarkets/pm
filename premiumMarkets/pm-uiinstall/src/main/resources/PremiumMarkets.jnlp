@@ -24,9 +24,9 @@ and user defined portfolios. See Premium Markets FORECAST web portal at
 http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
 This version : ${pm.buildtime}
 
-Copyright (C) 2008-2012 Guillaume Thoreton
+Copyright (C) 2008-2014 Guillaume Thoreton
 
-This file is part of Premium Markets.	
+This file is part of Premium Markets.
 
 Premium Markets is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the Free
@@ -47,15 +47,14 @@ this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.
 See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the forecast engine.
 		</description>
-		<icon href="icons/icon.png" />
+		<icon href="icons/icon.gif" />
 		<offline-allowed />
+		<related-content href="http://premiummarkets.elasticbeanstalk.com">
+			<description>See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the forecast engine.</description>
+			<icon href="icons/icon.gif" />
+		</related-content>
 	</information>
-	
-	<related-content title="Premium Markets PRICE TREND FORECAST web portal." href="http://premiummarkets.elasticbeanstalk.com/">
-		<description>See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the forecast engine.</description>
-		<icon href="icons/icon.png" />
-	</related-content>
-	
+		
 	<security>
 		<all-permissions />
 	</security>

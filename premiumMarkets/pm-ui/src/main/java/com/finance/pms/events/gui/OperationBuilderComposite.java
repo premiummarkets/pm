@@ -420,7 +420,7 @@ public class OperationBuilderComposite extends Composite {
 
 				private void handleDeleteUnused() {
 
-					ActionDialog errorDialog = new ActionDialog(getShell(),SWT.NONE,"Warning", null, null, "Please, confirm the deletion of all unused/disabled "+builderLabel()+".", new ActionDialogAction() {	
+					ActionDialog errorDialog = new ActionDialog(getShell(),"Warning", null, null, "Please, confirm the deletion of all unused/disabled "+builderLabel()+".", new ActionDialogAction() {	
 						@Override
 						public void action(Control targetControl) {
 							try {
@@ -920,7 +920,7 @@ public class OperationBuilderComposite extends Composite {
 				}
 			};
 
-			ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "Formula has changed", "Formula " + existingOp.getReference() + " has changed", null, "Save", action);
+			ActionDialog dialog = new ActionDialog(getShell(), "Formula has changed", "Formula " + existingOp.getReference() + " has changed", null, "Save", action);
 			dialog.open();
 
 			return false;

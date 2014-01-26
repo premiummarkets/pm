@@ -179,9 +179,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	private final ChartsComposite chartsComposite;
 
+	private Text netIn;
 	private Text gain;
-	private Text unrealGain;
-	private Text unrealProfit;
+	private Text percentGain;
 	private Text value;
 	private Text amountIn;
 	private Text amountOut;
@@ -207,7 +207,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				
 				if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) {
 					
-					getDisplay().syncExec(
+					getDisplay().asyncExec(
 							new Runnable() {
 								public void run(){
 
@@ -664,7 +664,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							protected void handleRemovePortoflio() {
 								
 								Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
-								ActionDialog errorDialog = new ActionDialog(getShell(),SWT.NONE,"Warning", null, null, "Please, confirm '"+portfolio.getName()+"' portfolio removal", new ActionDialogAction() {	
+								ActionDialog errorDialog = new ActionDialog(getShell(),"Warning", null, null, "Please, confirm '"+portfolio.getName()+"' portfolio removal", new ActionDialogAction() {	
 									@Override
 									public void action(Control targetControl) {
 										removeSelectedPortfolio();
@@ -744,7 +744,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					portfolioInfosGroup.setLayout(portfolioInfosGroupLayout);
 					GridData portfolioInfosGroupData = new GridData(GridData.FILL_BOTH);
 					portfolioInfosGroup.setLayoutData(portfolioInfosGroupData);
-					portfolioInfosGroup.setText("Portfolios informations : ");
+					portfolioInfosGroup.setText("Portfolio summary : ");
 					portfolioInfosGroup.setFont(MainGui.DEFAULTFONT);
 					portfolioInfosGroup.setBackground(MainGui.pORTFOLIO_LIGHT);
 
@@ -765,38 +765,38 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					{
 						GridData portfolioInfoItemsData = new GridData(GridData.FILL_HORIZONTAL);
 						Label text0 = new Label(portfolioInfosGroup, SWT.RIGHT);
-						text0.setText("Realized Gain : ");
+						text0.setText("Net In : ");
 						text0.setToolTipText("Formula : Sum(out) - Sum(transaction buy price)\nNB : Transactions are stored for gnucash portfolios only. For other portfolios, this is equal to Sum(out)-Sum(in).");
 						text0.setFont(MainGui.DEFAULTFONT);
 						text0.setBackground(MainGui.pORTFOLIO_LIGHT);
+						netIn = new Text(portfolioInfosGroup, SWT.RIGHT);
+						netIn.setBackground(new Color(getDisplay(),255,255,255));
+						netIn.setEditable(false);
+						netIn.setLayoutData(portfolioInfoItemsData);
+						netIn.setText("");
+						netIn.setFont(MainGui.CONTENTFONT);
+						Label text2 = new Label(portfolioInfosGroup, SWT.RIGHT);
+						text2.setText("Gain at date : ");
+						text2.setToolTipText("Formula : (value + Sum(out))- Sum(in)");
+						text2.setFont(MainGui.DEFAULTFONT);
+						text2.setBackground(MainGui.pORTFOLIO_LIGHT);
 						gain = new Text(portfolioInfosGroup, SWT.RIGHT);
 						gain.setBackground(new Color(getDisplay(),255,255,255));
 						gain.setEditable(false);
 						gain.setLayoutData(portfolioInfoItemsData);
 						gain.setText("");
 						gain.setFont(MainGui.CONTENTFONT);
-						Label text2 = new Label(portfolioInfosGroup, SWT.RIGHT);
-						text2.setText("Gain at date : ");
-						text2.setToolTipText("Formula : (value + Sum(out))- Sum(in)");
-						text2.setFont(MainGui.DEFAULTFONT);
-						text2.setBackground(MainGui.pORTFOLIO_LIGHT);
-						unrealGain = new Text(portfolioInfosGroup, SWT.RIGHT);
-						unrealGain.setBackground(new Color(getDisplay(),255,255,255));
-						unrealGain.setEditable(false);
-						unrealGain.setLayoutData(portfolioInfoItemsData);
-						unrealGain.setText("");
-						unrealGain.setFont(MainGui.CONTENTFONT);
 						Label text2c = new Label(portfolioInfosGroup, SWT.RIGHT);
 						text2c.setText("% Gain at date : ");
 						text2c.setToolTipText("Formula : ((value + Sum(out))- Sum(in)) /  Sum(in) ");
 						text2c.setFont(MainGui.DEFAULTFONT);
 						text2c.setBackground(MainGui.pORTFOLIO_LIGHT);
-						unrealProfit = new Text(portfolioInfosGroup, SWT.RIGHT);
-						unrealProfit.setBackground(new Color(getDisplay(),255,255,255));
-						unrealProfit.setEditable(false);
-						unrealProfit.setLayoutData(portfolioInfoItemsData);
-						unrealProfit.setText("");
-						unrealProfit.setFont(MainGui.DEFAULTFONT);
+						percentGain = new Text(portfolioInfosGroup, SWT.RIGHT);
+						percentGain.setBackground(new Color(getDisplay(),255,255,255));
+						percentGain.setEditable(false);
+						percentGain.setLayoutData(portfolioInfoItemsData);
+						percentGain.setText("");
+						percentGain.setFont(MainGui.DEFAULTFONT);
 						Label text3 = new Label(portfolioInfosGroup, SWT.RIGHT);
 						text3.setText("Actual value : ");
 						text3.setFont(MainGui.DEFAULTFONT);
@@ -945,24 +945,24 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 			//Infos
 			if (slidingStartAnchor.getSelection()) {
-				unrealGain.setBackground(bgColor);
-				unrealProfit.setBackground(bgColor);
+				gain.setBackground(bgColor);
+				percentGain.setBackground(bgColor);
 				value.setBackground(bgColor);
-				unrealGain.setForeground(fgColor);
-				unrealProfit.setForeground(fgColor);
+				gain.setForeground(fgColor);
+				percentGain.setForeground(fgColor);
 				value.setForeground(fgColor);
 				
 			}  else {
-				unrealGain.setBackground(new Color(getDisplay(),255,255,255));
-				unrealProfit.setBackground(new Color(getDisplay(),255,255,255));
+				gain.setBackground(new Color(getDisplay(),255,255,255));
+				percentGain.setBackground(new Color(getDisplay(),255,255,255));
 				value.setBackground(new Color(getDisplay(),255,255,255));
-				unrealGain.setForeground(new Color(getDisplay(),0,0,0));
-				unrealProfit.setForeground(new Color(getDisplay(),0,0,0));
+				gain.setForeground(new Color(getDisplay(),0,0,0));
+				percentGain.setForeground(new Color(getDisplay(),0,0,0));
 				value.setForeground(new Color(getDisplay(),0,0,0));
 			}
 			
-			gain.setBackground(bgColor);
-			gain.setForeground(fgColor);
+			netIn.setBackground(bgColor);
+			netIn.setForeground(fgColor);
 			
 			amountIn.setBackground(bgColor);
 			amountIn.setForeground(fgColor);
@@ -985,7 +985,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		for (Observer observer : tabInitObservers) {
 			runnable.addObserver(observer);
 		}
-		getDisplay().asyncExec(runnable);	
+		getDisplay().syncExec(runnable);	
 	}
 
 	/**
@@ -1773,10 +1773,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			Currency portfolioCurrency = currentPortfolio.inferPortfolioCurrency();
 			currency.setText(portfolioCurrency.toString());
 
-			gain.setText(numberFormat.format(currentPortfolio.getRealisedGain(EventSignalConfig.getNewDate()))+ " " + portfolioCurrency.toString());
+			netIn.setText(numberFormat.format(currentPortfolio.getNetIn(EventSignalConfig.getNewDate()))+ " " + portfolioCurrency.toString());
 			
-			unrealGain.setText(signumRoundedFormat(numberFormat, currentPortfolio.getGainAmountUnrealizedForDate(currentDate))+ " " + portfolioCurrency.toString());
-			unrealProfit.setText(signumRoundedFormat(percentFormat,  currentPortfolio.getProfitUnrealizedForDate(currentDate)));
+			gain.setText(signumRoundedFormat(numberFormat, currentPortfolio.getGainAmountUnrealizedForDate(currentDate))+ " " + portfolioCurrency.toString());
+			percentGain.setText(signumRoundedFormat(percentFormat,  currentPortfolio.getGainPercentUnrealizedForDate(currentDate)));
 			value.setText(numberFormat.format(currentPortfolio.getValueForDate(currentDate))+ " " + portfolioCurrency.toString());
 
 
@@ -1787,9 +1787,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					
 		} else {
 			
+			netIn.setText("");
 			gain.setText("");
-			unrealGain.setText("");
-			unrealProfit.setText("");
+			percentGain.setText("");
 			value.setText("");
 			amountIn.setText("");
 			amountOut.setText("");
@@ -2473,7 +2473,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			for (String emess : gnuCashAdvPortfolioParser.getNotFoundStocks()) {
 				addMess = addMess.concat(emess).concat("\n");
 			}
-			UserDialog errorDialog = new UserDialog(PortfolioComposite.this.getShell(), SWT.SHELL_TRIM, erreurMessage, addMess);
+			//UserDialog errorDialog = new UserDialog(PortfolioComposite.this.getShell(), SWT.SHELL_TRIM, erreurMessage, addMess);
+			UserDialog errorDialog = new UserDialog(PortfolioComposite.this.getShell(), erreurMessage, addMess);
 			errorDialog.open();
 		}
 	}
@@ -2688,7 +2689,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
-							SWT.NONE, 
 							"Force request", exception +" has already been fulfilled sometime today.", 
 							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
 							"Reset previous request", action);

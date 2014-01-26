@@ -234,11 +234,12 @@ public class MainGui extends SashForm implements RefreshableView {
 						if (fit.find()) {
 							boolean isObsolete = isObsolete(line, fit, currentBuildDate);
 							if (isObsolete) {
-								ActionDialog dialog = new ActionDialog(getShell(), SWT.NONE, "A new version is available!", "-------------  A new version is available -------------", null, "Clik to update. Close this popup otherwise.", new ActionDialogAction() {
+								ActionDialog dialog = new ActionDialog(getShell(), "A new version is available!", "-------------  A new version is available -------------", null, "Clik to update. Close this popup otherwise.", new ActionDialogAction() {
 									
 									@Override
 									public void action(Control targetControl) {
-										Program.launch("http://premiummarkets.elasticbeanstalk.com/html/PremiumMarkets.jnlp");
+										//Program.launch("http://premiummarkets.elasticbeanstalk.com/html/PremiumMarkets.jnlp");
+										Program.launch("http://premiummarkets.elasticbeanstalk.com/html/swtui.html#Download");
 										rootShellClosedRequested(null);
 									}
 								});
@@ -495,7 +496,7 @@ public class MainGui extends SashForm implements RefreshableView {
 							eventForecast.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
-									ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NONE,  "Info",
+									ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
 											"Running a neural network forecast on technical analysis is not available in this version.\n"+
 											"This feature is part of the advanced version including Premium Markets Forecast engine.\n", 
 											null,
@@ -628,7 +629,7 @@ public class MainGui extends SashForm implements RefreshableView {
 									refreshRecommendationsMenuItem.addSelectionListener(new SelectionAdapter() {
 										@Override
 										public void widgetSelected(SelectionEvent evt) {
-											ActionDialog actionDialog = new ActionDialog(getShell(), SWT.NONE, "Info",
+											ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
 													"Web recommendation and advice feature is not available in this open source version.\n"+ 
 															"This feature is part of the advanced version including Premium Markets Forecast engine.\n",
 															null,
@@ -885,7 +886,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
 						inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						UserDialog dialog = new UserDialog(inst.getShell(),"An Error occurred.", e.getMessage());
-						dialog.open(false);
+						dialog.open();
 					} catch (Throwable e1) {
 						e1.printStackTrace();
 					}
@@ -1230,7 +1231,6 @@ public class MainGui extends SashForm implements RefreshableView {
 						}
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
-							SWT.NONE, 
 							"Force request", exception +" has already been fulfilled sometime today.", 
 							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
 							"Reset previous request", action);

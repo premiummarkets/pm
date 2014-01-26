@@ -33,7 +33,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -174,8 +173,9 @@ public abstract class ChartDisplayStrategy {
 		Runnable runnable = new Runnable() {
 			public void run() {
 				if (popupDialog == null || popupDialog.getParent().isDisposed()) {
-					popupDialog = new ActionDialog(chartTarget.getShell(), SWT.NONE, "Warning", errorMessage, addMessage, buttonTxt, fAction);
-					popupDialog.open(true);
+					popupDialog = new ActionDialog(chartTarget.getShell(), "Warning", errorMessage, addMessage, buttonTxt, fAction);
+					//popupDialog.open(true);
+					popupDialog.open();
 				} else {
 					if (!popupDialog.sameDialog(errorMessage, addMessage, buttonTxt)) {
 						popupDialog.updateDialog("Warning", errorMessage, addMessage, buttonTxt, fAction);
@@ -183,7 +183,7 @@ public abstract class ChartDisplayStrategy {
 				}
 			}
 		};
-		Display.getDefault().syncExec(runnable);
+		Display.getDefault().asyncExec(runnable);
 		
 	}
 

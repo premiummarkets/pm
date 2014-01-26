@@ -308,7 +308,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 							}
 
 							//Update potential registered view when finished
-							view.getDisplay().syncExec(new Runnable() {
+							view.getDisplay().asyncExec(new Runnable() {
 								public void run() {
 									view.endRefreshAction(exceptions);
 								}

@@ -362,7 +362,7 @@ public class Portfolio extends AbstractSharesList {
 
 	public static String PROFITUNREALIZEDHINT = "((V+O)-I)/I";
 	@Transient
-	public BigDecimal getProfitUnrealizedForDate(Date date) {
+	public BigDecimal getGainPercentUnrealizedForDate(Date date) {
 		if (this.getTotalInAmountEver().compareTo(BigDecimal.ZERO) == 0) {
 			if (this.getListShares().size() > 0) LOGGER.warn("Total amount in is zero for portfolio "+this.name,new Throwable());
 			return BigDecimal.ZERO;
@@ -377,7 +377,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Transient
-	public BigDecimal getRealisedGain(Date currentDate) {
+	public BigDecimal getNetIn(Date currentDate) {
 //		BigDecimal gainAmount = BigDecimal.ZERO;
 //		for (PortfolioShare portfolioShare : this.getListShares().values()) {
 //			gainAmount = gainAmount.add(portfolioShare.calculateGain(currentDate));

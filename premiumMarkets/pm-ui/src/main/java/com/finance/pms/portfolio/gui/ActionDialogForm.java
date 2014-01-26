@@ -45,12 +45,12 @@ public class ActionDialogForm extends ActionDialog {
 	public Object[] values;
 	
 	public ActionDialogForm(Shell shell,String buttonText,  String formText, String title) {
-		super(shell, SWT.NONE, title, formText, null, buttonText, null);
+		super(shell, title, formText, null, buttonText, null);
 	}
 	
 	@Override
 	public void open() {
-		open(false);
+		super.open();
 	}
 
 	public Object[] getValues() {

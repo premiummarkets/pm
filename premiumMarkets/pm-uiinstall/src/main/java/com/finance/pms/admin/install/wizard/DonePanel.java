@@ -40,7 +40,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSeparator;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
 
 // TODO: Auto-generated Javadoc
@@ -79,7 +79,8 @@ public class DonePanel extends JPanel {
     private JPanel titlePanel;
 
 
-	JTextArea endInstall;
+	JLabel endInstallLabel;
+	JTextPane endInstallTxt;
         
     /**
      * Instantiates a new done panel.
@@ -89,17 +90,33 @@ public class DonePanel extends JPanel {
     public DonePanel() {
         
         super();
-                
-      //  contentPanel = getContentPanel();
+
         contentPanel = new JPanel();
     	contentPanel.setLayout(new BorderLayout());
-        
-    	endInstall = new JTextArea();
-		endInstall.setEditable(false);
-		endInstall.setAlignmentY(Component.CENTER_ALIGNMENT);
-		contentPanel.add(endInstall, BorderLayout.CENTER);
-		//endInstall.setBackground(new Color(239, 183, 103));
+    	
+    	endInstallLabel = new JLabel();
+    	endInstallLabel.setBackground(new Color(192, 192, 192));
+    	endInstallLabel.setFocusable(true);
+    	endInstallLabel.setFont(endInstallLabel.getFont().deriveFont(14f));
+	    endInstallLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
+		endInstallLabel.setText(
+				"<html>"
+				+ "The installation is completed. Many thanks for your patience.<br />"
+				+ "I will now try to launch the program for you.<br />"
+				+ "This automatic launch may not work on some systems.<br /><br/> <b>PLEASE READ BELOW</b>"
+				+ "</html>");
+		contentPanel.add(endInstallLabel, BorderLayout.NORTH);
 		
+		endInstallTxt = new JTextPane();
+		endInstallTxt.setBackground(new Color(192, 192, 192));
+		endInstallTxt.setFocusable(true);
+		//endInstallTxt.setEditable(false);
+		//endInstallTxt.setFont(endInstallLabel.getFont().deriveFont(12f));
+		endInstallTxt.setAlignmentY(Component.CENTER_ALIGNMENT);
+	    endInstallTxt.setContentType("text/html");
+	    contentPanel.add(endInstallTxt, BorderLayout.SOUTH);
+	    
+	    
         ImageIcon icon = getImageIcon();
         
         titlePanel = new javax.swing.JPanel();

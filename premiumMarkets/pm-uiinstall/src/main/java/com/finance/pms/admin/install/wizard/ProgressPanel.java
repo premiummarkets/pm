@@ -199,7 +199,7 @@ public ProgressPanel() {
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
         jTextAreaDescr.setFocusable(true);
-        jTextAreaDescr.setFont(jTextAreaDescr.getFont().deriveFont(14f));
+        //jTextAreaDescr.setFont(jTextAreaDescr.getFont().deriveFont(12f));
         jTextAreaDescr.setText(
         	"<html>"+
         	"<p>" +

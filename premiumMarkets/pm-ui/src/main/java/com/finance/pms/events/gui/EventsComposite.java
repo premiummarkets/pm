@@ -1279,7 +1279,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 						}
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
-							SWT.NONE, 
 							"Force request", exception +" has already been fulfilled sometime today.", 
 							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
 							"Reset previous request", action);
