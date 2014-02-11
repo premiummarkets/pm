@@ -31,6 +31,8 @@ package com.finance.pms.alerts;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -69,12 +71,13 @@ public class AlertOnThreshold implements Serializable {
 		if (value != null ) {
 			this.value = value;
 		} else {
-			value = BigDecimal.ZERO.setScale(2);
+			value = BigDecimal.ZERO.setScale(4);
 		}
 		this.optionalMessage = (optionalMessage == null)?alertType.getText():optionalMessage;
 		this.alertType = alertType;
 		this.thresholdType = thresholdType;
 		this.portfolioShare = portfolioShare;
+		
 	}
 
 	public AlertOnThreshold(AlertOnThreshold alert, PortfolioShare portfolioShare) {
@@ -121,7 +124,8 @@ public class AlertOnThreshold implements Serializable {
 
 	@Override
 	public String toString() {
-		return this.value + ", " + this.alertType.getText()+ " " + this.optionalMessage;
+		NumberFormat format = new DecimalFormat("#0.00");
+		return format.format(this.value) + ", " + this.alertType.getText()+ " " + this.optionalMessage;
 	}
 	
 	@Id

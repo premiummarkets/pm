@@ -45,7 +45,7 @@ import org.apache.commons.httpclient.HttpException;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -101,7 +101,7 @@ public abstract class EventModelStrategyEngine<X> {
 
 
 	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException;
-	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws StockNotFoundException;
+	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException;
 	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
 	public abstract void callbackForAlerts(Set<Observer> engineObservers,  X rootParam,  @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws InterruptedException;
 	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams);

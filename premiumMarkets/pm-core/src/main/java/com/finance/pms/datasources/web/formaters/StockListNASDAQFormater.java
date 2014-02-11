@@ -121,7 +121,7 @@ public class StockListNASDAQFormater extends LineFormater {
 	}
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return false;
 	}
 }

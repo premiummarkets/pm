@@ -34,17 +34,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 
 import javax.persistence.NoResultException;
@@ -86,19 +86,38 @@ import com.finance.pms.portfolio.UserPortfolio;
 
 public class GnuCashAdvPortfolioParser {
 	
-	private static final int REALIZED_GAIN = 10;
-	private static final int INCOME_COLUMN = 9;
-	private static final int MONEYOUT_COLUMN = 8;
-	private static final int MONEYIN_COLUMN = 7;
-	@SuppressWarnings("unused") private static final int VALUE_COLUMN = 6;
-	private static final int BASIS_COLUMN = 5;
-	@SuppressWarnings("unused") private static final int UNKNOWN_COLUMN = 4;
-	private static final int PRICE_COLUMN = 3;
-	private static final int NBSHARES_COLUMN = 2;
+//	private static final int REALIZED_GAIN = 10;
+//	private static final int INCOME_COLUMN = 9;
+//	private static final int MONEYOUT_COLUMN = 8;
+//	private static final int MONEYIN_COLUMN = 7;
+//	@SuppressWarnings("unused") private static final int VALUE_COLUMN = 6;
+//	private static final int BASIS_COLUMN = 5;
+//	@SuppressWarnings("unused") private static final int UNKNOWN_COLUMN = 4;
+//	private static final int PRICE_COLUMN = 3;
+//	private static final int NBSHARES_COLUMN = 2;
+//	private static final int SYMBOL_COLUMN = 1;
+//	private static final int ACCOUNT_COLUMN = 0;
+	
+	private static final String[] expectedTitles = new String[]{"Account", "Symbol", "Basis", "Shares", "Price", "Money In", "Money Out", "Income", "Realized Gain"};
+	@SuppressWarnings("unused") private static final int REALIZED_GAIN = 8;
+	@SuppressWarnings("unused") private static final int INCOME_COLUMN = 7;
+	@SuppressWarnings("unused") private static final int MONEYOUT_COLUMN = 6;
+	@SuppressWarnings("unused") private static final int MONEYIN_COLUMN = 5;
+	private static final int PRICE_COLUMN = 4;
+	@SuppressWarnings("unused") private static final int NBSHARES_COLUMN = 3;
+	private static final int BASIS_COLUMN = 2;
 	private static final int SYMBOL_COLUMN = 1;
 	private static final int ACCOUNT_COLUMN = 0;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(GnuCashAdvPortfolioParser.class);
+	
+
+	private Map<String, Integer> titlesPositions = new HashMap<String, Integer>();
+	{
+		for (String expTitle : expectedTitles) {
+			titlesPositions.put(expTitle, -1);
+		}
+	}
 	
 	ShareDAO shareDAO;
 	CurrencyConverter currencyConverter;
@@ -119,18 +138,6 @@ public class GnuCashAdvPortfolioParser {
 		this.notFoundStocks = new ArrayList<String>();
 	}
 
-	/**
-	 * @param filePath
-	 * @param oldPortfolio
-	 * @param newPortfolio
-	 * @return
-	 * @throws IOException
-	 * Create a new portfolio from the gnucash export html file.
-	 * The symbol stored in the file is used to retrieve or create the portfolio shares. 
-	 * An extra extension is added to the symbol for use in the designated quotation provider.
-	 * The isin will be picked up from db (not form the export).
-	 * If the stock is not in db, a warning will be raised for the user to update the db using import stock file feature.
-	 */
 	public Portfolio parse(String filePath, String newPortfolioName, UserPortfolio oldPortfolio) throws IOException {
 		
 		//UserPortfolio newPortfolio = new UserPortfolio(newPortfolioName, null);
@@ -139,7 +146,7 @@ public class GnuCashAdvPortfolioParser {
 		try {
 			
 			//Delete first line
-			StringWriter outputWriter = deleteDocType(filePath);
+			StringWriter outputWriter = gnuCashParserHelper.deleteDocType(filePath);
 			
 			//Tidy
 			ByteArrayInputStream inputStream = tidyDocument(new StringInputStream(outputWriter.toString()));
@@ -168,6 +175,7 @@ public class GnuCashAdvPortfolioParser {
 				try {
 							
 					PortfolioShare portfolioShareUpdated = addPortfolioShareFor(newPortfolio, newPortfolioName, row);
+					
 					if (newPortfolio == null) newPortfolio = ((UserPortfolio) portfolioShareUpdated.getPortfolio());
 					newPortfolio.resetManualAlerts(portfolioShareUpdated, oldPortfolio);
 					
@@ -189,7 +197,7 @@ public class GnuCashAdvPortfolioParser {
 			throw new IOException("Invalid file "+e.getMessage(),e);
 		} 
 		
-		if (newPortfolio == null) throw new IOException("Invalid file.\nNo transaciton were found for that portfolio");
+		if (newPortfolio == null) throw new IOException("Data inconsistency.\nNo transaction were found for that Portfolio.\nPlease load the relevant GUNUCASH 'Transaction Report' first.");
 		
 		return newPortfolio;
 
@@ -215,52 +223,62 @@ public class GnuCashAdvPortfolioParser {
 		//vs
 		//Stock stock; Date  buyDate; Float quantity; Float cashin; Float cashout; lastDayCloseValue;
 	
-		NodeList rowAtts = extractAtts(row,"th");
-		if ("Account".equals(((Element) rowAtts.item(ACCOUNT_COLUMN)).getTextContent().trim()) && 
-		"Symbol".equals(((Element) rowAtts.item(SYMBOL_COLUMN)).getTextContent().trim()) && 
-		"Basis".equals(((Element) rowAtts.item(BASIS_COLUMN)).getTextContent().trim()) && 
-		"Shares".equals(((Element) rowAtts.item(NBSHARES_COLUMN)).getTextContent().trim()) &&
-		"Price".equals(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent().trim()) &&
-		"Money In".equals(((Element) rowAtts.item(MONEYIN_COLUMN)).getTextContent().trim()) &&
-		"Money Out".equals(((Element) rowAtts.item(MONEYOUT_COLUMN)).getTextContent().trim()) &&
-		"Income".equals(((Element) rowAtts.item(INCOME_COLUMN)).getTextContent().trim()) &&
-		(((Element) rowAtts.item(REALIZED_GAIN)).getTextContent().trim().replaceAll("EUR( |\n)*", "")).matches("Reali.ed Gain"))
-			return;
+		NodeList thNodes = extractNodes(row,"th");
+//		if ("Account".equals(((Element) thNodes.item(ACCOUNT_COLUMN)).getTextContent().trim()) && 
+//		"Symbol".equals(((Element) thNodes.item(SYMBOL_COLUMN)).getTextContent().trim()) && 
+//		"Basis".equals(((Element) thNodes.item(BASIS_COLUMN)).getTextContent().trim()) && 
+//		"Shares".equals(((Element) thNodes.item(NBSHARES_COLUMN)).getTextContent().trim()) &&
+//		"Price".equals(((Element) thNodes.item(PRICE_COLUMN)).getTextContent().trim()) &&
+//		"Money In".equals(((Element) thNodes.item(MONEYIN_COLUMN)).getTextContent().trim()) &&
+//		"Money Out".equals(((Element) thNodes.item(MONEYOUT_COLUMN)).getTextContent().trim()) &&
+//		"Income".equals(((Element) thNodes.item(INCOME_COLUMN)).getTextContent().trim()) &&
+//		(((Element) thNodes.item(REALIZED_GAIN)).getTextContent().trim().replaceAll("EUR( |\n)*", "")).matches("Reali.ed Gain"))
+//			return;
+		
+ 		for (int i = 0; i < thNodes.getLength(); i++) {
+			for (String expectedTitle : expectedTitles) {
+				if (expectedTitle.equals(((Element) thNodes.item(i)).getTextContent().trim())) {
+					titlesPositions.put(expectedTitle, i);
+				}
+			}
+		}
+ 		
+ 		List<String> unfoundTitles = new ArrayList<String>();
+ 		for (String expceteTitle : expectedTitles) {
+			Integer titlePosition = titlesPositions.get(expceteTitle);
+			if (titlePosition == -1) {
+				unfoundTitles.add(expceteTitle);
+			}
+		}
+ 		
+ 		LOGGER.info("Titles found : "+titlesPositions);
 			
-		throw new RuntimeException("Invalid file or gnucash export");
+		if (!unfoundTitles.isEmpty())throw new RuntimeException("Invalid file or GNUCASH export. Missing columns : "+unfoundTitles);
 	}
 
-	/**
-	 * @param newPortfolioName 
-	 * @param row
-	 * @return 
-	 * @return
-	 * @throws XPathExpressionException
-	 * @throws ParseException 
-	 * @throws DOMException 
-	 */
-	private PortfolioShare addPortfolioShareFor(UserPortfolio initOrUsedPorfolio, String newPortfolioName, Element row) throws XPathExpressionException, DOMException, ParseException {
+	private PortfolioShare addPortfolioShareFor(UserPortfolio initOrUsedPorfolio, String newPortfolioName, Element row) throws XPathExpressionException, DOMException, ParseException, NoResultException {
 	
-		NodeList rowAtts = extractAtts(row,"td");
+		NodeList portfolioNodes = extractNodes(row,"td");
 	
-		String symbol = ((Element) rowAtts.item(SYMBOL_COLUMN)).getTextContent();
-		String accountTestContent = ((Element) rowAtts.item(ACCOUNT_COLUMN)).getTextContent();
+		String symbolContent = ((Element) portfolioNodes.item(columnPositionFor(SYMBOL_COLUMN))).getTextContent();
+		String accountTestContent = ((Element) portfolioNodes.item(columnPositionFor(ACCOUNT_COLUMN))).getTextContent();
 		
-		String name = accountTestContent.replaceAll("( |\n)*", "");
+		String symbol = symbolContent.trim().replaceAll("( |\n)+", "");
+		String name = accountTestContent.replaceAll("[ \n]+"," ").trim();
 		String account = accountTestContent.trim().replaceAll("[ \n]+","_");
 		Stock stock;
 		try {
 			stock = getStockFor(symbol, name);
 			LOGGER.info("Parsing row for "+stock);
 			
-			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, account, EventSignalConfig.getNewDate());
+			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, account, EventSignalConfig.getNewDate());
 			if (transactionsForStock.size() == 0) {
-				throw new NoResultException(stock+" is in portoflio "+newPortfolioName+"\n" +
-						" but no transaction was found in the gnucash transaction report regarding the former.\n" +
-						"\tPlease check the gnucash transaction report.\n");
+				throw new NoResultException(stock+" is in Portfolio "+newPortfolioName+"\n" +
+						" but no transaction was found in the GNUCASH transaction report regarding the former.\n" +
+						"\tPlease check the GNUCASH transaction report.\n");
 			}
 			
-			PortfolioShare updatedPortfolioShare = addPortfolioShare(initOrUsedPorfolio, newPortfolioName, rowAtts, stock, account, transactionsForStock);
+			PortfolioShare updatedPortfolioShare = addPortfolioShare(initOrUsedPorfolio, newPortfolioName, portfolioNodes, stock, account, transactionsForStock);
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(new ArrayList<TransactionElement>(transactionsForStock));
 		
 			return updatedPortfolioShare;
@@ -268,7 +286,6 @@ public class GnuCashAdvPortfolioParser {
 		} catch (ParseException e) {
 			throw new NoResultException(e.getMessage()+". For Name : "+name);
 		} catch (NoResultException e) {
-			//throw new NoResultException("Possible file feed : \n "+symbol+","+symbol+","+name+",TRACKERS,EURONEXT,investir .\n"+e.getMessage());
 			throw e;
 		} catch (InvalidAlgorithmParameterException e) {
 			String message = e.getMessage()+". For Name : "+name;
@@ -278,21 +295,15 @@ public class GnuCashAdvPortfolioParser {
 	
 	}
 
-	/**
-	 * @param portfolio
-	 * @param newPortfolioName 
-	 * @param rowAtts
-	 * @param stock
-	 * @param account
-	 * @param transactionsForStock
-	 * @return
-	 * @throws ParseException
-	 * @throws InvalidAlgorithmParameterException
-	 */
-	private PortfolioShare addPortfolioShare(UserPortfolio portfolio, String newPortfolioName, NodeList rowAtts, Stock stock, String account, SortedSet<TransactionElement> transactionsForStock) 
+	protected Integer columnPositionFor(int columnRefIdx) {
+		return titlesPositions.get(expectedTitles[columnRefIdx]);
+	}
+
+	private PortfolioShare addPortfolioShare(UserPortfolio portfolio, String newPortfolioName, NodeList portfolioNodes, Stock stock, String account, SortedSet<TransactionElement> transactionsForStock) 
 																															throws ParseException, InvalidAlgorithmParameterException {
-		Currency reportQuotationCurrency = gnuCashParserHelper.extractCurrency(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
-		Currency portfolioReportCurrency = gnuCashParserHelper.extractCurrency(((Element) rowAtts.item(BASIS_COLUMN)).getTextContent());
+		
+		Currency reportQuotationCurrency = gnuCashParserHelper.extractCurrency(((Element) portfolioNodes.item(columnPositionFor(PRICE_COLUMN))).getTextContent());
+		Currency portfolioReportCurrency = gnuCashParserHelper.extractCurrency(((Element) portfolioNodes.item(columnPositionFor(BASIS_COLUMN))).getTextContent());
 		
 //			BigDecimal quantity = gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(NBSHARES_COLUMN)).getTextContent());		
 //			//Sum from other Asset account
@@ -302,30 +313,32 @@ public class GnuCashAdvPortfolioParser {
 //			//Sum to other Asset account
 //			BigDecimal cashout = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(MONEYOUT_COLUMN)).getTextContent()),portfolioReportCurrency);
 		
-		BigDecimal calcCashin = BigDecimal.ZERO;
-		BigDecimal calcCashout = BigDecimal.ZERO;
-		BigDecimal quantity = BigDecimal.ZERO;
-		for (TransactionElement transactionElement : transactionsForStock) {
-			//Currency transactionCurrency = transactionElement.getCurrency();
-			//Currency transactionCurrency = stock.getMarket().getCurrency();
-			Currency transactionCurrency = reportQuotationCurrency;
-			
-			//Fix erroneous gnucash transactions
-			transactionElement.setCurrency(transactionCurrency);
-			//End fix
-			
-			BigDecimal price = currencyConverter.convert(transactionCurrency, portfolioReportCurrency, transactionElement.getPrice(), transactionElement.getDate());
-			BigDecimal amount = price.multiply(transactionElement.getQuantity()).setScale(2, BigDecimal.ROUND_DOWN);
-			if (amount.compareTo(BigDecimal.ZERO) > 0) {
-				calcCashin = calcCashin.add(amount);
-			} else {
-				calcCashout = calcCashout.add(amount.abs());
-			}
-			quantity = quantity.add(transactionElement.getQuantity());
-		}
+//		BigDecimal calcCashin = BigDecimal.ZERO;
+//		BigDecimal calcCashout = BigDecimal.ZERO;
+//		BigDecimal quantity = BigDecimal.ZERO;
+//		for (TransactionElement transactionElement : transactionsForStock) {
+//			Currency transactionCurrency = reportQuotationCurrency;
+//
+//			//Fix erroneous gnucash transactions
+//			transactionElement.setCurrency(transactionCurrency);
+//			//End fix
+//			
+//			BigDecimal price = currencyConverter.convert(transactionCurrency, portfolioReportCurrency, transactionElement.getPrice(), transactionElement.getDate());
+//			BigDecimal amount = price.multiply(transactionElement.getQuantity()).setScale(4, BigDecimal.ROUND_DOWN);
+//			if (amount.compareTo(BigDecimal.ZERO) > 0) {
+//				calcCashin = calcCashin.add(amount);
+//			} else {
+//				calcCashout = calcCashout.add(amount.abs());
+//			}
+//			quantity = quantity.add(transactionElement.getQuantity());
+//		}
 		
 		if (portfolio == null) portfolio = new UserPortfolio(newPortfolioName, portfolioReportCurrency);
-		return portfolio.addOrUpdateShareWithNewAmounts(stock, account, quantity, EventSignalConfig.getNewDate(), calcCashin, calcCashout, MonitorLevel.BEARISH, portfolioReportCurrency);
+		for (TransactionElement transactionElement : transactionsForStock) {
+			portfolio.rawAddTransaction(transactionElement);
+		}
+		return portfolio.addOrUpdateShareWithoutTransaction(stock, account, MonitorLevel.BEARISH, portfolioReportCurrency, EventSignalConfig.getNewDate());
+		
 	}
 
 
@@ -337,11 +350,11 @@ public class GnuCashAdvPortfolioParser {
 				return  stock;
 			}
 		} catch (DataAccessException e) {
-			LOGGER.error("Inconsitencies in DB for "+ref,e);
+			LOGGER.error("Inconsistencies in DB for "+ref, e);
 		}
 		
-		LOGGER.info("The following stock was not found in db : "+ref+", "+name);
-		String urls = "No quotation found in database for "+name+" "+ref+".\nPossible file feeds :\n";
+		LOGGER.info("The following stock was not found in db. Symbol or reference : "+ref+", name : "+name);
+		String urls = "No quotation found in database for "+name+"/"+ref+".\nPossible file feeds :\n";
 		for (MarketQuotationProviders quotationsProvider : MarketQuotationProviders.values()) {
 
 			try {
@@ -361,11 +374,12 @@ public class GnuCashAdvPortfolioParser {
 									"",TradingMode.CONTINUOUS,0l);
 							
 							Date end = EventSignalConfig.getNewDate();
-							url = ((QuotationProvider) providerInstance).resolveUrlFor(stock, new Date(end.getTime()-60*60*1000*24*5), end);
+							Date fiveCalDaysBeforeEnd = new Date(end.getTime()-60*60*1000*24*5);
+							url = ((QuotationProvider) providerInstance).resolveUrlFor(stock, fiveCalDaysBeforeEnd, end);
 						
 							List<Validatable> pageRes = null;
 							try {
-								pageRes = ((QuotationProvider) providerInstance).readPage(stock, url);
+								pageRes = ((QuotationProvider) providerInstance).readPage(stock, url, fiveCalDaysBeforeEnd);
 							} catch (Exception e) {
 								
 							}
@@ -377,7 +391,7 @@ public class GnuCashAdvPortfolioParser {
 						}
 						
 					} catch (Exception e1) {
-						LOGGER.debug("No url can be resovled for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
+						LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
 					}
 
 				}
@@ -391,11 +405,6 @@ public class GnuCashAdvPortfolioParser {
 		
 	}
 
-	/**
-	 * @param inputStream
-	 * @return
-	 * @throws XPathExpressionException
-	 */
 	private NodeList extractRows(InputStream inputStream) throws XPathExpressionException {
 		XPathFactory factory=XPathFactory.newInstance();  
 		XPath xPath=factory.newXPath();  
@@ -406,7 +415,7 @@ public class GnuCashAdvPortfolioParser {
 		return rows;
 	}
 	
-	private NodeList extractAtts(Element row,String expression) throws XPathExpressionException {
+	private NodeList extractNodes(Element row,String expression) throws XPathExpressionException {
 		
 		XPathFactory factory=XPathFactory.newInstance();  
 		XPath xPath=factory.newXPath();   
@@ -415,41 +424,6 @@ public class GnuCashAdvPortfolioParser {
 		return nodeList;
 	}
 
-	/**
-	 * @param filePath
-	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
-	private StringWriter deleteDocType(String filePath) throws FileNotFoundException, IOException {
-		//"http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd"
-		//change html to xml
-		String firstLine = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 TRANSITIONAL//EN\">";
-		BufferedReader br = new BufferedReader(new FileReader(filePath));
-		StringWriter outputWriter = new StringWriter();
-
-		String line = null;
-
-		//Read from the original file and write to the new
-		//unless content matches data to be removed.
-		while ((line = br.readLine()) != null) {
-
-			if (!line.trim().equals(firstLine)) {
-				outputWriter.write(line);
-				outputWriter.flush();
-			}
-		}
-		outputWriter.close();
-		br.close();
-		return outputWriter;
-	}
-
-	/**
-	 * @param filePath
-	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
 	private ByteArrayInputStream tidyDocument(InputStream inputStream) throws FileNotFoundException, IOException {
 		Tidy tidy = new Tidy();
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

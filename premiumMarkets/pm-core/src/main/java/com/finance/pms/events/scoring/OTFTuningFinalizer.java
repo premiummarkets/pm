@@ -452,14 +452,17 @@ public class OTFTuningFinalizer {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug(
 					"Unreal : Compound profit is is "+trendFollowProfit+" at "+currentDate.getTime()+". " +
 					"Last price change is "+lastClose+" at "+currentDate.getTime()+", previous close "+prevTrendClose+" : "+lastClose+"-"+prevTrendClose+"/"+prevTrendClose+"="+followpPriceChange);
+			
 			trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("New Compound Profit at "+currentDate.getTime()+" : prevTrendFollowProfit*("+followpPriceChange+"+1)="+trendFollowProfit);
 
 			//Stop loss
 			if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0 && prevStopLossClose != null) {
+				
 				if (LOGGER.isDebugEnabled()) LOGGER.debug(
 						"Unreal : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". " +
 						"Last price change is "+lastClose+" at "+currentDate.getTime()+", previous close "+prevStopLossClose+" : "+lastClose+"-"+prevStopLossClose+"/"+prevStopLossClose+"="+followpPriceChange);
+				
 				stopLossProfit = stopLossProfit.multiply(stopLosspPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("New Stop loss Profit at "+currentDate.getTime()+" : prevStopLossProfit*("+stopLosspPriceChange+"+1)="+stopLossProfit);
 			}
@@ -674,7 +677,7 @@ public class OTFTuningFinalizer {
 				
 			}
 			
-			fileWriter.write("total , return : "+tuningRes.getFollowProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
+			fileWriter.write("total , percent gain : "+tuningRes.getFollowProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
 			tuningRes.setConfigRatingFile(fileName);
 			
 			fileWriter.write("rating , "+calculatedRating);		

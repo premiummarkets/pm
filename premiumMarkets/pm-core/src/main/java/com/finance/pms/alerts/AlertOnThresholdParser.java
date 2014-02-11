@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.AlertEventKey;
@@ -74,7 +75,7 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 
 			LOGGER.debug("Calculate alerts for : " + portfolioShare);
 
-			if (portfolioShare.getQuantity().compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getBuyDate().after(this.getCalculatorQuotationData().get(quotationIndex).getDate())) {
+			if (portfolioShare.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(this.getCalculatorQuotationData().get(quotationIndex).getDate())) {
 
 				checkAlertCrossingUp(edata, quotationIndex);
 				checkAlertCrossingDown(edata, quotationIndex);
@@ -86,8 +87,8 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 				}
 			} else {
 				LOGGER.debug("Can't parse alert on the " + getCalculatorQuotationData().get(quotationIndex).getDate() +
-						" cause either : the share was bought after on " + portfolioShare.getBuyDate() +
-						" or the share as been sold by another thread and there is none left : quantity left is " + portfolioShare.getQuantity());
+						" cause either : the share was bought after on " + portfolioShare.getLastTransactionDate() +
+						" or the share as been sold by another thread and there is none left : quantity left is " + portfolioShare.getQuantity(EventSignalConfig.getNewDate()));
 
 			}
 		}
@@ -95,11 +96,6 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		return edata;
 	}
 
-	/**
-	 * @param edata
-	 * @param quotationIndex
-	 * @param downMessage
-	 */
 	private void checkAlertCrossingDown(Map<EventKey, EventValue> edata, Integer quotationIndex) {
 		
 		if (portfolioShare.getAlertsOnThresholdDown() != null) {
@@ -111,13 +107,13 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 					portfolioShare.resetCrossDown(alert, todaysQuotation);
 					
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
-					String message = "Below "+alert + " at " + todaysQuotation;
+					String message = "Below "+ alert + " at " + todaysQuotation;
 					message = message + additionnalMessage(todaysQuotation);
 					
 					//TODO improved rules
 					EventType eventType = EventType.INFO; //default alert
 					if (
-						(AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) && portfolioShare.getAvgBuyPrice().compareTo(todaysQuotation) > 0) || 
+						(AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) && portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0) || 
 						AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())
 						) 
 					{ //price above buy price and going down or price below weighted profit guard => SELL
@@ -132,11 +128,6 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		}
 	}
 
-	/**
-	 * @param edata
-	 * @param quotationIndex
-	 * @param upMessage
-	 */
 	private void checkAlertCrossingUp(Map<EventKey, EventValue> edata, Integer quotationIndex) {
 		
 		if (portfolioShare.getAlertsOnThresholdUp() != null) {
@@ -159,8 +150,8 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 					message = message + additionnalMessage(todaysQuotation);
 					
 					EventType eventType = EventType.INFO; //default alert
-					if (AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.equals(alert.getAlertType())) { //above profit limit reach => SELL
-						eventType = EventType.BEARISH;
+					if (AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.equals(alert.getAlertType())) { //above profit limit reach
+						//An info event is raised.
 					}
 					
 					alertDetected(edata, quotationIndex, eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
@@ -169,29 +160,16 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		}
 	}
 
-	/**
-	 * @param todaysQuotation
-	 * @param message
-	 * @return
-	 */
 	private String additionnalMessage(BigDecimal todaysQuotation) {
 		
 		BigDecimal avgPriceDist = BigDecimal.ZERO;
-		BigDecimal avgBuyPrice = portfolioShare.getAvgBuyPrice();
+		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency());
 		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {
 			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice,2,BigDecimal.ROUND_DOWN);
 		}
-		return ".\nFYI, price ("+todaysQuotation+") is "+new DecimalFormat("#0.00 %").format(avgPriceDist.doubleValue())+" away from average buy price ("+avgBuyPrice+").";
+		return ".\nFYI, price ("+todaysQuotation+") is "+new DecimalFormat("#0.00 %").format(avgPriceDist.doubleValue())+" away from average cost per unit ("+avgBuyPrice+").";
 	}
 
-	/**
-	 * @param eventData
-	 * @param quotationDataIndex
-	 * @param eventType 
-	 * @param message
-	 * @param alertType 
-	 * @param portfolioShare
-	 */
 	private void alertDetected(Map<EventKey, EventValue> eventData, Integer quotationDataIndex, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {
 		Date current = this.getCalculatorQuotationData().getDate(quotationDataIndex);
 		AlertEventKey iek = new AlertEventKey(current, eventDefinition, eventType, alertType);

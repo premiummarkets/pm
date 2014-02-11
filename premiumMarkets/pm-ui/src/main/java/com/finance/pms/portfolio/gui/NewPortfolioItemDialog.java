@@ -30,7 +30,6 @@
 package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -73,7 +72,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
-import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -111,17 +109,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	protected StockList stockList;
 	protected Composite ctrlComposite;
 
-	/**
-	 * Instantiates a new new portfolio item dialog.
-	 * 
-	 * @param parent the parent
-	 * @param style the style
-	 * @param alreadyBought the already scaned
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param caller 
-	 * @param tabIdx 
-	 */
 	public NewPortfolioItemDialog(Composite parent, int style, Composite caller) {
 		
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | style);
@@ -131,36 +118,6 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		biggerFont =  MainGui.DEFAULTFONT;
 	}
 
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public static void main(String[] args) {
-		SpringContext ctx = new SpringContext(args[0]);
-		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
-		ctx.refresh();
-		NewPortfolioItemDialog inst = showUI(0, new ArrayList<PortfolioShare>(), new Shell(), null);
-		
-		try {
-			inst.swtLoop();
-		} catch (Exception e) {
-			LOGGER.error(e, e);
-		}
-		
-	}
-
-	/**
-	 * Show ui.
-	 * 
-	 * @param alreadyScanned the already scaned
-	 * 
-	 * @return the new portfolio item dialog
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static NewPortfolioItemDialog showUI(int tabIdx, Collection<PortfolioShare> alreadyScanned, Shell shell, PortfolioComposite composite) {
 		
 		if (NewPortfolioItemDialog.runningInst != null && !NewPortfolioItemDialog.runningInst.isDisposed()) {
@@ -198,39 +155,11 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		
 		return inst;
 	}
-
-	/**
-	 * Swt loop.
-	 * 
-	 * @param inst the inst
-	 * @param display the display
-	 */
-	@Deprecated
-	private void swtLoop() {
-		
-		while (!this.isDisposed() && !this.getShell().isDisposed()) {
-			try {
-				if (!this.getDisplay().readAndDispatch()) this.getDisplay().sleep();
-			} catch (RuntimeException e) {
-				LOGGER.error("Error in New Portfolio Item Gui : " + e.getMessage(),e);
-				LOGGER.debug("Error in New Portfolio Item Gui : ", e);
-			} catch (Error e) {
-				LOGGER.error("Error in  Gui : " + e.getMessage(),e);
-				LOGGER.debug("Error in  Gui : ", e);
-			}
-		}
-	}
 	
 	public void initGui(int stockSelectionMode) {
 		this.initGui(stockSelectionMode, true);
 	}
 
-	/**
-	 * Open.sharelistSelectionGroup
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param stockSelectionMode 
-	 */
 	protected void initGui(int stockSelectionMode, Boolean displayControls) {
 		
 		this.setLayout(new GridLayout());
@@ -610,14 +539,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		
 		updateTableSize();
 	}
-	
 
-
-	/**
-	 * Update table display.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void updateTableDisplay() {
 
 		for (Stock s : stockList) {
@@ -639,14 +561,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			}
 		}
 	}
-	
-	/**
-	 * Sort column.
-	 * 
-	 * @param colStr the col str
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private void sortColumn(String colStr) {
 		
 		int colNum = Titles.valueOf(colStr).ordinal();

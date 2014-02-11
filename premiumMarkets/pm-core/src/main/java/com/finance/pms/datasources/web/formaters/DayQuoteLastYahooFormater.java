@@ -40,8 +40,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
 public class DayQuoteLastYahooFormater extends LineFormater {
-	
-	/** The PATTERNS. */
+
 	private static PatternProperties PATTERNS;
 	
 	private Pattern lastQuote;
@@ -86,7 +85,7 @@ public class DayQuoteLastYahooFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return true;
 	}
 

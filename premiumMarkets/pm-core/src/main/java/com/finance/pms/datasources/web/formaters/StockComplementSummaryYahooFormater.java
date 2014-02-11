@@ -41,7 +41,6 @@ import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementSummaryYahooFormater extends LineFormater {
 
-	/** The PATTERNS. */
 	private static PatternProperties PATTERNS;
 
 	private Pattern divPattern;
@@ -109,8 +108,8 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 
 }

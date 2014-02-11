@@ -37,13 +37,14 @@ import java.util.Set;
 import org.eclipse.swt.graphics.Color;
 
 import com.finance.pms.admin.config.EventSignalConfig;
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.datasources.files.TransactionElement;
+import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.portfolio.InOutWeighted;
 import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.InvalidQuantityException;
 import com.finance.pms.portfolio.MonitorLevel;
@@ -53,8 +54,7 @@ import com.finance.pms.portfolio.Transaction;
 public class SlidingPortfolioShare extends PortfolioShare implements InfoObject { 
 	
 	private static final long serialVersionUID = 7701345524631769605L;
-	private static MyLogger LOGGER = MyLogger.getLogger(SlidingPortfolioShare.class);
-	
+
 	private PortfolioShare underLyingPortfolioShare;
 	
 	Boolean displayOnChart;
@@ -66,6 +66,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	Date start;
 	Date end;
 
+	private Currency displayedCurrency;
+
 	
 	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color) {
 		super(portfolioShare);
@@ -75,69 +77,63 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.slidingEnd = slidingEnd;
 		this.slidingStart = slidingStart;
 		this.color = color;
-		displayOnChart = true;
-	}
-
-	public BigDecimal getCashin() {
+		this.displayOnChart = true;
 		
-		try {
-			if (slidingStart) {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(super.getStock(), start, true, super.getTransactionCurrency());
-				BigDecimal startClosePrice = quotations.getClosestCloseForDate(start);
-				return super.getQuantity().multiply(startClosePrice).setScale(2, BigDecimal.ROUND_DOWN);
-			} else {
-				return super.getCashin();
-			}
-		} catch (Exception e) {
-			LOGGER.warn(e,e);
-			return BigDecimal.ZERO;
-		} 
+		this.displayedCurrency = portfolioShare.getTransactionCurrency();
 	}
 
-	public BigDecimal getCashout() {
-		
-		if (slidingStart) {
-			return BigDecimal.ZERO;
-		} else {
-			return super.getCashout();
-		}
+	public BigDecimal getTodaysCashin() {
+		return super.getCashin(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public InOutWeighted getWeightedInvested() {
-		return super.getWeightedInvested(EventSignalConfig.getNewDate());
+	public BigDecimal getTodaysCashout() {
+		return super.getCashout(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public BigDecimal getTodaysCloseQuotation() {
-		return super.getCloseQuotationFor(calcCurrentDate());
+	public InOutWeighted getTodaysWeightedInvested() {
+		return super.getWeightedInvested(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	}
+
+	public BigDecimal getTodaysPriceClose() {
+		return super.getPriceClose(calcSlidingEndDate(), displayedCurrency);
 	}
 	
-	public BigDecimal getUnrealizedProfit() {
-		return super.getUnrealizedProfit(calcCurrentDate());
+	public BigDecimal getTodaysGainUnrealPercent() {
+		return super.getGainUnrealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public BigDecimal getProfit() {
-		//return super.getProfit(EventSignalConfig.getNewDate());
-		return super.getProfit(calcCurrentDate());
+	public BigDecimal getTodaysGainRealPercent() {
+		return super.geGainRealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public BigDecimal getWeightedUnrealizedProfit() {
-		return super.getWeightedUnrealizedProfit(EventSignalConfig.getNewDate());
+	public BigDecimal getGainTotalWeightedPercent() {
+		return super.getGainTotalWeightedPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public BigDecimal getTodaysValue() {
-		return super.getValueForDate(calcCurrentDate());
+		return super.getValue(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public BigDecimal getPriceForZeroWeightedProfit() {
-		return super.getPriceForZeroWeightedProfit(EventSignalConfig.getNewDate());
+	public BigDecimal getTodaysPriceZeroGainWeighted() {
+		return super.getPriceZeroGainWeighted(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	private Date calcCurrentDate() {
+	private Date calcSlidingEndDate() {
 		Date currentDate;
 		if (slidingEnd) {
 			currentDate = end;
 		} else {
 			currentDate = EventSignalConfig.getNewDate();
+		}
+		return currentDate;
+	}
+	
+	private Date calcSlidingStartDate() {
+		Date currentDate;
+		if (slidingStart) {
+			currentDate = start;
+		} else {
+			currentDate = DateFactory.dateAtZero();
 		}
 		return currentDate;
 	}
@@ -162,26 +158,20 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return color;
 	}
 
-	public BigDecimal getUnrealizedGain() {
-		return super.getUnrealizedGain(calcCurrentDate());
+	public BigDecimal getTodaysGainUnreal() {
+		return super.getGainUnreal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 	
 
-	public BigDecimal getRealizedGain() {
-		//return super.calculateGain(EventSignalConfig.getNewDate());
-		return this.getCashout();
+	public BigDecimal getTodaysGainTotalPercent() {
+		return super.getGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	@Override
-	public void applyTransaction(Transaction transaction, boolean propagate) throws InvalidQuantityException {
-		underLyingPortfolioShare.applyTransaction(transaction, true);
-		super.applyTransaction(transaction, false);
-	}
-	
-	@Override
-	public void setBuyDate(Date buyDate) {
-		underLyingPortfolioShare.setBuyDate(buyDate);
-		super.setBuyDate(buyDate);
+	public TransactionElement applyTransaction(Transaction transaction) throws InvalidQuantityException {
+		TransactionElement appliedTransaction = underLyingPortfolioShare.applyTransaction(transaction);
+		super.applyTransaction(transaction);
+		return appliedTransaction;
 	}
 	
 	@Override
@@ -215,14 +205,13 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
-	public void addWeigthedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
-		underLyingPortfolioShare.addWeigthedZeroProfitAlertGuardSetter(price, message);
-		super.addWeigthedZeroProfitAlertGuard(price, message);
+	public void addWeightedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
+		underLyingPortfolioShare.addWeightedZeroProfitAlertGuardSetter(price, message);
+		super.addWeightedZeroProfitAlertGuard(price, message);
 	}
 
 	@Override
 	public String info() {
-		//return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
 		return this.getStock().getFriendlyName();
 	}
 
@@ -241,13 +230,11 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	@Override
 	public void addAlertOnEvent(String eventInfoReference, MonitorLevel monitorLevel, String optionalMessage) {
 		underLyingPortfolioShare.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
-		//super.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
 	}
 
 	@Override
 	public void clearAlertOnEvent() {
 		underLyingPortfolioShare.clearAlertOnEvent();
-		//super.clearAlertOnEvent();
 	}
 
 	public PortfolioShare getUnderLyingPortfolioShare() {
@@ -264,8 +251,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return "";
 	}
 
-	public void addWeigthedZeroProfitAlertGuard(BigDecimal price, String message) {
-		underLyingPortfolioShare.addWeigthedZeroProfitAlertGuard(price, message);
+	public void addWeightedZeroProfitAlertGuard(BigDecimal price, String message) {
+		underLyingPortfolioShare.addWeightedZeroProfitAlertGuard(price, message);
 	}
 
 	public PortfolioShare resetCrossDown(AlertOnThreshold alert, BigDecimal crossingPrice) {
@@ -298,6 +285,34 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 
 	public Set<AlertOnEvent> getAlertsOnEvent() {
 		return underLyingPortfolioShare.getAlertsOnEvent();
+	}
+
+	public BigDecimal getTodaysPriceUnitCost() {
+		 return super.getPriceUnitCost(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	}
+
+	public BigDecimal getTodaysPriceAvgBuy() {
+		return super.getPriceAvgBuy(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	}
+
+	public BigDecimal getTodaysQuantity() {
+		return super.getQuantity(calcSlidingStartDate(), calcSlidingEndDate());
+	}
+
+	public BigDecimal getTodaysGainTotal() {
+		return super.getGainTotal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	}
+
+	public BigDecimal getTodaysGainReal() {
+		return super.getGainReal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	}
+
+	public Currency getDisplayedCurrency() {
+		return displayedCurrency;
+	}
+
+	public void setDisplayedCurrency(Currency displayedCurrency) {
+		this.displayedCurrency = displayedCurrency;
 	}
 
 }

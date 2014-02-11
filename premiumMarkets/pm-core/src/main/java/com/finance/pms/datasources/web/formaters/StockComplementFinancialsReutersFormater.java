@@ -40,8 +40,7 @@ import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementFinancialsReutersFormater extends LineFormater {
-	
-	/** The PATTERNS. */
+
 	private static PatternProperties PATTERNS;
 
 	private Pattern value;
@@ -168,8 +167,8 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 
 }

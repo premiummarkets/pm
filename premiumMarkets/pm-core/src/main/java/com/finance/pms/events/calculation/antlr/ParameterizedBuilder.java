@@ -116,7 +116,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 	
 	public Map<String, Operation> getCurrentOperations(boolean waitForSync) {
-		if (waitForSync) SpringContext.getSingleton().syncOnPostInit();
+		if (waitForSync) SpringContext.getSingleton().syncOnOptPostInit();
 		return currentOperations;
 	}
 

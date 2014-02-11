@@ -40,6 +40,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
 
 /**
@@ -54,21 +55,13 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	NumberFormat pf = new DecimalFormat("#0.00 %");
 
 	Quotations relativeQuotations;
+//	Integer startDateRelativeIndex;
 
-	Date startDate;
-	Date endDate;
+//	Date startDate;
+//	Date endDate;
 
-	Integer startDateRelativeIndex;
 
-	/**
-	 * Instantiates a new striped close index relative.
-	 * 
-	 * @param relativeSQ the relative sq
-	 * 
-	 * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public StripedCloseRelativeToReferee(Quotations relativeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
 		super(arbitraryEndDate);
 
@@ -82,37 +75,37 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	}
 
 	@Override
-	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
+	public Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
-		this.stockQuotations = stockQuotations;
+//		this.stockQuotations = stockQuotations;
 
-		startDate = getStartDate(stockQuotations);
-		startDateRelativeIndex = this.relativeQuotations.getClosestIndexForDate(0,startDate);
-		startDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(0,startDate);
+		Date startDate = getStartDate(stockQuotations);
+		Integer startDateRelativeIndex = this.relativeQuotations.getClosestIndexForDate(0, startDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
 		
-		endDate = getEndDate(stockQuotations);
-		endDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
+		Date endDate = getEndDate(stockQuotations);
+		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
 
+		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, startDateRelativeIndex);
 	}
 
-	@Override
-	public BigDecimal[] relativeCloses() {
+	private BigDecimal[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex, int startDateRelativeIndex) {
 
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
 		BigDecimal relativeQuotationsRoot =  relativeQuotations.get(startDateRelativeIndex).getClose();
-		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex).getClose();
+		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getClose();
 
-		for (int i = startDateQuotationIndex; i <= this.endDateQuotationIndex; i++) {
+		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 
 			BigDecimal relatedCloseValue = BigDecimal.ZERO;
 			
 			if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0 && relativeQuotationsRoot != null && relativeQuotationsRoot.compareTo(BigDecimal.ZERO) != 0 ) {
 				
-				Date dq = this.stockQuotations.get(i).getDate();
+				Date dq = stockQuotations.get(i).getDate();
 				QuotationUnit relQuotationUnit = relativeQuotations.get(relativeQuotations.getClosestIndexForDate(0, dq));
 				BigDecimal relativeQuotation = (relQuotationUnit.getClose().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_DOWN);
-				BigDecimal quotation = this.stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
+				BigDecimal quotation = stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
 				relatedCloseValue = quotation.subtract(relativeQuotation);
 				
 			}
@@ -132,6 +125,11 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	@Override
 	public String formatYValue(Number yValue) {
 		return pf.format(yValue);
+	}
+
+	@Override
+	public Boolean isRelative() {
+		return true;
 	}
 	
 

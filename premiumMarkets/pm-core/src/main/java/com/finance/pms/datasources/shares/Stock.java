@@ -65,52 +65,28 @@ import com.finance.pms.datasources.web.Providers;
 @Table(name="SHARES")
 public class Stock extends Validatable {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(Stock.class);
-	
-	/** The Constant serialVersionUID. */
+	private static MyLogger LOGGER = MyLogger.getLogger(Stock.class);
 	private static final long serialVersionUID = 2357651331343818162L;
 
-	/** The Constant MISSINGCODE. */
 	public static final String MISSINGCODE="NON_AVAILABLE";
 	
-    /** The symbol. */
     private String symbol;
-    
-    /** The isin. */
     private String isin;
-   
-    /** The name. */
     private String name;
-    
-    /** The removable. */
     private Boolean removable;
-    
-    /** The category. */
     private StockCategories category;
-    
-    /** The last quote. */
     private Date lastQuote;
-    
-    /** The provider type. */
     private  MarketValuation marketValuation;
-    
-    /** The market. */
     private  SymbolMarketQuotationProvider symbolMarketQuotationProvider;
-    
     private String sectorHint;
-    
     private TradingMode tradingMode;
-    
     private Long capitalisation;
     
-	/** The ref name. */
 	private String refName;
 
 	public Stock() {
 		super();
-		//TODO hibernate interceptor
 		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,null);
-
 	}
 	
 	public Stock(String symbol, String isin) {
@@ -119,13 +95,6 @@ public class Stock extends Validatable {
 		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,null);
 	}
 
-	/**
-	 * Instantiates a new stock.
-	 * 
-	 * @param s the s
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public Stock(Stock si) {
 		super();
 		Stock s = si;
@@ -247,11 +216,7 @@ public class Stock extends Validatable {
 		result = prime * result + ((symbol == null) ? 0 : symbol.trim().hashCode());
 		return result;
 	}
-	
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
 	public int compareTo(Validatable o) {
 		if (o instanceof com.finance.pms.datasources.shares.Stock) 
 			return (this.getSymbol().compareTo(((Stock) o).getSymbol()) == 0)?
@@ -260,14 +225,7 @@ public class Stock extends Validatable {
 					
 		throw new RuntimeException("Can't compare Stock with ... "+o.getClass().getName());
 	}
-	
-	
-	
-	/**
-	 * Checks if is obsolete.
-	 * 
-	 * @return true, if is obsolete
-	 */
+
 	@Transient
 	private boolean isObsolete() {
 	    GregorianCalendar gcal = new GregorianCalendar();
@@ -277,37 +235,22 @@ public class Stock extends Validatable {
 	    return (obsolete.compareTo(new Date()) < 0);
 	}
 
-
-	/**
-	 * Checks if is field set.
-	 * 
-	 * @param attribute the attribute
-	 * 
-	 * @return true, if is field set
-	 */
 	public boolean isFieldSet(String attribute) {
 		try {
 			String attValue = (String) this.getClass().getDeclaredField(attribute).get(this);
 			return (attValue != null) && (attValue.length() != 0) && !(attValue.equals(Stock.MISSINGCODE));
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("",e);
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("",e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("",e);
 		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("",e);
 		}
 		return false;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.db.Validatable#toDataBase()
-	 */
+
 	@Override
 	public Query toDataBase() {
 		
@@ -360,24 +303,11 @@ public class Stock extends Validatable {
 		
 		return str;
 	}
-	
-	
-	/**
-	 * Retreive stock.
-	 * 
-	 * @param stockList the stock list
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void retrieveStock(StockList stockList,String shareListName) {
 		Providers.getInstance(shareListName).retrieveAndCompleteStockInfo(this,stockList);
 	}
-	
-	/**
-	 * Gets the ref name.
-	 * 
-	 * @return the ref name
-	 */
+
     @Deprecated
     @Transient
 	public String getRefName() {
@@ -386,25 +316,12 @@ public class Stock extends Validatable {
 		}
 		return this.refName;
 	}
-	
-	/**
-	 * Sets the ref name.
-	 * 
-	 * @param refName the new ref name
-	 */
+
     @Deprecated
 	public void setRefName(String refName) {
 		this.refName = refName;
 	}
-    
-    
-    /**
-     * Sets the isin.
-     * 
-     * @param isin the new isin
-     * 
-     * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-     */
+
     public void setIsin(String isin) throws InvalidAlgorithmParameterException {
     	
     		this.isin = isin;
@@ -421,150 +338,76 @@ public class Stock extends Validatable {
 				throw new InvalidAlgorithmParameterException("WARN : No Isin set for this stock : "+ symbol +" . Be aware that the symbol might not be suffixed");
        
     }
-    
-    
-    /**
-     * Gets the name.
-     * 
-     * @return the name
-     */
+
     public String getName() {
         return name;
     }
-    
-    /**
-     * Sets the name.
-     * 
-     * @param name the new name
-     */
+
     public void setName(String name) {
         this.name = (name != null)?name.trim():null;
     }
-    
-    
-    /**
-     * Gets the symbol.
-     * 
-     * @return the symbol
-     */
+
 	@Id
 	@Column(name="SYMBOL")
 	public String getSymbol() {
 		return (symbol != null)?symbol.trim():null;
 	}
-	
-    /**
-     * Gets the isin.
-     * 
-     * @return the isin
-     */
+
 	@Id
 	@Column(name="ISIN")
 	public String getIsin() {
         return (isin != null)?isin.trim():null;
     }
-    
-    
-    /**
-     * Gets the symbol root.
-     * 
-     * @return the symbol root
-     */
+
 	@Transient
     public String getSymbolRoot() {
 		String fullSymbol = this.getSymbol();
 		if (fullSymbol.contains(".")) {
 			int indexOfDot = fullSymbol.indexOf(".");
-			//return fullSymbol.substring(0, fullSymbol.length() - 3);
 			return fullSymbol.substring(0, indexOfDot);
 		} else {
 			return fullSymbol;
 		}
 	}
-    
-   
-    /**
-     * Sets the symbol.
-     * 
-     * @param symbol the new symbol
-     * 
-     * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-     */
+
     public void setSymbol(String symbol) throws InvalidAlgorithmParameterException {
     	this.symbol = this.symbolMarketQuotationProvider.getFullSymbol((symbol != null)?symbol.trim():null);
-	}
+    }
     
-    
-    /**
-     * To be removed.
-     * 
-     * @param whichMarket the which market
-     * 
-     * @return the boolean
-     * 
-     * @author Guillaume Thoreton
-     */
     public Boolean toBeRemoved(SharesListId whichMarket) {
     	return this.isRemovable() && this.isObsolete() && whichMarket.equals(this.getMarketValuation());
     }
-    
-    /**
-     * Checks if is removable.
-     * 
-     * @return the boolean
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public Boolean isRemovable() {
         return removable;
     }
-	
-    /**
-     * Gets the category.
-     * 
-     * @return the category
-     */
+
     @Enumerated(EnumType.STRING)
     public StockCategories getCategory() {
 		return category;
 	}
 
-	/**
-	 * Gets the provider type.
-	 * 
-	 * @return the provider type
-	 */
     @Embedded
     @AttributeOverride(name="market",column=@Column(name="MARKETLISTPROVIDER"))
 	public MarketValuation getMarketValuation() {
 		return marketValuation;
 	}
-
-	/**
-	 * Sets the provider type.
-	 * 
-	 * @param market the market list provider
-	 */
+    
+    @Transient
+    public Market getMarket() {
+    	return (marketValuation != null)?marketValuation.getMarket():Market.UNKNOWN;
+    }
+    
     public void setMarketValuation(MarketValuation market) {
     	this.marketValuation = market;
     }
 
-	/**
-	 * Gets the symbol market quotation provider.
-	 * 
-	 * @return the symbol market quotation provider
-	 */
     @Embedded
     @AttributeOverride(name="marketQuotationProvider", column = @Column(name="QUOTATIONPROVIDER"))
 	public SymbolMarketQuotationProvider getSymbolMarketQuotationProvider() {
 		return symbolMarketQuotationProvider;
 	}
 
-	/**
-	 * Sets the symbol market quotation provider.
-	 * 
-	 * @param symbolMarketQuotationProvider the new symbol market quotation provider
-	 */
 	public void setSymbolMarketQuotationProvider(SymbolMarketQuotationProvider symbolMarketQuotationProvider) {
 		this.symbolMarketQuotationProvider = symbolMarketQuotationProvider;
 	}

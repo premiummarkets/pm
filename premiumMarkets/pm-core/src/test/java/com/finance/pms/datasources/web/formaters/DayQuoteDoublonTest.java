@@ -99,7 +99,7 @@ public class DayQuoteDoublonTest extends DayQuoteFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return true;
 	}
 }

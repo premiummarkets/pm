@@ -51,7 +51,7 @@ import org.apache.commons.httpclient.HttpException;
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
@@ -303,9 +303,9 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	 * Callback forlast quotation fetch.
 	 * 
 	 * @author Guillaume Thoreton
-	 * @throws StockNotFoundException 
+	 * @throws QuotationUpdateException 
 	 */
-	public synchronized void callbackForlastQuotationFetch() throws StockNotFoundException {
+	public synchronized void callbackForlastQuotationFetch() throws QuotationUpdateException {
 		eventRefreshStrategyEngine.callbackForlastQuotationFetch(engineObservers, rootViewParam, otherViewParams);
 	}
 	

@@ -31,95 +31,45 @@ package com.finance.pms.datasources.shares;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum YahooMarketExtentions.
  * 
  * @author Guillaume Thoreton
  */
 public enum  YahooMarketExtentions implements Serializable {
-	
-	/** The PAR. */
+
 	PAR ("PA"),
-	
-	/** The AMS. */
 	AMS ("AS"),
-	
-	/** The BRU. */
 	BRU ("BR"),
-	
-	/** The LIS. */
 	LIS ("LS"),
-	
-	/** The LON. */
 	LON ("L"),
-	
 	ASX ("AX"),
-	
 	BSE ("BO"),
-	
-	/** The NYSE. */
 	NYSE (SymbolNameResolver.UNKNOWNEXTENSION),
-	
-	/** The AMEX. */
 	AMEX (SymbolNameResolver.UNKNOWNEXTENSION),
-	
-	/** The AMEX. */
 	NASDAQ (SymbolNameResolver.UNKNOWNEXTENSION),
-	
-	/** The UNKNOWN. */
-	NN (SymbolNameResolver.UNKNOWNEXTENSION), 
-	
+	NN (SymbolNameResolver.UNKNOWNEXTENSION),
 	TSX ("TO"),
-	
 	EURONEXT ("NX"),
 	
 	TW ("TW"), NZ("NZ"), VI("VI"), MI("MI"), ST("ST"), CO("CO"), TA("TA"), HK("HK"), HA("HA"), DU("DU"), 
 	HM("HM"), F("F"), SG("SG"), DE("DE"), MU("MU"), BE("BE"), KQ("KQ"), SI("SI"), 
 	JK("JK"), MC("MC"), MA("MA"), BR("BR"), SW("SW"), VX("VX"), AS("AS"), TO("TO"), LS("LS"), OL("OL");
 	
-	
-	/** The nyse extension. */
 	private String marketExtension;
-	
-	/**
-	 * Instantiates a new markets.
-	 * 
-	 * @param specificMarketExtension the specific market extension
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private YahooMarketExtentions(String specificMarketExtension) {
 		this.marketExtension = specificMarketExtension;
 	}
 
-	/**
-	 * Gets the nyse extension.
-	 * 
-	 * @return the nyse extension
-	 */
 	public String getSpecificMarketExtension() {
 		return marketExtension;
 	}
-	
-	/**
-	 * Gets the market extension.
-	 * 
-	 * @param extensionClue the extension clue
-	 * 
-	 * @return the market extension
-	 */
+
 	public static String getMarketExtension(String extensionClue) {
 		return YahooMarketExtentions.valueOf(extensionClue).getSpecificMarketExtension();
 	}
 	
-	/**
-	 * Gets the extension clue.
-	 * 
-	 * @param extension the extension
-	 * 
-	 * @return the extension clue
-	 */
 	public static String getExtensionClue(String extension) {
 		YahooMarketExtentions eValues[] = YahooMarketExtentions.values();
 		for (int i = 0; i < eValues.length; i++) {

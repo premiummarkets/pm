@@ -45,35 +45,14 @@ public enum MonitorLevel {
 	
 	private String monitorLevel;
 
-	/**
-	 * Instantiates a new monitor level.
-	 * 
-	 * @param monitorLevel the monitor level
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private MonitorLevel(String monitorLevel) {
 		this.monitorLevel = monitorLevel;
 	}
 
-	/**
-	 * Gets the monitor level.
-	 * 
-	 * @return the monitor level
-	 */
 	public String getMonitorLevel() {
 		return monitorLevel;
 	}
 	
-	/**
-	 * Value of string.
-	 * 
-	 * @param st the st
-	 * 
-	 * @return the monitor level
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static MonitorLevel valueOfString(String st) {
 		MonitorLevel eValues[] = MonitorLevel.values();
 		for (int i=0; i < eValues.length; i++) {
@@ -82,14 +61,7 @@ public enum MonitorLevel {
 		throw new IllegalArgumentException(
 	            "No enum const MonitorLevel : " + st);
 	}
-	
-	/**
-	 * Values as string.
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static String valuesAsString() {
 		StringBuffer strb = new StringBuffer();
 		for (int i=0;i < MonitorLevel.values().length; i++) {

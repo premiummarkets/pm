@@ -44,7 +44,7 @@ public interface QuotationProvider {
 	
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception;
 
-	List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException;
+	List<Validatable> readPage(Stock stock, MyUrl url, Date startDate) throws HttpException;
 	
 
 }

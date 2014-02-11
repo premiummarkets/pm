@@ -35,8 +35,11 @@ package com.finance.pms.events.calculation;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.finance.pms.admin.install.logging.MyLogger;
+
 public class DateFactory {
 	
+	protected static MyLogger LOGGER = MyLogger.getLogger(DateFactory.class);
 	
 	public static Date dateAtZero() {
 		
@@ -56,6 +59,17 @@ public class DateFactory {
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.MILLISECOND, 0);
 		return calendar.getTime();
+		
+	}
+	
+	public static synchronized long milliSecStamp() {
+		long time = new Date().getTime();
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			LOGGER.error(e,e);
+		}
+		return time;
 		
 	}
 

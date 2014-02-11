@@ -85,16 +85,16 @@ public class ProvidersListStaticList extends ProvidersList {
 					Stock nameIsincompletedStock = (Stock) this.httpSource.readURL(dsf).get(0);
 					stock.resetStock(nameIsincompletedStock);
 				} catch (IndexOutOfBoundsException e) {
-					LOGGER.warn("Can't supplement symbol with isin or name : "+stock.getSymbol());
+					LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol());
 					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
 					if (stock.getName() == null ) stock.setName(stock.getIsin());
 				} catch (HttpException e) {
-					LOGGER.warn("Can't supplement symbol with isin or name : "+stock.getSymbol(),e);
+					LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e);
 					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
 					if (stock.getName() == null ) stock.setName(stock.getIsin());
 				}
 			} catch (InvalidAlgorithmParameterException e1) {
-				LOGGER.warn("Can't supplement symbol with isin or name : "+stock.getSymbol(),e1);
+				LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e1);
 			}
 			
 			//sector
@@ -104,14 +104,14 @@ public class ProvidersListStaticList extends ProvidersList {
 				Stock completedStock = (Stock) this.httpSource.readURL(dsf).get(0);
 				stock.resetStock(completedStock);
 			} catch (IndexOutOfBoundsException e) {
-				LOGGER.warn("Can't supplement symbol with sector : "+stock.getSymbol());
+				LOGGER.warn("Can't supplement symbol with sector (StockComplementSectorYahooFormater) : "+stock.getSymbol());
 				stock.setSectorHint("unknown");
 			} catch (HttpException e) {
-				LOGGER.warn("Can't supplement symbol with sector : "+stock.getSymbol());
+				LOGGER.warn("Can't supplement symbol with sector  (StockComplementSectorYahooFormater) : "+stock.getSymbol());
 				stock.setSectorHint("unknown");
 			}
 		}catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement symbol : "+stock.getSymbol(),e);
+			LOGGER.error("Can't supplement symbol  (StockComplementSectorYahooFormater) : "+stock.getSymbol(),e);
 		}
 		
 		LOGGER.guiInfo("Updating stock list : "+stock.getSymbol());

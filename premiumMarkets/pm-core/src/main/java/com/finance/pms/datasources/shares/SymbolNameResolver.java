@@ -83,48 +83,16 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * @author Guillaume Thoreton
  */
 public abstract class SymbolNameResolver {
-	
-	/** The LOGGER. */
+
 	private static MyLogger LOGGER = MyLogger.getLogger(SymbolNameResolver.class);
 	
-	/** The UNKNOWNEXTENSIONCLUE. */
 	public static String UNKNOWNEXTENSIONCLUE = "NN";
-	
-	/** The UNKNOWNEXTENSION. */
 	public static String UNKNOWNEXTENSION = "";
 	
-	/**
-	 * Resolve extension from clue.
-	 * 
-	 * @param extensionClue the extension clue
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract String resolveExtensionFromClue(String extensionClue);
 	
-	/**
-	 * Resolve clue from extension.
-	 * 
-	 * @param extension the extension
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract String resolveClueFromExtension(String extension);
 	
-	/**
-	 * Gets the full symbol.
-	 * 
-	 * @param symbol the symbol
-	 * @param extensionClue the extension clue
-	 * 
-	 * @return the full symbol
-	 * 
-	 * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-	 */
 	public String getFullSymbol(String symbol, String extensionClue) throws InvalidAlgorithmParameterException {
 		String newSymbol;
 
@@ -162,27 +130,15 @@ public abstract class SymbolNameResolver {
 	}
 	
 
-	/**
-	 * Gets the extension clue from symbol.
-	 * 
-	 * @param symbol the symbol
-	 * 
-	 * @return the extension clue from symbol
-	 */
 	public String getExtensionClueFromSymbol(String symbol) {
 		String extensionClue = SymbolNameResolver.UNKNOWNEXTENSIONCLUE;
 		if ((symbol.contains("."))) {
-			//String extension = symbol.substring(symbol.length() - 2, symbol.length());
 			String extension = getExtension(symbol);
 			extensionClue = this.resolveClueFromExtension(extension);
 		}
 		return extensionClue;
 	}
 
-	/**
-	 * @param symbol
-	 * @return
-	 */
 	public String getExtension(String symbol) {
 		int dotpos  = symbol.lastIndexOf(".");
 		String extension = symbol.substring(dotpos+1, symbol.length());

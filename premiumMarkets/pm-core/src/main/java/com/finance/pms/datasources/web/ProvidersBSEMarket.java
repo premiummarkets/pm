@@ -96,13 +96,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 		return (ltmp.size() != 0)?(Stock)ltmp.get(0):null;
 	}
 
-
-	/**
-	 * @param stock
-	 * @return
-	 * @throws UnsupportedEncodingException 
-	 */
-	private List<? extends Validatable> getSymbol(Validatable stock,String searchName) throws UnsupportedEncodingException {
+	private List<? extends Validatable> getSymbol(Validatable stock, String searchName) throws UnsupportedEncodingException {
 		
 		String url = this.httpSource.getStockInfoPageURL(searchName);
 		StockComplementBSEFormater dsf = new StockComplementBSEFormater(url, (Stock)stock);

@@ -107,10 +107,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersList.class);
-	
-//	@Autowired()
-//	@Qualifier("shareListMgr")
-//	ShareListMgr shareListMgr;
+
 	
 	protected ProvidersList() {
 		super();
@@ -276,7 +273,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					//Adding stock for update in db
 					newStockRequestsSet.add(stock);
 					
-					//Add stocks to shares list (double check that no already ther after completion)
+					//Add stocks to shares list (double check that no already there after completion)
 					PortfolioShare shareForStock = existingSharesList.getShareForLienientSymbol(stock.getSymbol());
 					if (shareForStock == null) {
 						LOGGER.info("Supplemented ticker is in the data base but needs to be added to the market list ("+shareListDescrTxt+") : " + stock);

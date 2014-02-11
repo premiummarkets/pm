@@ -252,38 +252,18 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		DataSource.getInstance().getThreadPool().releaseResource(conn);
 	}
 
-	// metier
-	/**
-	 * Gets the last quotation.
-	 * 
-	 * @param stock the stock
-	 * 
-	 * @return the last quotation
-	 */
 	public Date getLastQuotationDateFromShares(Stock stock) {
 		String query = "SELECT " + SHARES.LASTQUOTE + " FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
 		return this.getLastFormerQuote(stock, query);
 	}
 
-	/**
-	 * Gets the max quotation.
-	 * 
-	 * @param stock the stock
-	 * 
-	 * @return the max quotation
-	 */
 	public Date getLastQuotationDateFromQuotations(Stock stock) {
 		
 		String endConstraint = testEndConstraint();
-		
-		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
-		+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? "+endConstraint+" order by "+QUOTATIONS.DATE_FIELD+" desc ";
+		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? "+endConstraint+" order by "+QUOTATIONS.DATE_FIELD+" desc ";
 		return this.getLastFormerQuote(stock, q);
 	}
 
-	/**
-	 * @return
-	 */
 	private String testEndConstraint() {
 		
 		String endConstraint = "";
@@ -306,15 +286,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return this.getLastFormerQuote(stock, q);
 	}
 
-
-	/**
-	 * Gets the last former quote.
-	 * 
-	 * @param stock the stock
-	 * @param sqlQuery the sql query
-	 * 
-	 * @return the last former quote
-	 */
 	private Date getLastFormerQuote(Stock stock, String sqlQuery) {
 		Date retour;
 		MyDBConnection scnx = this.getConnection(true);
@@ -368,11 +339,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return shareDAO.loadAllStocks();
 	}
 
-	/**
-	 * Gets the orphan shares.
-	 * 
-	 * @return the orphan shares
-	 */
 	@Deprecated
 	public StockList getOrphanShares() {
 		StockList retour = new StockList();
@@ -402,15 +368,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 
-	/**
-	 * Load stock by symbol.
-	 * 
-	 * @param symbol the symbol
-	 * 
-	 * @return the stock
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public Stock loadStockBySymbol(String symbol) {
 		MyDBConnection scnx = this.getConnection(true);
 		String sqlQuery = new String("SELECT * FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ?");
@@ -447,26 +404,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs.close();
 			pst.close();
 		} catch (IOException ioe) {
-			LOGGER.error("Could not load share value for :" + ioe,ioe);
+			LOGGER.error("Could not load share value for :" + ioe, ioe);
 		} catch (SQLException e) {
-			LOGGER.error("SQL ERROR while loading stock. Query : " + sqlQuery,e);
+			LOGGER.error("SQL ERROR while loading stock. Query : " + sqlQuery, e);
 		} finally {
 			DataSource.realesePoolConnection(scnx);
 		}
 		return retour;
 	}
-	
-	/**
-	 * Load limited striped quotations.
-	 * 
-	 * @param stock the stock
-	 * @param firstDate the nb elements
-	 * @param order the order
-	 * 
-	 * @return the striped quotations
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	@SuppressWarnings("unchecked")
 	public ArrayList<QuotationUnit> loadStripedQuotationsAfter(Stock stock, Date firstDate) {
 		
@@ -675,7 +621,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		
 		if (lret.size() == 0) return  new SymbolEvents(stock, EventState.STATE_TERMINATED);
 		if (lret.size() > 1) {
-			LOGGER.error("request returnd more than one value "+select, new Throwable());
+			LOGGER.error("request returned more than one value "+select, new Throwable());
 			return  new SymbolEvents(stock, EventState.STATE_TERMINATED);
 		}
 		return (SymbolEvents) lret.get(0);

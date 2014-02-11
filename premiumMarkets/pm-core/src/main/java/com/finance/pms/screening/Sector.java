@@ -144,7 +144,7 @@ public class Sector {
 				nbValids--;
 			}
 		}
-		return ret.divide(new BigDecimal(nbValids),4,BigDecimal.ROUND_DOWN);
+		return (nbValids > 0)?ret.divide(new BigDecimal(nbValids), 4, BigDecimal.ROUND_DOWN):BigDecimal.ZERO;
 	}
 	
 	public BigDecimal getYield() {

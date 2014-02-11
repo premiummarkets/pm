@@ -39,8 +39,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
 public class StockComplementSectorYahooFormater extends LineFormater {
-	
-	/** The PATTERNS. */
+
 	private static PatternProperties PATTERNS;
 	
 	private Pattern codePattern;
@@ -83,7 +82,7 @@ public class StockComplementSectorYahooFormater extends LineFormater {
 	}
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 }

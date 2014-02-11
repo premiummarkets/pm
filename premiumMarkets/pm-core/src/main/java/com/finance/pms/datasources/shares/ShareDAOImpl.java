@@ -114,7 +114,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	@Transactional(readOnly=true)
 	public List<Stock> loadMonitoredStocks() {
 		
-		return (List<Stock>) this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
+		return this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
 
 			
 			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
@@ -294,5 +294,5 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		return ret;
 		
 	}
-
+	
 }

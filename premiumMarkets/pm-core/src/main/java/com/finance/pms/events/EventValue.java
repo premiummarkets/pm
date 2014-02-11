@@ -71,16 +71,7 @@ public class EventValue implements Serializable {
 		this.eventListName = eventListName;
 	}
 
-	/**
-	 * To export.
-	 * 
-	 * @param eventsList
-	 *            the events list
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public String toExport(Set<String> eventsList) {
 		DateFormat df = new SimpleDateFormat("yyy/MM/dd");
 		return df.format(date) + ";" + eventDef.getEventDefinitionRef() + ";" + eventType;
@@ -92,59 +83,28 @@ public class EventValue implements Serializable {
 		return df.format(date)+" -> "+eventDef.getEventReadableDef()+" : "+eventType+" : "+message;
 	}
 	
-	/**
-	 * To email.
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public String toEmail() {
 		DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
-		return eventType.toString()+":"+eventDef.getEventReadableDef()+" on the "+df.format(date) + ((this.message != "")?" :\n"+message:".");
+		return eventType.toString()+" : "+eventDef.getEventReadableDef()+" on the "+df.format(date) + ((this.message != "")?" :\n"+message:".");
 	}
 
-	/**
-	 * Gets the event def id.
-	 * 
-	 * @return the event def id
-	 */
 	public Integer getEventDefId() {
 		return this.eventDef.getEventDefId();
 	}
 
-	/**
-	 * Gets the event type.
-	 * 
-	 * @return the event type
-	 */
 	public EventType getEventType() {
 		return eventType;
 	}
 
-	/**
-	 * Sets the event def.
-	 * 
-	 * @param eventDef the new event def
-	 */
 	public void setEventDef(EventDefinition eventDef) {
 		this.eventDef = eventDef;
 	}
 
-	/**
-	 * Sets the event type.
-	 * 
-	 * @param eventType the new event type
-	 */
 	public void setEventType(EventType eventType) {
 		this.eventType = eventType;
 	}
 
-	/**
-	 * Gets the date.
-	 * 
-	 * @return the date
-	 */
 	public Date getDate() {
 		return date;
 	}
@@ -154,11 +114,6 @@ public class EventValue implements Serializable {
 		this.date = date;
 	}
 
-	/**
-	 * Gets the event def.
-	 * 
-	 * @return the event def
-	 */
 	public EventInfo getEventDef() {
 		return eventDef;
 	}

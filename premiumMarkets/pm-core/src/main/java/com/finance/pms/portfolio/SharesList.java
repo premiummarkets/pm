@@ -32,6 +32,7 @@ package com.finance.pms.portfolio;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -40,7 +41,7 @@ import java.util.TreeSet;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
-import com.finance.pms.admin.config.EventSignalConfig;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 
 /**
@@ -68,7 +69,8 @@ public class SharesList extends AbstractSharesList {
 	}
 	
 	public void addShare(Stock stock) {
-		PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
+		//PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
+		PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
 		addShareToList(newPortfolioShare);
 		ShareListMgr.getInstance().addForeignKeysUpdate(newPortfolioShare);
 	}
@@ -95,7 +97,7 @@ public class SharesList extends AbstractSharesList {
 	public SortedSet<Stock> toSortedStocksSet() {
 		SortedSet<Stock> retSet = new TreeSet<Stock>(new Comparator<Stock>() {
 			public int compare(Stock o1, Stock o2) {
-				return o1.getName().compareTo(o2.getName());
+				return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
 			}
 		});
 		
@@ -104,6 +106,41 @@ public class SharesList extends AbstractSharesList {
 		}
 		
 		return retSet;
+	}
+
+	@Override
+	public Date getLastTransactionFor(Stock stock) {
+		return new Date(0);
+	}
+
+	@Override
+	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return BigDecimal.ONE;
+	}
+
+	@Override
+	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return BigDecimal.ZERO;
+	}
+
+	@Override
+	public BigDecimal getQuantityFor(PortfolioShare portfolioShare,Date currentStartDate, Date currentEndDate) {
+		return BigDecimal.ONE;
+	}
+
+	@Override
+	public BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return BigDecimal.ONE;
+	}
+
+	@Override
+	public BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return BigDecimal.ONE;
+	}
+
+	@Override
+	public InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
+		return new InOutWeighted(BigDecimal.ONE, BigDecimal.ZERO, currentEndDate);
 	}
 
 }

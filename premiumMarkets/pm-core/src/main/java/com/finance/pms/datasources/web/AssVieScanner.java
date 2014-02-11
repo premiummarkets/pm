@@ -44,7 +44,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
@@ -91,7 +91,7 @@ public class AssVieScanner implements MyBeanFactoryAware {
 		
 		try {
 			quotationUpdate.getQuotes(assVieStockList);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 		
@@ -125,7 +125,6 @@ public class AssVieScanner implements MyBeanFactoryAware {
 		SpringContext springContext = null;
 		try {
 			springContext = new SpringContext(pathToprops);
-			//springContext.setDataSource(pathToprops);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 			springContext.refresh();
 			

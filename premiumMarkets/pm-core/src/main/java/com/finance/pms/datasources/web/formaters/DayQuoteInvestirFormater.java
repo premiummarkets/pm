@@ -57,6 +57,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	private Pattern volumePattern;
 	private Pattern endTable;
 	private Pattern noData;
+	private Pattern endRow;
 	
 	private Date date;
 	private Integer cpt;
@@ -66,17 +67,18 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	private BigDecimal open;
 	private Long volume;
 	
+	
+	private Date firstValidDate;
 	private List<Validatable> validatables;
-	//private Currency currency;
-	private Pattern endRow;
+
 	
 	
-	public DayQuoteInvestirFormater(MyUrl url, Stock stock, String currency) {
+	public DayQuoteInvestirFormater(MyUrl url, Stock stock, String currency, Date firstValidDate) {
 		super(url);
 		params.add(stock);
 		params.add(currency);
-		//this.currency = Currency.valueOf(currency);
 		this.validatables = new ArrayList<Validatable>();
+		this.firstValidDate = firstValidDate;
 		
 		try {
 			if (null == DayQuoteInvestirFormater.PATTERNS)
@@ -120,10 +122,6 @@ public class DayQuoteInvestirFormater extends LineFormater {
 				Matcher fitCloseQuotation = quotationPattern.matcher(line);
 				if (fitCloseQuotation.find()) {
 					close = new BigDecimal(numberFormat.parse(fitCloseQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
-//					Currency quotationCurrency = Currency.valueOf(fitCloseQuotation.group(2));
-//					if (!quotationCurrency.equals(currency)) {
-//						throw new StopParseErrorException("Currency inconsitency with "+params.get(0)+" "+params.get(1)+" "+myUrl, "");
-//					}
 					cpt++;
 				}
 				
@@ -190,18 +188,25 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	 */
 	private void endRow(LinkedList<Comparable<?>> mainQuery) {
 		cpt = 0;
-		mainQuery.add(date);
-		mainQuery.add(open);
-		mainQuery.add(high);
-		mainQuery.add(low);
-		mainQuery.add(close);
-		mainQuery.add(volume);
-		validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
+		if (date.after(firstValidDate) || date.equals(firstValidDate)) {
+			mainQuery.add(date);
+			mainQuery.add(open);
+			mainQuery.add(high);
+			mainQuery.add(low);
+			mainQuery.add(close);
+			mainQuery.add(volume);
+			validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
+		}
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
+	}
+
+	@Override
+	public Boolean isResultValueEqNA() {
+		return validatables.isEmpty();
 	}
 
 }

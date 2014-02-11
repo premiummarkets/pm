@@ -69,7 +69,6 @@ import com.finance.pms.MainGui;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.MarketValuation;
@@ -670,17 +669,25 @@ public class ShareListUpdateDialog extends Dialog {
 		String symbol = symbolTxt.getText()+(isExtSet?"."+symbolProvExtention:"");
 
 		try {
-			Stock newStock = quotationUpdate.getQuotesForUi(
+			Stock newStock = quotationUpdate.getQuotesForUiForm(
 					unknownProvider, 
 					isinTxt.getText(), symbol, nameTxt.getText(), 
 					StockCategories.valueOf(typeCombo.getText()), 
 					MarketQuotationProviders.valueOf(provCombo.getText()), new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText())));
-			SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
-			sharesListForThisListProvider.addShare(newStock);
-			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
-		} catch (StockNotFoundException e) {
-			UserDialog inst = new UserDialog(
-							getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
+			if (newStock != null) {
+				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
+				sharesListForThisListProvider.addShare(newStock);
+				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
+			} else {
+				UserDialog inst = new UserDialog(getParent().getShell(), 
+						"The stock was not found. It may be that the information typed in is not valid.\n"+
+						"You may want to review the 'Insert Manually' form information and try again.", null);
+				inst.open();
+			}
+		} catch (Exception e) {
+			UserDialog inst = new UserDialog(getParent().getShell(), 
+					"An error occurred. It may be that the information typed in is not valid.\n"+
+					"You may want to review the 'Insert Manually' form information and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		}
 	}
@@ -724,9 +731,11 @@ public class ShareListUpdateDialog extends Dialog {
 				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
 				sharesListForThisListProvider.addShares(stocksInFile);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
-			} catch (StockNotFoundException e) {
-				UserDialog inst = new UserDialog(getParent().getShell(), (e.getMessage() != null)?e.getMessage():e.toString(),null);
+			//} catch (QuotationUpdateException e) {
+				
+				UserDialog inst = new UserDialog(getParent().getShell(), "The following stock were found in the file and updated", stocksInFile.toString());
 				inst.open();
+				
 			} catch (Exception e) {
 				LOGGER.warn(e,e);
 				UserDialog inst = new UserDialog(getParent().getShell(), "Wrong file format.",null);

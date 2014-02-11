@@ -34,6 +34,7 @@ import java.util.Date;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
 /**
  * The Interface StripedCloseFunction.
@@ -47,10 +48,10 @@ public abstract class StripedCloseFunction {
 	protected Date arbitraryStartDate;
 	protected Date arbitraryEndDate;
 	
-	protected Quotations stockQuotations;
-	
-	protected Integer startDateQuotationIndex;
-	protected Integer endDateQuotationIndex;
+//	protected Quotations stockQuotations;
+//	
+//	protected Integer startDateQuotationIndex;
+//	protected Integer endDateQuotationIndex;
 	
 
 	public StripedCloseFunction() {
@@ -62,10 +63,8 @@ public abstract class StripedCloseFunction {
 		this.arbitraryEndDate = arbitraryEndDate;
 	}
 
-	public abstract void targetShareData(PortfolioShare ps, Quotations stockQuotations);
+	public abstract Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
 	
-	public abstract Number[] relativeCloses();
-
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;
 	
@@ -76,15 +75,16 @@ public abstract class StripedCloseFunction {
 	
 	}
 
-	public Integer getStartDateQuotationIndex() {
-		return startDateQuotationIndex;
-	}
-
-	public Integer getEndDateQuotationIndex() {
-		return endDateQuotationIndex;
-	}
+//	public Integer getStartDateQuotationIndex() {
+//		return startDateQuotationIndex;
+//	}
+//
+//	public Integer getEndDateQuotationIndex() {
+//		return endDateQuotationIndex;
+//	}
 
 	protected Date getStartDate(Quotations stockQuotations) {
+		
 		Date startDate = this.arbitraryStartDate;
 		startDate = (startDate.before(stockQuotations.getDate(0)))?stockQuotations.getDate(0):startDate;
 		LOGGER.debug("The start date is : "+startDate);
@@ -111,5 +111,7 @@ public abstract class StripedCloseFunction {
 	public abstract String lineToolTip();
 	
 	public abstract String formatYValue(Number yValue);
+	
+	public abstract Boolean isRelative();
 	
 }

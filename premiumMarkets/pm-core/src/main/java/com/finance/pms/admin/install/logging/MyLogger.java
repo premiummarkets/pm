@@ -374,33 +374,15 @@ public class MyLogger {
 		delegateLogger.debug(message, t);
 	}
 
-	/**
-	 * Debug.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void debug(Object message) {
 		delegateLogger.debug(message);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		return delegateLogger.equals(obj);
 	}
 
-	/**
-	 * Error.
-	 * 
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void error(Object message, Throwable t) {
 		delegateLogger.error(message, t);
 		this.sendMail(message, t, false);
@@ -416,38 +398,16 @@ public class MyLogger {
 		this.sendMail(message, t, isTest);
 	}
 
-	/**
-	 * Error.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void error(Object message) {
 		delegateLogger.error(message);
 		this.sendMail(message, null, false);
 	}
 
-	/**
-	 * Fatal.
-	 * 
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void fatal(Object message, Throwable t) {
 		delegateLogger.fatal(message, t);
 		this.sendMail(message, t, false);
 	}
 
-	/**
-	 * Fatal.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void fatal(Object message) {
 		delegateLogger.fatal(message);
 		this.sendMail(message, null, false);
@@ -823,37 +783,14 @@ public class MyLogger {
 		delegateLogger.trace(message);
 	}
 
-	/**
-	 * Warn.
-	 * 
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void warn(Object message, Throwable t) {
 		delegateLogger.warn(message, t);
 	}
 
-	/**
-	 * Warn.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void warn(Object message) {
 		delegateLogger.warn(message);
 	}
 
-	/**
-	 * Send mail.
-	 * 
-	 * @param errorMsg the error msg
-	 * @param error the error
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	//Email settings options :
 	//false (no email no popup), 
 	//true (send error email only - no test error email, no duplicates -, with popup), 

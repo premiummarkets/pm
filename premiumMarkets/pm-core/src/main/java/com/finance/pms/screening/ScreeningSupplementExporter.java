@@ -63,12 +63,6 @@ public class ScreeningSupplementExporter extends ScreeningSupplementStockExporte
 		this.storeAndSendScreeningEvents(constructBuySellEvents(screenedStocks, eventListName, endDate), EmailFilterEventSource.PMAutoScreening, eventListName);
 	}
 
-	/**
-	 * @param screened
-	 * @param eventListName
-	 * @param endDate 
-	 * @return 
-	 */
 	private Collection<SymbolEvents> constructBuySellEvents(NavigableSet<ScreeningSupplementedStock> screened, String eventListName, Date endDate) {
 
 		Collection<SymbolEvents> screeningEvents = new ArrayList<SymbolEvents>();

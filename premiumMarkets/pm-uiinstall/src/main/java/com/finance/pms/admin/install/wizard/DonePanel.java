@@ -101,9 +101,9 @@ public class DonePanel extends JPanel {
 	    endInstallLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
 		endInstallLabel.setText(
 				"<html>"
-				+ "The installation is completed. Many thanks for your patience.<br />"
+				+ "The installation is now complete. Many thanks for your patience.<br />"
 				+ "I will now try to launch the program for you.<br />"
-				+ "This automatic launch may not work on some systems.<br /><br/> <b>PLEASE READ BELOW</b>"
+				+ "This automatic launch may not work on some systems.<br /><b>PLEASE READ BELOW</b>"
 				+ "</html>");
 		contentPanel.add(endInstallLabel, BorderLayout.NORTH);
 		

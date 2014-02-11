@@ -31,20 +31,27 @@ package com.finance.pms.admin;
 
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Observable;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -52,8 +59,6 @@ import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DbInstaller.
  * 
@@ -61,33 +66,14 @@ import org.apache.tools.tar.TarInputStream;
  */
 public class DbInstaller extends Observable {
 	
+	public static String EXTRACTDIR = "export";
+
 	private InputStream fis;
-	
-	/** The extract dir. */
-	public static String extractDir = "export";
-	
-	
-	/**
-	 * Instantiates a new db installer.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public DbInstaller() {
 		super();
 	}
 
-
-	/**
-	 * Install db.
-	 * 
-	 * @param urlfrom the urlfrom
-	 * @param dbZipFileName the db zip file name
-	 * @param folderTo the folder to
-	 * 
-	 * @throws NoPreparedDbException the no prepared db exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void extractDB(URL urlfrom, String dbZipFileName, File folderTo) throws NoPreparedDbException {
 		//extract db
 		System.out.println("Extract db : "+ dbZipFileName +" to "+ folderTo + " and alternatively from "+ urlfrom);
@@ -142,19 +128,6 @@ public class DbInstaller extends Observable {
 	}
 	
 	
-	/**
-	 * Download db.
-	 * 
-	 * @param urlFrom the url from
-	 * @param dbZipFileName the db zip file name
-	 * 
-	 * @return the input stream
-	 * 
-	 * @throws IOException 	 * @throws NoPreparedDbException the no prepared db exception
-	 * @throws NoPreparedDbException the no prepared db exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private InputStream downloadDb(URL urlFrom, String dbZipFileName) throws NoPreparedDbException {
 		ZipInputStream zI = null;
 		try {
@@ -173,51 +146,137 @@ public class DbInstaller extends Observable {
 		}
 		return zI;
 	}
-	
-	/**
-	 * Import db.
-	 * 
-	 * @param piggyMarketSqueakFolder the piggy market squeak folder
-	 * @param extractDirName the extract dir name
-	 * @param connection the connection
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public void importDB(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws SQLException, OtherException {
+
+	public void importDB(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws OtherException {
 		
 		System.out.println("Doing : Import db");
 		
 		//drop constraints
-		dropConstraints(piggyMarketSqueakFolder,extractDirName,connection);
+		dropConstraints(piggyMarketSqueakFolder, extractDirName, connection);
 		 
 		//insert data and create indexes
-		importDerby(piggyMarketSqueakFolder,extractDirName, connection);
+		importDerby(piggyMarketSqueakFolder, extractDirName, connection);
 		
 		//create keys and indexes 
-		createIndexesAndKeys(piggyMarketSqueakFolder,extractDirName,connection);
+		createIndexesAndKeys(piggyMarketSqueakFolder, extractDirName, connection);
 		
 		System.out.println("Import db. Done!");
 		
 	}
 	
-	
+	//Expected name format is : xxxx_yyyyMMddhhss_num.sql
+	//TODO check last upgrade file run using a time stamp in the db or checking what is already there in the existing install folder?
+	public void upgradeExisting(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws IOException, OtherException {
+		
+		System.out.println("Doing : Upgrade existing data base.");
+		String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
+		
+		//Checking already ran //TODO what shall we do if the script was NOK?
+		String lastStampRan = "0000";
+		String lastNumRan= "0";
+		File scriptsStatusFile = new File(installPath + File.separator + "upgrade" + File.separator + "upgradeStatus.txt");
+		if (scriptsStatusFile.exists()) {
+			BufferedReader statusReader = new BufferedReader(new FileReader(scriptsStatusFile));
+			String  alreadyRanStatus = null;
+			while ( (alreadyRanStatus = statusReader.readLine()) != null) {
+				String alreadyRanScript = alreadyRanStatus.substring(0, alreadyRanStatus.indexOf(","));
+				String[] arSqlScriptTimeStamp = extractSqlScriptTimeStamp(alreadyRanScript);
+				lastStampRan = arSqlScriptTimeStamp[0];
+				lastNumRan = arSqlScriptTimeStamp[1];
+			}
+			statusReader.close();
+		}
 
+		
+		//Loading scripts
+		String sqlScriptFolderPath = installPath + extractDirName + File.separator + "upgrade" + File.separator;
+		File sqlUpgradeFolder = new File(sqlScriptFolderPath);
+		File[] listFiles = sqlUpgradeFolder.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".sql");
+			}
+		});
+		
+		SortedSet<File> sortedUpgrades = new TreeSet<File>(new Comparator<File>() {
+
+			@Override
+			public int compare(File o1, File o2) {
+				String[] o1ts = extractSqlScriptTimeStamp(o1.getName());
+				String[] o2ts = extractSqlScriptTimeStamp(o2.getName());
+				int ts = o1ts[0].compareTo(o2ts[0]);
+				if (ts != 0) {
+					return ts;
+				} else {
+					int num = o1ts[1].compareTo(o2ts[1]);
+					return num;
+				}
+			}
+		});
+		
+		//Order and filter
+		for (File file : listFiles) {
+			String[] sqlScriptTimeStamp = extractSqlScriptTimeStamp(file.getName());
+			if (isValidSqlScriptFile(sqlScriptTimeStamp) && sqlScriptTimeStamp[0].compareTo(lastStampRan) > 0 && sqlScriptTimeStamp[1].compareTo(lastNumRan) > 0) {
+				sortedUpgrades.add(file);
+			} else {
+				System.out.println("Ignoring invalid or already ran script file : "+file.getAbsolutePath());
+			}
+		}
+		
+		//Running valid scripts
+		BufferedWriter statusWriter = new BufferedWriter(new FileWriter(scriptsStatusFile));
+		for (File sqlScript : sortedUpgrades) {
+			try {
+				String scriptStatus = runSqlScript(connection, sqlScript);
+				statusWriter.append(sqlScript.getName()+", "+((scriptStatus.isEmpty())?"Ok":"NOk "+scriptStatus));
+				statusWriter.newLine();
+			} catch (FileNotFoundException e) {
+				System.out.println("Can't find upgrade script file : "+sqlScript.getAbsolutePath());
+				statusWriter.close();
+				throw new OtherException(e);
+			} catch (IOException e) {
+				System.out.println("Error upgrading script file : "+sqlScript.getAbsolutePath());
+				statusWriter.close();
+				e.printStackTrace();
+				throw new OtherException(e);
+			}
+			System.out.println(sqlScript.getAbsolutePath() + " Done!");
+		}
+		statusWriter.close();
+		
+		this.setChanged();
+		this.notifyObservers("Running upgrade scripts");
+		
+	}
 	
-	/**
-	 * Import derby.
-	 * 
-	 * @param piggyMarketSqueakFolder the piggy market squeak folder
-	 * @param connection the connection
-	 * @param extractDirName the extract dir name
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws OtherException 
-	 */
-	private void importDerby(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws SQLException, OtherException {
+	private String[] extractSqlScriptTimeStamp(String fileName) {
+		String stampString = fileName.substring(fileName.indexOf("_"), fileName.indexOf("."));
+		String[] split = stampString.split("_");
+		return split;
+	}
+	
+	private boolean isValidSqlScriptFile(String[] split) {
+		if (split.length != 2) return false;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddhhss");
+		try {
+			dateFormat.parse(split[0]);
+		} catch (ParseException e) {
+			System.out.println("Invalid sql script file name split : "+split);
+			e.printStackTrace();
+			return false;
+		}
+		try {
+			Integer.valueOf(split[1]);
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid sql script file name split : "+split);
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	private void importDerby(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws OtherException {
 		
 		String installPath = piggyMarketSqueakFolder.getAbsolutePath()+File.separator;
 		
@@ -263,83 +322,34 @@ public class DbInstaller extends Observable {
 		
 	}
 	
-	private void dropConstraints(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws SQLException,OtherException {
+	private void dropConstraints(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws OtherException {
 		String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
 		try {
-			File keysFile = new File(installPath + extractDirName + File.separator + "DROP.sql");
-			BufferedReader fr = new BufferedReader(new FileReader(keysFile));
-			String statement;
-			while ((statement = fr.readLine()) != null) {
-				if (!statement.isEmpty() && statement.length() > 2 && !statement.substring(0,2).equals("--")) {
-					System.out.println("Doing : "+statement);
-					try {
-						PreparedStatement ps = connection.prepareStatement(statement.substring(0, statement.length() - 1));
-						ps.execute();
-					} catch (java.sql.SQLException e) {
-						System.out.println("Warning : while dropping constraint : "+e.toString());
-						//throw new OtherException(e);
-					}
-					System.out.println(statement + " Done!");
-				}
-			}
-			fr.close();
+			File dropFile = new File(installPath + extractDirName + File.separator + "DROP.sql");
+			runSqlScript(connection, dropFile);
 			System.out.println("Drop constraints. Done!");
 		} catch (FileNotFoundException e) {
 			System.out.println("No constraints to drop.");
 			throw new OtherException(e);
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new OtherException(e);
 		}
 		this.setChanged();
-		this.notifyObservers("dropping constraints");
+		this.notifyObservers("Dropping constraints");
 		
 	}
-	
-	/**
-	 * Creates the indexes and keys.
-	 * 
-	 * @param piggyMarketSqueakFolder
-	 *            the piggy market squeak folder
-	 * @param connection
-	 *            the connection
-	 * @param extractDirName
-	 *            the extract dir name
-	 * 
-	 * @throws SQLException
-	 *             the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws OtherException 
-	 */
-	private void createIndexesAndKeys(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws SQLException, OtherException {
+
+	private void createIndexesAndKeys(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws OtherException {
 
 		String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
 
 		try {
 			File keysFile = new File(installPath + extractDirName + File.separator + "KEYS.sql");
-
-			BufferedReader fr = new BufferedReader(new FileReader(keysFile));
-			String statement;
-			while ((statement = fr.readLine()) != null) {
-				if (!statement.equals("") && !statement.substring(0, 2).equals("--")) {
-					System.out.println("Doing : "+statement);
-					try {
-						PreparedStatement ps = connection.prepareStatement(statement.substring(0, statement.length() - 1));
-						ps.execute();
-					} catch (java.sql.SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					System.out.println(statement + " Done!");
-				}
-			}
-			fr.close();
+			runSqlScript(connection, keysFile);
 			System.out.println("Keys. Done!");
-
 		} catch (FileNotFoundException e) {
-			System.out.println("No Keys update available.");
+			System.out.println("No Keys import available.");
 			throw new OtherException(e);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -347,32 +357,16 @@ public class DbInstaller extends Observable {
 		}
 
 		this.setChanged();
-		this.notifyObservers("setting keys");
+		this.notifyObservers("Setting keys");
 		
 		try {
 
 			File indexesFile = new File(installPath + extractDirName + File.separator + "INDEXES.sql");
-
-			BufferedReader fr = new BufferedReader(new FileReader(indexesFile));
-			String statement;
-			while ((statement = fr.readLine()) != null) {
-				if (!statement.equals("") && !statement.substring(0, 2).equals("--")) {
-					System.out.println("Doing : "+statement);
-					try {
-						PreparedStatement ps = connection.prepareStatement(statement.substring(0, statement.length() - 1));
-						ps.execute();
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					System.out.println(statement + " Done!");
-				}
-			}
-			fr.close();
+			runSqlScript(connection, indexesFile);
 			System.out.println("Indexes. Done!");
 
 		} catch (FileNotFoundException e) {
-			System.out.println("No Indexes update available.");
+			System.out.println("No Indexes import available.");
 			throw new OtherException(e);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -380,16 +374,34 @@ public class DbInstaller extends Observable {
 		}
 
 		this.setChanged();
-		this.notifyObservers("setting indexes");
+		this.notifyObservers("Setting indexes");
 
 	}
 
+	//TODO roll back on error?
+	private String runSqlScript(Connection connection, File sqlScript) throws FileNotFoundException, IOException {
+		
+		BufferedReader fr = new BufferedReader(new FileReader(sqlScript));
+		String statement;
+		String status = "";
+		while ((statement = fr.readLine()) != null) {
+			if (!statement.isEmpty() && !statement.substring(0, 2).equals("--")) {
+				System.out.println("Doing : "+statement);
+				try {
+					PreparedStatement ps = connection.prepareStatement(statement.substring(0, statement.length() - 1));
+					ps.execute();
+				} catch (java.sql.SQLException e) {
+					System.out.println("Error in : "+statement);
+					status = status + " ; " + statement +":"+e.toString();
+				}
+				System.out.println(statement + " Done!");
+			}
+		}
+		fr.close();
+		
+		return status;
+	}
 
-	/**
-	 * Gets the fis.
-	 * 
-	 * @return the fis
-	 */
 	public InputStream getFis() {
 		return fis;
 	}

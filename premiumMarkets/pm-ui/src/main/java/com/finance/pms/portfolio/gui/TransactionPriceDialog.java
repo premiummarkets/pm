@@ -30,7 +30,10 @@
 package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EventObject;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -44,7 +47,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
@@ -56,6 +58,10 @@ import org.eclipse.swt.widgets.Text;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.web.currency.CurrencyConverter;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.Transaction;
 import com.finance.pms.portfolio.Transaction.TransactionType;
 
@@ -69,38 +75,35 @@ public class TransactionPriceDialog extends Dialog {
 
 	private Text sharePriceText;
 	private Text quantityText;
-	private Label amountInText;
-	private Label amountOutText;
 	private Text transactionAmountText;
+	
+	private Label amountInLabel;
+	private Label amountOutLabel;
+
+	private Text dateText;
 	
 	private Button resetButton;
 	private Button cancelButton;
 
 	private Boolean ok = false;
-	private Boolean reset = false;
+	private Boolean resetLine = false;
 
 	Transaction transaction;
-	Composite portfolioTable;
+	SlidingPortfolioShare portfolioShare;
 
 	private ActionDialogAction action;
 
 	private Button sharePricePivot;
 	private Button transactionAmountPivot;
-	private Button quatityPivot;
+	private Button quantityPivot;
 	
 
-	public TransactionPriceDialog(Shell parent, Composite portfolioTable,Transaction transaction) {
+	public TransactionPriceDialog(Shell parent, SlidingPortfolioShare slidingPortfolioShare, Transaction transaction) {
 		super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.DIALOG_TRIM));
 		this.transaction = transaction;
-		this.portfolioTable = portfolioTable;
+		portfolioShare = slidingPortfolioShare;
 	}
 
-
-	/**
-	 * Open.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void open() {
 		try {
 			
@@ -112,6 +115,9 @@ public class TransactionPriceDialog extends Dialog {
 			getParent().layout();			
 			getParent().setLayout(dialogShellLayout);
 			getParent().setBackground(MainGui.pOPUP_BG);
+			
+			String valuesToolTipMsg = "In this dialog you can set your transaction details.\nOperation using * / + - are accepted.\nWith the radio button you can freeze one of the values (amount, price or quantity) to use it as a pivot.";
+			getParent().setToolTipText(valuesToolTipMsg);
 			
 			SelectionListener pivotListener = new SelectionListener() {
 				
@@ -125,8 +131,8 @@ public class TransactionPriceDialog extends Dialog {
 					transactionAmountText.setEnabled(!transactionAmountPivot.getSelection());
 					sharePriceText.setEditable(!sharePricePivot.getSelection());
 					sharePriceText.setEnabled(!sharePricePivot.getSelection());
-					quantityText.setEditable(!quatityPivot.getSelection());
-					quantityText.setEnabled(!quatityPivot.getSelection());
+					quantityText.setEditable(!quantityPivot.getSelection());
+					quantityText.setEnabled(!quantityPivot.getSelection());
 				}
 
 				@Override
@@ -152,6 +158,7 @@ public class TransactionPriceDialog extends Dialog {
 				group.setLayoutData(newPortfoliolabelLData);
 				group.setBackground(MainGui.pOPUP_BG);
 				group.setLayout(new FillLayout(SWT.HORIZONTAL));
+				group.setToolTipText(valuesToolTipMsg);
 				
 				Button way1 = new Button(group, SWT.RADIO);
 				way1.setText("buy");
@@ -183,10 +190,75 @@ public class TransactionPriceDialog extends Dialog {
 						transaction.setModtype(TransactionType.AOUT);
 					}
 				});
+				resetButton = new Button(group, SWT.RADIO);
+				resetButton.setText("reset transactions");
+				resetButton.setToolTipText(
+						"If selected, this will delete all previous transactions regarding that line in the current portfolio, replacing it with this transaction."
+								+ "\nA quantity 0 will remove the line and all its transactions.");
+				resetButton.setFont(MainGui.DEFAULTFONT);
+				resetButton.setBackground(MainGui.pOPUP_BG);
+				resetButton.setSelection(false);
+				resetButton.addSelectionListener(new SelectionListener() {
+
+					public void widgetDefaultSelected(SelectionEvent arg0) {
+						refreshValues();
+					}
+
+					public void widgetSelected(SelectionEvent arg0) {
+						refreshValues();
+
+					}
+				});
+			}
+			final SimpleDateFormat dateFormat = new SimpleDateFormat("dd MM yyyy");
+			{
+				Label dateLabel = new Label(getParent(), SWT.NONE);
+				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
+				dateLabel.setLayoutData(newPortfolioTextLData);
+				dateLabel.setText("Transaction date : ");
+				dateLabel.setToolTipText("dd MM yyyy");
+				dateLabel.setFont(MainGui.CONTENTFONT);
+				dateLabel.setBackground(MainGui.pOPUP_BG);
+			}
+			{
+				dateText = new Text(getParent(), SWT.NONE);
+				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
+				newPortfolioTextLData.horizontalSpan=2;
+				dateText.setLayoutData(newPortfolioTextLData);
+				dateText.setText(dateFormat.format(transaction.getDate()));
+				dateText.setToolTipText("dd MM yyyy");
+				dateText.setFont(MainGui.CONTENTFONT);
+				dateText.addListener(SWT.DefaultSelection, new Listener() {
+					public void handleEvent(Event e) {
+						try {
+							Date newTransactionDate = dateFormat.parse(dateText.getText());
+							transaction.setDate(newTransactionDate);
+							ArrayList<QuotationUnit> loadNStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(portfolioShare.getStock(), newTransactionDate, 1, true);
+							if (loadNStripedQuotationsBefore != null && loadNStripedQuotationsBefore.size() > 0) {
+								CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
+								BigDecimal close = loadNStripedQuotationsBefore.get(0).getClose();
+								close = currencyConverter.convert(portfolioShare.getStock().getMarketValuation(), portfolioShare.getStock().getMarketValuation().getCurrency(), close, newTransactionDate);
+								sharePriceText.setText(close.toString());
+								if (sharePricePivot.getSelection()) {//Price is the pivot
+									transaction.setTransactionSharePrice(close);
+									updateThirdFieldFor("quantity"); //ie the amount will be chaged
+								} else {
+									updateThirdFieldFor("price"); //ie quantity or amount will be changed depending on the pivot
+								}
+								refreshValues();
+							}
+							
+						} catch (ParseException e1) {
+							LOGGER.warn(e1);
+							dateText.setText(dateFormat.format(transaction.getDate()));
+						}
+					}
+				});
 			}
 			{
 				Label newPortfoliolabel = new Label(getParent(), SWT.NONE);
 				newPortfoliolabel.setText("Transaction amount : ");
+				newPortfoliolabel.setToolTipText(valuesToolTipMsg);
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
@@ -201,12 +273,13 @@ public class TransactionPriceDialog extends Dialog {
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				transactionAmountText.setLayoutData(newPortfolioTextLData);
 				transactionAmountText.setText(transaction.amount().toString());
+				transactionAmountText.setToolTipText(valuesToolTipMsg);
 				transactionAmountText.setFont(MainGui.CONTENTFONT);
 				transactionAmountText.addListener(SWT.DefaultSelection, new Listener() {
 					public void handleEvent(Event e) {
 						BigDecimal amount = solveCalculation(transactionAmountText.getText());
 						transactionAmountText.setText(amount.toString());
-						pivotValue("amount");
+						updateThirdFieldFor("amount");
 						refreshValues();
 					}
 				});
@@ -214,6 +287,7 @@ public class TransactionPriceDialog extends Dialog {
 			{
 				Label newPortfoliolabel = new Label(getParent(), SWT.NONE);
 				newPortfoliolabel.setText("Unit price : ");
+				newPortfoliolabel.setToolTipText(valuesToolTipMsg);
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
@@ -228,6 +302,7 @@ public class TransactionPriceDialog extends Dialog {
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				sharePriceText.setLayoutData(newPortfolioTextLData);
 				sharePriceText.setText(transaction.getTransactionSharePrice().toString());
+				sharePriceText.setToolTipText(valuesToolTipMsg);
 				sharePriceText.setFont(MainGui.DEFAULTFONT);
 				sharePriceText.setEditable(true);
 				sharePriceText.setEnabled(true);
@@ -235,7 +310,7 @@ public class TransactionPriceDialog extends Dialog {
 					public void handleEvent(Event e) {
 						BigDecimal sharePrice = solveCalculation(sharePriceText.getText());
 						sharePriceText.setText(sharePrice.toString());
-						pivotValue("price");
+						updateThirdFieldFor("price");
 						refreshValues();
 					}
 				});
@@ -243,34 +318,37 @@ public class TransactionPriceDialog extends Dialog {
 			{
 				Label newPortfoliolabel = new Label(getParent(), SWT.NONE);
 				newPortfoliolabel.setText("Quantity : ");
+				newPortfoliolabel.setToolTipText(valuesToolTipMsg);
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabel.setLayoutData(newPortfoliolabelLData);
 				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
-				quatityPivot = new Button(getParent(), SWT.RADIO);
-				quatityPivot.addSelectionListener(pivotListener);
-				quatityPivot.setToolTipText("Freeze value");
+				quantityPivot = new Button(getParent(), SWT.RADIO);
+				quantityPivot.addSelectionListener(pivotListener);
+				quantityPivot.setToolTipText("Freeze value");
 				
 				quantityText = new Text(getParent(), SWT.BORDER);
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				quantityText.setLayoutData(newPortfolioTextLData);
 				quantityText.setText(transaction.getQuantity().toString());
+				quantityText.setToolTipText(valuesToolTipMsg);
 				quantityText.setFont(MainGui.CONTENTFONT);
 				quantityText.addListener(SWT.DefaultSelection, new Listener() {
 					
 					public void handleEvent(Event e) {
 						BigDecimal quatity = solveCalculation(quantityText.getText());
 						quantityText.setText(quatity.toString());
-						pivotValue("quantity");
+						updateThirdFieldFor("quantity");
 						refreshValues();
 					}
 				});
 			}
 			{
 				Label newPortfoliolabel = new Label(getParent(), SWT.NONE);
-				newPortfoliolabel.setText("Total money in for the line : ");
+				newPortfoliolabel.setText("Money in after : ");
+				newPortfoliolabel.setToolTipText("Total money in for the line after the transaction.");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabelLData.horizontalSpan = 2;
@@ -278,17 +356,19 @@ public class TransactionPriceDialog extends Dialog {
 				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
-				amountInText = new Label(getParent(), SWT.NONE);
+				amountInLabel = new Label(getParent(), SWT.NONE);
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfolioTextLData.horizontalSpan = 1;
-				amountInText.setLayoutData(newPortfolioTextLData);
-				amountInText.setText(transaction.fullAmountIn().toString());
-				amountInText.setFont(MainGui.CONTENTFONT);
-				amountInText.setBackground(MainGui.pOPUP_BG);
+				amountInLabel.setLayoutData(newPortfolioTextLData);
+				amountInLabel.setText(transaction.fullAmountIn().toString());
+				amountInLabel.setToolTipText("Total money in for the line after the transaction.");
+				amountInLabel.setFont(MainGui.CONTENTFONT);
+				amountInLabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				Label newPortfoliolabel = new Label(getParent(), SWT.NONE);
-				newPortfoliolabel.setText("Total money out for the line : ");
+				newPortfoliolabel.setText("Money out after : ");
+				newPortfoliolabel.setToolTipText("Total money out for the line after the transaction.");
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabelLData.horizontalSpan = 2;
@@ -296,33 +376,14 @@ public class TransactionPriceDialog extends Dialog {
 				newPortfoliolabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
-				amountOutText =  new Label(getParent(), SWT.NONE);
+				amountOutLabel =  new Label(getParent(), SWT.NONE);
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfolioTextLData.horizontalSpan = 1;
-				amountOutText.setLayoutData(newPortfolioTextLData);
-				amountOutText.setText(transaction.fullAmountOut().toString());
-				amountOutText.setFont(MainGui.CONTENTFONT);
-				amountOutText.setBackground(MainGui.pOPUP_BG);
-			}
-			{
-				resetButton = new Button(getParent(), SWT.CHECK);
-				GridData newPortfollioValidateButtonLData = new GridData();
-				newPortfollioValidateButtonLData.horizontalSpan = 3;
-				newPortfollioValidateButtonLData.horizontalAlignment = GridData.BEGINNING;
-				resetButton.setLayoutData(newPortfollioValidateButtonLData);
-				resetButton.setText("Reset to new share?");
-				resetButton.setFont(MainGui.DEFAULTFONT);
-				resetButton.addSelectionListener(new SelectionListener() {
-					
-					public void widgetDefaultSelected(SelectionEvent arg0) {
-						refreshValues();
-					}
-					
-					public void widgetSelected(SelectionEvent arg0) {
-						refreshValues();
-						
-					}
-				});
+				amountOutLabel.setLayoutData(newPortfolioTextLData);
+				amountOutLabel.setText(transaction.fullAmountOut().toString());
+				amountOutLabel.setToolTipText("Total money out for the line after the transaction.");
+				amountOutLabel.setFont(MainGui.CONTENTFONT);
+				amountOutLabel.setBackground(MainGui.pOPUP_BG);
 			}
 			{
 				cancelButton = new Button(getParent(), SWT.PUSH);
@@ -352,7 +413,7 @@ public class TransactionPriceDialog extends Dialog {
 					@Override
 					public void mouseDown(MouseEvent evt) {
 						ok = true;
-						reset = resetButton.getSelection();
+						resetLine = resetButton.getSelection();
 						
 						Float quantity = 0f;
 						try {
@@ -369,6 +430,12 @@ public class TransactionPriceDialog extends Dialog {
 						Float sp = (quantity != 0)?amount/quantity:1;
 						transaction.setQuantity(quantity);
 						transaction.setTransactionSharePrice(sp);
+						
+						try {
+							transaction.setDate(dateFormat.parse(dateText.getText()));
+						} catch (ParseException e) {
+							LOGGER.warn(e);
+						}
 						
 						newTransactionValidateButtonMouseDown(evt);
 					}
@@ -388,13 +455,6 @@ public class TransactionPriceDialog extends Dialog {
 		}
 	}
 	
-	/**
-	 * New portfollio validate button mouse down.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void newTransactionValidateButtonMouseDown(EventObject evt) {
 		this.action.action(null);
 		getParent().close();
@@ -402,11 +462,11 @@ public class TransactionPriceDialog extends Dialog {
 
 	private void refreshValues() {
 		if (!this.resetButton.getSelection()) {
-			amountInText.setText(transaction.fullAmountIn().toString());
-			amountOutText.setText(transaction.fullAmountOut().toString());
+			amountInLabel.setText(transaction.fullAmountIn().toString());
+			amountOutLabel.setText(transaction.fullAmountOut().toString());
 		} else {
-			amountInText.setText(transaction.amount().toString());
-			amountOutText.setText("0");
+			amountInLabel.setText(transaction.amount().toString());
+			amountOutLabel.setText("0");
 		}
 		quantityText.setText(transaction.getQuantity().toString());
 		sharePriceText.setText(transaction.getTransactionSharePrice().toString());
@@ -414,8 +474,8 @@ public class TransactionPriceDialog extends Dialog {
 	}
 	
 	
-	public Boolean getReset() {
-		return reset;
+	public Boolean getResetLine() {
+		return resetLine;
 	}
 	
 	public Boolean getOk() {
@@ -482,7 +542,7 @@ public class TransactionPriceDialog extends Dialog {
 		
 	}
 	
-	private void pivotValue(String changedField) {
+	private void updateThirdFieldFor(String changedField) {
 		
 		if (transactionAmountPivot.getSelection()) {
 			Float amount = new Float(transactionAmountText.getText());
@@ -519,7 +579,7 @@ public class TransactionPriceDialog extends Dialog {
 				transaction.setQuantity(quantity);
 			}
 		}
-		else if (quatityPivot.getSelection()) {
+		else if (quantityPivot.getSelection()) {
 			Float quantity = new Float(quantityText.getText());
 			if (changedField.equals("price")) {
 				Float price = new Float(sharePriceText.getText());

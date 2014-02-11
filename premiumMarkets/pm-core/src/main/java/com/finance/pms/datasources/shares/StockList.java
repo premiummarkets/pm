@@ -51,29 +51,17 @@ import com.finance.pms.admin.install.logging.MyLogger;
  */
 public class StockList extends ArrayList<Stock> {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(StockList.class);
-	
-	/** The Constant serialVersionUID. */
+
 	private static final long serialVersionUID = -2886371019007893961L;
 
-	/**
-	 * Instantiates a new stock list.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StockList() {
 	}
 
-	/**
-	 * Instantiates a new stock list.
-	 * 
-	 * @param pathToList the path to list
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StockList(String pathToList) throws InputMismatchException {
+		
 		super();
+		
 		try {
 			File f = new File(pathToList);
 			FileInputStream fileStream = new FileInputStream(f);

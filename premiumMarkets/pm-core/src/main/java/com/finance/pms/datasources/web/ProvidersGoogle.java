@@ -95,7 +95,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		
 		url = resolveUrlFor(stock, start, end);
 		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(readPage(stock, url));
+		queries.addAll(readPage(stock, url, start));
 
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
@@ -104,7 +104,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		
 	}
 
-	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date start) throws HttpException {
 		DayQuoteFormater dsf = new DayQuoteGoogleFormater(url,stock,stock.getMarketValuation().getCurrency().name());
 		List<Validatable> readURL = this.httpSource.readURL(dsf);
 		return readURL;

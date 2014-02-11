@@ -30,13 +30,16 @@
 package com.finance.pms.screening;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.NavigableSet;
-import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -73,69 +76,95 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Scre
     private Double staledPerCentage;
     private Collection<ScreeningSupplementedStock> staledTrends;  
     private Double ignoredPerCentage;
-    private Collection<ScreeningSupplementedStock> ignoredTrends;  
+    private Collection<ScreeningSupplementedStock> ignoredTrends;
+    
+	private NavigableSet<ScreeningSupplementedStock> filtered;  
 
 	public FullRatingOrdinator(Collection<ScreeningSupplementedStock> listOfShares, Date end) {
 		super();
 		this.listOfShares = listOfShares;
 		this.endDate = end;
-		this.invalidTrends = new ArrayList<ScreeningSupplementedStock>();
-		this.notCredibleTrends = new ArrayList<ScreeningSupplementedStock>();
-		this.notToBeFoundTrends = new ArrayList<ScreeningSupplementedStock>();
-		this.staledTrends = new ArrayList<ScreeningSupplementedStock>();
-		this.ignoredTrends = new ArrayList<ScreeningSupplementedStock>();
+		this.invalidTrends = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
+		this.notCredibleTrends = new ConcurrentSkipListSet<ScreeningSupplementedStock>();;
+		this.notToBeFoundTrends = new ConcurrentSkipListSet<ScreeningSupplementedStock>();;
+		this.staledTrends = new ConcurrentSkipListSet<ScreeningSupplementedStock>();;
+		this.ignoredTrends = new ConcurrentSkipListSet<ScreeningSupplementedStock>();;
 		
 	}
 
 	public NavigableSet<ScreeningSupplementedStock> calculate() {
-		
-		NavigableSet<ScreeningSupplementedStock> ordered = new TreeSet<ScreeningSupplementedStock>(new FullRatingCompartor());
-		ordered.addAll(listOfShares);
-		return ordered;
+		filtered = filterCredible();
+		return filtered;
 	}
 
-	public NavigableSet<ScreeningSupplementedStock> filterCredible() {
+	private NavigableSet<ScreeningSupplementedStock> filterCredible() {
 		
-		NavigableSet<ScreeningSupplementedStock> ret = new TreeSet<ScreeningSupplementedStock>(new FullRatingCompartor());
+		final NavigableSet<ScreeningSupplementedStock> ret = new ConcurrentSkipListSet<ScreeningSupplementedStock>(new FullRatingCompartor());
 		
-		Calendar staleDateLimit = Calendar.getInstance();
+		final Calendar staleDateLimit = Calendar.getInstance();
 		staleDateLimit.setTime(endDate);
 		staleDateLimit.add(Calendar.MONTH, -TREND_OUTDATE_LIMIT);
 		
-		for (ScreeningSupplementedStock trendedStock : listOfShares) {
-			MyBigDec fullRating = trendedStock.fullRating();
-			if (	
-					fullRating.isValid() && trendedStock.priceChangeTTM().isValid()
-					&& fullRating.getValue().compareTo(CREDIBLE_BUY_THRESHOLD) > 0 && fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) < 0 
-					&& trendedStock.getTrendDate().after(staleDateLimit.getTime())
-					&& !( fullRating.getValue().compareTo(BigDecimal.ZERO) > 0  && trendedStock.priceChangeTTM().getValue().compareTo(new BigDecimal(-0.10)) <= 0 )
-					
-			) {
-				ret.add(trendedStock);
-			} else if (!fullRating.isValid()) {
-				LOGGER.warn("Trend info is not to be found "+trendedStock);
-				this.notToBeFoundTrends.add(trendedStock);
-			} else if (fullRating.getValue().compareTo(CREDIBLE_BUY_THRESHOLD) <= 0 || fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) >= 0 ) {
-				LOGGER.warn("Trend info is not credible for "+trendedStock);
-				notCredibleTrends.add(trendedStock);
-			} else if (!trendedStock.getTrendDate().after(staleDateLimit.getTime())) {
-				LOGGER.warn("Trend info is staled for "+trendedStock);
-				staledTrends.add(trendedStock);
-			} else if (!trendedStock.priceChangeTTM().isValid() || trendedStock.priceChangeTTM().getValue().compareTo(new BigDecimal(-0.10)) <= 0) {
-				LOGGER.warn("Trend info is ignored because of poor recent perfs for "+trendedStock+" or no quotations.");
-				this.ignoredTrends.add(trendedStock);
-			} else {
-				LOGGER.warn("Trend info is not valid for other reasons for "+trendedStock);
-				invalidTrends.add(trendedStock);
-			}
+		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("trendeventscalculation.semaphore.nbthread","20")));
+		for (final ScreeningSupplementedStock trendedStock : listOfShares) {
+			
+			Runnable runnable = new Runnable() {
+				public void run() {
+					MyBigDec fullRating = trendedStock.fullRating();
+					if (isCredibleTrend(staleDateLimit, trendedStock, fullRating)) {
+						ret.add(trendedStock);
+					} else if (!fullRating.isValid()) {
+						LOGGER.warn("Trend info is not to be found " + trendedStock);
+						FullRatingOrdinator.this.notToBeFoundTrends.add(trendedStock);
+					} else if (fullRating.getValue().compareTo(CREDIBLE_BUY_THRESHOLD) <= 0 || fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) >= 0) {
+						LOGGER.warn("Trend info is not credible for " + trendedStock);
+						notCredibleTrends.add(trendedStock);
+					} else if (!trendedStock.getTrendDate().after(staleDateLimit.getTime())) {
+						LOGGER.warn("Trend info is staled for " + trendedStock);
+						staledTrends.add(trendedStock);
+					} else if (!trendedStock.priceChangeTTM().isValid() || trendedStock.priceChangeTTM().getValue().compareTo(new BigDecimal(-0.10)) <= 0) {
+						LOGGER.warn("Trend info is ignored because of poor recent perfs for " + trendedStock + " or no quotations.");
+						FullRatingOrdinator.this.ignoredTrends.add(trendedStock);
+					} else {
+						LOGGER.warn("Trend info is not valid for other reasons for " + trendedStock);
+						invalidTrends.add(trendedStock);
+					}
+				}
+			};
+			executor.submit(runnable);
+			
 		}
+		executor.shutdown();
+		
+		try {
+			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			if (!awaitTermination) {
+				List<Runnable> shutdownNow = executor.shutdownNow();
+				LOGGER.error(shutdownNow, new Exception());
+			}
+		} catch (InterruptedException e) {
+			List<Runnable> shutdownNow = executor.shutdownNow();
+			LOGGER.error(shutdownNow, e);
+		}
+		
 		Double totalTrends = new Double(listOfShares.size());
 		notToBefoundPerCentage = new Double(notToBeFoundTrends.size()) / totalTrends;
 		notCrediblePerCentage = new Double(notCredibleTrends.size()) / totalTrends;
 		staledPerCentage = new Double(staledTrends.size()) / totalTrends;
 		ignoredPerCentage = new Double(ignoredTrends.size()) / totalTrends;
 		invalidPerCentage = new Double(invalidTrends.size()) / totalTrends;
+		
 		return ret;
+	}
+
+	protected boolean isCredibleTrend(Calendar staleDateLimit, ScreeningSupplementedStock trendedStock, MyBigDec fullRating) {
+		
+		return 
+		fullRating.isValid() && trendedStock.priceChangeTTM().isValid()
+		&& fullRating.getValue().compareTo(CREDIBLE_BUY_THRESHOLD) > 0 && fullRating.getValue().compareTo(CREDIBLE_SELL_THRESHOLD) < 0 
+		&& trendedStock.getTrendDate().after(staleDateLimit.getTime())
+		&& !( fullRating.getValue().compareTo(BigDecimal.ZERO) > 0  && trendedStock.priceChangeTTM().getValue().compareTo(new BigDecimal(-0.10)) <= 0 );
+		
 	}
 	
 	public Double getInvalidPerCentage() {

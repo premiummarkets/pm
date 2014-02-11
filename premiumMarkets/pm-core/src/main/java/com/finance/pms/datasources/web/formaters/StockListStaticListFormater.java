@@ -84,7 +84,7 @@ public class StockListStaticListFormater extends LineFormater {
 	}
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return false;
 	}
 

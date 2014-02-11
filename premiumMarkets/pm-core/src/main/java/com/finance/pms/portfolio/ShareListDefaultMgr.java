@@ -64,11 +64,16 @@ public class ShareListDefaultMgr extends ShareListMgr {
 		
 		SharesList unknownShareList = portfolioDAO.loadShareList(SharesListId.UNKNOWN.name());
 		
-		if (!newPortfolioShare.getPortfolio().equals(unknownShareList)) {
+		AbstractSharesList newShareList = newPortfolioShare.getPortfolio();
+		if (!newShareList.equals(unknownShareList)) {
 			Stock stock = newPortfolioShare.getStock();
 			PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
 			if (unknownCounterpartPortfolioShare != null) {
-				portfolioDAO.saveOrUpdatePortfolioShare(newPortfolioShare);
+				
+				//This is may be new new
+				//portfolioDAO.saveOrUpdatePortfolioShare(newPortfolioShare);
+				portfolioDAO.saveOrUpdatePortfolio(newShareList);
+				
 				unknownShareList.removeShare(unknownCounterpartPortfolioShare);
 			}
 		}

@@ -50,8 +50,9 @@ import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuoteInflationFormater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
+import com.finance.pms.portfolio.InflationUpdateObserver;
 
-public class ProvidersInflation extends Providers implements QuotationProvider{
+public class ProvidersInflation extends Providers implements QuotationProvider {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
 
@@ -60,6 +61,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider{
 	public ProvidersInflation(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceInflation(pathToProps, this);
+		this.addObserver(new InflationUpdateObserver());
 	}
 
 	@Override
@@ -80,33 +82,42 @@ public class ProvidersInflation extends Providers implements QuotationProvider{
 	@Override
 	public void getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
 		
-		
-		if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
-			throw new RuntimeException("Error : This should be used to retreive inflation historical only, not : "+stock.toString());
-		}
-		
-		long twoMonthAndHalf = (long) 1000*60*60*24*31*2 + 1000*60*60*24*15;
-		SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
-		if (stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime()) {//Inflation can be updated monthly only
-			throw new HttpException("Inflation data can be updated once in a month only.\nYou requested an update for the month preceeding "+sdf.format(end)+"\n and the last update was in the month following "+sdf.format(stock.getLastQuote()));
-		}
-
-		MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
-
-		TreeSet<Validatable> queries = initValidatableSet();
-
-		LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
-		List<Validatable> urlResults = this.httpSource.readURL(dsf);
-		for (Validatable validatable : urlResults) {
-			if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
-				queries.add(validatable);
+		try {
+			
+			if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
+				String message = "Error : This should be used to retrieve inflation historical only, not : "+stock.toString();
+				LOGGER.error(message);
+				throw new RuntimeException(message);
 			}
-		}
+			
+			long twoMonthAndHalf = (long) 1000*60*60*24*31*2 + 1000*60*60*24*15;
+			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
+			boolean isLastLessThan2AndHalfMonthOld = stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime();
+			if (isLastLessThan2AndHalfMonthOld) {//Inflation can be updated monthly only
+				throw new HttpException("Inflation data can be updated once in a month only.\nYou requested an update for the month preceding "+sdf.format(end)+"\n and the last update was in the month following "+sdf.format(stock.getLastQuote()));
+			}
 
-		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" : "+queries.size());
-		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
-		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
+
+			TreeSet<Validatable> queries = initValidatableSet();
+
+			LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
+			List<Validatable> urlResults = this.httpSource.readURL(dsf);
+			for (Validatable validatable : urlResults) {
+				if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
+					queries.add(validatable);
+				}
+			}
+
+			LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" : "+queries.size());
+			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
+			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			
+		} finally  {
+			this.setChanged();
+			this.notifyObservers(end);
+		}
 
 	}
 
@@ -141,7 +152,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider{
 	}
 
 	@Override
-	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date date) throws HttpException {
 		throw new UnsupportedOperationException("Inflation can't be updated that way.");
 	}
 

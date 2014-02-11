@@ -37,11 +37,14 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
@@ -150,7 +153,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			
 			final Set<TransfoInfo> transfos = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
 					
-					new TransfoInfo("Change to Buy price", new ActionDialogAction() {
+					new TransfoInfo("Change to Cost per unit", new ActionDialogAction() {
 
 						@Override
 						public void action(Control targetControl) {
@@ -171,20 +174,47 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						@Override
 						public void action(Control targetControl) {
 
-							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Root at zero");
+							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
+							final Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
+							zeroBut.setText("Start all from 0");
+							zeroBut.setToolTipText("If selected, the resulting ROCS will all be starting from 0 at the start of the period and than be drawn relative to this point.\nIf not the resulting ROCs will naturally oscillate around 0.");
+							zeroBut.setFont(MainGui.DEFAULTFONT);
+							zeroBut.setSelection(false);
+							final Text smthPeriodTxt = new Text(actionDialogForm.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
+							final String pString = "Log ROC smoothing period";
+							smthPeriodTxt.setText(pString);
+							smthPeriodTxt.setToolTipText("In order to reflect some trend, the ROC must be calculated after smoothing the quotations.\nEnter here the smoothing period number.\nDefault will be "+StripedCloseLogRoc.DEFAULTLOGROCSMTH+" days.");
+							smthPeriodTxt.addFocusListener(new FocusListener() {
+								
+								@Override
+								public void focusLost(FocusEvent e) {
+								}
+								
+								@Override
+								public void focusGained(FocusEvent e) {
+									if (smthPeriodTxt.getText().equals(pString)) smthPeriodTxt.setText("");
+								}
+							});
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action(Control targetControl) {
-									actionDialogForm.values[0] = Boolean.valueOf(((Button)actionDialogForm.controls[0]).getSelection()).toString();
-									chartTarget.setStripedCloseFunction( new StripedCloseLogRoc(actionDialogForm.values[0].equals(Boolean.TRUE.toString())));
+									//actionDialogForm.values[0] = Boolean.valueOf(((Button)actionDialogForm.controls[0]).getSelection()).toString();
+									actionDialogForm.values[0] = Boolean.valueOf(zeroBut.getSelection());
+									String text = smthPeriodTxt.getText();
+									Integer pSmth;
+									try {
+										pSmth = Integer.valueOf(text);
+										actionDialogForm.values[1] = pSmth;
+									} catch (NumberFormatException e) {
+										pSmth = StripedCloseLogRoc.DEFAULTLOGROCSMTH;
+									}
+									//chartTarget.setStripedCloseFunction( new StripedCloseLogRoc(actionDialogForm.values[0].equals(Boolean.TRUE.toString())));
+									chartTarget.setStripedCloseFunction( new StripedCloseLogRoc((Boolean)actionDialogForm.values[0], pSmth) );
 									chartTarget.updateCharts( true, true, false);
 								}
 							};
-							Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
-							zeroBut.setText("Root at zero");
-							zeroBut.setFont(MainGui.DEFAULTFONT);
-							zeroBut.setSelection(true);
-							actionDialogForm.setControl(zeroBut);
+
+							actionDialogForm.setControl(zeroBut, smthPeriodTxt);
 							actionDialogForm.setAction(actionDialogAction);
 							actionDialogForm.open();
 							

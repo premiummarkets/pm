@@ -39,7 +39,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -68,7 +68,7 @@ public class RefreshChartHightlited extends UserContentStrategyEngine<Stock> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) throws StockNotFoundException {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) throws QuotationUpdateException {
 
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 		super.callbackForlastQuotationFetch(engineObservers, rootParam);

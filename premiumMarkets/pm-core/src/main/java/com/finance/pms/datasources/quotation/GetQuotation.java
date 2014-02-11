@@ -38,6 +38,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.Callable;
 
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
+import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
@@ -49,6 +52,7 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.LastUpdateStampChecker;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
 
@@ -65,33 +69,23 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	private Date dateFin;
 	private Stock stock;
 
-	/**
-	 * Instantiates a new gets the quotation.
-	 * 
-	 * @param dateFin the date fin
-	 * @param stock the stock
-	 * @param threadSemaphore the thread semaphore
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+	private EventSignalConfig config;
+
 	public GetQuotation(Date dateFin, Stock stock) {
 		super();
-		this.stock = stock;
+		config = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 		
+		this.stock = stock;
 		//Fix date time fields
-//		Calendar endDayMidNight = Calendar.getInstance();
-//		endDayMidNight.setTime(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
-//		endDayMidNight.set(Calendar.HOUR_OF_DAY, 0);
-//		endDayMidNight.set(Calendar.MINUTE, 0);
-//		endDayMidNight.set(Calendar.SECOND, 0);
-//		endDayMidNight.set(Calendar.MILLISECOND, 0);
-//		this.dateFin = endDayMidNight.getTime();
 		this.dateFin = DateFactory.midnithDate(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
 	
 	}
 
 	@Override
 	public GetQuotationResult call() {
+		
+		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
+		ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 		
 		GetQuotationResult ret = new GetQuotationResult(stock);
 		
@@ -100,39 +94,27 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		Calendar startDayMidNight = Calendar.getInstance();
 		startDayMidNight.setTime(DateFactory.midnithDate(lastQuote));
 		startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-		Date lastQuoteUpDate = startDayMidNight.getTime();
+		Date lastQuoteUpDateStart = startDayMidNight.getTime();
 		
 		Boolean updated = false;//XXX too many calls to quotations table ... getQuote should return the last date?
-		try {	
-//			lastQuoteDate = DataSource.getInstance().getLastQuotationDateFromShares(stock);
-//			Calendar startDayMidNight = Calendar.getInstance();
-//			startDayMidNight.setTime(lastQuote);
-//			startDayMidNight.set(Calendar.HOUR_OF_DAY, 0);
-//			startDayMidNight.set(Calendar.MINUTE, 0);
-//			startDayMidNight.set(Calendar.SECOND, 0);
-//			startDayMidNight.set(Calendar.MILLISECOND, 0);
-//
-//			startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-//			lastQuoteUpDate = startDayMidNight.getTime();
-			
-			if (dateFin.before(lastQuoteUpDate)) {//Update not needed
+		try {				
+			if (dateFin.before(lastQuoteUpDateStart)) {//Update not needed
 				LOGGER.guiInfo("Quotation for "+stock.getFriendlyName()+ " are up to date to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
-				//ret.hasQuotations = true;
-				
 			} else {//Check last quote update
 				LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(stock);
-				if (lastUpdateChecker.isUpdateGranted()) { //Update granted for today
+				Boolean updateGranted = lastUpdateChecker.isUpdateGranted();
+				if (updateGranted) { //Update granted for today
 					
 					LOGGER.guiInfo(	"Updating quotation for "+stock.getFriendlyName()+
-									" from the " +new SimpleDateFormat("yyyy/MM/dd").format(lastQuoteUpDate)+ 
+									" from the " +new SimpleDateFormat("yyyy/MM/dd").format(lastQuoteUpDateStart)+ 
 									" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
 		
-					LOGGER.guiInfo("Downloading for "+stock.getFriendlyName()+" from the " + lastQuoteUpDate + " to " + dateFin);
-					Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, lastQuoteUpDate, dateFin);
+					LOGGER.guiInfo("Downloading for "+stock.getFriendlyName()+" from the " + lastQuoteUpDateStart + " to " + dateFin);
+					Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, lastQuoteUpDateStart, dateFin);
 					updated = true;
 					
 				} else {//No Update : already done today
-					LOGGER.guiInfo("Request for updating "+stock.getFriendlyName()+" from the " + lastQuoteUpDate + " to " + dateFin + " : nothing to do as last update was on the "+lastUpdateChecker);
+					LOGGER.guiInfo("Request for updating "+stock.getFriendlyName()+" from the " + lastQuoteUpDateStart + " to " + dateFin + " : nothing to do as last update was on the "+lastUpdateChecker);
 				}
 			}
 			
@@ -140,7 +122,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 			
 			String scrapErrorMess = "Failed to update quotes for :" + stock.toString() +".\n" +
 					" 		Because "+e+".\n" +
-					" 		In update request from "+lastQuoteUpDate+ " to "+ dateFin+ ".";
+					" 		In update request from "+lastQuoteUpDateStart+ " to "+ dateFin+ ".";
 			LOGGER.warn(scrapErrorMess);
 			ret.isSuccessfulUpdate = false;
 			ret.failureCause = e;
@@ -153,22 +135,21 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		}
 		
 		if (updated) lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);
-		if (!lastQuote.equals(DateFactory.dateAtZero())) ret.hasQuotations = true;
+		if (lastQuote.after(lastQuoteUpDateStart) || lastQuote.equals(lastQuoteUpDateStart)) ret.hasNewQuotations = true;
+		if (lastQuote.equals(DateFactory.dateAtZero())) ret.stockFound = false;
 		
 		stock.setLastQuote(lastQuote);
 		updateLastQuoteDateForShareInDB(lastQuote);
 
-		LOGGER.guiInfo("Done quotations for "+stock.getFriendlyName()+" from " + lastQuoteUpDate + " to " + dateFin + ", last quotation : "+stock.getLastQuote());
+		LOGGER.guiInfo(
+				"Done quotations for "+stock.getFriendlyName()+" from " + lastQuoteUpDateStart + " to " + dateFin + ", last quotation : " + stock.getLastQuote() + ", "
+				+ "status : Success " + ret.isSuccessfulUpdate + ", New data " + ret.hasNewQuotations+", Has previous date " + ret.stockFound);
 
 		Quotations.updateCachedStockKey(stock);
 		
 		return ret;
 	}
 
-	/**
-	 * @param lastquote
-	 * @throws SQLException
-	 */
 	private void updateLastQuoteDateForShareInDB(Date lastQuote) {
 		
 		if (null == lastQuote) {
@@ -206,14 +187,16 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	public class GetQuotationResult {
 
 		Stock stock;
-		Boolean hasQuotations;
+		Boolean hasNewQuotations;
 		Boolean isSuccessfulUpdate;
+		Boolean stockFound;
 		Exception failureCause;
 		
 		public GetQuotationResult(Stock stock) {
 			this.stock = stock;
-			this.hasQuotations = false;
 			this.isSuccessfulUpdate = true;
+			this.hasNewQuotations = false;
+			this.stockFound = true;
 		}
 	}
 

@@ -56,77 +56,33 @@ public class SymbolMarketQuotationProvider implements Serializable {
 
 	@Transient
 	private String extentionClue;
-	
-	
-	
-	/**
-	 * Instantiates a new symbol market quotation provider.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public SymbolMarketQuotationProvider() {
 		super();
 		this.marketQuotationProvider = MarketQuotationProviders.DEFAULT;
 		this.extentionClue=SymbolNameResolver.UNKNOWNEXTENSIONCLUE;
 	}
 
-	/**
-	 * Instantiates a new symbol market quotation provider.
-	 * 
-	 * @param marketQuotationsProviders the market quotations providers
-	 * @param extentionClue the extention clue
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public SymbolMarketQuotationProvider(MarketQuotationProviders marketQuotationsProviders,String extentionClue) {
 		super();
 		this.marketQuotationProvider = marketQuotationsProviders;
 		this.extentionClue=(null == extentionClue ||extentionClue.equals(""))? SymbolNameResolver.UNKNOWNEXTENSIONCLUE : extentionClue;
 	}
-	
-	/**
-	 * Instantiates a new symbol market quotation provider.
-	 * 
-	 * @param marketQuotationsProviders the market quotations providers
-	 * @param symbolWExtension the symbol w extension
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public SymbolMarketQuotationProvider(String marketQuotationsProviders, String symbolWExtension) {
 		super();
 		this.marketQuotationProvider = MarketQuotationProviders.valueOf(marketQuotationsProviders);
 		this.extentionClue = this.marketQuotationProvider.getSymbolNameResolver().getExtensionClueFromSymbol(symbolWExtension);
 	}
 
-
-
-	/**
-	 * Gets the full symbol.
-	 * 
-	 * @param symbol the symbol
-	 * 
-	 * @return the full symbol
-	 * 
-	 * @throws InvalidAlgorithmParameterException the invalid algorithm parameter exception
-	 */
 	public String getFullSymbol(String symbol) throws InvalidAlgorithmParameterException {
 		return marketQuotationProvider.getSymbolNameResolver().getFullSymbol(symbol, this.extentionClue);
 	}
-	
-	/**
-	 * Gets the cmd param.
-	 * 
-	 * @return the cmd param
-	 */
+
 	public String getCmdParam() {
 		return marketQuotationProvider.getCmdParam();
 	}
 
-	/**
-	 * Gets the market quotation providers list.
-	 * 
-	 * @return the market quotation providers list
-	 */
 	public MarketQuotationProviders getMarketQuotationProvider() {
 		return marketQuotationProvider;
 	}

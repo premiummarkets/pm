@@ -94,17 +94,11 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		// Nothing
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#getQuotes(com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date)
-	 */
 	@Override
 	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
 		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveAndCompleteStockInfo(com.finance.pms.datasources.shares.Stock)
-	 */
 	@Override
 	public void retrieveAndCompleteStockInfo(Stock s, StockList stockList) { 
 		
@@ -113,7 +107,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 			LOGGER.warn("No check available for Euro Next provider. Please provide full info.");
 		} else {
 			List<Validatable> listReq = new ArrayList<Validatable>();
-			if (!stockList.contains(s)) { // not already in base	
+			if (!stockList.contains(s)) { //not already in base	
 				
 				//check for last former quotation
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s);
@@ -124,7 +118,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 				listReq.add(s);
 				stockList.add(s);
 				
-			} else { // already in base : update name
+			} else { //already in base : update name
 				stockList.get(stockList.indexOf(s)).setName(s.getName());
 			}
 			try {
@@ -135,17 +129,11 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveStockListFromCmdLine(java.util.List)
-	 */
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks,StockList stockList, String quotationsProvider) {
 		throw new UnsupportedOperationException("Please use another provider the share list holder for that.");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveStockListFromWeb(com.finance.pms.datasources.web.ProvidersTypes)
-	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	//TODO Merge. One and only methods for all providers

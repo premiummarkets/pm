@@ -51,7 +51,6 @@ import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ErrorDialog.
  * 
@@ -80,13 +79,6 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 
 	private ActionDialogAction action;
 
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static void main(String[] args) {
 		try {
 			Display display = Display.getDefault();
@@ -98,29 +90,17 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 		}
 	}
 
-	/**
-	 * Instantiates a new error dialog.
-	 * 
-	 * @param parent the parent
-	 * @param style the style
-	 * @param erreur the erreur
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public RemoveConfirmationDialog(Shell parent, Boolean ask4Apply) {
-		super(parent, SWT.NULL);
+		super(parent, SWT.SHELL_TRIM);
 		this.ask4Apply = ask4Apply;
 	}
 
-	/**
-	 * Open.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void open() {
 		try {
 			Shell parent = getParent();
-			dialogShell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+			//dialogShell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+			dialogShell = new Shell(parent, SWT.SHELL_TRIM);
+			dialogShell.setText("Apply transaction");
 
 			GridLayout dialogShellLayout = new GridLayout();
 			dialogShellLayout.verticalSpacing = 20;
@@ -145,11 +125,11 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 				GridData Errorlabel1LData = new GridData();
 				Errorlabel1LData.horizontalSpan = 2;
 				applyToAmountCheck.setLayoutData(Errorlabel1LData);
-				applyToAmountCheck.setText("Apply transaction to totals as if sold.");
+				applyToAmountCheck.setText("Keep line transactions as if sold.");
 				applyToAmountCheck.setFont(MainGui.DEFAULTFONT);
 				applyToAmountCheck.setToolTipText(
-						"Ticking this box, will sell the share at the current price and apply the transaction to the portfolio totals. Aka we sell the line.\n" +
-						"If the box is left ticked off, the transaction amounts (money in and out) will be removed from the portfolio totals as they are. Aka as if the line had never been inserted.");
+						"Ticking this box, will sell the line at your price current and apply the transaction to the portfolio totals. Aka we sell the line.\n" +
+						"If the box is left ticked off, the transaction amounts (money in and out for this line) will be removed from the portfolio totals. Aka as if the line had never been inserted.");
 			}
 			{
 				monitorCheck = new Button(dialogShell, SWT.CHECK);
@@ -253,13 +233,6 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 		}
 	}
 
-	/**
-	 * Validerbutton1 mouse down.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void closeMouseDown() {
 		dialogShell.dispose();
 		action.action(null);
@@ -287,7 +260,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 
 	protected void validClose() {
 		canceled = false;
-		apply= ask4Apply && applyToAmountCheck.getSelection();
+		apply = ask4Apply && applyToAmountCheck.getSelection();
 		monitor = monitorCheck.getSelection();
 		if (monitor) {
 			monitroPortfolioName = monitoringPortfolioTxt.getText();

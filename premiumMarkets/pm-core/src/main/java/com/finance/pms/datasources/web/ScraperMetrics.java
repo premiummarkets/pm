@@ -66,11 +66,6 @@ public class ScraperMetrics {
 		
 	}
 
-	/**
-	 * @param failure
-	 * @param clazz
-	 * @return
-	 */
 	private List<ScraperMetricsElement> getRecordListForClassAndMetricsType(MetricsResType failure, Class<? extends LineFormater> clazz) {
 		
 		Map<MetricsResType,List<ScraperMetricsElement>> scrapperMetElesForClass = failures.get(clazz);
@@ -86,13 +81,13 @@ public class ScraperMetrics {
 		return scapMetForClassAndFailure;
 	}
 	
-	public void addRecord(LineFormater formater, String message) {
+	public void addRecord(LineFormater formater, String message, MetricsResType metricType) {
 		Class<? extends LineFormater> clazz = formater.getClass();
 		MyUrl url = formater.getMyUrl();
 		List<Object> params2 = formater.getParams();
 		params2.add(message);
 		Object[] params = params2.toArray();
-		List<ScraperMetricsElement> scrapMetForClassAndFailure = getRecordListForClassAndMetricsType(MetricsResType.HTTPERROR, clazz); 
+		List<ScraperMetricsElement> scrapMetForClassAndFailure = getRecordListForClassAndMetricsType(metricType, clazz); 
 		scrapMetForClassAndFailure.add(new ScraperMetricsElement(clazz, url, params));
 		
 	}
@@ -100,54 +95,70 @@ public class ScraperMetrics {
 	public String getMetrics(Boolean full) {
 		
 		StringBuffer stringBuffer = new StringBuffer();
+		
 		for (Class<? extends LineFormater> clazz : failures.keySet()) {
-			stringBuffer.append("Formater "+ clazz.getSimpleName());
+			
+			stringBuffer.append("Formatter "+ clazz.getSimpleName());
 			Map<MetricsResType, List<ScraperMetricsElement>> recordsForClass = failures.get(clazz);
 			List<ScraperMetricsElement> failuresForClass = recordsForClass.get(MetricsResType.FAILURE);
-			List<ScraperMetricsElement> emptyForClass = recordsForClass.get(MetricsResType.EMPTY);
+			List<ScraperMetricsElement> nAResForClass = recordsForClass.get(MetricsResType.EMPTYRESULTS);
+			List<ScraperMetricsElement> noResForClass = recordsForClass.get(MetricsResType.NORESULTS);
 			List<ScraperMetricsElement> successForClass = recordsForClass.get(MetricsResType.SUCCESS);
 			List<ScraperMetricsElement> httpErrorsForClass = recordsForClass.get(MetricsResType.HTTPERROR);
 			
-			Double percentPotentialFail;
+			Double percentTotalFail;
 			Double percentHttpErrors;
-			Double percentPatternEmpty;
+			Double percentPatternEmptyRes;
+			Double percentPatternNoRes;
 			Double percentPatternFailures;
+			Double percentSuccess;
 			int nbFailures = (failuresForClass == null)?0:failuresForClass.size();
-			int nbEmpty = (emptyForClass == null)?0:emptyForClass.size();
+			int nbNARes = (nAResForClass == null)?0:nAResForClass.size();
+			int nbNoRes = (noResForClass == null)?0:noResForClass.size();
 			int nbSuccess = (successForClass == null)?0:successForClass.size();
 			int nbHttpErrors = (httpErrorsForClass == null)?0:httpErrorsForClass.size();
-			int total = nbEmpty + nbSuccess + nbHttpErrors + nbFailures;
+			int total = nbNoRes + nbNARes +nbSuccess + nbHttpErrors + nbFailures;
 			if (total > 0) {
-				percentPotentialFail = (new Double(nbHttpErrors+nbFailures) / new Double(total))*100;
+				percentTotalFail = (new Double(nbHttpErrors+nbFailures) / new Double(total))*100;
 				percentHttpErrors = (new Double(nbHttpErrors) / new Double(total))*100;
-				percentPatternEmpty = (new Double(nbEmpty) / new Double(total))*100;
+				percentPatternEmptyRes = (new Double(nbNARes) / new Double(total))*100;
+				percentPatternNoRes = (new Double(nbNoRes) / new Double(total))*100;
 				percentPatternFailures = (new Double(nbFailures) / new Double(total))*100;
+				percentSuccess = (new Double(nbSuccess) / new Double(total))*100;
 			} else {
-				percentPotentialFail = 0d;
+				percentTotalFail = 0d;
 				percentHttpErrors = 0d;
-				percentPatternEmpty =0d;
+				percentPatternEmptyRes =0d;
+				percentPatternNoRes =0d;
 				percentPatternFailures =0d;
+				percentSuccess=0d;
 			}
 			
 			List<MarketMet> httpErrorsMarkets = extractMarkets(httpErrorsForClass);
 			List<MarketMet> failuresMarkets = extractMarkets(failuresForClass);
 			
-			stringBuffer.append(String.format(" as a percentage of %.2f %% of potential failure. " +
-								"Including %.2f %% of HttpErrors (%s), " +
-								"%.2f %% of Unexpected Failures (%s). " +
-								"There also were %.2f %% of Empty results.\n", percentPotentialFail,percentHttpErrors,httpErrorsMarkets, percentPatternFailures,failuresMarkets, percentPatternEmpty));
+			stringBuffer.append(String.format(" as %.2f %% potential failure. " +
+								"Including " +
+								"%.2f %% HttpErrors (%s), " +
+								"%.2f %% Unexpected (%s). " +
+								"And %.2f %% Success, %.2f %% Empty and %.2f %% NA results.\n", 
+								percentTotalFail, percentHttpErrors, httpErrorsMarkets, percentPatternFailures, failuresMarkets, percentSuccess, percentPatternNoRes, percentPatternEmptyRes));
+			
 			if (full) {
 				stringBuffer.append("Failing http request : "+httpErrorsForClass);
 				stringBuffer.append("\n");
 				stringBuffer.append("Potential failures scrapings : "+failuresForClass);
 				stringBuffer.append("\n");
-				stringBuffer.append("Empty scrapings : "+emptyForClass);
+				stringBuffer.append("Empty results scrapings : "+noResForClass);
+				stringBuffer.append("\n");
+				stringBuffer.append("NA results scrapings : "+nAResForClass);
 				stringBuffer.append("\n");
 				stringBuffer.append("Successful scrapings : "+successForClass);
 				stringBuffer.append("\n");
 				stringBuffer.append("\n");
 			}
 		}
+		
 		return stringBuffer.toString();
 	}
 	
@@ -156,38 +167,59 @@ public class ScraperMetrics {
 		String retMess = "";
 		for (Class<? extends LineFormater> lineFormaterClass : failures.keySet()) {
 			if (DayQuoteFormater.class.isAssignableFrom(lineFormaterClass) || lineFormaterClass.getName().contains("DayQuote")) {
-				Map<MetricsResType, List<ScraperMetricsElement>> dayQuoteFormaterFailures = failures.get(lineFormaterClass);
-				List<ScraperMetricsElement> empty = dayQuoteFormaterFailures.get(MetricsResType.EMPTY);
-				List<ScraperMetricsElement> http = dayQuoteFormaterFailures.get(MetricsResType.HTTPERROR);
-				List<ScraperMetricsElement> otherErrors = dayQuoteFormaterFailures.get(MetricsResType.FAILURE);
-
-				if (otherErrors != null) {
-					for (ScraperMetricsElement scraperMetricsElement : otherErrors) {
-						retMess = retMess + "Broken "+scraperMetricsElement.toString()+".\n";
-					}
-				}
-
-				if (http != null) {
-					for (ScraperMetricsElement scraperMetricsElement : http) {
-						retMess = retMess + "Dead "+scraperMetricsElement.toString() + ".\n";
-					}
-				}
-
-				if (empty != null) {
-					for (ScraperMetricsElement scraperMetricsElement : empty) {
-						retMess = retMess + "Empty "+scraperMetricsElement.toString() + ".\n";
-					}
-				}
+				retMess = extractFailureMsg(retMess, lineFormaterClass);
+			}
+		}
+		
+		return retMess;
+	}
+	
+	public String opinionsMetricsMessage() {
+		
+		String retMess = "";
+		for (Class<? extends LineFormater> lineFormaterClass : failures.keySet()) {
+			if (lineFormaterClass.getName().contains("StockComplement")) {
+				retMess = extractFailureMsg(retMess, lineFormaterClass);
 			}
 		}
 		
 		return retMess;
 	}
 
-	/**
-	 * @param metricElements
-	 * @return
-	 */
+	private String extractFailureMsg(String retMess, Class<? extends LineFormater> lineFormaterClass) {
+		
+		Map<MetricsResType, List<ScraperMetricsElement>> dayQuoteFormaterFailures = failures.get(lineFormaterClass);
+		List<ScraperMetricsElement> noResultsFound = dayQuoteFormaterFailures.get(MetricsResType.NORESULTS);
+		List<ScraperMetricsElement> emptyResults = dayQuoteFormaterFailures.get(MetricsResType.EMPTYRESULTS);
+		List<ScraperMetricsElement> http = dayQuoteFormaterFailures.get(MetricsResType.HTTPERROR);
+		List<ScraperMetricsElement> otherErrors = dayQuoteFormaterFailures.get(MetricsResType.FAILURE);
+
+		if (otherErrors != null) {
+			for (ScraperMetricsElement scraperMetricsElement : otherErrors) {
+				retMess = retMess + "Broken "+scraperMetricsElement.toString()+".\n";
+			}
+		}
+
+		if (http != null) {
+			for (ScraperMetricsElement scraperMetricsElement : http) {
+				retMess = retMess + "Dead "+scraperMetricsElement.toString() + ".\n";
+			}
+		}
+		
+		if (noResultsFound != null) {
+			for (ScraperMetricsElement scraperMetricsElement : noResultsFound) {
+				retMess = retMess + "No Res "+scraperMetricsElement.toString() + ".\n";
+			}
+		}
+
+		if (emptyResults != null) {
+			for (ScraperMetricsElement scraperMetricsElement : emptyResults) {
+				retMess = retMess + "Res but NA "+scraperMetricsElement.toString() + ".\n";
+			}
+		}
+		return retMess;
+	}
+
 	private List<MarketMet> extractMarkets(List<ScraperMetricsElement> metricElements) {
 		List<MarketMet> markets = new ArrayList<MarketMet>();
 		if (metricElements == null) return markets;

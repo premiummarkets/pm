@@ -66,8 +66,8 @@ public class WeatherChecker extends EventCompostionCalculator {
 	private Date endDate;
 	SortedSet<WeatherElement> weatherElements;
 
-	public WeatherChecker(
-			EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean export, Boolean persistTrainingEvents, Observer...observers) 
+	//com.finance.pms.events.EventInfo, com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date, com.finance.pms.datasources.shares.Currency, java.lang.String, java.lang.Boolean, [Ljava.util.Observer;)
+	public WeatherChecker(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean persistTrainingEvents, Observer...observers) 
 			throws NotEnoughDataException {
 		
 		super(stock);
@@ -79,10 +79,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 	}
 
 
-	/**
-	 * @param eventListName 
-	 * @return
-	 */
 	@Override 
 	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName)  {
 		

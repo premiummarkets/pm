@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
+import java.security.InvalidParameterException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -39,9 +40,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.StripedCloseFunction;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class StripedCloseInitPriceRelative.
  * 
@@ -53,41 +53,43 @@ public class StripedCloseRelativeToBuyPrice extends StripedCloseFunction {
 	
 	NumberFormat pf = new DecimalFormat("#0.00 %");
 
-	private BigDecimal buyPrice;
-	@SuppressWarnings("unused") //debug
-	private PortfolioShare portfolioShare;
+//	private BigDecimal buyPrice;
+//	@SuppressWarnings("unused") //debug
+//	private PortfolioShare portfolioShare;
 
 	public StripedCloseRelativeToBuyPrice() {	
 		super();
 	}
 
 	@Override
-	public void targetShareData(PortfolioShare portfolioShare, Quotations stockQuotations) {
+	public Number[] targetShareData(PortfolioShare portfolioShare,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
-		this.portfolioShare = portfolioShare;
-		this.stockQuotations = stockQuotations;
+//		this.portfolioShare = portfolioShare;
+//		this.stockQuotations = stockQuotations;
 
 		if (arbitraryStartDate != null && arbitraryEndDate != null) {
 			Date startDate = getStartDate(stockQuotations);
-			startDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(0,startDate);
+			startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
 			Date endDate = getEndDate(stockQuotations);
-			endDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
-		}  else {
-			startDateQuotationIndex = 0;
-			endDateQuotationIndex = stockQuotations.size();
+			endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
+			BigDecimal buyPrice = portfolioShare.getPriceUnitCost(this.arbitraryEndDate, portfolioShare.getTransactionCurrency());
+			
+			return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, buyPrice);
+		}  
+		else {
+//			startDateQuotationIndex = 0;
+//			endDateQuotationIndex = stockQuotations.size();
+			throw new InvalidParameterException();
 		}
-
-		this.buyPrice = portfolioShare.getAvgBuyPrice();
 
 	}
 
 
-	@Override
-	public BigDecimal[] relativeCloses() {
+	private BigDecimal[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex, BigDecimal buyPrice) {
 		
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
-		for (int i = startDateQuotationIndex; i <= endDateQuotationIndex; i++) {
+		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 			
 			BigDecimal value = (buyPrice.compareTo(BigDecimal.ZERO) == 0)? BigDecimal.ZERO : (stockQuotations.get(i).getClose().divide(buyPrice,10,BigDecimal.ROUND_DOWN)).subtract(BigDecimal.ONE);
 			retA.add(value);
@@ -98,12 +100,17 @@ public class StripedCloseRelativeToBuyPrice extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "change to buy price";
+		return "change to cost per unit";
 	}
 
 	@Override
 	public String formatYValue(Number yValue) {
 		return pf.format(yValue);
+	}
+
+	@Override
+	public Boolean isRelative() {
+		return true;
 	}
 
 

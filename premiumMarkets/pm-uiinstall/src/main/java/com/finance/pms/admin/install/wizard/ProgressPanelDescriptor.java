@@ -39,6 +39,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -59,6 +62,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+//import org.apache.tools.ant.types.Path;
 import org.jdesktop.swingworker.SwingWorker;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -68,8 +72,6 @@ import com.finance.pms.admin.NoPreparedDbException;
 import com.finance.pms.admin.install.SystemTypes;
 import com.nexes.wizard.WizardPanelDescriptor;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class ProgressPanelDescriptor.
  * 
@@ -205,12 +207,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 	}
 
 	private Boolean done= false;
-    
-    /**
-     * Instantiates a new progress panel descriptor.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public ProgressPanelDescriptor() {
         
         panel3 = new ProgressPanel();
@@ -219,15 +216,11 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
         
     }
 
-
     @Override
 	public Object getNextPanelDescriptor() {
         return SmtpPanelDescriptor.IDENTIFIER;
     }
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getBackPanelDescriptor()
-     */
+
     @Override
 	public Object getBackPanelDescriptor() {
         return InstallFolderPanelDescriptor.IDENTIFIER;
@@ -280,11 +273,6 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     	  getWizard().setNextFinishButtonEnabled(true);
     }    
     
-	/**
-	 * The Class Task.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	class Task extends SwingWorker<Void, Void> {
 		
 		private File piggyMarketSqueakFolder;
@@ -296,16 +284,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		private PrintStream panelSystemOut;
 		private Long tnRef;
 
-		/**
-		 * Instantiates a new task.
-		 * 
-		 * @param piggyMarketSqueakFolder the piggy market squeak folder
-		 * @param w the w
-		 * @param o the o
-		 * 
-		 * @author Guillaume Thoreton
-		 * @param panel3 
-		 */
+
 		private Task(File piggyMarketSqueakFolder, WizardPanelDescriptor w, ProgressPanel panel3) {
 			super();
 			this.piggyMarketSqueakFolder = piggyMarketSqueakFolder;
@@ -320,7 +299,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		@Override
 		public Void doInBackground() {
 			
-			//Initialize progress property.
+			//Initialise progress property.
 			setProgress(0);
 			
 			try {
@@ -331,24 +310,36 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				//displayTime("start");
 				task.comeOn(PROGRESSBAR_REALINC, "start");
 				installCommon(piggyMarketSqueakFolder, dbAlreadyInstalled);
+				
+				//displayTime("installCommon");
+				task.comeOn(PROGRESSBAR_REALINC,"installCommon");
+
+				Observer or = new Observer() {
+					public void update(Observable o, Object arg) {
+						task.comeOn(PROGRESSBAR_REALINC, (String) arg);
+					}
+				};
+				DbInstaller dbInstaller = new DbInstaller();
+				dbInstaller.addObserver(or);
 
 				//DB
-				if (dbAlreadyInstalled) {
-					System.out.println("Premium Markets has been installed before. No initial DB needed! :))");
+				if (dbAlreadyInstalled) {//upgrade
+					System.out.println("Premium Markets has been installed before. Will try and upgrade");
+					try {
+						task.comeOn(PROGRESSBAR_REALINC, "Upgrading Database!");
+						System.out.println("Upgrading Database!");
+						dbInstaller.upgradeExisting(piggyMarketSqueakFolder, DbInstaller.EXTRACTDIR, connect(piggyMarketSqueakFolder));
+						System.out.println("Database upgraded");
+					} catch (Throwable e) {
+						System.out.println("Database upgrade didn't complete properly.");
+						e.printStackTrace();
+					} finally {
+						closeConnection();
+						task.comeOn(PROGRESSBAR_REALINC, "Database upgraded");
+					}
 					
-				} else {
+				} else {//first install
 					System.out.println("Premium Markets first or new install! good luck :))");
-					//displayTime("installCommon");
-					task.comeOn(PROGRESSBAR_REALINC,"installCommon");
-
-					Observer or = new Observer() {
-						public void update(Observable o, Object arg) {
-							task.comeOn(PROGRESSBAR_REALINC, (String) arg);
-						}
-					};
-
-					DbInstaller dbInstaller = new DbInstaller();
-					dbInstaller.addObserver(or);
 
 					URL export = this.getClass().getClassLoader().getResource("export");
 					URL derby = this.getClass().getClassLoader().getResource("derby");
@@ -360,63 +351,43 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					try {
 						dbInstaller.extractDB(initialdb, BaseCheckPanelDescriptor.initdbName, piggyMarketSqueakFolder);
 					} catch (NoPreparedDbException e) {
-						//wizardPanelDescriptor.getWizard().setCurrentPanel(BaseCheckPanelDescriptor.IDENTIFIER);
 						e.printStackTrace();
 					}
 
-
 					//displayTime("extract DB");
-					task.comeOn(PROGRESSBAR_REALINC, "extract DB");
-					System.out.println("Importing datas in DB!");
-					dbInstaller.importDB(piggyMarketSqueakFolder, DbInstaller.extractDir, connect(piggyMarketSqueakFolder));
+					task.comeOn(PROGRESSBAR_REALINC, "Importing data in Database!");
+					System.out.println("Importing data in Database!");
+					dbInstaller.importDB(piggyMarketSqueakFolder, DbInstaller.EXTRACTDIR, connect(piggyMarketSqueakFolder));
 					closeConnection();
-					System.out.println("Data initialized");
+					System.out.println("Database initialised");
 					//displayTime("importDB");
-					task.comeOn(PROGRESSBAR_REALINC, "Data initialized");
+					task.comeOn(PROGRESSBAR_REALINC, "Database initialised");
 
 				}
 				
-
 				//SWT jars 
 				String jnlpSelectedFileName = System.getProperty("swt.jar");
-				
-				//Install has been started from cmd line
-				if (jnlpSelectedFileName == null) {
+				if (jnlpSelectedFileName == null) {//Install has been started from cmd line
+
 					System.out.println("No swt file name preselected. I will try to guess from the os props ...");
-					InputStream inputStream = this.getClass().getResourceAsStream("/PremiumMarkets.jnlp");
-					XPathFactory factory=XPathFactory.newInstance();  
-					XPath xPath=factory.newXPath();  
-					InputSource inputSource=new InputSource(inputStream); 
 					try {
-						NodeList resources = (NodeList) xPath.evaluate("//resources", inputSource, XPathConstants.NODESET);
-						for (int i = 0; i < resources.getLength(); i++)  {
-							String resourceOs = (String) xPath.evaluate("@os", resources.item(i), XPathConstants.STRING);
-							System.out.println("Trying jnlp os :"+resourceOs);
-							if (resourceOs != null && !resourceOs.isEmpty() && System.getProperty("os.name").contains(resourceOs)) {
-								System.out.println("Found jnlp os :"+resourceOs);
-								String resourceArch = (String) xPath.evaluate("@arch", resources.item(i), XPathConstants.STRING);
-								System.out.println("Trying jnlp arch :"+resourceArch);
-								if (resourceArch == null || resourceArch.isEmpty() || 
-										(resourceArch != null && !resourceArch.isEmpty() &&  System.getProperty("os.arch").contains(resourceArch))) {
-									//XXX Resource with no arch must be specified first in the jnlp for this to work
-									//XXX Also the more specialised os.name and os.arch must be at the bottom so that a less specialised is not picked up later but first.
-									System.out.println("Found jnlp arch :"+resourceOs);
-									String resourcePropValue = (String) xPath.evaluate("./property/@value", resources.item(i), XPathConstants.STRING);
-									System.out.println("FOUND MATCHING : "+resourcePropValue);
-									jnlpSelectedFileName = resourcePropValue;
-								}
-							}
-						}
+						jnlpSelectedFileName = swtFileName(System.getProperty("os.name"), System.getProperty("os.arch"));
 					} catch (XPathExpressionException e) {
 						e.printStackTrace();
 					}
-					System.out.println("I guess you need : "+jnlpSelectedFileName);
-				
-				//Install has been started from jnlp
-				} else {
+
+					if (jnlpSelectedFileName == null) {
+						jnlpSelectedFileName = swtFileName("Windows", "x86");
+						System.out.println("I have not found the swt lib for your system, I will fall back to : "+jnlpSelectedFileName);
+					} else {
+						System.out.println("I guess you need : "+jnlpSelectedFileName);
+					}
+
+				} else {//Install has been started from jnlp
 					System.out.println("Javaws is saying you need "+jnlpSelectedFileName);
 				}
 				
+				//2nd attempt to fix not found OS using the jnlp findings as fall back
 				if (Install.systemType == null) {
 					String sysn = System.getProperty("os.name");
 					System.out.println("2nd attempt with os.name : "+sysn);
@@ -451,7 +422,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 							System.out.println("deleting lib " +swtFile.getAbsolutePath());
 						}
 					}
-				} 
+				}
 				
 				//Warning msg
 				if (!foundLib) {
@@ -460,7 +431,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					System.out.println("This library is necessary to run the graphical user interface.");
 					System.out.println("You may still be able to use this software when installation is complete : \n" +
 							"-check if you can find a compliant library for you system at http://www.eclipse.org/swt/ \n" +
-							"-copy the included jar in the follwing folder : "+libDir.getAbsolutePath()+"\n");
+							"-copy the included jar in the following folder : "+libDir.getAbsolutePath()+"\n");
 					System.out.println("FYI : \n");
 					System.out.println("Available swt libraries in this package are "+avaliableSwtLibs + "\n");
 					System.out.println("Your system has been detected as : "+ System.getProperty("os.name") +" "+System.getProperty("os.arch")+ " "+ System.getProperty("os.version")+ "\n");
@@ -468,18 +439,24 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				}
 
 				//ICONS
-				File iconNewFile = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon.img");
-				iconNewFile.delete();
 				SystemTypes systemType = Install.systemType;
 				if (systemType == null) systemType = SystemTypes.WINDOWS;
 				File icon = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon"+systemType.getIcoext());
-				System.out.println("renaming " +icon.getAbsolutePath() + " to "+ iconNewFile.getAbsolutePath());
-				Boolean rni = icon.renameTo(iconNewFile);
-				if (!rni) {
-					System.out.println("Couldn't rename " +icon.getAbsolutePath());
+				File iconNewFile = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon.image");
+				try {
+					iconNewFile.delete();
+					System.out.println("copying from " +icon.getAbsolutePath() + " to "+ iconNewFile.getAbsolutePath());
+					Files.copy(icon.toPath(), iconNewFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				} catch (Throwable e) {
+					System.out.println("Couldn't copy " +icon.getAbsolutePath());
+					System.out.println("Using house made copy " +icon.getAbsolutePath() + " to "+ iconNewFile.getAbsolutePath());
+					try {
+						copyFile(icon, iconNewFile);
+					} catch (Throwable e1) {
+						System.out.println("Couldn't copy using house made copy : " +icon.getAbsolutePath());
+					}
 				}
 
-				//displayTime("end");
 				task.comeOn(PROGRESSBAR_REALINC, "end");
 
 			} catch (Throwable t) {
@@ -492,16 +469,84 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				for (Integer key : TIME_TABLE.keySet()) {
 					panel3.textAreaStream.realPrintStream.println("put("+key+","+TIME_TABLE.get(key)+"L);");
 				}
+				
 			}
 			
 			setProgress(100);
 			return null;
 		}
+		
+		private void copyFile(File sourceFile, File destFile) throws IOException {
+			
+		    if(!destFile.exists()) {
+		        destFile.createNewFile();
+		    }
+
+		    FileInputStream fileInputStream = null;
+		    FileChannel source = null;
+		    FileOutputStream fileOutputStream = null;
+		    FileChannel destination = null;
+		    try {
+		    	
+		        fileInputStream = new FileInputStream(sourceFile);
+				source = fileInputStream.getChannel();
+		        fileOutputStream = new FileOutputStream(destFile);
+				destination = fileOutputStream.getChannel();
+
+		        long count = 0;
+		        long size = source.size();              
+		        while((count += destination.transferFrom(source, count, size-count))<size);
+		        
+		    } finally {
+		        if(source != null) {
+		            source.close();
+		        }
+		        if(fileInputStream != null) {
+		            fileInputStream.close();
+		        }
+		        if(destination != null) {
+		            destination.close();
+		        }
+		        if(fileOutputStream != null) {
+		        	fileOutputStream.close();
+		        }
+		    }
+		    
+		}
+
+		protected String swtFileName(String osName, String osArch) throws XPathExpressionException {
+			
+			String swtFilenName = null;
+			
+			InputStream inputStream = this.getClass().getResourceAsStream("/PremiumMarkets.jnlp");
+			XPathFactory factory = XPathFactory.newInstance();  
+			XPath xPath = factory.newXPath();  
+			InputSource inputSource= new InputSource(inputStream); 
+			NodeList resources = (NodeList) xPath.evaluate("//resources", inputSource, XPathConstants.NODESET);
+			
+			for (int i = 0; i < resources.getLength(); i++)  {
+				String resourceOs = (String) xPath.evaluate("@os", resources.item(i), XPathConstants.STRING);
+				System.out.println("Trying jnlp os :"+resourceOs);
+				if (resourceOs != null && !resourceOs.isEmpty() && osName.contains(resourceOs)) {
+					System.out.println("Found jnlp os :"+resourceOs);
+					String resourceArch = (String) xPath.evaluate("@arch", resources.item(i), XPathConstants.STRING);
+					System.out.println("Trying jnlp arch :"+resourceArch);
+					if (resourceArch == null || resourceArch.isEmpty() || 
+							(resourceArch != null && !resourceArch.isEmpty() &&  osArch.contains(resourceArch))) {
+						//XXX Resource with no arch must be specified first in the jnlp for this to work
+						//XXX Also the more specialised os.name and os.arch must be at the bottom so that a less specialised is not picked up later but first.
+						System.out.println("Found jnlp arch :"+resourceOs);
+						String resourcePropValue = (String) xPath.evaluate("./property/@value", resources.item(i), XPathConstants.STRING);
+						System.out.println("FOUND MATCHING : "+resourcePropValue);
+						swtFilenName = resourcePropValue;
+					}
+				}
+			}
+			
+			return swtFilenName;
+		}
 
 
-		/**
-		 * @return
-		 */
 		String getCurrentJarPath(String urlStr) {
 			
 			System.out.println("Running Jar url : "+urlStr);
@@ -512,26 +557,16 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 			return jarName;
 		}
 		
-		
-		/**
-		 * Connect.
-		 * 
-		 * @param piggyMarketSqueakFolder the piggy market squeak folder
-		 * 
-		 * @return the connection
-		 * 
-		 * @author Guillaume Thoreton
-		 */
+
 		private Connection connect(File piggyMarketSqueakFolder) {
+			
 			//String connectionURL;
 			ProgressPanelDescriptor.connection = null;
 				try {
 					// Resolve the className
 					try {
-						//Class.forName(MainPMScmd.prefs.get("driver", "org.apache.derby.jdbc.EmbeddedDriver"));
 						Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
 					} catch (java.lang.ExceptionInInitializerError e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					// Set up the connection
@@ -539,14 +574,13 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					ProgressPanelDescriptor.connection = DriverManager.getConnection(connectionURL);
 					ProgressPanelDescriptor.connection.setAutoCommit(true);
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
 			return ProgressPanelDescriptor.connection;
+			
 		}
 		
 		@Override
@@ -556,13 +590,6 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 			wizardPanelDescriptor.getWizard().setCurrentPanel(SmtpPanelDescriptor.IDENTIFIER);
 		}
 
-		/**
-		 * Come on.
-		 * 
-		 * @param prgs the prgs
-		 * 
-		 * @author Guillaume Thoreton
-		 */
 		public void comeOn(int prgs, String point) {
 			
 			Long tn = new Date().getTime() - tStart;
@@ -602,14 +629,6 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 
 	}
 	
-	/**
-	 * Install common.
-	 * 
-	 * @param piggyMarketSqueakFolder the piggy market squeak folder
-	 * @param dbAlreadyInstalled the bar
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void installCommon(File piggyMarketSqueakFolder, Boolean dbAlreadyInstalled) {
 		//install common 
 		System.out.println("Install commons and jars");
@@ -654,12 +673,10 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					byte[] b = new byte[1024];
 					int ch;
 					while ((ch = bis.read(b)) != -1) {
-						//if (bar) this.task.comeOn(PROGRESSBAR_REALINC, "exctract "+Install.archName);
 						fos.write(b,0,ch);
 					}
 					fos.close();
 					System.out.println("Done!");
-					//if (bar) this.task.comeOn(PROGRESSBAR_REALINC, "exctract "+Install.archName);
 				}
 			}
 			zf.close();
@@ -686,19 +703,6 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		}
 	}
 	
-	/**
-	 * Extract file.
-	 * 
-	 * @param baseFolder the base folder
-	 * @param fileName the file name
-	 * 
-	 * @return the file
-	 * 
-	 * @throws FileNotFoundException the file not found exception
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private File extractFile(File baseFolder, String fileName) throws FileNotFoundException, IOException {
 		System.out.println("Writing file "+fileName+" to Folder : " + baseFolder.getAbsolutePath());
 		File f = new File(baseFolder,fileName);
@@ -716,29 +720,12 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 	}
 
 
-
-	/**
-	 * Checks if is db exists.
-	 * 
-	 * @param ifold the ifold
-	 * 
-	 * @return the boolean
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static Boolean isDbExists(File ifold) {
 		String ifpath = ifold.getAbsolutePath();
 		File dbFolder = new File(ifpath + File.separator + Install.dbName + File.separator + "premiummarkets");
 		return dbFolder.exists();
 	}
 	
-   /**
-    * Close connection.
-    * 
-    * @throws SQLException the SQL exception
-    * 
-    * @author Guillaume Thoreton
-    */
    private void closeConnection() throws SQLException {
 	   
 		ProgressPanelDescriptor.connection.close();

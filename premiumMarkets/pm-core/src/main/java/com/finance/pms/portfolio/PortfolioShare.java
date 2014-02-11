@@ -32,7 +32,6 @@ package com.finance.pms.portfolio;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidParameterException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayDeque;
@@ -54,8 +53,6 @@ import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.Fetch;
@@ -100,18 +97,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	public static BigDecimal TRANSACTION_FEE = new BigDecimal(MainPMScmd.getPrefs().get("portfolio.fee", "0.01")).setScale(2);
 	
 	private Stock stock;
-	private Date buyDate;
-	private BigDecimal quantity;
-	private BigDecimal cashin;
-	private BigDecimal cashout;
 	private MonitorLevel monitorLevel;
 	private Currency transactionCurrency;
 	private AbstractSharesList portfolio;
 	private Set<AlertOnThreshold> alertsOnThreshold;
 	private Set<AlertOnEvent> alertsOnEvent;
-	private String account;
+	private String externalAccount;
 
-	//hib
+	//Hib
 	public PortfolioShare() {
 		super();
 	}
@@ -119,10 +112,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 public PortfolioShare(PortfolioShare portfolioShare) {
 
 		this.stock = portfolioShare.getStock();
-		this.buyDate = new Date(portfolioShare.buyDate.getTime());
-		this.quantity = portfolioShare.getQuantity();
-		this.cashin = portfolioShare.getCashin();
-		this.cashout = portfolioShare.getCashout();
 		this.monitorLevel = portfolioShare.getMonitorLevel();
 		this.transactionCurrency = portfolioShare.getTransactionCurrency();
 		this.portfolio = portfolioShare.getPortfolio();
@@ -134,29 +123,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		for (AlertOnEvent alert : portfolioShare.getAlertsOnEvent()) {
 			this.alertsOnEvent.add(new AlertOnEvent(alert, this));
 		}
-		this.account = portfolioShare.getAccount();
+		this.externalAccount = portfolioShare.getExternalAccount();
 
 	}
 
-	/**
-	 * @param stock
-	 * @param quantity
-	 * @param cashin
-	 */
-	private void nullAmountsWarning(Stock stock, BigDecimal quantity, BigDecimal cashin) {
-		if (cashin.compareTo(BigDecimal.ZERO) == 0 || quantity.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.warn("Zero values for " + stock.getSymbol() + " : cash in " + this.cashin + " quantity " + this.quantity);
-		}
-	}
-
-	PortfolioShare(AbstractSharesList sharesList, Stock stock, Date currentDate, MonitorLevel monitor, Currency transactionCurrency) {
+	PortfolioShare(AbstractSharesList sharesList, Stock stock, MonitorLevel monitor, Currency transactionCurrency) {
 
 		super();
 		this.stock = stock;
-		this.quantity = BigDecimal.ZERO;
-		this.buyDate = currentDate;
-		this.cashin = BigDecimal.ZERO;
-		this.cashout = BigDecimal.ZERO;
 		this.monitorLevel = monitor;
 		this.transactionCurrency = transactionCurrency;
 		this.portfolio = sharesList;
@@ -165,11 +139,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	}
 
-	/**
-	 * @param stock
-	 * @param startDate 
-	 * @param transactionCurrency
-	 */
 	private BigDecimal closeQuotationFor(Stock stock, Currency transactionCurrency, Date currentDate) {
 		try {			
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
@@ -181,101 +150,24 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		}
 		return BigDecimal.ZERO;
 	}
-
-	PortfolioShare(AbstractSharesList shareList, Stock stock, BigDecimal quantity, Date buyDate, BigDecimal cashin, BigDecimal cashout, MonitorLevel monitor, Currency transactionCurrency) {
-		this.stock = stock;
-		this.quantity = quantity;
-		this.buyDate = buyDate;
-		this.cashin = cashin;
-		this.cashout = cashout;
-		this.monitorLevel = monitor;
-		this.transactionCurrency = transactionCurrency;
-		this.portfolio = shareList;
-		this.alertsOnThreshold = new HashSet<AlertOnThreshold>();
-		this.alertsOnEvent = new HashSet<AlertOnEvent>();
-		
-		nullAmountsWarning(stock, quantity, cashin);
-
+	
+	@Transient
+	public Date getLastTransactionDate() {
+		return this.portfolio.getLastTransactionFor(this.getStock());
 	}
 
-	@Temporal(TemporalType.DATE)
-	@Column(nullable = false, columnDefinition = " DATE DEFAULT '01/01/1970' ")
-	//TODO rename to lastTransactionDate
-	public Date getBuyDate() {
-		return buyDate;
+	public BigDecimal getCashin(Date currentStartDate, Date currentEndDate, Currency currency) {
+		return this.portfolio.getCashInFor(this, currentStartDate, currentEndDate, currency);
+	}
+	
+	public BigDecimal getCashout(Date currentStartDate, Date currentEndDate, Currency currency) {
+		return this.portfolio.getCashOutFor(this, currentStartDate, currentEndDate, currency);
 	}
 
-	public void setBuyDate(Date buyDate) {
-		this.buyDate = buyDate;
+	public BigDecimal getQuantity(Date currentStartDate, Date currentEndDate) {
+		return this.portfolio.getQuantityFor(this, currentStartDate, currentEndDate);
 	}
 
-	/**
-	 * Gets the cashin.
-	 * 
-	 * @return the cashin
-	 */
-	@Column(nullable = false)
-	public BigDecimal getCashin() {
-		return cashin;
-	}
-
-	/**
-	 * Sets the cashin.
-	 * 
-	 * @param cashin
-	 *            the new cashin
-	 * @throws Exception
-	 */
-	void setCashin(BigDecimal cashin) {
-		this.cashin = cashin;
-	}
-
-	/**
-	 * Gets the cashout.
-	 * 
-	 * @return the cashout
-	 */
-	@Column(nullable = false, columnDefinition = " NUMERIC(19,2) ")
-	public BigDecimal getCashout() {
-		return cashout;
-	}
-
-	/**
-	 * Sets the cashout.
-	 * 
-	 * @param cashout
-	 *            the new cashout
-	 * @throws Exception
-	 */
-	void setCashout(BigDecimal cashout) {
-		this.cashout = cashout;
-	}
-
-	/**
-	 * Gets the quantity.
-	 * 
-	 * @return the quantity
-	 */
-	@Column(nullable = false)
-	public BigDecimal getQuantity() {
-		return quantity;
-	}
-
-	/**
-	 * Sets the quantity.
-	 * 
-	 * @param quantity
-	 *            the new quantity
-	 */
-	void setQuantity(BigDecimal quantity) {
-		this.quantity = quantity;
-	}
-
-	/**
-	 * Gets the stock.
-	 * 
-	 * @return the stock
-	 */
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
 	@JoinColumns( { @JoinColumn(name = "isin", referencedColumnName = "isin"), @JoinColumn(name = "symbol", referencedColumnName = "symbol") })
 	@ForeignKey(name = "FK_STOCK")
@@ -284,149 +176,139 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return stock;
 	}
 
-	/**
-	 * Gets the symbol.
-	 * 
-	 * @return the symbol
-	 */
 	@Transient
 	public String getSymbol() {
 		return stock.getSymbol();
 	}
 
-	/**
-	 * Gets the isin.
-	 * 
-	 * @return the isin
-	 */
 	@Transient
 	public String getIsin() {
 		return stock.getIsin();
 	}
 
-	/**
-	 * Gets the name.
-	 * 
-	 * @return the name
-	 */
 	@Transient
 	public String getName() {
 		return stock.getName();
 	}
 
-	/**
-	 * Sets the stock.
-	 * 
-	 * @param stock
-	 *            the new stock
-	 */
 	@SuppressWarnings("unused")
 	private void setStock(Stock stock) {
 		this.stock = stock;
 	}
 
-	/**
-	 * Gets the last day close value.
-	 * 
-	 * @return the last day close value
-	 */
 	@Transient
-	public BigDecimal getCloseQuotationFor(Date currentDate) {
-		return closeQuotationFor(stock, transactionCurrency, currentDate);
+	public BigDecimal getPriceClose(Date currentDate, Currency currency) {
+		return closeQuotationFor(stock, currency, currentDate);
+	}
+	
+	@Transient
+	public BigDecimal getGainTotalPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
+		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
+		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
+			LOGGER.warn("Cash in is zero for "+this);
+			return BigDecimal.ZERO;
+		} else {
+			return value.add(cashout).subtract(cashin).divide(cashin, 4, BigDecimal.ROUND_DOWN);
+		}
+	}
+	
+	@Transient
+	public BigDecimal getGainTotal(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
+		return value.add(cashout).subtract(cashin);
 	}
 
-	/**
-	 * Gets the profit and loss. (v+o-i)/i
-	 * @param currentDate 
-	 * @return the profit and loss
-	 */
 	@Transient
-	//TODO calculate stillIn price for currentDate using transactions history
-	public BigDecimal getUnrealizedProfit(Date currentDate) {
-		try {
-			return this.getUnrealizedGain(currentDate).divide(this.getCashin(),10,BigDecimal.ROUND_DOWN); //.multiply(new BigDecimal(100)).setScale(10,BigDecimal.ROUND_DOWN);
-		} catch (ArithmeticException e) {
-			LOGGER.error("Cashin is 0 for "+this+" in "+this.portfolio);
+	public BigDecimal getGainUnrealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
+		if (basis.compareTo(BigDecimal.ZERO) == 0) {
+			LOGGER.warn("Basis is zero for "+this);
 			return BigDecimal.ZERO;
+		} else {
+			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 4, BigDecimal.ROUND_DOWN);
 		}
 	}
 	
 	@Transient
-	//TODO calculate stillIn price for currentDate using transactions history
-	public BigDecimal getUnrealizedGain(Date currentDate) {
-		try {
-			BigDecimal stillIn = this.getCashin().subtract(this.getCashout());
-			if (stillIn.compareTo(BigDecimal.ZERO) < 0) stillIn = BigDecimal.ZERO;
-			return (this.getValueForDate(currentDate).subtract(stillIn).setScale(10,BigDecimal.ROUND_DOWN));
-		} catch (ArithmeticException e) {
-			LOGGER.error(e,e);
-			return BigDecimal.ZERO;
-		}
+	public BigDecimal getGainUnreal(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
+		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
+		return value.subtract(basis);
 	}
 	
-	public BigDecimal getProfit(Date currentDate) {
-		try {
-			if (getAvgBuyPrice().compareTo(BigDecimal.ZERO) != 0) {
-				return getCloseQuotationFor(currentDate).subtract(getAvgBuyPrice()).divide(getAvgBuyPrice(),10,BigDecimal.ROUND_DOWN);
-			} else {
-				return new BigDecimal("1.00");
-			}
-		} catch (ArithmeticException e) {
-			LOGGER.error(e,e);
-			return BigDecimal.ZERO;
-		}
-	}
-	
-	/**
-	 * Gets the profit and loss inflation weighted (v+Ow-Iw)/Iw
-	 * @param currentDate 
-	 * @return the profit and loss
-	 */
 	@Transient
-	public BigDecimal getWeightedUnrealizedProfit(Date currentDate) {
+	public BigDecimal geGainRealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
+		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
+		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
+			LOGGER.warn("Cash in is zero for "+this);
+			return BigDecimal.ZERO;
+		} else {
+			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 4, BigDecimal.ROUND_DOWN);
+		}
+	}
+
+	@Transient
+	public BigDecimal getGainReal(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
+		return (basis.add(cashout)).subtract(cashin);
+	}
+	
+	@Transient
+	public BigDecimal getGainTotalWeightedPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
 		try {
-			InOutWeighted weightedInOut = this.getWeightedInvested(currentDate);
+			InOutWeighted weightedInOut = getWeightedInvested(currentStartDate, currentEndDate, currency);
 			BigDecimal weightedInvestedStillIn = weightedInOut.getWeightedInvestedStillIn();
-			return 	this.getValueForDate(currentDate).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(),10,BigDecimal.ROUND_DOWN); 
+			return 	getValue(currentStartDate, currentEndDate, currency).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(), 10, BigDecimal.ROUND_DOWN); 
 		} catch (ArithmeticException e) {
 			return BigDecimal.ZERO;
 		}
 	}
 
-	/**
-	 * Gets the buying price.
-	 * @return the buying price
-	 */
 	@Transient
-	//TODO calculate using avg buy price for currentDate using transactions history
-	public BigDecimal getAvgBuyPrice() {
-		if (this.getQuantity().compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
-		return this.getCashin().subtract(this.getCashout()).divide(this.getQuantity(), 10, BigDecimal.ROUND_DOWN);
+	public BigDecimal getPriceUnitCost(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
+		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		BigDecimal cashout = this.getCashout(currentStartDate, currentEndDate, currency);
+		BigDecimal cashin = this.getCashin(currentStartDate, currentEndDate, currency);
+		return cashin.subtract(cashout).divide(quantity, 10, BigDecimal.ROUND_DOWN);
+	}
+	
+	@Transient
+	public BigDecimal getPriceUnitCost(Date currentEndDate, Currency currency) {
+		return getPriceUnitCost(null, currentEndDate, currency);
+	}
+	
+	@Transient
+	public BigDecimal getPriceAvgBuy(Date currentStartDate, Date currentEndDate, Currency currency) {
+		return this.portfolio.getPriceAvgBuyFor(this, currentStartDate, currentEndDate, currency);
+	}
+	
+	@Transient
+	public BigDecimal getBasis(Date currentStartDate, Date currentEndDate, Currency currency) {
+		return this.portfolio.getBasisFor(this, currentStartDate, currentEndDate, currency);
 	}
 
 	@Transient
-	public BigDecimal getValueForDate(Date currentDate) {
-		//return this.getQuantity().multiply(getCloseQuotationFor(currentDate)).setScale(2, BigDecimal.ROUND_HALF_UP);
-		return this.getQuantity().multiply(getCloseQuotationFor(currentDate)).setScale(4, BigDecimal.ROUND_DOWN);
+	public BigDecimal getValue(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
+		BigDecimal priceClose = getPriceClose(currentEndDate, currency);
+		return quantity.multiply(priceClose).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 
-	/**
-	 * Gets the monitor level.
-	 * 
-	 * @return the monitor level
-	 */
 	@Enumerated(EnumType.ORDINAL)
 	@Column(name = "MONITOR", nullable = false)
 	public MonitorLevel getMonitorLevel() {
 		return monitorLevel;
 	}
 
-	/**
-	 * Sets the monitor level.
-	 * 
-	 * @param monitorLevel
-	 *            the new monitor level
-	 */
 	public void setMonitorLevel(MonitorLevel monitorLevel) {
 		this.monitorLevel = monitorLevel;
 	}
@@ -473,145 +355,145 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	public void setPortfolio(AbstractSharesList portfolio) {
 		this.portfolio = portfolio;
 	}
-
 	
 	@Override
 	public String toString() {
-		return "PortfolioShare [portfolio = "+portfolio.getName()+", stock=" + stock.getFriendlyName() + ", cashin=" + cashin + ", cashout=" + cashout + ", quantity=" + quantity + "]";
+		return "PortfolioShare [portfolio = "+portfolio.getName()+", stock=" + stock.getFriendlyName() + ", monitorLevel=" + monitorLevel + ", transactionCurrency=" + transactionCurrency + ", externalAccount="+ externalAccount + "]";
 	}
 	
-	public void applyTransaction(Transaction transaction, boolean propagate) throws InvalidQuantityException {
+	
+	public TransactionElement applyTransaction(Transaction transaction) throws InvalidQuantityException {
 
-		if (transaction.getModtype().equals(TransactionType.AIN)) {
-			this.setQuantity(transaction.getQuantity().add(this.getQuantity()));
-			this.setCashin(transaction.fullAmountIn());
-			if (propagate) this.portfolio.addAmountToTotalAmountIn(transaction.amount(), transactionCurrency, transaction.getDate());
-		}
-		if (transaction.getModtype().equals(TransactionType.AOUT)) {
-			BigDecimal newQuantity = transaction.getQuantity().subtract(this.getQuantity()).negate();
-			if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
-				throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
+			BigDecimal quantity = transaction.getQuantity();
+			if (transaction.getModtype().equals(TransactionType.AOUT)) {
+				BigDecimal newQuantity = quantity.subtract(this.getQuantity(transaction.getDate())).negate();
+				if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
+					throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
+				}
+				quantity = quantity.multiply(new BigDecimal(-1));
 			}
-			this.setQuantity(newQuantity);
-			this.setCashout(transaction.fullAmountOut());
-			if (propagate) this.portfolio.addAmountToTotalAmountOut(transaction.amount(), transactionCurrency, transaction.getDate());
-		}
-		if (transaction.getModtype().equals(TransactionType.NULL))
-			throw new InvalidParameterException(" Transaction mode shouldn't be NULL : " + transaction);
+			//else throw new InvalidParameterException(" Transaction mode should not be NULL : " + transaction);		
+			
+			return new TransactionElement(stock, (Portfolio) this.portfolio, this.externalAccount, transaction.getDate(), transaction.getTransactionSharePrice(), quantity, transactionCurrency);
 	}
 	
 	public void addBuyAlerts(BigDecimal transcationPrice, Date currentDate) {
-		addBuyPriceAlerts();
-		addAboveTakeProfitAlert(this.getAvgBuyPrice());
-		addWeightedZeroProfitAlertGuardSetter(this.getAvgBuyPrice(), currentDate);
+		addBuyPriceAlerts(transcationPrice, currentDate);
+		BigDecimal avgCostPerUnit = this.getPriceUnitCost(currentDate, transactionCurrency);
+		addAboveTakeProfitAlert(avgCostPerUnit, currentDate);
+		addWeightedZeroProfitAlertGuardSetter(avgCostPerUnit, currentDate);
 		addChannelAlerts(transcationPrice);
 	}
 
-	private void addBuyPriceAlerts() {
+	private void addBuyPriceAlerts(BigDecimal currentPrice, Date currentDate) {
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
-		addBuyPriceAlertAbove();
-		addBuyPriceAlertBelow();	
+		if (currentPrice.compareTo(this.getPriceUnitCost(currentDate, transactionCurrency)) <= 0) addBuyPriceAlertAbove(currentDate);
+		if (currentPrice.compareTo(this.getPriceUnitCost(currentDate, transactionCurrency)) >= 0) addBuyPriceAlertBelow(currentDate);	
 	}
 
-	private void addBuyPriceAlertBelow() {
-		BigDecimal avgBuyPrice = this.getAvgBuyPrice();
-		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + avgBuyPrice+")");
+	private void addBuyPriceAlertBelow(Date currentDate) {
+		BigDecimal avgBuyPrice = this.getPriceUnitCost(currentDate, transactionCurrency);
+		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + readableNumber(avgBuyPrice) +")");
 	}
 
-	private void addBuyPriceAlertAbove() {
-		BigDecimal avgBuyPrice = this.getAvgBuyPrice();
-		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + avgBuyPrice+")");
+	private void addBuyPriceAlertAbove(Date currentDate) {
+		BigDecimal avgBuyPrice = this.getPriceUnitCost(currentDate, transactionCurrency);
+		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + readableNumber(avgBuyPrice) +")");
 	}
 
 	/**
 	 * If price is up n% above avg buy price = > sell  
 	 * Shift up to current price if calculated threshold below current price
+	 * @param currentDate 
 	 * @param transactionPrice
 	 */
-	private void addAboveTakeProfitAlert(BigDecimal calculationPrice) {
+	private void addAboveTakeProfitAlert(BigDecimal calculationPrice, Date currentDate) {
 	
 		try {
 			this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT);	
 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
 			
-			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(this.getCashin());
-			BigDecimal aboveSellLimit = augmentedCashin.subtract(this.getCashout()).divide(this.getQuantity(),4,BigDecimal.ROUND_CEILING);
-			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 4, BigDecimal.ROUND_CEILING).subtract(BigDecimal.ONE.setScale(4));
+			BigDecimal cashin = this.getCashin(currentDate, transactionCurrency);
+			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(cashin);
+			BigDecimal cashout = this.getCashout(currentDate, transactionCurrency);
+			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(this.getQuantity(currentDate),4,BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 4, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 			
-			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" return. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
+			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" gain. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
 			
 			addAboveTakeProfitAlert(aboveSellLimit,aboveMessage);
 			
 		} catch (RuntimeException e) {
-			LOGGER.error("Failed to update portfolioshare :"+this,e);
+			LOGGER.error("Failed to update Portfolio share :"+this,e);
 			throw e;
 		}
 	}
 	
 
-	private void addWeightedZeroProfitAlertGuardSetter(BigDecimal avgBuyPrice, Date currentDate) {
+	private BigDecimal getCashout(Date currentDate, Currency transactionCurrency) {
+		return getCashout(null, currentDate, transactionCurrency);
+	}
+
+	private BigDecimal getCashin(Date currentDate, Currency transactionCurrency) {
+		return getCashin(null, currentDate, transactionCurrency);
+	}
+
+	public void addWeightedZeroProfitAlertGuardSetter(BigDecimal avgBuyPrice, Date currentDate) {
 		
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 	
 		BigDecimal sellLimitGuardPriceRate;
-		InOutWeighted weightedInOut = this.getWeightedInvested(currentDate);
+		InOutWeighted weightedInOut = getWeightedInvested(null, currentDate, transactionCurrency);
 		BigDecimal sellLimitGuardPrice;
 		if (!weightedInOut.isEmpty()) {
-			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(this.getQuantity(), 10, BigDecimal.ROUND_CEILING);
+			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(this.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
 			sellLimitGuardPriceRate =  (avgBuyPrice.compareTo(BigDecimal.ZERO) > 0)?
-												sellLimitGuardPrice.divide(avgBuyPrice, 10, BigDecimal.ROUND_CEILING).subtract(BigDecimal.ONE.setScale(4)):
+												sellLimitGuardPrice.divide(avgBuyPrice, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4)):
 												BigDecimal.ZERO;
 		} else {
 			sellLimitGuardPriceRate = getEventsConfig().getSellLimitGuardPrice();
 			sellLimitGuardPrice = addPercentage(avgBuyPrice, sellLimitGuardPriceRate);
 		}
 		
-		if (sellLimitGuardPrice.compareTo(this.getCloseQuotationFor(currentDate)) <= 0) {
-			addWeigthedZeroProfitAlertGuard(sellLimitGuardPrice);
+		if (sellLimitGuardPrice.compareTo(this.getPriceClose(currentDate, transactionCurrency)) <= 0) {
+			addWeightedZeroProfitAlertGuard(sellLimitGuardPrice);
 		} else {
-			String aboveMessage = "(Will set a guard when "+ readablePercentOf(sellLimitGuardPriceRate) + " above calc price " + avgBuyPrice +")";
-			addWeigthedZeroProfitAlertGuardSetter(sellLimitGuardPrice, aboveMessage);
+			String aboveMessage = "(Will set a guard when "+ readablePercentOf(sellLimitGuardPriceRate) + " above calculation price " + readableNumber(avgBuyPrice) +")";
+			addWeightedZeroProfitAlertGuardSetter(sellLimitGuardPrice, aboveMessage);
 		}
 
 	}
 
 	
-	public void addWeigthedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
+	public void addWeightedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
 		this.addAlertOnThreshold(ThresholdType.UP, price, AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
 	}
 	
-	private void addWeigthedZeroProfitAlertGuard(BigDecimal profitGuard) {
+	private void addWeightedZeroProfitAlertGuard(BigDecimal profitGuard) {
 		
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 		String belowGuardMessage = "";
-		addWeigthedZeroProfitAlertGuard(profitGuard, belowGuardMessage);
+		addWeightedZeroProfitAlertGuard(profitGuard, belowGuardMessage);
 	}
 
-	/**
-	 * @param sellLimitPriceRate
-	 * @return
-	 */
-	private String readablePercentOf(BigDecimal sellLimitPriceRate) {
-		//return sellLimitPriceRate.multiply(new BigDecimal(100)).setScale(10,BigDecimal.ROUND_DOWN).toString()+" %";
+
+	private String readablePercentOf(BigDecimal aPercentage) {
 		NumberFormat format = new DecimalFormat("#0.00 %");
-		return format.format(sellLimitPriceRate);
+		return format.format(aPercentage);
+	}
+	
+	private String readableNumber(BigDecimal aNumber) {
+		NumberFormat format = new DecimalFormat("#0.0000000000");
+		return format.format(aNumber);
 	}
 
-	/**
-	 * @param calculationPrice
-	 * @param rateToCalculationPrice
-	 * @return
-	 */
 	private BigDecimal addPercentage(BigDecimal calculationPrice, BigDecimal rateToCalculationPrice) {
 		BigDecimal percentToBeAdded = calculationPrice.multiply(rateToCalculationPrice);
 		BigDecimal aboveSellLimit = calculationPrice.add(percentToBeAdded);
 		return aboveSellLimit;
 	}
 
-	/**
-	 * @return
-	 */
 	@Transient
 	private EventSignalConfig getEventsConfig() {
 		return ((EventSignalConfig) ConfigThreadLocal.get("eventSignal"));
@@ -629,21 +511,16 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal limitPriceBelowRate = getEventsConfig().getLimitPriceBelow();
 		BigDecimal belowSellLimit = addPercentage(crossingPrice, limitPriceBelowRate.negate());
 		
-		String belowMessage = "(" +readablePercentOf(limitPriceBelowRate) + " below calculation price " + crossingPrice+")";
+		String belowMessage = "(" +readablePercentOf(limitPriceBelowRate) + " below calculation price " + readableNumber(crossingPrice) +")";
 
 		this.addAlertOnThreshold(ThresholdType.DOWN, belowSellLimit, AlertOnThresholdType.BELOW_PRICE_CHANNEL, belowMessage);
 	}
 	
-	/**
-	 * @param message 
-	 * @param numberValue 
-	 * 
-	 */
 	public void addAboveTakeProfitAlert(BigDecimal price, String message) {
 		this.addAlertOnThreshold(ThresholdType.UP, price, AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT, message);
 	}
 	
-	public void addWeigthedZeroProfitAlertGuard(BigDecimal price, String message) {
+	public void addWeightedZeroProfitAlertGuard(BigDecimal price, String message) {
 		this.addAlertOnThreshold(ThresholdType.DOWN, price, AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
 	}
 
@@ -661,8 +538,9 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 				break;
 			case AVG_BUY_PRICE:
 				//remove and reset alert buy price up
-				this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
-				addBuyPriceAlertAbove();
+				//this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
+				//addBuyPriceAlertAbove();
+				addBuyPriceAlerts(crossingPrice, EventSignalConfig.getNewDate());
 				break;
 			case BELOW_PRICE_CHANNEL:
 				this.resetAlertLimitBelow(alert, crossingPrice);
@@ -685,16 +563,17 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		switch (alert.getAlertType()) {
 			case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:
 				//remove and set a take profit below alert guard
-				addWeigthedZeroProfitAlertGuard(alert.getValue());
+				addWeightedZeroProfitAlertGuard(alert.getValue());
 				break;
 			case ABOVE_TAKE_PROFIT_LIMIT:
 				//remove and reset a new take profit above alert
-				addAboveTakeProfitAlert(crossingPrice);
+				addAboveTakeProfitAlert(crossingPrice, EventSignalConfig.getNewDate());
 				break;
 			case AVG_BUY_PRICE:
 				//remove and reset alert buy price down
-				this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
-				addBuyPriceAlertBelow();
+				//this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
+				//addBuyPriceAlertBelow();
+				addBuyPriceAlerts(crossingPrice, EventSignalConfig.getNewDate());
 				break;
 			case ABOVE_PRICE_CHANNEL:
 				this.resetAlertLimitAbove(alert, crossingPrice);
@@ -736,7 +615,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		String message = "";
 		BigDecimal limitPriceAboveRate = getEventsConfig().getLimitPriceAbove();
 		BigDecimal limitAbovePrice = addPercentage(crossingPrice, limitPriceAboveRate);
-		message = "(" +readablePercentOf(limitPriceAboveRate) + " above calculation price " + crossingPrice +")";
+		message = "(" +readablePercentOf(limitPriceAboveRate) + " above calculation price " + readableNumber(crossingPrice) +")";
 
 		this.addAlertOnThreshold(ThresholdType.UP, limitAbovePrice, AlertOnThresholdType.ABOVE_PRICE_CHANNEL, message);
 
@@ -822,16 +701,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.transactionCurrency = transactionCurrency;
 	}
 
-	public void newAmounts(BigDecimal quantity, BigDecimal cashIn, BigDecimal cashOut, Date currentDate) {
-		
-		this.setQuantity(quantity.add(this.getQuantity()));
-		this.setCashin(cashIn.add(this.getCashin()));
-		this.setCashout(cashOut.add(this.getCashout()));
-		this.portfolio.addAmountToTotalAmountIn(cashIn, transactionCurrency, currentDate);
-		this.portfolio.addAmountToTotalAmountOut(cashOut, transactionCurrency, currentDate);
-		
-	}
-
 	public int compareTo(PortfolioShare o) {
 		int stock = this.getStock().compareTo(o.getStock());
 		if (stock == 0) return this.getPortfolio().getName().compareTo(o.getPortfolio().getName());
@@ -839,77 +708,11 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 	
 	@Transient
-	public InOutWeighted getWeightedInvested(Date currentDate) {
-		if (this.account != null) {
-			try {
-				SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, account, currentDate);
-				return this.calculateInflationAndExpectationWeightedInvestedCash(currentDate, transactionsForStock);
-			} catch (InvalidAlgorithmParameterException e) {
-				return new InOutWeighted(this.getCashin(), this.getCashout(), currentDate);
-			}
-		}
-		return new InOutWeighted(this.getCashin(), this.getCashout(), currentDate);
+	public InOutWeighted getWeightedInvested(Date currentStartDate, Date currentEndDate, Currency currency) {
+		return portfolio.getWeightedInvestedFor(this, currentEndDate, currency);
 	}
 	
-	/**
-	 * 
-	 * @deprecated This is done when loading the portfolio from gnucash
-	 */
-	@Deprecated
-	public BigDecimal calculateGain(Date currentDate) {
-		
-		BigDecimal profitAmount = BigDecimal.ZERO;
-		SortedSet<TransactionElement> transactionsForStock;
-		
-		if (this.account != null) {//Gnucash portfolio share with transaction history
-			try {
-				transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, account, currentDate);
-
-				if (transactionsForStock.isEmpty()) {
-					throw new InvalidAlgorithmParameterException("No transaction data for "+this);
-				}
-
-				CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
-
-				BigDecimal cashIn = BigDecimal.ZERO;
-				BigDecimal currentQuantity = BigDecimal.ZERO;
-				BigDecimal cashOut = BigDecimal.ZERO;
-				
-				for (TransactionElement transaction : transactionsForStock) {
-
-					BigDecimal price = currencyConverter.convert(transaction.getCurrency(), this.transactionCurrency, transaction.getPrice(), transaction.getDate());
-					if (price.compareTo(BigDecimal.ZERO) == 0) { //stok split or merge
-						currentQuantity = currentQuantity.add(transaction.getQuantity());
-					} else {
-						BigDecimal amount = price.multiply(transaction.getQuantity());
-	
-						if (transaction.getQuantity().compareTo(BigDecimal.ZERO) < 0) {//sell transaction
-							//Profit
-							BigDecimal avgBuyPrice = cashIn.add(cashOut).divide(currentQuantity,10,BigDecimal.ROUND_DOWN);
-							profitAmount = profitAmount.add(avgBuyPrice.subtract(price).multiply(transaction.getQuantity()).setScale(10,BigDecimal.ROUND_DOWN));
-							
-							currentQuantity = currentQuantity.add(transaction.getQuantity());
-							cashOut = cashOut.add(amount).setScale(10,BigDecimal.ROUND_DOWN);
-						} else { //buy transaction
-							currentQuantity = currentQuantity.add(transaction.getQuantity());
-							cashIn = cashIn.add(amount).setScale(10,BigDecimal.ROUND_DOWN);
-						}
-					}
-				}
-
-			} catch (InvalidAlgorithmParameterException e) {
-				return BigDecimal.ZERO;
-			}
-			
-		} else {
-			profitAmount = this.getCashout();
-		}
-		
-		return profitAmount;
-	}
-	
-	InOutWeighted calculateInflationAndExpectationWeightedInvestedCash(Date currentDate, SortedSet<TransactionElement> transactionsForStock) 
-			throws InvalidAlgorithmParameterException {
+	InOutWeighted calculateInflationAndExpectationWeightedInvestedCash(Date currentEndDate, SortedSet<TransactionElement> transactionsForStock, Currency currency)  throws InvalidAlgorithmParameterException {
 		
 		if (transactionsForStock.isEmpty()) {
 			throw new InvalidAlgorithmParameterException("No transaction data for "+this);
@@ -925,16 +728,16 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		TransactionElement inPreviousTransaction = transactionsForStockQ.poll();
 		TransactionElement outPreviousTransaction = null;
 		
-		BigDecimal inPrevPrice = currencyConverter.convert(inPreviousTransaction.getCurrency(), this.transactionCurrency, inPreviousTransaction.getPrice(), inPreviousTransaction.getDate());
+		BigDecimal inPrevPrice = currencyConverter.convert(inPreviousTransaction.getCurrency(), currency, inPreviousTransaction.getPrice(), inPreviousTransaction.getDate());
 		weightedCashin = inPreviousTransaction.getQuantity().multiply(inPrevPrice).setScale(10, BigDecimal.ROUND_DOWN);
 		
 		while (!transactionsForStockQ.isEmpty()) {
-			TransactionElement transaction = transactionsForStockQ.poll();
 			
-			BigDecimal price = currencyConverter.convert(transaction.getCurrency(), this.transactionCurrency, transaction.getPrice(), transaction.getDate());
+			TransactionElement transaction = transactionsForStockQ.poll();
+			BigDecimal price = currencyConverter.convert(transaction.getCurrency(), currency, transaction.getPrice(), transaction.getDate());
 			
 			//in
-			if (transaction.getQuantity().compareTo(BigDecimal.ZERO) > 0 && price.compareTo(BigDecimal.ZERO) != 0) {//buy and not split
+			if (transaction.transactionType().equals(TransactionType.AIN) && price.compareTo(BigDecimal.ZERO) != 0) {//buy and not split
 				
 				//Weighting previous invest
 				BigDecimal worseRate =  BigDecimal.ONE.add(getShouldWorseRateForDate(inPreviousTransaction.getDate(), transaction.getDate(), true));
@@ -951,7 +754,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			} 
 			
 			//out
-			if (transaction.getQuantity().compareTo(BigDecimal.ZERO) < 0 && price.compareTo(BigDecimal.ZERO) != 0) {//buy and not split
+			if (transaction.transactionType().equals(TransactionType.AOUT) && price.compareTo(BigDecimal.ZERO) != 0) {//sell and not split
 				
 				//Weighting previous invest
 				if (outPreviousTransaction != null) {
@@ -969,76 +772,34 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 					LOGGER.debug("Out Added quantity : "+transaction.getQuantity().abs());
 					
 				} else {
-					BigDecimal outPrevPrice = currencyConverter.convert(transaction.getCurrency(), this.transactionCurrency, transaction.getPrice(), transaction.getDate());
+					
+					BigDecimal outPrevPrice = currencyConverter.convert(transaction.getCurrency(), currency, transaction.getPrice(), transaction.getDate());
 					weightedCashout = transaction.getQuantity().abs().multiply(outPrevPrice).setScale(10, BigDecimal.ROUND_DOWN);
 					outPreviousTransaction = transaction;
+					
 				}
 	
 			} 	
 		}
 		
-		//to Current date
-			//in
-		BigDecimal inLastWorseRate = BigDecimal.ONE.add(getShouldWorseRateForDate(inPreviousTransaction.getDate(), currentDate, true));
-		weightedCashin = weightedCashin.multiply(inLastWorseRate).setScale(10, BigDecimal.ROUND_DOWN);
-			//out
+		//To Current date
+		//in
+		BigDecimal inLastWorseRate = BigDecimal.ONE.add(getShouldWorseRateForDate(inPreviousTransaction.getDate(), currentEndDate, true));
+		weightedCashin = weightedCashin.multiply(inLastWorseRate).setScale(11, BigDecimal.ROUND_DOWN);
+		//out
 		if (outPreviousTransaction != null) {
-			BigDecimal outLastWorseRate = BigDecimal.ONE.add(getShouldWorseRateForDate(outPreviousTransaction.getDate(), currentDate, false));
+			BigDecimal outLastWorseRate = BigDecimal.ONE.add(getShouldWorseRateForDate(outPreviousTransaction.getDate(), currentEndDate, false));
 			weightedCashout = weightedCashout.multiply(outLastWorseRate).setScale(10, BigDecimal.ROUND_DOWN);
 		}
 	
 		LOGGER.debug("Weighted invested value for "+this.stock.getIsin()+" is "+weightedCashin);
 
-		return new InOutWeighted(weightedCashin, weightedCashout, currentDate);
-	}
-	
-	public class InOutWeighted {
-		
-
-		private BigDecimal in;
-		private BigDecimal out;
-		private Date date;
-
-		private InOutWeighted(BigDecimal in, BigDecimal out, Date date) {
-			super();
-			this.in = in;
-			this.out = out;
-			this.date = date;
-		}
-		
-		public Boolean isEmpty() {
-			return in.compareTo(BigDecimal.ZERO) == 0;
-		}
-
-		public InOutWeighted(Date date) {
-			this.in = BigDecimal.ZERO;
-			this.out = BigDecimal.ZERO;
-			this.date = date;
-		}
-		
-		BigDecimal getWeightedInvestedStillIn() {
-			BigDecimal weightedInvestedStillIn = in.subtract(out);
-			if (weightedInvestedStillIn.compareTo(BigDecimal.ZERO) < 0) weightedInvestedStillIn = BigDecimal.ZERO;
-			return weightedInvestedStillIn;
-		}
-		
-		public BigDecimal getIn() {
-			return in;
-		}
-
-		public BigDecimal getOut() {
-			return out;
-		}
-		
-		public Date getDate() {
-			return date;
-		}
-		
+		return new InOutWeighted(weightedCashin, weightedCashout, currentEndDate);
 	}
 	
 	private BigDecimal getShouldWorseRateForDate(Date firstDate, Date secondDate, Boolean addExpectationRate)  {
-		BigDecimal inflationRateForDate;
-		inflationRateForDate = getInflationRateBetweenDates(firstDate,secondDate);
+		
+		BigDecimal inflationRateForDate = getInflationRateBetweenDates(firstDate, secondDate);
 		if (addExpectationRate) {
 			BigDecimal expectedRate = getExpectationRateForDate(firstDate, secondDate);
 			inflationRateForDate = inflationRateForDate.add(expectedRate);
@@ -1048,23 +809,25 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 	
 	private BigDecimal getExpectationRateForDate(Date firstDate, Date secondDate) {
+		
 		long firstMilli = firstDate.getTime(); 
 		long secondMilli = secondDate.getTime();
 		long diffMilli = secondMilli - firstMilli;
 		Double nbyears = new Double(diffMilli) / 1000 / 60 / 60 / 24 / 365;
 		Double expectedRate = 0d;
-		// fv= pv * (1 + r) ^ np
+		// fv = pv * (1 + r) ^ np
 		expectedRate = Math.pow((1 + getEventsConfig().getExpectedRate().doubleValue()), nbyears);
 		return new BigDecimal(expectedRate.toString()).subtract(BigDecimal.ONE);
+		
 	}
 	
-	private BigDecimal getInflationRateBetweenDates(Date fisrtDate,Date secondDate) {
+	private BigDecimal getInflationRateBetweenDates(Date fisrtDate, Date secondDate) {
 		
 		BigDecimal inflationRate = BigDecimal.ZERO;
 		try {
 			BigDecimal inflatAtFirst;
 			BigDecimal inflatAtSecond;
-			Stock stock =new Stock(
+			Stock stock = new Stock(
 					ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
 					new Boolean(false), StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
 					new MarketValuation(Market.NYSE), "None", TradingMode.UNKNOWN, 0L);
@@ -1081,26 +844,28 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		
 	}
 
-	public String getAccount() {
-		return account;
+	public String getExternalAccount() {
+		return externalAccount;
 	}
 
-	public void setAccount(String account) {
-		this.account = account;
+	public void setExternalAccount(String externalAccount) {
+		this.externalAccount = externalAccount;
 	}
 
 	/**
 	 * Gets the sell price for zero loss if cash in and out are weighted with inflation ( = inflation weighted avg buy price) : (Ow-Iw)/quantity
+	 * @param currency 
 	 * @param currentDate 
 	 * @return the profit and loss
 	 */
 	@Transient
-	public BigDecimal getPriceForZeroWeightedProfit(Date currentDate) {
+	public BigDecimal getPriceZeroGainWeighted(Date currentStartDate, Date currentEndDate, Currency currency) {
 		
-		InOutWeighted weightedInOut = this.getWeightedInvested(currentDate);
+		InOutWeighted weightedInOut = getWeightedInvested(currentStartDate, currentEndDate, currency);
 		BigDecimal weightedInvested = weightedInOut.getWeightedInvestedStillIn();
-		if (this.getQuantity().compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
-		BigDecimal sellLimitGuardPrice = weightedInvested.divide(this.getQuantity(),4,BigDecimal.ROUND_CEILING);
+		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
+		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		BigDecimal sellLimitGuardPrice = weightedInvested.divide(quantity, 10, BigDecimal.ROUND_HALF_EVEN);
 		return sellLimitGuardPrice;
 		
 	}
@@ -1114,6 +879,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	@SuppressWarnings("unused")
 	private void setAlertsOnEvent(Set<AlertOnEvent> alertsOnEvent) {
 		this.alertsOnEvent = alertsOnEvent;
+	}
+
+	public BigDecimal getPriceAvgBuy(Date currentDate, Currency transactionCurrency) {
+		return getPriceAvgBuy(null, currentDate, transactionCurrency);
+	}
+
+	public BigDecimal getQuantity(Date currentDate) {
+		return getQuantity(null, currentDate);
 	}
 
 }

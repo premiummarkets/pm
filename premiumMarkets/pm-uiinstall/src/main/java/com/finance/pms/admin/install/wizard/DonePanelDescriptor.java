@@ -90,7 +90,7 @@ public class DonePanelDescriptor extends WizardPanelDescriptor {
 			osSpecAdvice = osSpecAdvice + "<li>Otherwise, go into the following folder :<br />" + installDir + ".</li>";
 			osSpecAdvice = osSpecAdvice + "<li>The "+systemType.getSdescr()+" for starting the application is : <br />\t"+guiShell+"</li>";
 		} else {
-			osSpecAdvice = osSpecAdvice + "<li>Go into the following folder :<br />" + installDir + ".</li>";
+			osSpecAdvice = osSpecAdvice + "<li>Go into the following folder :<br />" + installDir + "</li>";
 			osSpecAdvice = osSpecAdvice + "<li>The "+systemType.getSdescr()+" for starting the application is : <br />\t"+guiShell+"</li>";
 			osSpecAdvice = osSpecAdvice + "<li>You may first want to check that the "+systemType.getSdescr()+" 'gui" + systemType.getShext()+"' has execution rights properly set up.</li>";
 		}

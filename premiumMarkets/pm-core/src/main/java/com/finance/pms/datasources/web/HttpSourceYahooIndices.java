@@ -38,6 +38,7 @@ import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.SimpleHttpClient;
@@ -93,65 +94,14 @@ public class HttpSourceYahooIndices extends HttpSourceMarket {
 	}
 
 	@Override
-	public String getStockInfoPageURL(String isin) throws UnsupportedEncodingException {
-		return "http://uk.finance.yahoo.com/q?s="+ URLEncoder.encode(isin,"UTF-8");
+	public String getStockInfoPageURL(String refName) throws UnsupportedEncodingException {
+		return "http://uk.finance.yahoo.com/q?s="+ URLEncoder.encode(refName,"UTF-8");
 	}
 	
 	public String getStockInfoPageProfilURL(String isin) throws UnsupportedEncodingException {
 		return "http://uk.finance.yahoo.com/q/pr?s="+ URLEncoder.encode(isin,"UTF-8");
 	}
 	
-	public String getStockInfoPageOpinionsURL(String isin) throws UnsupportedEncodingException {
-		return "http://uk.finance.yahoo.com/q/ao?s="+ URLEncoder.encode(isin,"UTF-8");
-	}
-	
-	public String getStockInfoPageEstimatesURL(String symbol) throws UnsupportedEncodingException {
-		return "http://finance.yahoo.com/q/ae?s="+ URLEncoder.encode(symbol.replaceAll("\\..*", ""),"UTF-8");
-	}
-	
-	public String getStockInfoPageUKEstimatesURL(String symbol) throws UnsupportedEncodingException {
-		return "http://uk.finance.yahoo.com/q/ae?s="+ URLEncoder.encode(symbol,"UTF-8");
-	}
-
-	public String getStockInfoPageReutersFinancialsURL(String symbol) throws UnsupportedEncodingException {
-		return "http://www.reuters.com/finance/stocks/financialHighlights?symbol="+ URLEncoder.encode(symbol,"UTF-8");
-	}
-	
-	public String getStockInfoPageReutersOverViewURL(String symbol) throws UnsupportedEncodingException {
-		return "http://www.reuters.com/finance/stocks/overview?symbol="+ URLEncoder.encode(symbol,"UTF-8");
-	}
-	
-	
-
-	@Override
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		GetMethod getMethod = new GetMethod(url.getUrl());
-		return getMethod;
-	}
-	
-	
-	public String getStockInfoPageBOResumeURL(String symbol) throws UnsupportedEncodingException {
-		//return "http://www.boursorama.com/cours.phtml?code=" + URLEncoder.encode(isin,"UTF-8") + "&choix_bourse=pays%3D33&categorie=";
-		//return "http://www.boursorama.com/cours.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
-		return "http://www.boursorama.com/bourse/profil/resume_societe.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
-	}
-	
-	public String  getStockInfoPageBOEstimatesURL(String symbol) throws UnsupportedEncodingException  {
-		return "http://www.boursorama.com/bourse/actions/conseils/consensus/consensus_previsions.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
-	}
-	
-	public String getStockInfoPageBOpinionsURL(String symbol) throws UnsupportedEncodingException {
-		
-		String eUrl = URLEncoder.encode(symbol,"UTF-8");
-		String param = boParams(eUrl);
-		//return "http://www.boursorama.com/infos/consensus/consensus_analystes.phtml?symbole="+param;
-		return "http://www.boursorama.com/bourse/actions/conseils/consensus/consensus_analystes.phtml?symbole="+param;
-	}
-	
-	/**
-	 * @param eUrl
-	 * @return
-	 */
 	private String boParams(String eUrl) {
 		String param = "";
 		if (eUrl.substring(eUrl.length() - 3).equals(".PA")) {
@@ -164,7 +114,124 @@ public class HttpSourceYahooIndices extends HttpSourceMarket {
 			}
 		return param;
 	}
-
 	
+	
+	@Override
+	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		GetMethod getMethod = new GetMethod(url.getUrl());
+		return getMethod;
+	}
+	
+	/////////////////Opinions
+	
+	//Yahoo
+	public String getStockInfoPageOpinionsURL(String isin) throws UnsupportedEncodingException {		
+		return "http://uk.finance.yahoo.com/q/ao?s="+ URLEncoder.encode(isin,"UTF-8");
+	}
+
+	public String getStockSummaryPageURL(Stock stock) throws UnsupportedEncodingException {	
+		
+		String symbol;
+		String thisMethodCallProvider = "yahoo";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, true);
+		
+		return "http://uk.finance.yahoo.com/q?s="+ URLEncoder.encode(symbol,"UTF-8");
+	}
+	
+	public String getStockInfoPageEstimatesURL(Stock stock) throws UnsupportedEncodingException {
+		
+		//No extension
+//		String symbol;
+//		String thisMethodCallProvider = "yahoo";
+//		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+//		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, true);
+		String symbol = stock.getSymbol();
+		
+		return "http://finance.yahoo.com/q/ae?s="+ URLEncoder.encode(symbol.replaceAll("\\..*", ""),"UTF-8");
+	}
+	
+	public String getStockInfoPageUKEstimatesURL(Stock stock) throws UnsupportedEncodingException {
+		
+		String symbol;
+		String thisMethodCallProvider = "yahoo";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, true);
+		
+		return "http://uk.finance.yahoo.com/q/ae?s="+ URLEncoder.encode(symbol,"UTF-8");
+	}
+
+	//Reuters //Nb : there is no Provider for Reuters => we translate to yahoo
+	public String getStockInfoPageReutersFinancialsURL(Stock stock) throws UnsupportedEncodingException {
+		
+		String symbol;
+		String thisMethodCallProvider = "any";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, false);
+		
+		return "http://www.reuters.com/finance/stocks/financialHighlights?symbol="+ URLEncoder.encode(symbol,"UTF-8");
+	}
+	
+	public String getStockInfoPageReutersOverViewURL(Stock stock) throws UnsupportedEncodingException {
+		
+		String symbol;
+		String thisMethodCallProvider = "any";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, false);
+		
+		return "http://www.reuters.com/finance/stocks/overview?symbol="+ URLEncoder.encode(symbol,"UTF-8");
+	}
+	
+	//Bourso //Nb : there is no specific extension for Bourso => we translate to yahoo
+	public String getStockInfoPageBOResumeURL(Stock stock) throws UnsupportedEncodingException {
+		//return "http://www.boursorama.com/cours.phtml?code=" + URLEncoder.encode(isin,"UTF-8") + "&choix_bourse=pays%3D33&categorie=";
+		//return "http://www.boursorama.com/cours.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
+
+		//return "http://www.boursorama.com/bourse/profil/resume_societe.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
+		String symbol;
+		String thisMethodCallProvider = "boursorama";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, false);
+		
+		return "http://www.boursorama.com/bourse/profil/resume_societe.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
+	}
+
+	protected String extentionTwist(Stock stock, String thisMethodCallProvider, String thisMethodCallExtension, boolean lenient) {
+		String symbol;
+		String cmdParam = stock.getSymbolMarketQuotationProvider().getCmdParam();
+		if (cmdParam.equals(thisMethodCallProvider) || (lenient && cmdParam.contains(thisMethodCallProvider))) {
+			symbol = stock.getSymbol();
+		} else {
+			if (thisMethodCallExtension.isEmpty()) {
+				symbol = stock.getSymbolRoot();
+			} else {
+				symbol = stock.getSymbolRoot() + "." + thisMethodCallExtension;
+			}
+		}
+		return symbol;
+	}
+	
+	public String  getStockInfoPageBOEstimatesURL(Stock stock) throws UnsupportedEncodingException  {
+		
+		String symbol;
+		String thisMethodCallProvider = "boursorama";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, false);
+		
+		return "http://www.boursorama.com/bourse/actions/conseils/consensus/consensus_previsions.phtml?symbole="+boParams(URLEncoder.encode(symbol,"UTF-8"));
+	}
+	
+	public String getStockInfoPageBOpinionsURL(Stock stock) throws UnsupportedEncodingException {
+		
+		String symbol;
+		String thisMethodCallProvider = "boursorama";
+		String thisMethodCallExtension = stock.getMarket().getYahooExtension().getSpecificMarketExtension();
+		symbol = extentionTwist(stock, thisMethodCallProvider, thisMethodCallExtension, false);
+		
+		String eUrl = URLEncoder.encode(symbol,"UTF-8");
+		String param = boParams(eUrl);
+		//return "http://www.boursorama.com/infos/consensus/consensus_analystes.phtml?symbole="+param;
+		return "http://www.boursorama.com/bourse/actions/conseils/consensus/consensus_analystes.phtml?symbole="+param;
+	}	
 	
 }

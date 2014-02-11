@@ -88,13 +88,6 @@ public class AddAlertDialog extends Dialog {
 	
 	protected enum Modtype {QUANTITY,AIN,AOUT};
 	
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	//Test
 	public static void main(String[] args) {
 		try {
@@ -109,8 +102,6 @@ public class AddAlertDialog extends Dialog {
 		}
 	}
 	
-	
-
 	public AddAlertDialog(Shell parent, PortfolioShare portfolioShare, ActionDialogAction action) {
 		super(parent);
 		this.portfolioShare = portfolioShare;
@@ -119,27 +110,15 @@ public class AddAlertDialog extends Dialog {
 	}
 
 
-	/**
-	 * Instantiates a new new portfolio dialog.
-	 * 
-	 * @param parent the parent
-	 * @param style the style
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public AddAlertDialog(Shell parent, int style) {
 		super(parent, style);
 	}
 
-	/**
-	 * Open.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void open(int xpos, int ypos) {
 		try {
 			Shell parent = getParent();
-			dialogShell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+			dialogShell = new Shell(parent, SWT.SHELL_TRIM);
 			dialogShell.setLocation(xpos,ypos);
 			GridLayout dialogShellLayout = new GridLayout(2, false);
 			dialogShellLayout.verticalSpacing = 8;
@@ -231,7 +210,7 @@ public class AddAlertDialog extends Dialog {
 								portfolioShare.addAboveTakeProfitAlert(value,commentText.getText());
 								break;
 							case 4 :
-								portfolioShare.addWeigthedZeroProfitAlertGuardSetter(value,commentText.getText());
+								portfolioShare.addWeightedZeroProfitAlertGuardSetter(value,commentText.getText());
 								break;
 							default : 
 								LOGGER.error("Nothing to do! "+combo.getSelectionIndex());
@@ -276,28 +255,11 @@ public class AddAlertDialog extends Dialog {
 			
 			dialogShell.layout();
 			dialogShell.open();
-//			Display display = dialogShell.getDisplay();
-//			while (!dialogShell.isDisposed()) {
-//				try {
-//					if (!display.readAndDispatch()) display.sleep();
-//				} catch (RuntimeException e) {
-//					LOGGER.error("Error in New Portfolio Dialog Gui : "+e.getMessage(),e);
-//					LOGGER.debug("Error in New Portfolio Dialog Gui : ",e);
-//				} catch (Error e) {
-//					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-//					LOGGER.debug("Error in  Gui : ",e);
-//				}
-//			}
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
 	}
 
-
-
-	/**
-	 * 
-	 */
 	private void updateDownTable() {
 		
 		alertTableDown.removeAll();
@@ -322,11 +284,6 @@ public class AddAlertDialog extends Dialog {
 		alertTableDown.getColumn(0).pack();
 	}
 
-
-
-	/**
-	 * 
-	 */
 	private void updateUpTable() {
 		
 		alertTableUp.removeAll();

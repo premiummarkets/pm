@@ -50,7 +50,6 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class UserPortfolio.
  * 
@@ -76,14 +75,6 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
-	/**
-	 * Instantiates a new portfolio.
-	 * 
-	 * @param name the name
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param portfolioCurrency 
-	 */
 	public UserPortfolio(String name, Currency portfolioCurrency) {
 		super(name, null, null, portfolioCurrency);
 		userPortfolioDelegate = new UserPortfolioDelegate(this);
@@ -95,8 +86,6 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
-
-	
 	public TransactionHistory calculate(Date currentDate, String... eventListName) {
 		
 //		//Test
@@ -146,7 +135,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	
 	
 	@Transient
-	public BigDecimal getAvailableCash() {
+	public BigDecimal getAvailableCash(Date currentDate) {
 		throw new NotImplementedException();
 	}
 	

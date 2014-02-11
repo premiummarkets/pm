@@ -40,8 +40,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
 public class StockComplementBSEFormater extends LineFormater {
-	
-	/** The PATTERNS. */
+
 	private static PatternProperties PATTERNS;
 	
 	private Pattern codePatternExtended;
@@ -106,7 +105,7 @@ public class StockComplementBSEFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return true;
 	}
 }

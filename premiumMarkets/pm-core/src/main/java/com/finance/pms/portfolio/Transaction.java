@@ -35,7 +35,7 @@ import java.util.Date;
 
 public class Transaction {
 	
-	public enum TransactionType {AIN,AOUT,NULL};
+	public enum TransactionType {AIN, AOUT, NULL};
 	
 	private BigDecimal transactionSharePrice;
 	private BigDecimal quantity;
@@ -63,9 +63,13 @@ public class Transaction {
 	public BigDecimal getTransactionSharePrice() {
 		return transactionSharePrice;
 	}
+	
+	public void setTransactionSharePrice(BigDecimal transactionSharePrice) {
+		this.transactionSharePrice = transactionSharePrice;
+	}
 
 	public void setTransactionSharePrice(Float transactionSharePrice) {
-		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(4,BigDecimal.ROUND_DOWN);
+		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 	
 	public BigDecimal getQuantity() {
@@ -75,12 +79,12 @@ public class Transaction {
 		this.quantity = quantity;
 	}
 	public void setQuantity(Float quantity) {
-		this.quantity = new BigDecimal(quantity.toString()).setScale(4,BigDecimal.ROUND_DOWN);
+		this.quantity = new BigDecimal(quantity.toString()).setScale(4, BigDecimal.ROUND_DOWN);
 	}
 	
 	public BigDecimal amount() {
-		return this.quantity.multiply(this.transactionSharePrice).setScale(4, BigDecimal.ROUND_HALF_UP);
-		//return this.quantity.multiply(this.transactionSharePrice.setScale(2, BigDecimal.ROUND_DOWN)).setScale(4, BigDecimal.ROUND_DOWN);
+		//return this.quantity.multiply(this.transactionSharePrice).setScale(4, BigDecimal.ROUND_HALF_UP);
+		return this.quantity.multiply(this.transactionSharePrice).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	
@@ -123,6 +127,10 @@ public class Transaction {
 	public String toString() {
 		return "Transaction [transactionPrice=" + transactionSharePrice + ", quantity=" + quantity + ", fullAmountIn=" + fullAmountIn
 				+ ", fullAmountOut=" + fullAmountOut + ", modtype=" + modtype + ", date=" + date + "]";
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 	
 	

@@ -94,13 +94,7 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 		return weathers;
 	}
 	
-	
-	/**
-	 * @param springContext
-	 * @param dbProps
-	 * @param endDate
-	 * @throws InterruptedException
-	 */
+
 	public void updateWeatherData(Date endDate) throws InterruptedException {
 		
 		WeatherDAO weatherDao = (WeatherDAO) springContext.getBean("weatherDAO");

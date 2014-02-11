@@ -99,13 +99,10 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	
 	
 	public  Date shiftToClosingTime(Calendar calendar) {
-		calendar.set(Calendar.DAY_OF_MONTH,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+		calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 		return calendar.getTime();
 	}
-	
-	/**
-	 * @param calendar
-	 */
+
 	private  void closeNoQuotationEdgeGap(Calendar calendar, double amountSign) {
 		
 		if (amountSign > 0) {

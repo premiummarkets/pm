@@ -51,7 +51,9 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
@@ -83,6 +85,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	static {
 		ANY_STOCK.setName("ANY STOCK");
 		ANY_STOCK.setMarketValuation(new MarketValuation(Market.EURONEXT));
+		ANY_STOCK.setLastQuote(EventSignalConfig.getNewDate());
 	}
 	private static EnumSet<EmailFilterEventSource> EMAILMSGQEUEINGFILTER = EmailFilterEventSource.webSet();
 	
@@ -248,18 +251,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		return null;
 	}
 	
-	/**
-	 * Send mail event.
-	 * 
-	 * @param event the event
-	 * @param eventType the et
-	 * @param monitorLevel the ml
-	 * @param source the source
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param eventListName 
-	 * @param eventInfoRef 
-	 */
 	private void sendMailEvent(SymbolEvents event, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
 		
 		if (this.templateMessage.getTo() == null || this.templateMessage.getTo().length == 0 || this.templateMessage.getTo()[0] == null || this.templateMessage.getTo()[0].equals("")) {
@@ -282,7 +273,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					int sstartIdx = eMailTxt.indexOf(sellTrigPat) + sellTrigPat.length();
 					sellTriggeringEvents = " with trigger " + eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
 				}
-				subject = source + " : " + stockName + eventInfoRef+ " SELL"+ sellTriggeringEvents + " in " + eventListName;
+				subject = source + " : " + stockName + eventInfoRef+ " " + eventType.name()+ sellTriggeringEvents + " in " + eventListName;
 				break;
 			case BULLISH:
 				String buyTrigPat = "buytriggeringEvents : ";
@@ -291,7 +282,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					int bstartIdx = eMailTxt.indexOf(buyTrigPat) + buyTrigPat.length();
 					buyTriggeringEvents = " with trigger" + eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
 				}
-				subject = source + " : " + stockName + eventInfoRef+ " BUY" + buyTriggeringEvents + " in " + eventListName;
+				subject = source + " : " + stockName + eventInfoRef+ " "+eventType.name() + buyTriggeringEvents + " in " + eventListName;
 				break;
 			default:
 				String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
@@ -309,42 +300,36 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
             LOGGER.error("Can't send email :"+subject+";"+eMailTxt+"\n\n\n"+notaBene, ex);         
         }
 	}
-
-	/**
-	 * @param event 
-	 * @param eMailTxt
-	 * @return
-	 */
+	
 	private String inferAdditionalEventTypeForOtherNInfoEventTypes(EmailFilterEventSource eventSource, String eMailTxt) {
 
-		String bearish = "SELL";
-		String bullish = "BUY";
-
 		String evenTypeAdd = EventType.INFO.name();
-		
-		//PMTAEvents,PMScreening,PMUserScreening,PMAlert,PMUserAlert,PMAutoBuySell,PMUserBuySell,PMWeather 
+
 		switch(eventSource) {
 		case PMUserScreening:
 			if (eMailTxt.contains("rank is Down")) {
-				evenTypeAdd = bearish;
+				evenTypeAdd = "BEARISH";
 			} else if (eMailTxt.contains("rank is Up")) {
-				evenTypeAdd=bullish;
+				evenTypeAdd= "BULLISH";
 			} else if (eMailTxt.contains("Screener Alert")) {
 				evenTypeAdd = "SCREENING";
 			}
 			break;
 		case PMUserAlert:
-			if ((eMailTxt.contains("Below channel") || eMailTxt.contains("take profit limit"))) {
-				evenTypeAdd = bearish;
-			} else if (eMailTxt.contains("Above channel")) {
-				evenTypeAdd = bullish;
+			if (eMailTxt.contains(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.getText())) {
+				evenTypeAdd = "SELL";
+			}
+			else if ((eMailTxt.contains(AlertOnThresholdType.BELOW_PRICE_CHANNEL.getText()))) {
+				evenTypeAdd = "BEARISH";
+			} else if (eMailTxt.contains(AlertOnThresholdType.ABOVE_PRICE_CHANNEL.getText())) {
+				evenTypeAdd = "BULLISH";
 			}
 			break;
 		case PMUserBuySell:
 			if (eMailTxt.contains("movement : sell")) {
-				evenTypeAdd = bearish;
+				evenTypeAdd = "SELL";
 			} else if (eMailTxt.contains("movement : buy")) {
-				evenTypeAdd = bullish;
+				evenTypeAdd = "BUY";
 			}
 			break;
 		default :
@@ -414,14 +399,14 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					SimpleMailMessage mail = new SimpleMailMessage(this.templateMessage);
 					mail.setSubject("Scraper metrics");
 					mail.setText(metrics);
-
 					this.mailSender.send(mail);
+					LOGGER.info("Metrics sent.");
+				} else {
+					LOGGER.info("Metrics are empty.");
 				}
 			} catch (Exception e) {
 				LOGGER.warn("Can't send metrics. Please set up your email account in Settings ...? Here they are : "+metrics);
 			}
-			LOGGER.info("Metrics sent.");
-			
 		
 			LOGGER.info("AnalysisClient is closed.");
 			

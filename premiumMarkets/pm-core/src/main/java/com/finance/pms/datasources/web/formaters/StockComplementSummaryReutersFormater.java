@@ -102,8 +102,8 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 	
 }

@@ -136,7 +136,7 @@ public class OperationBuilderComposite extends Composite {
 		ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
 		ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
-		springContext.postInit();
+		springContext.optionalPostInit();
 
 		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 

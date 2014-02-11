@@ -167,16 +167,6 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 		
 	}
 
-
-	/**
-	 * @param eventListName
-	 * @param screenedStock
-	 * @param previousRank 
-	 * @param eventType 
-	 * @param eventDate 
-	 * @param string 
-	 * @param ""
-	 */
 	protected SymbolEvents constructEvent(
 			String eventListName, ScreeningSupplementedStock screenedStock, EventDefinition eventDefinition, Integer rank, Integer previousRank, EventType eventType, String message, Date eventDate) {
 		
@@ -192,14 +182,6 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 	}
 
 
-	/**
-	 * @param stock
-	 * @param analysisName 
-	 * @param eventTypes 
-	 * @param eventType 
-	 * @return
-	 * @throws IgnoredEventDateException 
-	 */
 	protected Integer extractPreviousRank(Stock stock, String analysisName, Date endDate, EventType... eventTypes) throws IgnoredEventDateException {
 		EventValue previousEventValue = DataSource.getInstance().getLastTrendEventFor(stock, analysisName, endDate, eventTypes);
 		
@@ -216,10 +198,6 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 		return previousRank;
 	}
 
-
-	/**
-	 * @param previousEventValue
-	 */
 	protected Integer extractPreviousRankFromMessage(EventValue previousEventValue) {
 		
 		Pattern pattern = Pattern.compile("Rank is : --([0-9]+)--");

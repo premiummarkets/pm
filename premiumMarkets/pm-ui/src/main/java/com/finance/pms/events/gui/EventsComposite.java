@@ -214,14 +214,17 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 		this.selectedPortfolios = new HashSet<ShareListInfo>();
 		List<String> previouslySelectedPortfolios = Arrays.asList(MainPMScmd.getPrefs().get("gui.crit.selectedportfolios", "").split(","));
-		for (String selectedPortfolio : previouslySelectedPortfolios) {
-			try {
-				AbstractSharesList portfolio = PortfolioMgr.getInstance().getPortfolio(selectedPortfolio);
-				this.selectedPortfolios.add(new ShareListInfo(portfolio.getName()));
-			} catch (IllegalArgumentException e) {
-				LOGGER.warn("Can't reload portfolio "+selectedPortfolio+". It may have been deleted. "+e);
+		if (!previouslySelectedPortfolios.isEmpty()) {
+			for (String selectedPortfolio : previouslySelectedPortfolios) {
+				if (!selectedPortfolio.isEmpty()) {
+					try {
+						AbstractSharesList portfolio = PortfolioMgr.getInstance().getPortfolio(selectedPortfolio);
+						this.selectedPortfolios.add(new ShareListInfo(portfolio.getName()));
+					} catch (IllegalArgumentException e) {
+						LOGGER.warn("Can't reload portfolio '"+selectedPortfolio+"'. It may have been deleted. "+e);
+					}
+				}
 			}
-			
 		}
 		this.filter = StocksActionFilter.valueOf(MainPMScmd.getPrefs().get("gui.crit.sotckfilter", StocksActionFilter.ALLSTOCKS.name()));
 		
@@ -899,7 +902,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 										Point point = new Point(event.x, event.y);
 										Point map = getDisplay().map((Control) event.widget, null, point);
-										treeRowToolTip = showTooltip(null, map.x, map.y, info);
+										treeRowToolTip = showTooltip(item.hashCode(), null, map.x, map.y, info);
 									}
 								}
 							}

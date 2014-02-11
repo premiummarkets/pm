@@ -55,8 +55,8 @@ public class SpringContext extends GenericApplicationContext {
 
 	private static SpringContext singleton;
 	
-	private Object postInitSync;
-	private Boolean postInit = false;
+	private Object optPostInitSyncObj;
+	private Boolean optPostInitRunning = false;
 	
 	public static SpringContext getSingleton() {
 		return singleton;
@@ -64,11 +64,7 @@ public class SpringContext extends GenericApplicationContext {
 
 	private boolean hasBeenClosed = false;
 
-	/**
-	 * Instantiates a new spring context.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public SpringContext(String propsFile) {
 		super();
 		initPrefs(propsFile);
@@ -97,27 +93,16 @@ public class SpringContext extends GenericApplicationContext {
 		return hasBeenClosed;
 	}
 	
-	/**
-	 * Sets the data source.
-	 * 
-	 * @param arg the new data source
-	 */
 	//TODO back to xml configs
 	private void setDataSource() {
 		
 		ConstructorArgumentValues dataSCAV = new  ConstructorArgumentValues();
-       // dataSCAV.addGenericArgumentValue(arg,"java.lang.String");
         RootBeanDefinition dataS = new RootBeanDefinition("com.finance.pms.datasources.db.DataSource",dataSCAV,new MutablePropertyValues());
         dataS.setDestroyMethodName("stopThreads");
         this.registerBeanDefinition("dataSource", dataS);
  
 	}
 	
-	/**
-	 * Sets the mas source.
-	 * 
-	 * @param args the new mas source
-	 */
 	public void setMasSource(String... args) {
 		
 		//Add db.properties path as variable to be retrieved when loading configuration file
@@ -154,7 +139,6 @@ public class SpringContext extends GenericApplicationContext {
 	 * @param args
 	 */
 	public void standardInit(String[] args) {
-		//setDataSource(args[0]);
 		ArrayList<String> springconf = new ArrayList<String>(Arrays.asList(new String[] { "/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml"}));
 		loadBeans(springconf.toArray(new String[0]));
 		refresh();
@@ -171,7 +155,6 @@ public class SpringContext extends GenericApplicationContext {
 			props.load(new FileInputStream((new File(pathToprops))));
 			
 			// Database
-			//System.setProperty("dbpathNname", DataSource.dbPathNname());
 			initDbPathNname(props);
 			
 			if (props.containsKey("software"))
@@ -426,6 +409,7 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("event.cache", props);
 			
 			MainPMScmd.getPrefs().flush();
+			
 		} catch (Exception e) {
 			System.out.println("Couldn't init DataSource. Check the propeties path");
 			e.printStackTrace();
@@ -471,20 +455,14 @@ public class SpringContext extends GenericApplicationContext {
 
 	}
 		
-
-	/**
-	 * @param property 
-	 * @param props
-	 */
 	private static void putInPrefs(String property, Properties props) {
-		if (props.containsKey(property))
-			MainPMScmd.getPrefs().put(property, props.getProperty(property));
+		if (props.containsKey(property)) MainPMScmd.getPrefs().put(property, props.getProperty(property));
 	}
 	
-	public void postInit() {
+	public void optionalPostInit() {
 
-		postInitSync = new Object();
-		postInit = true;
+		optPostInitSyncObj = new Object();
+		optPostInitRunning = true;
 
 		final TalibOperationGenerator talibOperationGenerator = SpringContext.getSingleton().getBean(TalibOperationGenerator.class);
 		final ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
@@ -495,7 +473,7 @@ public class SpringContext extends GenericApplicationContext {
 		new Thread(new Runnable() {
 			public void run() {
 
-				synchronized (postInitSync) {
+				synchronized (optPostInitSyncObj) {
 					
 					ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
 					try {
@@ -504,18 +482,19 @@ public class SpringContext extends GenericApplicationContext {
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {
-						postInit = false;
+						optPostInitRunning = false;
 					}
+					
 				}
-
+				
 			}
 		}).start();
 
 	}
 	
-	public void syncOnPostInit() {
-		while (postInit) {
-			synchronized (postInitSync) {
+	public void syncOnOptPostInit() {
+		while (optPostInitRunning) {
+			synchronized (optPostInitSyncObj) {
 				//
 			}
 		}

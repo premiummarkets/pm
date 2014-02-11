@@ -55,20 +55,11 @@ import com.finance.pms.threads.SourceConnector;
  */
 public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceYahoo.class);
 	
-	/** The thread pool. */
 	private PoolSemaphore threadPool;
 
-	/**
-	 * Instantiates a new http source yahoo.
-	 * 
-	 * @param pathToprops the path toprops
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param beanFactory 
-	 */
+	
 	public HttpSourceYahoo(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
 		LOGGER.debug("Number of Http Threads : "+this.nbHttpThreads);
@@ -134,9 +125,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 		return url;
 	}
 
-    /* (non-Javadoc)
-     * @see com.finance.pms.datasources.web.HttpSource#getStockInfoPageURL(java.lang.String)
-     */
+
     @Override
 	public String getStockInfoPageURL(String isin) {//throws ToDoYahooException {
         // TODO Completer la r�cup�ration des compl�ments de stocks sur Yahoo
@@ -144,17 +133,13 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
         throw new RuntimeException("Fecthing stock information is not implemented for yahoo");
     }
     
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.HttpSource#getMarketStockListURL(java.lang.String, java.lang.String, java.lang.String, com.finance.pms.datasources.shares.StockCategories)
-	 */
+
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
 		throw new RuntimeException("Fecthing stock list is not implemented for yahoo");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.HttpSource#getThreadPool()
-	 */
+
 	@Override
 	public PoolSemaphore getThreadPool() {
 		return this.threadPool;

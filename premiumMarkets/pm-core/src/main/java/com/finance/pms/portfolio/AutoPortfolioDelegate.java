@@ -67,7 +67,7 @@ import com.finance.pms.threads.ObserverMsg;
  */
 public class AutoPortfolioDelegate {
 	
-	public static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(2);
+	public static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
 	public static final BigDecimal DEFAULT_INITIAL_CASH;
 	
 	private TransactionHistory transactionHistory;
@@ -204,7 +204,7 @@ public class AutoPortfolioDelegate {
 			for (PortfolioShare alreadyBoughtShare : thisPortfolio.getListShares().values()) {
 				if (alreadyBoughtShare.getStock().equals(symbolEvents.getStock()) && isInvalidBuyableDate(latestEventDateAndNewBuyDate, alreadyBoughtShare)) { 
 					//already bought
-					LOGGER.debug("Already bought : " + alreadyBoughtShare + " on the " + alreadyBoughtShare.getBuyDate());
+					LOGGER.debug("Already bought : " + alreadyBoughtShare + " on the " + alreadyBoughtShare.getLastTransactionDate());
 					return null;
 				}
 			}
@@ -227,7 +227,7 @@ public class AutoPortfolioDelegate {
 	}
 
 	protected boolean isInvalidBuyableDate(Date latestEventDateAndNewBuyDate, PortfolioShare alreadyBoughtShare) {
-		return !latestEventDateAndNewBuyDate.before(alreadyBoughtShare.getBuyDate());
+		return !latestEventDateAndNewBuyDate.before(alreadyBoughtShare.getLastTransactionDate());
 	}
 
 	/**
@@ -349,7 +349,7 @@ public class AutoPortfolioDelegate {
 
 				if (isInvalidSellableDate(latestEventDateAndNewBuyDate, portfolioShare)) { 
 					//already sold with that signal
-					LOGGER.debug("Already sold with that signal or not bought yet : " + portfolioShare + " last transaction on the " + portfolioShare.getBuyDate());
+					LOGGER.debug("Already sold with that signal or not bought yet : " + portfolioShare + " last transaction on the " + portfolioShare.getLastTransactionDate());
 					return null;
 				}
 
@@ -374,7 +374,7 @@ public class AutoPortfolioDelegate {
 	}
 
 	protected boolean isInvalidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
-		return !latestEventDateAndNewBuyDate.after(portfolioShare.getBuyDate());
+		return !latestEventDateAndNewBuyDate.after(portfolioShare.getLastTransactionDate());
 	}
 
 	/**
@@ -392,16 +392,17 @@ public class AutoPortfolioDelegate {
 				BigDecimal lastPrice = quotations.getClosestCloseForDate(currentDate);
 				
 				BigDecimal quantityProrata;
+				BigDecimal quantity = portfolioShare.getQuantity(currentDate);
 				if (unitAmount != null) {
 					quantityProrata = unitAmount.divide(lastPrice, 5, BigDecimal.ROUND_DOWN);
-					quantityProrata = quantityProrata.min(portfolioShare.getQuantity());	
+					quantityProrata = quantityProrata.min(quantity);	
 				} else {
-					quantityProrata = portfolioShare.getQuantity();
+					quantityProrata = quantity;
 				}
 
 				synchronized (this) {
 					thisPortfolio.removeOrUpdateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
-					LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+portfolioShare.getQuantity());
+					LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+quantity);
 
 					//log
 					return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, lastPrice, currentDate);
@@ -430,7 +431,7 @@ public class AutoPortfolioDelegate {
 		
 		TransactionRecord transactionRecord = 
 					new TransactionRecord(
-							thisPortfolio.getName(), shareList.getAvailableCash(), currentDate, stock, 
+							thisPortfolio.getName(), shareList.getAvailableCash(currentDate), currentDate, stock, 
 							movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
 		
 		getTransactionHistory().add(transactionRecord);

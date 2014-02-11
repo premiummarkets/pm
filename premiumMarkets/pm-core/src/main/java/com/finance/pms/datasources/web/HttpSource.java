@@ -205,88 +205,78 @@ public abstract class HttpSource {
 		
 		List<Validatable> ret = new ArrayList<Validatable>();
 		try {
+			
 			ret.addAll(this.readURL(formater, httpcx));
+
+			MetricsResType metricType = completeMetricRes(formater, ret);
+			getScrapperMetrics().addRecord(formater, metricType);
 			
 		} catch (HttpException e) {
 			
-			getScrapperMetrics().addRecord(formater, e.getMessage());
+			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.HTTPERROR);
 			throw e;
 			
 		} catch (IOException e) {
 			
-			getScrapperMetrics().addRecord(formater, e.getMessage());
+			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.FAILURE);
 			
 		} catch (Exception e) {
 			
 			LOGGER.error("ERROR processing url :" + e,e);
 			LOGGER.error("Is " + httpcx.getHostConfiguration().getHostURL() +" with params "+ httpcx.getParams() + " a valid url ?",e);
 			LOGGER.debug("",e);
-			getScrapperMetrics().addRecord(formater, e.getMessage());
+			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.FAILURE);
 			
 		} finally {
 			this.realesePoolConnection(httpcx);
 		}
-		
-		MetricsResType metricType = extractMetricRes(formater,ret);
-		getScrapperMetrics().addRecord(formater, metricType);
-		
+	
 		return ret;
 	}
 
 
-	/**
-	 * @param formater
-	 * @param ret
-	 * @return
-	 */
-	private MetricsResType extractMetricRes(LineFormater formater, List<Validatable> ret) {
+	private MetricsResType completeMetricRes(LineFormater formater, List<Validatable> ret) {
 		MetricsResType metricType;
-		if (ret.size() != 0) {
-			if (!formater.isEmptyValue()) {
-				metricType = MetricsResType.SUCCESS;
+		
+		if (!ret.isEmpty()) {//Results were found
+			
+			if (formater.isResultValueEqNA()) {//But NA
+				metricType = MetricsResType.EMPTYRESULTS;
 			} else {
-				metricType = MetricsResType.EMPTY;
+				metricType = MetricsResType.SUCCESS;
 			}
-		} else if (formater.canHaveEmptyResults()) {
-			metricType = MetricsResType.EMPTY;
-		} else {
-			metricType = MetricsResType.FAILURE;
-		}
+			
+		} else {//No results found
+			
+			if (formater.canHaveNoResultsFound()) {//But that is permitted
+				metricType = MetricsResType.NORESULTS;	
+			} else {
+				metricType = MetricsResType.FAILURE;
+			}
+			
+		} 
 		return metricType;
 	}
 
-	/**
-	 * Read url.
-	 * 
-	 * @param formater the formater
-	 * @param httpcx the httpcx
-	 * 
-	 * @return the list< validatable>
-	 * 
-	 * @throws HttpException the http exception
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	protected Set<Validatable> readURL(LineFormater formater, MyHttpClient httpcx) throws HttpException, IOException {
 		
 		Set<Validatable> resultSet= new HashSet<Validatable>();
 
 		HttpMethodBase  httpget = this.getRequestMethod(formater.getMyUrl());
+		List<Exception> otherExcpetions = new ArrayList<Exception>();
+		
 		try {
 
 			int result = httpcx.executeMethod(httpget);
 
-			// Display status code
+			//Display status code
 			while (result == 302) {//redirected
 
 				String locationRedir = httpget.getResponseHeader("location").getValue();
 				LOGGER.debug("Redirection URL :"+locationRedir);
 				httpget.releaseConnection();
 
-				//MyUrl myNewUrl = new MyUrl("http://"+httpget.getURI().getHost()+locationRedir);
 				MyUrl myNewUrl = new MyUrl(locationRedir);
-
 				myNewUrl.setHttpParams(formater.getMyUrl().getHttpParams());
 				httpget = this.getRequestMethod(myNewUrl);
 				result = httpcx.executeMethod(httpget);
@@ -320,6 +310,7 @@ public abstract class HttpSource {
 				BufferedReader dis = new BufferedReader(new InputStreamReader(in,"ISO-8859-15"));
 				String line = "";
 				try {
+					
 					while ((line = dis.readLine()) != null) {
 						if (line.length() > 0) {
 							List<Validatable> validatables;
@@ -345,15 +336,19 @@ public abstract class HttpSource {
 									}
 								}
 								throw new IOException(
-										"Stop Parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage()+"\n"+
-												"Reason : " + ((StopParseErrorException) e).getReason());
+										"Stop parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage()+"\n"+
+										"Reason : " + ((StopParseErrorException) e).getReason());
 								
 							} catch (Exception e) {
+								
 								LOGGER.debug("Ignoring line :" + line);
 								LOGGER.trace(e);
+								otherExcpetions.add(e);
+								
 							}
 						}
 					}
+					
 				} finally {
 					dis.close();
 				}
@@ -363,65 +358,24 @@ public abstract class HttpSource {
 		} finally {
 			httpget.releaseConnection();
 		}
-
+		
+		if (!otherExcpetions.isEmpty() && resultSet.isEmpty()) {
+			throw new IOException("Error(s) while parsing Url " + formater.getUrl() + " : "+ otherExcpetions );
+		}
+				
 		return resultSet;
 	}
 
-	/**
-	 * @param httpget
-	 * @throws UnsupportedEncodingException
-	 */
 	protected abstract HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException;
 
-	/**
-	 * Gets the stock quotation url.
-	 * 
-	 * @param ticker the ticker
-	 * @param startYear the start year
-	 * @param startMonth the start month
-	 * @param startDay the start day
-	 * @param endYear the end year
-	 * @param endMonth the end month
-	 * @param endDay the end day
-	 * 
-	 * @return the stock quotation url
-	 */
 	public abstract MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay);
 	
-
-	/**
-	 * Gets the stock info page url.
-	 * 
-	 * @param refName the isin
-	 * 
-	 * @return the stock info page url
-	 * @throws UnsupportedEncodingException 
-	 */
 	public abstract String getStockInfoPageURL(String refName) throws UnsupportedEncodingException; 
-	
-	/**
-	 * Gets the market stock list url.
-	 * @param marche the marche
-	 * @param year the year
-	 * @param month the month
-	 * @param day the day
-	 * 
-	 * @return the market stock list url
-	 */
+
 	public abstract String getCategoryStockListURL(StockCategories category, String...params);
 
-	/**
-	 * Gets the thread pool.
-	 * 
-	 * @return the thread pool
-	 */
 	public abstract PoolSemaphore getThreadPool();
 
-	/**
-	 * Stop threads.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract void stopThreads();
 
 

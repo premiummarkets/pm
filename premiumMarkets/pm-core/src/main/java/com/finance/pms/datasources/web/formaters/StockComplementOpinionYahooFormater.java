@@ -40,8 +40,7 @@ import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementOpinionYahooFormater extends LineFormater {
-	
-	/** The PATTERNS. */
+
 	private static PatternProperties PATTERNS;
 	
 	private Pattern meanRec;
@@ -82,7 +81,7 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 			Matcher mTargetP = meanTarget.matcher(line);
 
 			if (mTargetP.find()) {
-				String mTargetPRes = mTargetP.group(1);
+				String mTargetPRes = mTargetP.group(1).replace(",", "");
 				if ("NaN".equals(mTargetPRes)) {
 					stockPart.setYahooTargetPrice(BigDecimal.ZERO);
 				} else {
@@ -119,10 +118,6 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 		return null;
 	}
 
-	/**
-	 * @param stockPart
-	 * @throws StopParseFoundException
-	 */
 	private void endScrapping(ScreeningSupplementedStock stockPart) throws StopParseFoundException {
 		
 			if (stockPart.isNOTSetYahooMeanRecommendations() && stockPart.isNOTSetYahooTargetPrice()) {
@@ -135,12 +130,12 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 
 	@Override
-	public Boolean isEmptyValue() {
+	public Boolean isResultValueEqNA() {
 		return isEmpty;
 	}
 }

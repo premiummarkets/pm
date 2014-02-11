@@ -100,13 +100,6 @@ class QuotationData implements List<QuotationUnit> {
 		return this.stripedQuotations.getBarList().size();
 	}
 
-	/**
-	 * Gets the date.
-	 * 
-	 * @param x the x
-	 * 
-	 * @return the date
-	 */
 	public Date getDate(int x) {
 		return get(x).getDate();
 	}
@@ -123,28 +116,11 @@ class QuotationData implements List<QuotationUnit> {
 		return get(index).getData(field);
 	}
 
-	/**
-	 * Gets the closest index for date.
-	 * 
-	 * @param startSearchIndex the start index
-	 * @param date the date
-	 * 
-	 * @return the closest index for date
-	 */
 	public Integer getClosestIndexForDate(Integer startSearchIndex, Date date) {
 		if (date == null || this.size() == 0) return -1;
 		return this.getClosestByDicho(date, startSearchIndex, this.size() - 1);
 	}
 
-	/**
-	 * Gets the closest by dicho.
-	 * 
-	 * @param date the date
-	 * @param start the start
-	 * @param end the end
-	 * 
-	 * @return the closest by dicho
-	 */
 	private Integer getClosestByDicho(Date date, Integer start, Integer end) {
 		Integer midle = (end - start) / 2 + start;
 		Date dMidle = this.get(midle).getDate();
@@ -152,10 +128,18 @@ class QuotationData implements List<QuotationUnit> {
 		if (date.compareTo(dMidle) == 0)
 			return midle;
 		if (midle.equals(start)) {
-			if (date.before(this.get(start).getDate()))
-				return start;
-			else
-				return end;
+			if (date.before(this.get(start).getDate())) {
+				//return start;
+				return Math.min(0, start-1);
+			}
+			else {
+				//return end;
+				if (date.before(this.get(end).getDate())) {
+					return midle;
+				} else {
+					return end;
+				}
+			}
 		}
 		//Continue
 		if (date.before(dMidle)) {

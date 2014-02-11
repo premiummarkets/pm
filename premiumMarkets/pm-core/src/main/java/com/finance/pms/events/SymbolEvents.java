@@ -223,13 +223,6 @@ public class SymbolEvents implements Serializable {
 		return retour.toString();
 	}
 	
-	/**
-	 * To e mail.
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public String toEMail() {
 		StringBuffer retour = new StringBuffer();
 		List<EventValue> drl = new ArrayList<EventValue>(getSortedDataResultList());
@@ -245,15 +238,6 @@ public class SymbolEvents implements Serializable {
 		return retour.toString();
 	}
 	
-	/**
-	 * To export.
-	 * 
-	 * @param pr the pr
-	 * 
-	 * @return the string buffer
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StringBuffer toExport(PonderationRule pr) {
 		
 		StringBuffer retour = new StringBuffer();

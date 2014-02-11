@@ -1,23 +1,31 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-01-26 16:22:32
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-02-05 14:22:07
  //parser
     package com.finance.pms.events.operations.parameterized.antlr;
-    import com.finance.pms.events.calculation.antlr.IErrorReporter;
-    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-    import com.finance.pms.events.calculation.antlr.OpsParserDelegate;
-    import com.finance.pms.events.calculation.antlr.ParamsCountException;
-    import com.finance.pms.events.calculation.antlr.UnfinishedParameterException;
-     import com.finance.pms.events.calculation.antlr.InvalidOperationException;
-    import com.finance.pms.events.calculation.antlr.EditorOpDescr;
-    import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
-    import com.finance.pms.events.calculation.antlr.InvalidOperationException;
-
-
-import org.antlr.runtime.*;
-import java.util.Stack;
+    import java.util.ArrayList;
 import java.util.List;
-import java.util.ArrayList;
 
-import org.antlr.runtime.tree.*;
+import org.antlr.runtime.BitSet;
+import org.antlr.runtime.NoViableAltException;
+import org.antlr.runtime.Parser;
+import org.antlr.runtime.ParserRuleReturnScope;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.RecognizerSharedState;
+import org.antlr.runtime.RuleReturnScope;
+import org.antlr.runtime.Token;
+import org.antlr.runtime.TokenStream;
+import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.CommonTreeAdaptor;
+import org.antlr.runtime.tree.RewriteEarlyExitException;
+import org.antlr.runtime.tree.RewriteRuleSubtreeStream;
+import org.antlr.runtime.tree.RewriteRuleTokenStream;
+import org.antlr.runtime.tree.TreeAdaptor;
+
+import com.finance.pms.events.calculation.antlr.InvalidOperationException;
+import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
+import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+import com.finance.pms.events.calculation.antlr.OpsParserDelegate;
+import com.finance.pms.events.calculation.antlr.ParamsCountException;
+import com.finance.pms.events.calculation.antlr.UnfinishedParameterException;
 
 
 @SuppressWarnings("all")
@@ -351,7 +359,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal5);
 
 			// AST REWRITE
-			// elements: OutputSelector, params, Nativeop
+			// elements: Nativeop, params, OutputSelector
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -480,7 +488,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal7);
 
 			// AST REWRITE
-			// elements: Userop, params
+			// elements: params, Userop
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 

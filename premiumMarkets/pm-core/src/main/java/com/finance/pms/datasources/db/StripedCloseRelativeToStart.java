@@ -38,6 +38,7 @@ import java.util.Date;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
 
 public class StripedCloseRelativeToStart extends StripedCloseFunction {
@@ -50,21 +51,19 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 		super(arbitraryEndDate);
 		this.arbitraryStartDate = arbitraryStartDate;
 	}
-
-
-	@Override
-	public Number[] relativeCloses() {
+	
+	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 	
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
-		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex).getClose();
+		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getClose();
 
-		for (int i = startDateQuotationIndex; i <= this.endDateQuotationIndex; i++) {
+		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 			
 			BigDecimal relatedCloseValue = BigDecimal.ZERO;
 			
 			if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0) {
-				relatedCloseValue = this.stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
+				relatedCloseValue = stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
 			}
 			
 			retA.add(relatedCloseValue);
@@ -74,15 +73,17 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	}
 
 	@Override
-	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
+	public Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
-		this.stockQuotations = stockQuotations;
+//		this.stockQuotations = stockQuotations;
 		
 		Date startDate = getStartDate(stockQuotations);
-		startDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(0,startDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0,startDate);
 		
 		Date endDate = getEndDate(stockQuotations);
-		endDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
+		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
+		
+		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
 
 	}
 
@@ -96,6 +97,12 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	@Override
 	public String formatYValue(Number yValue) {
 		return pf.format(yValue);
+	}
+
+
+	@Override
+	public Boolean isRelative() {
+		return true;
 	}
 
 

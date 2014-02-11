@@ -106,7 +106,7 @@ public class StockListASXFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return false;
 	}
 	

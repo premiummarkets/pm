@@ -291,11 +291,7 @@ public class EventRefreshControllerTest extends TestCase {
 		
 	}
 
-	/**
-	 * Check call for monitored quotation.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private void checkCallForMonitoredQuotation() {
 		//FIXME
 		//refreshModel.setQuotationUpdate(quotationUpdate);

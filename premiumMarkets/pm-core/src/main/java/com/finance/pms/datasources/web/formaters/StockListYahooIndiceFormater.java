@@ -45,7 +45,6 @@ import com.finance.pms.datasources.shares.YahooMarketExtentions;
 import com.finance.pms.datasources.web.MyUrl;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class StockListNASDAQFormater.
  * 
@@ -53,7 +52,6 @@ import com.finance.pms.datasources.web.MyUrl;
  */
 public class StockListYahooIndiceFormater extends LineFormater {
 	
-	/** The providers types. */
 	private MarketValuation market;
 	
 	public StockListYahooIndiceFormater(String myUrl, MarketValuation market) {
@@ -61,9 +59,6 @@ public class StockListYahooIndiceFormater extends LineFormater {
 		this.market = market;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.formaters.LineFormater#formatLine(java.lang.String)
-	 */
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		//3IN.L,103.30, 4:35PM,10/27/2009,+0.80,102.50,103.30,101.10,368790 
@@ -79,7 +74,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 			if (strArray.length == 1) {
 			    LOGGER.trace("Comment line : "+line);
 			} else if (strArray.length != 9) {
-				LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
+				LOGGER.debug("Wrong file format while proceeding with web stock list : " + line+". Ignoring line");
 			} else {
 				retour.add(new Stock(
 						removeTextDelim(strArray[0],textDelim), 
@@ -96,17 +91,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 			throw new StopParseErrorException(retour,e.toString(),"");
 		}
 	}
-	
-	/**
-	 * Removes the text delim.
-	 * 
-	 * @param txt the txt
-	 * @param textDeli the text deli
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private String removeTextDelim(String txt, String textDeli) {
 		String ret = txt;
 		if (!ret.contains(".") 
@@ -122,7 +107,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 	}
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return false;
 	}
 }

@@ -80,13 +80,6 @@ public class Install {
 	private static Boolean stop = false;
 	
 
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static void main(String[] args) {
 		
 		//Connection check

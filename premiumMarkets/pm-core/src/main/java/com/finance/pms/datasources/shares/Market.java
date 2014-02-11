@@ -108,16 +108,6 @@ public enum Market implements Serializable {
 	private Boolean hasStaticAllMarket;
 	private String[] yahooIndices;
 
-	/**
-	 * Instantiates a new market.
-	 * 
-	 * @param marketName the market name
-	 * @param friendlyName the friendly name
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param hasStaticAllMarket 
-	 * @param yahooIndices 
-	 */
 	private Market(
 			String marketName,String friendlyName,Currency defaultCurrency ,BigDecimal defaultCurrencyFactor, 
 			YahooMarketExtentions marketExtentions, String googleMarketName, String investirExtension, Boolean hasStaticAllMarket, String[] yahooIndices) {

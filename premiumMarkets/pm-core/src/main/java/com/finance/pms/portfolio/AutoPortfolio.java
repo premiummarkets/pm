@@ -96,23 +96,25 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 		BigDecimal ret = BigDecimal.ZERO;
 
-		if (this.getNotNullTotalInAmountEver().compareTo(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH) <= 0) {
+		BigDecimal totalInAmountEver = getTotalInAmountEver(null, currentDate);
+		BigDecimal totalOutAmountEver = getTotalOutAmountEver(null, currentDate);
+		if (totalInAmountEver.compareTo(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH) <= 0) {
 			ret = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 		} else {
-			//ret = getNotNullTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
-			ret = getNotNullTotalOutAmountEver().subtract(this.getTotalInAmountEver());
+			//ret = getTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
+			ret = totalOutAmountEver.subtract(totalInAmountEver);
 		}
 
 		if (ret.compareTo(BigDecimal.ZERO) <= 0) {
-			throw new NoCashAvailableException("No cash left : out " + getTotalOutAmountEver()+" in "+ getTotalInAmountEver());
+			throw new NoCashAvailableException("No cash left : out " + totalOutAmountEver+" in "+ totalInAmountEver);
 		}
 
 		return PortfolioMgr.getInstance().getCurrencyConverter().convert(Currency.EUR, transactionCurrency, ret, currentDate);
 	}
 
 	@Transient
-	public BigDecimal getAvailableCash() {
-		return getTotalOutAmountEver();
+	public BigDecimal getAvailableCash(Date currentDate) {
+		return getTotalOutAmountEver(null, currentDate);
 	}
 
 	public void notifyObservers(ObserverMsg string) {
@@ -153,11 +155,6 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, true, eventDefinitions, fullEventListNames);
 	}
 
-	/**
-	 * @param currentDate
-	 * @param backwardDaySpan
-	 * @return
-	 */
 	private Date eventLoadStartDate(Date currentDate, Integer backwardDaySpan) {
 		//Get start date
 //		Date dateStart;

@@ -29,18 +29,25 @@
  */
 package com.finance.pms.datasources.files;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
 import com.finance.pms.datasources.shares.Currency;
 
+
+//TODO Merge the rest of transaction and Portfolio Gnu parser commons.
 public class GnuCashParserHelper {
 
 	BigDecimal calculateBigDecimal(String textContent) throws ParseException {
 		Number number = extractNumber(textContent);
 		try {
-			return new BigDecimal(number.doubleValue()).setScale(2, BigDecimal.ROUND_DOWN);
+			return new BigDecimal(number.doubleValue()).setScale(4, BigDecimal.ROUND_DOWN);
 		} catch (NumberFormatException e) {
 			GnuCashAdvPortfolioParser.LOGGER.error("can't format to BigD",e);
 		}
@@ -61,23 +68,47 @@ public class GnuCashParserHelper {
 		return   Currency.valueOf(columnTxt.replace("\n","").trim().split("( |\n)")[0]);
 	}
 	
-	/**
-	 * @param textContent
-	 * @return
-	 * @throws ParseException
-	 */
 	Number extractNumber(String textContent) throws ParseException {
 		NumberFormat numberFormat = NumberFormat.getInstance();
 		Number number = numberFormat.parse(textContent.replaceAll("($|\u00A3)","").replaceAll("[A-Z][A-Z][A-Z]( |\n)*", "").trim());
 		return number;
 	}
 
-//	/**
-//	 * @param amount
-//	 * @param transactionCurrency
-//	 * @return
-//	 */
-//	BigDecimal unitConvertion(BigDecimal amount, Currency transactionCurrency) {
-//		return transactionCurrency.translateToQuotationUnit(amount);
-//	}
+	public StringWriter deleteDocType(String filePath) throws FileNotFoundException, IOException {
+		//"http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd"
+		//change html to xml
+		String firstLine = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 TRANSITIONAL//EN\">";
+		String firstLine2 = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"";
+		String firstLine3 = "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
+		String firstLine4 = "xmlns=\"http://www.w3.org/1999/xhtml\"";
+		
+		BufferedReader br = new BufferedReader(new FileReader(filePath));
+		StringWriter outputWriter = new StringWriter();
+
+		String line = null;
+
+		//Read from the original file and write to the new
+		//unless content matches data to be removed.
+		int startOfFile = 0;
+		while ((line = br.readLine()) != null) {
+			
+			if (startOfFile < 10) {
+				line = line.replaceAll(firstLine, "");
+				line = line.replaceAll(firstLine2, "");
+				line = line.replaceAll(firstLine3, "");
+				line = line.replaceAll(firstLine4, "");
+			}
+			
+			//if (!line.trim().equals(firstLine)) {
+			if (!line.trim().isEmpty()) {
+				outputWriter.write(line);
+				outputWriter.flush();
+			}
+			
+			startOfFile++;
+		}
+		outputWriter.close();
+		br.close();
+		return outputWriter;
+	}
 }

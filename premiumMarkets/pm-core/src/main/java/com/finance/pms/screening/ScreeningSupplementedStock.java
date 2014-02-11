@@ -31,6 +31,7 @@ package com.finance.pms.screening;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -47,12 +48,14 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.datasources.web.currency.CurrencyConverter;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.portfolio.PortfolioMgr;
 
 
 @Entity
@@ -185,15 +188,23 @@ public class ScreeningSupplementedStock extends Validatable {
 	public void init(Date end) {
 		
 		this.endDate = end;
+		Date ttm = ttm(endDate);
 		
 		try {
-			Date ttm = ttm(endDate);
-			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, ttm, endDate, true, null, 0, 0);
-			close = quotationsInstance.getClosestCloseForDate(endDate);
-			ttmClose = quotationsInstance.getClosestCloseForDate(ttm);
+			CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
 			
+			ArrayList<QuotationUnit> firstEndDate = DataSource.getInstance().loadNStripedQuotationsBefore(stock, endDate, 1, true);
+			close = firstEndDate.get(0).getClose();
+			close = currencyConverter.convert(stock.getMarketValuation(), stock.getMarketValuation().getCurrency(), close, endDate);
+			
+			ArrayList<QuotationUnit> firstTtmDate = DataSource.getInstance().loadNStripedQuotationsBefore(stock, ttm, 1, true);
+			ttmClose = firstTtmDate.get(0).getClose();
+			ttmClose = currencyConverter.convert(stock.getMarketValuation(), stock.getMarketValuation().getCurrency(), ttmClose, ttm);
+			
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.warn("No enough quotations data for "+stock+" : "+e);
 		} catch (Exception e) {
-			LOGGER.warn(e,e);
+			LOGGER.error(e,e);
 		}
 		
 	}
@@ -344,7 +355,7 @@ public class ScreeningSupplementedStock extends Validatable {
 
 			//We want at least one valid past rating or rec rating and one valid peg
 			if ((isValid(pastRatings) == 0 && isValid(recRatings) == 0) || isValid(pegRatings) == 0) {
-				fullRating =  new MyBigDec(null, false);
+				fullRating = new MyBigDec(null, false);
 			} else {
 				ret = pastRatings.add(recRatings).add(pegRatings);
 				Integer nbV = isValid(pastRatings)+isValid(recRatings)+isValid(pegRatings);

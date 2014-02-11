@@ -126,22 +126,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		
 	}
 
-	/**
-	 * Calculate all macd.
-	 * @param stList the st list
-	 * @param startDate the start date
-	 * @param endDate the end date
-	 * @param calculationCurrency 
-	 * @param passNumber 
-	 * @param export 
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param persistEvents 
-	 * @param observers 
-	 * @param passOneCalcMode 
-	 * @return 
-	 * @throws IncompleteDataSetException 
-	 */
+	
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
 				Collection<Stock> stList, Date startDate, Date endDate, 
 				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers) 

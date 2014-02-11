@@ -35,7 +35,7 @@ import java.sql.SQLException;
 
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -60,7 +60,7 @@ public class CurrencyStockBuilder {
 		
 	}
 	
-	public Stock buildStock() throws InvalidAlgorithmParameterException, SQLException, StockNotFoundException {
+	public Stock buildStock() throws InvalidAlgorithmParameterException, SQLException, QuotationUpdateException {
 		
 		final String isinSymbol = target.name()+"Per"+referee.name();
 		String name = target.name()+" Per " +referee.name();

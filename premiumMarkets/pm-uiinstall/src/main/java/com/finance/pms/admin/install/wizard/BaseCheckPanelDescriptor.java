@@ -42,20 +42,12 @@ import com.nexes.wizard.WizardPanelDescriptor;
  */
 public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
     
-    /** The Constant IDENTIFIER. */
+
     public static final String IDENTIFIER = "DB_PANEL";
-	
-	/** The Constant initdbName. */
 	public static final String initdbName = "pmdb-initialdb.tar.bz2";
     
-    /** The panel2. */
     BaseCheckPanel panel2;
     
-    /**
-     * Instantiates a new base check panel descriptor.
-     * 
-     * @author Guillaume Thoreton
-     */
     @Deprecated
     public BaseCheckPanelDescriptor() {
         
@@ -65,26 +57,17 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
         setPanelComponent(panel2);
         
     }
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getNextPanelDescriptor()
-     */
+
     @Override
 	public Object getNextPanelDescriptor() {
         return ProgressPanelDescriptor.IDENTIFIER;
     }
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getBackPanelDescriptor()
-     */
+
     @Override
 	public Object getBackPanelDescriptor() {
         return InstallFolderPanelDescriptor.IDENTIFIER;
     }
 
-	/* (non-Javadoc)
-	 * @see com.nexes.wizard.WizardPanelDescriptor#aboutToHidePanel()
-	 */
 	@Override
 	public void aboutToHidePanel() {
 		if (!BaseCheckPanelDescriptor.checkAvailability()) {
@@ -95,10 +78,7 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
 			super.aboutToHidePanel();
 		}
 	}
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#aboutToDisplayPanel()
-     */
+
     @Override
 	public void aboutToDisplayPanel() {
 		super.aboutToDisplayPanel();
@@ -108,13 +88,6 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
         
 	}
 
-	/**
-	 * Check availability.
-	 * 
-	 * @return the boolean
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static Boolean checkAvailability() {
     	InputStream fis = BaseCheckPanelDescriptor.class.getClassLoader().getResourceAsStream(BaseCheckPanelDescriptor.initdbName);
     	return (fis != null || ProgressPanelDescriptor.isDbExists(InstallFolderPanel.getPmFolder()));

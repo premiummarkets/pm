@@ -102,7 +102,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		}
 
 		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(readPage(stock, url));
+		queries.addAll(readPage(stock, url, start));
 
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
 
@@ -118,7 +118,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 
 	}
 
-	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date  start) throws HttpException {
 		DayQuoteYahooFormater dsf = new DayQuoteYahooFormater(url, stock, stock.getMarketValuation().getCurrency().name());
 		return this.httpSource.readURL(dsf);
 	}

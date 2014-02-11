@@ -41,7 +41,6 @@ import com.finance.pms.datasources.web.MyUrl;
 
 public class StockComplementYahooFormater extends LineFormater {
 	
-	/** The PATTERNS. */
 	private static PatternProperties PATTERNS;
 	
 	private Pattern nameIsinPattern;
@@ -126,8 +125,8 @@ public class StockComplementYahooFormater extends LineFormater {
 	}
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 
 

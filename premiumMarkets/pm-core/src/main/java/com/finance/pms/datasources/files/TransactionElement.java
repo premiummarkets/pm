@@ -39,7 +39,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
@@ -48,49 +47,56 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.ForeignKey;
+
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.portfolio.Portfolio;
+import com.finance.pms.portfolio.Transaction.TransactionType;
 
-@Entity()
+@Entity
 @Table(name="TRANSACTIONS")
 public class TransactionElement implements Comparable<TransactionElement>, Serializable {
 	
 	private static final long serialVersionUID = -257553176773712060L;
 	
-	Integer id;
-	Stock stock;
-	String account;
-	Date date;
-	BigDecimal quantity;
-	BigDecimal price;
-	Currency currency;
+	private Portfolio portfolio;
+	private String externalAccount;
+
+	private Long id;
+	private Stock stock;
+	
+	private Date date;
+	private BigDecimal quantity;
+	private BigDecimal price;
+	private Currency currency;
 	
 	@SuppressWarnings("unused")
 	private TransactionElement() {
 		//Hib
 	}
 	
-	public TransactionElement(Stock stock, String accountName, Date date, BigDecimal price, BigDecimal amount, Currency currency) {
+	public TransactionElement(Stock stock, Portfolio portfolio, String externalAccount, Date date, BigDecimal price, BigDecimal quantity, Currency currency) {
 		super();
 		this.stock = stock;
-		this.account = accountName;
+		this.portfolio= portfolio;
+		this.externalAccount = externalAccount;
 		this.date = date;
 		this.price = price;
-		this.quantity = amount;
+		this.quantity = quantity;
 		this.currency = currency;
+		
+		this.id = DateFactory.milliSecStamp();
 	}
 
 	@Override
 	public String toString() {
-		return "TransactionElement [symbol=" + stock + ", accountName=" + account + ", date=" + date + ", quantity="+ quantity + ", price=" + price + "]";
+		return "TransactionElement [symbol=" + stock + ", accountName=" + externalAccount + ", portfolio=" + ((portfolio != null)?portfolio.getName():null) +  ", date=" + date + ", quantity="+ quantity + ", price=" + price + "]";
 	}
 
 	public int compareTo(TransactionElement o) {
-		int equalDate = this.date.compareTo(o.date);
-		if (equalDate == 0) {
-			return 1;
-		}
-		return equalDate;
+		return new TransactionComparator().compare(this, o);
 	}
 
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
@@ -112,15 +118,11 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		return price;
 	}
 
-	/**
-	 * @param simpleDateFormat
-	 * @param reportPrint
-	 */
 	public StringBuffer printTestElement() {
 		
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yy");
 		StringBuffer reportPrint = new StringBuffer();
-		reportPrint.append("elements.add(new TransactionElement(stock").append(", \""+account+"\"");
+		reportPrint.append("elements.add(new TransactionElement(stock").append(", \""+externalAccount+"\"");
 		reportPrint.append(", simpleDateFormat.parse(\"").append(simpleDateFormat.format(getDate())).append("\")");
 		reportPrint.append(", new BigDecimal(").append(getPrice()).append(")");
 		reportPrint.append(", new BigDecimal(").append(getQuantity()).append(")");
@@ -130,13 +132,13 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		return reportPrint;
 	}
 
-	public String getAccount() {
-		return account;
+	public String getExternalAccount() {
+		return externalAccount;
 	}
 
 	@SuppressWarnings("unused")
-	private void setAccount(String accountName) {
-		this.account = accountName;
+	private void setExternalAccount(String accountName) {
+		this.externalAccount = accountName;
 	}
 
 	@SuppressWarnings("unused")
@@ -159,13 +161,14 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		this.price = price;
 	}
 
-	@Id  @GeneratedValue
-	public Integer getId() {
+	//@Id  @GeneratedValue
+	@Id
+	public Long getId() {
 		return id;
 	}
 
 	@SuppressWarnings("unused")
-	private void setId(Integer id) {
+	private void setId(Long id) {
 		this.id = id;
 	}
 
@@ -177,7 +180,8 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((account == null) ? 0 : account.hashCode());
+		result = prime * result + ((externalAccount == null) ? 0 : externalAccount.hashCode());
+		result = prime * result + ((portfolio == null) ? 0 : portfolio.hashCode());
 		result = prime * result + ((currency == null) ? 0 : currency.hashCode());
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
@@ -196,10 +200,15 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		if (getClass() != obj.getClass())
 			return false;
 		TransactionElement other = (TransactionElement) obj;
-		if (account == null) {
-			if (other.account != null)
+		if (externalAccount == null) {
+			if (other.externalAccount != null)
 				return false;
-		} else if (!account.equals(other.account))
+		} else if (!externalAccount.equals(other.externalAccount))
+			return false;
+		if (portfolio == null) {
+			if (other.portfolio != null)
+				return false;
+		} else if (!portfolio.equals(other.portfolio))
 			return false;
 		if (currency != other.currency)
 			return false;
@@ -239,7 +248,32 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	public void setCurrency(Currency currency) {
 		this.currency = currency;
 	}
+
+	@ManyToOne
+	@ForeignKey(name="FK_TRANSACTION_TO_PORTFOLIO_NAME")
+	@JoinColumn(name = "portfolio")
+	public Portfolio getPortfolio() {
+		return portfolio;
+	}
+
+	public void setPortfolio(Portfolio portfolio) {
+		this.portfolio = portfolio;
+	}
 	
-	
+	public TransactionType transactionType() {
+		
+		if (this.getQuantity().compareTo(BigDecimal.ZERO) > 0 && this.getPrice().compareTo(BigDecimal.ZERO) != 0 ) {
+			return TransactionType.AIN;
+		} else if (this.getQuantity().compareTo(BigDecimal.ZERO) < 0 && this.getPrice().compareTo(BigDecimal.ZERO) != 0) {
+			return TransactionType.AOUT;
+		} else {
+			return TransactionType.NULL;
+		}
+		
+	}
+
+	public BigDecimal amount() {
+		return this.getPrice().multiply(this.getQuantity());
+	}
 	
 }

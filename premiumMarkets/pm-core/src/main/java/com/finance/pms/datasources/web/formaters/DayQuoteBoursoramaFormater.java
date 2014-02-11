@@ -38,8 +38,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DayQuoteBoursoramaFormater.
  * 
@@ -48,31 +46,12 @@ import com.finance.pms.datasources.web.MyUrl;
 public class DayQuoteBoursoramaFormater extends DayQuoteFormater {
 
 	
-	/**
-	 * Instantiates a new day quote boursorama formater.
-	 * 
-	 * @param url the url
-	 * @param stock the stock
-	 * @param transactionCurrency the transactionCurrency
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public DayQuoteBoursoramaFormater(MyUrl url, Stock  stock, String currency) {
 		super(url,stock,currency);
 	}
 
 	
-    /**
-     * Main query.
-     * 
-     * @param line the line
-     * 
-     * @return the list< comparable>
-     * 
-     * @throws StopParseException the stop parse exception
-     * 
-     * @author Guillaume Thoreton
-     */
 	protected LinkedList<Comparable<?>> mainQuery(String line) throws StopParseException {
 		StringTokenizer tokenisedLine = new StringTokenizer(line, "\t");
 		SimpleDateFormat df1 = new SimpleDateFormat("dd/MM/yyyy");
@@ -158,7 +137,7 @@ public class DayQuoteBoursoramaFormater extends DayQuoteFormater {
 
 
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return true;
 	}
 	

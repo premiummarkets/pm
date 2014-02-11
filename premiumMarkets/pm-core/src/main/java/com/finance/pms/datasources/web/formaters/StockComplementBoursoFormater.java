@@ -39,9 +39,6 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
-
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class StockComplementFormater.
  * 
@@ -49,33 +46,17 @@ import com.finance.pms.datasources.web.MyUrl;
  */
 public class StockComplementBoursoFormater extends LineFormater {
 	
-	/** The PATTERNS. */
 	private static PatternProperties PATTERNS; 
-	/**
-	 * Instantiates a new stock complement formater.
-	 * 
-	 * @param url the url
-	 * @param stockPart the stock part
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public StockComplementBoursoFormater(String url, Stock stockPart) {
 		super(new MyUrl(url));
 		params.add(stockPart);
 	}
 
-	/**
-	 * Gets the stock.
-	 * 
-	 * @return the stock
-	 */
 	public Stock getStock() {
 		return (Stock) this.params.get(0);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.db.formaters.LineFormater#formatLine(java.lang.String)
-	 */
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		Stock stockPart = (Stock) params.get(0);
@@ -145,9 +126,6 @@ public class StockComplementBoursoFormater extends LineFormater {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.formaters.LineFormater#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -156,9 +134,6 @@ public class StockComplementBoursoFormater extends LineFormater {
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.formaters.LineFormater#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -177,7 +152,7 @@ public class StockComplementBoursoFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 }

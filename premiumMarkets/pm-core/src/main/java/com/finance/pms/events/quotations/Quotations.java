@@ -56,14 +56,11 @@ import com.finance.pms.portfolio.PortfolioMgr;
  * @author Guillaume Thoreton
  */
 public class Quotations {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 	
 	private static ConcurrentHashMap<Stock, SoftReference<QuotationData>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<QuotationData>>(1000,0.90f);
 	private static ConcurrentHashMap<Stock, LastUpdateStampChecker> UPDATESTAMP_CACHE = new ConcurrentHashMap<Stock, LastUpdateStampChecker>();
-	
-	//private static Object object = new Object();
 
 	protected Stock stock;
 	private QuotationData quotationData;
@@ -88,17 +85,6 @@ public class Quotations {
 		this.setQuotationData(quotationData);
 	}
 
-	/**
-	 * @param stock
-	 * @param firstDate
-	 * @param lastDate
-	 * @param keepCache
-	 * @param firstIndexShift 
-	 * @param lastIndexShift 
-	 * @param limitedCache
-	 * @param targetCurrency 
-	 * @throws NoQuotationsException 
-	 */
 	protected void init(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
 		this.stock = stock;
 		
@@ -154,11 +140,6 @@ public class Quotations {
 		}
 	}
 
-
-	/**
-	 * @param start
-	 * @param end
-	 */
 	public Boolean hasQuotationsInDateRange(Date start, Date end) {
 		if (hasQuotations()) {
 			Date firstDate = this.getQuotationData().get(this.getFirstDateShiftedIdx()).getDate();
@@ -174,15 +155,6 @@ public class Quotations {
 		return false;
 	}
 
-
-	/**
-	 * Gets the data stock.
-	 * @param lastDate 
-	 * @param firstDate 
-	 * @param indexShiftBefore 
-	 * 
-	 * @return the data stock
-	 */
 	protected QuotationData retreiveQuotationsData(Date firstDate, Integer indexShiftBefore) {
 		
 		SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
@@ -221,28 +193,14 @@ public class Quotations {
 		return new QuotationData(quotationUnits);
 	}
 
-	/**
-	 * Gets the stock.
-	 * 
-	 * @return the stock
-	 */
 	public Stock getStock() {
 		return stock;
 	}
 
-	/**
-	 * Gets the last date idx.
-	 * 
-	 * @return the last date idx
-	 */
 	public Integer getLastDateIdx() {
 		return lastDateIdx;
 	}
 
-
-	/**
-	 * 
-	 */
 	public Boolean hasQuotations() {
 		if (this.getQuotationData() == null || this.getQuotationData().size() == 0) {
 			LOGGER.debug("No Quotations for :" + this.stock + " !! ");
@@ -251,7 +209,6 @@ public class Quotations {
 		
 		return true;
 	}
-
 
 	public Integer getFirstDateShiftedIdx() {
 		return firstDateShiftedIdx;

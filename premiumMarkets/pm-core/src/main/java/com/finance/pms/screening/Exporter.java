@@ -72,9 +72,6 @@ public abstract class Exporter<T> {
 	
 	public abstract void exportToFile(T element) throws IOException;
 	
-	/**
-	 * @param fileName
-	 */
 	protected Exporter(String fileName,String header,Queue queue,JmsTemplate jmsTemplate) {
 		this.fileName = fileName;
 		this.header = header;
@@ -82,10 +79,6 @@ public abstract class Exporter<T> {
 		this.jmsTemplate = jmsTemplate;
 	}
 
-	/**
-	 * @param fileName
-	 * @param header
-	 */
 	protected void writeFileHeader(String fileName, String header) {
 		File file = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator +fileName+".csv");
 		try {

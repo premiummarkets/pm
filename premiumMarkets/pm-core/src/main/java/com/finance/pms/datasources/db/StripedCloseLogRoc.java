@@ -44,60 +44,75 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
 public class StripedCloseLogRoc extends StripedCloseFunction {
 	
+	public static final int DEFAULTLOGROCSMTH = 5;
+	
 	private NumberFormat nf = new DecimalFormat("0.############ \u2030");
 	
-	private SortedMap<Date, double[]> houseDerivation;
-	private Date startDate;
-	private Date endDate;
-	private Boolean rootAtZero;
+//	private SortedMap<Date, double[]> houseDerivation;
+//	private Date startDate;
+//	private Date endDate;
 	
-	public StripedCloseLogRoc(Boolean rootAtZero) {
+	private Boolean rootAtZero;
+	private int period;
+	
+	public StripedCloseLogRoc(Boolean rootAtZero, int period) {
 		this.rootAtZero = rootAtZero;
+		this.period = period;
 	}
 
 	@Override
-	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
+	public Number[] targetShareData(PortfolioShare ps,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
-		endDate = getEndDate(stockQuotations);
+		Date endDate = getEndDate(stockQuotations);
 
-		int startDateQuotationIndex = stockQuotations.getClosestIndexForDate(0,startDate);
-		endDateQuotationIndex = stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0,startDate);
+		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
 
 		SortedMap<Date, double[]> data = new TreeMap<Date, double[]>();
-		List<QuotationUnit> quotationUnits = stockQuotations.getQuotationUnits(startDateQuotationIndex, endDateQuotationIndex);
+		List<QuotationUnit> quotationUnits = stockQuotations.getQuotationUnits(startDateQuotationIndex.value, endDateQuotationIndex.value);
 		for (QuotationUnit quotationUnit : quotationUnits) {
 			data.put(quotationUnit.getDate(), new double[]{quotationUnit.getClose().doubleValue()});
 		}
 
-		TalibSmaSmoother smaSmoother = new TalibSmaSmoother(84);
+		TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
 		SortedMap<Date, double[]> smoothed = smaSmoother.smooth(data, false);
 
-		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
-		houseDerivation = houseTrendSmoother.smooth(smoothed, false);
-		
-		this.startDate = (startDate.before(houseDerivation.firstKey()))? houseDerivation.firstKey() : startDate;
-		this.startDateQuotationIndex = stockQuotations.getClosestIndexForDate(0,this.startDate);
+		try {
+			
+			HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
+			SortedMap<Date, double[]> houseDerivation = houseTrendSmoother.smooth(smoothed, false);
+			
+			startDate = (startDate.before(houseDerivation.firstKey()))? houseDerivation.firstKey() : startDate;
+			startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
+			
+			return relativeCloses(startDate, endDate, houseDerivation);
+			
+		} catch (Exception e) {
+			LOGGER.warn("Not enough data to calculate : "+stockQuotations.getStock());
+			return new Double[0];
+		}
 
 	}
 
-	@Override
-	public Double[] relativeCloses() {
+	private Double[] relativeCloses(Date startDate, Date endDate, SortedMap<Date, double[]> houseDerivation) {
 		
 		List<Double> ret = new ArrayList<Double>();
-		SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
-		
-		double root = (rootAtZero)? tailMap.get(tailMap.firstKey())[0] : 0d;
-		Set<Date> keySet = tailMap.keySet();
-		for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
-			Date date = iterator.next();
-			if (date.after(endDate)) break;
-			ret.add(houseDerivation.get(date)[0] - root);
-		}
-		
+			
+			SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
+			
+			double root = (rootAtZero)? tailMap.get(tailMap.firstKey())[0] : 0d;
+			Set<Date> keySet = tailMap.keySet();
+			for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
+				Date date = iterator.next();
+				if (date.after(endDate)) break;
+				ret.add(houseDerivation.get(date)[0] - root);
+			}
+	
 		return ret.toArray(new Double[0]);
 	}
 
@@ -109,6 +124,11 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 	@Override
 	public String formatYValue(Number yValue) {
 		return nf.format(yValue);
+	}
+
+	@Override
+	public Boolean isRelative() {
+		return true;
 	}
 
 }

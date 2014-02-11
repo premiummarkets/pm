@@ -131,6 +131,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	}
 
 	//We can convert only toward Base Unit not toward sub unit like pence for pound
+	@Override
 	public BigDecimal convert(MarketValuation fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
 		
 		BigDecimal fromBaseCurrencyAmount = fromCurrency.translateToBaseCurrencyUnit(amount);
@@ -143,6 +144,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	@Override
 	public BigDecimal convert(Currency fromCurrency, Currency toCurrency, BigDecimal amount, Date date) {
+		
 		Boolean convertable = !fromCurrency.equals(toCurrency) && !Currency.NAN.equals(toCurrency) && !Currency.NAN.equals(fromCurrency);
 		
 		BigDecimal exchangeRate = BigDecimal.ONE;
@@ -150,7 +152,8 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			exchangeRate = fetchRateForDate(fromCurrency, toCurrency, date);
 		}
 		
-		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_UP);
+		//return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_UP);
+		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	private BigDecimal fetchRateForDate(Currency fromCurrency, Currency toCurrency, Date date) {
@@ -276,7 +279,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 			public void run() {
 				try {
-					rates.addAll(httpSource.readURL(new ImfCurrencyHistoryFormater(fromCurrency,toCurrency,url)));
+					rates.addAll(httpSource.readURL(new ImfCurrencyHistoryFormater(fromCurrency, toCurrency,url)));
 				} catch (HttpException e) {
 					LOGGER.error("",e);
 				} finally {

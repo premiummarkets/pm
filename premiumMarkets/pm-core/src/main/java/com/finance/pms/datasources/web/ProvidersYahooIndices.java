@@ -42,6 +42,7 @@ import org.apache.commons.httpclient.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -110,36 +111,49 @@ public class ProvidersYahooIndices extends ProvidersList {
 					String url = this.httpSource.getStockInfoPageURL(stock.getSymbol());
 					LOGGER.debug(" Will parse url : "+url);
 					LineFormater dsf = new StockComplementYahooFormater(url, stock);
-					Stock nameIsincompletedStock = (Stock) this.httpSource.readURL(dsf).get(0);
-					stock.resetStock(nameIsincompletedStock);
+					List<Validatable> readURL = this.httpSource.readURL(dsf);
+					if (!readURL.isEmpty()) {
+						Stock nameIsincompletedStock = (Stock) readURL.get(0);
+						stock.resetStock(nameIsincompletedStock);
+					} else {
+						LOGGER.warn("Empty isin or name (StockComplementYahooFormater) : "+stock.getSymbol());
+						if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
+						if (stock.getName() == null ) stock.setName(stock.getIsin());
+					}
 				} catch (IndexOutOfBoundsException e) {
-					LOGGER.warn("Can't supplement symbol with isin or name : "+stock.getSymbol());
+					LOGGER.warn("Can't supplement isin or name (StockComplementYahooFormater) : "+stock.getSymbol());
 					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
 					if (stock.getName() == null ) stock.setName(stock.getIsin());
 				} catch (HttpException e) {
-					LOGGER.warn("Can't supplement symbol with isin or name : "+stock.getSymbol(),e);
+					LOGGER.warn("Can't supplement isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e);
 					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
 					if (stock.getName() == null ) stock.setName(stock.getIsin());
 				}
 			} catch (InvalidAlgorithmParameterException e1) {
-				LOGGER.warn("Can't supplement symbol with isin or name : "+stock.getSymbol(),e1);
+				LOGGER.warn("Can't supplement isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e1);
 			}
 			
 			//sector
 			try {
 				String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageProfilURL(stock.getSymbol());
 				LineFormater dsf = new StockComplementSectorYahooFormater(url, stock);
-				Stock completedStock = (Stock) this.httpSource.readURL(dsf).get(0);
-				stock.resetStock(completedStock);
+				List<Validatable> readURL = this.httpSource.readURL(dsf);
+				if (!readURL.isEmpty()) {
+					Stock completedStock = (Stock) readURL.get(0);
+					stock.resetStock(completedStock);
+				} else {
+					LOGGER.warn("Empty sector (StockComplementSectorYahooFormater) : "+stock.getSymbol());
+					stock.setSectorHint("unknown");
+				}
 			} catch (IndexOutOfBoundsException e) {
-				LOGGER.warn("Can't supplement symbol with sector : "+stock.getSymbol());
+				LOGGER.warn("Can't supplement sector (StockComplementSectorYahooFormater) : "+stock.getSymbol());
 				stock.setSectorHint("unknown");
 			} catch (HttpException e) {
-				LOGGER.warn("Can't supplement symbol with sector : "+stock.getSymbol());
+				LOGGER.warn("Can't supplement sector (StockComplementSectorYahooFormater) : "+stock.getSymbol());
 				stock.setSectorHint("unknown");
 			}
 		}catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement symbol : "+stock.getSymbol(),e);
+			LOGGER.error("Can't supplement sector (StockComplementSectorYahooFormater) : "+stock.getSymbol(),e);
 		}
 		
 		LOGGER.guiInfo("Updating stock list : "+stock.getSymbol());
@@ -158,13 +172,6 @@ public class ProvidersYahooIndices extends ProvidersList {
 		};
 	}
 	
-
-	/**
-	 * @param marketQuotationsProviders
-	 * @param passTheBucketList
-	 * @param sharesListStocks
-	 * @throws HttpException 
-	 */
 	@SuppressWarnings("unchecked")
 	@Override//TODO merge with nse indices => create market indices related Provider : probably add an interface alike MarketListProvider
 	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
@@ -213,16 +220,22 @@ public class ProvidersYahooIndices extends ProvidersList {
 
 	private void yahooSummary(ScreeningSupplementedStock trendSupStock) {
 		try {
-			LOGGER.guiInfo("Updating screening info : yahoo Dividendes for "+trendSupStock.getStock());
-			String url = this.httpSource.getStockInfoPageURL(trendSupStock.getStock().getSymbol());
+			LOGGER.guiInfo("Updating screening info : yahoo dividends for "+trendSupStock.getStock());
+			String url = ((HttpSourceYahooIndices)this.httpSource).getStockSummaryPageURL(trendSupStock.getStock());
 			LineFormater dsf = new StockComplementSummaryYahooFormater(url, trendSupStock);
-			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
-			trendSupStock.resetStock(completedStock);
+			List<Validatable> readURL = this.httpSource.readURL(dsf);
+			if (!readURL.isEmpty()) {
+				ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) readURL.get(0);
+				trendSupStock.resetStock(completedStock);
+			} else {
+				LOGGER.warn("Empty dividend and PEG for symbol (StockComplementSummaryYahooFormater) : "+trendSupStock.getSymbol());
+				trendSupStock.setYahooEPS(BigDecimal.ZERO);
+			}
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement dividend and PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.error("Can't supplement dividend and PEG for symbol (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with dividends and PEG : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with dividends and PEG : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with dividends and PEG (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with dividends and PEG (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setYahooEPS(BigDecimal.ZERO);
 		}
 	}
@@ -234,21 +247,27 @@ public class ProvidersYahooIndices extends ProvidersList {
 			String url;
 			LineFormater dsf;
 			if (trendSupStock.getStock().getMarketValuation().getCurrency().equals(Currency.USD)) {
-				url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageEstimatesURL(trendSupStock.getStock().getSymbol());
+				url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageEstimatesURL(trendSupStock.getStock());
 				dsf = new StockComplementEstimatesYahooFormater(url, trendSupStock);
 			} else {
-				url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageUKEstimatesURL(trendSupStock.getStock().getSymbol());;
+				url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageUKEstimatesURL(trendSupStock.getStock());
 				dsf = new StockComplementEstimatesYahooFormater(url, trendSupStock);
 			}
 			
-			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
-			trendSupStock.resetStock(completedStock);		
+			List<Validatable> readURL = this.httpSource.readURL(dsf);
+			if (!readURL.isEmpty()) {
+				ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) readURL.get(0);
+				trendSupStock.resetStock(completedStock);	
+			} else {
+				LOGGER.warn("Empty yahoo PEG for symbol (StockComplementEstimatesYahooFormater) : "+trendSupStock.getSymbol());
+				trendSupStock.setYahooEstEPS(BigDecimal.ZERO);
+			}
 			
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement yahoo PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.error("Can't supplement yahoo PEG for symbol (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with yahoo PEG : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with yahoo PEG : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with yahoo PEG (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with yahoo PEG (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setYahooEstEPS(BigDecimal.ZERO);
 		}	
 	}
@@ -256,15 +275,22 @@ public class ProvidersYahooIndices extends ProvidersList {
 	private void boursoSummary(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : bourso PEG and DIV for "+trendSupStock.getStock());
-			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageBOResumeURL(trendSupStock.getStock().getSymbol());
+			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageBOResumeURL(trendSupStock.getStock());
 			LineFormater dsf = new StockComplementSummaryBoursoramaFormater(url, trendSupStock);
-			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
-			trendSupStock.resetStock(completedStock);
+			List<Validatable> readURL = this.httpSource.readURL(dsf);
+			if (!readURL.isEmpty()) {
+				ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) readURL.get(0);
+				trendSupStock.resetStock(completedStock);
+			} else {
+				LOGGER.warn("Empty bourso PEG or DIV for symbol (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getSymbol());
+				trendSupStock.setBoursoBNA(BigDecimal.ZERO);
+				trendSupStock.setBoursoEstBNA(BigDecimal.ZERO);
+			}
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement bourso PEG or DIV for symbol : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.error("Can't supplement bourso PEG or DIV for symbol (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with bourso PEG or DIV : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with bourso PEG or DIV : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with bourso PEG or DIV (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with bourso PEG or DIV (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setBoursoBNA(BigDecimal.ZERO);
 			trendSupStock.setBoursoEstBNA(BigDecimal.ZERO);
 		}
@@ -274,15 +300,23 @@ public class ProvidersYahooIndices extends ProvidersList {
 	private void reutersFinancials(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : reuters PEG for "+trendSupStock.getStock());
-			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageReutersFinancialsURL(trendSupStock.getStock().getSymbol());
+			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageReutersFinancialsURL(trendSupStock.getStock());
 			LineFormater dsf = new StockComplementFinancialsReutersFormater(url, trendSupStock);
-			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
-			trendSupStock.resetStock(completedStock);
+			List<Validatable> readURL = this.httpSource.readURL(dsf);
+			if (!readURL.isEmpty()) {
+				ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) readURL.get(0);
+				trendSupStock.resetStock(completedStock);
+			} else {
+				LOGGER.warn("Empty Reuters PEG for symbol (StockComplementFinancialsReutersFormater) : "+trendSupStock.getSymbol());
+				trendSupStock.setReutersEstEPS(BigDecimal.ZERO);
+				trendSupStock.setReutersPayoutRatio(BigDecimal.ZERO);
+				trendSupStock.setReutersYield(BigDecimal.ZERO);
+			}
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement Reuters PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.error("Can't supplement Reuters PEG for symbol (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with Reuters PEG : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with Reuters PEG : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with Reuters PEG (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with Reuters PEG (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setReutersEstEPS(BigDecimal.ZERO);
 			trendSupStock.setReutersPayoutRatio(BigDecimal.ZERO);
 			trendSupStock.setReutersYield(BigDecimal.ZERO);
@@ -292,15 +326,21 @@ public class ProvidersYahooIndices extends ProvidersList {
 	private void reutersSummary(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : reuters PEG for "+trendSupStock.getStock());
-			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageReutersOverViewURL(trendSupStock.getStock().getSymbol());
+			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageReutersOverViewURL(trendSupStock.getStock());
 			LineFormater dsf = new StockComplementSummaryReutersFormater(url, trendSupStock);
-			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
-			trendSupStock.resetStock(completedStock);
+			List<Validatable> readURL = this.httpSource.readURL(dsf);
+			if (!readURL.isEmpty()) {
+				ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) readURL.get(0);
+				trendSupStock.resetStock(completedStock);
+			} else {
+				LOGGER.warn("Empty Reuters PEG for symbol (StockComplementSummaryReutersFormater)  : "+trendSupStock.getSymbol());
+				trendSupStock.setReutersEPS(BigDecimal.ZERO);
+			}
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement Reuters PEG for symbol : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.error("Can't supplement Reuters PEG for symbol (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with Reuters PEG : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with Reuters PEG : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with Reuters PEG (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with Reuters PEG (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setReutersEPS(BigDecimal.ZERO);
 		}
 	}
@@ -308,27 +348,43 @@ public class ProvidersYahooIndices extends ProvidersList {
 	private void boursoramaOpinions(ScreeningSupplementedStock trendSupStock) {
 		try {
 			LOGGER.guiInfo("Updating screening info : Boursorama opinions for "+trendSupStock.getStock());
-			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageBOpinionsURL(trendSupStock.getStock().getSymbol());
+			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageBOpinionsURL(trendSupStock.getStock());
 			LineFormater dsf = new StockComplementOpinionBoursoramaFormater(url, trendSupStock);
 			ScreeningSupplementedStock completedStock = trendSupStock;
 			try {
-				completedStock = (ScreeningSupplementedStock) httpSource.readURL(dsf).get(0);
+				List<Validatable> readURL = httpSource.readURL(dsf);
+				if (!readURL.isEmpty()) {
+					completedStock = (ScreeningSupplementedStock) readURL.get(0);
+					trendSupStock.resetStock(completedStock);
+				} else {
+					LOGGER.warn("Empty bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getSymbol());
+					trendSupStock.setBoursoMeanRecommendations(BigDecimal.ZERO);
+					trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
+				}
 			} catch (HttpException e) {
 				try {
-					completedStock = (ScreeningSupplementedStock) httpSource.readURL(dsf).get(0);
-					LOGGER.info("Supplement done at second try for "+trendSupStock.getStock().getSymbol());
+					List<Validatable> readURL = httpSource.readURL(dsf);
+					if (!readURL.isEmpty()) {
+						completedStock = (ScreeningSupplementedStock) readURL.get(0);
+						LOGGER.info("Supplement done at second try for "+trendSupStock.getStock().getSymbol());
+						trendSupStock.resetStock(completedStock);
+					} else {
+						LOGGER.warn("Empty bourso opinions 2nd try (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getSymbol());
+						trendSupStock.setBoursoMeanRecommendations(BigDecimal.ZERO);
+						trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
+					}
 				} catch (Exception e1) {
-					LOGGER.debug("Can't supplement symbol with bourso opinions : "+trendSupStock.getStock().getSymbol(),e);
+					LOGGER.debug("Can't supplement bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
 					trendSupStock.setBoursoMeanRecommendations(BigDecimal.ZERO);
 					trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
 				}
 			}
-			trendSupStock.resetStock(completedStock);
+			
 		}  catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement bourso opinion symbol : "+trendSupStock.getStock().getSymbol(),e);
 		}  catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with bourso opinions : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with bourso opinions : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setBoursoMeanRecommendations(BigDecimal.ZERO);
 			trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
 		}
@@ -339,13 +395,20 @@ public class ProvidersYahooIndices extends ProvidersList {
 			LOGGER.guiInfo("Updating screening info : Yahoo opinions for "+trendSupStock.getStock());
 			String url = ((HttpSourceYahooIndices)this.httpSource).getStockInfoPageOpinionsURL(trendSupStock.getStock().getSymbol());
 			LineFormater dsf = new StockComplementOpinionYahooFormater(url, trendSupStock);
-			ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) this.httpSource.readURL(dsf).get(0);
-			trendSupStock.resetStock(completedStock);
+			List<Validatable> readURL = this.httpSource.readURL(dsf);
+			if (!readURL.isEmpty()) {
+				ScreeningSupplementedStock completedStock = (ScreeningSupplementedStock) readURL.get(0);
+				trendSupStock.resetStock(completedStock);
+			} else {
+				LOGGER.warn("Empty yahoo opinions symbol (StockComplementOpinionYahooFormater) : "+trendSupStock.getSymbol());
+				trendSupStock.setYahooMeanRecommendations(BigDecimal.ZERO);
+				trendSupStock.setYahooTargetPrice(BigDecimal.ZERO);
+			}
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement yahoo opinions symbol : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.error("Can't supplement yahoo opinions symbol (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with yahoo opinions : "+trendSupStock.getStock().getSymbol(),e);
-			LOGGER.warn("Can't supplement symbol with yahoo opinions : "+trendSupStock.getStock().getSymbol());
+			LOGGER.debug("Can't supplement symbol with yahoo opinions (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			LOGGER.warn("Can't supplement symbol with yahoo opinions (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setYahooMeanRecommendations(BigDecimal.ZERO);
 			trendSupStock.setYahooTargetPrice(BigDecimal.ZERO);
 		}

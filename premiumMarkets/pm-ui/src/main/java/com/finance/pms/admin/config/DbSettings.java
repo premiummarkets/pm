@@ -45,7 +45,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -175,7 +174,8 @@ public class DbSettings extends Dialog {
 	public DbSettings(Shell parent, String pathToProps) throws FileNotFoundException {
 		
 		//super(new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
-		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
+		//super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
+		super(new Shell(parent, SWT.SHELL_TRIM));
 		
 		this.pathToProps = pathToProps;
 		this.propList = new Properties();
@@ -195,16 +195,10 @@ public class DbSettings extends Dialog {
 		this.getParent().open();
 	}
 
-	/**
-	 * Inits the gui.
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws FileNotFoundException 
-	 */
 	private void initGui() throws FileNotFoundException {
 		
-		FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/icon.img"));
-		getParent().setImage(new Image(getParent().getDisplay(),iconImg));
+//		FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons"+File.separator+MainGui.ICONNAME));
+//		getParent().setImage(new Image(getParent().getDisplay(),iconImg));
 		getParent().setText("Premium Markets - Settings");
 		getParent().setBackground(MainGui.pOPUP_BG);
 		getParent().setToolTipText("For more settings, see db.properties file at the root of the project installation folder.");
@@ -320,7 +314,6 @@ public class DbSettings extends Dialog {
 						} finally {
 							
 							SpringContext ctx = new SpringContext(pathToProps);
-							//ctx.setDataSource(pathToProps);
 							ctx.setMasSource(pathToProps,"false");
 							ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
 							ctx.refresh();

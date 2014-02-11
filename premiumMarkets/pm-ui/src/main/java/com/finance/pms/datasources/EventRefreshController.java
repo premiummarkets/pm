@@ -69,15 +69,6 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 	private Long taskKey;
 	private List<TaskId> taskIds;
 
-	
-	/**
-	 * Instantiates a new event refresh controller.
-	 * 
-	 * @param refreshModel the refresh model
-	 * @param view the view
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public EventRefreshController(EventModel<? extends EventModelStrategyEngine<?>, ?> refreshModel, RefreshableView view, Config config) {
 		
 		this.config = config;
@@ -101,21 +92,6 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 		this.refreshAction(view.getAnalysisStartDate(), view.getAnalysisEndDate());
 	}
 	
-	
-	/**
-	 * Update event refresh model state.
-	 * 
-	 * @param eventModelEngine the event model engine
-	 * @param talibSetected the talib setected
-	 * @param masSelected the mas selected
-	 * @param startAnalyseDate the start analyse date
-	 * @param dofetchListOfQuotes the dofetch list of quotes
-	 * @param dofetchQuotes the dofetch quotestaskKey
-	 * @param doAnalyse the do analyse
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param otherViewParams 
-	 */
 	//The order of the tasks is not important but the last one!
 	public void updateEventRefreshModelState(Long taskKey, TaskId ... taskIds) {
 
@@ -124,11 +100,6 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 
 	}
 
-	/**
-	 * Refresh action.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private synchronized void refreshAction(final Date startAnalyseDate , final Date endAnalysisDate) {
 		
 			final List<Exception> exceptions = new ArrayList<Exception>();

@@ -160,8 +160,8 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 	}
 
 	@Override
-	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
-		throw new UnsupportedOperationException("Inflation can't be updated that way.");
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date date) throws HttpException {
+		throw new UnsupportedOperationException("Currencies can't be updated that way.");
 	}
 
 }

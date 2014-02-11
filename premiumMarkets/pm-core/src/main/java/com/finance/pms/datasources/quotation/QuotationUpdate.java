@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -79,40 +78,26 @@ public class QuotationUpdate {
 	public static long dlance;
 	private Set<Observer> observers = new HashSet<Observer>();
 
-	/**
-	 * Gets the quotes from cmd.
-	 * 
-	 * @param listSymbols the list symbols
-	 * @param shareList the provider
-	 * @param quotationsProvider TODO
-	 * @return the quotes from cmd
-	 */
 	public void getQuotesForListInCmd(List<String> listSymbols, String shareList, String quotationsProvider) {
 		
 		StockList stockList = new StockList();
 		Providers.getInstance(shareList).retrieveStockListFromCmdLine(listSymbols, stockList, quotationsProvider);
 		try {
 			getQuotes(stockList);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 		
 	}
 	
-
 	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, Set<Indice> indices) throws HttpException {
 		
 		Providers provider =  Providers.getInstance(sharesListName);
-		provider.addIndices(indices,false);
+		provider.addIndices(indices, true);
 		getQuotesAndNewForShareListFromWeb(provider, marketQuotationProvider);
 		
 	}
 
-	/**
-	 * @param provider
-	 * @param marketQuotationsProvider
-	 * @throws HttpException 
-	 */
 	private void getQuotesAndNewForShareListFromWeb(Providers provider, String marketQuotationsProvider) throws HttpException {
 		
 		StockList existingDBStocks = new StockList();
@@ -125,43 +110,45 @@ public class QuotationUpdate {
 		
 		try {
 			getQuotes(shareListStocks);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 	}
 
-	/**
-	 * Gets the quotes from file.
-	 * 
-	 * @param pathToFileList the path to list
-	 * @param sharesList the provider
-	 * 
-	 * @return the quotes from file
-	 * @throws StockNotFoundException 
-	 */
-	public void getQuotesForListInFile(String pathToFileList, String sharesList) throws StockNotFoundException, InputMismatchException {
+	public void getQuotesForListInFile(String pathToFileList, String sharesList) {
 		
 		StockList dbStockList = new StockList();
 		Providers.getInstance(sharesList).retrieveStockListFromBase(dbStockList);
 		StockList retreivedStockListFromFile = Providers.getInstance(sharesList).retreiveStockListFromFile(pathToFileList, dbStockList);
-		getQuotes(retreivedStockListFromFile);
+		
+		try {
+			getQuotes(retreivedStockListFromFile);
+		} catch (QuotationUpdateException e) {
+			retreivedStockListFromFile.removeAll(e.getStockNotFound().keySet());
+			LOGGER.warn("Could not find the following : "+e.getNoNewQuotations());
+		}
 		
 	}
 	
-	public List<Stock> getQuotesForListInFile(String pathToFileList, Providers sharesList) throws StockNotFoundException, InputMismatchException {
+	public List<Stock> getQuotesForListInFile(String pathToFileList, Providers sharesList) {
 		
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
 		StockList retreivedStockListFromFile = sharesList.retreiveStockListFromFile(pathToFileList, dbStockList);
-		getQuotes(retreivedStockListFromFile);
+		
+		try {
+			getQuotes(retreivedStockListFromFile);
+		} catch (QuotationUpdateException e) {
+			retreivedStockListFromFile.removeAll(e.getStockNotFound().keySet());
+		}
 		
 		return retreivedStockListFromFile;
 		
 	}
 	
-	public Stock getQuotesForUi(
+	public Stock getQuotesForUiForm(
 			Providers sharesList, String isin, String symbol, String name, 
-			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException, StockNotFoundException {
+			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException {
 
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
@@ -172,13 +159,17 @@ public class QuotationUpdate {
 				"",TradingMode.CONTINUOUS,0l);
 		sharesList.retrieveAndCompleteStockInfo(newStock, dbStockList);
 
-		getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))));
+		try {
+			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))));
+		} catch (QuotationUpdateException e) {
+			if (!e.getStockNotFound().keySet().isEmpty()) return null;
+		}
 		
 		return newStock;
 
 	}
 	
-	public Collection<Stock> getQuotesFor(Collection<Stock> stocks) throws StockNotFoundException {
+	public Collection<Stock> getQuotesFor(Collection<Stock> stocks) throws QuotationUpdateException {
 		StockList stockList = new StockList();
 		stockList.addAll(stocks);
 		getQuotes(stockList);
@@ -193,7 +184,7 @@ public class QuotationUpdate {
 		
 		try {
 			getQuotes(stockList);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 		
@@ -208,7 +199,7 @@ public class QuotationUpdate {
 		userPortoflioStocks.addAll(userPortoflioSymbols);
 		try {
 			getQuotes(userPortoflioStocks);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 		
@@ -218,12 +209,7 @@ public class QuotationUpdate {
 		monitoredStocks.addAll(monitoredSymbols);
 		return monitoredStocks;
 	}
-	
-	/**
-	 * Gets the quotes from db.
-	 * 
-	 * @return the quotes from db
-	 */
+
 	public void getQuotesForCurrentListInDB() {
 		
 		StockList stockList = new StockList();
@@ -232,7 +218,7 @@ public class QuotationUpdate {
 		stockList.addAll(symbols);
 		try {
 			getQuotes(stockList);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 	}
@@ -242,28 +228,20 @@ public class QuotationUpdate {
 		StockList stockList = new StockList();
 		
 		Providers provider =  Providers.getInstance(sharesListName);
-		provider.addIndices(indices, false);
+		provider.addIndices(indices, true);
 		sharesListName = sharesListName+Indice.formatSet(provider.getIndices());
 		Collection<Stock> symbols = DataSource.getInstance().loadStocksList(sharesListName);
 		
 		stockList.addAll(symbols);
 		try {
 			getQuotes(stockList);
-		} catch (StockNotFoundException e) {
+		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
 		
 	}
 
-	/**
-	 * Gets the quotes.
-	 * 
-	 * @param stockList the sl
-	 * 
-	 * @return the quotes
-	 * @throws StockNotFoundException 
-	 */
-	public void getQuotes(StockList stockList) throws StockNotFoundException {
+	public void getQuotes(StockList stockList) throws QuotationUpdateException {
 		
 		Iterator<Stock> stlIt = stockList.iterator();
 		
@@ -299,16 +277,18 @@ public class QuotationUpdate {
 			LOGGER.error(shutdownNow,e);
 		}
 		
-		
-		StockNotFoundException exceptions = new StockNotFoundException("Unable to find stocks");
+		QuotationUpdateException exceptions = new QuotationUpdateException("Unable to update quotations");
 		for (Future<GetQuotationResult> getQuotationRes : getQuoteRess) {
 			try {
 				GetQuotationResult getQuotationResult = getQuotationRes.get();
-				if (!getQuotationResult.hasQuotations) {
-					exceptions.invalidStocks.add(getQuotationResult.stock);
+				if (!getQuotationResult.hasNewQuotations) {
+					exceptions.noNewQuotations.add(getQuotationResult.stock);
 				}
 				if (!getQuotationResult.isSuccessfulUpdate) {
-					exceptions.notUpdated.put(getQuotationResult.stock, getQuotationResult.failureCause);
+					exceptions.updateFailed.put(getQuotationResult.stock, getQuotationResult.failureCause);
+				}
+				if (!getQuotationResult.stockFound) {
+					exceptions.stockNotFound.put(getQuotationResult.stock, getQuotationResult.failureCause);
 				}
 			} catch (InterruptedException e) {
 				LOGGER.error(e,e);
@@ -316,7 +296,10 @@ public class QuotationUpdate {
 				LOGGER.error(e,e);
 			}
 		}
-		if (!exceptions.invalidStocks.isEmpty() || !exceptions.notUpdated.isEmpty() ) {
+//		if (!exceptions.noNewQuotations.isEmpty() || !exceptions.updateFailed.isEmpty() ) {
+//			throw exceptions;
+//		}
+		if (!exceptions.stockNotFound.isEmpty()) {
 			throw exceptions;
 		}
 		
@@ -324,15 +307,19 @@ public class QuotationUpdate {
 		
 	}
 	
-	public class StockNotFoundException extends Exception {
-		private static final long serialVersionUID = 3632464675497253714L;
-		List<Stock> invalidStocks;
-		Map<Stock,Exception> notUpdated;
+	public class QuotationUpdateException extends Exception {
 		
-		public StockNotFoundException(String message) {
+		private static final long serialVersionUID = 3632464675497253714L;
+		
+		List<Stock> noNewQuotations;
+		Map<Stock,Exception> updateFailed;
+		Map<Stock,Exception> stockNotFound;
+		
+		public QuotationUpdateException(String message) {
 			super(message);
-			this.invalidStocks = new ArrayList<Stock>();
-			this.notUpdated = new HashMap<Stock, Exception>();
+			this.noNewQuotations = new ArrayList<Stock>();
+			this.updateFailed = new HashMap<Stock, Exception>();
+			this.stockNotFound = new HashMap<Stock, Exception>();
 		}
 		
 		@Override
@@ -343,27 +330,39 @@ public class QuotationUpdate {
 		
 		public String toString() {
 			String ret = "";
-			if (!invalidStocks.isEmpty()) {
-				ret = ret + "\nNo quotations found for : ";
-				for (Stock exp : invalidStocks) {
-					ret = ret + exp.getFriendlyName() + "\n";
+			if (!noNewQuotations.isEmpty()) {
+				ret = ret + "\nNo new quotation found for : ";
+				for (Stock stock : noNewQuotations) {
+					ret = ret + stock.getFriendlyName() + "\n";
 				}
 			}
-			if (!notUpdated.isEmpty()) {
+			if (!updateFailed.isEmpty()) {
 				ret = ret + "\nCan't update : ";
-				for (Stock exp : notUpdated.keySet()) {
-					ret = ret + exp.getFriendlyName() + " because "+ notUpdated.get(exp).getMessage() +"\n";
+				for (Stock stock : updateFailed.keySet()) {
+					Exception exception = updateFailed.get(stock);
+					ret = ret + stock.getFriendlyName() + " because "+ ((exception != null)?((exception.getMessage() != null)?exception.getMessage():exception.toString()):"unknown") +"\n";
+				}
+			}
+			if (!stockNotFound.isEmpty()) {
+				ret = ret + "\nThe stock was not found : ";
+				for (Stock stock : stockNotFound.keySet()) {
+					Exception exception = stockNotFound.get(stock);
+					ret = ret + stock.getFriendlyName() + " because "+ ((exception != null)?((exception.getMessage() != null)?exception.getMessage():exception.toString()):"unknown") +"\n";
 				}
 			}
 			return ret;
 		}
 
-		public List<Stock> getInvalidStocks() {
-			return invalidStocks;
+		public List<Stock> getNoNewQuotations() {
+			return noNewQuotations;
 		}
 
-		public Map<Stock, Exception> getNotUpdated() {
-			return notUpdated;
+		public Map<Stock, Exception> getUpdateFailed() {
+			return updateFailed;
+		}
+
+		public Map<Stock, Exception> getStockNotFound() {
+			return stockNotFound;
 		}
 	}
 

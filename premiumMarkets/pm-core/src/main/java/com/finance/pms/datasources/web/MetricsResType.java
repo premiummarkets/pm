@@ -29,6 +29,9 @@
  */
 package com.finance.pms.datasources.web;
 
+//EMPTYRESULTS : result but 'NA'
+//NORESULTS : http responded 200 but the page didn't contain any expected info
+//FAILURE : http responded 200 but the page didn't contain any expected info despite some info was expected to be found
 public enum MetricsResType {
-	EMPTY,SUCCESS,HTTPERROR,FAILURE
+	NORESULTS, EMPTYRESULTS, SUCCESS, HTTPERROR, FAILURE
 }

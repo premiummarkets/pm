@@ -49,7 +49,7 @@ public interface AutoPortfolioWays {
 
 	BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException;
 
-	BigDecimal getAvailableCash();
+	BigDecimal getAvailableCash(Date currentDate);
 
 	void setChanged();
 

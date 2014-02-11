@@ -39,7 +39,6 @@ import com.finance.pms.datasources.web.MyUrl;
 
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class DayQuoteYahooFormater.
  * 
@@ -48,30 +47,11 @@ import com.finance.pms.datasources.web.MyUrl;
 public class DayQuoteYahooFormater extends DayQuoteFormater {
 	
 	
-	/**
-	 * Instantiates a new day quote yahoo formater.
-	 * 
-	 * @param url the url
-	 * @param stock the stock
-	 * @param transactionCurrency the transactionCurrency
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public DayQuoteYahooFormater(MyUrl url,Stock  stock, String currency) {
 		super(url,stock,currency);
 	}
 
 	
-	/**
-	 * Main query.
-	 * 
-	 * @param line the line
-	 * 
-	 * @return the list< comparable>
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws StopParseErrorException 
-	 */
 	protected LinkedList<Comparable<?>> mainQuery(String line) throws StopParseErrorException {
 		StringTokenizer strt = new StringTokenizer(line, ",");
 		SimpleDateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
@@ -114,7 +94,7 @@ public class DayQuoteYahooFormater extends DayQuoteFormater {
 
 
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return true;
 	}
 }

@@ -107,7 +107,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 				new SimpleDateFormat("yyyy").format(start),new SimpleDateFormat("MM").format(start),new SimpleDateFormat("dd").format(start),
 				new SimpleDateFormat("yyyy").format(end), new SimpleDateFormat("MM").format(end), new SimpleDateFormat("dd").format(end)),
 				ticker,ticker.getMarketValuation().getCurrency().name());
-		this.getHttpSource().getScrapperMetrics().addRecord(dayQuoteBoursoramaFormater, "No quotations from boursorma any more");
+		this.getHttpSource().getScrapperMetrics().addRecord(dayQuoteBoursoramaFormater, "No quotations from boursorma any more", MetricsResType.HTTPERROR);
 		throw new HttpException("Invalid login on bourso!");
 	
 	}
@@ -360,14 +360,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		this.supplementAndValidateStock(st,stockList);
 	}
 	
-	/**
-	 * Supplement and validate stock.
-	 * 
-	 * @param s the s
-	 * @param stockList the stock list
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void supplementAndValidateStock(Stock s,StockList stockList) {
 		List<Validatable> listReq = new ArrayList<Validatable>();
 		List<Validatable> ltmp  = new ArrayList<Validatable>();
@@ -413,19 +405,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 
 	// TODO rewrite ... => list from base, from cmd, from file, from web => update
 	// and merge all ....
-	/**
-	 * Supplement and validate stock.
-	 * 
-	 * @param delS the del s
-	 * @param delL the del l
-	 * @param newStocks the new stocks
-	 * @param stockAGarder the stock a garder
-	 * @param actualStockList the actual stock list
-	 * 
-	 * @return the array list< stock>
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private ArrayList<Stock> supplementAndValidateStocks(List<Validatable> delS, List<Validatable> delL, 
 			StockList newStocks, StockList stockAGarder,StockList actualStockList) {

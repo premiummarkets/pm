@@ -74,28 +74,15 @@ public abstract class AbstractSharesList extends Observable {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(AbstractSharesList.class);
 
-	/** The name. */
 	protected String name;
-	private BigDecimal totalInAmountEver;
-	private BigDecimal totalOutAmountEver;
-
 	private Map<Stock, PortfolioShare> listShares;
 
 	
 	protected AbstractSharesList() {
 		super();
-		this.totalInAmountEver = BigDecimal.ZERO;
-		this.totalOutAmountEver = BigDecimal.ZERO;
 		this.listShares = new ConcurrentHashMap<Stock, PortfolioShare>();
 	}
 
-	/**
-	 * Instantiates a new portfolio.
-	 * 
-	 * @param name the name
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public AbstractSharesList(String name) {
 		this();
 		this.name=name;
@@ -104,20 +91,12 @@ public abstract class AbstractSharesList extends Observable {
 	public AbstractSharesList(AbstractSharesList portfolio) {
 		this();
 		
-		this.name = portfolio.name;
-		if (portfolio.totalInAmountEver != null) {
-			this.totalInAmountEver = portfolio.totalInAmountEver;
-		}
-		if (portfolio.totalOutAmountEver != null) {
-			this.totalOutAmountEver = portfolio.totalOutAmountEver;
-		}
-		
+		this.name = portfolio.name;		
 		for (PortfolioShare portfolioShare: portfolio.getListShares().values()) {
-			this.listShares.put(portfolioShare.getStock(),new PortfolioShare(portfolioShare));
+			this.listShares.put(portfolioShare.getStock(), new PortfolioShare(portfolioShare));
 		}
 	}
 	
-
 	protected void removeShareFromList(PortfolioShare portfolioShare) {
 		listShares.remove(portfolioShare.getStock());
 	}
@@ -151,13 +130,6 @@ public abstract class AbstractSharesList extends Observable {
 		return result;
 	}
 
-
-	/**
-	 * Gets the list shares.
-	 * 
-	 * @return the list shares
-	 */
-	/** The list shares. */
 	@OneToMany(mappedBy="portfolio",cascade = {CascadeType.ALL}, fetch = FetchType.EAGER, orphanRemoval=true)
 	@Fetch(FetchMode.SUBSELECT)
 	@MapKeyJoinColumns({
@@ -165,7 +137,6 @@ public abstract class AbstractSharesList extends Observable {
 		@MapKeyJoinColumn(name="isin",referencedColumnName="isin")
 	})
 	public Map<Stock, PortfolioShare> getListShares() {
-		//return Collections.unmodifiableMap(listShares);
 		return listShares;
 	}
 	
@@ -201,11 +172,6 @@ public abstract class AbstractSharesList extends Observable {
 		return listShares.get(stock);
 	}
 
-	/**
-	 * Gets the name.
-	 * 
-	 * @return the name
-	 */
 	@Id
 	public String getName() {
 		return (name != null)?name.trim():null;
@@ -230,62 +196,18 @@ public abstract class AbstractSharesList extends Observable {
 	protected void setName(String name) {
 		this.name = name;
 	}
-
-	 /**
-	  * @return
-	  */
-	 @Transient
-	 protected BigDecimal getNotNullTotalOutAmountEver() {
-		 BigDecimal amountOut = (this.getTotalOutAmountEver() == null)? BigDecimal.ZERO:this.getTotalOutAmountEver();
-		 return amountOut;
-	 }
-
-	 /**
-	  * @return
-	  */
-	 @Transient
-	 protected BigDecimal getNotNullTotalInAmountEver() {
-		 return (this.getTotalInAmountEver() == null)?BigDecimal.ZERO:this.getTotalInAmountEver();
-	 }
-
-	 protected void addAmountToTotalAmountIn(BigDecimal newCashIn, Currency currency, Date currentDate) {
-		 if (this.totalInAmountEver == null) this.totalInAmountEver = new BigDecimal(0).setScale(4);
-		 this.totalInAmountEver = this.totalInAmountEver.add(newCashIn);
-	 }
-
-	 protected BigDecimal addAmountToTotalAmountOut(BigDecimal newCashOut, Currency currency, Date currentDate) {
-		 if (this.totalOutAmountEver == null) this.totalOutAmountEver = new BigDecimal(0).setScale(4);
-		 this.totalOutAmountEver = this.totalOutAmountEver.add(newCashOut);
-		 return newCashOut;
-	 }
-
-	 protected void removeAmountFromTotalAmount(BigDecimal cashIn, BigDecimal cashout, Currency transactionCurrency, Date currentDate) {
-		 this.totalInAmountEver = this.totalInAmountEver.subtract(cashIn);
-		 this.totalOutAmountEver = this.totalOutAmountEver.subtract(cashout);
-	 }
-
-	 public BigDecimal getTotalInAmountEver() {
-		 return totalInAmountEver;
-	 }
-
-	@SuppressWarnings("unused")
-	private void setTotalInAmountEver(BigDecimal totalAmountInEver) {
-		 this.totalInAmountEver = totalAmountInEver;
-	 }
-
-	 public BigDecimal getTotalOutAmountEver() {
-		 return totalOutAmountEver;
-	 }
-
-	@SuppressWarnings("unused")
-	private void setTotalOutAmountEver(BigDecimal totalOutAmountEver) {
-		 this.totalOutAmountEver = totalOutAmountEver;
-	 }
 	 
 	 @Transient
 	 public CurrencyConverter getCurrencyConverter() {
 		 return PortfolioMgr.getInstance().getCurrencyConverter();
 	 }
-
+	 
+	 public abstract Date getLastTransactionFor(Stock stock);
+	 public abstract BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	 public abstract BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	 public abstract BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
+	 public abstract BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	 public abstract BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	 public abstract InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency);
 }
 

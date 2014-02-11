@@ -37,30 +37,31 @@ import java.util.Date;
 
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.PortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
 public class StripedCloseRealPrice extends StripedCloseFunction {
 	
 	private NumberFormat nf = new DecimalFormat("0.####");
 
 	@Override
-	public void targetShareData(PortfolioShare ps, Quotations stockQuotations) {
+	public Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 		
-		this.stockQuotations = stockQuotations;
+//		this.stockQuotations = stockQuotations;
 		
 		Date startDate = getStartDate(stockQuotations);
-		startDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(0,startDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0,startDate);
 		
 		Date endDate = getEndDate(stockQuotations);
-		endDateQuotationIndex = this.stockQuotations.getClosestIndexForDate(startDateQuotationIndex, endDate);
+		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
 
+		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
 	}
 
-	@Override
-	public Number[] relativeCloses() {
+	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 		
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
-		for (int i = startDateQuotationIndex; i <= this.endDateQuotationIndex; i++) {
-			retA.add(this.stockQuotations.get(i).getClose());
+		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
+			retA.add(stockQuotations.get(i).getClose());
 		}
 	
 		return  retA.toArray(new BigDecimal[0]);
@@ -74,6 +75,11 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 	@Override
 	public String formatYValue(Number yValue) {
 		return nf.format(yValue);
+	}
+
+	@Override
+	public Boolean isRelative() {
+		return false;
 	}
 
 }

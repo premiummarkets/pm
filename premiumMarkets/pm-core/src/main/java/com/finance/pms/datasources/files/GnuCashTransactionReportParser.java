@@ -34,7 +34,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,7 +41,6 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,7 +52,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.tools.ant.filters.StringInputStream;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.tidy.Tidy;
@@ -78,9 +75,9 @@ import com.finance.pms.portfolio.PortfolioMgr;
 
 public class GnuCashTransactionReportParser {
 	
-	private static final int AMOUNT_COLUMN = 5;
-	private static final int PRICE_COLUMN = 4;
-	private static final int SHARES_COLUMN = 3;
+	private static final int AMOUNT_COLUMN = 5; //Quantity + Stock Symbol
+	private static final int PRICE_COLUMN = 4;	//Share unit price
+	private static final int SHARES_COLUMN = 3; //Quantity
 	private static final int ACCOUNT_COLUMN = 2;
 	private static final int DESCRIPTION_COLUMN = 1;
 	private static final int DATE_COLUMN = 0;
@@ -102,7 +99,7 @@ public class GnuCashTransactionReportParser {
 		try {
 
 			//Delete first line
-			StringWriter outputWriter = deleteDocType(filePath);
+			StringWriter outputWriter = gnuCashParserHelper.deleteDocType(filePath);
 
 			//Tidy
 			ByteArrayInputStream inputStream = tidyDocument(new StringInputStream(outputWriter.toString()));
@@ -128,21 +125,24 @@ public class GnuCashTransactionReportParser {
 			for (int i = 1; i < rows.getLength()-2; i++)  
 			{  
 				Element row = (Element) rows.item(i);  
-
 				TransactionElement reportElement = addReportElement(row);
-				
 				if (reportElement != null) {
 					reportElements.add(reportElement);
 				}
 			}
 			
 			System.out.println(reportElements);
-			PortfolioMgr.getInstance().getPortfolioDAO().deleteTransactionReports();
 			if (reportElements.size() == 0) throw new IOException("Invalid file.\nNo transaction found.");
+			
+			//PortfolioMgr.getInstance().getPortfolioDAO().deleteTransactionReports();
+			for (TransactionElement transactionElement : reportElements) {
+				PortfolioMgr.getInstance().getPortfolioDAO().deleteOrphanTransactionReportsFor(transactionElement.getExternalAccount());
+			}
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(reportElements);
 
 		} catch (XPathExpressionException e) {
-			throw new IOException("Invalid file "+e.getMessage(),e);
+			LOGGER.error(e,e);
+			throw new IOException("Invalid file.", e);
 		} 
 
 	}
@@ -153,16 +153,15 @@ public class GnuCashTransactionReportParser {
 	}
 
 	private void checkTitles(Element row) throws XPathExpressionException {
-//		<B>Date</B>
-//		</TH>
+		
 //		<TH ALIGN="center">
-//		<B>Num</B>
+//		<B>Date</B>
 //		</TH>
 //		<TH ALIGN="center">
 //		<B>Description</B>
 //		</TH>
 //		<TH ALIGN="center">
-//		<B>Memo/Notes</B>
+//		<B>Account</B>
 //		</TH>
 //		<TH ALIGN="center">
 //		<B>Shares</B>
@@ -172,27 +171,27 @@ public class GnuCashTransactionReportParser {
 //		</TH>
 //		<TH ALIGN="center">
 //		<B>Amount</B>
+//		</TH>
 	
-		NodeList rowAtts = extractAtts(row,"th");
-		if ("Date".equals(((Element) rowAtts.item(DATE_COLUMN)).getTextContent().trim()) && 
-		"Account".equals(((Element) rowAtts.item(ACCOUNT_COLUMN)).getTextContent().trim()) && 
-		"Description".equals(((Element) rowAtts.item(DESCRIPTION_COLUMN)).getTextContent().trim()) &&
-		"Shares".equals(((Element) rowAtts.item(SHARES_COLUMN)).getTextContent().trim()) &&
-		"Price".equals(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent().trim()) &&
-		"Amount".equals(((Element) rowAtts.item(AMOUNT_COLUMN)).getTextContent().trim()))
-			return;
+		NodeList rowAtts = extractAtts(row, "th");
+		Element dateItem = (Element) rowAtts.item(DATE_COLUMN);
+		boolean hasDate = dateItem != null && "Date".equals(dateItem.getTextContent().trim());
+		Element accountItem = (Element) rowAtts.item(ACCOUNT_COLUMN);
+		boolean hasAccount = accountItem != null && "Account".equals(accountItem.getTextContent().trim());
+		Element descrItem = (Element) rowAtts.item(DESCRIPTION_COLUMN);
+		boolean hasDescription = descrItem != null && "Description".equals(descrItem.getTextContent().trim());
+		Element sharesItem = (Element) rowAtts.item(SHARES_COLUMN);
+		boolean hasShares = sharesItem != null && "Shares".equals(sharesItem.getTextContent().trim());
+		Element priceItem = (Element) rowAtts.item(PRICE_COLUMN);
+		boolean hasPrice = priceItem != null && "Price".equals(priceItem.getTextContent().trim());
+		Element amountItem = (Element) rowAtts.item(AMOUNT_COLUMN);
+		boolean hasAmount = amountItem != null && "Amount".equals(amountItem.getTextContent().trim());
+		
+		if (hasDate && hasAccount && hasDescription && hasShares && hasPrice && hasAmount) return;
 			
-		throw new RuntimeException("Invalid file or gnucash export");
+		throw new RuntimeException(String.format("Invalid file or Gnucash report : hasDate %b, hasAccount %b, hasDescription %b, hasShares %b, hasPrice %b, hasAmount %b", hasDate, hasAccount, hasDescription, hasShares, hasPrice, hasAmount));
 	}
 
-	/**
-	 * @param row
-	 * @return 
-	 * @return
-	 * @throws XPathExpressionException
-	 * @throws ParseException 
-	 * @throws DOMException 
-	 */
 	private TransactionElement addReportElement(Element row)  {
 
 		try {
@@ -203,24 +202,23 @@ public class GnuCashTransactionReportParser {
 			Date date = sdf.parse(((Element) rowAtts.item(DATE_COLUMN)).getTextContent().trim());
 			
 			String[] accountPath = ((Element) rowAtts.item(ACCOUNT_COLUMN)).getTextContent().trim().split(":");
-			String account = accountPath[accountPath.length-1].replaceAll("[ \n]+","_");
+			String gnucashAccount = accountPath[accountPath.length-1].trim().replaceAll("[ \n]+","_");
 			
 			Currency transactionCurrency = gnuCashParserHelper.extractCurrency(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
-			//BigDecimal price = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent()),transactionCurrency);
 			BigDecimal price = gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
 			
 			String[] amountString = ((Element) rowAtts.item(AMOUNT_COLUMN)).getTextContent().trim().split(" +");
 			
-			BigDecimal amount =  gnuCashParserHelper.calculateBigDecimal(amountString[0].trim());
+			BigDecimal quantity =  gnuCashParserHelper.calculateBigDecimal(amountString[0].trim());
 			String symbol = amountString[1].trim();
 			Stock stock = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(symbol);
 			
 			if (stock == null) {
 				LOGGER.warn("No stock for symbol or isin : "+symbol);
-				throw new InvalidAlgorithmParameterException("No stock for symbol or isin : "+symbol);
+				throw new InvalidAlgorithmParameterException("No stock for symbol or isin : "+symbol+ ". In account "+gnucashAccount+" at "+date+" using "+transactionCurrency);
 			}
 		
-			return new TransactionElement(stock, account, date, price, amount, transactionCurrency);
+			return new TransactionElement(stock, null, gnucashAccount, date, price, quantity, transactionCurrency);
 			
 		} catch (Exception e) { //ignore
 			//System.out.println(row.getTextContent());
@@ -230,14 +228,9 @@ public class GnuCashTransactionReportParser {
 		
 	}
 
-	/**
-	 * @param inputStream
-	 * @return
-	 * @throws XPathExpressionException
-	 */
 	private NodeList extractRows(InputStream inputStream) throws XPathExpressionException {
-		XPathFactory factory=XPathFactory.newInstance();  
-		XPath xPath=factory.newXPath();  
+		XPathFactory factory = XPathFactory.newInstance();  
+		XPath xPath = factory.newXPath();  
 		InputSource inputSource = new InputSource(inputStream);  
 		String expression = "//tr";  
 		
@@ -245,7 +238,7 @@ public class GnuCashTransactionReportParser {
 		return rows;
 	}
 	
-	private NodeList extractAtts(Element row,String expression) throws XPathExpressionException {
+	private NodeList extractAtts(Element row, String expression) throws XPathExpressionException {
 		
 		XPathFactory factory=XPathFactory.newInstance();  
 		XPath xPath=factory.newXPath();   
@@ -254,41 +247,6 @@ public class GnuCashTransactionReportParser {
 		return nodeList;
 	}
 
-	/**
-	 * @param filePath
-	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
-	private StringWriter deleteDocType(String filePath) throws FileNotFoundException, IOException {
-		//"http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd"
-		//change html to xml
-		String firstLine = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 TRANSITIONAL//EN\">";
-		BufferedReader br = new BufferedReader(new FileReader(filePath));
-		StringWriter outputWriter = new StringWriter();
-
-		String line = null;
-
-		//Read from the original file and write to the new
-		//unless content matches data to be removed.
-		while ((line = br.readLine()) != null) {
-
-			if (!line.trim().equals(firstLine)) {
-				outputWriter.write(line);
-				outputWriter.flush();
-			}
-		}
-		outputWriter.close();
-		br.close();
-		return outputWriter;
-	}
-
-	/**
-	 * @param filePath
-	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
 	private ByteArrayInputStream tidyDocument(InputStream inputStream) throws FileNotFoundException, IOException {
 		Tidy tidy = new Tidy();
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -296,7 +254,7 @@ public class GnuCashTransactionReportParser {
 		tidy.setMakeClean(true);
 		tidy.setQuoteNbsp(true);
 		tidy.setXmlOut(true);
-		tidy.parseDOM(inputStream,outputStream);
+		tidy.parseDOM(inputStream, outputStream);
 		
 		LOGGER.trace(outputStream.toString());
 		
@@ -318,15 +276,11 @@ public class GnuCashTransactionReportParser {
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
-		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", EventSignalConfig.getNewDate());
+		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", EventSignalConfig.getNewDate());
 		StringBuffer printReportTransactions = cashTransactionReportParser.printReportTransactions(fteReports);
 		System.out.println(printReportTransactions);
 	}
 
-	/**
-	 * @param fteReports
-	 * @return 
-	 */
 	private StringBuffer printReportTransactions(SortedSet<TransactionElement> fteReports) {
 		
 		StringBuffer reportPrint = new StringBuffer("SortedSet<ReportElement> elements = new TreeSet<ReportElement>();\n");

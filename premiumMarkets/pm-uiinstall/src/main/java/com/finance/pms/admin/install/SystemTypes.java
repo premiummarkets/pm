@@ -29,12 +29,7 @@
  */
 package com.finance.pms.admin.install;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Enum SystemTypes.
- * 
- * @author Guillaume Thoreton
- */
+
 public enum SystemTypes {
 	
 	LINUX ("Linux",".sh",".png", "script file"),
@@ -47,16 +42,6 @@ public enum SystemTypes {
 	private String icoext = ".ico";
 
 	
-	/**
-	 * Instantiates a new system types.
-	 * 
-	 * @param sys the sys
-	 * @param shext the shext
-	 * @param icoext the icoext
-	 * @param swtjar the swtjar
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private SystemTypes(String sys, String shext, String icoext, String sdescr) {
 		this.sys = sys;
 		this.shext = shext;
@@ -65,14 +50,6 @@ public enum SystemTypes {
 		
 	}
 
-
-	/**
-	 * Gets the type.
-	 * 
-	 * @param name the name
-	 * 
-	 * @return the type
-	 */
 	public static SystemTypes getType(String name) {
 		
 		if (name != null && (name.toLowerCase().contains(SystemTypes.WINDOWS.getLowerSys()) || name.toLowerCase().contains("win32") || name.toLowerCase().contains("wce")) ) 
@@ -88,11 +65,6 @@ public enum SystemTypes {
 	}
 
 
-	/**
-	 * Gets the sys.
-	 * 
-	 * @return the sys
-	 */
 	public String getSys() {
 		return sys;
 	}
@@ -101,25 +73,13 @@ public enum SystemTypes {
 		return sys.toLowerCase();
 	}
 
-	/**
-	 * Gets the shext.
-	 * 
-	 * @return the shext
-	 */
 	public String getShext() {
 		return shext;
 	}
 
-
-	/**
-	 * Gets the icoext.
-	 * 
-	 * @return the icoext
-	 */
 	public String getIcoext() {
 		return icoext;
 	}
-
 
 	@Override
 	public String toString() {

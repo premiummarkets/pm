@@ -123,12 +123,6 @@ public class ProvidersNSEIndices extends ProvidersList {
 		return (ltmp.size() != 0)?(Stock)ltmp.get(0):null;
 	}
 
-
-	/**
-	 * @param stock
-	 * @return
-	 * @throws UnsupportedEncodingException 
-	 */
 	private List<? extends Validatable> getSymbol(Validatable stock) throws UnsupportedEncodingException {
 		
 		String url = this.httpSource.getStockInfoPageURL(((Stock)stock).getIsin());

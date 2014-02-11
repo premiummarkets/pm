@@ -62,15 +62,22 @@ public interface PortfolioDAO {
 	
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
-	
 	//Transaction reports
 	public void saveOrUpdateTransactionReports(ArrayList<TransactionElement> reportElements);
 
-	public SortedSet<TransactionElement> loadTransactionReportFor(Stock stock, String account, Date date);
+	public SortedSet<TransactionElement> loadOrphanTransactionReportFor(Stock stock, String account, Date date);
 
 	public void deleteTransactionReports();
-
+	
+	public void deleteOrphanTransactionReportsFor(String externalAccount);
+	
+	//PortfolioShare
 	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
+	
+	public List<PortfolioShare> loadPortfolioSharesFor(Stock stock);
+
+	
+	
 
 
 }

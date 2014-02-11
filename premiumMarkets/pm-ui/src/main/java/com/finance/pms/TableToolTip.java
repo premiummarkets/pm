@@ -40,6 +40,10 @@ import org.eclipse.swt.widgets.Shell;
 public abstract class TableToolTip implements Listener {
 
 
+	private Label lbContent;
+	private int toolTipHashCode;
+	private Shell tooltipShell;
+
 	public TableToolTip() {
 		super();
 	}
@@ -60,26 +64,45 @@ public abstract class TableToolTip implements Listener {
 	protected abstract void buildAndShowToolTip(Event event);
 	
 	
-	public Shell showTooltip(Shell parent, int x, int y, String txt) {
+	public Shell showTooltip(int toolTipHashCode, Shell parent, int x, int y, String txt) {
 		
-		Shell tooltip = new Shell(parent, SWT.TOOL | SWT.ON_TOP);
-		tooltip.setLayout(new GridLayout());
+		this.toolTipHashCode = toolTipHashCode;
+		
+		tooltipShell = new Shell(parent, SWT.TOOL | SWT.ON_TOP);
+		tooltipShell.setLayout(new GridLayout());
+		tooltipShell.setBackground(tooltipShell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		tooltipShell.setBackgroundMode(SWT.INHERIT_FORCE);
 
-		tooltip.setBackground(tooltip.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-		tooltip.setBackgroundMode(SWT.INHERIT_FORCE);
-
-		Label lbContent = new Label(tooltip, SWT.NONE);
+		lbContent = new Label(tooltipShell, SWT.NONE);
 		lbContent.setFont(MainGui.CONTENTFONT);
-		lbContent.setForeground(tooltip.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+		lbContent.setForeground(tooltipShell.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 		lbContent.setText(txt);
 
 		Point lbContentSize = lbContent.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		int width = lbContentSize.x + 10;
 		int height = lbContentSize.y + 10;
 
-		tooltip.setBounds(x + 5, y , width, height);
-		tooltip.setVisible(true);
-		return tooltip;
+		tooltipShell.setBounds(x + 5, y , width, height);
+		tooltipShell.setVisible(true);
+		
+		return tooltipShell;
+		
+	}
+	
+	public void updateTooltip(int toolTipHashCode, String additionalText) {
+		
+		if (!tooltipShell.isDisposed() && tooltipShell.isVisible() && this.toolTipHashCode == toolTipHashCode) {
+			try {
+				String oldText = lbContent.getText();
+				lbContent.setText(oldText + additionalText);
+				
+				tooltipShell.layout();
+				tooltipShell.pack();
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+		
 	}
 
 }

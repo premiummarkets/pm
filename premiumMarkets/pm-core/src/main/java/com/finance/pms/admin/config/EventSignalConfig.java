@@ -50,6 +50,7 @@ import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.events.pounderationrules.LatestEventsIndicatorOnlyPonderationRule;
@@ -82,9 +83,10 @@ public class EventSignalConfig extends Config implements Cloneable {
 	
 	public static Date getNewDate() {
 		if (EventSignalConfig.ENDDATE != null) {
+			//return DateFactory.midnithDate(new Date(EventSignalConfig.ENDDATE.getTime()));
 			return new Date(EventSignalConfig.ENDDATE.getTime());
 		} else {
-			return new Date();
+			return DateFactory.midnithDate(new Date());
 		}
 	}
 	
@@ -103,11 +105,11 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalertguard", "0.1")).setScale(2);
 	private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getPrefs().get("event.expectedrate", "0.05")).setScale(2);
 
-	private List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));
+	private List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));//Indicators used in pass one (as in db.properties)
 	private SortedSet<EventInfo> indicatorSortedCache = null;
-	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));
-	private SortedSet<EventInfo> allTechIndicatorsSortedCache= null;
-	private SortedSet<EventInfo> allEventInfos = null;
+	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));//Pass two indicators + Parent Parameterised event (as in db.properties)
+	private SortedSet<EventInfo> allTechIndicatorsSortedCache= null; //First and second pass indicators + Sub parameterised events
+	private SortedSet<EventInfo> allEventInfos = null; //First and second pass indicators + Sub parameterised events + alerts, screener events and 'constant' events.
 	private SortedSet<EventInfo> allParameterized = null;
 	private SortedSet<EventConditionHolder> filteredParameterised = null;
 
@@ -212,7 +214,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	@SuppressWarnings("unchecked")
 	public SortedSet<EventInfo> getAllTechIndicatorsSorted(Boolean refreshCache) {
 		
-		SpringContext.getSingleton().syncOnPostInit();
+		SpringContext.getSingleton().syncOnOptPostInit();
 		
 		if (allTechIndicatorsSortedCache == null || refreshCache) {
 		

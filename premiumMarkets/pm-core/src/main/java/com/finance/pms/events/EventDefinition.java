@@ -248,20 +248,10 @@ public enum EventDefinition implements Serializable, EventInfo {
 		return retour;
 	}
 
-	/**
-	 * Gets the event def.
-	 * 
-	 * @return the event def
-	 */
 	public String getEventReadableDef() {
 		return eventReadableDef;
 	}
 	
-	/**
-	 * Gets the event def id.
-	 * 
-	 * @return the event def id
-	 */
 	public Integer getEventDefId() {
 		return this.eventDefId;
 	}

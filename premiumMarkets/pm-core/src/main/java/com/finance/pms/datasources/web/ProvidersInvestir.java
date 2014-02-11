@@ -69,10 +69,11 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		TreeSet<Validatable> queries = initValidatableSet();
 		
 		for (int i = 1; i <= url.getNbPages(); i++) {
-			List<Validatable> urlResults = readPage(stock, url.getUrlForPage(i));
+			List<Validatable> urlResults = readPage(stock, url.getUrlForPage(i), start);
 			if (urlResults.size() == 0) { break;}
 			for (Validatable validatable : urlResults) {
-				if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
+				Date qDate = ((DailyQuotation) validatable).getQuoteDate();
+				if (qDate.after(start) || qDate.equals(start)) {
 					queries.add(validatable);
 				}
 			}
@@ -83,11 +84,10 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries),tablet2lock);
 
-		//return extractLastDateFrom(queries);
 	}
 
-	public List<Validatable> readPage(Stock stock, MyUrl url) throws HttpException {
-		DayQuoteInvestirFormater dsf = new DayQuoteInvestirFormater(url, stock, stock.getMarketValuation().getCurrency().name());
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date start) throws HttpException {
+		DayQuoteInvestirFormater dsf = new DayQuoteInvestirFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
 		return this.httpSource.readURL(dsf);
 	}
 	
@@ -101,7 +101,7 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		String urlString = ((HttpSourceInvestir) this.httpSource).getStockInvestirURL();
 		String extension = stock.getSymbolMarketQuotationProvider().getMarketQuotationProvider().getSymbolNameResolver().getExtension(stock.getSymbol());
 		
-		if (extension.equals(stock.getSymbol())) { //No symbol extension. We try white the market
+		if (extension.equals(stock.getSymbol())) { //No symbol extension. We try with the market
 			extension = stock.getMarketValuation().getMarket().getInvestirExtension();
 		}
  

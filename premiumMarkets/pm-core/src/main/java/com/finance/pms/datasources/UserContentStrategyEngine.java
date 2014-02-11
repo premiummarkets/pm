@@ -51,7 +51,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
 import com.finance.pms.datasources.EventModel.UpdateStamp;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.StockNotFoundException;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -73,7 +73,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		LOGGER.debug("No list update available for this model.");
 	}
 
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws StockNotFoundException {
+	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException {
 		
 		LOGGER.guiInfo("Running task : Updating quotations");
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
@@ -86,7 +86,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	}
 
 	//protected abstract void updateQuotations(QuotationUpdate quotationUpdate, X rootParam) throws StockNotFoundException;
-	private void updateQuotations(QuotationUpdate quotationUpdate, List<Stock> stocks) throws StockNotFoundException {
+	private void updateQuotations(QuotationUpdate quotationUpdate, List<Stock> stocks) throws QuotationUpdateException {
 		quotationUpdate.getQuotesFor(stocks);
 	};
 

@@ -110,6 +110,7 @@ import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
+import com.tictactec.ta.lib.MInteger;
 
 /**
  * The Class Charts.
@@ -138,6 +139,7 @@ public class ChartMain extends Chart {
 	private Integer indicPlotWeight = CHARTS_TOTAL_WEIGHT/4;
 
 	private Map<Long, XYTextAnnotation> lineAnnotations;
+	private ValueMarker axisMarker;
 	
 	public ChartMain(Date startDate, JFreeChartTimePeriod jFreeTimePeriod) {
 		super();
@@ -451,12 +453,6 @@ public class ChartMain extends Chart {
 		EventQueue.invokeLater(runnable);
 	}
 
-	/**
-	 * @param listShares 
-	 * @param stripedCloseFunction 
-	 * @param applyColors 
-	 * @param chartPanelComponent
-	 */
 	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
@@ -470,6 +466,16 @@ public class ChartMain extends Chart {
 				xAxis.setRange(arbitraryStartDate, arbitraryEndDate);
 				try {
 					mainPlot.setDataset(dataSet);
+					
+					if (axisMarker != null ) {
+						mainPlot.removeRangeMarker(axisMarker);
+						axisMarker = null;
+					}
+					if (stripedCloseFunction.isRelative()) {
+						axisMarker = new ValueMarker(0, Color.BLACK, new BasicStroke(1f),Color.BLACK, new BasicStroke(1f), .5f);
+						mainPlot.addRangeMarker(axisMarker);
+					}
+					
 				} catch (IllegalArgumentException e) {
 					LOGGER.warn(e, e);
 					resetBarChart();
@@ -698,21 +704,20 @@ public class ChartMain extends Chart {
 		
 		if (bdQuotes.size() > 0 && portfolioShare.getStock().getLastQuote().after(stripedCloseFunction.getArbitraryStartDate())) {
 			
-			stripedCloseFunction.targetShareData(portfolioShare, bdQuotes);
-			List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(stripedCloseFunction.getStartDateQuotationIndex(), stripedCloseFunction.getEndDateQuotationIndex());
+			MInteger startIdx = new MInteger();
+			MInteger endIdx = new MInteger();
+			Number[] relativeCloses = stripedCloseFunction.targetShareData(portfolioShare, bdQuotes, startIdx, endIdx);
+			List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(startIdx.value, endIdx.value);
 			
-			Number[] relativeCloses = stripedCloseFunction.relativeCloses();
-			for (int i = 0; i < Math.min(relativeCloses.length, stripedCloseFunction.getEndDateQuotationIndex()); i++) {
-				QuotationUnit trade = quotationUnits.get(i+stripedCloseFunction.getStartDateQuotationIndex());
+			for (int i = 0; i < Math.min(relativeCloses.length, endIdx.value); i++) {
+				QuotationUnit trade = quotationUnits.get( i + startIdx.value);
 				RegularTimePeriod period = new Day(trade.getDate());
 				Number value = relativeCloses[i].doubleValue();
 				timeSeries.add(new TimeSeriesDataItem(period, value));
 			}
 			
 		}  else {
-			
 			portfolioShare.setDisplayOnChart(false);
-			
 		}
 		
 		return timeSeries;

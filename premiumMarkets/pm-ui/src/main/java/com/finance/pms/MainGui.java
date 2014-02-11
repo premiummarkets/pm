@@ -86,6 +86,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.springframework.beans.factory.BeanCreationException;
 
+import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.DbSettings;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
@@ -116,8 +117,6 @@ import com.finance.pms.sharelists.gui.ShareListUpdateDialog;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
- * The Class MainGui.
- * 
  * @author Guillaume Thoreton
  */
 public class MainGui extends SashForm implements RefreshableView { 
@@ -161,6 +160,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	
 	public static Font DEFAULTFONT;
 	public static Font CONTENTFONT;
+	public static String ICONNAME = "icon.image";
 
 
 	private SashForm sashes;
@@ -190,8 +190,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 		MainGui.dbfile = dbFilePath;
 		
-		//XXX ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig()); 
-		//XXX The following should be in an other bean and systematically used instead of the Configs default constructors
 		ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
 		ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
@@ -287,16 +285,16 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 	}
 	
-	/**
-	 * Inits the gui.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private void initShellAndMenus() {
 		try {
 			
-			FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/icon.img"));
-			getShell().setImage(new Image(getDisplay(),iconImg));
+			try {
+				FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons"+File.separator+MainGui.ICONNAME));
+				getShell().setImage(new Image(getDisplay(),iconImg));
+			} catch (Exception e1) {
+				LOGGER.error(e1,e1);
+			}
 			getShell().setText("Premium Markets");
 			getShell().setFont(MainGui.DEFAULTFONT);
 			this.setBackground(MainGui.eVENTS_DARKER);
@@ -402,23 +400,37 @@ public class MainGui extends SashForm implements RefreshableView {
 						new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
 						{
 							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("Load Portfolio from gnucash advanced export ...");
+							loadPortofolioFromGnuCash.setText("Load Portfolio from GNUCASH 'Advanced portfolio' html export ...");
 							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									
-									getDisplay().asyncExec(new Runnable() {
+									final Config evtConfig = ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
+									Runnable runnable = new Runnable() {
 										
 										public void run() {
 											try {
-												setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+												ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, evtConfig);
+												
+												Runnable runnable2 = new Runnable() {
+													public void run() {
+														setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+													}
+												};
+												getDisplay().syncExec(runnable2);
 												((PortfolioComposite) portfolioSash()).loadGnucashAdvPortfolio();
-
 											} finally {
-												setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+												Runnable runnable2 = new Runnable() {
+													public void run() {
+														setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+													}
+												};
+												getDisplay().syncExec(runnable2);
 											}
 										}
-									});
+									};
+									Thread thread = new Thread(runnable);
+									thread.start();
 								}
 							});	
 						}
@@ -704,13 +716,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 	}
 
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static void main(String[] args) {
 		
 		Display.setAppName("Premium Markets");
@@ -795,7 +800,8 @@ public class MainGui extends SashForm implements RefreshableView {
             {
 				Point prefSize = inst.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
 				int width = Math.min(prefSize.x,1024);
-				int height = Math.min((prefSize.y*8)/10,900);
+				//int height = Math.min((prefSize.y*8)/10,900);
+				int height = Math.min(prefSize.y,768);
 				Rectangle shellBounds = shell.computeTrim(0,0,width,height); 
 				shell.setSize(shellBounds.width, shellBounds.height); 
             }
@@ -820,15 +826,15 @@ public class MainGui extends SashForm implements RefreshableView {
 				Rectangle portfolioShashBounds = ((PortfolioComposite)inst.winTable[2]).getClientArea();
 				
 				Point port1PrefSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-				Point port1CompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(port1PrefSize.x, Math.max(50,port1PrefSize.y));
-				((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.setSize(port1CompositeSize);
+				Point port1CompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(port1PrefSize.x, Math.max(50, port1PrefSize.y));
+				((PortfolioComposite) inst.winTable[2]).portfolioInfosGroup.setSize(port1CompositeSize);
 				Rectangle infoBounds = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.getBounds();
 				
 				int x1Port = 100*infoBounds.height/portfolioShashBounds.height + 2;
 				if ((100 -x1Port) < 20) {
 					x1Port=30;
 				}
-				((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-x1Port,x1Port});
+				((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-x1Port, x1Port});
             }
 			
 			//Chart
@@ -858,6 +864,8 @@ public class MainGui extends SashForm implements RefreshableView {
 				LOGGER.info("First run : updating quotes");
 				QuotationUpdate quotationUpdate = new QuotationUpdate();
 				quotationUpdate.getQuotesForAllUserPortfoliosAndMonitored();
+			} else {
+				LOGGER.info("This is not the First run : no quotes update");
 			}
 			//load portfolios
 			try {
@@ -870,7 +878,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					}
 				});
 				
-				ctx.postInit();
+				ctx.optionalPostInit();
 				
 			} catch (Exception e1) {
 				LOGGER.error(e1,e1);
@@ -971,15 +979,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		MainGui.CONTENTFONT = new Font(display, myContentFontName, 8, SWT.NORMAL);
 	}
 	
-	/**
-	 * Inits the data.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void initContent() {
-		
-		//sashes.setToolTipText("Sash : Click on this border and drag to resize");
-		//sashes.setCursor(CursorFactory.getCursor(SWT.CURSOR_CROSS));
 
 		EventsComposite eventC = new EventsComposite(sashes, SWT.NONE|SWT.BORDER, logComposite);
 		this.winTable[0] = eventC;
@@ -997,13 +997,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		LOGGER.debug("Finished initialising MainGui Data.");
 	}
 
-	
-	/**
-	 * Open settings.
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws FileNotFoundException 
-	 */
 	private void openSettings() throws FileNotFoundException {
 		
 		if (dbSettings == null || dbSettings.getParent().isDisposed()) {
@@ -1013,11 +1006,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		}
 	}
 	
-	/**
-	 * Sets the main display.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	protected void setMainDisplay() {
 		
 		//0 Event, 1 Chart, 2 Portfolio
@@ -1070,23 +1058,11 @@ public class MainGui extends SashForm implements RefreshableView {
 	protected Composite eventsSash() {
 		return winTable[0];
 	}
-	
-	/**
-	 * Close button mouse down.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private void  closeButtonMouseDown(SelectionEvent evt) {
 		closeMain();
 	}
 
-	/**
-	 * Close main.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void closeMain() {
 		
 		try {
@@ -1108,7 +1084,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		}
 		
 	}
-	
 	
 	protected void emailHint(Integer hintNumber) {
 		Desktop desktop;
@@ -1155,14 +1130,6 @@ public class MainGui extends SashForm implements RefreshableView {
 		}    
 	}
 	
-	
-	/**
-	 * Root shell closed.
-	 * 
-	 * @param evt the evt
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void rootShellClosedRequested(ShellEvent evt) {
 		setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		closeMain();

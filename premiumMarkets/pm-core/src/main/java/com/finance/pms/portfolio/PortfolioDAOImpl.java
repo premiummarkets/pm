@@ -104,7 +104,6 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	
 		try {
 			this.getHibernateTemplate().saveOrUpdate(portfolioShare);
-			//this.getHibernateTemplate().flush();
 		} catch (Exception e) {
 			LOGGER.error("While saving/updating Portfolio Share: "+portfolioShare,e);
 			throw new RuntimeException(e);
@@ -192,13 +191,12 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	
 	public void saveOrUpdateTransactionReports(ArrayList<TransactionElement> reportElements) {
 			this.getHibernateTemplate().saveOrUpdateAll(reportElements);
-		
 	}
 
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
-	public SortedSet<TransactionElement> loadTransactionReportFor(Stock stock, String account, Date date) {
-		List<TransactionElement> trans = this.getHibernateTemplate().find("from TransactionElement where symbol = ? and isin = ? and account = ? and date <= ? order by date", stock.getSymbol(), stock.getIsin(), account, date);
+	public SortedSet<TransactionElement> loadOrphanTransactionReportFor(Stock stock, String externalAccount, Date date) {
+		List<TransactionElement> trans = this.getHibernateTemplate().find("from TransactionElement where symbol = ? and isin = ? and externalAccount = ? and portfolio is null and date <= ? order by date", stock.getSymbol(), stock.getIsin(), externalAccount, date);
 		return new TreeSet<TransactionElement>(trans);
 	}
 
@@ -211,5 +209,26 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	public void close() {
 		if (unknownSharelIstCache != null) saveOrUpdatePortfolio(unknownSharelIstCache);
 	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<PortfolioShare> loadPortfolioSharesFor(Stock stock) {
+		Criteria crit = getSession().createCriteria(PortfolioShare.class);
+		crit.add(Restrictions.eq("stock", stock));
+		return crit.list();
+
+	}
+
+	@Override
+	public void deleteOrphanTransactionReportsFor(String externalAccount) {
+		DetachedCriteria detachedCriteria= DetachedCriteria.forClass(TransactionElement.class);
+		detachedCriteria.add(Restrictions.eq("externalAccount", externalAccount));	
+		detachedCriteria.add(Restrictions.isNull("portfolio"));	
+		@SuppressWarnings("unchecked")
+		List<TransactionElement> accountTransactions = (List<TransactionElement>) this.getHibernateTemplate().findByCriteria(detachedCriteria);
+		this.getHibernateTemplate().deleteAll(accountTransactions);
+		
+	}
+	
 	
 }

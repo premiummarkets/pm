@@ -206,23 +206,10 @@ public class PoolSemaphore {
 		return getNextAvailableConnexion();
 	}
 
-	/**
-	 * Release resource.
-	 * 
-	 * @param x the x
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void releaseResource(SourceClient x) {
-		if (markAsUnused(x))
-			available.release();
+		if (markAsUnused(x)) available.release();
 	}
 
-	/**
-	 * Gets the next available connexion.
-	 * 
-	 * @return the next available connexion
-	 */
 	private SourceClient getNextAvailableConnexion() {
 		for (int i = 0; i < this.nThreads; ++i) {
 			synchronized (used) {
@@ -245,40 +232,20 @@ public class PoolSemaphore {
 		throw new UnsupportedOperationException("No resource available. Fixe me!");
 	}
 
-	/**
-	 * Mark as unused.
-	 * 
-	 * @param item the item
-	 * 
-	 * @return true, if successful
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	protected synchronized boolean markAsUnused(SourceClient item) {
 		for (int i = 0; i < nThreads; ++i) {
 			if (item == sourceClient[i]) {
 				if (used[i]) {
 					used[i] = false;
 					return true;
-				} else
+				} else {
 					return false;
+				}
 			}
 		}
 		return false;
 	}
 	
-	/**
-	 * Restart source.
-	 * 
-	 * @param item the item
-	 * 
-	 * @return the source client
-	 * 
-	 * @throws InterruptedException the interrupted exception
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws TimeoutException 
-	 */
 	public SourceClient reconnectSource(SourceClient item) throws InterruptedException, TimeoutException {
 	
 		DataSource.getInstance().shutdownSource(item);
@@ -302,32 +269,18 @@ public class PoolSemaphore {
 		
 	}
 
-	/**
-	 * Check sanity.
-	 * 
-	 * @throws InterruptedException the interrupted exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void checkSanity() throws InterruptedException {
 		int outOfOrder = 0;
 		for (int i = 0; i < this.nThreads; ++i) {
 			if (used[i] && sourceClient[i] == null) outOfOrder++;
 		}
 		if (outOfOrder == this.nThreads) {
-			LOGGER.error("All resources in the pool seams to be shutdowned and can't be restarted");
+			LOGGER.error("All resources in the pool seams to be shutdown and can't be restarted");
 			this.available.release(this.nThreads);
-			throw new InterruptedException("No resource available. Fixe me!");
+			throw new InterruptedException("No resource available. Fix me!");
 		}
 	}
 	
-	/**
-	 * Restart source.
-	 * 
-	 * @param resourceNum the resource num
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void crashSpecificRestart(int resourceNum) {
 		
 		int s = this.sourceConnector.crashResart(resourceNum);
@@ -339,12 +292,7 @@ public class PoolSemaphore {
 			LOGGER.error("",e);
 		}
 	}
-	
-    /**
-     * Stop threads.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public void stopThreads() {
     	
     	LOGGER.info("Stopping Thread pool, nb threads to stop : "+nThreads);

@@ -50,22 +50,24 @@ public class ScreeningInfoExporter extends ScreeningSupplementStockExporter {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ScreeningInfoExporter.class);
 	
-	private Collection<Stock> userPortfolioShareList;
+	private Collection<Stock> shareListFilter;
 	private Date eventDate;	
 	
-	public ScreeningInfoExporter(Collection<Stock> userPortfolioShareList, Queue eventQueue, JmsTemplate jmsTemplate, String filextension, Date eventDate) {
+	public ScreeningInfoExporter(Collection<Stock> shareListFilter, Queue eventQueue, JmsTemplate jmsTemplate, String filextension, Date eventDate) {
 		super(filextension,eventQueue,jmsTemplate);
-		this.userPortfolioShareList = userPortfolioShareList;
+		this.shareListFilter = shareListFilter;
 		this.eventDate = eventDate;
 	}
 
 	@Override
-	public void buildAndSendScreeningEvents(NavigableSet<ScreeningSupplementedStock> screened, String eventListName) {
+	public void buildAndSendScreeningEvents(NavigableSet<ScreeningSupplementedStock> referenceShareList, String eventListName) {
+		
 		Collection<SymbolEvents> symbolEvents = new ArrayList<SymbolEvents>();
 		Integer rank = 0;
-		for (ScreeningSupplementedStock trendSupplementedStock : screened) {
+		
+		for (ScreeningSupplementedStock trendSupplementedStock : referenceShareList) {
 				Stock stock = trendSupplementedStock.getStock();
-				if (userPortfolioShareList.contains(stock)) {
+				if (shareListFilter.contains(stock)) {
 					try {
 						Integer previousRank = extractPreviousRank(stock, eventListName, eventDate, EventType.INFO);
 						if (previousRank != null) {
@@ -83,6 +85,7 @@ public class ScreeningInfoExporter extends ScreeningSupplementStockExporter {
 				}
 				rank++;
 		}
+		
 		this.storeAndSendScreeningEvents(symbolEvents, EmailFilterEventSource.PMUserScreening, eventListName);
 
 	}

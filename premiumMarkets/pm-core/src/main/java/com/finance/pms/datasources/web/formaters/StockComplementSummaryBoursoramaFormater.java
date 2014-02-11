@@ -120,11 +120,6 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		}
 	}
 
-	/**
-	 * @param line
-	 * @param stockPart
-	 * @param bnaValueMatcher
-	 */
 	private void grabBna(String line, ScreeningSupplementedStock stockPart, Matcher bnaValueMatcher) {
 		switch (yeBNA) {
 		case 0 :
@@ -171,12 +166,12 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 
 	@Override
-	public Boolean isEmptyValue() {
+	public Boolean isResultValueEqNA() {
 		return isEmpty;
 	}
 

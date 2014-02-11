@@ -40,8 +40,7 @@ import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class StockComplementOpinionBoursoramaFormater extends LineFormater {
-	
-	/** The PATTERNS. */
+
 	private static PatternProperties PATTERNS;
 	
 	private Pattern meanRec;
@@ -143,12 +142,12 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 	}
 
 	@Override
-	public Boolean canHaveEmptyResults() {
-		return false;
+	public Boolean canHaveNoResultsFound() {
+		return true;
 	}
 
 	@Override
-	public Boolean isEmptyValue() {
+	public Boolean isResultValueEqNA() {
 		return isEmpty;
 	}
 }

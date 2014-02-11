@@ -251,10 +251,6 @@ public class GnucashGetPriceHelper {
 
 	}
 
-	/**
-	 * @return
-	 * @throws IOException
-	 */
 	private Process initHelperProcess() throws IOException {
 		ProcessBuilder gncFqHelper = new ProcessBuilder("/usr/local/bin/gnc-fq-helper");
 		gncFqHelper.redirectErrorStream(true);
@@ -263,11 +259,6 @@ public class GnucashGetPriceHelper {
 		return gncFqHelperProcess;
 	}
 	
-	/**
-	 * @param args
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
 
 		String pathToprops = args[0];

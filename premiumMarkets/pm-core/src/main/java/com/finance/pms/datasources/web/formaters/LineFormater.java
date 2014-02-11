@@ -36,10 +36,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.MyUrl;
 
-
-
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class LineFormater.
  * 
@@ -47,11 +43,8 @@ import com.finance.pms.datasources.web.MyUrl;
  */
 public abstract class LineFormater {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(LineFormater.class);
-	
-	
-	/** The params. */
+
 	protected List<Object> params;
 	
 	MyUrl myUrl;
@@ -62,44 +55,17 @@ public abstract class LineFormater {
 		params = new ArrayList<Object>();
 		this.myUrl = myUrl;
 	}
-	
-	/**
-	 * Format line.
-	 * 
-	 * @param line the line
-	 * 
-	 * @return the validatable
-	 * 
-	 * @throws StopParseException the stop parse exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public abstract  List<Validatable> formatLine(String line) throws StopParseException;
-	
-    /**
-     * Gets the url.
-     * 
-     * @return the url
-     */
+
     public String getUrl() {
         return myUrl.getUrl();
     }
     
-    /**
-     * Gets the url.
-     * 
-     * @return the url
-     */
     public MyUrl getMyUrl() {
         return myUrl;
     }
-    
-    public abstract Boolean canHaveEmptyResults();
-    
-    
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -108,9 +74,6 @@ public abstract class LineFormater {
 		return result;
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -133,9 +96,10 @@ public abstract class LineFormater {
 	}
 
 	//TODO use the Validatable state instead
-	public Boolean isEmptyValue() {
+	public Boolean isResultValueEqNA() {
 		return false;
 	}
     
-    
+    public abstract Boolean canHaveNoResultsFound();
+ 
 }

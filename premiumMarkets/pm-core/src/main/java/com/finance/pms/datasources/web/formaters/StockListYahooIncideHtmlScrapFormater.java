@@ -92,7 +92,7 @@ public class StockListYahooIncideHtmlScrapFormater extends LineFormater {
 	}
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return true;
 	}
 }

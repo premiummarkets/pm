@@ -45,8 +45,6 @@ import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.MyUrl;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class StockListBoursormaFormater.
  * 
@@ -54,31 +52,16 @@ import com.finance.pms.datasources.web.MyUrl;
  */
 
 public class StockListBoursormaFormater extends LineFormater {
-	
-	/** The stock categorie. */
+
 	StockCategories stockCategorie;
-	
-	/** The providers types. */
 	MarketQuotationProviders marketQuotationsProviders;
-	
-	/**
-	 * Instantiates a new stock list boursorma formater.
-	 * 
-	 * @param url the url
-	 * @param stockCategorie the stock categorie
-	 * @param marketQuotationsProviders the market quotations providers
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public StockListBoursormaFormater(String url, StockCategories stockCategorie,MarketQuotationProviders marketQuotationsProviders) {
 		super(new MyUrl(url));
 		this.stockCategorie = stockCategorie;
 		this.marketQuotationsProviders = marketQuotationsProviders;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.db.HttpSource.LineFormater#formatLine()
-	 */
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		StringTokenizer strt = new StringTokenizer(line,"\t");
@@ -103,10 +86,6 @@ public class StockListBoursormaFormater extends LineFormater {
 		}
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.formaters.LineFormater#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -114,10 +93,7 @@ public class StockListBoursormaFormater extends LineFormater {
 		result = prime * result + ((stockCategorie == null) ? 0 : stockCategorie.hashCode());
 		return result;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.formaters.LineFormater#equals(java.lang.Object)
-	 */
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -137,7 +113,7 @@ public class StockListBoursormaFormater extends LineFormater {
 	
 	
 	@Override
-	public Boolean canHaveEmptyResults() {
+	public Boolean canHaveNoResultsFound() {
 		return false;
 	}
 	

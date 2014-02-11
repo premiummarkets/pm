@@ -66,26 +66,18 @@ import com.finance.pms.threads.ConfigThreadLocal;
  */
 public class PortfolioMgr implements ApplicationContextAware {
 	
-	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(PortfolioMgr.class);
-	
-	 /** The singleton. */
+
+	ApplicationContext applicationContext;
  	private static PortfolioMgr singleton;
-	 
-	 /** The portfolios. */
+ 	
  	private List<Portfolio> portfolios;
  	private List<Portfolio> oldPortfolios;
 
 	private PortfolioDAO portfolioDAO;
 	private CurrencyConverterImpl currencyConverter;
 
-	ApplicationContext applicationContext;
 	
-	/**
-	 * Instantiates a new portfolio mgr.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public PortfolioMgr(PortfolioDAO portfolioDAO,CurrencyConverterImpl currencyConverter) {
 		
 		this.portfolioDAO = portfolioDAO;
@@ -162,14 +154,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 		}
 	}
 	
-	/**
-	 * Adds the portfolio.
-	 * 
-	 * @param portfolio the p
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws InvalidAlgorithmParameterException 
-	 */
 	public  void addPortfolio(Portfolio portfolio) throws InvalidAlgorithmParameterException {
 		if (portfolios.contains(portfolio)) {
 			throw new InvalidAlgorithmParameterException("Portfolio "+portfolio.getName()+" already exists. Please delete");
@@ -181,6 +165,17 @@ public class PortfolioMgr implements ApplicationContextAware {
 	public void removePortfolio(AbstractSharesList portfolioToRm) {
 		this.portfolios.remove(portfolioToRm);
 		this.portfolioDAO.delete(portfolioToRm);
+	}
+	
+	public void replacePortfolio(Portfolio oldPortfolio, Portfolio newPortfolio) throws InvalidAlgorithmParameterException {
+		int indexOf = this.portfolios.indexOf(oldPortfolio);
+		if (indexOf == -1) {
+			throw new InvalidAlgorithmParameterException("Portfolio "+oldPortfolio.getName()+" does not exists and can't be deleted.");
+		}
+		this.portfolios.set(indexOf, newPortfolio);
+		
+		this.portfolioDAO.delete(oldPortfolio);
+		this.portfolioDAO.saveOrUpdatePortfolio(newPortfolio);
 	}
 	
 	public void hibStorePortfolio() {
@@ -197,12 +192,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 		resetOldPortfolioList();
 	}
 	
-
-	/**
-	 * Gets the portfolios.
-	 * 
-	 * @return the portfolios
-	 */
 	public List<Portfolio> getVisiblePortfolios() {
 		
 		List<Portfolio> visiblePortfolios = new ArrayList<Portfolio>();
