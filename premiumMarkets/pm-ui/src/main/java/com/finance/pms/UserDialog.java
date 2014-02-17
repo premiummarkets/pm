@@ -90,7 +90,7 @@ public class UserDialog extends Dialog {
 				errorTxt.setLayoutData(layoutData);
 				errorTxt.setFont(MainGui.DEFAULTFONT);
 				errorTxt.setBackground(MainGui.pOPUP_BG);
-				errorTxt.setText(cleanMsg(this.erreur, true));
+				errorTxt.setText(cleanMsg(this.erreur, false));
 				errorTxt.setEditable(false);
 				
 			}
@@ -101,7 +101,7 @@ public class UserDialog extends Dialog {
 				addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
 				addMsgTxt.setEditable(false);
 				addMsgTxt.setCapture(false);
-				addMsgTxt.setText(cleanMsg(this.addMessage, false));
+				addMsgTxt.setText(cleanMsg(this.addMessage, true));
 			}
 			{
 				valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
@@ -160,10 +160,10 @@ public class UserDialog extends Dialog {
 		this.addMessage = addMessage;
 		
 		if (erreur != null && errorTxt != null)  {
-			errorTxt.setText(cleanMsg(this.erreur, true));
+			errorTxt.setText(cleanMsg(this.erreur, false));
 		}
 		if (addMessage != null && addMsgTxt != null) {
-			addMsgTxt.setText(cleanMsg(this.addMessage, false));
+			addMsgTxt.setText(cleanMsg(this.addMessage, true));
 		}
 		valideButton.setText("Ok");
 		
@@ -174,10 +174,13 @@ public class UserDialog extends Dialog {
 		
 	}
 
-	private String cleanMsg(String message, Boolean noCR) {
+	private String cleanMsg(String message, Boolean addCR) {
 	
 		String cleanMessage = message;
-		if (!noCR) cleanMessage = message.replaceAll("\\. ", ".\n");
+		if (addCR) {
+			cleanMessage = message.replaceAll("\\. ", ".\n");
+			cleanMessage = cleanMessage+"\n";
+		}
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
 		

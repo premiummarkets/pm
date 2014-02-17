@@ -41,6 +41,7 @@ import java.util.TreeSet;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
+import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 
@@ -69,7 +70,6 @@ public class SharesList extends AbstractSharesList {
 	}
 	
 	public void addShare(Stock stock) {
-		//PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), BigDecimal.ONE, BigDecimal.ZERO, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
 		PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
 		addShareToList(newPortfolioShare);
 		ShareListMgr.getInstance().addForeignKeysUpdate(newPortfolioShare);
@@ -109,7 +109,7 @@ public class SharesList extends AbstractSharesList {
 	}
 
 	@Override
-	public Date getLastTransactionFor(Stock stock) {
+	public Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		return new Date(0);
 	}
 
@@ -141,6 +141,11 @@ public class SharesList extends AbstractSharesList {
 	@Override
 	public InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
 		return new InOutWeighted(BigDecimal.ONE, BigDecimal.ZERO, currentEndDate);
+	}
+
+	@Override
+	public SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+		return new TreeSet<TransactionElement>();
 	}
 
 }

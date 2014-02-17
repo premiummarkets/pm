@@ -72,5 +72,6 @@ public interface ShareDAO {
 	public List<PortfolioShare> loadMonitoredWithAOE(Stock stock, SortedMap<EventKey, EventValue> sortedDataResultMap);
 
 	void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit);
+	void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits);
 	
 }

@@ -50,8 +50,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -1385,6 +1387,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 					});
 				}
+				new MenuItem(portfolioShareCtxMenu, SWT.SEPARATOR);
 				{
 					MenuItem addManQuotesMenuItem = new MenuItem(portfolioShareCtxMenu, SWT.NONE);
 					addManQuotesMenuItem.setText("Add a quotation for this underlying stock");
@@ -1403,6 +1406,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						private void handleManualQuotation() {
 							final int itemIdx = table.getSelectionIndex();
 							if (itemIdx != -1) {
+
+								final SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
+								final Stock stock = ss.getStock();
+								
 								final ActionDialogForm actForm = new ActionDialogForm(getShell(), "Add", null, "Add a quotation for the stock underlying your Portfolio line.");
 								final SimpleDateFormat displayDF = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -1410,7 +1417,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								warning.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
 								warning.setBackground(MainGui.pOPUP_BG);
 								warning.setFont(MainGui.DEFAULTFONT);
-								warning.setText("Fill in your values");
+								warning.setText("Fill in your values in "+stock.getMarketValuation().getCurrency());
 
 								Group insertManualGroup = new Group(actForm.getParent(), SWT.NONE);
 								insertManualGroup.setLayout(new GridLayout(4, true));
@@ -1507,9 +1514,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 										if (error.length() == 0) {
 											try {
-
-												SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
-												Stock stock = ss.getStock();
+												
 												stock.setOverrideUserQuotes(false);
 												
 												//Db and caches ...
@@ -1556,10 +1561,73 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					});
 				}
 				{
+					MenuItem addManQuotesMenuItem = new MenuItem(portfolioShareCtxMenu, SWT.NONE);
+					addManQuotesMenuItem.setText("Add line transactions prices as new quotations for this underlying stock");
+					addManQuotesMenuItem.addSelectionListener(new SelectionListener() {
+
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							handleAddTransactionPriceQs();
+						}
+
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							handleAddTransactionPriceQs();
+						}
+						
+						private void handleAddTransactionPriceQs() {
+							
+							final int itemIdx = table.getSelectionIndex();
+							CurrencyConverter cc = PortfolioMgr.getInstance().getCurrencyConverter();
+							
+							if (itemIdx != -1) {
+								SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
+								Stock stock = ss.getStock();
+								SortedSet<TransactionElement> transactions = ss.getTransactions();
+								
+								Map<Date, Object[]> cumQu = new HashMap<Date, Object[]>();
+								for (TransactionElement te : transactions) {
+									Object[] priceNnbOccs = cumQu.get(te.getDate());
+									if (priceNnbOccs == null) {
+										priceNnbOccs = new Object[2];
+										priceNnbOccs[0] = BigDecimal.ZERO;
+										priceNnbOccs[1] = 0;
+										cumQu.put(te.getDate(), priceNnbOccs);
+									}
+									priceNnbOccs[0] = ((BigDecimal) priceNnbOccs[0]).add(cc.convert(te.getCurrency(), stock.getMarketValuation().getCurrency(), te.getPrice(), te.getDate()));
+									priceNnbOccs[1] = ((Integer)priceNnbOccs[1]) + 1;
+									
+								}
+								List<QuotationUnit> quotationUnits = new ArrayList<QuotationUnit>();
+								for (Date cumDate : cumQu.keySet()) {
+									Object[] values = cumQu.get(cumDate);
+									BigDecimal p = ((BigDecimal) values[0]).divide(new BigDecimal(values[1].toString()), 10, BigDecimal.ROUND_HALF_EVEN);
+									if (p.compareTo(BigDecimal.ZERO) != 0) {
+										QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), cumDate, p, p, p, p, 0l, ORIGIN.USER);
+										quotationUnits.add(quotationUnit);
+									}
+								}
+								
+								//Db and caches ...
+								DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnits(quotationUnits);
+								GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
+								getQuotation.refreshCaches();
+								
+								//Ui ...
+								tabUpdateTableItem(table.getSelection()[0], ss);
+								refreshChartData(false, true);
+								refreshPortfolioTotalsInfos(selectedPortfolioIdx());
+							}
+						}
+						
+					});
+				}
+				new MenuItem(portfolioShareCtxMenu, SWT.SEPARATOR);
+				{
 					//Untick to see your edited entries when there already are entries from downloaded quotations at the same date.\n"+
 					//When ticked, the downloaded quotations will be predominant if exist at the same date");
 					final MenuItem allowOverride = new MenuItem(portfolioShareCtxMenu, SWT.CHECK);
-					allowOverride.setText("Allow quotation download updates to overshadowing quotation manual entries.");
+					allowOverride.setText("Allow quotation download updates to overshadowing quotation manual entries");
 					portfolioShareCtxMenu.addMenuListener(new MenuListener() {
 						
 						@Override
@@ -1611,6 +1679,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 					});
 				}
+				
 					
 			}
 			table.addMouseListener(new MouseListener() {
@@ -2224,6 +2293,15 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			case TotalPercentGain:
 				Collections.sort(list, new Comparator<SlidingPortfolioShare>() {
 					public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
+						int ret = o2.getTodaysGainTotalPercent().compareTo(o1.getTodaysGainTotalPercent());
+						ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
+						return ret;
+					}						
+				});
+				break;
+			case RPercentGain:
+				Collections.sort(list, new Comparator<SlidingPortfolioShare>() {
+					public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
 						int ret = o2.getTodaysGainRealPercent().compareTo(o1.getTodaysGainRealPercent());
 						ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 						return ret;
@@ -2248,10 +2326,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					}						
 				});
 				break;
-			case ZeroWGainPrc :
+			case DisplayedCurrency :
 				Collections.sort(list, new Comparator<SlidingPortfolioShare>() {
 					public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
-						int ret = o2.getTodaysPriceZeroGainWeighted().compareTo(o1.getTodaysPriceZeroGainWeighted());
+						int ret = o2.getDisplayedCurrency().compareTo(o1.getDisplayedCurrency());
 						ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 						return ret;
 					}						
@@ -2958,8 +3036,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			
 			String dir = System.getProperty("installdir") + File.separator + "transactionsexports" + File.separator;
 			new File(dir).mkdirs();
-			File transactionExport = new File(dir + transactionExportName + ".csv");
-			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(transactionExport));
+			String reportFileName = dir + transactionExportName + ".csv";
+			File reportFile = new File(reportFileName);
+			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(reportFile));
 			
 			try {
 				bufferedWriter.write(extractTransactionLog);
@@ -2970,14 +3049,24 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			}
 			
 			try {
-				Desktop.getDesktop().open(transactionExport);
+				LOGGER.info("Trying default desktop spreadsheet");
+				Desktop.getDesktop().open(reportFile);
 			} catch (Exception e) {
-				
 				String[] commands = new String[]{"/usr/bin/gnumeric","/usr/bin/soffice"};
 				try {
+					LOGGER.info("Trying "+commands[0]+" fall back");
 					runSpread(transactionExportName, dir, commands[0]);
 				} catch (Exception e1) {
-					runSpread(transactionExportName, dir, commands[1]);
+					try {
+						LOGGER.info("Trying "+commands[0]+" fall back");
+						runSpread(transactionExportName, dir, commands[1]);
+					} catch (Exception e2) {
+						UserDialog dialog = new UserDialog(getShell(),"Your Transaction summary  for "+portfolio.getName(),
+								"Your transaction summary for "+portfolio.getName()+" is available here :\n"+
+								reportFileName+"\n"+
+								"Alternatively, to automatically open it in as a spreadsheet, you may want to check the software associated with '.csv' file in your Operating System.");
+						dialog.open();
+					}
 				}
 			}
 			

@@ -154,7 +154,12 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	@Transient
 	public Date getLastTransactionDate() {
-		return this.portfolio.getLastTransactionFor(this.getStock());
+		return this.portfolio.getLastTransactionFor(this, null, EventSignalConfig.getNewDate());
+	}
+ 
+	@Transient
+	public SortedSet<TransactionElement> getTransactions() {
+		return this.portfolio.getTransactionsFor(this, null, EventSignalConfig.getNewDate());
 	}
 
 	public BigDecimal getCashin(Date currentStartDate, Date currentEndDate, Currency currency) {

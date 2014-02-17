@@ -183,13 +183,7 @@ public class AutoPortfolioDelegate {
 		return checkBuyability(symbolEvents, currentDate, null);
 		
 	}
-	
-	/**
-	 * @param symbolEvents
-	 * @param monitorLevel 
-	 * @return 
-	 * @throws IgnoredEventDateException 
-	 */
+
 	private TransactionRecord checkBuyability(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
@@ -230,15 +224,6 @@ public class AutoPortfolioDelegate {
 		return !latestEventDateAndNewBuyDate.before(alreadyBoughtShare.getLastTransactionDate());
 	}
 
-	/**
-	 * @param symbolEvents
-	 * @param currentDate
-	 * @param unitAmount 
-	 * @param availableAmount
-	 * @throws InvalidAlgorithmParameterException
-	 * @throws InvalidQuantityException
-	 * @throws NoCashAvailableException 
-	 */
 	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
 		
 			Stock stock = symbolEvents.getStock();

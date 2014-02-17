@@ -299,5 +299,10 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	public void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit) {
 		getHibernateTemplate().saveOrUpdate(quotationUnit);
 	}
+
+	@Override
+	public void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits) {
+		getHibernateTemplate().saveOrUpdateAll(quotationUnits);
+	}
 	
 }

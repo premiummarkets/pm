@@ -366,8 +366,26 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Transient
-	public Date getLastTransactionFor(Stock stock) {
-		return transactions.last().getDate();
+	public Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+		//return transactions.last().getDate();
+		Date ret = new Date(0);
+		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+			if (te.getStock().equals(portfolioShare.getStock())) {
+				ret = te.getDate();
+			}
+		}
+		return ret;
+	}
+	
+	@Transient
+	public SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+		SortedSet<TransactionElement> ret = new TreeSet<TransactionElement>();
+		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+			if (te.getStock().equals(portfolioShare.getStock())) {
+				ret.add(te);
+			}
+		}
+		return ret;
 	}
 	
 	@Transient

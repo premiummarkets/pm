@@ -232,7 +232,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						if (fit.find()) {
 							boolean isObsolete = isObsolete(line, fit, currentBuildDate);
 							if (isObsolete) {
-								ActionDialog dialog = new ActionDialog(getShell(), "A new version is available!", "-------------  A new version is available -------------", null, "Clik to update. Close this popup otherwise.", new ActionDialogAction() {
+								ActionDialog dialog = new ActionDialog(getShell(), "A new version is available!", "-------------  A new version is available -------------", null, "Click to update. Close this popup otherwise.", new ActionDialogAction() {
 									
 									@Override
 									public void action(Control targetControl) {
@@ -808,10 +808,11 @@ public class MainGui extends SashForm implements RefreshableView {
 			
             //Shell
             {
-				Point prefSize = inst.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-				int width = Math.min(prefSize.x,1024);
-				//int height = Math.min((prefSize.y*8)/10,900);
-				int height = Math.min(prefSize.y,768);
+				Point swtPrefSize = inst.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+				Point myPrefSize = new Point(1024,768);
+				Point maxSize = new Point(display.getBounds().width*9/10, display.getBounds().height*9/10);
+				int width = Math.min(Math.max(swtPrefSize.x,myPrefSize.x), maxSize.x);
+				int height =  Math.min(Math.max(swtPrefSize.y,myPrefSize.y), maxSize.y);
 				Rectangle shellBounds = shell.computeTrim(0,0,width,height); 
 				shell.setSize(shellBounds.width, shellBounds.height); 
             }
@@ -826,7 +827,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				Rectangle logBounds = inst.logComposite.getBounds();
 				int xLog = 100*logBounds.height/mainBounds.height +1;
 				if ((100 -xLog) < 97) {
-					xLog=2;
+					xLog=3;
 				}
 				inst.setWeights(new int[]{100-xLog,xLog});
             }
@@ -855,11 +856,11 @@ public class MainGui extends SashForm implements RefreshableView {
 				Point chartCompositeSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
 				((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.setSize(chartCompositeSize);
 				Rectangle chartButtonsBounds = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.getBounds();
-				int xLog = 100*chartButtonsBounds.height/chartShashBounds.height;
-				if ((100 -xLog) < 20) {
-					xLog=30;
+				int xChart = 100*chartButtonsBounds.height/chartShashBounds.height;
+				if ((100 -xChart) < 20) {
+					xChart=30;
 				}
-				((ChartsComposite)inst.winTable[1]).setWeights(new int[]{100-xLog, xLog});
+				((ChartsComposite)inst.winTable[1]).setWeights(new int[]{100-xChart, xChart});
             }
             
             shell.layout();
