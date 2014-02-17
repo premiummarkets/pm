@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
+import com.finance.pms.datasources.shares.Stock;
+
 
 /**
  * The Class StripedQuotations.
@@ -57,14 +59,6 @@ public class StripedQuotations {
 		this.lowList =  new double[500];
 	}
 
-	/**
-	 * Instantiates a new striped quotations.
-	 * 
-	 * @param limit
-	 *            the limit
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StripedQuotations(Integer limit) {
 		super();
 		this.barList = new ArrayList<QuotationUnit>();
@@ -73,15 +67,6 @@ public class StripedQuotations {
 		this.lowList =  new double[limit];
 	}
 
-
-	/**
-	 * Increase array size by.
-	 * 
-	 * @param nbEle
-	 *            the nb ele
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void increaseArraySizeBy(Integer nbEle) {
 		double[] closeListIncr = new double[getCloseList().length + nbEle];
 		System.arraycopy(getCloseList(), 0, closeListIncr, 0, getCloseList().length);
@@ -94,37 +79,16 @@ public class StripedQuotations {
 		lowList = lowListIncr;
 	}
 
-	/**
-	 * Gets the bar list.
-	 * 
-	 * @return the bar list
-	 */
 	protected ArrayList<QuotationUnit> getBarList() {
 		return barList;
 	}
 
-	/**
-	 * Gets the n last closed.
-	 * 
-	 * @param n
-	 *            the n
-	 * 
-	 * @return the n last closed
-	 * 
-	 * @throws InvalidAlgorithmParameterException
-	 *             the invalid algorithm parameter exception
-	 */
 	public double[] getNLastClosed(int n) throws InvalidAlgorithmParameterException {
 		if (n > this.barList.size())
 			throw new InvalidAlgorithmParameterException("Close values available for dates is " + getCloseList().length);
 		return Arrays.copyOfRange(getCloseList(), this.barList.size() - n, this.barList.size());
 	}
 
-	/**
-	 * Gets the close trimed list.
-	 * 
-	 * @return the close trimed list
-	 */
 	public double[] getCloseTrimedList() {
 		double[] trimedCloseList = new double[this.barList.size()];
 		System.arraycopy(this.closeList, 0, trimedCloseList, 0, this.barList.size());
@@ -156,23 +120,11 @@ public class StripedQuotations {
 	public double[] getCloseList() {
 		return closeList;
 	}
-
-	public void addBar(Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, long volume) {
-		QuotationUnit quotationUnit = new QuotationUnit(date,open,high,low,close,volume);
-		this.getBarList().add(quotationUnit);
-	}
 	
-	public void addBar(int i, Date date, double close) {
-		QuotationUnit quotationUnit = new QuotationUnit(date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO, new BigDecimal(close),0l);
+	public void addBar(int i, Date date, double close, Stock stock) {
+		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO, new BigDecimal(close),0l, null);
 		this.getBarList().add(quotationUnit);
 		this.closeList[i] = close;
-		
-	}
-	
-	public void pushBar(Date date, BigDecimal close) {
-		QuotationUnit quotationUnit = new QuotationUnit(date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO, close,0l);
-		this.getBarList().add(quotationUnit);
-		this.closeList[this.getBarList().size()-1] = close.doubleValue();
 		
 	}
 

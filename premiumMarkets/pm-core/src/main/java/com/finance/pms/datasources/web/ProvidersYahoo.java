@@ -60,18 +60,9 @@ import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
  * @author Guillaume Thoreton
  */
 public class ProvidersYahoo extends Providers implements QuotationProvider, MarketListProvider {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahoo.class);
 
-	
-	/**
-	 * Instantiates a new providers yahoo.
-	 * 
-	 * @param pathToProps the path to props
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public ProvidersYahoo(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceYahoo(pathToProps, this);
@@ -149,7 +140,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 			if (!stockList.contains(s)) { // not already in base
 				
 				//check for last former quotation
-				Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s);
+				Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
 				s.setLastQuote(pastLastQuotationDate);
 				
 				LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ pastLastQuotationDate);

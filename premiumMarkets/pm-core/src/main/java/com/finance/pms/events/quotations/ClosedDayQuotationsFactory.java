@@ -50,7 +50,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 	
 	public  Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency) throws NoQuotationsException {
-		return new Quotations(stock, oneLargeIncrementBefore(endDate), endDate, keepCache, targetCurrency, 0, 0);
+		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, 0);
 	}
 	
 	public  Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency) throws NoQuotationsException {
@@ -63,10 +63,6 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return calendar;
 	}
 
-	/**
-	 * @param amount
-	 * @return
-	 */
 	private int noGapsAmount(int amount) {
 		Integer nbGaps = amount / 5;
 		return amount + 2*nbGaps;
@@ -150,14 +146,6 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		
 		return calendar.getTime();
 	}
-	
-	private  Date oneLargeIncrementBefore(Date date) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		this.incrementDateLarge(calendar, -1);
-		return calendar.getTime();
-	}
-
 	
 	public  Date getFirstQuotationDateFromQuotations(Stock stock) {
 		return DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);

@@ -30,7 +30,6 @@
 package com.finance.pms.screening;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -232,7 +231,7 @@ public class ScreeningSupplementedStock extends Validatable {
 		if (!value.isValid()) {//no value
 			return value;
 		}
-		return new MyBigDec(value.getValue().divide(BigDecimal.valueOf(ideal),4,BigDecimal.ROUND_DOWN).subtract(BigDecimal.ONE).abs(), true);
+		return new MyBigDec(value.getValue().divide(BigDecimal.valueOf(ideal),10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE).abs(), true);
 	}
 
 	public MyBigDec boursoPE() {
@@ -255,14 +254,14 @@ public class ScreeningSupplementedStock extends Validatable {
 		if (currentEPS == null  || currentEPS.compareTo(BigDecimal.ZERO) == 0 || estEPS == null || estEPS.compareTo(BigDecimal.ZERO) == 0	) {
 			return new MyBigDec(null, false);
 		}
-		return new MyBigDec(estEPS.subtract(currentEPS).divide(currentEPS, 2, BigDecimal.ROUND_DOWN), true);
+		return new MyBigDec(estEPS.subtract(currentEPS).divide(currentEPS, 10, BigDecimal.ROUND_HALF_EVEN), true);
 	}
 
 	public MyBigDec calculatePE(BigDecimal currentPrice, BigDecimal currentEPS) {
 		if (currentPrice == null || currentEPS == null || currentEPS.compareTo(BigDecimal.ZERO) == 0) {
 			return new MyBigDec(null, false);
 		}
-		return new MyBigDec(currentPrice.divide(currentEPS, 2, BigDecimal.ROUND_DOWN), true);
+		return new MyBigDec(currentPrice.divide(currentEPS, 10, BigDecimal.ROUND_HALF_EVEN), true);
 	}
 
 	public MyBigDec reutersPE() {
@@ -429,7 +428,7 @@ public class ScreeningSupplementedStock extends Validatable {
 		if (factor == null || factor == 0 || !value.isValid()) {
 			return new MyBigDec(null, false);
 		}
-		return new MyBigDec(value.getValue().divide(new BigDecimal(factor),4,BigDecimal.ROUND_DOWN), true);
+		return new MyBigDec(value.getValue().divide(new BigDecimal(factor),10, BigDecimal.ROUND_HALF_EVEN), true);
 	}
 	
 
@@ -510,7 +509,7 @@ public class ScreeningSupplementedStock extends Validatable {
 		
 		MyBigDec targetPercent = new MyBigDec(null, false);
 		if (this.close != null && targetPrice != null && targetPrice.compareTo(BigDecimal.ZERO) != 0) {
-			targetPercent = new MyBigDec(targetPrice.subtract(close).divide(close, 4, BigDecimal.ROUND_DOWN), true);
+			targetPercent = new MyBigDec(targetPrice.subtract(close).divide(close, 10, BigDecimal.ROUND_HALF_EVEN), true);
 		}
 
 		return targetPercent;
@@ -542,7 +541,7 @@ public class ScreeningSupplementedStock extends Validatable {
 				return reutersYield;
 			}
 		}
-		return this.getDividend().divide(this.close, 4, RoundingMode.DOWN);
+		return this.getDividend().divide(this.close, 4, BigDecimal.ROUND_HALF_EVEN);
 	}
 	
 	public MyBigDec payoutRatio() {
@@ -560,7 +559,7 @@ public class ScreeningSupplementedStock extends Validatable {
 			}
 		}
 		
-		return new MyBigDec(div.divide(avgEps.getValue(),2,BigDecimal.ROUND_DOWN), true);
+		return new MyBigDec(div.divide(avgEps.getValue(),10, BigDecimal.ROUND_HALF_EVEN), true);
 	}
 	
 	private MyBigDec avgEps() {
@@ -570,7 +569,7 @@ public class ScreeningSupplementedStock extends Validatable {
 		MyBigDec epsSum = bBNA.add(yEPS).add(rEPS);
 		int nbv = isValid(bBNA)+isValid(yEPS)+isValid(rEPS);
 		if (nbv == 0) return new MyBigDec(null,false);
-		return new MyBigDec(epsSum.getValue().divide(new BigDecimal(nbv),2,BigDecimal.ROUND_DOWN), true);
+		return new MyBigDec(epsSum.getValue().divide(new BigDecimal(nbv),10, BigDecimal.ROUND_HALF_EVEN), true);
 	}
 
 	//PEG == PE / EPS Growth
@@ -583,7 +582,7 @@ public class ScreeningSupplementedStock extends Validatable {
 		if (epsg.isZero()) {
 			return new MyBigDec(null, false);
 		}
-		return new MyBigDec(pe.getValue().divide(epsg.getValue(),2,RoundingMode.DOWN).movePointLeft(2),true);
+		return new MyBigDec(pe.getValue().divide(epsg.getValue(), 2 , BigDecimal.ROUND_HALF_EVEN).movePointLeft(2),true);
 	}
 
 	@Transient
@@ -618,7 +617,7 @@ public class ScreeningSupplementedStock extends Validatable {
 				this.priceChangeTTM = new MyBigDec(null, false);
 			} else {
 				BigDecimal priceDiffTTM = close.subtract(ttmClose);
-				this.priceChangeTTM = new MyBigDec(priceDiffTTM.divide(ttmClose, 4, BigDecimal.ROUND_DOWN), true);
+				this.priceChangeTTM = new MyBigDec(priceDiffTTM.divide(ttmClose, 10, BigDecimal.ROUND_HALF_EVEN), true);
 			}
 		}
 

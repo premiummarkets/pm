@@ -41,6 +41,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -131,15 +132,16 @@ public class GnuCashTransactionReportParser {
 				}
 			}
 			
-			System.out.println(reportElements);
+			LOGGER.info("Finish parsing : "+reportElements);
 			if (reportElements.size() == 0) throw new IOException("Invalid file.\nNo transaction found.");
 			
-			//PortfolioMgr.getInstance().getPortfolioDAO().deleteTransactionReports();
+			LOGGER.info("Storing transactions");
 			for (TransactionElement transactionElement : reportElements) {
 				PortfolioMgr.getInstance().getPortfolioDAO().deleteOrphanTransactionReportsFor(transactionElement.getExternalAccount());
 			}
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(reportElements);
-
+			LOGGER.info("Finished storing transactions");
+			
 		} catch (XPathExpressionException e) {
 			LOGGER.error(e,e);
 			throw new IOException("Invalid file.", e);
@@ -198,8 +200,15 @@ public class GnuCashTransactionReportParser {
 			
 			NodeList rowAtts = extractAtts(row,"td");
 			
-			DateFormat sdf = new SimpleDateFormat(MainPMScmd.getPrefs().get("gnurepport.dateformat", "yyyy-MM-dd")); // SimpleDateFormat("dd/MM/yy");
-			Date date = sdf.parse(((Element) rowAtts.item(DATE_COLUMN)).getTextContent().trim());
+			Date date;
+			try {
+				DateFormat sdf = new SimpleDateFormat(MainPMScmd.getPrefs().get("gnurepport.dateformat", "yyyy-MM-dd")); // SimpleDateFormat("dd/MM/yy");
+				String dateContent = ((Element) rowAtts.item(DATE_COLUMN)).getTextContent();
+				date = sdf.parse(dateContent.trim());
+			} catch (ParseException e) {
+				//Ignoring lines not starting with a date
+				return null;
+			}
 			
 			String[] accountPath = ((Element) rowAtts.item(ACCOUNT_COLUMN)).getTextContent().trim().split(":");
 			String gnucashAccount = accountPath[accountPath.length-1].trim().replaceAll("[ \n]+","_");
@@ -209,19 +218,33 @@ public class GnuCashTransactionReportParser {
 			
 			String[] amountString = ((Element) rowAtts.item(AMOUNT_COLUMN)).getTextContent().trim().split(" +");
 			
-			BigDecimal quantity =  gnuCashParserHelper.calculateBigDecimal(amountString[0].trim());
-			String symbol = amountString[1].trim();
-			Stock stock = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(symbol);
+
+			BigDecimal quantity;
+			String symbol;
+			if (amountString.length == 2) {
+				try {
+					quantity = gnuCashParserHelper.calculateBigDecimal(amountString[0].trim());
+					symbol = amountString[1].trim();
+				} catch (ParseException e) {
+					//Ignoring lines that are not stocks transactions
+					return null;
+				}
+			} else {
+				//Ignoring lines that are not stocks transactions
+				return null;
+			}
 			
+			Stock stock = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(symbol);
 			if (stock == null) {
-				LOGGER.warn("No stock for symbol or isin : "+symbol);
-				throw new InvalidAlgorithmParameterException("No stock for symbol or isin : "+symbol+ ". In account "+gnucashAccount+" at "+date+" using "+transactionCurrency);
+				//throw new InvalidAlgorithmParameterException("No stock for symbol or isin : "+symbol+ ". In account "+gnucashAccount+" at "+date+" using "+transactionCurrency);
+				LOGGER.warn("No stock for symbol or isin : "+symbol+ ". In account "+gnucashAccount+" at "+date+" using "+transactionCurrency);
+				return null;
 			}
 		
 			return new TransactionElement(stock, null, gnucashAccount, date, price, quantity, transactionCurrency);
 			
-		} catch (Exception e) { //ignore
-			//System.out.println(row.getTextContent());
+		} catch (Exception e) { //Error
+			LOGGER.error("Unparsable line :"+row.getTextContent()+" with error : "+e);
 		}
 		
 		return null;
@@ -254,9 +277,10 @@ public class GnuCashTransactionReportParser {
 		tidy.setMakeClean(true);
 		tidy.setQuoteNbsp(true);
 		tidy.setXmlOut(true);
+		tidy.setInputEncoding("UTF-8");
 		tidy.parseDOM(inputStream, outputStream);
 		
-		LOGGER.trace(outputStream.toString());
+		LOGGER.trace(outputStream.toString("UTF-8"));
 		
 		return new ByteArrayInputStream(outputStream.toByteArray());
 	}
@@ -271,7 +295,7 @@ public class GnuCashTransactionReportParser {
 		GnuCashTransactionReportParser cashTransactionReportParser = new GnuCashTransactionReportParser();
 		cashTransactionReportParser.parse("/home/guil/Documents/Comptes/Gestion/PMS/transactionReport.html");
 		
-		Stock stock = new Stock("LU0294219869","LU0294219869","",false,
+		Stock stock = new Stock("LU0294219869","LU0294219869","",true,
 				StockCategories.DEFAULT_CATEGORY,EventSignalConfig.getNewDate(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),

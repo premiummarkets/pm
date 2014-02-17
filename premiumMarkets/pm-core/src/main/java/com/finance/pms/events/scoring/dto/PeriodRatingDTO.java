@@ -49,18 +49,22 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	Validity rating;
 	List<String> configs;
 	
+	boolean realised;
+	
 	public PeriodRatingDTO() {
 		super();
 		configs = new ArrayList<String>();
+		this.realised = false;
 	}
 
 	public PeriodRatingDTO(Date from, Date to, Validity rating, Double priceChange, String trend) {
-		this();
+		this.configs = new ArrayList<String>();
 		this.from = from;
 		this.to = to;
 		this.rating = rating;
 		this.priceChange = priceChange;
 		this.trend = trend;
+		this.realised = true;
 	}
 
 
@@ -148,9 +152,18 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		this.rating = rating;
 	}
 
+	public boolean isRealised() {
+		return realised;
+	}
+
+	public void setRealised(boolean realised) {
+		this.realised = realised;
+	}
+
 	@Override
 	public String toString() {
-		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceChange=" + priceChange + ", trend=" + trend + ", rating=" + rating +", configs=" + configs + "]";
-	}	
+		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceChange=" + priceChange + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
+	}
+	
 	
 }

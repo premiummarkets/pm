@@ -69,7 +69,7 @@ public class DayQuoteLastYahooFormater extends LineFormater {
 		Matcher fitQuotation;
 		fitQuotation = lastQuote.matcher(line);
 		if (fitQuotation.find()) {
-//			quotation = new BigDecimal(numberFormat.parse(fitQuotation.group(1)).doubleValue()).setScale(2,BigDecimal.ROUND_DOWN);
+//			quotation = new BigDecimal(numberFormat.parse(fitQuotation.group(1)).doubleValue()).setScale(2,BigDecimal.ROUND_HALF_EVEN);
 //			mainQuery.add(date);
 //			mainQuery.add(open);
 //			mainQuery.add(high);

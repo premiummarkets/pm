@@ -32,7 +32,6 @@ package com.finance.pms.portfolio;
 
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.Calendar;
 import java.util.Date;
@@ -50,7 +49,6 @@ import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Sort;
@@ -59,8 +57,10 @@ import org.hibernate.annotations.SortType;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
+import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionComparator;
 import com.finance.pms.datasources.files.TransactionElement;
+import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
@@ -68,7 +68,6 @@ import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
@@ -123,11 +122,11 @@ public class Portfolio extends AbstractSharesList {
 	
 	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException {
 		
-		if (quantity.compareTo(BigDecimal.ZERO) == 0 || buyPrice.compareTo(BigDecimal.ZERO) == 0) {
-			throw new InvalidQuantityException("Invalid Quantity : "+quantity+" or Invalid Buy Price : "+buyPrice+" for "+stock, new Exception());
-		}
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, mLevel, trCurrency);
-		shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
+		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {
+			//throw new InvalidQuantityException("Invalid Quantity : "+quantity+" or Invalid Buy Price : "+buyPrice+" for "+stock, new Exception());
+			shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
+		}
 		
 		return portfolioShare;
 
@@ -135,22 +134,24 @@ public class Portfolio extends AbstractSharesList {
 	
 	private void shareTransaction(PortfolioShare recipientPS, BigDecimal quantity, Date buyDate, BigDecimal lastQuotation, TransactionType movement) throws InvalidQuantityException {
 		
-		Transaction transaction = new Transaction(recipientPS.getCashin(null, buyDate, recipientPS.getTransactionCurrency()), recipientPS.getCashout(null, buyDate, recipientPS.getTransactionCurrency()), quantity, lastQuotation, movement, buyDate);
-		if (transaction.amount().compareTo(BigDecimal.ZERO) == 0) {
+		Transaction transaction = new Transaction(quantity, lastQuotation, movement, buyDate);
+		if (transaction.getQuantity().compareTo(BigDecimal.ZERO) == 0 || transaction.getTransactionSharePrice().compareTo(BigDecimal.ZERO) == 0) {
 			throw new InvalidQuantityException("The amount is too small. Amount must be >= 0.0001 ", new Throwable());
 		}
 
-		TransactionElement transactionElement = recipientPS.applyTransaction(transaction);
+		TransactionElement transactionElement = recipientPS.createTransactionElement(transaction);
 		this.transactions.add(transactionElement);
 		
 		if (recipientPS.getQuantity(buyDate).compareTo(BigDecimal.ZERO) > 0) recipientPS.addBuyAlerts(lastQuotation, buyDate);
 	}
 
-	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) 
-			throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
+	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
 		
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
-			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
+			BigDecimal valueAtDate = BigDecimal.ZERO;
+			if (quantity.compareTo(BigDecimal.ZERO) > 0) {
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
+				valueAtDate = quotations.getClosestCloseForDate(currentDate);
+			}
 			
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 	}
@@ -160,7 +161,7 @@ public class Portfolio extends AbstractSharesList {
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
 			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
-			BigDecimal quantity = unitAmount.divide(valueAtDate, 4, BigDecimal.ROUND_DOWN);
+			BigDecimal quantity = unitAmount.divide(valueAtDate, 10, BigDecimal.ROUND_HALF_EVEN);
 			
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 		} catch (NoQuotationsException e) {
@@ -186,19 +187,18 @@ public class Portfolio extends AbstractSharesList {
 
 		return portfolioShare;
 	}
-	
 
-	public void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
+	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
 		
-		if (this.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin()) == null) {
-			throw new InvalidQuantityException("The share "+portfolioShare+" is not in the portfolio "+this, new Throwable());
-		}
+//		if (this.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin()) == null) {
+//			throw new InvalidQuantityException("The share "+portfolioShare+" is not in the portfolio "+this, new Throwable());
+//		}
 		
 		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
 		
-		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
-			this.removeShareFromList(portfolioShare);
-		}
+//		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
+//			this.removeShareFromList(portfolioShare);
+//		}
 		
 	}
 
@@ -321,7 +321,7 @@ public class Portfolio extends AbstractSharesList {
 			return BigDecimal.ZERO;
 		}
 		BigDecimal gainAmountForDate = this.getGainTotal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(totalInAmountEver, 4, BigDecimal.ROUND_DOWN);
+		return gainAmountForDate.divide(totalInAmountEver, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@Transient
@@ -337,10 +337,10 @@ public class Portfolio extends AbstractSharesList {
 			return BigDecimal.ZERO;
 		}
 		BigDecimal gainAmountForDate = this.getGainUnReal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(basis, 4, BigDecimal.ROUND_DOWN);
+		return gainAmountForDate.divide(basis, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
-	public void rawRemoveShare(PortfolioShare portfolioShare, Date currentDate) {
+	public void rawRemoveShare(PortfolioShare portfolioShare) {
 		
 		removeShareFromList(portfolioShare);
 		
@@ -375,8 +375,8 @@ public class Portfolio extends AbstractSharesList {
 		BigDecimal ret = BigDecimal.ZERO;
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AIN)) {
-				BigDecimal convertedAmount = getCurrencyConverter().convert(te.getCurrency(), inferPortfolioCurrency(), te.amount(), te.getDate());
-				ret = ret.add(convertedAmount);
+				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), inferPortfolioCurrency(), te.getPrice(), te.getDate());
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
 			};
 		}
 		return ret;
@@ -387,8 +387,8 @@ public class Portfolio extends AbstractSharesList {
 		BigDecimal ret = BigDecimal.ZERO;
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AOUT)) {
-				BigDecimal convertedAmount = getCurrencyConverter().convert(te.getCurrency(), inferPortfolioCurrency(), te.amount(), te.getDate());
-				ret = ret.add(convertedAmount);
+				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), inferPortfolioCurrency(), te.getPrice(), te.getDate());
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
 			};
 		}
 		return ret.abs();
@@ -409,8 +409,8 @@ public class Portfolio extends AbstractSharesList {
 		BigDecimal ret = BigDecimal.ZERO;
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
-				BigDecimal convertedAmount = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.amount(), te.getDate());
-				ret = ret.add(convertedAmount);
+				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
 			}
 		}
 		return ret;
@@ -421,8 +421,8 @@ public class Portfolio extends AbstractSharesList {
 		BigDecimal ret = BigDecimal.ZERO;
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AOUT) && te.getStock().equals(portfolioShare.getStock())) {
-				BigDecimal convertedAmount = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.amount(), te.getDate());
-				ret = ret.add(convertedAmount);
+				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
 			}
 		}
 		return ret.abs();
@@ -448,7 +448,7 @@ public class Portfolio extends AbstractSharesList {
 	public BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal priceAvgBuyFor = getPriceAvgBuyFor(portfolioShare, currentStartDate, currentEndDate, targetCurrency);
 		BigDecimal quantityFor = this.getQuantityFor(portfolioShare, currentStartDate, currentEndDate);
-		return priceAvgBuyFor.multiply(quantityFor).setScale(4, BigDecimal.ROUND_DOWN);
+		return priceAvgBuyFor.multiply(quantityFor).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		
 	}
 
@@ -459,8 +459,8 @@ public class Portfolio extends AbstractSharesList {
 			
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
-				BigDecimal convertedAmount = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.amount(), te.getDate());
-				totalMoneyInvested = totalMoneyInvested.add(convertedAmount);
+				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
+				totalMoneyInvested = totalMoneyInvested.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
 				totalQuantityBought = totalQuantityBought.add(te.getQuantity());
 			}
 		}
@@ -469,16 +469,13 @@ public class Portfolio extends AbstractSharesList {
 			LOGGER.warn("getPriceAvgBuyFor : Bought Transaction sum to zero for "+portfolioShare);
 			return BigDecimal.ZERO;
 		} else {
-			return totalMoneyInvested.divide(totalQuantityBought, 4, RoundingMode.DOWN);
+			return totalMoneyInvested.divide(totalQuantityBought, 10, BigDecimal.ROUND_HALF_EVEN);
 		}
 		
 	}
 
 	//The marker has the last time stamp (milli since 1970) and hence is the last transaction for any days
 	public SortedSet<TransactionElement> headTransactionsTo(Date currentStartDate, Date currentEndDate) {
-//		Calendar currentDateCal = Calendar.getInstance();
-//		currentDateCal.setTime(currentEndDate);
-//		currentDateCal.add(Calendar.DAY_OF_YEAR, +1);
 		if (currentStartDate == null || currentStartDate.equals(DateFactory.dateAtZero())) {
 			return transactions.headSet(new TransactionElement(null,null, null, currentEndDate, null, null, null)); 
 		} else {
@@ -493,7 +490,6 @@ public class Portfolio extends AbstractSharesList {
 	public InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
 
 		try {
-			//SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadTransactionReportFor(stock, externalAccount, currentEndDate);
 			SortedSet<TransactionElement> transactionsForStock = new TreeSet<TransactionElement>();
 			for (TransactionElement te : headTransactionsTo(null, currentEndDate)) {
 				if (te.getStock().equals(portfolioShare.getStock())) {

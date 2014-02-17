@@ -54,7 +54,6 @@ import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.Providers;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Stock.
  * 
@@ -73,7 +72,7 @@ public class Stock extends Validatable {
     private String symbol;
     private String isin;
     private String name;
-    private Boolean removable;
+    private Boolean overrideUserQuotes;
     private StockCategories category;
     private Date lastQuote;
     private  MarketValuation marketValuation;
@@ -81,7 +80,6 @@ public class Stock extends Validatable {
     private String sectorHint;
     private TradingMode tradingMode;
     private Long capitalisation;
-    
 	private String refName;
 
 	public Stock() {
@@ -103,7 +101,7 @@ public class Stock extends Validatable {
 		this.symbol = s.symbol;
 		this.isin = s.isin;
 		this.name = s.name;
-		this.removable = s.removable;
+		this.overrideUserQuotes = s.overrideUserQuotes;
 		this.category = s.category;
 		this.lastQuote = s.lastQuote;
 		this.refName = s.refName;
@@ -127,7 +125,7 @@ public class Stock extends Validatable {
 			LOGGER.debug(e);
 		}
 	    this.category = stockCat;
-	    this.removable = true;
+	    this.overrideUserQuotes = true;
 	    
 	    this.tradingMode = TradingMode.CONTINUOUS;
 	    this.sectorHint = "";
@@ -137,15 +135,14 @@ public class Stock extends Validatable {
 	public Stock(String isin, String symbol, String name, Boolean removable,
 			StockCategories category, SymbolMarketQuotationProvider marketQuotationsProvider,
 			MarketValuation  market,
-			String sectorHint, TradingMode tradingMode, Long capitalisation) 
-	throws InvalidAlgorithmParameterException {
+			String sectorHint, TradingMode tradingMode, Long capitalisation) throws InvalidAlgorithmParameterException {
 		
 		this.marketValuation = market;
 		this.symbolMarketQuotationProvider = marketQuotationsProvider;
 	    this.setIsin(isin);
 	    this.setSymbol(symbol);
 	    this.name = name;
-	    this.removable = removable;
+	    this.overrideUserQuotes = removable;
 	    this.category = category;
 	    
 	    this.sectorHint = sectorHint;
@@ -157,14 +154,13 @@ public class Stock extends Validatable {
 			StockCategories category, Date lastquote, 
 			SymbolMarketQuotationProvider marketQuotationsProvider, 
 			MarketValuation market,
-			String sectorHint, TradingMode tradingMode, Long capitalisation) 
-	throws InvalidAlgorithmParameterException {
+			String sectorHint, TradingMode tradingMode, Long capitalisation)  throws InvalidAlgorithmParameterException {
 	    this.marketValuation = market;
 	    this.symbolMarketQuotationProvider = marketQuotationsProvider;
 	    this.setIsin(isin);
 	    this.setSymbol(symbol);
 	    this.name = name;
-	    this.removable = removable;
+	    this.overrideUserQuotes = removable;
 	    this.category = category;
 	    this.lastQuote = lastquote;
 	    
@@ -179,7 +175,7 @@ public class Stock extends Validatable {
 		this.symbol = stock.symbol;
 		this.isin = stock.isin;
 		this.name = stock.name;
-		this.removable = stock.removable;
+		this.overrideUserQuotes = stock.overrideUserQuotes;
 		this.category = stock.category;
 		this.lastQuote = stock.lastQuote;
 		this.refName = stock.refName;
@@ -262,7 +258,7 @@ public class Stock extends Validatable {
 		iq.addValue(this.getSymbol());
 		iq.addValue(this.getIsin());
 		iq.addValue(this.getName());
-		iq.addValue(new Boolean(this.isRemovable()));
+		iq.addValue(overrideUserQuotes);
 		iq.addValue(this.getCategory().name());
 		try {
 			iq.addValue((null != this.lastQuote)?this.lastQuote:sf.parse("1970/01/01"));
@@ -373,13 +369,10 @@ public class Stock extends Validatable {
     public void setSymbol(String symbol) throws InvalidAlgorithmParameterException {
     	this.symbol = this.symbolMarketQuotationProvider.getFullSymbol((symbol != null)?symbol.trim():null);
     }
-    
-    public Boolean toBeRemoved(SharesListId whichMarket) {
-    	return this.isRemovable() && this.isObsolete() && whichMarket.equals(this.getMarketValuation());
-    }
 
-    public Boolean isRemovable() {
-        return removable;
+    @Column(name="REMOVABLE")
+    public Boolean isOverrideUserQuotes() {
+        return overrideUserQuotes;
     }
 
     @Enumerated(EnumType.STRING)
@@ -426,11 +419,9 @@ public class Stock extends Validatable {
 		this.category = category;
 	}
 
-	@SuppressWarnings("unused")
-	private void setRemovable(Boolean removable) {
-		this.removable = removable;
+	public void setOverrideUserQuotes(Boolean overrideUserQuotes) {
+		this.overrideUserQuotes = overrideUserQuotes;
 	}
-	
 	
 	public void setSectorHint(String sectorHint) {
 		this.sectorHint = sectorHint;

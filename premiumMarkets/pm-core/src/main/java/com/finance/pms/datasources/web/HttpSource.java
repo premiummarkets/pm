@@ -167,38 +167,12 @@ public abstract class HttpSource {
 		
 	}
 
-	/**
-	 * Realese pool connection.
-	 * 
-	 * @param conn the conn
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void realesePoolConnection(SourceClient conn) {
 		this.getThreadPool().releaseResource(conn);
 	}
 
-	
-
-	/**
-	 * Http connect.
-	 * 
-	 * @return the my http client
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract MyHttpClient httpConnect(); //throws IOException, HttpException;
 
-	/**
-	 * Read url.
-	 * 
-	 * @param formater the formater
-	 * 
-	 * @return the list< validatable>
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws HttpException 
-	 */
 	public List<Validatable> readURL(LineFormater formater) throws HttpException {
 		
 		MyHttpClient httpcx = this.getConnectionFromPool();

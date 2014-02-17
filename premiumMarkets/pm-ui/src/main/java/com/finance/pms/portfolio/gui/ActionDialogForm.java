@@ -44,7 +44,7 @@ public class ActionDialogForm extends ActionDialog {
 	public Control[] controls; 
 	public Object[] values;
 	
-	public ActionDialogForm(Shell shell,String buttonText,  String formText, String title) {
+	public ActionDialogForm(Shell shell, String buttonText,  String formText, String title) {
 		super(shell, title, formText, null, buttonText, null);
 	}
 	
@@ -58,7 +58,7 @@ public class ActionDialogForm extends ActionDialog {
 	}
 	
 
-	public void setControl(Control ... controls) {
+	public void setControl(Control... controls) {
 		this.controls = controls;
 		this.values = new Object[controls.length];
 		addListeners();

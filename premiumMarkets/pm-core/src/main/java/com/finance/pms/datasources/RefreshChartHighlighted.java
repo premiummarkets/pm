@@ -45,7 +45,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 
 
-public class RefreshChartHightlited extends UserContentStrategyEngine<Stock> {
+public class RefreshChartHighlighted extends UserContentStrategyEngine<Stock> {
 
 	@Override
 	public void callbackForAlerts(Set<Observer> engineObservers, Stock rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {

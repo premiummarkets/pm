@@ -102,7 +102,7 @@ public class MarketValuation implements Serializable {
 	}
 	
 	public BigDecimal translateToBaseCurrencyUnit(BigDecimal amount) {
-		return amount.divide(this.currencyFactor,4,BigDecimal.ROUND_DOWN);
+		return amount.divide(this.currencyFactor, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 }

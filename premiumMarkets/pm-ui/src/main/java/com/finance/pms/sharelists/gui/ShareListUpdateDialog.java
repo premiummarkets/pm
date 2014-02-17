@@ -69,6 +69,7 @@ import com.finance.pms.MainGui;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.MarketValuation;
@@ -669,21 +670,40 @@ public class ShareListUpdateDialog extends Dialog {
 		String symbol = symbolTxt.getText()+(isExtSet?"."+symbolProvExtention:"");
 
 		try {
-			Stock newStock = quotationUpdate.getQuotesForUiForm(
-					unknownProvider, 
-					isinTxt.getText(), symbol, nameTxt.getText(), 
-					StockCategories.valueOf(typeCombo.getText()), 
-					MarketQuotationProviders.valueOf(provCombo.getText()), new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText())));
+			Stock newStock = null;
+			try {
+				newStock = quotationUpdate.getQuotesForUiForm(
+						unknownProvider, 
+						isinTxt.getText(), symbol, nameTxt.getText(), 
+						StockCategories.valueOf(typeCombo.getText()), 
+						MarketQuotationProviders.valueOf(provCombo.getText()), new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText())));
+			} catch (QuotationUpdateException e) {
+				if (!e.getStockNotFound().isEmpty()) {
+				newStock = e.getStockNotFound().keySet().iterator().next();
+				UserDialog inst = new UserDialog(getParent().getShell(), 
+						"The stock quotations could not be found using your settings. It may be that the information typed in is not valid.\n"+
+						"You may want to review the 'Insert Manually' form information and try again.\n" +
+						"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
+				inst.open();
+				} else {
+					throw e;
+				}
+			}
 			if (newStock != null) {
 				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
 				sharesListForThisListProvider.addShare(newStock);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 			} else {
-				UserDialog inst = new UserDialog(getParent().getShell(), 
-						"The stock was not found. It may be that the information typed in is not valid.\n"+
-						"You may want to review the 'Insert Manually' form information and try again.", null);
-				inst.open();
+				String message = "Stock is null for "+nameTxt.getText()+" / "+symbol+" / "+isinTxt.getText();
+				LOGGER.error(message);
+				throw new Exception(message);
 			}
+//			else {
+//				UserDialog inst = new UserDialog(getParent().getShell(), 
+//						"The stock was not found. It may be that the information typed in is not valid.\n"+
+//						"You may want to review the 'Insert Manually' form information and try again.", null);
+//				inst.open();
+//			}
 		} catch (Exception e) {
 			UserDialog inst = new UserDialog(getParent().getShell(), 
 					"An error occurred. It may be that the information typed in is not valid.\n"+

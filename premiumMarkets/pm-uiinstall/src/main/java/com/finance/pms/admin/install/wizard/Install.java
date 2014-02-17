@@ -260,7 +260,7 @@ public class Install {
 	
 	private static void unixPostInstall(String installPath) {
 		
-		//change exec modes
+		//Change exec modes
 		String[] runtimeParams = new String[]{"/bin/bash", installPath+File.separator+"shell"+File.separator+"changeMods.sh", installPath};
 		for (String string : runtimeParams) {
 			System.out.println("launch change exec mods params : "+string);
@@ -283,14 +283,6 @@ public class Install {
 		
 	}
 
-
-	/**
-	 * Windows post install.
-	 * 
-	 * @param installPath the install path
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static void windowsPostInstall(String installPath) {
 		
 		System.out.println("Properties : "+System.getProperties());

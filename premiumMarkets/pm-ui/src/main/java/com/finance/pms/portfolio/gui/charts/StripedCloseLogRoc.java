@@ -27,11 +27,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.db;
+package com.finance.pms.portfolio.gui.charts;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -41,36 +42,34 @@ import java.util.TreeMap;
 
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
-import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
 public class StripedCloseLogRoc extends StripedCloseFunction {
 	
-	public static final int DEFAULTLOGROCSMTH = 5;
+	public static final int DEFAULTLOGROCSMTH = 50;
 	
 	private NumberFormat nf = new DecimalFormat("0.############ \u2030");
 	
-//	private SortedMap<Date, double[]> houseDerivation;
-//	private Date startDate;
-//	private Date endDate;
-	
 	private Boolean rootAtZero;
 	private int period;
-	
-	public StripedCloseLogRoc(Boolean rootAtZero, int period) {
+
+	public StripedCloseLogRoc(Date arbitraryStartDate, Boolean rootAtZero, int period) {
 		this.rootAtZero = rootAtZero;
 		this.period = period;
+		updateStartDate(arbitraryStartDate);
 	}
 
 	@Override
-	public Number[] targetShareData(PortfolioShare ps,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public Number[] targetShareData(SlidingPortfolioShare ps,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
 		Date endDate = getEndDate(stockQuotations);
 
-		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0,startDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
 
 		SortedMap<Date, double[]> data = new TreeMap<Date, double[]>();
@@ -79,10 +78,10 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 			data.put(quotationUnit.getDate(), new double[]{quotationUnit.getClose().doubleValue()});
 		}
 
-		TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
-		SortedMap<Date, double[]> smoothed = smaSmoother.smooth(data, false);
-
 		try {
+			
+			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
+			SortedMap<Date, double[]> smoothed = smaSmoother.smooth(data, false);
 			
 			HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
 			SortedMap<Date, double[]> houseDerivation = houseTrendSmoother.smooth(smoothed, false);
@@ -130,5 +129,13 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 	public Boolean isRelative() {
 		return true;
 	}
+
+	@Override
+	public Date getArbitraryStartDateForCalculation() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(arbitraryStartDate);
+		return QuotationsFactories.getFactory().incrementDate(calendar, -period).getTime();
+	}
+
 
 }

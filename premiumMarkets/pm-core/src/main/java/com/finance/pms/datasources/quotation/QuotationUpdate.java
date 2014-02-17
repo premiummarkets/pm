@@ -148,21 +148,19 @@ public class QuotationUpdate {
 	
 	public Stock getQuotesForUiForm(
 			Providers sharesList, String isin, String symbol, String name, 
-			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException {
+			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException, QuotationUpdateException {
 
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
 
-		Stock newStock = new Stock(
-				isin, symbol, name, false, category,
-				new SymbolMarketQuotationProvider(quoteProvider,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), market,
-				"",TradingMode.CONTINUOUS,0l);
+		Stock newStock = new Stock(isin, symbol, name, true, category, new SymbolMarketQuotationProvider(quoteProvider,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), market,"",TradingMode.CONTINUOUS,0l);
 		sharesList.retrieveAndCompleteStockInfo(newStock, dbStockList);
 
 		try {
 			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))));
 		} catch (QuotationUpdateException e) {
-			if (!e.getStockNotFound().keySet().isEmpty()) return null;
+			//if (!e.getStockNotFound().keySet().isEmpty()) return null;
+			throw e;
 		}
 		
 		return newStock;
@@ -242,6 +240,10 @@ public class QuotationUpdate {
 	}
 
 	public void getQuotes(StockList stockList) throws QuotationUpdateException {
+		this.getQuotes(stockList, false);
+	}
+
+	public void getQuotes(StockList stockList, Boolean reset) throws QuotationUpdateException {
 		
 		Iterator<Stock> stlIt = stockList.iterator();
 		
@@ -256,7 +258,7 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 			
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
-			GetQuotation command = new GetQuotation(EventSignalConfig.getNewDate(), stock);
+			GetQuotation command = new GetQuotation(EventSignalConfig.getNewDate(), stock, reset);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
 			}
@@ -284,10 +286,10 @@ public class QuotationUpdate {
 				if (!getQuotationResult.hasNewQuotations) {
 					exceptions.noNewQuotations.add(getQuotationResult.stock);
 				}
-				if (!getQuotationResult.isSuccessfulUpdate) {
+				if (getQuotationResult.isSuccessfulUpdate != null && !getQuotationResult.isSuccessfulUpdate) {
 					exceptions.updateFailed.put(getQuotationResult.stock, getQuotationResult.failureCause);
 				}
-				if (!getQuotationResult.stockFound) {
+				if (!getQuotationResult.hasPreviousQuotations) {
 					exceptions.stockNotFound.put(getQuotationResult.stock, getQuotationResult.failureCause);
 				}
 			} catch (InterruptedException e) {
@@ -296,9 +298,7 @@ public class QuotationUpdate {
 				LOGGER.error(e,e);
 			}
 		}
-//		if (!exceptions.noNewQuotations.isEmpty() || !exceptions.updateFailed.isEmpty() ) {
-//			throw exceptions;
-//		}
+
 		if (!exceptions.stockNotFound.isEmpty()) {
 			throw exceptions;
 		}
@@ -331,7 +331,7 @@ public class QuotationUpdate {
 		public String toString() {
 			String ret = "";
 			if (!noNewQuotations.isEmpty()) {
-				ret = ret + "\nNo new quotation found for : ";
+				ret = ret + "\nNo new quotations found for : ";
 				for (Stock stock : noNewQuotations) {
 					ret = ret + stock.getFriendlyName() + "\n";
 				}
@@ -340,14 +340,14 @@ public class QuotationUpdate {
 				ret = ret + "\nCan't update : ";
 				for (Stock stock : updateFailed.keySet()) {
 					Exception exception = updateFailed.get(stock);
-					ret = ret + stock.getFriendlyName() + " because "+ ((exception != null)?((exception.getMessage() != null)?exception.getMessage():exception.toString()):"unknown") +"\n";
+					ret = ret + stock.getFriendlyName() + ((exception != null)?((exception.getMessage() != null)?" because \n\t"+ exception.getMessage():" because \n]t"+ exception.toString()):"") +"\n";
 				}
 			}
 			if (!stockNotFound.isEmpty()) {
-				ret = ret + "\nThe stock was not found : ";
+				ret = ret + "\nNo historical quotations available for : ";
 				for (Stock stock : stockNotFound.keySet()) {
 					Exception exception = stockNotFound.get(stock);
-					ret = ret + stock.getFriendlyName() + " because "+ ((exception != null)?((exception.getMessage() != null)?exception.getMessage():exception.toString()):"unknown") +"\n";
+					ret = ret + stock.getFriendlyName() + ((exception != null)?((exception.getMessage() != null)?" because \n\t"+exception.getMessage():" because \n\t"+exception.toString()):"") +"\n";
 				}
 			}
 			return ret;

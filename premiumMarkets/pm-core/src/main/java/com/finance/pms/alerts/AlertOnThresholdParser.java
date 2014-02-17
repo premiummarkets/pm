@@ -75,7 +75,8 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 
 			LOGGER.debug("Calculate alerts for : " + portfolioShare);
 
-			if (portfolioShare.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(this.getCalculatorQuotationData().get(quotationIndex).getDate())) {
+			BigDecimal quantity = portfolioShare.getQuantity(EventSignalConfig.getNewDate());
+			if (quantity.compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(this.getCalculatorQuotationData().get(quotationIndex).getDate())) {
 
 				checkAlertCrossingUp(edata, quotationIndex);
 				checkAlertCrossingDown(edata, quotationIndex);
@@ -88,7 +89,7 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 			} else {
 				LOGGER.debug("Can't parse alert on the " + getCalculatorQuotationData().get(quotationIndex).getDate() +
 						" cause either : the share was bought after on " + portfolioShare.getLastTransactionDate() +
-						" or the share as been sold by another thread and there is none left : quantity left is " + portfolioShare.getQuantity(EventSignalConfig.getNewDate()));
+						" or the share as been sold by another thread and there is none left : quantity left is " + quantity);
 
 			}
 		}
@@ -165,7 +166,7 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		BigDecimal avgPriceDist = BigDecimal.ZERO;
 		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency());
 		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {
-			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice,2,BigDecimal.ROUND_DOWN);
+			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
 		}
 		return ".\nFYI, price ("+todaysQuotation+") is "+new DecimalFormat("#0.00 %").format(avgPriceDist.doubleValue())+" away from average cost per unit ("+avgBuyPrice+").";
 	}

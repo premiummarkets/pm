@@ -76,7 +76,8 @@ public class StockListBoursormaFormater extends LineFormater {
 				//    		retour = new Stock(strt.nextToken(),null, stockCategorie,new SymbolMarketQuotationProvider(marketQuotationsProviders,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				//    				MarketListProviders.UNKNOWN);
 				//    		retour.setName(strt.nextToken());
-				retour.add(new Stock(strt.nextToken(),null,strt.nextToken(),false,stockCategorie,
+				retour.add(
+						new Stock(strt.nextToken(),null,strt.nextToken(), true, stockCategorie,
 						new SymbolMarketQuotationProvider(marketQuotationsProviders,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						new MarketValuation(Market.EURONEXT),"",TradingMode.CONTINUOUS,0l));
 			}

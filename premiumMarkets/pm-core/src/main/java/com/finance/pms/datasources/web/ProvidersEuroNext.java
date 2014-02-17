@@ -45,7 +45,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -110,7 +109,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 			if (!stockList.contains(s)) { //not already in base	
 				
 				//check for last former quotation
-				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s);
+				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
 				s.setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ formerQuotationDate);
@@ -147,7 +146,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		List<Validatable> listNew = new ArrayList<Validatable>();
 		List<Validatable> listReqIns = new ArrayList<Validatable>();
 		List<Validatable> listReqDel = new ArrayList<Validatable>();
-		List<Validatable> listReqDelS = new ArrayList<Validatable>();
+//		List<Validatable> listReqDelS = new ArrayList<Validatable>();
 		
 		String url = ((HttpSourceEuroNext) this.httpSource).getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY);
 		LOGGER.info("Euronext Url : " + url);
@@ -166,16 +165,16 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 		//share list addition
 		sharesListStocks.addAll((List)listNew);
 		
-		//Suppression des tickers non mis � jour depuis x temps
-		ListIterator<Stock> oldStockList = stockList.listIterator();
-		while (oldStockList.hasNext()) {
-			Stock stockBase = oldStockList.next();
-			if (!listNew.contains(stockBase) && stockBase.toBeRemoved(SharesListId.EURONEXT)) {
-				LOGGER.info("Ticker " + stockBase.toString() + " is obsolete and will be removed");
-				buildLookupDeleteReq(listReqDelS, listReqDel, stockBase);
-				oldStockList.remove();
-			}
-		}
+//		//Suppression des tickers non mis � jour depuis x temps
+//		ListIterator<Stock> oldStockList = stockList.listIterator();
+//		while (oldStockList.hasNext()) {
+//			Stock stockBase = oldStockList.next();
+//			if (!listNew.contains(stockBase) && stockBase.toBeRemoved(SharesListId.EURONEXT)) {
+//				LOGGER.info("Ticker " + stockBase.toString() + " is obsolete and will be removed");
+//				buildLookupDeleteReq(listReqDelS, listReqDel, stockBase);
+//				oldStockList.remove();
+//			}
+//		}
 		
 		//Update the last quote date and the stock list fetch from db
 		ListIterator<Validatable> newStockList = listNew.listIterator();
@@ -188,7 +187,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 				stockList.set(index, stockWeb);
 				
 			} else {
-				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb);
+				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb, false);
 				((Stock)stockWeb).setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);

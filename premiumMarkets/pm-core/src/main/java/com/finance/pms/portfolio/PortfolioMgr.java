@@ -173,8 +173,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 			throw new InvalidAlgorithmParameterException("Portfolio "+oldPortfolio.getName()+" does not exists and can't be deleted.");
 		}
 		this.portfolios.set(indexOf, newPortfolio);
-		
-		this.portfolioDAO.delete(oldPortfolio);
+		//this.portfolioDAO.delete(oldPortfolio);
 		this.portfolioDAO.saveOrUpdatePortfolio(newPortfolio);
 	}
 	

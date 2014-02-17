@@ -96,7 +96,8 @@ public class HttpSourceInvestir extends HttpSource implements SourceConnector {
 	}
 	
 	public String getStockInvestirURL() {
-		return "http://bourse.investir.fr/bourse/cotations/fiche/historique/donnees.jsp?code=%s&place=%s&codif=ISIN&range=%d&period=DAY&offset=";
+		//return "http://bourse.investir.fr/bourse/cotations/fiche/historique/donnees.jsp?code=%s&place=%s&codif=ISIN&range=%d&period=DAY&offset=";
+		return "http://bourse.lesechos.fr/bourse/details/donnees_histo.jsp?fw3_component=dataList&fw3_autonomous=/bourse/details/donnees_histo-view.jsp&dataList_pageNum=$$PAGENUM$$&&period=DAY&offset=-60&place=%s&code=%s&range=%d&codif=ISIN";
 	}
 
 	@Override

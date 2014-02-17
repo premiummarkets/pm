@@ -56,7 +56,6 @@ import javax.swing.border.EmptyBorder;
 
 import com.finance.pms.admin.install.TextAreaStream;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ProgressPanel.
  * 
@@ -108,11 +107,7 @@ public class ProgressPanel extends JPanel  implements PropertyChangeListener {
     
     public TextAreaStream textAreaStream; 
         
-    /**
- * Instantiates a new progress panel.
- * 
- * @author Guillaume Thoreton
- */
+
 public ProgressPanel() {
         
         super();
@@ -158,30 +153,15 @@ public ProgressPanel() {
         
         
     }  
-    
-    /**
-     * Sets the progress text.
-     * 
-     * @param s the new progress text
-     */
+
     public void setProgressText(String s) {
         progressDescription.setText(s);
     }
-    
-    /**
-     * Sets the progress value.
-     * 
-     * @param i the new progress value
-     */
+
     public void setProgressValue(int i) {
         progressBar.setValue(i);
     }
-    
-    /**
-     * Gets the content panel.
-     * 
-     * @return the content panel
-     */
+
     private JPanel getContentPanel() {            
         
         JPanel contentPanel1 = new JPanel();
@@ -199,7 +179,6 @@ public ProgressPanel() {
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
         jTextAreaDescr.setFocusable(true);
-        //jTextAreaDescr.setFont(jTextAreaDescr.getFont().deriveFont(12f));
         jTextAreaDescr.setText(
         	"<html>"+
         	"<p>" +
@@ -272,13 +251,7 @@ public ProgressPanel() {
     		} catch (IOException e) { /* TODO: error handling */ }
     	} else { /* TODO: error handling */ }
     }
-    
-    
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
+
     private ImageIcon getImageIcon() {        
         return null;
     }

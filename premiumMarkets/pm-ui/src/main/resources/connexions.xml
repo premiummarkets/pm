@@ -87,6 +87,7 @@
 				<value>com.finance.pms.weather.WeatherElement</value>
 				<value>com.finance.pms.datasources.files.TransactionElement</value>
 				<value>com.finance.pms.events.scoring.TunedConf</value>
+				<value>com.finance.pms.events.quotations.QuotationUnit</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">

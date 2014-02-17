@@ -39,10 +39,11 @@ import org.eclipse.swt.widgets.Shell;
 public class ActionDialog extends UserDialog {
 	
 	protected ActionDialogAction action;
+	protected ActionDialogAction errorHandler;
+	
 	String actionTxt;
 
 	public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
-		//super(parent, (style == SWT.NONE)? SWT.DIALOG_TRIM | SWT.RESIZE :style, title, erreur, addMessage);
 		super(parent, title, erreur, addMessage);
 		this.actionTxt = actionTxt;
 		this.action = action;
@@ -57,15 +58,15 @@ public class ActionDialog extends UserDialog {
 	@Override
 	protected void validationButtonTxtAndAction() {
 
-		valideButton1.setText(actionTxt);
-		valideButton1.setFont(MainGui.DEFAULTFONT);
-		valideButton1.addMouseListener(new MouseAdapter() {
+		valideButton.setText(actionTxt);
+		valideButton.setFont(MainGui.DEFAULTFONT);
+		valideButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent evt) {
 				doAction();
 			}
 		});
-		valideButton1.addKeyListener(new KeyAdapter() {
+		valideButton.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent evt) {
 				if (evt.keyCode == SWT.CR || evt.keyCode == SWT.SPACE) {
@@ -78,8 +79,8 @@ public class ActionDialog extends UserDialog {
 
 	protected void doAction() {
 		
-		valideButton1.setCapture(true);
-		valideButton1.forceFocus();
+		valideButton.setCapture(true);
+		valideButton.forceFocus();
 		
 		getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		new Thread(new Runnable() {
@@ -88,10 +89,18 @@ public class ActionDialog extends UserDialog {
 					@Override
 					public void run() {
 						try {
-							action.action(valideButton1);
+							action.action(valideButton);
+							dispose();
+						} catch (Exception e) {
+							if (errorHandler != null) {
+								LOGGER.warn(e);
+								errorHandler.action(valideButton);
+							} else {
+								LOGGER.error(e,e);
+								dispose();
+							}
 						} finally {
 							if (!getParent().isDisposed()) getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-							validerbutton1MouseDown();
 						}
 					}
 				});
@@ -106,12 +115,12 @@ public class ActionDialog extends UserDialog {
 		
 		this.actionTxt = actionTxt;
 		this.action = action;
-		valideButton1.setText(actionTxt);
+		valideButton.setText(actionTxt);
 		
 		layout();
 		
 		getParent().setActive();
-		valideButton1.setFocus();
+		valideButton.setFocus();
 	}
 
 
@@ -125,6 +134,10 @@ public class ActionDialog extends UserDialog {
 		} else if (!this.actionTxt.equals(actionTxt))
 			return false;
 		return true;
+	}
+
+	public void setErrorHandler(ActionDialogAction errorHandler) {
+		this.errorHandler = errorHandler;
 	}
 
 	

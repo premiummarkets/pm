@@ -153,7 +153,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		}
 		
 		//return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_UP);
-		return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+		return exchangeRate.multiply(amount).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	private BigDecimal fetchRateForDate(Currency fromCurrency, Currency toCurrency, Date date) {
@@ -188,13 +188,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	
 	}
 
-	/**
-	 * @param fromCurrency
-	 * @param toCurrency
-	 * @param date
-	 * @param yesterday
-	 * @return
-	 */
 	private boolean isCacheOutOfDate(Currency fromCurrency, Currency toCurrency, Date date) {
 		
 		Calendar yesterday = new GregorianCalendar();
@@ -213,11 +206,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		return (noCurrentData && lastUpdateWasNotYeasterday && yesterdayWasNotBank && lastUpdateWasNotTheDayBeforeYeasterday && theDayBeforeYesterdayWasNotBank);
 	}
 
-	/**
-	 * @param fromCurrency
-	 * @param toCurrency
-	 * @return
-	 */
 	private boolean isCacheEmptyFor(Currency fromCurrency, Currency toCurrency) {
 		return (!cache.containsKey(fromCurrency) || !cache.get(fromCurrency).containsKey(toCurrency) || cache.get(fromCurrency).get(toCurrency).isEmpty());
 	}
@@ -228,15 +216,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		return currencyRates.get(closestByDichoIndex).getRate();
 	}
 
-	/**
-	 * Gets the closest by dicho.
-	 * 
-	 * @param date the date
-	 * @param start the start
-	 * @param end the end
-	 * 
-	 * @return the closest by dicho
-	 */
 	private Integer getClosestByDicho(List<CurrencyRate> rates, Date date, Integer start, Integer end) {
 		
 		Integer midle = (end - start) / 2 + start;

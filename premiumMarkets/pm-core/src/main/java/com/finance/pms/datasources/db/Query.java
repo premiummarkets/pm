@@ -36,112 +36,49 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Query {
-	
-	/** The vl. */
+
 	private  List<Object>  vl;
-	
-	/** The query. */
 	private  String query;
 	
-	/**
-	 * Instantiates a new query.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public Query() {
 	    vl = new ArrayList<Object>();
 	}
-	
-	/**
-	 * Instantiates a new query.
-	 * 
-	 * @param query the query
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public Query(String query) {
 	    vl = new ArrayList<Object>();
 	    this.query= query;
 	    
 	}
-	
-	/**
-	 * Instantiates a new query.
-	 * 
-	 * @param params the params
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public Query(List<Object> params) {
 	    vl = params;
 	}
-	
-	/**
-	 * Adds the values list.
-	 * 
-	 * @param valeurs the valeurs
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void addValuesList(List<Comparable<?>> valeurs) {
 	    vl.addAll(valeurs);
 	}
-	
-	/**
-	 * Adds the value.
-	 * 
-	 * @param valeur the valeur
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void addValue(Object valeur) {
 	    vl.add(valeur);
 	}
-	
-	/**
-	 * Gets the vl.
-	 * 
-	 * @return the vl
-	 */
+
 	public List<Object> getParameterValues() {
 		return vl;
 	}
-    
-    /**
-     * Gets the query.
-     * 
-     * @return the query
-     */
+
     public String getQuery() {
         return query;
     }
-    
-    /**
-     * Sets the query.
-     * 
-     * @param query the new query
-     */
+
     public void setQuery(String query) {
         this.query = query;
     }
-    
-    /**
-     * Result parse.
-     * 
-     * @param retour the retour
-     * @param rs the rs
-     * 
-     * @throws SQLException the SQL exception
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
     	throw new RuntimeException("resultParse must be overwritten");
     }
     
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
 	public String toString() {
     	StringBuffer retour = new StringBuffer();

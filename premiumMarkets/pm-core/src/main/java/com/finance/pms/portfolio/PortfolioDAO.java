@@ -67,7 +67,7 @@ public interface PortfolioDAO {
 
 	public SortedSet<TransactionElement> loadOrphanTransactionReportFor(Stock stock, String account, Date date);
 
-	public void deleteTransactionReports();
+	public void deleteALLTransactionReports();
 	
 	public void deleteOrphanTransactionReportsFor(String externalAccount);
 	

@@ -111,7 +111,6 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 				if (taskIds != null && !taskIds.isEmpty()) {
 					lastTaskOfThisGroup = taskIds.get(taskIds.size() -1);
 				} else {
-					
 					return;
 				}
 

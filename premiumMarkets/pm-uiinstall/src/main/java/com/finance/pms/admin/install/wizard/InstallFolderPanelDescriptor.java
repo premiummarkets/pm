@@ -35,26 +35,16 @@ import java.io.File;
 
 import com.nexes.wizard.WizardPanelDescriptor;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class InstallFolderPanelDescriptor.
  * 
  * @author Guillaume Thoreton
  */
 public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implements KeyListener {
-    
-    /** The Constant IDENTIFIER. */
+
     public static final String IDENTIFIER = "INSTALL_FOLDER_PANEL";
-    
-    /** The panel3. */
     InstallFolderPanel panel3;
-    
-    /**
-     * Instantiates a new install folder panel descriptor.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public InstallFolderPanelDescriptor() {
         
         panel3 = new InstallFolderPanel();
@@ -79,8 +69,7 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implemen
 	public void aboutToHidePanel() {
 		
 		super.aboutToHidePanel();
-		
-		//TODO check release and do as per
+	
 		String instFolderName = panel3.getJt().getText();
 		if (panel3.checkInstallPath(instFolderName)) {
 			File pmFolder = InstallFolderPanel.setPmFolder(instFolderName);
@@ -90,20 +79,9 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implemen
 			Install.selectNextButton();
 		}
 	}
-	   
-	/**
-	 * Check install folder.
-	 * 
-	 * @param installationFolder the installation folder
-	 * 
-	 * @return the file
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private void updateInstallFolder(File pmFolder) {
-		//New install??
 		if (pmFolder != null && pmFolder.exists()) {
-			//TODO already installed
 			System.out.println("Install folder already exists : "+pmFolder.getAbsolutePath());
 		} else {
 			System.out.println("Install folder will be created : "+pmFolder.getAbsolutePath());

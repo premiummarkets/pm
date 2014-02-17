@@ -30,7 +30,6 @@
 package com.finance.pms.datasources.shares;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum StockCategories.
  * 
@@ -48,35 +47,15 @@ public enum StockCategories {
 	private String category;
 	private String boursoramaUrlCatHint;
 	
-	/**
-	 * Instantiates a new stock categories.
-	 * 
-	 * @param category the category
-	 * @param boursoramaUrlMarche the boursorama url marche
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private StockCategories(String category,String boursoramaUrlMarche) {
 		this.category = category;
 		this.boursoramaUrlCatHint = boursoramaUrlMarche;
 	}
 
-	/**
-	 * Gets the category.
-	 * 
-	 * @return the category
-	 */
 	public String getCategory() {
 		return category;
 	}
-	
-	/**
-	 * String values.
-	 * 
-	 * @return the string[]
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static String[] stringValues() {
 		String[] retour = new String[StockCategories.values().length];
 		for (int i=0; i < StockCategories.values().length; i++) {
@@ -84,16 +63,7 @@ public enum StockCategories {
 		}
 		return retour;	
 	}
-	
-	/**
-	 * Value of string.
-	 * 
-	 * @param st the st
-	 * 
-	 * @return the stock categories
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static StockCategories valueOfString(String st) {
 		StockCategories eValues[] = StockCategories.values();
 		for (int i=0; i < eValues.length; i++) {
@@ -102,23 +72,11 @@ public enum StockCategories {
 		throw new IllegalArgumentException(
 	            "No enum const StockCategories." + st);
 	}
-	
-	
 
-	/**
-	 * Gets the boursorama url marche.
-	 * 
-	 * @return the boursorama url marche
-	 */
 	public String getBoursoramaUrlCatHint() {
 		return boursoramaUrlCatHint;
 	}
 
-	/**
-	 * Sets the boursorama url marche.
-	 * 
-	 * @param boursoramaUrlMarche the new boursorama url marche
-	 */
 	public void setBoursoramaUrlCatHint(String boursoramaUrlMarche) {
 		this.boursoramaUrlCatHint = boursoramaUrlMarche;
 	}

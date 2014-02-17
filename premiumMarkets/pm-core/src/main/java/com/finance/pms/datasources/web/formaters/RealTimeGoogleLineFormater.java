@@ -40,6 +40,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.events.quotations.DateToMinutesOTDConverter;
 import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class RealTimeGoogleLineFormater extends LineFormater {
 	
@@ -96,6 +97,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 	}
 
 	private QuotationUnit addQuotationUnit(String[] quotationLine, int minuteOTOpenD) {
+		
 		BigDecimal open = new BigDecimal(quotationLine[1]);
 		BigDecimal high = new BigDecimal(quotationLine[2]);
 		BigDecimal low = new BigDecimal(quotationLine[3]);
@@ -106,7 +108,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		DateToMinutesOTDConverter firstDateTimeMinutesConverter = new DateToMinutesOTDConverter(quotationDate, this.openingMinute + minuteOTOpenD);
 		firstDateTimeMinutesConverter.minuteOfTheDayToTime();
 		
-		return new QuotationUnit(quotationDate.getTime(), open, high, low, close, volume);
+		return new QuotationUnit((Stock) params.get(0), ((Stock) params.get(0)).getMarketValuation().getCurrency(),quotationDate.getTime(), open, high, low, close, volume, ORIGIN.WEB);
 	}
 
 

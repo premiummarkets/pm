@@ -30,16 +30,25 @@
 
 package com.finance.pms.events.quotations;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-// TODO: Auto-generated Javadoc
+import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.Stock;
+
 /**
  * The Class QuotationUnit.
  * 
@@ -47,48 +56,42 @@ import javax.persistence.TemporalType;
  */
 @Entity
 @Table(name="QUOTATIONS")
-public class QuotationUnit implements Comparable<QuotationUnit>
+public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 {
-    
-    /** The date. */
-    private Date date;
-    
-    /** The open. */
-    private BigDecimal open;
-    
-    /** The high. */
-    private BigDecimal high;
-    
-    /** The low. */
-    private BigDecimal low;
-    
-    /** The close. */
-    private BigDecimal close;
-    
-    /** The volume. */
-    private long volume;
-    
+	
+	private static final long serialVersionUID = -406044551517984882L;
 
-	/**
-     * Instantiates a new quotation unit.
-     * 
-     * @param date the date
-     * @param open the open
-     * @param high the high
-     * @param low the low
-     * @param close the close
-     * @param volume the volume
-     * 
-     * @author Guillaume Thoreton
-     */
-    public QuotationUnit(Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, long volume)
+	public enum ORIGIN {WEB,USER};
+	
+	private Stock stock;
+	private Currency currency;
+    private Date date;
+    private BigDecimal open;
+    private BigDecimal high;
+    private BigDecimal low;
+    private BigDecimal close;
+    private Long volume;
+    private ORIGIN origin;
+    
+    
+    //Hib
+    @SuppressWarnings("unused")
+	private QuotationUnit() {
+		super();
+	}
+
+
+	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin)
     {
+		this.stock = stock;
+		this.currency=currency;
         this.date = date;
         this.open = open;
         this.high = high;
         this.low = low;
         this.close = close;
         this.volume = volume;
+        this.origin = origin;
     }
     
     
@@ -105,25 +108,10 @@ public class QuotationUnit implements Comparable<QuotationUnit>
 		case VOLUME :
 			return getVolume();
 		default :
-			throw new RuntimeException("Unknwon quotqtion data type");
+			throw new RuntimeException("Unknown quotation data type");
 		}
     }
 
-    /**
-     * Gets the close.
-     * 
-     * @return the close
-     */
-    public BigDecimal getClose()
-    {
-        return close;
-    }
-
-    /**
-     * Gets the date.
-     * 
-     * @return the date
-     */
     @Id
     @Temporal(TemporalType.DATE)
     public Date getDate()
@@ -131,49 +119,47 @@ public class QuotationUnit implements Comparable<QuotationUnit>
         return date;
     }
 
-    /**
-     * Gets the high.
-     * 
-     * @return the high
-     */
+    @ManyToOne
+	@JoinColumns( { @JoinColumn(name = "isin", referencedColumnName = "isin"), @JoinColumn(name = "symbol", referencedColumnName = "symbol") })
+	@Id
+	public Stock getStock() {
+		return stock;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void setStock(Stock stock) {
+		this.stock = stock;
+	}
+	
+
+	@Column(name="CLOSEVALUE")
+    public BigDecimal getClose()
+    {
+        return close;
+    }
+
     public BigDecimal getHigh()
     {
         return high;
     }
 
-    /**
-     * Gets the low.
-     * 
-     * @return the low
-     */
     public BigDecimal getLow()
     {
         return low;
     }
 
-    /**
-     * Gets the open.
-     * 
-     * @return the open
-     */
+	@Column(name="OPENVALUE")
     public BigDecimal getOpen()
     {
         return open;
     }
 
-    /**
-     * Gets the volume.
-     * 
-     * @return the volume
-     */
     public long getVolume()
     {
         return volume;
     }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -182,9 +168,6 @@ public class QuotationUnit implements Comparable<QuotationUnit>
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -202,23 +185,75 @@ public class QuotationUnit implements Comparable<QuotationUnit>
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
 	public int compareTo(QuotationUnit o) {
 		return this.date.compareTo(o.getDate());
 	}
+	
+	public QuotationUnit clone(Date newDate) {
+		return new QuotationUnit(this.stock, this.currency, newDate, this.open, this.high, this.low, this.close, this.volume, this.origin);
+	}
+
+	@Id
+	@Enumerated(EnumType.ORDINAL)
+	public ORIGIN getOrigin() {
+		return origin;
+	}
+
+	public void setOrigin(ORIGIN origin) {
+		this.origin = origin;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void setDate(Date date) {
+		this.date = date;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void setOpen(BigDecimal open) {
+		this.open = open;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void setHigh(BigDecimal high) {
+		this.high = high;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void setLow(BigDecimal low) {
+		this.low = low;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void setClose(BigDecimal close) {
+		this.close = close;
+	}
+
+	@SuppressWarnings("unused")
+	private void setVolume(long volume) {
+		this.volume = volume;
+	}
+
+	//XXX not used
+	@Enumerated(EnumType.STRING)
+	public Currency getCurrency() {
+		return currency;
+	}
+	
+	@SuppressWarnings("unused")
+	private void setCurrency(Currency currency) {
+		this.currency = currency;
+	}
+
 
 	@Override
 	public String toString() {
-		return "QuotationUnit [date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close
-				+ ", volume=" + volume + "]";
+		return "QuotationUnit [stock=" + stock.getFriendlyName() + ", currency=" + currency + ", date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close + ", volume=" + volume + ", origin=" + origin + "]";
 	}
-	
-	public QuotationUnit clone(Date newDate) {
-		return new QuotationUnit(newDate,this.open,this.high,this.low,this.close, this.volume);
-	}
-    
 	
     	
 }

@@ -44,17 +44,17 @@ import com.finance.pms.datasources.shares.Currency;
 //TODO Merge the rest of transaction and Portfolio Gnu parser commons.
 public class GnuCashParserHelper {
 
-	BigDecimal calculateBigDecimal(String textContent) throws ParseException {
-		Number number = extractNumber(textContent);
+	protected BigDecimal calculateBigDecimal(String textContent) throws ParseException {
 		try {
-			return new BigDecimal(number.doubleValue()).setScale(4, BigDecimal.ROUND_DOWN);
-		} catch (NumberFormatException e) {
-			GnuCashAdvPortfolioParser.LOGGER.error("can't format to BigD",e);
+			Number number = extractNumber(textContent);
+			return new BigDecimal(number.doubleValue()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+		} catch (ParseException e) {
+//			GnuCashAdvPortfolioParser.LOGGER.error("can't format to BigD",e);
+			throw e;
 		}
-		throw new ParseException("",0);
 	}
 
-	Currency extractCurrency(String columnTxt) {
+	protected Currency extractCurrency(String columnTxt) {
 		GnuCashAdvPortfolioParser.LOGGER.debug("Checking if :"+columnTxt+" contains $?");
 		if (columnTxt.contains("$")) {
 			GnuCashAdvPortfolioParser.LOGGER.debug(columnTxt+" contains $!");
@@ -68,7 +68,7 @@ public class GnuCashParserHelper {
 		return   Currency.valueOf(columnTxt.replace("\n","").trim().split("( |\n)")[0]);
 	}
 	
-	Number extractNumber(String textContent) throws ParseException {
+	protected Number extractNumber(String textContent) throws ParseException {
 		NumberFormat numberFormat = NumberFormat.getInstance();
 		Number number = numberFormat.parse(textContent.replaceAll("($|\u00A3)","").replaceAll("[A-Z][A-Z][A-Z]( |\n)*", "").trim());
 		return number;
@@ -90,6 +90,7 @@ public class GnuCashParserHelper {
 		//Read from the original file and write to the new
 		//unless content matches data to be removed.
 		int startOfFile = 0;
+		outputWriter.write("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n");
 		while ((line = br.readLine()) != null) {
 			
 			if (startOfFile < 10) {

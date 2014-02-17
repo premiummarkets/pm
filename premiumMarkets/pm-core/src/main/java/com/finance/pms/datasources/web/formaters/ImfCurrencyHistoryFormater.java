@@ -154,13 +154,13 @@ public class ImfCurrencyHistoryFormater extends LineFormater {
 						if (fromRate.compareTo(BigDecimal.ZERO) >= 0 && toRate.compareTo(BigDecimal.ZERO) >= 0 ) {
 							BigDecimal rate = BigDecimal.ONE;
 							if (toUsdPerCurrency && fromUsdPerCurrency) {
-								rate = fromRate.divide(toRate,8,BigDecimal.ROUND_DOWN);
+								rate = fromRate.divide(toRate, 10, BigDecimal.ROUND_HALF_EVEN);
 							} else if (!toUsdPerCurrency && !fromUsdPerCurrency) {
-								rate = toRate.divide(fromRate,8,BigDecimal.ROUND_DOWN);
+								rate = toRate.divide(fromRate, 10, BigDecimal.ROUND_HALF_EVEN);
 							} else if (!toUsdPerCurrency && fromUsdPerCurrency) {
-								rate = fromRate.multiply(toRate).setScale(8,BigDecimal.ROUND_DOWN);
+								rate = fromRate.multiply(toRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 							} else if (toUsdPerCurrency && !fromUsdPerCurrency) {
-								rate = BigDecimal.ONE.divide(fromRate.multiply(toRate),8,BigDecimal.ROUND_DOWN);
+								rate = BigDecimal.ONE.divide(fromRate.multiply(toRate), 10, BigDecimal.ROUND_HALF_EVEN);
 							}
 							Validatable rateLine = new CurrencyRate(fromCurrency, toCurrency, datesList.get(i), rate);
 							ret.add(rateLine);

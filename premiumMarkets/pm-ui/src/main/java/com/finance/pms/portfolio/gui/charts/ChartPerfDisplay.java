@@ -41,9 +41,11 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialog;
@@ -55,9 +57,6 @@ import com.finance.pms.PopupMenu;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
-import com.finance.pms.datasources.db.StripedCloseLogRoc;
-import com.finance.pms.datasources.db.StripedCloseRelativeToReferee;
-import com.finance.pms.datasources.db.StripedCloseRelativeToStart;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
@@ -153,12 +152,43 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			
 			final Set<TransfoInfo> transfos = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
 					
-					new TransfoInfo("Change to Cost per unit", new ActionDialogAction() {
+					new TransfoInfo("Change to Invested per unit", new ActionDialogAction() {
 
 						@Override
 						public void action(Control targetControl) {
-							chartTarget.setStripedCloseFunction( new StripedCloseRelativeToBuyPrice());
-							chartTarget.updateCharts( true, true, false);
+							
+							Boolean isIncludeMoneyOutSelected = true;
+							if (chartTarget.getStripedCloseFunction() instanceof StripedCloseRelativeToInvested) {
+								isIncludeMoneyOutSelected = ((StripedCloseRelativeToInvested) chartTarget.getStripedCloseFunction()).getIncludeMoneyOut();
+							}
+									
+							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
+							Group priceToogleGrp = new Group(actionDialogForm.getParent(), SWT.NONE);
+							priceToogleGrp.setBackground(MainGui.pOPUP_BG);
+							priceToogleGrp.setLayout(new FillLayout(SWT.VERTICAL));
+							final Button bPrice =  new Button(priceToogleGrp, SWT.RADIO);
+							bPrice.setText("Relative to the average buy price");
+							bPrice.setToolTipText("The result will be displayed relative to the average buy price basis, reflecting the unrealized gain.");
+							bPrice.setFont(MainGui.DEFAULTFONT);
+							bPrice.setSelection(!isIncludeMoneyOutSelected);
+							final Button uPrice =  new Button(priceToogleGrp, SWT.RADIO);
+							uPrice.setText("Relative to the cost per unit");
+							uPrice.setToolTipText("The result will be displayed relative to the final cost per unit at date, taking in account the moneys out.");
+							uPrice.setFont(MainGui.DEFAULTFONT);
+							uPrice.setSelection(isIncludeMoneyOutSelected);
+							ActionDialogAction actionDialogAction = new ActionDialogAction() {
+								@Override
+								public void action(Control targetControl) {
+									actionDialogForm.values[0] = Boolean.valueOf(uPrice.getSelection());
+									chartTarget.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0]));
+									chartTarget.updateCharts( true, true, false);
+								}
+							};
+
+							actionDialogForm.setControl(bPrice, uPrice);
+							actionDialogForm.setAction(actionDialogAction);
+							actionDialogForm.open();
+							
 						}
 					}),
 					new TransfoInfo("Change to Period start", new ActionDialogAction() {
@@ -176,12 +206,13 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
 							final Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
+							zeroBut.setFont(MainGui.DEFAULTFONT);
 							zeroBut.setText("Start all from 0");
 							zeroBut.setToolTipText("If selected, the resulting ROCS will all be starting from 0 at the start of the period and than be drawn relative to this point.\nIf not the resulting ROCs will naturally oscillate around 0.");
-							zeroBut.setFont(MainGui.DEFAULTFONT);
 							zeroBut.setSelection(false);
 							final Text smthPeriodTxt = new Text(actionDialogForm.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
 							final String pString = "Log ROC smoothing period";
+							smthPeriodTxt.setFont(MainGui.CONTENTFONT);
 							smthPeriodTxt.setText(pString);
 							smthPeriodTxt.setToolTipText("In order to reflect some trend, the ROC must be calculated after smoothing the quotations.\nEnter here the smoothing period number.\nDefault will be "+StripedCloseLogRoc.DEFAULTLOGROCSMTH+" days.");
 							smthPeriodTxt.addFocusListener(new FocusListener() {
@@ -198,7 +229,6 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action(Control targetControl) {
-									//actionDialogForm.values[0] = Boolean.valueOf(((Button)actionDialogForm.controls[0]).getSelection()).toString();
 									actionDialogForm.values[0] = Boolean.valueOf(zeroBut.getSelection());
 									String text = smthPeriodTxt.getText();
 									Integer pSmth;
@@ -208,8 +238,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 									} catch (NumberFormatException e) {
 										pSmth = StripedCloseLogRoc.DEFAULTLOGROCSMTH;
 									}
-									//chartTarget.setStripedCloseFunction( new StripedCloseLogRoc(actionDialogForm.values[0].equals(Boolean.TRUE.toString())));
-									chartTarget.setStripedCloseFunction( new StripedCloseLogRoc((Boolean)actionDialogForm.values[0], pSmth) );
+									chartTarget.setStripedCloseFunction( new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), (Boolean)actionDialogForm.values[0], pSmth) );
 									chartTarget.updateCharts( true, true, false);
 								}
 							};
@@ -385,7 +414,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					loadRefereeQuotations(stock);
 				} catch (Exception e) {
 					LOGGER.warn("Unable to initialise referee "+previousSymbol+ " " + previousIsin);
-					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToBuyPrice());
+					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 				}
 			}
 
@@ -398,7 +427,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
-			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarketValuation().getCurrency(),0,0);
+			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarketValuation().getCurrency(), 1, 0);
 			chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);

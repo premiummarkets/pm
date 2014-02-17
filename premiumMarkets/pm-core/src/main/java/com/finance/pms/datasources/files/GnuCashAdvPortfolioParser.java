@@ -138,7 +138,7 @@ public class GnuCashAdvPortfolioParser {
 		this.notFoundStocks = new ArrayList<String>();
 	}
 
-	public Portfolio parse(String filePath, String newPortfolioName, UserPortfolio oldPortfolio) throws IOException {
+	public Portfolio parse(String filePath, String newPortfolioName, UserPortfolio oldPortfolio) throws NoResultException {
 		
 		//UserPortfolio newPortfolio = new UserPortfolio(newPortfolioName, null);
 		UserPortfolio newPortfolio = null;
@@ -177,6 +177,7 @@ public class GnuCashAdvPortfolioParser {
 					PortfolioShare portfolioShareUpdated = addPortfolioShareFor(newPortfolio, newPortfolioName, row);
 					
 					if (newPortfolio == null) newPortfolio = ((UserPortfolio) portfolioShareUpdated.getPortfolio());
+					
 					newPortfolio.resetManualAlerts(portfolioShareUpdated, oldPortfolio);
 					
 				} catch (NoResultException e) {
@@ -185,19 +186,14 @@ public class GnuCashAdvPortfolioParser {
 				}
 			}
 			
-		} catch (FileNotFoundException e) {
-			throw new IOException("Invalid file "+e.getMessage(),e);
-		} catch (XPathExpressionException e) {
-			throw new IOException("Invalid file "+e.getMessage(),e);
-		} catch (DOMException e) {
-			throw new IOException("Invalid file "+e.getMessage(),e);
-		} catch (IOException e) {
-			throw new IOException("Invalid file "+e.getMessage(),e);
-		} catch (ParseException e) {
-			throw new IOException("Invalid file "+e.getMessage(),e);
-		} 
+		} catch (Exception exception) {
+			LOGGER.error(exception, exception);
+			throw new NoResultException("Invalid file : "+filePath+ ". "+exception);
+		}
 		
-		if (newPortfolio == null) throw new IOException("Data inconsistency.\nNo transaction were found for that Portfolio.\nPlease load the relevant GUNUCASH 'Transaction Report' first.");
+		if (newPortfolio == null) {
+			throw new NoResultException("Could not instantiate Portfolio.");
+		}
 		
 		return newPortfolio;
 
@@ -273,13 +269,13 @@ public class GnuCashAdvPortfolioParser {
 			
 			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, account, EventSignalConfig.getNewDate());
 			if (transactionsForStock.size() == 0) {
-				throw new NoResultException(stock+" is in Portfolio "+newPortfolioName+"\n" +
-						" but no transaction was found in the GNUCASH transaction report regarding the former.\n" +
-						"\tPlease check the GNUCASH transaction report.\n");
+				throw new NoResultException(
+						""+stock+"\n is in Portfolio "+newPortfolioName +" but no transaction was found in the database regarding the former.\n" +
+						"\tPlease check and update the GNUCASH transaction report.\n");
 			}
 			
 			PortfolioShare updatedPortfolioShare = addPortfolioShare(initOrUsedPorfolio, newPortfolioName, portfolioNodes, stock, account, transactionsForStock);
-			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(new ArrayList<TransactionElement>(transactionsForStock));
+			//PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(new ArrayList<TransactionElement>(transactionsForStock));
 		
 			return updatedPortfolioShare;
 			
@@ -299,12 +295,12 @@ public class GnuCashAdvPortfolioParser {
 		return titlesPositions.get(expectedTitles[columnRefIdx]);
 	}
 
-	private PortfolioShare addPortfolioShare(UserPortfolio portfolio, String newPortfolioName, NodeList portfolioNodes, Stock stock, String account, SortedSet<TransactionElement> transactionsForStock) 
-																															throws ParseException, InvalidAlgorithmParameterException {
+	private PortfolioShare addPortfolioShare(UserPortfolio portfolio, String newPortfolioName, NodeList portfolioNodes, Stock stock, String account, SortedSet<TransactionElement> transactionsForStock) throws ParseException, InvalidAlgorithmParameterException {
 		
 		Currency reportQuotationCurrency = gnuCashParserHelper.extractCurrency(((Element) portfolioNodes.item(columnPositionFor(PRICE_COLUMN))).getTextContent());
 		Currency portfolioReportCurrency = gnuCashParserHelper.extractCurrency(((Element) portfolioNodes.item(columnPositionFor(BASIS_COLUMN))).getTextContent());
 		
+		//Debug
 //			BigDecimal quantity = gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(NBSHARES_COLUMN)).getTextContent());		
 //			//Sum from other Asset account
 //			BigDecimal cashin = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(MONEYIN_COLUMN)).getTextContent()),portfolioReportCurrency);
@@ -312,26 +308,27 @@ public class GnuCashAdvPortfolioParser {
 //			BigDecimal income = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(INCOME_COLUMN)).getTextContent()),portfolioReportCurrency);
 //			//Sum to other Asset account
 //			BigDecimal cashout = gnuCashParserHelper.unitConvertion(gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(MONEYOUT_COLUMN)).getTextContent()),portfolioReportCurrency);
+		//End Debug
 		
 //		BigDecimal calcCashin = BigDecimal.ZERO;
 //		BigDecimal calcCashout = BigDecimal.ZERO;
 //		BigDecimal quantity = BigDecimal.ZERO;
-//		for (TransactionElement transactionElement : transactionsForStock) {
-//			Currency transactionCurrency = reportQuotationCurrency;
-//
-//			//Fix erroneous gnucash transactions
-//			transactionElement.setCurrency(transactionCurrency);
-//			//End fix
-//			
+		for (TransactionElement transactionElement : transactionsForStock) {
+			Currency transactionCurrency = reportQuotationCurrency;
+
+			//Fix erroneous GNUCASH transactions currency
+			transactionElement.setCurrency(transactionCurrency);
+			//End fix
+			
 //			BigDecimal price = currencyConverter.convert(transactionCurrency, portfolioReportCurrency, transactionElement.getPrice(), transactionElement.getDate());
-//			BigDecimal amount = price.multiply(transactionElement.getQuantity()).setScale(4, BigDecimal.ROUND_DOWN);
+//			BigDecimal amount = price.multiply(transactionElement.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 //			if (amount.compareTo(BigDecimal.ZERO) > 0) {
 //				calcCashin = calcCashin.add(amount);
 //			} else {
 //				calcCashout = calcCashout.add(amount.abs());
 //			}
 //			quantity = quantity.add(transactionElement.getQuantity());
-//		}
+		}
 		
 		if (portfolio == null) portfolio = new UserPortfolio(newPortfolioName, portfolioReportCurrency);
 		for (TransactionElement transactionElement : transactionsForStock) {
@@ -354,49 +351,57 @@ public class GnuCashAdvPortfolioParser {
 		}
 		
 		LOGGER.info("The following stock was not found in db. Symbol or reference : "+ref+", name : "+name);
-		String urls = "No quotation found in database for "+name+"/"+ref+".\nPossible file feeds :\n";
-		for (MarketQuotationProviders quotationsProvider : MarketQuotationProviders.values()) {
-
-			try {
-				String cmdParam = quotationsProvider.getCmdParam();
-				Providers providerInstance = Providers.getInstance(cmdParam);
-				MyUrl url = null;
-				String feed = "%s,%s,%s,TRACKERS,%s,%s\n";
-				String urlMsg = "Url : %s\n";
-				if (providerInstance instanceof QuotationProvider) {
-					try {
-						for (Market market : Market.values()) {
+		
+		String urls = "No quotation found in database for "+name+"/"+ref+".\n";
+		if (ref.startsWith("QS")) {
+			urls = urls + ref +" is a temporary code.\n";
+		} else {
+			urls = urls + "Possible feeds :\n";
+			for (MarketQuotationProviders quotationsProvider : MarketQuotationProviders.values()) {
+	
+				try {
+					String cmdParam = quotationsProvider.getCmdParam();
+					Providers providerInstance = Providers.getInstance(cmdParam);
+					MyUrl url = null;
+					String feed = "%s,%s,%s,TRACKERS,%s,%s\n";
+					String urlMsg = "Url : %s\n";
+					if (providerInstance instanceof QuotationProvider) {
+						try {
+							for (Market market : Market.values()) {
+								
+								Stock stock = new Stock(ref, ref, name, true, 
+										StockCategories.DEFAULT_CATEGORY, 
+										new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(cmdParam), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
+										new MarketValuation(market), 
+										"",TradingMode.CONTINUOUS,0l);
+								
+								Date end = EventSignalConfig.getNewDate();
+								Date fiveCalDaysBeforeEnd = new Date(end.getTime()-60*60*1000*24*5);
+								url = ((QuotationProvider) providerInstance).resolveUrlFor(stock, fiveCalDaysBeforeEnd, end);
 							
-							Stock stock = new Stock(ref, ref, name, true, 
-									StockCategories.DEFAULT_CATEGORY, 
-									new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(cmdParam), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
-									new MarketValuation(market), 
-									"",TradingMode.CONTINUOUS,0l);
-							
-							Date end = EventSignalConfig.getNewDate();
-							Date fiveCalDaysBeforeEnd = new Date(end.getTime()-60*60*1000*24*5);
-							url = ((QuotationProvider) providerInstance).resolveUrlFor(stock, fiveCalDaysBeforeEnd, end);
-						
-							List<Validatable> pageRes = null;
-							try {
-								pageRes = ((QuotationProvider) providerInstance).readPage(stock, url, fiveCalDaysBeforeEnd);
-							} catch (Exception e) {
+								if (url != null) {
+									List<Validatable> pageRes = null;
+									try {
+										pageRes = ((QuotationProvider) providerInstance).readPage(stock, url, fiveCalDaysBeforeEnd);
+									} catch (Exception e) {
+										LOGGER.info("Trying "+url.getUrl()+"\n\t gives : "+e);
+									}
+									if (pageRes != null && !pageRes.isEmpty()) {
+										urls = urls + String.format(feed, ref,ref,name, market.name(), cmdParam);
+										urls = urls + String.format(urlMsg, url.getUrl());	
+									}
+								}
 								
 							}
-							if (pageRes != null && !pageRes.isEmpty()) {
-								urls = urls + "VALID -> ";
-							}
-							urls = urls + String.format(feed, ref,ref,name, market.name(), cmdParam);
-							urls = urls + String.format(urlMsg, url.getUrl());	
+							
+						} catch (Exception e1) {
+							LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
 						}
-						
-					} catch (Exception e1) {
-						LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
+	
 					}
-
+				} catch (Exception e) {
+					LOGGER.error(e);
 				}
-			} catch (Exception e) {
-				LOGGER.error(e);
 			}
 		}
 

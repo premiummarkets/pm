@@ -201,7 +201,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 
 	
-	public void deleteTransactionReports() {
+	public void deleteALLTransactionReports() {
 		this.getHibernateTemplate().deleteAll(this.getHibernateTemplate().loadAll(TransactionElement.class));
 		
 	}

@@ -66,7 +66,9 @@ import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
+import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionElement;
+import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
@@ -80,7 +82,6 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
@@ -210,7 +211,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.warn("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return value.add(cashout).subtract(cashin).divide(cashin, 4, BigDecimal.ROUND_DOWN);
+			return value.add(cashout).subtract(cashin).divide(cashin, 10, BigDecimal.ROUND_HALF_EVEN);
 		}
 	}
 	
@@ -229,7 +230,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.warn("Basis is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 4, BigDecimal.ROUND_DOWN);
+			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 10, BigDecimal.ROUND_HALF_EVEN);
 		}
 	}
 	
@@ -249,7 +250,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.warn("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 4, BigDecimal.ROUND_DOWN);
+			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 10, BigDecimal.ROUND_HALF_EVEN);
 		}
 	}
 
@@ -266,7 +267,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		try {
 			InOutWeighted weightedInOut = getWeightedInvested(currentStartDate, currentEndDate, currency);
 			BigDecimal weightedInvestedStillIn = weightedInOut.getWeightedInvestedStillIn();
-			return 	getValue(currentStartDate, currentEndDate, currency).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(), 10, BigDecimal.ROUND_DOWN); 
+			return 	getValue(currentStartDate, currentEndDate, currency).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(), 10, BigDecimal.ROUND_HALF_EVEN); 
 		} catch (ArithmeticException e) {
 			return BigDecimal.ZERO;
 		}
@@ -278,7 +279,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
 		BigDecimal cashout = this.getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal cashin = this.getCashin(currentStartDate, currentEndDate, currency);
-		return cashin.subtract(cashout).divide(quantity, 10, BigDecimal.ROUND_DOWN);
+		return cashin.subtract(cashout).divide(quantity, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 	
 	@Transient
@@ -300,7 +301,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	public BigDecimal getValue(Date currentStartDate, Date currentEndDate, Currency currency) {
 		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
 		BigDecimal priceClose = getPriceClose(currentEndDate, currency);
-		return quantity.multiply(priceClose).setScale(4, BigDecimal.ROUND_DOWN);
+		return quantity.multiply(priceClose).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@Enumerated(EnumType.ORDINAL)
@@ -362,27 +363,32 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 	
 	
-	public TransactionElement applyTransaction(Transaction transaction) throws InvalidQuantityException {
+	public TransactionElement createTransactionElement(Transaction transaction) throws InvalidQuantityException {
 
-			BigDecimal quantity = transaction.getQuantity();
-			if (transaction.getModtype().equals(TransactionType.AOUT)) {
-				BigDecimal newQuantity = quantity.subtract(this.getQuantity(transaction.getDate())).negate();
-				if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
-					throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
-				}
-				quantity = quantity.multiply(new BigDecimal(-1));
+		BigDecimal quantity = transaction.getQuantity();
+		if (transaction.getModtype().equals(TransactionType.AOUT)) {
+			if (quantity.compareTo(this.getQuantity(transaction.getDate())) > 0) {
+				throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
 			}
-			//else throw new InvalidParameterException(" Transaction mode should not be NULL : " + transaction);		
-			
-			return new TransactionElement(stock, (Portfolio) this.portfolio, this.externalAccount, transaction.getDate(), transaction.getTransactionSharePrice(), quantity, transactionCurrency);
+			quantity = quantity.multiply(new BigDecimal(-1));
+		}
+
+		return new TransactionElement(stock, (Portfolio) this.portfolio, this.externalAccount, transaction.getDate(), transaction.getTransactionSharePrice(), quantity, transactionCurrency);
+		
 	}
 	
 	public void addBuyAlerts(BigDecimal transcationPrice, Date currentDate) {
-		addBuyPriceAlerts(transcationPrice, currentDate);
-		BigDecimal avgCostPerUnit = this.getPriceUnitCost(currentDate, transactionCurrency);
-		addAboveTakeProfitAlert(avgCostPerUnit, currentDate);
-		addWeightedZeroProfitAlertGuardSetter(avgCostPerUnit, currentDate);
-		addChannelAlerts(transcationPrice);
+		
+		if (this.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) {
+
+			addBuyPriceAlerts(transcationPrice, currentDate);
+			BigDecimal avgCostPerUnit = this.getPriceUnitCost(currentDate, transactionCurrency);
+			addAboveTakeProfitAlert(avgCostPerUnit, currentDate);
+			addWeightedZeroProfitAlertGuardSetter(avgCostPerUnit, currentDate);
+			addChannelAlerts(transcationPrice);
+
+		}
+		
 	}
 
 	private void addBuyPriceAlerts(BigDecimal currentPrice, Date currentDate) {
@@ -415,10 +421,10 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
 			
 			BigDecimal cashin = this.getCashin(currentDate, transactionCurrency);
-			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(cashin);
+			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(cashin).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 			BigDecimal cashout = this.getCashout(currentDate, transactionCurrency);
-			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(this.getQuantity(currentDate),4,BigDecimal.ROUND_HALF_EVEN);
-			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 4, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
+			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(getQuantity(currentDate), 10,BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 			
 			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" gain. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
 			
@@ -439,7 +445,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return getCashin(null, currentDate, transactionCurrency);
 	}
 
-	public void addWeightedZeroProfitAlertGuardSetter(BigDecimal avgBuyPrice, Date currentDate) {
+	void addWeightedZeroProfitAlertGuardSetter(BigDecimal avgBuyPrice, Date currentDate) {
 		
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 	
@@ -489,7 +495,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	private BigDecimal addPercentage(BigDecimal calculationPrice, BigDecimal rateToCalculationPrice) {
-		BigDecimal percentToBeAdded = calculationPrice.multiply(rateToCalculationPrice);
+		BigDecimal percentToBeAdded = calculationPrice.multiply(rateToCalculationPrice).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		BigDecimal aboveSellLimit = calculationPrice.add(percentToBeAdded);
 		return aboveSellLimit;
 	}
@@ -559,7 +565,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	public PortfolioShare resetCrossUp(AlertOnThreshold alert, BigDecimal crossingPrice) {
 		LOGGER.debug("Params : " + alert);
-
+			
 		switch (alert.getAlertType()) {
 			case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:
 				//remove and set a take profit below alert guard
@@ -729,7 +735,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		TransactionElement outPreviousTransaction = null;
 		
 		BigDecimal inPrevPrice = currencyConverter.convert(inPreviousTransaction.getCurrency(), currency, inPreviousTransaction.getPrice(), inPreviousTransaction.getDate());
-		weightedCashin = inPreviousTransaction.getQuantity().multiply(inPrevPrice).setScale(10, BigDecimal.ROUND_DOWN);
+		weightedCashin = inPreviousTransaction.getQuantity().multiply(inPrevPrice).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		
 		while (!transactionsForStockQ.isEmpty()) {
 			
@@ -737,14 +743,16 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			BigDecimal price = currencyConverter.convert(transaction.getCurrency(), currency, transaction.getPrice(), transaction.getDate());
 			
 			//in
-			if (transaction.transactionType().equals(TransactionType.AIN) && price.compareTo(BigDecimal.ZERO) != 0) {//buy and not split
+			if (transaction.transactionType().equals(TransactionType.AIN)) {
 				
 				//Weighting previous invest
-				BigDecimal worseRate =  BigDecimal.ONE.add(getShouldWorseRateForDate(inPreviousTransaction.getDate(), transaction.getDate(), true));
-				weightedCashin = weightedCashin.multiply(worseRate).setScale(10, BigDecimal.ROUND_DOWN);
+				BigDecimal r = getYearlyRateForDates(inPreviousTransaction.getDate(), transaction.getDate(), false);
+				//Double compoundRate = compoundRate(inPreviousTransaction.getDate(), transaction.getDate(), r.doubleValue());
+				BigDecimal worseRate =  BigDecimal.ONE.add(r);
+				weightedCashin = weightedCashin.multiply(worseRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 
 				//Adding transaction
-				BigDecimal transactionValue = transaction.getQuantity().multiply(price);
+				BigDecimal transactionValue = transaction.getQuantity().multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 				weightedCashin = weightedCashin.add(transactionValue);
 				
 				inPreviousTransaction = transaction;
@@ -754,16 +762,18 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			} 
 			
 			//out
-			if (transaction.transactionType().equals(TransactionType.AOUT) && price.compareTo(BigDecimal.ZERO) != 0) {//sell and not split
+			if (transaction.transactionType().equals(TransactionType.AOUT)) {
 				
 				//Weighting previous invest
 				if (outPreviousTransaction != null) {
 					
-					BigDecimal worseRate =  BigDecimal.ONE.add(getShouldWorseRateForDate(outPreviousTransaction.getDate(), transaction.getDate(), false));
-					weightedCashout = weightedCashout.multiply(worseRate).setScale(10, BigDecimal.ROUND_DOWN);
+					BigDecimal r = getYearlyRateForDates(outPreviousTransaction.getDate(), transaction.getDate(), false);
+					BigDecimal worseRate =  BigDecimal.ONE.add(r);
+					//Double compoundRate = compoundRate(inPreviousTransaction.getDate(), transaction.getDate(), r.doubleValue());
+					weightedCashout = weightedCashout.multiply(worseRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 
 					//Adding transaction
-					BigDecimal transactionValue = transaction.getQuantity().abs().multiply(price);
+					BigDecimal transactionValue = transaction.getQuantity().abs().multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 					weightedCashout = weightedCashout.add(transactionValue);
 					
 					outPreviousTransaction = transaction;
@@ -773,8 +783,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 					
 				} else {
 					
-					BigDecimal outPrevPrice = currencyConverter.convert(transaction.getCurrency(), currency, transaction.getPrice(), transaction.getDate());
-					weightedCashout = transaction.getQuantity().abs().multiply(outPrevPrice).setScale(10, BigDecimal.ROUND_DOWN);
+					weightedCashout = transaction.getQuantity().abs().multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 					outPreviousTransaction = transaction;
 					
 				}
@@ -784,12 +793,16 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		
 		//To Current date
 		//in
-		BigDecimal inLastWorseRate = BigDecimal.ONE.add(getShouldWorseRateForDate(inPreviousTransaction.getDate(), currentEndDate, true));
-		weightedCashin = weightedCashin.multiply(inLastWorseRate).setScale(11, BigDecimal.ROUND_DOWN);
+		BigDecimal r = getYearlyRateForDates(inPreviousTransaction.getDate(), currentEndDate, false);
+		BigDecimal inLastWorseRate = BigDecimal.ONE.add(r);
+		//Double compoundRate = compoundRate(inPreviousTransaction.getDate(), currentEndDate, r.doubleValue());
+		weightedCashin = weightedCashin.multiply(inLastWorseRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		//out
 		if (outPreviousTransaction != null) {
-			BigDecimal outLastWorseRate = BigDecimal.ONE.add(getShouldWorseRateForDate(outPreviousTransaction.getDate(), currentEndDate, false));
-			weightedCashout = weightedCashout.multiply(outLastWorseRate).setScale(10, BigDecimal.ROUND_DOWN);
+			BigDecimal rOut = getYearlyRateForDates(outPreviousTransaction.getDate(), currentEndDate, false);
+			BigDecimal outLastWorseRate = BigDecimal.ONE.add(rOut);
+			//Double compoundRateOut = compoundRate(inPreviousTransaction.getDate(), currentEndDate, rOut.doubleValue());
+			weightedCashout = weightedCashout.multiply(outLastWorseRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		}
 	
 		LOGGER.debug("Weighted invested value for "+this.stock.getIsin()+" is "+weightedCashin);
@@ -797,7 +810,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return new InOutWeighted(weightedCashin, weightedCashout, currentEndDate);
 	}
 	
-	private BigDecimal getShouldWorseRateForDate(Date firstDate, Date secondDate, Boolean addExpectationRate)  {
+	private BigDecimal getYearlyRateForDates(Date firstDate, Date secondDate, Boolean addExpectationRate)  {
 		
 		BigDecimal inflationRateForDate = getInflationRateBetweenDates(firstDate, secondDate);
 		if (addExpectationRate) {
@@ -810,15 +823,19 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	
 	private BigDecimal getExpectationRateForDate(Date firstDate, Date secondDate) {
 		
+		double yearlyRate = getEventsConfig().getExpectedRate().doubleValue();
+		Double compoundRate = compoundRate(firstDate, secondDate, yearlyRate);
+		return new BigDecimal(compoundRate.toString()).subtract(BigDecimal.ONE);
+		
+	}
+
+	protected Double compoundRate(Date firstDate, Date secondDate, double yearlyRate) {
 		long firstMilli = firstDate.getTime(); 
 		long secondMilli = secondDate.getTime();
 		long diffMilli = secondMilli - firstMilli;
 		Double nbyears = new Double(diffMilli) / 1000 / 60 / 60 / 24 / 365;
-		Double expectedRate = 0d;
-		// fv = pv * (1 + r) ^ np
-		expectedRate = Math.pow((1 + getEventsConfig().getExpectedRate().doubleValue()), nbyears);
-		return new BigDecimal(expectedRate.toString()).subtract(BigDecimal.ONE);
-		
+		Double compoundRate = Math.pow((1 + yearlyRate), nbyears); // fv = pv * (1 + r) ^ np
+		return compoundRate;
 	}
 	
 	private BigDecimal getInflationRateBetweenDates(Date fisrtDate, Date secondDate) {
@@ -829,12 +846,13 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			BigDecimal inflatAtSecond;
 			Stock stock = new Stock(
 					ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
-					new Boolean(false), StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
+					true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
 					new MarketValuation(Market.NYSE), "None", TradingMode.UNKNOWN, 0L);
-			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, fisrtDate, false, Currency.USD);
+			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, fisrtDate, secondDate, true, Currency.USD, 1, 0);
 			inflatAtFirst = inflationQuotations.getClosestCloseForDate(fisrtDate);
 			inflatAtSecond = inflationQuotations.getClosestCloseForDate(secondDate);
-			inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(inflatAtFirst,10,BigDecimal.ROUND_DOWN);
+			//inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(inflatAtFirst, 10, BigDecimal.ROUND_HALF_EVEN);
+			inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(new BigDecimal(100), 10, BigDecimal.ROUND_HALF_EVEN);
 		} catch (Exception e) {
 			LOGGER.warn(e,e); 
 		}

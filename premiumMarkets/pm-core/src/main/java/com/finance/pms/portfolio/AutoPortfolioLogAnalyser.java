@@ -130,14 +130,14 @@ public class AutoPortfolioLogAnalyser {
 				BigDecimal price = new BigDecimal(splitedLine[priceCol]);
 				if (mvt.equals("buy")) {
 					stockGain.quantity = stockGain.quantity.add(quantity);
-					stockGain.addIn(quantity.multiply(price).setScale(2, BigDecimal.ROUND_DOWN), stock, date);
+					stockGain.addIn(quantity.multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN), stock, date);
 					stockGain.quantityIn = stockGain.quantityIn.add(quantity);
 				} else 
 					if (mvt.equals("sell")) {
-						BigDecimal transactionAmount = quantity.multiply(price);
+						BigDecimal transactionAmount = quantity.multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 						stockGain.quantity = stockGain.quantity.subtract(quantity);
 						stockGain.quantityOut = stockGain.quantityOut.add(quantity);
-						stockGain.addOut(transactionAmount.setScale(2, BigDecimal.ROUND_DOWN), stock, date);
+						stockGain.addOut(transactionAmount, stock, date);
 						
 					}
 			}
@@ -182,7 +182,7 @@ public class AutoPortfolioLogAnalyser {
 			totalInEUR = totalInEUR.add(gain.inEUR);
 			totalOutEUR = totalOutEUR.add(gain.outEUR);
 			totRealAmntEUR = totRealAmntEUR.add(gain.realizedAmountEUR());
-			amountStillInEUR = amountStillInEUR.add(gain.quantity.multiply(gain.lastQuoteEUR));
+			amountStillInEUR = amountStillInEUR.add(gain.quantity.multiply(gain.lastQuoteEUR)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 			
 			//Total Other Currencies
 			BigDecimal[] totalsForCurrency = totalsPerCurrency.get(currency);
@@ -197,16 +197,16 @@ public class AutoPortfolioLogAnalyser {
 			//realized amount for currency
 			totalsForCurrency[2] = totalsForCurrency[2].add(gain.realizedAmount());
 			//amout still in for currency
-			totalsForCurrency[3] = totalsForCurrency[3].add(gain.quantity.multiply(gain.lastQuote));
+			totalsForCurrency[3] = totalsForCurrency[3].add(gain.quantity.multiply(gain.lastQuote).setScale(10, BigDecimal.ROUND_HALF_EVEN));
 		}
 		buffer.append("\n");
 		buffer.append("Sums"+separator+"\t\tReal Amount"+separator+"\t\tunReal Amount"+separator+"\t\tunReal Profit\n");
-		BigDecimal totUnRealAmntEUR = totalOutEUR.add(amountStillInEUR).subtract(totalInEUR).setScale(4, BigDecimal.ROUND_DOWN);
-		buffer.append("Totals "+ Currency.EUR + separator +  "\t\t" +nf.format(totRealAmntEUR) + separator +  "\t\t" +nf.format(totUnRealAmntEUR) + separator +  "\t\t" +nf.format(totUnRealAmntEUR.divide(totalInEUR, 4 ,BigDecimal.ROUND_DOWN))+"\n");
+		BigDecimal totUnRealAmntEUR = totalOutEUR.add(amountStillInEUR).subtract(totalInEUR).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		buffer.append("Totals "+ Currency.EUR + separator +  "\t\t" +nf.format(totRealAmntEUR) + separator +  "\t\t" +nf.format(totUnRealAmntEUR) + separator +  "\t\t" +nf.format(totUnRealAmntEUR.divide(totalInEUR, 10 ,BigDecimal.ROUND_HALF_EVEN))+"\n");
 		for (Currency currency : totalsPerCurrency.keySet()) {
 			BigDecimal[] totals = totalsPerCurrency.get(currency);
-			BigDecimal totalUnRealAmount = totals[1].add(totals[3]).subtract(totals[0]).setScale(4, BigDecimal.ROUND_DOWN);
-			buffer.append("Part "+ currency + separator +  "\t\t" +nf.format(totals[2]) + separator +  "\t\t" +nf.format(totalUnRealAmount) + separator + "\t\t" + nf.format(totalUnRealAmount.divide(totals[0], 4 ,BigDecimal.ROUND_DOWN))+"\n");
+			BigDecimal totalUnRealAmount = totals[1].add(totals[3]).subtract(totals[0]).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+			buffer.append("Part "+ currency + separator +  "\t\t" +nf.format(totals[2]) + separator +  "\t\t" +nf.format(totalUnRealAmount) + separator + "\t\t" + nf.format(totalUnRealAmount.divide(totals[0], 10 ,BigDecimal.ROUND_HALF_EVEN))+"\n");
 		}
 		
 				
@@ -261,34 +261,34 @@ public class AutoPortfolioLogAnalyser {
 		
 		private void updateRealGainAmount() {
 			
-			BigDecimal avgBuyPrice = this.in.divide(this.quantityIn, 4, BigDecimal.ROUND_DOWN);
-			BigDecimal avgSellPrice = this.out.divide(this.quantityOut, 4, BigDecimal.ROUND_DOWN);
-			this.realGainAmount = avgSellPrice.subtract(avgBuyPrice).multiply(this.quantityOut).setScale(4,BigDecimal.ROUND_DOWN);
+			BigDecimal avgBuyPrice = this.in.divide(this.quantityIn, 10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal avgSellPrice = this.out.divide(this.quantityOut, 10, BigDecimal.ROUND_HALF_EVEN);
+			this.realGainAmount = avgSellPrice.subtract(avgBuyPrice).multiply(this.quantityOut).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 			
-			BigDecimal avgBuyPriceEUR = this.inEUR.divide(this.quantityIn, 4, BigDecimal.ROUND_DOWN);
-			BigDecimal avgSellPriceEUR = this.outEUR.divide(this.quantityOut, 4, BigDecimal.ROUND_DOWN);
-			this.realGainAmountEUR = avgSellPriceEUR.subtract(avgBuyPriceEUR).multiply(this.quantityOut).setScale(4,BigDecimal.ROUND_DOWN);
+			BigDecimal avgBuyPriceEUR = this.inEUR.divide(this.quantityIn, 10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal avgSellPriceEUR = this.outEUR.divide(this.quantityOut, 10, BigDecimal.ROUND_HALF_EVEN);
+			this.realGainAmountEUR = avgSellPriceEUR.subtract(avgBuyPriceEUR).multiply(this.quantityOut).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		}
 
 		public BigDecimal unRealizedProfit() {
 			BigDecimal unRealizedAmount = unRealizedAmount();
-			return unRealizedAmount.divide(in,4,BigDecimal.ROUND_DOWN);
+			return unRealizedAmount.divide(in, 10 ,BigDecimal.ROUND_HALF_EVEN);
 		}
 		
 		public BigDecimal unRealizedProfitEUR() {
 			BigDecimal unRealizedAmountEUR = unRealizedAmountEUR();
-			return unRealizedAmountEUR.divide(inEUR,4,BigDecimal.ROUND_DOWN);
+			return unRealizedAmountEUR.divide(inEUR, 10, BigDecimal.ROUND_HALF_EVEN);
 		}
 
 		private BigDecimal unRealizedAmount() {
-			BigDecimal stillIn = lastQuote.multiply(quantity);
+			BigDecimal stillIn = lastQuote.multiply(quantity).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 			BigDecimal unRealizedAmount = stillIn.add(out).subtract(in);
 			return unRealizedAmount;
 		}
 		
 		private BigDecimal unRealizedAmountEUR() {
 			
-			BigDecimal stillIn = lastQuoteEUR.multiply(quantity);
+			BigDecimal stillIn = lastQuoteEUR.multiply(quantity).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 			BigDecimal unRealizedAmountEUR = stillIn.add(outEUR).subtract(inEUR);
 			return unRealizedAmountEUR;
 		}

@@ -205,7 +205,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 				stockList.set(index, stockWeb);
 				
 			} else {
-				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb);
+				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb, false);
 				((Stock)stockWeb).setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);

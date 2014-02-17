@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 
@@ -91,7 +92,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 						dayCal.set(Calendar.MINUTE, minutesCal.get(Calendar.MINUTE));
 						dayCal.set(Calendar.SECOND, minutesCal.get(Calendar.SECOND));
 						
-						quotationUnitsStack.add(new QuotationUnit(dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), new Long(split[3])));
+						quotationUnitsStack.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), new Long(split[3]), ORIGIN.WEB));
 						
 					} catch (ParseException e) {
 						LOGGER.info("Ignored line :"+line);
@@ -124,7 +125,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 
 		while (currentTime.getTime().compareTo(lastDate) < 0) {
 			while (currentTime.compareTo(nextTime) < 0) {
-				normalizedQU.add(new QuotationUnit(currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getClose(), currentQU.getVolume()));
+				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getClose(), currentQU.getVolume(),ORIGIN.WEB));
 				QuotationsFactories.getFactory().incrementDate(currentTime, 1);
 			} 
 			currentQU = nextQU;
@@ -135,7 +136,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 				nextTime.setTime(lastDate);
 			}
 		}
-		normalizedQU.add(new QuotationUnit(lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getClose(), nextQU.getVolume()));
+		normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getClose(), nextQU.getVolume(), ORIGIN.WEB));
 		return new QuotationData(normalizedQU);
 	}
 

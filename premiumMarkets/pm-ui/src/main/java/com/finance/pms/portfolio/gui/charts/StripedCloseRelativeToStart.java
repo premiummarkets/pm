@@ -27,7 +27,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.db;
+package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -35,33 +35,47 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
-public class StripedCloseRealPrice extends StripedCloseFunction {
+
+public class StripedCloseRelativeToStart extends StripedCloseFunction {
+
+	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToStart.class);
 	
-	private NumberFormat nf = new DecimalFormat("0.####");
+	NumberFormat pf = new DecimalFormat("#0.00 %");
+
+	public StripedCloseRelativeToStart(Date arbitraryStartDate, Date arbitraryEndDate) {
+		super(arbitraryEndDate);
+		this.arbitraryStartDate = arbitraryStartDate;
+	}
+	
 
 	@Override
-	public Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
-		
-//		this.stockQuotations = stockQuotations;
-		
+	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+
 		Date startDate = getStartDate(stockQuotations);
 		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0,startDate);
 		
 		Date endDate = getEndDate(stockQuotations);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
-
-		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
-	}
-
-	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 		
+		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
+
+	}
+	
+	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
-		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-			retA.add(stockQuotations.get(i).getClose());
+
+		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getClose();
+		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0) {
+			for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
+				BigDecimal relatedCloseValue = stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				retA.add(relatedCloseValue);
+			}
 		}
 	
 		return  retA.toArray(new BigDecimal[0]);
@@ -69,17 +83,24 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "real price";
+		return "change to period start";
 	}
+
 
 	@Override
 	public String formatYValue(Number yValue) {
-		return nf.format(yValue);
+		return pf.format(yValue);
 	}
+
 
 	@Override
 	public Boolean isRelative() {
-		return false;
+		return true;
+	}
+
+	@Override
+	public Date getArbitraryStartDateForCalculation() {
+		return this.getArbitraryStartDateForChart();
 	}
 
 }

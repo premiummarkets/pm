@@ -16,6 +16,10 @@
 			<outputDirectory>export</outputDirectory>
 		</fileSet>
 		<fileSet>
+			<directory>distrib/sql/upgrade</directory>
+			<outputDirectory>export/upgrade</outputDirectory>
+		</fileSet>
+		<fileSet>
 			<directory>distrib/sql</directory>
 			<includes>
 				<include>KEYS.sql</include>

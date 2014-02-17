@@ -53,7 +53,6 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.Portfolio;
-import com.finance.pms.portfolio.Transaction.TransactionType;
 
 @Entity
 @Table(name="TRANSACTIONS")
@@ -262,18 +261,17 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	
 	public TransactionType transactionType() {
 		
-		if (this.getQuantity().compareTo(BigDecimal.ZERO) > 0 && this.getPrice().compareTo(BigDecimal.ZERO) != 0 ) {
+		if (this.getQuantity().compareTo(BigDecimal.ZERO) > 0 && this.getPrice().compareTo(BigDecimal.ZERO) != 0 ) {//buy and not split
 			return TransactionType.AIN;
-		} else if (this.getQuantity().compareTo(BigDecimal.ZERO) < 0 && this.getPrice().compareTo(BigDecimal.ZERO) != 0) {
+		} 
+		else if (this.getQuantity().compareTo(BigDecimal.ZERO) < 0 && this.getPrice().compareTo(BigDecimal.ZERO) != 0) {//sell and not split
 			return TransactionType.AOUT;
-		} else {
+		} 
+		else {
 			return TransactionType.NULL;
 		}
 		
 	}
 
-	public BigDecimal amount() {
-		return this.getPrice().multiply(this.getQuantity());
-	}
 	
 }

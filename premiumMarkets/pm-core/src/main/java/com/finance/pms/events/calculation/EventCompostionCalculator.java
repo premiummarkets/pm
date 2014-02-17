@@ -78,7 +78,7 @@ public abstract class EventCompostionCalculator {
 	
 	protected void initQuotationCache(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Integer calculatorIndexShift) throws NotEnoughDataException {
 		try {
-			this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, calculationCurrency, calculatorIndexShift + 15, 0);
+			this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, calculationCurrency, calculatorIndexShift + 15 + 1, 0);
 			
 		} catch (NoQuotationsException e) {
 			throw new NotEnoughDataException(stock, e.getMessage(),e);

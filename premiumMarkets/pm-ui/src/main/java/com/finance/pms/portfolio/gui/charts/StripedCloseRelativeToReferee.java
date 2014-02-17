@@ -27,7 +27,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.db;
+package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
@@ -39,7 +39,7 @@ import java.util.Date;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
 
@@ -55,12 +55,6 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	NumberFormat pf = new DecimalFormat("#0.00 %");
 
 	Quotations relativeQuotations;
-//	Integer startDateRelativeIndex;
-
-//	Date startDate;
-//	Date endDate;
-
-
 
 	public StripedCloseRelativeToReferee(Quotations relativeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
 		super(arbitraryEndDate);
@@ -75,7 +69,7 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	}
 
 	@Override
-	public Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 //		this.stockQuotations = stockQuotations;
 
@@ -104,8 +98,8 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 				
 				Date dq = stockQuotations.get(i).getDate();
 				QuotationUnit relQuotationUnit = relativeQuotations.get(relativeQuotations.getClosestIndexForDate(0, dq));
-				BigDecimal relativeQuotation = (relQuotationUnit.getClose().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_DOWN);
-				BigDecimal quotation = stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_DOWN);
+				BigDecimal relativeQuotation = (relQuotationUnit.getClose().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal quotation = stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
 				relatedCloseValue = quotation.subtract(relativeQuotation);
 				
 			}
@@ -132,6 +126,9 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 		return true;
 	}
 	
-
+	@Override
+	public Date getArbitraryStartDateForCalculation() {
+		return this.getArbitraryStartDateForChart();
+	}
 
 }

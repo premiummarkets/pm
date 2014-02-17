@@ -83,7 +83,7 @@ public class CurrencyRate extends Validatable {
 		this.fromCurrency = fromCurrency;
 		this.toCurrency = toCurrency;
 		this.date = date;
-		this.rate = new BigDecimal(rate).setScale(4,BigDecimal.ROUND_DOWN);
+		this.rate = new BigDecimal(rate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	

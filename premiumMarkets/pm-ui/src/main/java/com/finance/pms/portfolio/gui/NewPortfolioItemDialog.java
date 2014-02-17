@@ -55,7 +55,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -104,7 +103,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 
 	
 	private CCombo moniCombo;
-	private Text quantityText;
+//	private Text quantityText;
 
 	protected StockList stockList;
 	protected Composite ctrlComposite;
@@ -464,19 +463,19 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				RowLayout addOptGroupL = new RowLayout(SWT.HORIZONTAL);
 				addOptGroupL.justify=true;
 				optionsGrp.setLayout(addOptGroupL);
-				{
-					Label quantityLabel = new Label(optionsGrp, SWT.NONE);
-					quantityLabel.setBackground(MainGui.pOPUP_GRP);
-					quantityLabel.setText("Quantity :");
-					quantityLabel.setFont(MainGui.DEFAULTFONT);
-				}
-				{
-					quantityText = new Text(optionsGrp, SWT.BORDER);
-					RowData rowData = new RowData(100,SWT.DEFAULT);
-					quantityText.setLayoutData(rowData);
-					quantityText.setFont(MainGui.CONTENTFONT);
-					quantityText.setText(BigDecimal.ONE.toString());
-				}
+//				{
+//					Label quantityLabel = new Label(optionsGrp, SWT.NONE);
+//					quantityLabel.setBackground(MainGui.pOPUP_GRP);
+//					quantityLabel.setText("Quantity :");
+//					quantityLabel.setFont(MainGui.DEFAULTFONT);
+//				}
+//				{
+//					quantityText = new Text(optionsGrp, SWT.BORDER);
+//					RowData rowData = new RowData(100,SWT.DEFAULT);
+//					quantityText.setLayoutData(rowData);
+//					quantityText.setFont(MainGui.CONTENTFONT);
+//					quantityText.setText(BigDecimal.ONE.toString());
+//				}
 				{
 					Label monitorLabel = new Label(optionsGrp, SWT.NONE);
 					monitorLabel.setBackground(MainGui.pOPUP_GRP);
@@ -646,9 +645,9 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	}
 	
 	protected void addSelection(Set<Stock> stocks) {
-		addAction(stocks, new BigDecimal(quantityText.getText()), MonitorLevel.valueOfString(moniCombo.getText()));
-		
-	}
+		//addAction(stocks, new BigDecimal(quantityText.getText()), MonitorLevel.valueOfString(moniCombo.getText()));
+		addAction(stocks, BigDecimal.ZERO, MonitorLevel.valueOfString(moniCombo.getText()));
+	} 
 
 	private void addListSelection() {
 		try {

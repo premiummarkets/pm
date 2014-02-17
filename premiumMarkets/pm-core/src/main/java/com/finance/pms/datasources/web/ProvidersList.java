@@ -132,7 +132,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			if (!stockList.contains(stock)) { // not already in base	
 				
 				//check for last former quotation
-				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);
+				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
 				stock.setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("New ticker : "+stock.toString()+" and will be added with last quote : "+ formerQuotationDate);
@@ -264,7 +264,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					Stock stock = trendSuppStock.getStock();
 					
 					//Update last quotation
-					Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);//Is there any quotation from a removed share?
+					Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);//Is there any quotation from a removed share?
 					if (formerQuotationDate.after(DateFactory.dateAtZero())) {
 						LOGGER.warn("Adding Supplemented stock "+stock+" in data base but it has already quotations until "+formerQuotationDate);
 					}

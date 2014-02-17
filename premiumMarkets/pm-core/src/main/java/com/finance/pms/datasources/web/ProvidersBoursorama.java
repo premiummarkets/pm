@@ -50,7 +50,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -271,17 +270,18 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		sharesListStocks.addAll(listNew);
 
 		// Suppression des tickers non mis � jour depuis 2 mois
-		Iterator<Stock> listStockIt = stockList.iterator();
+//		Iterator<Stock> listStockIt = stockList.iterator();
 		StockList stockAGarder = new StockList();
-		while (listStockIt.hasNext()) {
-			Stock stockBase = listStockIt.next();
-			if (!listNew.contains(stockBase) && stockBase.toBeRemoved(SharesListId.BOURSORAMA)) {
-				LOGGER.info("Ticker " + stockBase.toString() + " is obsolete and will be removed");
-				buildLookupDeleteReq(listReqDelS, listReqDel, stockBase);
-			} else {
-				stockAGarder.add(stockBase);
-			}
-		}
+		//FIXME
+//		while (listStockIt.hasNext()) {
+//			Stock stockBase = listStockIt.next();
+//			if (!listNew.contains(stockBase) && stockBase.toBeRemoved(SharesListId.BOURSORAMA)) {
+//				LOGGER.info("Ticker " + stockBase.toString() + " is obsolete and will be removed");
+//				buildLookupDeleteReq(listReqDelS, listReqDel, stockBase);
+//			} else {
+//				stockAGarder.add(stockBase);
+//			}
+//		}
 
 		// Completion and insertion of new stocks - the return of retreiveStock contains inconsistent stocks
 		// stockAGarder.removeAll(retreiveStock(listReqDelS, listReqDel, listNew));
@@ -382,7 +382,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 			}
 			
 			//check for last former quotation
-			Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s);
+			Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
 			s.setLastQuote(formerQuotationDate);
 			
 			LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ formerQuotationDate);
@@ -419,7 +419,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 			if (!actualStockList.contains(initialStock)) { // not already in base
 				
 				//check for last former quotation
-				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(initialStock);
+				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(initialStock, false);
 				initialStock.setLastQuote(formerQuotationDate);
 				LOGGER.info("New ticker in check : "+initialStock.toString()+" and will be added with last quote : "+ formerQuotationDate);
 				

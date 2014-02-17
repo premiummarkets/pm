@@ -35,25 +35,17 @@ import java.awt.event.ActionListener;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class LicencePanelDescriptor.
  * 
  * @author Guillaume Thoreton
  */
 public class LicencePanelDescriptor extends WizardPanelDescriptor implements ActionListener {
-    
-    /** The Constant IDENTIFIER. */
+
     public static final String IDENTIFIER = "LICENCE_PANEL";
-    
-    /** The panel2. */
+
     LicencePanel panel2;
-    
-    /**
-     * Instantiates a new licence panel descriptor.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public LicencePanelDescriptor() {
         
         panel2 = new LicencePanel();
@@ -63,47 +55,27 @@ public class LicencePanelDescriptor extends WizardPanelDescriptor implements Act
         setPanelComponent(panel2);
         
     }
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getNextPanelDescriptor()
-     */
+
     @Override
 	public Object getNextPanelDescriptor() {
         return InstallFolderPanelDescriptor.IDENTIFIER;
     }
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#getBackPanelDescriptor()
-     */
+
     @Override
 	public Object getBackPanelDescriptor() {
         return UpdateUrlPanelDescriptor.IDENTIFIER;
     }
-    
-    
-    /* (non-Javadoc)
-     * @see com.nexes.wizard.WizardPanelDescriptor#aboutToDisplayPanel()
-     */
+
     @Override
 	public void aboutToDisplayPanel() {
         setNextButtonAccordingToCheckBox();
         Install.selectNextButton();
     }
 
-
-    /* (non-Javadoc)
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
     public void actionPerformed(ActionEvent e) {
         setNextButtonAccordingToCheckBox();
     }
-            
-    
-    /**
-     * Sets the next button according to check box.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     private void setNextButtonAccordingToCheckBox() {
     	getWizard().setNextFinishButtonEnabled(panel2.isCheckBoxSelected());
     	Install.selectNextButton();

@@ -46,7 +46,7 @@ public abstract class Indicator {
 	protected Indicator(Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency, Integer firstIdxShift, Integer lastIdxShift) throws NoQuotationsException {
 		super();
 		this.stock = stock;
-		this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, firstDate, lastDate, true, calculationCurrency, firstIdxShift, lastIdxShift);
+		this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, firstDate, lastDate, true, calculationCurrency, firstIdxShift+1, lastIdxShift);
 	}
 	
 	protected Indicator(Quotations quotations) {

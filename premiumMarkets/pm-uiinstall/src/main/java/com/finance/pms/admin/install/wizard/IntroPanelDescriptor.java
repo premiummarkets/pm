@@ -31,8 +31,6 @@ package com.finance.pms.admin.install.wizard;
 
 import com.nexes.wizard.WizardPanelDescriptor;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class IntroPanelDescriptor.
  * 
@@ -40,14 +38,9 @@ import com.nexes.wizard.WizardPanelDescriptor;
  */
 public class IntroPanelDescriptor extends WizardPanelDescriptor {
     
-    /** The Constant IDENTIFIER. */
+	
     public static final String IDENTIFIER = "INTRODUCTION_PANEL";
-    
-    /**
-     * Instantiates a new intro panel descriptor.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public IntroPanelDescriptor() {
         super(IDENTIFIER, new IntroPanel());
     }

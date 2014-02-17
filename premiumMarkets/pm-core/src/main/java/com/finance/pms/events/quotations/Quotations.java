@@ -31,7 +31,6 @@ package com.finance.pms.events.quotations;
 
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,8 +47,6 @@ import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.PortfolioMgr;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class TalibIndicators.
  * 
@@ -95,8 +92,20 @@ public class Quotations {
 			synchronized(stock) {
 				requestedQuotationsData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
 				if (requestedQuotationsData == null) {
-					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
+					
 					QuotationData existingQuotationData = Quotations.getCashedStock(stock);
+					
+					//Retrieve first date point 
+					Date lastCached;
+					Date cacheFillRetreiveStart = firstDate;
+					if ( existingQuotationData != null && !existingQuotationData.isEmpty() && (lastCached = existingQuotationData.get(existingQuotationData.size()-1).getDate()) .before(firstDate) ) {
+						cacheFillRetreiveStart = lastCached;
+					}
+					
+					//Load form db
+					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(cacheFillRetreiveStart, firstIndexShift);//Retrieves from cacheFillRetreiveStart (<=firstDate) - firstIndexShift to the lastQuote 
+					
+					//Update cache
 					if (existingQuotationData == null) {
 						requestedQuotationsData = retreivedQuotationsData;
 						Quotations.putCashedStock(stock, retreivedQuotationsData);
@@ -107,6 +116,7 @@ public class Quotations {
 						requestedQuotationsData = new QuotationData(quotationUnits);
 						Quotations.putCashedStock(stock, requestedQuotationsData);
 					}
+					
 				}
 			}
 		}
@@ -114,7 +124,7 @@ public class Quotations {
 
 		if (hasQuotations()) {
 			firstDateShiftedIdx =  Math.max(this.getQuotationData().getClosestIndexForDate(0,firstDate) - firstIndexShift, 0);
-			lastDateIdx = Math.min(this.getQuotationData().getClosestIndexForDate(firstDateShiftedIdx, lastDate) + lastIndexShift, this.getQuotationData().size() -1) ;
+			lastDateIdx = Math.min(this.getQuotationData().getClosestIndexForDate(firstDateShiftedIdx, lastDate) + lastIndexShift, this.getQuotationData().size() -1);
 		} else {
 			firstDateShiftedIdx = 0;
 			lastDateIdx = 0;
@@ -127,12 +137,16 @@ public class Quotations {
 		QuotationData cachedQuotationData = Quotations.getCashedStock(stock);
 	
 		QuotationUnit lastQU;
+		int firstDateIdx;
 		boolean isCached = Quotations.QUOTATIONS_CACHE.containsKey(stock)
 									&& cachedQuotationData != null
 									&& !cachedQuotationData.isEmpty()
 									&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0
 									&& ( (lastQU = cachedQuotationData.get(cachedQuotationData.size()-1)).getDate().compareTo(lastDate) >= 0 || lastQU.getDate().compareTo(stock.getLastQuote()) == 0 )
-									&& cachedQuotationData.getClosestIndexForDate(0, firstDate) >= indexShift;
+									&&  ( 
+											( cachedQuotationData.get(firstDateIdx = cachedQuotationData.getClosestIndexForDate(0, firstDate)).getDate().before(firstDate) && firstDateIdx >= indexShift -1 ) ||
+											( cachedQuotationData.get(firstDateIdx).getDate().equals(firstDate) && firstDateIdx >= indexShift )
+										);
 		if (isCached) {
 			return cachedQuotationData;
 		} else {
@@ -169,20 +183,24 @@ public class Quotations {
 		ArrayList<QuotationUnit> noSplitQuotations = new ArrayList<QuotationUnit>(stripedQuotations);
 		for (int j = 1; j < stripedQuotations.size(); j++) {
 			
+			double span = Math.max(4, QuotationsFactories.getFactory().nbOpenIncrementBetween(stripedQuotations.get(j-1).getDate(), stripedQuotations.get(j).getDate()));
 			double dj = stripedQuotations.get(j).getClose().doubleValue();
 			double djm1 =  stripedQuotations.get(j-1).getClose().doubleValue();
 			double change = (dj - djm1)/djm1;
-			if (!Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= 0.5) {
+			//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
+			if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
 				for (int i = 0; i < j; i++) {
 					QuotationUnit oldValue = noSplitQuotations.get(i);
 					Double factorDouble = Double.valueOf(dj/djm1);
 					BigDecimal factor = new BigDecimal(factorDouble.toString());
 					int scale = oldValue.getOpen().scale();
 					QuotationUnit newValue = 
-							new QuotationUnit(oldValue.getDate(), 
-									oldValue.getOpen().multiply(factor).setScale(scale, RoundingMode.HALF_UP), oldValue.getHigh().multiply(factor).setScale(scale, RoundingMode.HALF_UP), 
-									oldValue.getLow().multiply(factor).setScale(scale, RoundingMode.HALF_UP), oldValue.getClose().multiply(factor).setScale(scale, RoundingMode.HALF_UP), 
-									oldValue.getVolume());
+							new QuotationUnit(
+									oldValue.getStock(), oldValue.getCurrency(),
+									oldValue.getDate(), 
+									oldValue.getOpen().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getHigh().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
+									oldValue.getLow().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getClose().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
+									oldValue.getVolume(), oldValue.getOrigin());
 					noSplitQuotations.set(i, newValue);
 				}
 			}
@@ -245,12 +263,13 @@ public class Quotations {
 		}
 
 		return new QuotationUnit(
+				quotationUnit.getStock(), quotationUnit.getCurrency(),
 				quotationUnit.getDate(), 
 				convert(quotationUnit.getOpen(),quotationUnit.getDate()), 
 				convert(quotationUnit.getHigh(), quotationUnit.getDate()), 
 				convert(quotationUnit.getLow(), quotationUnit.getDate()), 
 				convert(quotationUnit.getClose(), quotationUnit.getDate()), 
-				quotationUnit.getVolume());
+				quotationUnit.getVolume(), quotationUnit.getOrigin());
 	}
 
 
@@ -514,6 +533,16 @@ public class Quotations {
 
 		SoftReference<QuotationData> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
 		if (softReference != null) Quotations.QUOTATIONS_CACHE.put(stock, softReference);
+
+	}
+	
+	public static void removeCachedStockKey(Stock stock) {
+
+		SoftReference<QuotationData> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
+		if (softReference != null) {
+			softReference.clear();
+			Quotations.QUOTATIONS_CACHE.remove(stock);
+		}
 
 	}
 	

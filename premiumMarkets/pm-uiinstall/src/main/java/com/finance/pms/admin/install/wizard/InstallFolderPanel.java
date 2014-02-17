@@ -59,7 +59,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import com.finance.pms.admin.install.FolderSelect;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class InstallFolderPanel.
  * 
@@ -67,34 +66,18 @@ import com.finance.pms.admin.install.FolderSelect;
  */
 public class InstallFolderPanel extends JPanel {
  
-
-    /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 3412318352164432070L;
 
-    
-    /** The content panel. */
     private JPanel contentPanel;
-    
-    /** The icon label. */
     private JLabel iconLabel;
-    
-    /** The separator. */
     private JSeparator separator;
-    
-    /** The text label. */
     private JLabel textLabel;
-    
-    /** The title panel. */
     private JPanel titlePanel;
     
     static private File piggyMarketSqueakFolder;
 	private JTextField jt;
         
-    /**
-     * Instantiates a new install folder panel.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public InstallFolderPanel() {
         
         super();
@@ -132,11 +115,7 @@ public class InstallFolderPanel extends JPanel {
         
     }  
     
-    /**
-     * Gets the content panel.
-     * 
-     * @return the content panel
-     */
+    
     private JPanel getContentPanel() {            
     	
     	JPanel contentPanel = new JPanel();
@@ -252,6 +231,7 @@ public class InstallFolderPanel extends JPanel {
 	}
 
 	protected void errorPathDialog(String instFolderName) {
+		
 		JDialog errorPopup = new JDialog(Install.getWizard().getDialog(), "Invalid path", true);
 		errorPopup.setLocation(MouseInfo.getPointerInfo().getLocation());
 		JPanel contentPane = new JPanel();
@@ -260,13 +240,9 @@ public class InstallFolderPanel extends JPanel {
 		errorPopup.pack();
 		errorPopup.setVisible(true);
 		errorPopup.toFront();
+		
 	}
-    
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
+
     private ImageIcon getImageIcon() {        
         return null;
     }

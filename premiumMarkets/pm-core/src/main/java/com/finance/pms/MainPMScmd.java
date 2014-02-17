@@ -184,7 +184,7 @@ public class MainPMScmd {
 			if (getInflationData) {
 				Stock inflationStock = new Stock(
 						ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
-						new Boolean(false),StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
+						true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
 						new SymbolMarketQuotationProvider(), new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
 				DataSource.getInstance().getShareDAO().saveOrUpdateStock(inflationStock);
 				Providers.getInstance("inflation").getQuotes(inflationStock, null, null);

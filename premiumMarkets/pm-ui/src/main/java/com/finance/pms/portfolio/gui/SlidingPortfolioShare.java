@@ -41,6 +41,7 @@ import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
+import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.calculation.DateFactory;
@@ -49,7 +50,6 @@ import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.InvalidQuantityException;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.PortfolioShare;
-import com.finance.pms.portfolio.Transaction;
 
 public class SlidingPortfolioShare extends PortfolioShare implements InfoObject { 
 	
@@ -118,7 +118,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return super.getPriceZeroGainWeighted(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
-	private Date calcSlidingEndDate() {
+	public Date calcSlidingEndDate() {
 		Date currentDate;
 		if (slidingEnd) {
 			currentDate = end;
@@ -168,9 +168,9 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
-	public TransactionElement applyTransaction(Transaction transaction) throws InvalidQuantityException {
-		TransactionElement appliedTransaction = underLyingPortfolioShare.applyTransaction(transaction);
-		super.applyTransaction(transaction);
+	public TransactionElement createTransactionElement(Transaction transaction) throws InvalidQuantityException {
+		TransactionElement appliedTransaction = underLyingPortfolioShare.createTransactionElement(transaction);
+		super.createTransactionElement(transaction);
 		return appliedTransaction;
 	}
 	

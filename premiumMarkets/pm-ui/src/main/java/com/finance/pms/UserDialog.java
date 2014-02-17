@@ -60,7 +60,7 @@ public class UserDialog extends Dialog {
 	private Text addMsgTxt;
 	private String erreur;
 	private String addMessage;
-	protected Button valideButton1;
+	protected Button valideButton;
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHELL_TRIM));
@@ -96,7 +96,7 @@ public class UserDialog extends Dialog {
 			}
 			if (addMessage != null) {
 				addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
-				addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
+				addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 				addMsgTxt.setFont(MainGui.DEFAULTFONT);
 				addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
 				addMsgTxt.setEditable(false);
@@ -104,12 +104,12 @@ public class UserDialog extends Dialog {
 				addMsgTxt.setText(cleanMsg(this.addMessage, false));
 			}
 			{
-				valideButton1 = new Button(getParent(), SWT.PUSH | SWT.CENTER);
-				GridData validerbutton1LData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
-				valideButton1.setLayoutData(validerbutton1LData);
+				valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
+				GridData validerbuttonLData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
+				valideButton.setLayoutData(validerbuttonLData);
 				validationButtonTxtAndAction();
 			}
-			
+
 			layout();
 			
 			Point pt = getParent().getDisplay().getCursorLocation();
@@ -140,17 +140,16 @@ public class UserDialog extends Dialog {
 		
 		if (errorTxt != null) {
 			errorTxt.pack();
-			if (errorTxt.getSize().y < 100) ((GridData)errorTxt.getLayoutData()).heightHint = 100;
+			if (errorTxt.getSize().y < 50) ((GridData)errorTxt.getLayoutData()).heightHint = 50;
 		}
 	
 		if (addMsgTxt != null) {
 			addMsgTxt.pack();
 			addMsgTxt.setSize(addMsgTxt.getSize().x+10, Math.max(addMsgTxt.getSize().y, 200));
 		}
-		
-		
-		getParent().layout();
+
 		getParent().pack();
+		getParent().layout();
 		
 	}
 	
@@ -166,12 +165,12 @@ public class UserDialog extends Dialog {
 		if (addMessage != null && addMsgTxt != null) {
 			addMsgTxt.setText(cleanMsg(this.addMessage, false));
 		}
-		valideButton1.setText("Ok");
+		valideButton.setText("Ok");
 		
 		layout();
 		
 		getParent().setActive();
-		valideButton1.setFocus();
+		valideButton.setFocus();
 		
 	}
 
@@ -187,21 +186,21 @@ public class UserDialog extends Dialog {
 
 	protected void validationButtonTxtAndAction() {
 		
-		valideButton1.setText("Ok");
-		valideButton1.setFont(MainGui.DEFAULTFONT);
-		valideButton1.addMouseListener(new MouseAdapter() {
+		valideButton.setText("Ok");
+		valideButton.setFont(MainGui.DEFAULTFONT);
+		valideButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent evt) {
-				validerbutton1MouseDown();
+				dispose();
 			}
 		});
-		valideButton1.addKeyListener(new KeyListener() {
+		valideButton.addKeyListener(new KeyListener() {
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
 				System.out.println("Key released : "+e.keyCode+","+e.character+","+e.doit);
 				if ((e.keyCode == SWT.CR || e.keyCode == SWT.SPACE)) {
-					validerbutton1MouseDown();
+					dispose();
 				}
 			}
 			
@@ -214,7 +213,7 @@ public class UserDialog extends Dialog {
 			
 	}
 
-	protected void validerbutton1MouseDown() {
+	protected void dispose() {
 		getParent().dispose();
 	}
 

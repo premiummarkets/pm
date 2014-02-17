@@ -83,7 +83,7 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 				if ((epsValueStr.equals("--") || epsValueStr.equals("NA"))) {
 					epsd = BigDecimal.ZERO;
 				} else {
-					epsd= new BigDecimal(epsValueStr).setScale(4, BigDecimal.ROUND_DOWN);
+					epsd= new BigDecimal(epsValueStr).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 				}
 				
 				//stockPart.setReutersEPS(epsd.multiply(new BigDecimal(stockPart.getMarket().getCurrency().getToRatedUnitFactor())));

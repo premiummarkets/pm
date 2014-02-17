@@ -80,7 +80,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 						removeTextDelim(strArray[0],textDelim), 
 						removeTextDelim(strArray[0],textDelim),
 						null, 
-						false,
+						true,
 						StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						market,"", TradingMode.CONTINUOUS, 0L));

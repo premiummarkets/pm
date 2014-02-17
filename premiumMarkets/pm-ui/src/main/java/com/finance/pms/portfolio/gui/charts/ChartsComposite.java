@@ -90,9 +90,7 @@ import com.finance.pms.RefreshableView;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
-import com.finance.pms.datasources.RefreshChartHightlited;
-import com.finance.pms.datasources.db.StripedCloseFunction;
-import com.finance.pms.datasources.db.StripedCloseRelativeToStart;
+import com.finance.pms.datasources.RefreshChartHighlighted;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -129,7 +127,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private List<SlidingPortfolioShare> currentTabShareList;
 
 	private Integer highligtedId;
-	private EventModel<RefreshChartHightlited, Stock> hightlitedEventModel;
+	private EventModel<RefreshChartHighlighted, Stock> hightlitedEventModel;
 	
 	private ChartPanel mainChartPanel;
 	private Composite mainChartComposite;
@@ -170,7 +168,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
 		
 		this.logComposite = logComposite;
-		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHightlited(), logComposite);
+		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHighlighted(), logComposite);
 		
 		chartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
 		chartedEvtDef = EventDefinition.ZERO;
@@ -1114,7 +1112,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	public EventModel<RefreshChartHightlited, Stock> getHightlitedEventModel() {
+	public EventModel<RefreshChartHighlighted, Stock> getHightlitedEventModel() {
 		return hightlitedEventModel;
 	}
 

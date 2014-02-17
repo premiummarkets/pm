@@ -111,14 +111,16 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		Integer nbMonth = nbYears * 12 + today.get(Calendar.MONTH) - startCal.get(Calendar.MONTH) +1;
 		nbMonth =  Math.min(nbMonth, 60);
 		
-		String formatedUrl = String.format(urlString, stock.getIsin(), extension, -nbMonth);
+		//String formatedUrl = String.format(urlString, stock.getIsin(), extension, -nbMonth);
+		String formatedUrl = String.format(urlString, extension, stock.getIsin(), -nbMonth);
 		
 		Integer nbPages = (nbMonth * 25) / 40 +1;
 		MyUrl url = new MyUrl(formatedUrl) {
 
 			@Override
 			public MyUrl getUrlForPage(Integer i) {
-				return new MyUrl(this.getUrl()+i);
+				//return new MyUrl(this.getUrl()+i);
+				return new MyUrl(this.getUrl().replaceAll("\\$\\$PAGENUM\\$\\$", ""+i));
 			}
 			
 		};

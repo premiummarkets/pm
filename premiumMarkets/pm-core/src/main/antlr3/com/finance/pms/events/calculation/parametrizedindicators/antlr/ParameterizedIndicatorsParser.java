@@ -1,4 +1,4 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2014-02-05 14:22:10
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2014-02-16 00:52:46
  //parser
      package com.finance.pms.events.calculation.parametrizedindicators.antlr;
     import org.antlr.runtime.BitSet;
@@ -221,7 +221,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 			stream_also_display.add(also_display2.getTree());
 			// AST REWRITE
-			// elements: also_display, bullish_condition, bearish_condition
+			// elements: also_display, bearish_condition, bullish_condition
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 

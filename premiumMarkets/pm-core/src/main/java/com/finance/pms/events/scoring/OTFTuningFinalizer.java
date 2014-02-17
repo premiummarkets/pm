@@ -37,7 +37,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -170,7 +169,7 @@ public class OTFTuningFinalizer {
 		}
 
 		//Other init
-		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 0, 0);
+		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 1, 0);
 		BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
 
 		Pattern pattern = Pattern.compile("config : (.*) es : ");
@@ -236,11 +235,12 @@ public class OTFTuningFinalizer {
 					//TO
 					if (prevEventType != null) {//Not the First trend : we accumulate
 
-						BigDecimal followpPriceChange = closeForDate.subtract(prevTrendClose).divide(prevTrendClose,10,RoundingMode.HALF_DOWN);
+						BigDecimal followpPriceChange = closeForDate.subtract(prevTrendClose).divide(prevTrendClose, 10, BigDecimal.ROUND_HALF_EVEN);
 
 						//Period
 						period.setTo(currentEvent.getDate());
 						period.setPriceChange(followpPriceChange);
+						period.setRealised(true);
 						periods.add(period);
 						period = new PeriodRatingDTO();
 
@@ -251,12 +251,12 @@ public class OTFTuningFinalizer {
 							if (LOGGER.isDebugEnabled()) LOGGER.debug(
 									"Sell : Compound profit is "+trendFollowProfit+" at "+currentDate.getTime()+". " +
 									"New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevTrendClose+" : "+closeForDate+"-"+prevTrendClose+"/"+prevTrendClose+"="+followpPriceChange);
-							trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+							trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 							if (LOGGER.isDebugEnabled()) LOGGER.debug("New Compound at "+currentDate.getTime()+" : prevTotProfit*("+followpPriceChange+"+1)="+trendFollowProfit);
 							
 							//Stop Loss Profit
 							if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0) {
-								stopLossThreshold = closeForDate.multiply(stopLossThrRatio).setScale(10,RoundingMode.HALF_DOWN);
+								stopLossThreshold = closeForDate.multiply(stopLossThrRatio).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 								if (LOGGER.isDebugEnabled()) LOGGER.debug("Sell (set) : Stop loss profit is "+stopLossProfit+" at "+currentDate.getTime()+". Setting stop loss value ("+stopLossThrRatio+" ratio) : "+stopLossThreshold);
 							}
 						
@@ -362,15 +362,15 @@ public class OTFTuningFinalizer {
 			if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0 && stopLossThreshold != null) {
 				if (closeForDate.compareTo(stopLossThreshold) <= 0) {//Price below stop loss : we sell
 					stopLossThreshold = null;
-					BigDecimal stopLossPriceChange = closeForDate.subtract(prevStopLossClose).divide(prevStopLossClose,10,RoundingMode.HALF_DOWN);
+					BigDecimal stopLossPriceChange = closeForDate.subtract(prevStopLossClose).divide(prevStopLossClose,10, BigDecimal.ROUND_HALF_EVEN);
 					if (LOGGER.isDebugEnabled()) LOGGER.debug(
 							"Sell : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". " +
 									"New price change is "+closeForDate+" at "+currentDate.getTime()+", previous close "+prevStopLossClose+" : "+closeForDate+"-"+prevStopLossClose+"/"+prevStopLossClose+"="+stopLossPriceChange);
-					stopLossProfit = stopLossProfit.multiply(stopLossPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+					stopLossProfit = stopLossProfit.multiply(stopLossPriceChange.add(BigDecimal.ONE)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 					if (LOGGER.isDebugEnabled()) LOGGER.debug("New Stop loss Profit at "+currentDate.getTime()+" : prevStopLossProfit*("+stopLossPriceChange+"+1)="+stopLossProfit);
 				}
-				else if (closeForDate.multiply(stopLossThrRatio).setScale(10,RoundingMode.HALF_DOWN).compareTo(stopLossThreshold) > 0) {//Adjusting threshold upward
-					stopLossThreshold = closeForDate.multiply(stopLossThrRatio).setScale(10,RoundingMode.HALF_DOWN);
+				else if (closeForDate.multiply(stopLossThrRatio).setScale(10, BigDecimal.ROUND_HALF_EVEN).compareTo(stopLossThreshold) > 0) {//Adjusting threshold upward
+					stopLossThreshold = closeForDate.multiply(stopLossThrRatio).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 				}
 			}
 
@@ -442,8 +442,8 @@ public class OTFTuningFinalizer {
 		}
 		observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
 		
-		BigDecimal followpPriceChange = lastClose.subtract(prevTrendClose).divide(prevTrendClose,10,RoundingMode.HALF_DOWN);
-		BigDecimal stopLosspPriceChange = (prevStopLossClose != null)?lastClose.subtract(prevStopLossClose).divide(prevStopLossClose,10,RoundingMode.HALF_DOWN):null;
+		BigDecimal followpPriceChange = lastClose.subtract(prevTrendClose).divide(prevTrendClose, 10, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal stopLosspPriceChange = (prevStopLossClose != null)?lastClose.subtract(prevStopLossClose).divide(prevStopLossClose, 10, BigDecimal.ROUND_HALF_EVEN):null;
 
 		//Finalise profits
 		if (prevEventType.equals(EventType.BULLISH)) {//Trend is still bullish so we calculate the unrealised profit
@@ -453,7 +453,7 @@ public class OTFTuningFinalizer {
 					"Unreal : Compound profit is is "+trendFollowProfit+" at "+currentDate.getTime()+". " +
 					"Last price change is "+lastClose+" at "+currentDate.getTime()+", previous close "+prevTrendClose+" : "+lastClose+"-"+prevTrendClose+"/"+prevTrendClose+"="+followpPriceChange);
 			
-			trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+			trendFollowProfit = trendFollowProfit.multiply(followpPriceChange.add(BigDecimal.ONE)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("New Compound Profit at "+currentDate.getTime()+" : prevTrendFollowProfit*("+followpPriceChange+"+1)="+trendFollowProfit);
 
 			//Stop loss
@@ -463,7 +463,7 @@ public class OTFTuningFinalizer {
 						"Unreal : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". " +
 						"Last price change is "+lastClose+" at "+currentDate.getTime()+", previous close "+prevStopLossClose+" : "+lastClose+"-"+prevStopLossClose+"/"+prevStopLossClose+"="+followpPriceChange);
 				
-				stopLossProfit = stopLossProfit.multiply(stopLosspPriceChange.add(BigDecimal.ONE)).setScale(10,RoundingMode.HALF_DOWN);
+				stopLossProfit = stopLossProfit.multiply(stopLosspPriceChange.add(BigDecimal.ONE)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("New Stop loss Profit at "+currentDate.getTime()+" : prevStopLossProfit*("+stopLosspPriceChange+"+1)="+stopLossProfit);
 			}
 
@@ -474,11 +474,12 @@ public class OTFTuningFinalizer {
 		//Finalise trend
 		period.setTo(endDate);
 		period.setPriceChange(followpPriceChange);
+		period.setRealised(prevEventType.equals(EventType.BEARISH));
 		periods.add(period);	
 		
 		//Buy and hold profit
 		BigDecimal firstClose = quotations.getClosestCloseForDate(firstEventDate);
-		BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10,RoundingMode.HALF_DOWN):BigDecimal.ZERO;
+		BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10, BigDecimal.ROUND_HALF_EVEN):BigDecimal.ZERO;
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy and hold profit calculation is first Close "+firstClose+" at "+firstEventDate+" and last Close "+lastClose+" at "+endDate+" : "+lastClose+"-"+firstClose+"/"+firstClose+"="+buyAndHoldProfit);
 		
 		Date outputFirstKey = startDate;

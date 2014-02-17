@@ -33,7 +33,7 @@ public enum TaskId {
 	
 	FetchLists ("Fetching stock(s) list(s)"),
 	FetchQuotations ("Fetching quotations"),
-	Alerts ("Refreshing alerts"),
+	Alerts ("Triggering alerts"),
 	Clean ("Cleaning events"),
 	Analysis ("Running analysis"),
 	FetchRecos ("Fetching recommendations"),

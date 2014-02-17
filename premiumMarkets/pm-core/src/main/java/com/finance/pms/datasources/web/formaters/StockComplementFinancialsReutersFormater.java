@@ -161,7 +161,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 	private BigDecimal extractPattern(Matcher valueMatcher) {
 		BigDecimal value;
 		String valueStr = valueMatcher.group(1);
-		value = (valueStr.equals("--") || valueStr.equals("NA"))? BigDecimal.ZERO : new BigDecimal(valueStr).setScale(4, BigDecimal.ROUND_DOWN);
+		value = (valueStr.equals("--") || valueStr.equals("NA"))? BigDecimal.ZERO : new BigDecimal(valueStr).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 		valueMatcher.reset();
 		return value;
 	}

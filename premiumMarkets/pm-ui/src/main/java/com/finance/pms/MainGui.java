@@ -293,7 +293,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons"+File.separator+MainGui.ICONNAME));
 				getShell().setImage(new Image(getDisplay(),iconImg));
 			} catch (Exception e1) {
-				LOGGER.error(e1,e1);
+				LOGGER.warn(e1);
 			}
 			getShell().setText("Premium Markets");
 			getShell().setFont(MainGui.DEFAULTFONT);
@@ -375,6 +375,83 @@ public class MainGui extends SashForm implements RefreshableView {
 					}
 				}
 				{
+					stockMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+					stockMenuItem.setText("Stocks and Markets");
+					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+					stockMenuItem.setImage(new Image(getDisplay(),portImg));
+					{
+						Menu stockSubMenu = new Menu(stockMenuItem);
+						{
+							refreshStockListMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
+							refreshStockListMenuItem.setText("Add or Update a set of stocks ...");
+							refreshStockListMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								
+								private void superwidgetSelected() {
+									super.widgetSelected(null);
+								}
+								
+								
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									
+									final ShareListUpdateDialog instance = new ShareListUpdateDialog(getShell());
+									ActionDialogAction actionDialogAction = new ActionDialogAction() {
+										
+										@Override
+										public void action(Control targetControl) {
+											
+											Providers provider = instance.getProvider();
+											if (provider != null && instance.getIsOk()) {
+												
+												allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
+												LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+												allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
+												updateEventRefreshModelState(0l, TaskId.FetchLists);
+												initRefreshAction();
+												superwidgetSelected();
+
+											}
+										}
+									};
+									instance.setAction(actionDialogAction);
+									instance.open();
+							
+								}
+							});
+						}
+						{
+							refreshRecommendationsMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
+							refreshRecommendationsMenuItem.setText("Update web recommendations and advice download for your existing stock lists.");
+							refreshRecommendationsMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									
+									refreshRecommendationsMenuItem.addSelectionListener(new SelectionAdapter() {
+										@Override
+										public void widgetSelected(SelectionEvent evt) {
+											ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
+													"Web recommendation and advice feature is not available in this open source version.\n"+ 
+															"This feature is part of the advanced version including Premium Markets Forecast engine.\n",
+															null,
+															"Click here for more information and a workable demo",
+													new ActionDialogAction() {
+	
+														@Override
+														public void action(Control targetControl) {
+															Program.launch("http://premiummarkets.elasticbeanstalk.com");
+													}
+											});
+										  actionDialog.open();
+										}
+									});
+								}
+							});
+							refreshRecommendationsMenuItem.setEnabled(true);
+						}
+						stockMenuItem.setMenu(stockSubMenu);
+					}
+				}
+				{
 					portfolioMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 					portfolioMenuItem.setText("Portfolios");
 					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
@@ -400,7 +477,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
 						{
 							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("Load Portfolio from GNUCASH 'Advanced portfolio' html export ...");
+							loadPortofolioFromGnuCash.setText("Load Portfolio from GNUCASH 'Advanced Portfolio' HTML export ...");
 							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
@@ -445,7 +522,76 @@ public class MainGui extends SashForm implements RefreshableView {
 							});
 							loadPortofolioFromGnuCash.setEnabled(false);
 						}
+						{
+							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
+							loadPortofolioFromGnuCash.setText("View Portfolio transactions ...");
+							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
+								}
+							});
+						}
 						new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
+					}
+				}
+				{
+					quotationMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+					quotationMenuItem.setText("Quotations");
+					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+					quotationMenuItem.setImage(new Image(getDisplay(),portImg));
+					{
+						Menu quotationMenu = new Menu(quotationMenuItem);
+						{
+							refreshAllPortfoliosQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
+							refreshAllPortfoliosQuotationsMenuItem.setText("Update quotations download for all your portfolios"); 
+							refreshAllPortfoliosQuotationsMenuItem.addSelectionListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+									portfolioStocksEventModel.setViewParamRoot(null); //reset (should mean all portfolio stocks)
+									portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
+									initRefreshAction();
+									super.widgetSelected(evt);
+								}
+							});
+						}
+						{
+							refreshMonitoredQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
+							refreshMonitoredQuotationsMenuItem.setText("Update quotations download for your monitored shares");
+							refreshMonitoredQuotationsMenuItem.addSelectionListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+									monitoredStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
+									initRefreshAction();
+									super.widgetSelected(evt);
+								}
+							});
+						}
+						{
+							final MenuItem refreshInflation = new MenuItem(quotationMenu, SWT.CASCADE);
+							refreshInflation.setText("Update Inflation data download (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics)");
+							refreshInflation.addSelectionListener(new EventRefreshController(fourToutStrategyEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+								
+								@Override
+								public void widgetSelected(SelectionEvent evt) {										
+									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+									
+									fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+									Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
+									fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
+									
+									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
+									initRefreshAction();
+									super.widgetSelected(evt);
+								
+								}
+							});
+						}
+						quotationMenuItem.setMenu(quotationMenu);
 					}
 				}
 				{
@@ -525,142 +671,6 @@ public class MainGui extends SashForm implements RefreshableView {
 								}
 							});
 						}
-					}
-				}
-				{
-					quotationMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					quotationMenuItem.setText("Quotations");
-					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
-					quotationMenuItem.setImage(new Image(getDisplay(),portImg));
-					{
-						Menu quotationMenu = new Menu(quotationMenuItem);
-						{
-							refreshAllPortfoliosQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshAllPortfoliosQuotationsMenuItem.setText("Refresh quotations for all portfolios"); 
-							refreshAllPortfoliosQuotationsMenuItem.addSelectionListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									portfolioStocksEventModel.setViewParamRoot(null); //reset (should mean all portfolio stocks)
-									portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								}
-							});
-						}
-						{
-							refreshMonitoredQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshMonitoredQuotationsMenuItem.setText("Refresh quotations for monitored shares");
-							refreshMonitoredQuotationsMenuItem.addSelectionListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									monitoredStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								}
-							});
-						}
-						{
-							final MenuItem refreshInflation = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshInflation.setText("Refresh Inflation data");
-							refreshInflation.addSelectionListener(new EventRefreshController(fourToutStrategyEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								
-								@Override
-								public void widgetSelected(SelectionEvent evt) {										
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									
-									fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
-									fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
-									
-									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								
-								}
-							});
-						}
-						quotationMenuItem.setMenu(quotationMenu);
-					}
-				}
-				{
-					stockMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					stockMenuItem.setText("Stock lists and Markets");
-					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
-					stockMenuItem.setImage(new Image(getDisplay(),portImg));
-					{
-						Menu stockSubMenu = new Menu(stockMenuItem);
-						{
-							refreshStockListMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
-							refreshStockListMenuItem.setText("Add or Update a Stock list ...");
-							refreshStockListMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								
-								private void superwidgetSelected() {
-									super.widgetSelected(null);
-								}
-								
-								
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									
-									final ShareListUpdateDialog instance = new ShareListUpdateDialog(getShell());
-									ActionDialogAction actionDialogAction = new ActionDialogAction() {
-										
-										@Override
-										public void action(Control targetControl) {
-											
-											Providers provider = instance.getProvider();
-											if (provider != null && instance.getIsOk()) {
-												
-												allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
-												LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-												allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
-												updateEventRefreshModelState(0l, TaskId.FetchLists);
-												initRefreshAction();
-												superwidgetSelected();
-
-											}
-										}
-									};
-									instance.setAction(actionDialogAction);
-									instance.open();
-							
-								}
-							});
-						}
-						{
-							refreshRecommendationsMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
-							refreshRecommendationsMenuItem.setText("Refresh web recommendations and advice for your stock lists.");
-							refreshRecommendationsMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									
-									refreshRecommendationsMenuItem.addSelectionListener(new SelectionAdapter() {
-										@Override
-										public void widgetSelected(SelectionEvent evt) {
-											ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
-													"Web recommendation and advice feature is not available in this open source version.\n"+ 
-															"This feature is part of the advanced version including Premium Markets Forecast engine.\n",
-															null,
-															"Click here for more information and a workable demo",
-													new ActionDialogAction() {
-	
-														@Override
-														public void action(Control targetControl) {
-															Program.launch("http://premiummarkets.elasticbeanstalk.com");
-													}
-											});
-										  actionDialog.open();
-										}
-									});
-								}
-							});
-							refreshRecommendationsMenuItem.setEnabled(true);
-						}
-						stockMenuItem.setMenu(stockSubMenu);
 					}
 				}
 				{

@@ -31,15 +31,12 @@ package com.finance.pms.events.quotations;
 
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.SortedSet;
-
-import org.jfree.data.xy.OHLCDataItem;
 
 
 /**
@@ -48,22 +45,13 @@ import org.jfree.data.xy.OHLCDataItem;
  * @author Guillaume Thoreton
  */
 class QuotationData implements List<QuotationUnit> {
-	
-	/** The Constant serialVersionUID. */
+
 	@SuppressWarnings("unused")
 	private static final long serialVersionUID = -674715272697353811L;
-	
-	/** The close values. */
+
 	private StripedQuotations stripedQuotations;
 
-	
-	/**
-	 * Instantiates a new quotation data.
-	 * 
-	 * @param stripedQuotations the striped quotations
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	protected QuotationData(StripedQuotations stripedQuotations) {
 		this.stripedQuotations = stripedQuotations;
 	}
@@ -78,15 +66,6 @@ class QuotationData implements List<QuotationUnit> {
 		}
 	}
 
-	/**
-	 * Removes the.
-	 * 
-	 * @param arg0 the arg0
-	 * 
-	 * @return true, if successful
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public boolean remove(QuotationUnit o) {
 		return this.stripedQuotations.getBarList().remove(o);
 	}
@@ -177,14 +156,6 @@ class QuotationData implements List<QuotationUnit> {
 		return this.getInput(QuotationDataType.VOLUME);
 	}
 
-
-	/**
-	 * Gets the input.
-	 * 
-	 * @param field the field
-	 * 
-	 * @return the input
-	 */
 	private double[] getInput(QuotationDataType field) {
 		double[] values = new double[this.size()];
 		switch (field) {
@@ -209,32 +180,10 @@ class QuotationData implements List<QuotationUnit> {
 				values[i] = this.get(i).getVolume();
 			break;
 		default :
-			throw new RuntimeException("Unknwon quotqtion data type");
+			throw new RuntimeException("Unknown quotation data type");
 		}
 		return values;
 	}
-	
-	/**
-	 * Gets the oHLC data list.
-	 * 
-	 * @param firstDate the n last units
-	 * 
-	 * @return the oHLC data list
-	 */
-	public ArrayList<OHLCDataItem> getOHLCDataList(Integer startIndex,Integer endIndex) {
-		
-		ArrayList<OHLCDataItem> ret = new ArrayList<OHLCDataItem>();
-		
-		for (int i = 0; i < endIndex; i++) {
-			QuotationUnit trade = this.get(i+startIndex);
-			ret.add(new OHLCDataItem(
-							trade.getDate(), trade.getOpen().doubleValue(), trade.getHigh().doubleValue(), 
-							trade.getLow().doubleValue(), trade.getClose().doubleValue(), new Double(trade.getVolume())));
-		}
-	    
-	    return ret;
-	}
-
 	
 	public void add(int index, QuotationUnit element) {
 		this.stripedQuotations.getBarList().add(index,element);
@@ -347,8 +296,5 @@ class QuotationData implements List<QuotationUnit> {
 	public Date getLastDate() {
 		return this.stripedQuotations.getLast().getDate();
 	}
-
-
-	
 	
 }

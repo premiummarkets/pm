@@ -44,6 +44,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
@@ -56,7 +57,6 @@ import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -254,7 +254,7 @@ public class AutoPortfolioDelegate {
 				try {
 					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
 					BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);		
-					BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_DOWN);
+					BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
 					
 					PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.NONE, transactionCurrency, TransactionType.AIN);
 	
@@ -377,14 +377,6 @@ public class AutoPortfolioDelegate {
 		return !latestEventDateAndNewBuyDate.after(portfolioShare.getLastTransactionDate());
 	}
 
-	/**
-	 * @param symbolEvents
-	 * @param currentDate
-	 * @param unitAmount
-	 * @param portfolioShare
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws InvalidQuantityException 
-	 */
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
 	
 			try {
@@ -394,14 +386,14 @@ public class AutoPortfolioDelegate {
 				BigDecimal quantityProrata;
 				BigDecimal quantity = portfolioShare.getQuantity(currentDate);
 				if (unitAmount != null) {
-					quantityProrata = unitAmount.divide(lastPrice, 5, BigDecimal.ROUND_DOWN);
+					quantityProrata = unitAmount.divide(lastPrice, 10, BigDecimal.ROUND_HALF_EVEN);
 					quantityProrata = quantityProrata.min(quantity);	
 				} else {
 					quantityProrata = quantity;
 				}
 
 				synchronized (this) {
-					thisPortfolio.removeOrUpdateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
+					thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
 					LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+quantity);
 
 					//log
@@ -416,7 +408,7 @@ public class AutoPortfolioDelegate {
 	
 	public void log(TransactionRecord transactionRecord) {
 		
-		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice());
+		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		String eventList = (transactionRecord.getEventList() == null)?"":transactionRecord.getEventList().toString();
 		
 		this.log(

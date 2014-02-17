@@ -117,7 +117,7 @@ public class StockList extends ArrayList<Stock> {
 						toktbl[cptr] = (value4col.equals(",")) ? MarketQuotationProviders.DEFAULT.getCmdParam() : value4col.trim();
 					}
 					newStock = new Stock(
-							toktbl[1], toktbl[0], toktbl[2], false,
+							toktbl[1], toktbl[0], toktbl[2], true,
 							StockCategories.valueOfString(toktbl[3]),
 							new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(toktbl[6]),SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 							new MarketValuation(Market.valueOf(toktbl[4]),new BigDecimal(toktbl[5])),
@@ -134,20 +134,12 @@ public class StockList extends ArrayList<Stock> {
 		}
 	}
 
-	/**
-	 * Instantiates a new stock list.
-	 * 
-	 * @param marketListProvider the provider
-	 * @param listStock the list stock
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StockList(SymbolMarketQuotationProvider marketListProvider, List<String> listStock) {
 		super();
 		Iterator<String> listIt = listStock.iterator();
 		while (listIt.hasNext()) {
 			try {
-				Stock newStock = new Stock(listIt.next().toUpperCase(),null,null,false,StockCategories.DEFAULT_CATEGORY,
+				Stock newStock = new Stock(listIt.next().toUpperCase(),null,null,true,StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						new MarketValuation(Market.UNKNOWN),"",TradingMode.CONTINUOUS,0l);
 				newStock.setSymbolMarketQuotationProvider(marketListProvider);
@@ -166,6 +158,10 @@ public class StockList extends ArrayList<Stock> {
 	public StockList(List<Stock> existingStocksSet) {
 		super();
 		this.addAll(existingStocksSet);
+	}
+	
+	public StockList(Stock stock) {
+		this.add(stock);
 	}
 
 	public Stock findLenientRefs(String ... refs) {

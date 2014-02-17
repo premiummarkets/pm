@@ -57,6 +57,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -189,8 +190,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	
 	public void saveOrUpdateStocks(Set<Stock> listStocks) {
-		this.getHibernateTemplate().saveOrUpdateAll(listStocks);
-		
+		getHibernateTemplate().saveOrUpdateAll(listStocks);
 	}
 	
 	@Override
@@ -250,8 +250,8 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		
 		List<PortfolioShare> ret = new ArrayList<PortfolioShare>();
 		
-		Query query = this.getHibernateTemplate().getSessionFactory().getCurrentSession()
-				.createQuery(
+		Query query = 
+				getHibernateTemplate().getSessionFactory().getCurrentSession().createQuery(
 						"from PortfolioShare as P join P.alertsOnEvent as A " +
 						"where P.stock = :stock and A.eventInfoReference = :eventInfoReference and ( A.monitorLevel = :eventTypeM or A.monitorLevel = :anyMLevel ) and ( P.monitorLevel = :eventTypeM or P.monitorLevel = :anyMLevel ) ");
 		
@@ -293,6 +293,11 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	
 		return ret;
 		
+	}
+	
+	@Override
+	public void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit) {
+		getHibernateTemplate().saveOrUpdate(quotationUnit);
 	}
 	
 }

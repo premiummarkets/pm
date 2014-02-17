@@ -80,7 +80,8 @@ public class StockListYahooIncideHtmlScrapFormater extends LineFormater {
 			while (yahooIndiceStockElementMatcher.find()) {
 				String symbol = yahooIndiceStockElementMatcher.group(1);
 				String name = yahooIndiceStockElementMatcher.group(2);
-				retour.add(new Stock(symbol, symbol, name, false,StockCategories.DEFAULT_CATEGORY,
+				retour.add(
+						new Stock(symbol, symbol, name, true, StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						market,"", TradingMode.CONTINUOUS, 0L));
 			}

@@ -160,7 +160,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 	private BigDecimal extractPattern(Matcher valueMatcher) {
 		BigDecimal value;
 		String valueStr = valueMatcher.group(1).replace("<.*strong>", "").trim();
-		value = (valueStr.equals("ND"))? BigDecimal.ZERO : new BigDecimal(valueStr).setScale(4, BigDecimal.ROUND_DOWN);
+		value = (valueStr.equals("ND"))? BigDecimal.ZERO : new BigDecimal(valueStr).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 		valueMatcher.reset();
 		return value;
 	}

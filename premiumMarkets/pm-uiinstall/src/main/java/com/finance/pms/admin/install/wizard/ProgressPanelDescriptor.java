@@ -38,6 +38,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -78,8 +79,7 @@ import com.nexes.wizard.WizardPanelDescriptor;
  * @author Guillaume Thoreton
  */
 public class ProgressPanelDescriptor extends WizardPanelDescriptor {
-    
-    /** The Constant IDENTIFIER. */
+
     public static final String IDENTIFIER = "PROGRESS_PANEL";
 
 	private static int PROGRESSBAR_REALINC = 1;
@@ -96,110 +96,142 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		private static final long serialVersionUID = 1L;
 		//Nb to easily get a new time list TextAreaStream.updateTextArea should be sync
 		{
-			put(0,22L);
-			put(1,2447L);
-			put(2,20460L);
-			put(3,20460L);
-			put(4,20460L);
-			put(5,20470L);
-			put(6,20470L);
-			put(7,20470L);
-			put(8,20470L);
-			put(9,20540L);
-			put(10,20550L);
-			put(11,20550L);
-			put(12,20550L);
-			put(13,20550L);
-			put(14,20550L);
-			put(15,20560L);
-			put(16,20560L);
-			put(17,20560L);
-			put(18,20560L);
-			put(19,20560L);
-			put(20,20560L);
-			put(21,20570L);
-			put(22,20570L);
-			put(23,20570L);
-			put(24,20570L);
-			put(25,20570L);
-			put(26,20570L);
-			put(27,20590L);
-			put(28,20590L);
-			put(29,20590L);
-			put(30,20590L);
-			put(31,20590L);
-			put(32,20610L);
-			put(33,20620L);
-			put(34,20630L);
-			put(35,20640L);
-			put(36,20650L);
-			put(37,20660L);
-			put(38,20740L);
-			put(39,20740L);
-			put(40,20750L);
-			put(41,20750L);
-			put(42,20760L);
-			put(43,20770L);
-			put(44,20770L);
-			put(45,20770L);
-			put(46,20770L);
-			put(47,20770L);
-			put(48,20770L);
-			put(49,20780L);
-			put(50,20780L);
-			put(51,20780L);
-			put(52,20780L);
-			put(53,20780L);
-			put(54,20780L);
-			put(55,20790L);
-			put(56,20790L);
-			put(57,20790L);
-			put(58,20790L);
-			put(59,20790L);
-			put(60,20790L);
-			put(61,20800L);
-			put(62,20800L);
-			put(63,20810L);
-			put(64,20810L);
-			put(65,20810L);
-			put(66,20820L);
-			put(67,20820L);
-			put(68,20820L);
-			put(69,20820L);
-			put(70,20830L);
-			put(71,20830L);
-			put(72,20840L);
-			put(73,20840L);
-			put(74,20850L);
-			put(75,20910L);
-			put(76,21070L);
-			put(77,21070L);
-			put(78,21081L);
-			put(79,21091L);
-			put(80,21181L);
-			put(81,21181L);
-			put(82,34289L);
-			put(83,34300L);
-			put(84,34310L);
-			put(85,34310L);
-			put(86,34310L);
-			put(87,34310L);
-			put(88,36372L);
-			put(89,38275L);
-			put(90,38496L);
-			put(91,38566L);
-			put(92,59005L);
-			put(93,59065L);
-			put(94,79024L);
-			put(95,96950L);
-			put(96,97010L);
-			put(97,97450L);
-			put(98,91974L);
-			put(99,92361L);
-			put(100,145993L);
-			put(101,190848L);
-			put(102,192555L);
-			put(103,192681L);
+			put(0,0L);
+			put(2,2705L);
+			put(3,2708L);
+			put(4,2710L);
+			put(5,2711L);
+			put(6,2712L);
+			put(7,2716L);
+			put(8,2721L);
+			put(9,2722L);
+			put(10,2723L);
+			put(11,2726L);
+			put(12,2737L);
+			put(13,2738L);
+			put(14,2738L);
+			put(15,2740L);
+			put(16,2740L);
+			put(17,2741L);
+			put(18,2741L);
+			put(19,2742L);
+			put(20,2742L);
+			put(21,2743L);
+			put(23,2745L);
+			put(24,2746L);
+			put(25,2746L);
+			put(26,2747L);
+			put(27,2747L);
+			put(28,2748L);
+			put(29,2748L);
+			put(30,2748L);
+			put(31,2749L);
+			put(32,2749L);
+			put(33,2751L);
+			put(34,2752L);
+			put(35,2752L);
+			put(36,2753L);
+			put(37,2753L);
+			put(38,2754L);
+			put(39,2755L);
+			put(40,2757L);
+			put(41,2758L);
+			put(42,2758L);
+			put(44,2760L);
+			put(45,2763L);
+			put(46,2767L);
+			put(47,2768L);
+			put(48,2768L);
+			put(50,2770L);
+			put(51,2771L);
+			put(52,2771L);
+			put(53,2772L);
+			put(54,2774L);
+			put(55,2775L);
+			put(56,2775L);
+			put(58,2776L);
+			put(59,2777L);
+			put(60,2777L);
+			put(61,2778L);
+			put(62,2778L);
+			put(63,2779L);
+			put(64,2779L);
+			put(65,2779L);
+			put(67,2780L);
+			put(68,2781L);
+			put(69,2782L);
+			put(70,2782L);
+			put(71,2784L);
+			put(72,2785L);
+			put(73,2786L);
+			put(74,2786L);
+			put(75,2787L);
+			put(76,2788L);
+			put(77,2790L);
+			put(78,2791L);
+			put(79,2791L);
+			put(80,2792L);
+			put(81,2793L);
+			put(82,2794L);
+			put(83,2794L);
+			put(84,2795L);
+			put(85,2795L);
+			put(86,2795L);
+			put(87,2796L);
+			put(88,2796L);
+			put(89,2796L);
+			put(90,2797L);
+			put(91,2797L);
+			put(92,2797L);
+			put(93,2798L);
+			put(94,2800L);
+			put(95,2800L);
+			put(96,2800L);
+			put(97,2801L);
+			put(98,2801L);
+			put(100,2802L);
+			put(101,2803L);
+
+			put(102,2803L);
+			put(103,2803L);
+			put(104,2804L);
+			put(105,2804L);
+			put(107,2805L);
+			put(108,2806L);
+
+			put(109,2806L);
+			put(110,2806L);
+			put(111,2807L);
+			put(112,2807L);
+			put(113,2808L);
+			put(115,2839L);
+			put(116,2839L);
+			put(117,2841L);
+			put(118,2969L);
+			put(119,2969L);
+			put(120,2978L);
+			put(121,11258L);
+			put(122,11259L);
+			put(123,11260L);
+			put(124,11260L);
+			put(125,11260L);
+			put(126,11260L);
+			put(127,11261L);
+			put(128,11261L);
+			put(129,11261L);
+			put(130,11261L);
+			put(131,13297L);
+			put(132,14014L);
+			put(133,14881L);
+			put(134,15106L);
+
+			put(135,15373L);
+			put(136,56744L);
+			put(137,57194L);
+			put(138,59003L);
+			put(140,60332L);
+			put(141,60438L);
+
 		}
 	};
 	static {
@@ -323,6 +355,8 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				dbInstaller.addObserver(or);
 
 				//DB
+				dbInstall(dbInstaller);
+				
 				if (dbAlreadyInstalled) {//upgrade
 					System.out.println("Premium Markets has been installed before. Will try and upgrade");
 					try {
@@ -338,22 +372,9 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						task.comeOn(PROGRESSBAR_REALINC, "Database upgraded");
 					}
 					
-				} else {//first install
+				} else {//first install : populate
+					
 					System.out.println("Premium Markets first or new install! good luck :))");
-
-					URL export = this.getClass().getClassLoader().getResource("export");
-					URL derby = this.getClass().getClassLoader().getResource("derby");
-					URL initialdb = new URL("http://downloads.sourceforge.net/pmsqueak/initialdb-0.1.2.jar?use_mirror=osdn");
-					if (derby != null && export != null) {
-						System.out.println("Pre-extracted database found in the jar but it is not supported yet. Thanks if any ideas.");
-					}
-					System.out.println("Will try extract or download.");
-					try {
-						dbInstaller.extractDB(initialdb, BaseCheckPanelDescriptor.initdbName, piggyMarketSqueakFolder);
-					} catch (NoPreparedDbException e) {
-						e.printStackTrace();
-					}
-
 					//displayTime("extract DB");
 					task.comeOn(PROGRESSBAR_REALINC, "Importing data in Database!");
 					System.out.println("Importing data in Database!");
@@ -474,6 +495,21 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 			
 			setProgress(100);
 			return null;
+		}
+
+		protected void dbInstall(DbInstaller dbInstaller) throws MalformedURLException {
+			URL export = this.getClass().getClassLoader().getResource("export");
+			URL derby = this.getClass().getClassLoader().getResource("derby");
+			URL initialdb = new URL("http://downloads.sourceforge.net/pmsqueak/initialdb-0.1.2.jar?use_mirror=osdn");
+			if (derby != null && export != null) {
+				System.out.println("Pre-extracted database found in the jar but it is not supported yet. Thanks if any ideas.");
+			}
+			System.out.println("Will try extract or download.");
+			try {
+				dbInstaller.extractDB(initialdb, BaseCheckPanelDescriptor.initdbName, piggyMarketSqueakFolder);
+			} catch (NoPreparedDbException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		private void copyFile(File sourceFile, File destFile) throws IOException {
@@ -654,14 +690,16 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 			Enumeration<? extends ZipEntry> zipEnum = zf.entries();
 			while (zipEnum.hasMoreElements()) {
 				ZipEntry item = zipEnum.nextElement();
-				if (item.isDirectory()) //Directory
-				{
+				
+				if (item.isDirectory()) { //Directory
+					
 					File newdir = new File(piggyMarketSqueakFolder.getAbsolutePath() + File.separator + item.getName());
 					System.out.print("Creating directory " + newdir + " ... ");
 					boolean mkdir = newdir.mkdir();
 					System.out.println("Done! And created : "+mkdir);
-				} else //File
-				{
+					
+				} else  {//File
+					
 					String newfile = piggyMarketSqueakFolder.getAbsolutePath() + File.separator + item.getName();
 					System.out.println("Deleting previous file "+ newfile);
 					new File(newfile).delete();

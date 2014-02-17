@@ -97,13 +97,13 @@ import org.jfree.ui.TextAnchor;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.StripedCloseFunction;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
@@ -176,63 +176,90 @@ public class ChartMain extends Chart {
 		//Build lines
 		for (int k = 0; k < portfolioShares.size(); k++) {
 
-			final Quotations quotations = getQuotations(stripedCloseFunction, portfolioShares.get(k));
-
-			TimeSeries lineSerie = buildLineSeries(stripedCloseFunction, quotations, portfolioShares.get(k));
-			combinedDataset.addSeries(lineSerie);
-
-			Paint paint = java.awt.Color.BLACK;
-			if (applyColors) {
-				org.eclipse.swt.graphics.Color color = portfolioShares.get(k).getColor();
-				paint = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue());
-			}
-
+			SlidingPortfolioShare kthPs = portfolioShares.get(k);
+			
 			final XYItemRenderer renderer = mainPlot.getRenderer();
+			TimeSeries lineSerie;
+			
+			try {
 
-			renderer.setSeriesPaint(k, paint);
-			renderer.setSeriesStroke(k, new BasicStroke(1));
+				final Quotations quotations = getQuotations(stripedCloseFunction, kthPs);
+				lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs);
 
-			final int kf = k;
-			final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-			XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+				Paint paint = java.awt.Color.BLACK;
+				if (applyColors) {
+					org.eclipse.swt.graphics.Color color = kthPs.getColor();
+					paint = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue());
+				}
 
-				public String generateToolTip(XYDataset dataset, int series, int item) {
+				renderer.setSeriesPaint(k, paint);
+				renderer.setSeriesStroke(k, new BasicStroke(1));
 
-					String y = "NaN";
-					String x = "NaN";
-					QuotationUnit closeForDate;
-					try {
-						Date date = new Date((long) dataset.getXValue(series, item));
-						x = simpleDateFormat.format(date);
-						closeForDate = quotations.get(quotations.getClosestIndexForDate(0, date));
+				final int kf = k;
+				final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
+				XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
-						String variationAddInfo = "";
-						if (!stripedCloseFunction.lineToolTip().isEmpty()) {
-							y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
-							variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
-						}
+					public String generateToolTip(XYDataset dataset, int series, int item) {
 
-						return "<html>" + "<font size='2'>" + 
-								"<b>" + portfolioShares.get(kf).getFreindlyName() + "</b> On the " + x + "<br>"+ 
+						String y = "NaN";
+						String x = "NaN";
+						QuotationUnit closeForDate;
+						try {
+							Date date = new Date((long) dataset.getXValue(series, item));
+							x = simpleDateFormat.format(date);
+							closeForDate = quotations.get(quotations.getClosestIndexForDate(0, date));
+
+							String variationAddInfo = "";
+							if (!stripedCloseFunction.lineToolTip().isEmpty()) {
+								y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
+								variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
+							}
+
+							SlidingPortfolioShare slidingPortfolioShare = portfolioShares.get(kf);
+							String origin = 
+									(closeForDate.getOrigin().equals(ORIGIN.USER))?
+										ORIGIN.USER.name().toLowerCase():
+										slidingPortfolioShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
+							return 
+							"<html>" + "<font size='2'>" + 
+								"<b>" + slidingPortfolioShare.getFreindlyName() + "</b> On the " + x + "<br>"+ 
 								"Open&nbsp;&nbsp;&nbsp;: " + closeForDate.getOpen() + "<br>" + 
 								"High&nbsp;&nbsp;&nbsp;: " + closeForDate.getHigh() + "<br>" + 
 								"Low&nbsp;&nbsp;&nbsp;&nbsp;: " + closeForDate.getLow() + "<br>" + 
 								"Close&nbsp;&nbsp;: "+ closeForDate.getClose() + "<br>" + 
-								"Volume : " + closeForDate.getVolume() + variationAddInfo + 
-							"</font>" + "</html>";
-					} catch (Exception e) {
-						LOGGER.debug(e, e);
+								"Volume : " + closeForDate.getVolume() + "<br>" + 
+								"(Source : " + origin + ")" +
+								variationAddInfo + 
+							"</font>" +"</html>";
+							
+						} catch (Exception e) {
+							LOGGER.error(e, e);
+						}
+						return "NaN";
+
 					}
-					return "NaN";
+				};
 
-				}
-			};
-
-			renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
-			renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
-			Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : portfolioShares.get(k).getDisplayOnChart();
+				renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
+				renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
+				
+			} catch (NoQuotationsException e) {
+				
+				LOGGER.warn(kthPs+ " has no quotation available and won't be displayed");
+				lineSerie = new TimeSeries(kthPs.getName());
+				
+			} catch (Exception e ) {
+				
+				LOGGER.warn(kthPs+ " error building line series ", e);
+				lineSerie = new TimeSeries(kthPs.getName());
+				
+			}
+				
+			Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : kthPs.getDisplayOnChart();
 			renderer.setSeriesVisible(k, displayOnChart);
 
+			combinedDataset.addSeries(lineSerie);
+				
 		}
 
 
@@ -247,7 +274,7 @@ public class ChartMain extends Chart {
 			@Override
 			public void run() {
 				
-				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
+				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDateForChart();
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 
 				xAxis = new DateAxis();
@@ -460,7 +487,7 @@ public class ChartMain extends Chart {
 			public void run() {
 				
 				XYDataset dataSet = buildLineDataSet(stripedCloseFunction, listShares, applyColors);
-				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDate();
+				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDateForChart();
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
 				xAxis.setRange(arbitraryStartDate, arbitraryEndDate);
@@ -678,38 +705,32 @@ public class ChartMain extends Chart {
 		EventQueue.invokeLater(runnable);
 	}
 
-	/**
-	 * @param stripedCloseFunction
-	 * @param k
-	 * @return
-	 */
-	private Quotations getQuotations(StripedCloseFunction stripedCloseFunction, PortfolioShare portfolioShare) {
+	private Quotations getQuotations(StripedCloseFunction stripedCloseFunction, PortfolioShare portfolioShare) throws NoQuotationsException {
 		
-		Date startDate = stripedCloseFunction.getArbitraryStartDate();
+		Date startDate = stripedCloseFunction.getArbitraryStartDateForCalculation();
 		Date endDate = stripedCloseFunction.getArbitraryEndDate();
 		Quotations bdQuotes;
 		try {
-			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, portfolioShare.getTransactionCurrency(), 0, 0);
+			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, portfolioShare.getTransactionCurrency(), 1, 0);
 		} catch (NoQuotationsException e) {
-			throw new RuntimeException(e);
+			throw e;
 		}
 		return bdQuotes;
 		
 	}
 
-
 	private TimeSeries buildLineSeries(StripedCloseFunction stripedCloseFunction, Quotations bdQuotes, SlidingPortfolioShare portfolioShare) {
 
 		TimeSeries timeSeries = new TimeSeries(portfolioShare.getName());
 		
-		if (bdQuotes.size() > 0 && portfolioShare.getStock().getLastQuote().after(stripedCloseFunction.getArbitraryStartDate())) {
+		if (bdQuotes.size() > 0 && portfolioShare.getStock().getLastQuote().after(stripedCloseFunction.getArbitraryStartDateForChart())) {
 			
 			MInteger startIdx = new MInteger();
 			MInteger endIdx = new MInteger();
 			Number[] relativeCloses = stripedCloseFunction.targetShareData(portfolioShare, bdQuotes, startIdx, endIdx);
 			List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(startIdx.value, endIdx.value);
 			
-			for (int i = 0; i < Math.min(relativeCloses.length, endIdx.value); i++) {
+			for (int i = 0; i <= Math.min(relativeCloses.length-1, endIdx.value); i++) {
 				QuotationUnit trade = quotationUnits.get( i + startIdx.value);
 				RegularTimePeriod period = new Day(trade.getDate());
 				Number value = relativeCloses[i].doubleValue();
@@ -724,11 +745,6 @@ public class ChartMain extends Chart {
 		
 	}
 
-
-	/**
-	 * @param highlightStroke 
-	 * @param lineRenderer
-	 */
 	public void highLightSerie(final Integer serie, final float highlightStroke) {
 		
 		Runnable runnable = new Runnable() {

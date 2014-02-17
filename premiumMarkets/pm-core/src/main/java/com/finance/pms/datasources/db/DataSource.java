@@ -43,12 +43,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NavigableSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.IncompleteArgumentException;
@@ -82,6 +81,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.mas.RestartServerException;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.PortfolioDAO;
@@ -102,21 +102,13 @@ import com.finance.pms.threads.SourceConnector;
  */
 public class DataSource implements SourceConnector , ApplicationContextAware {
 
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(DataSource.class);
 	
-	/** The singleton. */
 	private static DataSource singleton;
-	
-	/** The connect not commited. */
+
 	private Connection connectNotCommited; // = null;
-	
-	/** The thread pool. */
 	private PoolSemaphore threadPool;
-	
-	/** The nb exceptions. */
 	private Integer nbExceptions = 0;
-	
 	
 	private PortfolioDAO portfolioDAO;
 	private ShareDAO shareDAO;
@@ -125,14 +117,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public static String DB_PATH_NNAME;
 
-
-	/**
-	 * Instantiates a new data source.
-	 * 
-	 * @param pathToprops the path toprops
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public DataSource() {
 		
 		QUOTATIONS.TABLE_NAME = MainPMScmd.getPrefs().get("quotations", "QUOTATIONS");
@@ -145,6 +129,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		QUOTATIONS.DAY_LOW_FIELD = MainPMScmd.getPrefs().get("low", "LOW");
 		QUOTATIONS.DAY_VOLUME_FIELD = MainPMScmd.getPrefs().get("volume", "VOLUME");
 		QUOTATIONS.CURRENCY_FIELD = MainPMScmd.getPrefs().get("currency", "CURRENCY");
+		QUOTATIONS.ORIGIN_FIELD = MainPMScmd.getPrefs().get("origin", "ORIGIN");
 		SHARES.TABLE_NAME = MainPMScmd.getPrefs().get("shares", "SHARES");
 		SHARES.ISIN_FIELD = MainPMScmd.getPrefs().get("lookup.isin", "ISIN");
 		SHARES.SYMBOL_FIELD = MainPMScmd.getPrefs().get("lookup.symbol", "SYMBOL");
@@ -184,11 +169,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return DB_PATH_NNAME;
 	}
 
-	/**
-	 * Gets the single instance of DataSource.
-	 * 
-	 * @return single instance of DataSource
-	 */
 	public static DataSource getInstance() {
 		if (singleton != null) {
 			if (singleton.portfolioDAO == null) {
@@ -203,11 +183,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-	/**
-	 * Gets the connection from pool.
-	 * 
-	 * @return the connection from pool
-	 */
 	public static MyDBConnection getConnectionFromPool() {
 		MyDBConnection ret;
 		try {
@@ -224,13 +199,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return null;
 	}
 
-	/**
-	 * Realese pool connection.
-	 * 
-	 * @param conn the conn
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static void realesePoolConnection(SourceClient conn) {
 		
 		try {
@@ -254,14 +222,23 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public Date getLastQuotationDateFromShares(Stock stock) {
 		String query = "SELECT " + SHARES.LASTQUOTE + " FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
-		return this.getLastFormerQuote(stock, query);
+		return this.getLastFormerQuote(stock, false, query);
 	}
 
-	public Date getLastQuotationDateFromQuotations(Stock stock) {
+	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
+		
+		//Boolean override = stock.isRemovableQuotes() && ignoreUserEntries;
+		//String originConstraint = (override)?"AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
+		String originConstraint = (ignoreUserEntries)?"AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 		
 		String endConstraint = testEndConstraint();
-		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? "+endConstraint+" order by "+QUOTATIONS.DATE_FIELD+" desc ";
-		return this.getLastFormerQuote(stock, q);
+		
+		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + 
+					" where "+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
+					" order by "+QUOTATIONS.DATE_FIELD+" desc ";
+		
+		//return this.getLastFormerQuote(stock, override, q);
+		return this.getLastFormerQuote(stock, ignoreUserEntries, q);
 	}
 
 	private String testEndConstraint() {
@@ -281,12 +258,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	}
 	
 	public Date getFirstQuotationDateFromQuotations(Stock stock) {
-		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
-		+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? order by "+QUOTATIONS.DATE_FIELD+" asc ";
-		return this.getLastFormerQuote(stock, q);
+		String q = 
+				"select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
+						+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? "
+						+ "order by "+QUOTATIONS.DATE_FIELD+" asc ";
+		
+		return this.getLastFormerQuote(stock, false, q);
 	}
 
-	private Date getLastFormerQuote(Stock stock, String sqlQuery) {
+	private Date getLastFormerQuote(Stock stock, Boolean ignoreUserEntries, String sqlQuery) {
 		Date retour;
 		MyDBConnection scnx = this.getConnection(true);
 		try {
@@ -295,9 +275,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.setMaxRows(1);
 			pst.setString(1, stock.getSymbol());
 			pst.setString(2, stock.getIsin());
+			if (ignoreUserEntries) pst.setInt(3, ORIGIN.WEB.ordinal());
 			
-			ResultSet rs;
-			rs = pst.executeQuery();
+			pst.setMaxRows(1);
+			ResultSet rs = pst.executeQuery();
+			
 			Date date = (rs.next()) ? rs.getDate(1) : null;
 			
 			if (date != null) {
@@ -317,7 +299,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 		return retour;
 	}
-	
 	
 	public Set<Stock> loadStocksForCurrentShareList() {
 		String currentMarket =  MainPMScmd.getPrefs().get("quotes.listprovider", "euronext");
@@ -382,9 +363,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs = pst.executeQuery();
 			if (rs.next()) {
 				try {
-					retour = new Stock(rs.getString(SHARES.ISIN_FIELD).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim(), rs
-							.getString(SHARES.NAME_FIELD).trim(), rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs
-							.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
+					retour = new Stock(rs.getString(SHARES.ISIN_FIELD).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim(), rs.getString(SHARES.NAME_FIELD).trim(), 
+							rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
 							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),
 							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 							rs.getString(SHARES.SECTOR_HINT),
@@ -414,9 +394,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	}
 
 	@SuppressWarnings("unchecked")
-	public ArrayList<QuotationUnit> loadStripedQuotationsAfter(Stock stock, Date firstDate) {
+	public ArrayList<QuotationUnit> loadStripedQuotationsAfter(final Stock stock, Date firstDate) {
 		
-		Query query = new Query(
+		Query query = new QuotationQuery(
 				"select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ?  AND "
@@ -424,9 +404,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 				
-				retour.add(new QuotationUnit(rs.getDate(QUOTATIONS.DATE_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
-						rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
-						rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD)));
+				java.sql.Date entryDate = override(stock.isOverrideUserQuotes(), rs, retour);
+				if (entryDate != null) {
+					retour.add(new QuotationUnit(
+							stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
+							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
+							rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
+							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD), ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)]));
+				}
 			}
 		};
 		query.addValue(stock.getSymbol());
@@ -439,42 +424,51 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	
 	
 	@SuppressWarnings("unchecked")
-	public ArrayList<QuotationUnit> loadNStripedQuotationsBefore(Stock stock, Date refDate, Integer indexShift, boolean includeRefDate) {
+	public ArrayList<QuotationUnit> loadNStripedQuotationsBefore(final Stock stock, Date refDate, Integer indexShift, boolean includeRefDate) {
+		
+		if (indexShift == 0) return  new ArrayList<QuotationUnit>();
 		
 		String infOrEqual = " < ";
 		if (includeRefDate) {
 			infOrEqual = " <= ";
 		}
 		
-		Query query = new Query("select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
+		Query query = new QuotationQuery("select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ?  AND "
 				+ QUOTATIONS.DATE_FIELD +infOrEqual+" ? order by date desc") {
 
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
-				retour.add(new QuotationUnit(rs.getDate(QUOTATIONS.DATE_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
-						rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
-						rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD)));
+				
+				java.sql.Date entryDate = override(stock.isOverrideUserQuotes(), rs, retour);
+				if (entryDate != null) {
+					retour.add(new QuotationUnit(
+							stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
+							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
+							rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
+							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD),
+							ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)]));
+				}
+				
 			}
 		};
 		
 		query.addValue(stock.getSymbol());
 		query.addValue(stock.getIsin());
 		query.addValue(refDate);
-		List<? extends Object> retour = this.executeQuery(query, indexShift);
+		List<? extends Object> retour = this.executeQuery(query, indexShift*2);
 		
-		NavigableSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>((ArrayList<QuotationUnit>) retour);
-		return new ArrayList<QuotationUnit>(quotationUnits);
+		if (!retour.isEmpty()) {
+			int lastIndexShiftAvailable = Math.max(0,retour.size()- indexShift);
+			retour.subList(retour.size() - lastIndexShiftAvailable, retour.size()).clear();
+			Collections.reverse(retour);
+			return (ArrayList<QuotationUnit>) retour;
+		} else {
+			return new ArrayList<QuotationUnit>();
+		}
 	}
 
-	// Events
-	/**
-	 * Gets the symbol monitor level.
-	 * 
-	 * @param symbol the symbol
-	 * 
-	 * @return the symbol monitor level
-	 */
+	
 	@SuppressWarnings("unchecked")
 	@Deprecated
 	public MonitorLevel getSymbolMonitorLevel(String symbol) {
@@ -497,15 +491,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		
 	}
 
-	/**
-	 * Load events by date.
-	 * 
-	 * @param startDate the date
-	 * 
-	 * @return the list< symbol events>
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	@SuppressWarnings("unchecked")
 	public List<SymbolEvents> loadEventsByDate(String eventsTableName, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 		
@@ -538,12 +523,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							rs.getString(SHARES.ISIN_FIELD).trim(), 
 							rs.getString(SHARES.SYMBOL_FIELD).trim(),
 							rs.getString(SHARES.NAME_FIELD).trim(), 
-							null,
+							rs.getBoolean(SHARES.REMOVABLE),
 							StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()), 
 							rs.getDate(SHARES.LASTQUOTE),
-							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),
-							rs.getString(SHARES.SYMBOL_FIELD).trim()),
-							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
+							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()), new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), 
+							rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 							rs.getString(SHARES.SECTOR_HINT),
 							TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
 							rs.getLong(SHARES.CAPITALISATION)
@@ -746,11 +730,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	
 	}
 
-	/**
-	 * Gets the last event date.
-	 * 
-	 * @return the last event date
-	 */
 	public Date getLastEventDateForAnalyse(String analyseName) {
 		String q = new String("Select max(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where "+EVENTS.ANALYSE_NAME + " like ? ");			
 		Date retour;
@@ -860,31 +839,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			return eventDefConstraint;
 		}
 	}
-	
-	/**
-	 * Exectute select.
-	 * 
-	 * @param query the q
-	 * 
-	 * @return the list< object>
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public <T> List<T> exectuteSelect(Class<T> retClass,Query query) {
 		return this.executeQuery(query,0);
 	}
 
-	/**
-	 * Exectute select.
-	 * 
-	 * @param query the q
-	 * @param maxRow the max row
-	 * 
-	 * @return the list< object>
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param isolationLevel 
-	 */
 	@SuppressWarnings("unchecked")
 	private <T> List<T> executeQuery(Query query, int maxRow) {
 		
@@ -914,8 +873,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.close();
 			
 		} catch (SQLException e) {
-			LOGGER.error("Query : " + sqlQueryString,e);
-			LOGGER.debug("",e);
+			LOGGER.error("Query : " + sqlQueryString, e);
+			LOGGER.debug(e, e);
 		} finally {
 			DataSource.realesePoolConnection(scnx);
 		}
@@ -963,24 +922,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return rs;
 	}
 
-
-	// technic
-	/**
-	 * Gets the connection.
-	 * 
-	 * @param autocommit the autocommit
-	 * 
-	 * @return the connection
-	 */
 	private MyDBConnection getConnection(Boolean autocommit) {
 		return DataSource.getConnectionFromPool();
 	}
 
-	/**
-	 * Commit main.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void commitMain() {
 		try {
 			this.connectNotCommited.commit();
@@ -990,11 +935,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-	/**
-	 * Roll back main.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void rollBackMain() {
 		try {
 			this.connectNotCommited.rollback();
@@ -1004,17 +944,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-	/**
-	 * Connect.
-	 * 
-	 * @param autocommit the autocommit
-	 * 
-	 * @return the connection
-	 * 
-	 * @throws RestartServerException the restart server exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private Connection connect(boolean autocommit) throws RestartServerException { 
 		String connectionURL = null;
 		Connection conn;
@@ -1086,19 +1015,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return this.executeBlock(this.getConnection(null), qL, preparedQuery);
 	}
 
-	/**
-	 * Execute block.
-	 * 
-	 * @param sdbcnx the sdbcnx
-	 * @param qL the q l
-	 * @param preparedQuery the prepared query
-	 * 
-	 * @return the int[]
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private int[] executeBlock(MyDBConnection sdbcnx, Collection<Validatable> qL, String preparedQuery) throws SQLException {
 		int[] resReq = {};
 		String debug = "";
@@ -1225,34 +1141,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.setObject(i + 1, o);
 	}
 
-	/**
-	 * Execute update block.
-	 * 
-	 * @param qL the q l
-	 * @param preparedQuery the prepared query
-	 * 
-	 * @return the int[]
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public int[] executeUpdateBlock(ArrayList<Validatable> qL, String preparedQuery, ArrayList<Validatable> s4UqL, String selectForUpDateQ) throws SQLException {
 		return executeBlock(qL, preparedQuery);
 	}
 
-	/**
-	 * Execute long batch.
-	 * 
-	 * @param insertQueries the queries
-	 * @param insertStatement the statement
-	 * @param tablesLocked the tables locked
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param updateStatement 
-	 */
 	public void executeInsertOrUpdateQuotations(List<Validatable> insertQueries, List<TableLocker> tablesLocked) throws SQLException {
 		
 		MyDBConnection sdbcnx = this.getConnection(null);
@@ -1339,6 +1231,21 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			DataSource.realesePoolConnection(sdbcnx);
 		}
 	}
+	
+	public void cleanQuotationsFor(Stock stock) throws SQLException {
+
+//		try {
+			
+			Query iq = new Query(DataSource.QUOTATIONS.getDELETE());
+			iq.addValue(stock.getSymbol());
+			iq.addValue(stock.getIsin());
+			executeUpdate(iq, 0);
+			
+//		} catch (SQLException e) {
+//			LOGGER.error("Error deleting quotations for "+stock+" (ignoring) : ", e);
+//		}
+	}
+	
 
 	public static String printHugeCollection(Collection<Validatable> collection) {
 		
@@ -1350,48 +1257,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return buffer.toString();
 	}
 
-	/**
-	 * The Class QUOTATIONS.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static class QUOTATIONS {
 		
-		/** The TABL e_ name. */
 		public static String TABLE_NAME;
-		
-		/** The SYMBO l_ field. */
 		public static String SYMBOL_FIELD;
-		
-		/** The ISI n_ field. */
 		public static String ISIN_FIELD;
-		
-		/** The DAT e_ field. */
 		public static String DATE_FIELD;
-		
-		/** The DA y_ ope n_ field. */
 		public static String DAY_OPEN_FIELD;
-		
-		/** The DA y_ clos e_ field. */
 		public static String DAY_CLOSE_FIELD;
-		
-		/** The DA y_ hig h_ field. */
 		public static String DAY_HIGH_FIELD;
-		
-		/** The DA y_ lo w_ field. */
 		public static String DAY_LOW_FIELD;
-		
-		/** The DA y_ volum e_ field. */
 		public static String DAY_VOLUME_FIELD;
-		
-		/** The CURRENC y_ field. */
 		public static String CURRENCY_FIELD;
+		public static String ORIGIN_FIELD;
 
-		/**
-		 * Gets the iNSERT.
-		 * 
-		 * @return the iNSERT
-		 */
+
 		public static String getINSERT() {
 			return "INSERT INTO " + QUOTATIONS.TABLE_NAME + " ( "+ QUOTATIONS.DATE_FIELD + " , "
 					+ QUOTATIONS.DAY_OPEN_FIELD + " , " + QUOTATIONS.DAY_HIGH_FIELD + " , " + QUOTATIONS.DAY_LOW_FIELD + " , "
@@ -1407,40 +1288,18 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					" where "+ QUOTATIONS.SYMBOL_FIELD + "= ? and " + QUOTATIONS.ISIN_FIELD + "= ? and "+ QUOTATIONS.DATE_FIELD + "= ? ";
 		}
 
-		/**
-		 * Gets the dELETE.
-		 * 
-		 * @return the dELETE
-		 */
 		public static String getDELETE() {
 			return "DELETE FROM " + QUOTATIONS.TABLE_NAME + " where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD+ " = ? ";
 		}
 
-		/**
-		 * Gets the uPDATEREFERENCE.
-		 * 
-		 * @return the uPDATEREFERENCE
-		 */
 		public static String getUPDATEREFERENCE() {
 			return "UPDATE " + QUOTATIONS.TABLE_NAME + " set " + QUOTATIONS.SYMBOL_FIELD + " = ?  where " + QUOTATIONS.ISIN_FIELD+ " = ? ";
 		}
 
-		/**
-		 * Gets the date param.
-		 * 
-		 * @param q the q
-		 * 
-		 * @return the date param
-		 */
 		public static Date getDateParam(Query q) {
 			return (Date) q.getParameterValues().get(0);
 		}
 
-		/**
-		 * Gets the insert cols.
-		 * 
-		 * @return the insert cols
-		 */
 		public static List<String> getInsertCols() {
 			List<String> l = new ArrayList<String>();
 			//l.add(DataSource.QUOTATIONS.SICOVAM_FIELD);
@@ -1459,31 +1318,17 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	}
 
-	/**
-	 * The Class SHARES.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	@Deprecated
 	public static class SHARES {
-		
-		/** The TABLE _ name. */
+
 		public static String TABLE_NAME;
-		/** The SYMBOL _ field. */
 		public static String SYMBOL_FIELD;
-		/** The ISIN _ field. */
 		public static String ISIN_FIELD;
-		/** The NAME _ field. */
 		public static String NAME_FIELD;
-		/** The REMOVABLE. */
 		public static String REMOVABLE;
-		/** The CATEGORY. */
 		public static String CATEGORY;
-		/** The LASTQUOTE. */
 		public static String LASTQUOTE;
-		/** The PROVIDER. */
 		public static String QUOTATIONPROVIDER;
-		/** The MARKET. */
 		public static String MARKET;
 		
 		public static String CURRENCYFACTOR="CURRENCYFACTOR";
@@ -1492,22 +1337,12 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String TRADING_MODE = "TRADING_MODE";
 		public static String CAPITALISATION = "CAPITALISATION";
 
-		/**
-		 * Gets the uPDATELASTQUOTE.
-		 * 
-		 * @return the uPDATELASTQUOTE
-		 */
 		@Deprecated
 		public static String getUPDATELASTQUOTE() {
 			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? " + " where " + SHARES.SYMBOL_FIELD
 					+ " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
 		}
 
-		/**
-		 * Gets the uPDATELASTQUOTEANDNAME.
-		 * 
-		 * @return the uPDATELASTQUOTEANDNAME
-		 */
 		@Deprecated
 		public static String getUPDATELASTQUOTEANDNAME() {
 			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? ," + SHARES.NAME_FIELD + " = ? "
@@ -1516,45 +1351,21 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		
 	}
 
-	/**
-	 * The Class PORTFOLIO.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	@Deprecated
 	public static class PORTFOLIO {
 		
-		/** The PORTFOLI o_ tabl e_ name. */
 		public static String TABLE_NAME;
-		
-		/** The SYMBO l_ field. */
 		public static String SYMBOL_FIELD;
-		
 		public static String DATE_FIELD;
-		
-		/** The QUANTI y_ field. */
 		public static String QUANTIY_FIELD;
-		
-		/** The CASHI n_ field. */
 		public static String CASHIN_FIELD;
-		
-		/** The CASHOU t_ field. */
 		public static String CASHOUT_FIELD;
-		
-		/** The NAM e_ field. */
 		public static String NAME_FIELD;
-		
-		/** The MONITO r_ field. */
 		public static String MONITOR_FIELD;
 
 		 
 	}
 
-	/**
-	 * The Class EVENTS.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static class EVENTS {
 		
 		public static String EVENTS_TABLE_NAME;
@@ -1603,23 +1414,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return ret;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#getThreadPool()
-	 */
 	public PoolSemaphore getThreadPool() {
 		return threadPool;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
-	 */
 	public int crashResart(int connectionId) {
 		return 1;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#shutdownSource(com.finance.pms.threads.SourceClient, int)
-	 */
 	public void shutdownSource(SourceClient sourceClient, int connectionId) {
 		try {
 			((MyDBConnection) sourceClient).getConn().close();
@@ -1636,16 +1438,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.finance.pms.db.HttpSource#stopThreads()
-	 */
-	/**
-	 * Stop threads.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void stopThreads() {
 		this.threadPool.stopThreads();
 		
@@ -1662,13 +1454,5 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public ShareDAO getShareDAO() {
 		return shareDAO;
 	}
-
-	public void executeInsertOrUpdateQuotations(ArrayList<Validatable> insertQueries) throws SQLException {
-		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
-		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		executeInsertOrUpdateQuotations(insertQueries, tablet2lock);
-		
-	}
-
 
 }

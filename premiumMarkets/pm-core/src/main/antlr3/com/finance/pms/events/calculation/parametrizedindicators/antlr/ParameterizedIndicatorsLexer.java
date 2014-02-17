@@ -1,4 +1,4 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2014-02-05 14:22:11
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2014-02-16 00:52:47
  //lexer
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
     import org.antlr.runtime.BaseRecognizer;

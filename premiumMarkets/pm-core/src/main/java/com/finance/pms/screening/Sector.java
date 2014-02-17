@@ -75,16 +75,16 @@ public class Sector {
 	
 	private BigDecimal complementarPerCentOf(BigDecimal value, Integer factor) {
 		value = (value == null)?new BigDecimal(factor):value;
-		return new BigDecimal(factor).subtract(value).divide(new BigDecimal(factor),4,BigDecimal.ROUND_DOWN);
+		return new BigDecimal(factor).subtract(value).divide(new BigDecimal(factor), 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 	
 	private BigDecimal perCentOf(BigDecimal value, Integer factor) {
 		value = (value == null)?BigDecimal.ZERO:value;
-		return value.divide(new BigDecimal(factor),4,BigDecimal.ROUND_DOWN);
+		return value.divide(new BigDecimal(factor), 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 	
 	private BigDecimal readablePerCent(BigDecimal bigDecimal) {
-		BigDecimal rChange = bigDecimal.multiply(new BigDecimal(100)).setScale(4,BigDecimal.ROUND_DOWN);
+		BigDecimal rChange = bigDecimal.multiply(new BigDecimal(100)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		return rChange;
 	}
 	
@@ -104,7 +104,7 @@ public class Sector {
 		if (nb == 0) {
 			return new BigDecimal(-1);
 		}
-		return ret.divide(new BigDecimal(nb),4,BigDecimal.ROUND_DOWN);
+		return ret.divide(new BigDecimal(nb), 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 	
 	public BigDecimal getPotentiel() {
@@ -127,7 +127,7 @@ public class Sector {
 		if (nb == 0) {
 			return null;
 		}
-		return ret.divide(new BigDecimal(nb),4,BigDecimal.ROUND_DOWN);
+		return ret.divide(new BigDecimal(nb), 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	public BigDecimal getConsensus() {
@@ -144,7 +144,7 @@ public class Sector {
 				nbValids--;
 			}
 		}
-		return (nbValids > 0)?ret.divide(new BigDecimal(nbValids), 4, BigDecimal.ROUND_DOWN):BigDecimal.ZERO;
+		return (nbValids > 0)?ret.divide(new BigDecimal(nbValids), 10, BigDecimal.ROUND_HALF_EVEN):BigDecimal.ZERO;
 	}
 	
 	public BigDecimal getYield() {
@@ -159,7 +159,7 @@ public class Sector {
 		if (nb == 0) {
 			return null;
 		}
-		return ret.divide(new BigDecimal(nb),4,BigDecimal.ROUND_DOWN);
+		return ret.divide(new BigDecimal(nb), 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 	
 	public void addStock(ScreeningSupplementedStock stockPerf) {

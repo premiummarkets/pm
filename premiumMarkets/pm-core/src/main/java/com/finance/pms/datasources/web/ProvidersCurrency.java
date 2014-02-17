@@ -54,10 +54,6 @@ import com.finance.pms.portfolio.PortfolioMgr;
 
 public class ProvidersCurrency extends Providers implements QuotationProvider {
 
-	//private static MyLogger LOGGER = MyLogger.getLogger(ProvidersCurrency.class);
-
-	public static final String SYMBOL = "Inflation";
-
 	public ProvidersCurrency(String pathToProps) {
 		super();
 	}
@@ -82,16 +78,17 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 		
 		
 		if (!currencyStock.getCategory().equals(StockCategories.CURRENCY_RATE)) {
-			throw new RuntimeException("Error : This should be used to retreive currency historical only, not : "+currencyStock.toString());
+			throw new RuntimeException("Error : This should be used to retrieve currency historical only, not : "+currencyStock.toString());
 		}
 		
-		TreeSet<Validatable> queries = new TreeSet<Validatable>();
-		
+		//Fetch rates
 		String[] symbolIsinSplit = currencyStock.getSymbol().split("Per");
 		Currency referee = Currency.valueOf(symbolIsinSplit[1]);
 		Currency target = Currency.valueOf(symbolIsinSplit[0]);
-		
 		List<CurrencyRate> rates = PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end);
+		
+		//Store in quotations
+		TreeSet<Validatable> queries = new TreeSet<Validatable>();
 		if (rates != null && !rates.isEmpty()) {
 			for (CurrencyRate rate : rates) {
 				
@@ -125,6 +122,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
 			
+			//Update stock stamp
 			currencyStock.setLastQuote(rates.get(rates.size()-1).getDate());
 		}
 	}

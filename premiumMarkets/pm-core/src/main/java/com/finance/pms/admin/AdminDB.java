@@ -171,14 +171,15 @@ public class AdminDB {
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 				while (rs.next()) {
 					try {
-						retour.add(new Stock(rs.getString(SHARES.ISIN_FIELD).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim(), rs
-								.getString(SHARES.NAME_FIELD).trim(), rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs
-										.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
-										new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),
-										new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
-										rs.getString(SHARES.SECTOR_HINT),
-										TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
-										rs.getLong(SHARES.CAPITALISATION)));
+						retour.add(new Stock(rs.getString(
+								SHARES.ISIN_FIELD).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim(), rs.getString(SHARES.NAME_FIELD).trim(), 
+								rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()), 
+								rs.getDate(SHARES.LASTQUOTE), 
+								new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), 
+								rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
+								rs.getString(SHARES.SECTOR_HINT), 
+								TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()), 
+								rs.getLong(SHARES.CAPITALISATION)));
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -209,7 +210,7 @@ public class AdminDB {
 			Thread t = new Thread(new Runnable() {
 				public void run() {
 					
-						Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock);
+						Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, null);//FIXME
 
 						//Check 
 						Date lastRegistered = DataSource.getInstance().getLastQuotationDateFromShares(stock);
@@ -481,7 +482,7 @@ public class AdminDB {
 //					try {
 //						PortfolioShare ps;
 //						//ps = new PortfolioShare(symbol, date,quantity, cashin, cashout, lv, monitor);
-//						ps = new PortfolioShare(s, quantity, date, cashin, cashout, MonitorLevel.ANY,new BigDecimal(price).setScale(2, BigDecimal.ROUND_DOWN));
+//						ps = new PortfolioShare(s, quantity, date, cashin, cashout, MonitorLevel.ANY,new BigDecimal(price).setScale(2, BigDecimal.ROUND_HALF_EVEN));
 //						///alerts
 //						Float current = PortfolioMgr.getInstance().loadLastDayClosed(s.getSymbol(),s.getIsin());
 //						ps.addBuyAlerts();
@@ -875,8 +876,8 @@ public class AdminDB {
 //				moneyIn = moneyIn.add(portfolioShare.getCashin());
 //				moneyOut = moneyOut.add(portfolioShare.getCashout());
 //			}
-//			portfolio.setTotalInAmountEver(moneyIn.setScale(2,BigDecimal.ROUND_DOWN));
-//			portfolio.setTotalOutAmountEver(moneyOut.setScale(2,BigDecimal.ROUND_DOWN));
+//			portfolio.setTotalInAmountEver(moneyIn.setScale(2,BigDecimal.ROUND_HALF_EVEN));
+//			portfolio.setTotalOutAmountEver(moneyOut.setScale(2,BigDecimal.ROUND_HALF_EVEN));
 //		}
 //		
 //		if (!boolean1) PortfolioMgr.getInstance().hibStorePortfolio();

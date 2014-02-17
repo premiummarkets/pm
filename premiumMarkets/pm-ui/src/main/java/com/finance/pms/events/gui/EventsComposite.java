@@ -1254,11 +1254,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 		refreshCompute.setEnabled(true);
 	}
 
-	/**
-	 * Refresh view.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	@Override
 	public void refreshView(List<Exception> exceptions) {
 

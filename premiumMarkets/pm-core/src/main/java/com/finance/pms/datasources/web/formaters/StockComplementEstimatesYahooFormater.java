@@ -71,7 +71,7 @@ public class StockComplementEstimatesYahooFormater extends LineFormater {
 		if (ePSGrowthMatcher.find()) {
 			String estEps = ePSGrowthMatcher.group(3);
 			BigDecimal estEpsB;
-			estEpsB = (estEps.equals("N/A"))? BigDecimal.ZERO : new BigDecimal(estEps).setScale(4, BigDecimal.ROUND_DOWN);
+			estEpsB = (estEps.equals("N/A"))? BigDecimal.ZERO : new BigDecimal(estEps).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 			
 			stockPart.setYahooEstEPS(estEpsB);
 		}

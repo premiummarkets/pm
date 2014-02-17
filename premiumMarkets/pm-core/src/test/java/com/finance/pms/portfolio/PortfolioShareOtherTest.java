@@ -86,7 +86,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForPAJ() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("FR0010096354","PAJ.PA","",false,
+		Stock stock = new Stock("FR0010096354","PAJ.PA","",true,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
@@ -115,13 +115,13 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(9455.16, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(9455.16, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		//(Vin Weighted - Vin) / (Vin - Vout)
 		BigDecimal realInv = new BigDecimal(8314.74);
 		BigDecimal realOut = new BigDecimal(1787.28);
-		BigDecimal distanceToAvgBuyPrice = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(-0.17, distanceToAvgBuyPrice.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distanceToAvgBuyPrice = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(-0.17, distanceToAvgBuyPrice.setScale(10, BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -129,7 +129,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForFTE() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("FR0000133308","FTE.PA","",false,
+		Stock stock = new Stock("FR0000133308","FTE.PA","",true,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
@@ -212,18 +212,18 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(82966.82, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(82966.82, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(68092.33);
 		BigDecimal realOut = new BigDecimal(49485.98);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(-0.8, distToAvgBuy.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(-0.8, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 	}
 	
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForIGLT() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("IGLT.L","IGLT.L","",false,
+		Stock stock = new Stock("IGLT.L","IGLT.L","",true,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
@@ -245,12 +245,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(1381402.23, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(1381402.23, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(1331588.00);
 		BigDecimal realOut = new BigDecimal(296784.00);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(-0.05, distToAvgBuy.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(-0.05, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -258,7 +258,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForHorizon() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("FR0010091173","FR0010091173","",false,
+		Stock stock = new Stock("FR0010091173","FR0010091173","",true,
 				StockCategories.DEFAULT_CATEGORY,currentDate,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
@@ -279,12 +279,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(28921.35, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(28921.35, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(20311.75);
 		BigDecimal realOut = new BigDecimal(10765.39);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(-0.9, distToAvgBuy.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(-0.9, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -292,7 +292,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForCRUDOil() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("GB00B0CTWC01","OILB.L","",false,
+		Stock stock = new Stock("GB00B0CTWC01","OILB.L","", true,
 				StockCategories.DEFAULT_CATEGORY,new Date(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.EURONEXT),
@@ -312,13 +312,13 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(501535.56, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(501535.56, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		//BigDecimal realInv = new BigDecimal(501400.00);
 		BigDecimal realInv = new BigDecimal(8163.12);
 		BigDecimal realOut = new BigDecimal(0);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(0.0, distToAvgBuy.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(0.0, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -326,7 +326,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForBPCE() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("FR0000188625","FR0000188625","",false,
+		Stock stock = new Stock("FR0000188625","FR0000188625","",true,
 				StockCategories.DEFAULT_CATEGORY,new Date(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
@@ -346,12 +346,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(6451.16, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(6451.16, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(5163.00);
 		BigDecimal realOut = new BigDecimal(0);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(-0.25, distToAvgBuy.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(-0.25, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -359,7 +359,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	@Test
 	public void testInflationAndExpectationWeightedQuantityForTemple() throws ParseException, InvalidAlgorithmParameterException {
 		
-		Stock stock = new Stock("LU0294219869","LU0294219869","",false,
+		Stock stock = new Stock("LU0294219869","LU0294219869","",true,
 				StockCategories.DEFAULT_CATEGORY,new Date(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
@@ -379,12 +379,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(25953.57, weightedInvestedValue.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		//assertEquals(25953.57, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(25000);
 		BigDecimal realOut = new BigDecimal(0);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),2,BigDecimal.ROUND_DOWN);
-		assertEquals(-0.03, distToAvgBuy.setScale(2,BigDecimal.ROUND_DOWN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
+		assertEquals(-0.03, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
 		
 		
 	}

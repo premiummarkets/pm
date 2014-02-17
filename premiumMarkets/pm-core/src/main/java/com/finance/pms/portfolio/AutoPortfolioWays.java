@@ -34,9 +34,9 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
 import java.util.Map;
 
+import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.portfolio.Transaction.TransactionType;
 import com.finance.pms.threads.ObserverMsg;
 
 public interface AutoPortfolioWays {
@@ -59,7 +59,7 @@ public interface AutoPortfolioWays {
 
 	void exportAutoportfolioContent(Date date);
 
-	void removeOrUpdateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
+	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
 	
 	public TransactionHistory getTransactionHistory();
 	

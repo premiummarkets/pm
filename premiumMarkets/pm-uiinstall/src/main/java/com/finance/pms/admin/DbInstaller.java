@@ -45,8 +45,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Observable;
@@ -66,6 +68,9 @@ import org.apache.tools.tar.TarInputStream;
  */
 public class DbInstaller extends Observable {
 	
+	private static final String oldtestUpgradeNum_0 = "-1";
+	private static final String oldestUpgradeDate_0000 = "0000";
+
 	public static String EXTRACTDIR = "export";
 
 	private InputStream fis;
@@ -94,10 +99,15 @@ public class DbInstaller extends Observable {
 			while (tarEntry != null) {
 				File destPath = new File(folderTo.getAbsolutePath() + File.separator + tarEntry.getName());
 				System.out.println("Extracting " + destPath.getAbsoluteFile());
-				if (destPath.exists()) {
-					//TODO DB already installed => update??
+				if (destPath.exists()) { //Upgrade
+					if (tarEntry.getName().startsWith("derby")) {
+						System.out.println("Upgrade, skipping extraction of " + tarEntry.getName());
+						tarEntry = tis.getNextEntry();
+						continue;
+					}
 				}
 				if (!tarEntry.isDirectory()) {
+					
 					if (!destPath.getParentFile().exists()) {
 						System.out.println("Creating directory " + destPath.getParent());
 						destPath.getParentFile().mkdirs();
@@ -110,8 +120,10 @@ public class DbInstaller extends Observable {
 					this.notifyObservers("extracting "+destPath.getAbsolutePath());
 					
 				} else {
+					
 					System.out.println("Creating directory " + destPath.getAbsoluteFile());
 					destPath.mkdirs();
+					
 				}
 				tarEntry = tis.getNextEntry();
 			}
@@ -160,43 +172,115 @@ public class DbInstaller extends Observable {
 		//create keys and indexes 
 		createIndexesAndKeys(piggyMarketSqueakFolder, extractDirName, connection);
 		
+		//init status file
+		try {
+			
+			String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
+			File scriptsStatusFile = new File(installPath + extractDirName + File.separator + "upgrade" + File.separator + "upgradeStatus.txt");
+			System.out.println("Creating initial status script file : "+scriptsStatusFile.getAbsolutePath());
+			scriptsStatusFile.createNewFile();
+			SortedSet<File> sortedUpgrades = sortedUpgradeScriptFilesSet(oldestUpgradeDate_0000, oldtestUpgradeNum_0, extractDirName, installPath);
+			runUpgradeScripts(scriptsStatusFile, sortedUpgrades, connection, true);
+			
+		} catch (IOException e) {
+			System.out.println("Could not init status file for future upgrades!");
+			e.printStackTrace();
+		}
+		
 		System.out.println("Import db. Done!");
 		
 	}
 	
-	//Expected name format is : xxxx_yyyyMMddhhss_num.sql
-	//TODO check last upgrade file run using a time stamp in the db or checking what is already there in the existing install folder?
+	//Expected name format is : yyyyMMdd_num_ ..... .sql
 	public void upgradeExisting(File piggyMarketSqueakFolder, String extractDirName, Connection connection) throws IOException, OtherException {
 		
-		System.out.println("Doing : Upgrade existing data base.");
-		String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
-		
-		//Checking already ran //TODO what shall we do if the script was NOK?
-		String lastStampRan = "0000";
-		String lastNumRan= "0";
-		File scriptsStatusFile = new File(installPath + File.separator + "upgrade" + File.separator + "upgradeStatus.txt");
-		if (scriptsStatusFile.exists()) {
-			BufferedReader statusReader = new BufferedReader(new FileReader(scriptsStatusFile));
-			String  alreadyRanStatus = null;
-			while ( (alreadyRanStatus = statusReader.readLine()) != null) {
-				String alreadyRanScript = alreadyRanStatus.substring(0, alreadyRanStatus.indexOf(","));
-				String[] arSqlScriptTimeStamp = extractSqlScriptTimeStamp(alreadyRanScript);
-				lastStampRan = arSqlScriptTimeStamp[0];
-				lastNumRan = arSqlScriptTimeStamp[1];
+		try {
+			
+			System.out.println("Doing : Upgrade existing data base.");
+			String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
+			
+			//Checking already ran //TODO what shall we do if the script was NOK?
+			String lastStampRan = oldestUpgradeDate_0000;
+			String lastNumRan= oldtestUpgradeNum_0;
+			File scriptsStatusFile = new File(installPath + extractDirName + File.separator + "upgrade" + File.separator + "upgradeStatus.txt");
+			if (scriptsStatusFile.exists()) {
+				BufferedReader statusReader = new BufferedReader(new FileReader(scriptsStatusFile));
+				String  alreadyRanStatus = null;
+				while ( (alreadyRanStatus = statusReader.readLine()) != null ) {
+					String alreadyRanScript = alreadyRanStatus.substring(0, alreadyRanStatus.indexOf(","));
+					String[] arSqlScriptTimeStamp = extractSqlScriptTimeStamp(alreadyRanScript);
+					System.out.println("Script found in status : "+ alreadyRanStatus + ". Time stamp : "+Arrays.toString(arSqlScriptTimeStamp));
+					lastStampRan = arSqlScriptTimeStamp[0];
+					lastNumRan = arSqlScriptTimeStamp[1];
+				}
+				System.out.println("Last Script found in status : "+ alreadyRanStatus + ". Time stamp : "+lastStampRan+"_"+lastNumRan);
+				statusReader.close();
+			} else {
+				System.out.println("No status script file found : "+scriptsStatusFile.getAbsolutePath());
+				scriptsStatusFile.createNewFile();
 			}
-			statusReader.close();
+			
+			//Loading scripts
+			SortedSet<File> sortedUpgrades = sortedUpgradeScriptFilesSet(lastStampRan, lastNumRan, extractDirName, installPath);
+			
+			//Running valid scripts
+			runUpgradeScripts(scriptsStatusFile, sortedUpgrades, connection, false);
+			
+		} finally {
+			
+			this.setChanged();
+			this.notifyObservers("Running upgrade scripts");
+			
 		}
+	
+	}
 
+	protected void runUpgradeScripts(File scriptsStatusFile, SortedSet<File> sortedUpgrades, Connection connection, Boolean smoke) throws IOException, OtherException {
 		
-		//Loading scripts
-		String sqlScriptFolderPath = installPath + extractDirName + File.separator + "upgrade" + File.separator;
-		File sqlUpgradeFolder = new File(sqlScriptFolderPath);
-		File[] listFiles = sqlUpgradeFolder.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".sql");
+		BufferedWriter statusWriter = new BufferedWriter(new FileWriter(scriptsStatusFile, true));
+		for (File sqlScript : sortedUpgrades) {
+			try {
+
+				if (!smoke) {
+					System.out.println("Running : "+scriptsStatusFile.getAbsolutePath());
+					try {
+						runSqlScript(connection, sqlScript, true);
+						statusWriter.append(sqlScript.getName()+", OK");
+						statusWriter.newLine();
+						statusWriter.flush();
+					} catch (Exception e) {
+						statusWriter.append(sqlScript.getName() + ", NOK " + e.getMessage());
+						statusWriter.newLine();
+						statusWriter.flush();
+						System.out.println("Error running upgrade script : "+sqlScript.getAbsolutePath());
+						e.printStackTrace();
+					}
+				} else {
+					System.out.println("Updating in status only (init smoke) : "+scriptsStatusFile.getAbsolutePath());
+					statusWriter.append(sqlScript.getName()+", OK");
+					statusWriter.newLine();
+					statusWriter.flush();
+				}
+				
+			} catch (FileNotFoundException e) {
+				System.out.println("Can't find upgrade script file : "+sqlScript.getAbsolutePath());
+				statusWriter.close();
+				throw new OtherException(e);
+			} catch (IOException e) {
+				System.out.println("Error upgrading script file : "+sqlScript.getAbsolutePath());
+				statusWriter.close();
+				e.printStackTrace();
+				throw new OtherException(e);
 			}
-		});
+			System.out.println(sqlScript.getAbsolutePath() + " Done!");
+		}
+		statusWriter.close();
+		
+	}
+
+	protected SortedSet<File> sortedUpgradeScriptFilesSet(String lastStampRan, String lastNumRan, String extractDirName, String installPath) {
+		
+		File[] listFiles = upgradeScriptFilesList(extractDirName, installPath);
 		
 		SortedSet<File> sortedUpgrades = new TreeSet<File>(new Comparator<File>() {
 
@@ -217,48 +301,45 @@ public class DbInstaller extends Observable {
 		//Order and filter
 		for (File file : listFiles) {
 			String[] sqlScriptTimeStamp = extractSqlScriptTimeStamp(file.getName());
-			if (isValidSqlScriptFile(sqlScriptTimeStamp) && sqlScriptTimeStamp[0].compareTo(lastStampRan) > 0 && sqlScriptTimeStamp[1].compareTo(lastNumRan) > 0) {
+			boolean validSqlScriptFile = isValidSqlScriptFile(sqlScriptTimeStamp);
+			boolean isNewerScript = sqlScriptTimeStamp[0].compareTo(lastStampRan) >= 0 && sqlScriptTimeStamp[1].compareTo(lastNumRan) > 0;
+			if (validSqlScriptFile && isNewerScript) {
+				System.out.println("Will potentially run upgrade script : "+file.getAbsolutePath() + ". Time stamp : "+Arrays.toString(sqlScriptTimeStamp) + ". Validity : "+validSqlScriptFile +". Against last time stamp : "+lastStampRan+"_"+lastNumRan);
 				sortedUpgrades.add(file);
 			} else {
-				System.out.println("Ignoring invalid or already ran script file : "+file.getAbsolutePath());
+				System.out.println("Ignoring invalid or already ran script file : "+file.getAbsolutePath() + ". Time stamp : "+Arrays.toString(sqlScriptTimeStamp) + ". Validity : "+validSqlScriptFile+". Against last time stamp : "+lastStampRan+"_"+lastNumRan);
 			}
 		}
-		
-		//Running valid scripts
-		BufferedWriter statusWriter = new BufferedWriter(new FileWriter(scriptsStatusFile));
-		for (File sqlScript : sortedUpgrades) {
-			try {
-				String scriptStatus = runSqlScript(connection, sqlScript);
-				statusWriter.append(sqlScript.getName()+", "+((scriptStatus.isEmpty())?"Ok":"NOk "+scriptStatus));
-				statusWriter.newLine();
-			} catch (FileNotFoundException e) {
-				System.out.println("Can't find upgrade script file : "+sqlScript.getAbsolutePath());
-				statusWriter.close();
-				throw new OtherException(e);
-			} catch (IOException e) {
-				System.out.println("Error upgrading script file : "+sqlScript.getAbsolutePath());
-				statusWriter.close();
-				e.printStackTrace();
-				throw new OtherException(e);
+		return sortedUpgrades;
+	}
+
+	protected File[] upgradeScriptFilesList(String extractDirName, String installPath) {
+		String sqlScriptFolderPath = installPath + extractDirName + File.separator + "upgrade" + File.separator;
+		File sqlUpgradeFolder = new File(sqlScriptFolderPath);
+		File[] listFiles = sqlUpgradeFolder.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".sql");
 			}
-			System.out.println(sqlScript.getAbsolutePath() + " Done!");
-		}
-		statusWriter.close();
-		
-		this.setChanged();
-		this.notifyObservers("Running upgrade scripts");
-		
+		});
+		return listFiles;
 	}
 	
 	private String[] extractSqlScriptTimeStamp(String fileName) {
-		String stampString = fileName.substring(fileName.indexOf("_"), fileName.indexOf("."));
-		String[] split = stampString.split("_");
-		return split;
+		try {
+			int first_ = fileName.indexOf("_");
+			int second_ = fileName.indexOf("_", first_+1);
+			String stampString = fileName.substring(0, second_);
+			String[] split = stampString.split("_");
+			return split;
+		} catch (Exception e) {
+			return new String[]{oldestUpgradeDate_0000, oldtestUpgradeNum_0};
+		}
 	}
 	
 	private boolean isValidSqlScriptFile(String[] split) {
 		if (split.length != 2) return false;
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddhhss");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 		try {
 			dateFormat.parse(split[0]);
 		} catch (ParseException e) {
@@ -293,6 +374,7 @@ public class DbInstaller extends Observable {
 		for (int i = 0; i < lsdat.length; i++) {
 			
 			try {
+				
 				String name = lsdat[i].getName();
 				String fnNoExt = name.substring(0,name.length()-4);
 				
@@ -302,7 +384,6 @@ public class DbInstaller extends Observable {
 				psQuotation.setString(1, null);
 				psQuotation.setString(2, fnNoExt.toUpperCase());
 				psQuotation.setString(3, lsdat[i].getAbsolutePath());
-				//psQuotation.setString(4, ";");
 				psQuotation.setString(4, null);
 				psQuotation.setString(5, null);
 				psQuotation.setString(6, null);
@@ -313,6 +394,7 @@ public class DbInstaller extends Observable {
 				
 				this.setChanged();
 				this.notifyObservers("setting Quotations data");
+				
 			} catch (Exception e) {
 				System.out.println("Error importing "+lsdat[i].getAbsolutePath());
 				e.printStackTrace();
@@ -326,7 +408,7 @@ public class DbInstaller extends Observable {
 		String installPath = piggyMarketSqueakFolder.getAbsolutePath() + File.separator;
 		try {
 			File dropFile = new File(installPath + extractDirName + File.separator + "DROP.sql");
-			runSqlScript(connection, dropFile);
+			runSqlScript(connection, dropFile, false);
 			System.out.println("Drop constraints. Done!");
 		} catch (FileNotFoundException e) {
 			System.out.println("No constraints to drop.");
@@ -334,6 +416,9 @@ public class DbInstaller extends Observable {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new OtherException(e);
+		} catch (SQLException e) {
+			System.out.println("Scripts DROP.sql is NOT atomic so I should not be here");
+			e.printStackTrace();
 		}
 		this.setChanged();
 		this.notifyObservers("Dropping constraints");
@@ -346,7 +431,7 @@ public class DbInstaller extends Observable {
 
 		try {
 			File keysFile = new File(installPath + extractDirName + File.separator + "KEYS.sql");
-			runSqlScript(connection, keysFile);
+			runSqlScript(connection, keysFile, false);
 			System.out.println("Keys. Done!");
 		} catch (FileNotFoundException e) {
 			System.out.println("No Keys import available.");
@@ -354,6 +439,9 @@ public class DbInstaller extends Observable {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new OtherException(e);
+		} catch (SQLException e) {
+			System.out.println("Scripts KEYS.sql is atomic so I should not be here");
+			e.printStackTrace();
 		}
 
 		this.setChanged();
@@ -362,7 +450,7 @@ public class DbInstaller extends Observable {
 		try {
 
 			File indexesFile = new File(installPath + extractDirName + File.separator + "INDEXES.sql");
-			runSqlScript(connection, indexesFile);
+			runSqlScript(connection, indexesFile, false);
 			System.out.println("Indexes. Done!");
 
 		} catch (FileNotFoundException e) {
@@ -371,6 +459,9 @@ public class DbInstaller extends Observable {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new OtherException(e);
+		} catch (SQLException e) {
+			System.out.println("Scripts INDEXES.sql is atomic so I should not be here");
+			e.printStackTrace();
 		}
 
 		this.setChanged();
@@ -379,12 +470,12 @@ public class DbInstaller extends Observable {
 	}
 
 	//TODO roll back on error?
-	private String runSqlScript(Connection connection, File sqlScript) throws FileNotFoundException, IOException {
+	private void runSqlScript(Connection connection, File sqlScript, Boolean atomic) throws FileNotFoundException, IOException, SQLException {
 		
 		BufferedReader fr = new BufferedReader(new FileReader(sqlScript));
 		String statement;
-		String status = "";
 		while ((statement = fr.readLine()) != null) {
+			statement = statement.trim();
 			if (!statement.isEmpty() && !statement.substring(0, 2).equals("--")) {
 				System.out.println("Doing : "+statement);
 				try {
@@ -392,14 +483,17 @@ public class DbInstaller extends Observable {
 					ps.execute();
 				} catch (java.sql.SQLException e) {
 					System.out.println("Error in : "+statement);
-					status = status + " ; " + statement +":"+e.toString();
+					String status =  statement + " : "+ e.toString();
+					if (atomic) {
+						fr.close();
+						throw new SQLException(status, e);
+					} 
 				}
 				System.out.println(statement + " Done!");
 			}
 		}
 		fr.close();
 		
-		return status;
 	}
 
 	public InputStream getFis() {

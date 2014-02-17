@@ -27,13 +27,13 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.db;
+package com.finance.pms.portfolio.gui.charts;
 
 import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
 /**
@@ -47,12 +47,6 @@ public abstract class StripedCloseFunction {
 	
 	protected Date arbitraryStartDate;
 	protected Date arbitraryEndDate;
-	
-//	protected Quotations stockQuotations;
-//	
-//	protected Integer startDateQuotationIndex;
-//	protected Integer endDateQuotationIndex;
-	
 
 	public StripedCloseFunction() {
 		super();
@@ -63,7 +57,7 @@ public abstract class StripedCloseFunction {
 		this.arbitraryEndDate = arbitraryEndDate;
 	}
 
-	public abstract Number[] targetShareData(PortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
+	public abstract Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
 	
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;
@@ -75,14 +69,6 @@ public abstract class StripedCloseFunction {
 	
 	}
 
-//	public Integer getStartDateQuotationIndex() {
-//		return startDateQuotationIndex;
-//	}
-//
-//	public Integer getEndDateQuotationIndex() {
-//		return endDateQuotationIndex;
-//	}
-
 	protected Date getStartDate(Quotations stockQuotations) {
 		
 		Date startDate = this.arbitraryStartDate;
@@ -93,16 +79,20 @@ public abstract class StripedCloseFunction {
 	}
 
 	protected Date getEndDate(Quotations stockQuotations) {
+		
 		Date endDate = this.arbitraryEndDate;
 		Integer lastQuoteI = stockQuotations.size()-1;
 		endDate = (endDate.after(stockQuotations.getDate(lastQuoteI)))?stockQuotations.getDate(lastQuoteI):endDate;
 		LOGGER.debug("The end date is : "+endDate);
+		
 		return endDate;
 	}
 	
-	public Date getArbitraryStartDate() {
+	public Date getArbitraryStartDateForChart() {
 		return arbitraryStartDate;
 	}
+	
+	public abstract Date getArbitraryStartDateForCalculation();
 
 	public Date getArbitraryEndDate() {
 		return arbitraryEndDate;

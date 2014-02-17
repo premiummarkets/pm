@@ -78,7 +78,7 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 			if (div.equals("N/A")) {
 				divd = BigDecimal.ZERO;
 			} else {
-				divd= new BigDecimal(div).setScale(2, BigDecimal.ROUND_DOWN);
+				divd= new BigDecimal(div).setScale(2, BigDecimal.ROUND_HALF_EVEN);
 			}
 			stockPart.setDividend(divd);
 			isDivSetOrReset = true;
@@ -91,7 +91,7 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 			if (eps.equals("N/A")) {
 				epsd = BigDecimal.ZERO;
 			} else {
-				epsd= new BigDecimal(eps).setScale(4, BigDecimal.ROUND_DOWN);
+				epsd= new BigDecimal(eps).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 			}
 			
 			//stockPart.setYahooEPS(epsd.multiply(new BigDecimal(stockPart.getMarketValuation().getCurrency().getToRatedUnitFactor())));

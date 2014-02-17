@@ -92,30 +92,12 @@ public abstract class TalibIndicator extends Indicator {
 	
 	}
 
-	/**
-	 * @return
-	 */
 	protected abstract double[][] getInputData();
 	
 	protected abstract void initResArray(int length);
 
-	/**
-	 * @param startIdx
-	 * @param endIdx
-	 * @param inData
-	 * @return
-	 */
 	protected abstract RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams);
-	
-	
-	
-	/**
-	 * Export mac dto csv.
-	 * 
-	 * @param filename the filename
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void exportToCSV() {
 		File export = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator
 				+ this.getStockName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) \\&]", "_") + "_"+ this.getClass().getSimpleName() +".csv");
@@ -163,7 +145,7 @@ public abstract class TalibIndicator extends Indicator {
 		StripedQuotations ret = new StripedQuotations(ldIx-fdIx+1);
 
 		for (int i = fdIx; i <= ldIx; i++) {
-			ret.addBar(i, this.getIndicatorQuotationData().get(i + this.outBegIdx.value - lagFix).getDate(), getOutputData()[i]);
+			ret.addBar(i, this.getIndicatorQuotationData().get(i + this.outBegIdx.value - lagFix).getDate(), getOutputData()[i], stock);
 		}
 		
 		return ret;

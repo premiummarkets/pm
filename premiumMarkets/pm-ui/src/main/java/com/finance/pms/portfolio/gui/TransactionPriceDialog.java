@@ -30,6 +30,8 @@
 package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,12 +60,10 @@ import org.eclipse.swt.widgets.Text;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
-import com.finance.pms.datasources.web.currency.CurrencyConverter;
-import com.finance.pms.events.quotations.QuotationUnit;
-import com.finance.pms.portfolio.PortfolioMgr;
-import com.finance.pms.portfolio.Transaction;
-import com.finance.pms.portfolio.Transaction.TransactionType;
+import com.finance.pms.datasources.files.Transaction;
+import com.finance.pms.datasources.files.TransactionType;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 
 public class TransactionPriceDialog extends Dialog {
@@ -96,18 +96,40 @@ public class TransactionPriceDialog extends Dialog {
 	private Button sharePricePivot;
 	private Button transactionAmountPivot;
 	private Button quantityPivot;
+
+	private NumberFormat moneysFormat;
+	private NumberFormat quantityFormat;
+
+	private BigDecimal fullAmountIn;
+	private BigDecimal fullAmountOut;
 	
 
 	public TransactionPriceDialog(Shell parent, SlidingPortfolioShare slidingPortfolioShare, Transaction transaction) {
 		super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.DIALOG_TRIM));
+		
 		this.transaction = transaction;
-		portfolioShare = slidingPortfolioShare;
+		this.fullAmountIn= slidingPortfolioShare.getCashin(null, transaction.getDate(), slidingPortfolioShare.getTransactionCurrency());
+		this.fullAmountOut= slidingPortfolioShare.getCashout(null, transaction.getDate(), slidingPortfolioShare.getTransactionCurrency());;
+		
+		this.portfolioShare = slidingPortfolioShare;
+		
+		moneysFormat = NumberFormat.getNumberInstance();
+		moneysFormat.setRoundingMode(RoundingMode.HALF_EVEN);
+		moneysFormat.setMinimumFractionDigits(2);
+		moneysFormat.setMaximumFractionDigits(2);
+		
+		
+		quantityFormat = NumberFormat.getNumberInstance();
+		quantityFormat.setRoundingMode(RoundingMode.HALF_EVEN);
+		quantityFormat.setMinimumFractionDigits(5);
+		quantityFormat.setMaximumFractionDigits(5);
+		
 	}
 
 	public void open() {
 		try {
 			
-			getParent().setText("Premium Markets - Alter portfolio line");
+			getParent().setText("Premium Markets - Alter Portfolio line");
 			
 			GridLayout dialogShellLayout = new GridLayout();
 			dialogShellLayout.verticalSpacing = 8;
@@ -141,10 +163,16 @@ public class TransactionPriceDialog extends Dialog {
 				}
 			};
 			
-			
 			{
 				Label newPortfoliolabel = new Label(getParent(), SWT.BORDER);
-				newPortfoliolabel.setText(((transaction.getModtype().equals(TransactionType.AIN))?"Buy details : ":"Sell details : ")+ " Please edit ");
+				String string;
+				if (portfolioShare.getExternalAccount() != null) {
+					string = "WARNING :\nThis line as been imported using GNUCASH HTML report.\nBe aware that changes on this line will be discarded when re importing while using the same report file name.";
+				} else {
+					string = "Please edit the transaction details.";
+				}
+				
+				newPortfoliolabel.setText(string);
 				newPortfoliolabel.setFont(MainGui.DEFAULTFONT);
 				GridData newPortfoliolabelLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfoliolabelLData.horizontalSpan = 3;
@@ -233,12 +261,20 @@ public class TransactionPriceDialog extends Dialog {
 						try {
 							Date newTransactionDate = dateFormat.parse(dateText.getText());
 							transaction.setDate(newTransactionDate);
-							ArrayList<QuotationUnit> loadNStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(portfolioShare.getStock(), newTransactionDate, 1, true);
-							if (loadNStripedQuotationsBefore != null && loadNStripedQuotationsBefore.size() > 0) {
-								CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
-								BigDecimal close = loadNStripedQuotationsBefore.get(0).getClose();
-								close = currencyConverter.convert(portfolioShare.getStock().getMarketValuation(), portfolioShare.getStock().getMarketValuation().getCurrency(), close, newTransactionDate);
-								sharePriceText.setText(close.toString());
+							//ArrayList<QuotationUnit> loadNStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(portfolioShare.getStock(), newTransactionDate, 1, true);
+							BigDecimal close = null;
+							try {
+								Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), newTransactionDate, true, portfolioShare.getStock().getMarketValuation().getCurrency());
+								close = quotations.getClosestCloseForDate(newTransactionDate);
+							} catch (Exception exc) {
+								LOGGER.warn(exc,exc);
+							}
+							//if (loadNStripedQuotationsBefore != null && loadNStripedQuotationsBefore.size() > 0) {
+							if (close != null) {
+//								CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
+//								BigDecimal close = loadNStripedQuotationsBefore.get(0).getClose();
+//								close = currencyConverter.convert(portfolioShare.getStock().getMarketValuation(), portfolioShare.getStock().getMarketValuation().getCurrency(), close, newTransactionDate);
+								sharePriceText.setText(moneysFormat.format(close));
 								if (sharePricePivot.getSelection()) {//Price is the pivot
 									transaction.setTransactionSharePrice(close);
 									updateThirdFieldFor("quantity"); //ie the amount will be chaged
@@ -272,13 +308,13 @@ public class TransactionPriceDialog extends Dialog {
 				transactionAmountText = new Text(getParent(), SWT.BORDER);
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				transactionAmountText.setLayoutData(newPortfolioTextLData);
-				transactionAmountText.setText(transaction.amount().toString());
+				transactionAmountText.setText(moneysFormat.format(amount()));
 				transactionAmountText.setToolTipText(valuesToolTipMsg);
 				transactionAmountText.setFont(MainGui.CONTENTFONT);
 				transactionAmountText.addListener(SWT.DefaultSelection, new Listener() {
 					public void handleEvent(Event e) {
 						BigDecimal amount = solveCalculation(transactionAmountText.getText());
-						transactionAmountText.setText(amount.toString());
+						transactionAmountText.setText(moneysFormat.format(amount));
 						updateThirdFieldFor("amount");
 						refreshValues();
 					}
@@ -301,7 +337,7 @@ public class TransactionPriceDialog extends Dialog {
 				sharePriceText = new Text(getParent(), SWT.BORDER);
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				sharePriceText.setLayoutData(newPortfolioTextLData);
-				sharePriceText.setText(transaction.getTransactionSharePrice().toString());
+				sharePriceText.setText(moneysFormat.format(transaction.getTransactionSharePrice()));
 				sharePriceText.setToolTipText(valuesToolTipMsg);
 				sharePriceText.setFont(MainGui.DEFAULTFONT);
 				sharePriceText.setEditable(true);
@@ -309,7 +345,7 @@ public class TransactionPriceDialog extends Dialog {
 				sharePriceText.addListener(SWT.DefaultSelection, new Listener() {
 					public void handleEvent(Event e) {
 						BigDecimal sharePrice = solveCalculation(sharePriceText.getText());
-						sharePriceText.setText(sharePrice.toString());
+						sharePriceText.setText(moneysFormat.format(sharePrice));
 						updateThirdFieldFor("price");
 						refreshValues();
 					}
@@ -332,14 +368,14 @@ public class TransactionPriceDialog extends Dialog {
 				quantityText = new Text(getParent(), SWT.BORDER);
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				quantityText.setLayoutData(newPortfolioTextLData);
-				quantityText.setText(transaction.getQuantity().toString());
+				quantityText.setText(quantityFormat.format(transaction.getQuantity()));
 				quantityText.setToolTipText(valuesToolTipMsg);
 				quantityText.setFont(MainGui.CONTENTFONT);
 				quantityText.addListener(SWT.DefaultSelection, new Listener() {
 					
 					public void handleEvent(Event e) {
-						BigDecimal quatity = solveCalculation(quantityText.getText());
-						quantityText.setText(quatity.toString());
+						BigDecimal quantity = solveCalculation(quantityText.getText());
+						quantityText.setText(quantityFormat.format(quantity));
 						updateThirdFieldFor("quantity");
 						refreshValues();
 					}
@@ -360,7 +396,7 @@ public class TransactionPriceDialog extends Dialog {
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfolioTextLData.horizontalSpan = 1;
 				amountInLabel.setLayoutData(newPortfolioTextLData);
-				amountInLabel.setText(transaction.fullAmountIn().toString());
+				amountInLabel.setText(moneysFormat.format(inHistoryForTheLine())+" "+portfolioShare.getTransactionCurrency());
 				amountInLabel.setToolTipText("Total money in for the line after the transaction.");
 				amountInLabel.setFont(MainGui.CONTENTFONT);
 				amountInLabel.setBackground(MainGui.pOPUP_BG);
@@ -380,7 +416,7 @@ public class TransactionPriceDialog extends Dialog {
 				GridData newPortfolioTextLData = new GridData(GridData.FILL_HORIZONTAL);
 				newPortfolioTextLData.horizontalSpan = 1;
 				amountOutLabel.setLayoutData(newPortfolioTextLData);
-				amountOutLabel.setText(transaction.fullAmountOut().toString());
+				amountOutLabel.setText(moneysFormat.format(outHistoryForTheLine())+" "+portfolioShare.getTransactionCurrency());
 				amountOutLabel.setToolTipText("Total money out for the line after the transaction.");
 				amountOutLabel.setFont(MainGui.CONTENTFONT);
 				amountOutLabel.setBackground(MainGui.pOPUP_BG);
@@ -417,13 +453,13 @@ public class TransactionPriceDialog extends Dialog {
 						
 						Float quantity = 0f;
 						try {
-							quantity = new Float(quantityText.getText());
+							quantity = new Float(formatedQuantity().toString());
 						} catch (NumberFormatException e) {
 							LOGGER.warn(e);
 						}
 						Float amount=0f;
 						try {
-							amount = new Float(transactionAmountText.getText());
+							amount = new Float(formatedAmount().toString());
 						} catch (NumberFormatException e) {
 							LOGGER.warn(e);
 						}
@@ -462,15 +498,15 @@ public class TransactionPriceDialog extends Dialog {
 
 	private void refreshValues() {
 		if (!this.resetButton.getSelection()) {
-			amountInLabel.setText(transaction.fullAmountIn().toString());
-			amountOutLabel.setText(transaction.fullAmountOut().toString());
+			amountInLabel.setText(moneysFormat.format(inHistoryForTheLine())+" "+portfolioShare.getTransactionCurrency());
+			amountOutLabel.setText(moneysFormat.format(outHistoryForTheLine())+" "+portfolioShare.getTransactionCurrency());
 		} else {
-			amountInLabel.setText(transaction.amount().toString());
-			amountOutLabel.setText("0");
+			amountInLabel.setText(moneysFormat.format(amount())+" "+portfolioShare.getTransactionCurrency());
+			amountOutLabel.setText(moneysFormat.format(BigDecimal.ZERO)+" "+portfolioShare.getTransactionCurrency());
 		}
-		quantityText.setText(transaction.getQuantity().toString());
-		sharePriceText.setText(transaction.getTransactionSharePrice().toString());
-		transactionAmountText.setText(transaction.amount().toString());
+		quantityText.setText(quantityFormat.format(transaction.getQuantity()));
+		sharePriceText.setText(moneysFormat.format(transaction.getTransactionSharePrice()));
+		transactionAmountText.setText(moneysFormat.format(amount()));
 	}
 	
 	
@@ -487,12 +523,11 @@ public class TransactionPriceDialog extends Dialog {
 		
 		Scanner scanner = new Scanner(formula);
 		Pattern pattern = Pattern.compile("\\s*[[-\\*][\\+/]]\\s*");
-		ArrayList<BigDecimal> nums;
+		ArrayList<BigDecimal> nums = new ArrayList<BigDecimal>();
 		try {
 			scanner.useDelimiter(pattern);
-			nums = new ArrayList<BigDecimal>();
 			while (scanner.hasNextBigDecimal()) {
-				nums.add(scanner.nextBigDecimal().setScale(4, BigDecimal.ROUND_DOWN));
+				nums.add(scanner.nextBigDecimal().setScale(10, BigDecimal.ROUND_HALF_EVEN));
 			}
 		} finally {
 			scanner.close();
@@ -501,7 +536,7 @@ public class TransactionPriceDialog extends Dialog {
 		ArrayList<Character> ope = new ArrayList<Character>();
 		Scanner scanner2 = new Scanner(formula);
 		try {
-			Pattern pattern2 = Pattern.compile("\\s*\\d+\\.?\\d*\\s*");
+			Pattern pattern2 = Pattern.compile("\\s*[\\d,]+\\.?\\d*\\s*");
 			scanner2.useDelimiter(pattern2);
 			while (scanner2.hasNext()) {
 				ope.add(scanner2.next().charAt(0));
@@ -517,13 +552,13 @@ public class TransactionPriceDialog extends Dialog {
 		for (Character character:ope) {
 			switch(character) {
 				case '*' : 
-					result=result.multiply(nums.get(numIndex)).setScale(4, BigDecimal.ROUND_DOWN);
+					result=result.multiply(nums.get(numIndex)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 					break;
 				case '+' :
-					result=result.add(nums.get(numIndex)).setScale(4, BigDecimal.ROUND_DOWN);
+					result=result.add(nums.get(numIndex)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 					break;
 				case '/' :
-					result=result.divide(nums.get(numIndex), 4, BigDecimal.ROUND_DOWN);
+					result=result.divide(nums.get(numIndex), 10, BigDecimal.ROUND_HALF_EVEN);
 					break;
 				case '-' :
 					result=result.subtract(nums.get(numIndex));
@@ -545,57 +580,110 @@ public class TransactionPriceDialog extends Dialog {
 	private void updateThirdFieldFor(String changedField) {
 		
 		if (transactionAmountPivot.getSelection()) {
-			Float amount = new Float(transactionAmountText.getText());
+			Float amount = new Float(formatedAmount().toString());
 			if (changedField.equals("quantity")) {
-				Float quantity = new Float(quantityText.getText());
+				Float quantity = new Float(formatedQuantity().toString());
 				transaction.setQuantity(quantity);
 				
 				Float transactionSharePrice = amount/quantity;
-				sharePriceText.setText(transactionSharePrice.toString());
+				sharePriceText.setText(moneysFormat.format(transactionSharePrice));
 				transaction.setTransactionSharePrice(transactionSharePrice);
 			} 
 			else if (changedField.equals("price")) {
-				Float price = new Float(sharePriceText.getText());
+				Float price = new Float(formatedSharePrice().toString());
 				transaction.setTransactionSharePrice(price);
 				
 				Float quantity = amount/price;
-				quantityText.setText(quantity.toString());
+				quantityText.setText(quantityFormat.format(quantity));
 				transaction.setQuantity(quantity);
 			}
 		}
 		else if (sharePricePivot.getSelection()) {
-			Float price = new Float(sharePriceText.getText());
+			Float price = new Float(formatedSharePrice().toString());
 			if (changedField.equals("quantity")) {
-				Float quantity = new Float(quantityText.getText());
+				Float quantity = new Float(formatedQuantity().toString());
 				transaction.setQuantity(quantity);
 				
 				Float amount = price*quantity;
-				transactionAmountText.setText(amount.toString());
+				transactionAmountText.setText(moneysFormat.format(amount));
 			} 
 			else if (changedField.equals("amount")) {
-				Float amount = new Float(transactionAmountText.getText());
+				Float amount = new Float(formatedAmount().toString());
 				Float quantity = amount/price;
-				quantityText.setText(quantity.toString());
+				quantityText.setText(quantityFormat.format(quantity));
 				transaction.setQuantity(quantity);
 			}
 		}
 		else if (quantityPivot.getSelection()) {
-			Float quantity = new Float(quantityText.getText());
+			Float quantity = new Float(formatedQuantity().toString());
 			if (changedField.equals("price")) {
-				Float price = new Float(sharePriceText.getText());
+				Float price = new Float(formatedSharePrice().toString());
 				transaction.setTransactionSharePrice(price);
 				
 				Float amount = quantity*price;
-				transactionAmountText.setText(amount.toString());
+				transactionAmountText.setText(moneysFormat.format(amount));
 			} 
 			else if (changedField.equals("amount")) {
-				Float amount = new Float(transactionAmountText.getText());
-				
-				Float price = amount/quantity;
-				sharePriceText.setText(price.toString());
+				//Float amount = new Float(formatedAmount().toString());
+				//Float price = amount/quantity;
+				BigDecimal amount = new BigDecimal(formatedAmount().toString()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal price = amount.divide(new BigDecimal(quantity), 10, BigDecimal.ROUND_HALF_EVEN);
+				sharePriceText.setText(moneysFormat.format(price));
 				transaction.setTransactionSharePrice(price);
 			}
 		}
+	}
+
+	private Number formatedQuantity() {
+		try {
+			return quantityFormat.parse(quantityText.getText());
+		} catch (ParseException e) {
+			LOGGER.warn(quantityText.getText() + " is invalid : " + e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Number formatedSharePrice() {
+		try {
+			return moneysFormat.parse(sharePriceText.getText());
+		} catch (ParseException e) {
+			LOGGER.warn(sharePriceText.getText() + " is invalid : " + e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Number formatedAmount() {
+		try {
+			return moneysFormat.parse(transactionAmountText.getText());
+		} catch (ParseException e) {
+			LOGGER.warn(sharePriceText.getText() + " is invalid : " + e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	
+	public BigDecimal inHistoryForTheLine() {
+		
+		if (transaction.getModtype().equals(TransactionType.AIN)) {
+			BigDecimal fullin =  this.fullAmountIn.add(amount());
+			return fullin;
+		}
+		return fullAmountIn;
+	
+	}
+
+	private BigDecimal amount() {
+		return transaction.getTransactionSharePrice().multiply(transaction.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+	}
+	
+	public BigDecimal outHistoryForTheLine() {
+		
+		if (transaction.getModtype().equals(TransactionType.AOUT)) {
+			BigDecimal fullout = this.fullAmountOut.add(amount());
+			return fullout;
+		} 
+		return this.fullAmountOut;
+			
 	}
  
 }

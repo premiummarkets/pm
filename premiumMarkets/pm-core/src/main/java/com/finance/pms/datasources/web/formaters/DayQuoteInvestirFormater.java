@@ -121,7 +121,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			case 1 :
 				Matcher fitCloseQuotation = quotationPattern.matcher(line);
 				if (fitCloseQuotation.find()) {
-					close = new BigDecimal(numberFormat.parse(fitCloseQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
+					close = new BigDecimal(numberFormat.parse(fitCloseQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				
@@ -129,21 +129,21 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			case 2 :
 				Matcher fitHighQuotation = quotationPattern.matcher(line);
 				if (fitHighQuotation.find()) {
-					high = new BigDecimal(numberFormat.parse(fitHighQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
+					high = new BigDecimal(numberFormat.parse(fitHighQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				break;
 			case 3 :
 				Matcher fitLowQuotation = quotationPattern.matcher(line);
 				if (fitLowQuotation.find()) {
-					low = new BigDecimal(numberFormat.parse(fitLowQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
+					low = new BigDecimal(numberFormat.parse(fitLowQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				break;
 			case 4 :
 				Matcher fitOpenQuotation = quotationPattern.matcher(line);
 				if (fitOpenQuotation.find()) {
-					open = new BigDecimal(numberFormat.parse(fitOpenQuotation.group(1)).toString()).setScale(2,BigDecimal.ROUND_DOWN);
+					open = new BigDecimal(numberFormat.parse(fitOpenQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				break;

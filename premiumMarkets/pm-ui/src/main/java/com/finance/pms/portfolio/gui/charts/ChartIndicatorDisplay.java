@@ -74,7 +74,6 @@ import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.EventRefreshException;
 import com.finance.pms.datasources.EventTaskQueue;
 import com.finance.pms.datasources.TaskId;
-import com.finance.pms.datasources.db.StripedCloseRealPrice;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
