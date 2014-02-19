@@ -693,92 +693,40 @@ public class MyLogger {
 		delegateLogger.removeAllAppenders();
 	}
 
-	/**
-	 * Removes the appender.
-	 * 
-	 * @param appender the appender
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void removeAppender(Appender appender) {
 		delegateLogger.removeAppender(appender);
 	}
 
-	/**
-	 * Removes the appender.
-	 * 
-	 * @param name the name
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void removeAppender(String name) {
 		delegateLogger.removeAppender(name);
 	}
 
-	/**
-	 * Sets the additivity.
-	 * 
-	 * @param additive the new additivity
-	 */
 	public void setAdditivity(boolean additive) {
 		delegateLogger.setAdditivity(additive);
 	}
 
-	/**
-	 * Sets the level.
-	 * 
-	 * @param level the new level
-	 */
 	public void setLevel(Level level) {
 		delegateLogger.setLevel(level);
 	}
 
-	/**
-	 * Sets the priority.
-	 * 
-	 * @param priority the new priority
-	 */
 	@Deprecated
 	public void setPriority(Priority priority) {
 		delegateLogger.setPriority(priority);
 	}
 
-	/**
-	 * Sets the resource bundle.
-	 * 
-	 * @param bundle the new resource bundle
-	 */
 	public void setResourceBundle(ResourceBundle bundle) {
 		delegateLogger.setResourceBundle(bundle);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return delegateLogger.toString();
 	}
 
-	/**
-	 * Trace.
-	 * 
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void trace(Object message, Throwable t) {
 		delegateLogger.trace(message, t);
 	}
 
-	/**
-	 * Trace.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void trace(Object message) {
 		delegateLogger.trace(message);
 	}
@@ -867,7 +815,7 @@ public class MyLogger {
 							}
 
 						} catch (Throwable e) {
-							delegateLogger.error("Can't open error popup for acknowledment.");
+							delegateLogger.error("Can't open error popup for acknowledgement.");
 							e.printStackTrace();
 						}
 						
@@ -947,11 +895,6 @@ public class MyLogger {
 				return senderAddress;
 			}
 
-			/**
-			 * @param error
-			 * @param errorStr
-			 * @return
-			 */
 			private StringBuffer createMsgBodyFirstLines(Throwable error, String errorStr, Integer sizeMax) {
 				StringBuffer msgBoddy = new StringBuffer("Text : " + errorStr + "\n");  
 				if (error != null) {
@@ -966,10 +909,6 @@ public class MyLogger {
 				return msgBoddy;
 			}
 
-			/**
-			 * @param bodyHashcode
-			 * @throws IOException
-			 */
 			private void writeHashesToFile(Integer bodyHashcode) throws IOException {
 				BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(hashCodesFile,true));
 				bufferedWriter.write(bodyHashcode.toString());

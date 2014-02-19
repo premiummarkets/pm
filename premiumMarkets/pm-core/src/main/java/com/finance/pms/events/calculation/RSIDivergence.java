@@ -48,8 +48,8 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 		super(stock, startDate, endDate, calculationCurrency);
 
 		this.rsi = rsi;
-		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(rsiQuotationStartDateIdx, endDate);
+		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(rsiQuotationStartDateIdx, endDate);
 		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
 		
 	}

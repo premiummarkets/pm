@@ -59,8 +59,8 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositio
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.macd = macd;
-		macdQuotationStartDateIdx = macd.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = macd.getIndicatorQuotationData().getClosestIndexForDate(macdQuotationStartDateIdx, endDate);
+		macdQuotationStartDateIdx = macd.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer macdQuotationEndDateIdx = macd.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(macdQuotationStartDateIdx, endDate);
 		isValidData(stock, macd, startDate, macdQuotationStartDateIdx, macdQuotationEndDateIdx);
 	}
 	

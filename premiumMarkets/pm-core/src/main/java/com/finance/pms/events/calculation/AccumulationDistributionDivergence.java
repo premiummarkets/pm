@@ -70,8 +70,8 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.chaikin = chaikinLine;
-		chaikinQuotationStartDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer chaikinQuotationEndDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexForDate(chaikinQuotationStartDateIdx, endDate);
+		chaikinQuotationStartDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer chaikinQuotationEndDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinQuotationStartDateIdx, endDate);
 		isValidData(stock, chaikinLine, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
 		
 		try {
@@ -85,20 +85,20 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
-		chaikinSma20QuotationStartDateIdx = chaikinSma20.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer chaikinSma20QuotationEndDateIdx = chaikinSma20.getIndicatorQuotationData().getClosestIndexForDate(chaikinSma20QuotationStartDateIdx, endDate);
+		chaikinSma20QuotationStartDateIdx = chaikinSma20.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer chaikinSma20QuotationEndDateIdx = chaikinSma20.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinSma20QuotationStartDateIdx, endDate);
 		isValidData(stock, chaikinSma20, startDate, chaikinSma20QuotationStartDateIdx, chaikinSma20QuotationEndDateIdx);
 		
-		chaikinSma65QuotationStartDateIdx = chaikinSma65.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer chaikinSma65QuotationEndDateIdx = chaikinSma65.getIndicatorQuotationData().getClosestIndexForDate(chaikinSma65QuotationStartDateIdx, endDate);
+		chaikinSma65QuotationStartDateIdx = chaikinSma65.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer chaikinSma65QuotationEndDateIdx = chaikinSma65.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinSma65QuotationStartDateIdx, endDate);
 		isValidData(stock, chaikinSma65, startDate, chaikinSma65QuotationStartDateIdx, chaikinSma65QuotationEndDateIdx);
 		
-		sma20QuotationStartDateIdx = priceSma20.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer sma20QuotationEndDateIdx = priceSma20.getIndicatorQuotationData().getClosestIndexForDate(sma20QuotationStartDateIdx, endDate);
+		sma20QuotationStartDateIdx = priceSma20.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer sma20QuotationEndDateIdx = priceSma20.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(sma20QuotationStartDateIdx, endDate);
 		isValidData(stock, priceSma20, startDate, sma20QuotationStartDateIdx, sma20QuotationEndDateIdx);
 		
-		sma65QuotationStartDateIdx = priceSma65.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer sma65QuotationEndDateIdx = priceSma65.getIndicatorQuotationData().getClosestIndexForDate(sma65QuotationStartDateIdx, endDate);
+		sma65QuotationStartDateIdx = priceSma65.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer sma65QuotationEndDateIdx = priceSma65.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(sma65QuotationStartDateIdx, endDate);
 		isValidData(stock, priceSma65, startDate, sma65QuotationStartDateIdx, sma65QuotationEndDateIdx);
 	}
 

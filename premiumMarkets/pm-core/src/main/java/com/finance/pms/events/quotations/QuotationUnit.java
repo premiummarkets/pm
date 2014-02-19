@@ -61,7 +61,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	
 	private static final long serialVersionUID = -406044551517984882L;
 
-	public enum ORIGIN {WEB,USER};
+	public enum ORIGIN {WEB, USER};
 	
 	private Stock stock;
 	private Currency currency;
@@ -79,7 +79,6 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	private QuotationUnit() {
 		super();
 	}
-
 
 	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin)
     {

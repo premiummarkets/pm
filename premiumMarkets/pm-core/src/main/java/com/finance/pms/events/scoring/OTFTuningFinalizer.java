@@ -134,7 +134,7 @@ public class OTFTuningFinalizer {
 	public TuningResDTO buildTuningRes(
 			Stock stock, Date startDate, Date endDate, Date endCalcRes, String analyseName,
 			SortedMap<Date, double[]> calcOutput, Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
-			throws IOException, NoQuotationsException, InvalidAlgorithmParameterException, NotEnoughDataException {
+			throws IOException, NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
 		
 		//stopLossThrRatio = new BigDecimal(".95"); //Test
 		
@@ -175,7 +175,7 @@ public class OTFTuningFinalizer {
 		Pattern pattern = Pattern.compile("config : (.*) es : ");
 		DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
 
-		Calendar currentDate = zeroTimeDate(startDate);
+		Calendar currentDate = zeroTimeCal(startDate);
 
 		BigDecimal csvDispFactor = BigDecimal.ONE;
 
@@ -196,7 +196,12 @@ public class OTFTuningFinalizer {
 		
 		while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
 			
-			BigDecimal closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+			BigDecimal closeForDate;
+			try {
+				closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+			} catch (InvalidAlgorithmParameterException e1) {
+				continue;
+			}
 			
 			String line = "";
 			if (generateBuySellCsv) {
@@ -286,7 +291,8 @@ public class OTFTuningFinalizer {
 						} else if (eventType.equals(EventType.BULLISH)) {//buy
 							
 							//Follow Profit
-							prevTrendClose = quotations.getClosestCloseForDate(currentDate.getTime());
+							//prevTrendClose = quotations.getClosestCloseForDate(currentDate.getTime());
+							prevTrendClose = closeForDate;
 							if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Compound profit at "+trendFollowProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
 							
 							//Stop Loss Profit
@@ -587,7 +593,7 @@ public class OTFTuningFinalizer {
 		return sCalcOutput;
 	}
 
-	private Calendar zeroTimeDate(Date date) {
+	private Calendar zeroTimeCal(Date date) {
 		Calendar currentDate = Calendar.getInstance();
 		currentDate.setTime(date);
 		currentDate.set(Calendar.HOUR_OF_DAY,0);
@@ -611,7 +617,7 @@ public class OTFTuningFinalizer {
 		for (EventValue eventValue : symbolEvents.getDataResultMap().values()) {
 			for (EventDefinition evtDef : evtDefs) {
 				if (eventValue.getEventDef().equals(evtDef)) {
-					Calendar currentEventDate = zeroTimeDate(eventValue.getDate());
+					Calendar currentEventDate = zeroTimeCal(eventValue.getDate());
 					eventValue.setDate(currentEventDate.getTime());
 					neuralEventsList.add(eventValue);
 				}

@@ -207,7 +207,7 @@ public class ChartMain extends Chart {
 						try {
 							Date date = new Date((long) dataset.getXValue(series, item));
 							x = simpleDateFormat.format(date);
-							closeForDate = quotations.get(quotations.getClosestIndexForDate(0, date));
+							closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
 
 							String variationAddInfo = "";
 							if (!stripedCloseFunction.lineToolTip().isEmpty()) {
@@ -220,17 +220,27 @@ public class ChartMain extends Chart {
 									(closeForDate.getOrigin().equals(ORIGIN.USER))?
 										ORIGIN.USER.name().toLowerCase():
 										slidingPortfolioShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
-							return 
-							"<html>" + "<font size='2'>" + 
-								"<b>" + slidingPortfolioShare.getFreindlyName() + "</b> On the " + x + "<br>"+ 
-								"Open&nbsp;&nbsp;&nbsp;: " + closeForDate.getOpen() + "<br>" + 
-								"High&nbsp;&nbsp;&nbsp;: " + closeForDate.getHigh() + "<br>" + 
-								"Low&nbsp;&nbsp;&nbsp;&nbsp;: " + closeForDate.getLow() + "<br>" + 
-								"Close&nbsp;&nbsp;: "+ closeForDate.getClose() + "<br>" + 
-								"Volume : " + closeForDate.getVolume() + "<br>" + 
-								"(Source : " + origin + ")" +
-								variationAddInfo + 
-							"</font>" +"</html>";
+							String trCurrency = slidingPortfolioShare.getTransactionCurrency().name();
+							String stockCurrency = slidingPortfolioShare.getStock().getMarketValuation().getCurrency().name();
+							
+							String string = 
+								"<html>" + 
+								"<font size='2'>" + 
+								"<b>" + slidingPortfolioShare.getFriendlyName() + "</b> On the " + x + "<br>"+ 
+								"</font>" +
+								"<table CELLSPACING=0 CELLPADDING=1>" +
+								"<tr><td><font size='2'>Open</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getOpen()) + "</font></td></tr>" + 
+								"<tr><td><font size='2'>High</font></td><td><font size='2'>" +  NUMBER_FORMAT.format(closeForDate.getHigh()) + "</font></td></tr>" + 
+								"<tr><td><font size='2'>Low</font></td><td><font size='2'>" +  NUMBER_FORMAT.format(closeForDate.getLow()) + "</font></td></tr>" + 
+								"<tr><td><font size='2'>Close</font></td><td><font size='2'>"+  NUMBER_FORMAT.format(closeForDate.getClose()) + "</font></td></tr>" + 
+								"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
+								"</table>" + 
+								"<font size='2'>" +
+									"(Source : " + origin + ", Currency "+stockCurrency+" here in "+ trCurrency +")" +
+									variationAddInfo + 
+								"</font>" +
+								"</html>";
+							return string;
 							
 						} catch (Exception e) {
 							LOGGER.error(e, e);
@@ -406,7 +416,7 @@ public class ChartMain extends Chart {
 
 					//Annotation
 					if (serieDef.isLabeled()) {
-						RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount() - 1, 0));
+						RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 						Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
 						String stopLossString = (!MainPMScmd.getPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
 						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + stopLossString + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
@@ -1001,7 +1011,7 @@ public class ChartMain extends Chart {
 	}
 
 
-	private long point2DToTime(Point2D clickPoint, Rectangle2D plotArea) {
+	public long point2DToTime(Point2D clickPoint, Rectangle2D plotArea) {
 		long chartX = (long) xAxis.java2DToValue(clickPoint.getX(), plotArea, mainPlot.getDomainAxisEdge());
 		long chartXRounded = DateFactory.midnithDate(new Date(chartX)).getTime();
 		chartXRounded = (chartX-chartXRounded > 24 * 3600 * 1000 /2)?chartXRounded+24 * 3600 * 1000:chartXRounded;

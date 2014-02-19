@@ -62,4 +62,20 @@ public class CurvePonderator implements CurvesOperation {
 		return ret;
 	}
 
+
+	@Override
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> curve, SortedMap<Date, Double> ponderator) {
+		
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		for (Date date : curve.keySet()) {
+			Double ponderatorValue = ponderator.get(date);
+			if (ponderatorValue != null) {
+				Double curveValue = curve.get(date);
+				ret.put(date, curvePonderationRule.weight(curveValue, ponderatorValue));
+			}
+		}
+		
+		return ret;
+	}
+
 }

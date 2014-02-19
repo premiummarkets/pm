@@ -93,8 +93,6 @@ import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DataSource.
  * 
@@ -999,18 +997,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return connectionURL;
 	}
 
-	/**
-	 * Execute block.
-	 * 
-	 * @param qL the q l
-	 * @param preparedQuery the prepared query
-	 * 
-	 * @return the int[]
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public int[] executeBlock(List<Validatable> qL, String preparedQuery) throws SQLException {
 		return this.executeBlock(this.getConnection(null), qL, preparedQuery);
 	}

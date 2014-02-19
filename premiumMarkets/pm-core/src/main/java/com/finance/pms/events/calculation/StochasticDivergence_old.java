@@ -77,8 +77,8 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.stochOsc = stochasticOscillator;
-		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer stochQuotationEndDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(stochQuotationStartDateIdx, endDate);
+		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer stochQuotationEndDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(stochQuotationStartDateIdx, endDate);
 		isValidData(stock, stochasticOscillator, startDate, stochQuotationStartDateIdx, stochQuotationEndDateIdx);
 		
 		try {
@@ -89,8 +89,8 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
 		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 	
 	}

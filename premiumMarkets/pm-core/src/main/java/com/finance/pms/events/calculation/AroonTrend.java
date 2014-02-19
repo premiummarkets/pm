@@ -84,8 +84,8 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
-		aroonQuotationStartDateIdx = aroon.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer aroonQuotationEndDateIdx = aroon.getIndicatorQuotationData().getClosestIndexForDate(aroonQuotationStartDateIdx, endDate);
+		aroonQuotationStartDateIdx = aroon.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer aroonQuotationEndDateIdx = aroon.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(aroonQuotationStartDateIdx, endDate);
 		isValidData(stock, aroon, startDate, aroonQuotationStartDateIdx, aroonQuotationEndDateIdx);
 		
 	}

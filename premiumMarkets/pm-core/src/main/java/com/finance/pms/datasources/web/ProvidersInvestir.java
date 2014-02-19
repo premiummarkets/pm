@@ -70,19 +70,22 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		
 		for (int i = 1; i <= url.getNbPages(); i++) {
 			List<Validatable> urlResults = readPage(stock, url.getUrlForPage(i), start);
-			if (urlResults.size() == 0) { break;}
+			if (urlResults.size() == 0) { 
+				LOGGER.guiInfo("Getting last quotes on 'Investir' web site : out of pages loop with : "+stock.getSymbol()+" :"+queries.size());
+				break; 
+			}
 			for (Validatable validatable : urlResults) {
 				Date qDate = ((DailyQuotation) validatable).getQuoteDate();
 				if (qDate.after(start) || qDate.equals(start)) {
 					queries.add(validatable);
 				}
 			}
-			LOGGER.guiInfo("Getting last quotes on investir web site : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+			LOGGER.guiInfo("Getting last quotes on 'Investir' web site : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
 		}
 	
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
-		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries),tablet2lock);
+		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME, TableLocker.LockMode.NOLOCK));
+		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
 
 	}
 

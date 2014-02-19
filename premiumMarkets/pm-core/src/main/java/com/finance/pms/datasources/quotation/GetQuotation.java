@@ -170,7 +170,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		LOGGER.guiInfo(
 				"Done quotations for "+stock.getFriendlyName()+" from " + updateStart + " to " + dateFin + ", last quotation : " + stock.getLastQuote() + ", " +
 				"STATUS : Success " + ret.isSuccessfulUpdate +" (as granted was " + updateGranted +"), New data " + ret.hasNewQuotations+", Has previous data " + ret.hasPreviousQuotations + 
-				" (also there may well be user entries, fyi stock override is "+stock.isOverrideUserQuotes()+")");
+				" (also there may well be user entries, fyi user quotations overshadowing is set to "+stock.isOverrideUserQuotes()+")");
 
 		Quotations.updateCachedStockKey(stock);
 		

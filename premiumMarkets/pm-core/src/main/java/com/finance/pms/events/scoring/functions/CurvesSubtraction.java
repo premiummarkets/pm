@@ -74,4 +74,19 @@ public class CurvesSubtraction implements CurvesOperation, CurvesConstantOperati
 		return ret;
 	}
 
+	@Override
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> data1, SortedMap<Date, Double> data2) {
+		
+		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+		for (Date date : data1.keySet()) {
+			Double ds2 = data2.get(date);
+			if (ds2 != null) {
+				Double ds1 = data1.get(date);
+				ret.put(date, ds1 - ds2);
+			}
+		}
+		
+		return ret;
+	}
+
 }

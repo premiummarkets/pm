@@ -95,9 +95,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 		PortfolioMgr.singleton.portfolios   = new ArrayList<Portfolio>();
 	}
 
-	/**
-	 * 
-	 */
 	private void resetOldPortfolioList() {
 		
 		this.oldPortfolios = new ArrayList<Portfolio>();
@@ -141,11 +138,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		}
 	}
 	
-	/**
-	 * Gets the single instance of PortfolioMgr.
-	 * 
-	 * @return single instance of PortfolioMgr
-	 */
+
 	public static PortfolioMgr getInstance() {
 		if (singleton != null) {
 			return singleton;

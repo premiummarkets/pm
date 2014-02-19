@@ -813,7 +813,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				Point maxSize = new Point(display.getBounds().width*9/10, display.getBounds().height*9/10);
 				int width = Math.min(Math.max(swtPrefSize.x,myPrefSize.x), maxSize.x);
 				int height =  Math.min(Math.max(swtPrefSize.y,myPrefSize.y), maxSize.y);
-				Rectangle shellBounds = shell.computeTrim(0,0,width,height); 
+				Rectangle shellBounds = shell.computeTrim(0, 0, width, height); 
 				shell.setSize(shellBounds.width, shellBounds.height); 
             }
             
@@ -829,7 +829,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				if ((100 -xLog) < 97) {
 					xLog=3;
 				}
-				inst.setWeights(new int[]{100-xLog,xLog});
+				inst.setWeights(new int[]{100-xLog, xLog});
             }
 			
 			//Portfolio Composite

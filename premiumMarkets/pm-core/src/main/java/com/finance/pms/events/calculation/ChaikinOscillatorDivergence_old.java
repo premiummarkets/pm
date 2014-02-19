@@ -77,8 +77,8 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.chaikinOscillator = chaikinOscillator;
-		chaikinQuotationStartDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer chaikinQuotationEndDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexForDate(chaikinQuotationStartDateIdx, endDate);
+		chaikinQuotationStartDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer chaikinQuotationEndDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinQuotationStartDateIdx, endDate);
 		isValidData(stock, chaikinOscillator, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
 		
 		try {
@@ -89,8 +89,8 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
 		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 	}
 

@@ -57,8 +57,8 @@ public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 		super(stock, startDate, endDate, calculationCurrency);
 		this.mfi = mfi;
 		
-		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(mfiQuotationStartDateIdx, endDate);
+		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(mfiQuotationStartDateIdx, endDate);
 		isValidData(stock, mfi, startDate, mfiQuotationStartDateIdx, macdQuotationEndDateIdx);
 		
 	}

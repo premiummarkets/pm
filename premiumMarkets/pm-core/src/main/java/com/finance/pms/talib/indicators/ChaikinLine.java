@@ -68,7 +68,6 @@ public class ChaikinLine extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams) {
-		//RetCode rc = TalibCoreService.getCore().ad(startIdx, endIdx, inHigh, inLow, inClose, inVolume, outBegIdx, outNBElement, outReal);
 		RetCode rc = TalibCoreService.getCore().ad(startIdx, endIdx, inData[2], inData[1], inData[0], inData[3], outBegIdx, outNBElement, chaikinLine);
 		return rc;
 	}

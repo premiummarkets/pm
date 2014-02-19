@@ -136,7 +136,7 @@ public abstract class ChartDisplayStrategy {
 	public abstract void updateButtonsToolTips();
 
 	public void slideChart(int increment) {
-		chartTarget.getMainChartWraper().slideChart(increment, chartTarget.getPlotChart());
+		chartTarget.getMainChartWraper().slideChart(increment, chartTarget.getPlotChartDimensions());
 	}
 	
 	public void addVLineAt(Point2D point2D, Rectangle2D rectangle2D) {

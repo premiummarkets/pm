@@ -73,8 +73,8 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.mfi = mfi;
-		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(mfiQuotationStartDateIdx, endDate);
+		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(mfiQuotationStartDateIdx, endDate);
 		isValidData(stock, mfi, startDate, mfiQuotationStartDateIdx, macdQuotationEndDateIdx);
 		
 		try {
@@ -85,8 +85,8 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
 		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 	
 	}

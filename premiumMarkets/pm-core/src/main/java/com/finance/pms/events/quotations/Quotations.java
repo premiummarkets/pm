@@ -123,8 +123,8 @@ public class Quotations {
 		this.setQuotationData(requestedQuotationsData);
 
 		if (hasQuotations()) {
-			firstDateShiftedIdx =  Math.max(this.getQuotationData().getClosestIndexForDate(0,firstDate) - firstIndexShift, 0);
-			lastDateIdx = Math.min(this.getQuotationData().getClosestIndexForDate(firstDateShiftedIdx, lastDate) + lastIndexShift, this.getQuotationData().size() -1);
+			firstDateShiftedIdx =  Math.max( this.getQuotationData().getClosestIndexBeforeOrAtDate(0, firstDate) - firstIndexShift, 0 );
+			lastDateIdx = Math.min( this.getQuotationData().getClosestIndexBeforeOrAtDate(firstDateShiftedIdx, lastDate) + lastIndexShift, this.getQuotationData().size() -1 );
 		} else {
 			firstDateShiftedIdx = 0;
 			lastDateIdx = 0;
@@ -134,24 +134,28 @@ public class Quotations {
 
 
 	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
+		
 		QuotationData cachedQuotationData = Quotations.getCashedStock(stock);
-	
+		
 		QuotationUnit lastQU;
-		int firstDateIdx;
+//		int firstDateIdx;
 		boolean isCached = Quotations.QUOTATIONS_CACHE.containsKey(stock)
 									&& cachedQuotationData != null
 									&& !cachedQuotationData.isEmpty()
-									&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0
-									&& ( (lastQU = cachedQuotationData.get(cachedQuotationData.size()-1)).getDate().compareTo(lastDate) >= 0 || lastQU.getDate().compareTo(stock.getLastQuote()) == 0 )
-									&&  ( 
-											( cachedQuotationData.get(firstDateIdx = cachedQuotationData.getClosestIndexForDate(0, firstDate)).getDate().before(firstDate) && firstDateIdx >= indexShift -1 ) ||
-											( cachedQuotationData.get(firstDateIdx).getDate().equals(firstDate) && firstDateIdx >= indexShift )
-										);
+									&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0 && cachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate) >= indexShift //TODO add first date in stock object
+									&& ( (lastQU = cachedQuotationData.get(cachedQuotationData.size()-1)).getDate().compareTo(lastDate) >= 0 || lastQU.getDate().compareTo(stock.getLastQuote()) == 0 );
+									//&&  ( 
+											//( cachedQuotationData.get(firstDateIdx = cachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate)).getDate().before(firstDate) && firstDateIdx >= indexShift -1 ) ||
+											//( cachedQuotationData.get(firstDateIdx).getDate().equals(firstDate) && firstDateIdx >= indexShift )
+											
+									//	);
+		
 		if (isCached) {
 			return cachedQuotationData;
 		} else {
 			return null;
 		}
+		
 	}
 
 	public Boolean hasQuotationsInDateRange(Date start, Date end) {
@@ -243,8 +247,10 @@ public class Quotations {
 	}
 	
 
-	public Integer getClosestIndexForDate(Integer startIndex, Date date) {
-		return getQuotationData().getClosestIndexForDate(startIndex, date);
+	public Integer getClosestIndexBeforeOrAtDateOrIndexZero(Integer startIndex, Date date)  {
+		Integer index = getQuotationData().getClosestIndexBeforeOrAtDate(startIndex, date);
+		if (index == -1) return 0; //XXX This should return the index for a date before or equal to 'date'. In the case 'date' is before the first date available we return 0 so a date after 'date' ...//throw new InvalidAlgorithmParameterException();
+		return index;
 	}
 
 
@@ -252,7 +258,7 @@ public class Quotations {
 		try {
 			return convertUnit(getQuotationData().get(index));
 		} catch (RuntimeException e) {
-			LOGGER.error("No quotation for "+this.stock+" at "+index,e);
+			LOGGER.error("No quotation for "+this.stock+" at index : "+index, e);
 			throw e;
 		}
 	}
@@ -302,14 +308,14 @@ public class Quotations {
 	}
 
 	public BigDecimal getClosestCloseForDate(Date date) throws InvalidAlgorithmParameterException {
-		return convert(getQuotationData().getClosestCloseForDate(date),date);
+		return convert(getQuotationData().getClosestCloseBeforeOrAtDate(date), date);
 	}
 	
 	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
 		if (field.equals(QuotationDataType.VOLUME)) {
-			return getQuotationData().getClosestFieldForDate(date, field);
+			return getQuotationData().getClosestFieldBeforeOrAtDate(date, field);
 		} else {
-			return convert((BigDecimal) getQuotationData().getClosestFieldForDate(date, field), date);
+			return convert((BigDecimal) getQuotationData().getClosestFieldBeforeOrAtDate(date, field), date);
 		}
 	}
 
@@ -339,8 +345,8 @@ public class Quotations {
 		
 		double[] meanStdVariance = new double[2];
 		double[] closes = this.getCloseValues();
-		int startIdx = this.getClosestIndexForDate(0, startDate);
-		int endIdx = this.getClosestIndexForDate(0, endDate);
+		int startIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		int endIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate);
 		for (int i = startIdx; i + period < endIdx; i = i + period) {
 			
 			double mean = 0;
@@ -398,8 +404,8 @@ public class Quotations {
 		
 		double[] meanStdVariances = new double[2];
 		double[] closes = this.getCloseValues();
-		int startIdx = this.getClosestIndexForDate(0, startDate);
-		int endIdx = this.getClosestIndexForDate(0, endDate);
+		int startIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		int endIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate);
 		
 		for (int i = startIdx; i + period < endIdx; i = i + period) {
 			
@@ -443,8 +449,8 @@ public class Quotations {
 		
 		double meanStdDev = 0;
 		double[] closes = this.getCloseValues();
-		int startIdx = this.getClosestIndexForDate(0, startDate);
-		int endIdx = this.getClosestIndexForDate(0, endDate);
+		int startIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		int endIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate);
 		for (int i = startIdx; i + period < endIdx; i = i + period) {
 			
 			double mean = 0;
@@ -476,8 +482,8 @@ public class Quotations {
 		
 		double meanStdVariance = 0;
 		double[] closes = this.getCloseValues();
-		int startIdx = this.getClosestIndexForDate(0, startDate);
-		int endIdx = this.getClosestIndexForDate(0, endDate);
+		int startIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		int endIdx = this.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate);
 		for (int i = startIdx; i + period < endIdx; i = i + period) {
 			
 			double logReturn[] = new double[period];

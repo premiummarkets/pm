@@ -66,7 +66,7 @@ public abstract class QuotationsIntraDay extends Quotations {
 		}
 		
 		boolean limSup = quotationData.get(quotationData.size()-1).getDate().compareTo(lastDate) >= 0;
-		boolean limInf = quotationData.getClosestIndexForDate(0, firstDate) >= indexShift;
+		boolean limInf = quotationData.getClosestIndexBeforeOrAtDate(0, firstDate) >= indexShift;
 		//System.out.println("inf : "+limInf+" sup : "+limSup+" indexShift "+indexShift+ " lastDate "+lastDate+" qLastDate "+quotationData.get(quotationData.size()-1).getDate()+" firstDate "+firstDate+" qfirstDate "+quotationData.get(0));
 		boolean isCached = limSup && limInf;
 		

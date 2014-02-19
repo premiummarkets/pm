@@ -83,24 +83,24 @@ class QuotationData implements List<QuotationUnit> {
 		return get(x).getDate();
 	}
 	
-	public BigDecimal getClosestCloseForDate(Date date) throws InvalidAlgorithmParameterException {
-		Integer index = getClosestIndexForDate(0, date);
+	public BigDecimal getClosestCloseBeforeOrAtDate(Date date) throws InvalidAlgorithmParameterException {
+		Integer index = getClosestIndexBeforeOrAtDate(0, date);
 		if (index == -1) throw new InvalidAlgorithmParameterException();
 		return get(index).getClose();
 	}
 	
-	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
-		Integer index = getClosestIndexForDate(0, date);
+	public Number getClosestFieldBeforeOrAtDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+		Integer index = getClosestIndexBeforeOrAtDate(0, date);
 		if (index == -1) throw new InvalidAlgorithmParameterException();
 		return get(index).getData(field);
 	}
 
-	public Integer getClosestIndexForDate(Integer startSearchIndex, Date date) {
+	public Integer getClosestIndexBeforeOrAtDate(Integer startSearchIndex, Date date) {
 		if (date == null || this.size() == 0) return -1;
-		return this.getClosestByDicho(date, startSearchIndex, this.size() - 1);
+		return this.getClosestBeforeOrAtByDicho(date, startSearchIndex, this.size() - 1);
 	}
 
-	private Integer getClosestByDicho(Date date, Integer start, Integer end) {
+	private Integer getClosestBeforeOrAtByDicho(Date date, Integer start, Integer end) {
 		Integer midle = (end - start) / 2 + start;
 		Date dMidle = this.get(midle).getDate();
 		//Stop conditions
@@ -109,9 +109,9 @@ class QuotationData implements List<QuotationUnit> {
 		if (midle.equals(start)) {
 			if (date.before(this.get(start).getDate())) {
 				//return start;
-				return Math.min(0, start-1);
-			}
-			else {
+				//return Math.min(0, start-1); //FIXME<= should be Math.max(0, start-1);
+				return start-1;
+			} else {
 				//return end;
 				if (date.before(this.get(end).getDate())) {
 					return midle;
@@ -122,10 +122,10 @@ class QuotationData implements List<QuotationUnit> {
 		}
 		//Continue
 		if (date.before(dMidle)) {
-			return this.getClosestByDicho(date, start, midle);
+			return this.getClosestBeforeOrAtByDicho(date, start, midle);
 		}
 		if (date.after(dMidle)) {
-			return this.getClosestByDicho(date, midle, end);
+			return this.getClosestBeforeOrAtByDicho(date, midle, end);
 		}
 		return -1;
 	}

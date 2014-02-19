@@ -73,8 +73,8 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 		super(stock, startDate, endDate, calculationCurrency);
 
 		this.rsi = rsi;
-		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexForDate(rsiQuotationStartDateIdx, endDate);
+		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(rsiQuotationStartDateIdx, endDate);
 		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
 		
 		try {
@@ -84,8 +84,8 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 		} catch (NoQuotationsException e) {
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
 		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 	}
 

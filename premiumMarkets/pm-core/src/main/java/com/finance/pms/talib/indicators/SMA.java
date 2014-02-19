@@ -63,13 +63,6 @@ public class SMA extends TalibIndicator {
 		super(new CalculationQuotations(obv.getIndicatorQuotationData().getStock(), obv.getStripedData(0), obv.getIndicatorQuotationData().getStock().getMarketValuation().getCurrency()), period);
 	}
 
-	/**
-	 * @param startIdx
-	 * @param endIdx
-	 * @param inReal
-	 * @param outNBElement
-	 * @return
-	 */
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inReal, Number...indicatorsParams) {
 		

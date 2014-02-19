@@ -48,8 +48,8 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.mfi = mfi;
-		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexForDate(getOscillatorQuotationStartDateIdx(), endDate);
+		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(getOscillatorQuotationStartDateIdx(), endDate);
 		isValidData(stock, mfi, startDate, getOscillatorQuotationStartDateIdx(), macdQuotationEndDateIdx);
 	
 	}

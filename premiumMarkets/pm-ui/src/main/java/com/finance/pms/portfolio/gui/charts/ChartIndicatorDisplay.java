@@ -303,7 +303,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
 		
 	}
 	
@@ -317,18 +317,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			public void update(Observable o, Object arg) {
 				
 				final Set<EventInfo> noDataTrends = new HashSet<EventInfo>();
-				//No events found
-				if (arg == null || ((SymbolEvents) arg).getDataResultMap().isEmpty()) {
+				
+				if (arg == null || ((SymbolEvents) arg).getDataResultMap().isEmpty()) {//No events found
 
-					//No events found despite recalc
-					if (!recalculationGranted) {
+					if (!recalculationGranted) {//No events found despite recalc
 						chartTarget.getMainChartWraper().resetBarChart();
 					} else {
 						noDataTrends.addAll(chartTarget.getChartedEvtDefsTrends());
 					}
-
-					//That's all or partially good, we display
-				} else {
+					
+				} else {//That's all or partially good, we display
 
 					final Map<EventInfo, TuningResDTO> tuningRess = new HashMap<EventInfo, TuningResDTO>();
 
@@ -371,7 +369,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
 							(SymbolEvents) arg, tuningRess, barChartSettings);
 
-					chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings, chartTarget.getPlotChart());
+					chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings, chartTarget.getPlotChartDimensions());
 
 				}
 				//Missing bars
@@ -431,7 +429,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					subMap = outputCache.subMap(this.chartTarget.getSlidingStartDate(), endPlus1);
 				}
 				
-				if (!subMap.isEmpty()) chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap, chartTarget.getPlotChart());
+				if (!subMap.isEmpty()) chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap, chartTarget.getPlotChartDimensions());
 				
 			}
 			

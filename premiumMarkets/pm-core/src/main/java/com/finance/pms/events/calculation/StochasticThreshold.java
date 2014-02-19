@@ -61,8 +61,8 @@ public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.stochasticOscillator = stochasticOscillator;
-		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer stochQuotationEndDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexForDate(stochQuotationStartDateIdx, endDate);
+		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer stochQuotationEndDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(stochQuotationStartDateIdx, endDate);
 		isValidData(stock, stochasticOscillator, startDate, stochQuotationStartDateIdx, stochQuotationEndDateIdx);
 	
 	}

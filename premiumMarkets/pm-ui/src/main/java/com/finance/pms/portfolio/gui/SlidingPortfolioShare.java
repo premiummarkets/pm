@@ -223,7 +223,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.displayOnChart = displayOnChart;
 	}
 
-	public String getFreindlyName() {
+	public String getFriendlyName() {
 		return underLyingPortfolioShare.getStock().getFriendlyName();
 	}
 

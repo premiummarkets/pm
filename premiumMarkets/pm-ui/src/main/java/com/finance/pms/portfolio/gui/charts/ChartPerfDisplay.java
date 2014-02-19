@@ -116,7 +116,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 			chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 			chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
+			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
 
 			chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 3);
 
@@ -427,7 +427,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
-			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock,ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(),true,stock.getMarketValuation().getCurrency(), 1, 0);
+			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(), true, stock.getMarketValuation().getCurrency(), 1, 0);
 			chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);
@@ -461,7 +461,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
 		
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChart());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
 		
 	}
 

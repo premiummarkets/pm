@@ -49,8 +49,8 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 		super(stock, startDate, endDate, calculationCurrency);
 		
 		this.chaikinOscillator = chaikinOscillator;
-		chaikinQuotationStartDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer chaikinQuotationEndDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexForDate(chaikinQuotationStartDateIdx, endDate);
+		chaikinQuotationStartDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer chaikinQuotationEndDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinQuotationStartDateIdx, endDate);
 		isValidData(stock, chaikinOscillator, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
 		
 	}

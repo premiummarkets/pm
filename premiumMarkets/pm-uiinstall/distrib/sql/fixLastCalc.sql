@@ -77,11 +77,11 @@ select SHARES.* from SHARES join (select QUOTATIONS.SYMBOL, QUOTATIONS.ISIN, max
 update SHARES join (select QUOTATIONS.SYMBOL, QUOTATIONS.ISIN, max(DATE) maxQDate from QUOTATIONS group by QUOTATIONS.SYMBOL, QUOTATIONS.ISIN) Q on SHARES.symbol=Q.symbol and SHARES.isin=Q.isin set lastquote = Q.maxQDate;
 
 --Derby : 
+	-- drop table QUOT_MAX_TMP;
 	-- CREATE TABLE QUOT_MAX_TMP ("DATE" DATE NOT NULL, "SYMBOL" VARCHAR(20) NOT NULL, "ISIN" VARCHAR(20) NOT NULL);
 	-- insert into QUOT_MAX_TMP (select max(DATE),symbol, isin from QUOTATIONS group by QUOTATIONS.SYMBOL, QUOTATIONS.ISIN);
 	-- insert into QUOT_MAX_TMP (select '1970-01-01', SHARES.symbol, SHARES.isin from shares left join QUOT_MAX_TMP on SHARES.symbol=QUOT_MAX_TMP.symbol and SHARES.isin=QUOT_MAX_TMP.isin where QUOT_MAX_TMP.symbol is null);
 	-- update SHARES set lastquote = (select "DATE" from QUOT_MAX_TMP where SHARES.symbol=QUOT_MAX_TMP.symbol and SHARES.isin=QUOT_MAX_TMP.isin);
-	-- drop table QUOT_MAX_TMP;
 
 --!!!Not in prod : Check latest trend in EVENTS V. PERF_SUPPLEMENTS (here for DJI)
 --!!!Not in prod : run  adminGWT.html?mrk=YAHOOINDICES,DJI:NYSE&startIdx=0&endIdx=40&eventDef=NEURAL

@@ -79,7 +79,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 		Calendar currentDateCal = Calendar.getInstance();
 		currentDateCal.setTime(res.getCurrentDate());
 		Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDateCal, -getDaysSpan()).getTime();
-		int lookBackPeriodStartIdx = this.getCalculatorQuotationData().getClosestIndexForDate(0, lookBackPeriodStart);
+		int lookBackPeriodStartIdx = this.getCalculatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, lookBackPeriodStart);
 		int idxSpan = calculatorIndex - lookBackPeriodStartIdx;
 		
 		if (idxSpan < 4) return res; //We need a least 3 days to draw higher low or lower high

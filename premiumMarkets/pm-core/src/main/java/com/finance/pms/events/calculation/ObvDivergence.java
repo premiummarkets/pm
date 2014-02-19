@@ -70,13 +70,13 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 		super(stock, startDate, endDate,  calculationCurrency);
 		
 		this.obv = obv;
-		obvQuotationStartDateIdx = obv.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer obvQuotationEndDateIdx = obv.getIndicatorQuotationData().getClosestIndexForDate(obvQuotationStartDateIdx, endDate);
+		obvQuotationStartDateIdx = obv.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer obvQuotationEndDateIdx = obv.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(obvQuotationStartDateIdx, endDate);
 		isValidData(stock, obv, startDate, obvQuotationStartDateIdx, obvQuotationEndDateIdx);
 		
 		this.chaikinLine = chaikinLine;
-		chaikinQuotationStartDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer chaikinQuotationEndDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexForDate(chaikinQuotationStartDateIdx, endDate);
+		chaikinQuotationStartDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer chaikinQuotationEndDateIdx = chaikinLine.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinQuotationStartDateIdx, endDate);
 		isValidData(stock, chaikinLine, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
 		
 		try {
@@ -88,12 +88,12 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 			throw new NotEnoughDataException(stock, e.getMessage(),e);
 		}
 		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexForDate(smaQuotationStartDateIdx, endDate);
+		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
 		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
 		
-		obvSmaQuotationStartDateIdx = obvSma.getIndicatorQuotationData().getClosestIndexForDate(0, startDate);
-		Integer obvSmaQuotationEndDateIdx = obvSma.getIndicatorQuotationData().getClosestIndexForDate(obvSmaQuotationStartDateIdx, endDate);
+		obvSmaQuotationStartDateIdx = obvSma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer obvSmaQuotationEndDateIdx = obvSma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(obvSmaQuotationStartDateIdx, endDate);
 		isValidData(stock, obvSma, startDate, obvSmaQuotationStartDateIdx, obvSmaQuotationEndDateIdx);
 	}
 

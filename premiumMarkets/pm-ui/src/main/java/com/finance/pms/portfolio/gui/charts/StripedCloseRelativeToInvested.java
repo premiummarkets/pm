@@ -64,10 +64,11 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	public Number[] targetShareData(SlidingPortfolioShare portfolioShare,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		if (arbitraryStartDate != null && arbitraryEndDate != null) {
+			
 			Date startDate = getStartDate(stockQuotations);
-			startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
+			startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 			Date endDate = getEndDate(stockQuotations);
-			endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
+			endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 			BigDecimal investPerUnit = BigDecimal.ZERO; 
 			if (includeMoneyOut) {
 				investPerUnit = portfolioShare.getPriceUnitCost(portfolioShare.calcSlidingEndDate(), portfolioShare.getTransactionCurrency());

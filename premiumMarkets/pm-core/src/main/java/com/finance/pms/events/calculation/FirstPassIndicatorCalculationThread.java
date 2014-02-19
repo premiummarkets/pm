@@ -140,11 +140,6 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 	}
 
-	/**
-	 * @param quotations
-	 * @return
-	 * @throws IncompleteDataSetException 
-	 */
 	@Override
 	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(Observer... observers) throws IncompleteDataSetException {
 		

@@ -69,8 +69,8 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 		Date startDate = getStartDate(stockQuotations);
 		Date endDate = getEndDate(stockQuotations);
 
-		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
-		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
 		SortedMap<Date, double[]> data = new TreeMap<Date, double[]>();
 		List<QuotationUnit> quotationUnits = stockQuotations.getQuotationUnits(startDateQuotationIndex.value, endDateQuotationIndex.value);
@@ -87,7 +87,7 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 			SortedMap<Date, double[]> houseDerivation = houseTrendSmoother.smooth(smoothed, false);
 			
 			startDate = (startDate.before(houseDerivation.firstKey()))? houseDerivation.firstKey() : startDate;
-			startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0, startDate);
+			startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 			
 			return relativeCloses(startDate, endDate, houseDerivation);
 			

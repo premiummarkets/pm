@@ -41,5 +41,7 @@ import java.util.SortedMap;
 public interface CurvesOperation {
 	
 	public SortedMap<Date, double[]> operate(SortedMap<Date, double[]> data1, SortedMap<Date, double[]> data2);
+	
+	public SortedMap<Date, Double> sOperate(SortedMap<Date, Double> data1, SortedMap<Date, Double> data2);
 
 }

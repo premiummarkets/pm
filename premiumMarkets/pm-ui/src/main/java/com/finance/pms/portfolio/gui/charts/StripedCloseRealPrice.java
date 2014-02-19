@@ -47,10 +47,10 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
-		startDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(0,startDate);
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 		
 		Date endDate = getEndDate(stockQuotations);
-		endDateQuotationIndex.value = stockQuotations.getClosestIndexForDate(startDateQuotationIndex.value, endDate);
+		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
 		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
 	}

@@ -107,7 +107,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 		try {
 			switch (cpt) {
 			case 0 :
-				
+			{
 				Matcher fitNoData = noData.matcher(line);
 				if (fitNoData.find()) {
 					throw new StopParseErrorException("No data for "+params.get(0)+" at "+params.get(1)+"\n","");
@@ -118,36 +118,46 @@ public class DayQuoteInvestirFormater extends LineFormater {
 					cpt++;
 				}
 				break;
+			}
 			case 1 :
+			{
 				Matcher fitCloseQuotation = quotationPattern.matcher(line);
 				if (fitCloseQuotation.find()) {
-					close = new BigDecimal(numberFormat.parse(fitCloseQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					close = new BigDecimal(numberFormat.parse(noNbsp(fitCloseQuotation.group(1))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				
 				break;
+			}
 			case 2 :
+			{
 				Matcher fitHighQuotation = quotationPattern.matcher(line);
 				if (fitHighQuotation.find()) {
-					high = new BigDecimal(numberFormat.parse(fitHighQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					high = new BigDecimal(numberFormat.parse(noNbsp(noNbsp(fitHighQuotation.group(1)))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				break;
+			}
 			case 3 :
+			{
 				Matcher fitLowQuotation = quotationPattern.matcher(line);
 				if (fitLowQuotation.find()) {
-					low = new BigDecimal(numberFormat.parse(fitLowQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					low = new BigDecimal(numberFormat.parse(noNbsp(fitLowQuotation.group(1))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				break;
+			}
 			case 4 :
+			{
 				Matcher fitOpenQuotation = quotationPattern.matcher(line);
 				if (fitOpenQuotation.find()) {
-					open = new BigDecimal(numberFormat.parse(fitOpenQuotation.group(1)).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					open = new BigDecimal(numberFormat.parse(noNbsp(fitOpenQuotation.group(1))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 					cpt++;
 				}
 				break;
+			}
 			case 5 :
+			{
 				Matcher fitEndRow = endRow.matcher(line);
 				if (fitEndRow.find()) {
 					volume = 0L;
@@ -155,7 +165,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 				}
 				Matcher fitVolumeQuotation = volumePattern.matcher(line);
 				if (fitVolumeQuotation.find()) {
-					String volumeString = fitVolumeQuotation.group(1);
+					String volumeString = noNbsp(fitVolumeQuotation.group(1));
 					if (volumeString.isEmpty()) {
 						volume = 0L;
 					} else {
@@ -163,7 +173,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 					}
 					endRow(mainQuery);
 				}
-				
+			}
 			}
 		} catch (NumberFormatException e) {
 			throw new StopParseErrorException("Invalid investir quotations for "+params.get(0)+"\n", e.getMessage());
@@ -183,9 +193,10 @@ public class DayQuoteInvestirFormater extends LineFormater {
 	
 	}
 
-	/**
-	 * @param mainQuery
-	 */
+	protected String noNbsp(String group1) {
+		return group1.replace("&nbsp;","").replace("%20","").replaceAll("\\s", "");
+	}
+
 	private void endRow(LinkedList<Comparable<?>> mainQuery) {
 		cpt = 0;
 		if (date.after(firstValidDate) || date.equals(firstValidDate)) {
