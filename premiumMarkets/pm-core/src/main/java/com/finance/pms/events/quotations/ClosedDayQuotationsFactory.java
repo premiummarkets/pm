@@ -41,20 +41,21 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	
 	
-	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift, lastIndexShift);
+	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift, ValidityFilter.SPLITFREE, validityFilter);
 	}
 	
-	public  Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency) throws NoQuotationsException {
-		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, 0);
+	public  Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
+		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
 	
-	public  Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency) throws NoQuotationsException {
-		return new Quotations(stock, quotationData, targetCurrency);
+	public  Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
+		return new Quotations(stock, quotationData, targetCurrency, ValidityFilter.SPLITFREE, validityFilter);
 	}
 	
 	public  Calendar incrementDate(Calendar calendar, int amount) {
@@ -217,6 +218,16 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		for (int i = from; i <= to; i++) {
 			QuotationUnit quotationUnit = quotations.get(i);
 			fullRefSQuotationsMap.put(quotationUnit.getDate(),quotationUnit.getData(field).doubleValue());
+		}
+		return fullRefSQuotationsMap;
+	}
+	
+	@Override
+	public SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
+		SortedMap<Date, Number> fullRefSQuotationsMap = new TreeMap<Date, Number>();
+		for (int i = from; i <= to; i++) {
+			QuotationUnit quotationUnit = quotations.get(i);
+			fullRefSQuotationsMap.put(quotationUnit.getDate(), quotationUnit.getData(field));
 		}
 		return fullRefSQuotationsMap;
 	}

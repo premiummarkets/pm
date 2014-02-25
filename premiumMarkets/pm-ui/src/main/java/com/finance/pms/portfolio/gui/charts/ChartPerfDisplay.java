@@ -60,6 +60,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.gui.ActionDialogForm;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
@@ -427,7 +428,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
-			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(), true, stock.getMarketValuation().getCurrency(), 1, 0);
+			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, ChartsComposite.DEFAULT_START_DATE, EventSignalConfig.getNewDate(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 			chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);

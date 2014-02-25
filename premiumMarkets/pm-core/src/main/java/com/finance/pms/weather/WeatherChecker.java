@@ -56,6 +56,8 @@ import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
 public class WeatherChecker extends EventCompostionCalculator {
@@ -80,7 +82,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 
 
 	@Override 
-	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName)  {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
 		
 		Calendar endDateCalendar = firstDayOfPrevMonthOf(endDate);
 		Calendar currentDateCalendar = firstDayOfPrevMonthOf(startDate);
@@ -143,9 +145,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		eventData.put(iek, iev);
 	}
 
-	/**
-	 * @return
-	 */
 	private Calendar firstDayOfPrevMonthOf(Date date) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -161,10 +160,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		return calendar.getTime();
 	}
 
-	/**
-	 * @param currentDate
-	 * @return
-	 */
 	private Date getSameMonthOfZeroYear(Date currentDate) {
 		Calendar currentDateCal = Calendar.getInstance();
 		currentDateCal.setTime(currentDate);
@@ -176,16 +171,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		return zeroDate;
 	}
 	
-
-	/**
-	 * @param eventValue
-	 * @param endDate
-	 * @param endDateWelelment
-	 * @param currentDateWeather
-	 * @param meanHistory
-	 * @param eventListName 
-	 * @param simpleDateFormat
-	 */
 	private void trendChangeDetection(EventValue eventValue, Date endDate, WeatherElement currentDateWeather, Integer meanHistory, String eventListName) {
 		
 		Calendar previousTwoYearsCalendar = Calendar.getInstance();
@@ -234,17 +219,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		}
 	}
 
-	/**
-	 * @param eventData
-	 * @param eventDate
-	 * @param meanHistory
-	 * @param simpleDateFormat
-	 * @param firstPreviousTemp
-	 * @param middlePreviousTemp
-	 * @param currentTemp
-	 * @param eventType 
-	 * @param msgPreamb 
-	 */
 	private void addTrendChangeEvent(EventValue eventValue, Date endDate, EventType eventType, String eventListName,
 									Date firstDayOfPrevMonth, Integer meanHistory, Integer firstPreviousTemp, Integer middlePreviousTemp, Integer currentTemp, String msgPreamb) {
 		DateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
@@ -261,14 +235,6 @@ public class WeatherChecker extends EventCompostionCalculator {
 		addEventConcat(eventValue, eventType, message);
 	}
 
-	/**
-	 * @param eventData
-	 * @param currentDateCalendar
-	 * @param currentDateWeather
-	 * @param meanHistory
-	 * @param eventListName 
-	 * @return
-	 */
 	private void positionToMean(EventValue eventValue, Date endDate, WeatherElement currentDateWeather, Integer meanHistory, String eventListName) {
 		DateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
 		DateFormat monthSF = new SimpleDateFormat("MMMMMMMMMMMMMM yyyy");
@@ -341,6 +307,17 @@ public class WeatherChecker extends EventCompostionCalculator {
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMGlobalBuySell;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return 0;
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return null;
 	}
 
 }

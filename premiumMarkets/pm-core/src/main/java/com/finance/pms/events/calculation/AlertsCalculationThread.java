@@ -48,6 +48,9 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -80,7 +83,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		try {
 				LOGGER.debug("Analysing events for portfolio share "+portfolioShare+", starting at "+startDate);
 				
-				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, startDate, endDate, calculationCurrency);
+				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser((Observer[]) observers.toArray());
 
 				try {
 					cleanEventsFor(this.eventListName, startDate, endDate, true);
@@ -88,7 +91,8 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 					LOGGER.error(e,e);
 				}
 
-				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(this.eventListName);
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 0, ValidityFilter.CLOSE);
+				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(quotations, this.eventListName);
 
 				for (EventValue eventValue : calculatedEventsForCalculator.values()) {
 					
@@ -105,7 +109,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				
 		} catch (Exception e) {
 			// Oops
-			LOGGER.error("ERROR : While calculating Events for " + portfolioShare,e);
+			LOGGER.error("ERROR : While calculating Events for " + portfolioShare, e);
 		}
 		
 		return ret;

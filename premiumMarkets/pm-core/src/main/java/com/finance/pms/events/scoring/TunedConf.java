@@ -66,6 +66,10 @@ public class TunedConf {
 	public TunedConf(Stock stock, String configFile) {
 		super();
 		this.tunedConfId = new TunedConfId(stock, configFile);
+		reset();
+	}
+
+	public void reset() {
 		this.lastCalculatedEvent = DateFactory.dateAtZero();
 		this.lastCalculationStart = DateFactory.dateAtZero();
 		this.lastCalculationEnd =  DateFactory.dateAtZero();

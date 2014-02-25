@@ -35,41 +35,38 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.ChaikinOscillator;
 import com.finance.pms.talib.indicators.FormulatRes;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalculator {
 
 	private ChaikinOscillator chaikinOscillator;
-	private Integer chaikinQuotationStartDateIdx;
-
-	public ChaikinOscillatorThreshold(Stock stock, ChaikinOscillator chaikinOscillator, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		this.chaikinOscillator = chaikinOscillator;
-		chaikinQuotationStartDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer chaikinQuotationEndDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinQuotationStartDateIdx, endDate);
-		isValidData(stock, chaikinOscillator, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
-		
+	
+	public ChaikinOscillatorThreshold(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
+		super(observers);
+		this.chaikinOscillator = new ChaikinOscillator(chkInfastPeriod, chkInslowPeriod);
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
 
 		FormulatRes res = new FormulatRes(EventDefinition.PMCHAIKINOSCTHRESHOLD);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+		res.setCurrentDate(qU.getDate());
 		
-		Integer stochIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinOscillator, calculatorIndex, chaikinQuotationStartDateIdx);
+		Integer stochIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, quotationIdx);
 
 		
 		{
@@ -101,19 +98,19 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalcul
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
 		
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMCHAIKINOSCTHRESHOLD, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMCHAIKINOSCTHRESHOLD, EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
+		BigDecimal calculatorClose = qU.getClose();
 		
-		int chaikinIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinOscillator, calculatorIndex, chaikinQuotationStartDateIdx);
-		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
+		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, calculatorIndex);
+//		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
 		
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
-			+ this.chaikinOscillator.getIndicatorQuotationData().get(chaikinQuotationIndex).getDate() + ","
+//			+ this.chaikinOscillator.getIndicatorQuotationData().get(chaikinQuotationIndex).getDate() + ","
 			+ this.chaikinOscillator.getChaikinOsc()[chaikinIndex];
 		
 		if (bearishEventValue != null) {
@@ -130,9 +127,9 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalcul
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		
-		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.chaikinOscillator, calculatorIndex, chaikinQuotationStartDateIdx);
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, idx);
 		return new double[]
 				{
 				this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex],
@@ -150,4 +147,23 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalcul
 		return EventDefinition.PMCHAIKINOSCTHRESHOLD;
 	}
 
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.chaikinOscillator.calculateIndicator(quotations);
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return this.chaikinOscillator.getStartShift()+ getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return chaikinOscillator.quotationValidity();
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return chaikinOscillator.getOutBegIdx().value + getDaysSpan();
+	}
 }

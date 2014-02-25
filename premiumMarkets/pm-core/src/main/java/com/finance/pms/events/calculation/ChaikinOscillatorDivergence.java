@@ -29,14 +29,13 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Observer;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.ChaikinOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
@@ -45,35 +44,33 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	private ChaikinOscillator chaikinOscillator;
 	private Integer chaikinQuotationStartDateIdx;
 	
-	public ChaikinOscillatorDivergence(Stock stock, ChaikinOscillator chaikinOscillator, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		this.chaikinOscillator = chaikinOscillator;
-		chaikinQuotationStartDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer chaikinQuotationEndDateIdx = chaikinOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(chaikinQuotationStartDateIdx, endDate);
-		isValidData(stock, chaikinOscillator, startDate, chaikinQuotationStartDateIdx, chaikinQuotationEndDateIdx);
-		
+	public ChaikinOscillatorDivergence(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
+		super(observers);
+		this.chaikinOscillator = new ChaikinOscillator(chkInfastPeriod, chkInslowPeriod);
 	}
+
+	
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
+//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
+		return head+"\n";
 	}
-	
+
 	@Override
 	protected String printThresholdsCSV() {
 		return "";
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		return new double[]
 				{
-					getOscillatorOutput()[getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx())],
-					translateOutputForCharting(this.higherLows.get(calculatorIndex)),
-					translateOutputForCharting(this.lowerHighs.get(calculatorIndex))
+					getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
+					translateOutputForCharting(this.higherLows.get(idx)),
+					translateOutputForCharting(this.lowerHighs.get(idx))
 				};
 	}
 	

@@ -29,27 +29,29 @@
  */
 package com.finance.pms.talib.indicators;
 
-import java.util.Date;
-
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
 public class ChaikinOscillator extends TalibIndicator {
 
 	private double[] chaikinOsc;
+	private Integer fastPeriod;
+	private Integer slowPeriod;
 
-	public ChaikinOscillator(Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency) throws TalibException, NoQuotationsException {
-		super(stock, firstDate, 200, lastDate, 0, calculationCurrency);
+	public ChaikinOscillator(Integer fastPeriod, Integer slowPeriod) {
+		super();
+		this.fastPeriod = fastPeriod;
+		this.slowPeriod = slowPeriod;
 	}
 
 	@Override
-	protected double[][] getInputData() {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
-		double inLow[] = this.getIndicatorQuotationData().getLowValues();
-		double inHigh[] = this.getIndicatorQuotationData().getHighValues();
-		double inVolume[] = this.getIndicatorQuotationData().getVolumes();
+	protected double[][] getInputData(Quotations quotations) {
+		double[] closeValues = quotations.getCloseValues();
+		double inLow[] = quotations.getLowValues();
+		double inHigh[] = quotations.getHighValues();
+		double inVolume[] = quotations.getVolumes();
 		
 		double[][] ret = new double[4][Math.max(Math.max(Math.max(closeValues.length, inHigh.length), inLow.length), inVolume.length)];
 		ret[0]= closeValues;
@@ -59,6 +61,7 @@ public class ChaikinOscillator extends TalibIndicator {
 		return 	ret;
 	}
 
+
 	@Override
 	protected void initResArray(int length) {
 		chaikinOsc = new double[length];
@@ -67,19 +70,19 @@ public class ChaikinOscillator extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams) {
-		RetCode rc = TalibCoreService.getCore().adOsc(startIdx, endIdx, inData[2], inData[1], inData[0], inData[3], 3, 10, outBegIdx, outNBElement, chaikinOsc);
+//		fastPeriod = 3;
+//		slowPeriod = 10;
+		RetCode rc = TalibCoreService.getCore().adOsc(startIdx, endIdx, inData[2], inData[1], inData[0], inData[fastPeriod], fastPeriod, slowPeriod, outBegIdx, outNBElement, chaikinOsc);
 		return rc;
 	}
 
 	@Override
 	protected String getHeader() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected String getLine(int indicator, int quotation) {
-		// TODO Auto-generated method stub
+	protected String getLine(Integer indicator, QuotationUnit qU) {
 		return null;
 	}
 
@@ -90,6 +93,16 @@ public class ChaikinOscillator extends TalibIndicator {
 
 	public double[] getChaikinOsc() {
 		return chaikinOsc;
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return 200;
+	}
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.OHLCV;
 	}
 
 }

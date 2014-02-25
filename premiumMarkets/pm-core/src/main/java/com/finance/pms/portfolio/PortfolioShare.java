@@ -70,17 +70,12 @@ import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Market;
-import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockCategories;
-import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
-import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.ProvidersInflation;
 import com.finance.pms.datasources.web.currency.CurrencyConverter;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -142,7 +137,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	private BigDecimal closeQuotationFor(Stock stock, Currency transactionCurrency, Date currentDate) {
 		try {			
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency);
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			return quotations.getClosestCloseForDate(currentDate);
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.warn("No quotations for " + stock);
@@ -752,7 +747,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 				
 				//Weighting previous invest
 				BigDecimal r = getYearlyRateForDates(inPreviousTransaction.getDate(), transaction.getDate(), false);
-				//Double compoundRate = compoundRate(inPreviousTransaction.getDate(), transaction.getDate(), r.doubleValue());
 				BigDecimal worseRate =  BigDecimal.ONE.add(r);
 				weightedCashin = weightedCashin.multiply(worseRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 
@@ -774,7 +768,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 					
 					BigDecimal r = getYearlyRateForDates(outPreviousTransaction.getDate(), transaction.getDate(), false);
 					BigDecimal worseRate =  BigDecimal.ONE.add(r);
-					//Double compoundRate = compoundRate(inPreviousTransaction.getDate(), transaction.getDate(), r.doubleValue());
 					weightedCashout = weightedCashout.multiply(worseRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 
 					//Adding transaction
@@ -849,14 +842,10 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		try {
 			BigDecimal inflatAtFirst;
 			BigDecimal inflatAtSecond;
-			Stock stock = new Stock(
-					ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
-					true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(), new SymbolMarketQuotationProvider(),
-					new MarketValuation(Market.NYSE), "None", TradingMode.UNKNOWN, 0L);
-			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, fisrtDate, secondDate, true, Currency.USD, 1, 0);
+			Stock inflationStock = ProvidersInflation.inflationStock();
+			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(inflationStock, fisrtDate, secondDate, true, Currency.USD, 1, ValidityFilter.CLOSE);
 			inflatAtFirst = inflationQuotations.getClosestCloseForDate(fisrtDate);
 			inflatAtSecond = inflationQuotations.getClosestCloseForDate(secondDate);
-			//inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(inflatAtFirst, 10, BigDecimal.ROUND_HALF_EVEN);
 			inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(new BigDecimal(100), 10, BigDecimal.ROUND_HALF_EVEN);
 		} catch (Exception e) {
 			LOGGER.warn(e,e); 
@@ -877,9 +866,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	/**
 	 * Gets the sell price for zero loss if cash in and out are weighted with inflation ( = inflation weighted avg buy price) : (Ow-Iw)/quantity
-	 * @param currency 
-	 * @param currentDate 
-	 * @return the profit and loss
 	 */
 	@Transient
 	public BigDecimal getPriceZeroGainWeighted(Date currentStartDate, Date currentEndDate, Currency currency) {

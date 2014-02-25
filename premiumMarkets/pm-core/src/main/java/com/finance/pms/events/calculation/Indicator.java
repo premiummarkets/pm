@@ -29,58 +29,15 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.util.Date;
-
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 
 public abstract class Indicator {
 
-	protected Stock stock;
-	private Quotations quotations;
+	protected Indicator() {
+		super();
+	}
 
-	protected Indicator(Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency, Integer firstIdxShift, Integer lastIdxShift) throws NoQuotationsException {
-		super();
-		this.stock = stock;
-		this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, firstDate, lastDate, true, calculationCurrency, firstIdxShift+1, lastIdxShift);
-	}
-	
-	protected Indicator(Quotations quotations) {
-		super();
-		this.stock = quotations.getStock();
-		this.quotations  = quotations;
-	}
-	
-	public Quotations getIndicatorQuotationData() {
-		return this.quotations;
-	}
-	
-	protected String getStockName() {
-		return this.stock.getName();
-	}
-	
-	protected Integer startIdx() {
-		return this.quotations.getFirstDateShiftedIdx();
-	}
-	
-	protected Integer endIdx() {
-		return  this.quotations.getLastDateIdx();
-	}
-	
-	protected Boolean hasQuotations() {
-		return this.quotations.hasQuotations();
-	}
-	
-	protected Stock getStock() {
-		return stock;
-	}
-	
-	public abstract void exportToCSV();
-	
-	
+	public abstract void exportToCSV(Quotations quotations);
 
 }

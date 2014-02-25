@@ -35,16 +35,18 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.talib.indicators.TalibException;
 
 public class VariationCalculator extends EventCompostionCalculator {
 
@@ -54,14 +56,14 @@ public class VariationCalculator extends EventCompostionCalculator {
 	private FileWriter fos;
 	private String analysisName;
 
-	public VariationCalculator(Stock stock, Integer timePeriod, Integer devSpanDiff, Date startDate, Date endDate, Currency transactionCurrency, String analysisName) throws NotEnoughDataException {
-		super(stock, startDate, endDate, transactionCurrency, timePeriod);
-		this.analysisName = analysisName;
-		this.timePeriod = timePeriod;
-		this.devSpanDiff = devSpanDiff;
+	public VariationCalculator(Integer variationTimePeriod, Integer variationSpanDiff, String eventListName, Observer[] observers) {
+		super(observers);
+		
+		this.analysisName = eventListName;
+		this.timePeriod = variationTimePeriod;
+		this.devSpanDiff = variationSpanDiff;
 		
 		initExport();
-		
 	}
 
 	private void initExport() {
@@ -77,19 +79,20 @@ public class VariationCalculator extends EventCompostionCalculator {
 	}
 
 	@Override
-	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName) {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName)  throws TalibException {
 		SortedMap<EventKey, EventValue> eventData = new TreeMap<EventKey, EventValue>();
 
 		EventType resType;
-		for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx ; quotationIndex++) {
-				resType = this.periodType(quotationIndex - timePeriod, quotationIndex);
+//		for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx ; quotationIndex++) {
+		for (int quotationIndex = quotations.getFirstDateShiftedIdx(); quotationIndex <= quotations.getLastDateIdx() ; quotationIndex++) {
+				resType = this.periodType(quotations, quotationIndex - timePeriod, quotationIndex);
 
-				Date date = this.getCalculatorQuotationData().getDate(quotationIndex);
+				Date date = quotations.getDate(quotationIndex);
 				if (!resType.equals(EventType.NONE)) {
 					addEvent(eventData, date, EventDefinition.VARIATION, resType,"",eventListName);
 				}
 				
-				exportLineToFile(date, this.getCalculatorQuotationData().get(quotationIndex).getClose(), resType);
+				exportLineToFile(date, quotations.get(quotationIndex).getClose(), resType);
 		}
 
 		return eventData;
@@ -119,10 +122,10 @@ public class VariationCalculator extends EventCompostionCalculator {
 		}
 	}
 	
-	public EventType periodType(Integer calculationStartIdx, Integer calculationEndIdx) {
+	public EventType periodType(Quotations quotations, Integer calculationStartIdx, Integer calculationEndIdx) {
 		
 		//Avg previous variations
-		double[] quotationCloseValues = this.getCalculatorQuotationData().getCloseValues();
+		double[] quotationCloseValues = quotations.getCloseValues();
 		double avgPreviousVariation = mean(calculationStartIdx, calculationEndIdx, quotationCloseValues);
 
 		//Last variation
@@ -145,13 +148,6 @@ public class VariationCalculator extends EventCompostionCalculator {
 		return EventType.NONE;
 	}
 
-	/**
-	 * @param calculationStartIdx
-	 * @param calculationEndIdx
-	 * @param quotationCloseValues
-	 * @param avgPreviousVariation
-	 * @return
-	 */
 	private double mean(Integer calculationStartIdx, Integer calculationEndIdx, double[] quotationCloseValues) {
 		int startAvgindex = calculationStartIdx + devSpanDiff;
 		double avgPreviousVariation = 0;
@@ -184,4 +180,13 @@ public class VariationCalculator extends EventCompostionCalculator {
 		return EmailFilterEventSource.PMTAEvents;
 	}
 
+	@Override
+	public Integer getStartShift() {
+		return timePeriod;
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
+	}
 }

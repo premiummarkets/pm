@@ -29,12 +29,11 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Observer;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.MFI;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
@@ -43,15 +42,9 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 	MFI mfi;
 	private Integer mfiQuotationStartDateIdx;
 
-	
-	public MFIDivergence(Stock stock, MFI mfi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		this.mfi = mfi;
-		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(getOscillatorQuotationStartDateIdx(), endDate);
-		isValidData(stock, mfi, startDate, getOscillatorQuotationStartDateIdx(), macdQuotationEndDateIdx);
-	
+	public MFIDivergence(Integer timePeriod, Integer lowerThres, Integer upperThres, Observer... observers) {
+		super(observers);
+		this.mfi = new MFI(timePeriod, lowerThres, upperThres);
 	}
 
 	@Override
@@ -87,12 +80,12 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		return new double[]
 				{
-					getOscillatorOutput()[getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx())],
-					translateOutputForCharting(this.higherLows.get(calculatorIndex)),
-					translateOutputForCharting(this.lowerHighs.get(calculatorIndex)),
+					getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
+					translateOutputForCharting(this.higherLows.get(idx)),
+					translateOutputForCharting(this.lowerHighs.get(idx)),
 					getOscillatorLowerThreshold(),
 					getOscillatorUpperThreshold()
 				};

@@ -35,43 +35,40 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.RSI;
 import com.finance.pms.talib.indicators.SMA;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 	
 
 	RSI rsi;
-	private Integer rsiQuotationStartDateIdx;
-	
-	public RSIThreshold(Stock stock, SMA sma, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		this.rsi = rsi;
-	
-		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(rsiQuotationStartDateIdx, endDate);
-		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
+
+	public RSIThreshold(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer[] observers) {
+		super(observers);
+		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
 	}
 
-
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
 		FormulatRes res = new FormulatRes(EventDefinition.PMRSITHRESHOLD);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+		res.setCurrentDate(qU.getDate());
 
-		Integer rsiIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx);
+		Integer rsiIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.rsi, quotationIdx);
 
 		
 		{
@@ -112,18 +109,18 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
+		BigDecimal calculatorClose = qU.getClose();
+		//int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
+			//+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
 			+ this.rsi.getLowerThreshold() + ","
 			+ this.rsi.getUpperThreshold() + ","
-			+ this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)];
+			+ this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, calculatorIndex)];
 		
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
@@ -139,11 +136,11 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 
 		return new double[]
 				{
-				this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)],
+				this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
 				this.rsi.getLowerThreshold(),
 				this.rsi.getUpperThreshold()
 				};
@@ -161,4 +158,26 @@ public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMRSITHRESHOLD;
 	}
+
+	@Override
+	public Integer getStartShift() {
+		return rsi.getStartShift() + getDaysSpan();
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.rsi.calculateIndicator(quotations);
+		
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return rsi.getOutBegIdx().value + getDaysSpan();
+	}
+
 }

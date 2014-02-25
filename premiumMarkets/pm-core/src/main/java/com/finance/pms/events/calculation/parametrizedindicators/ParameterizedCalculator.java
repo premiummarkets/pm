@@ -55,10 +55,13 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
+import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class ParameterizedCalculator extends EventCompostionCalculator {
@@ -68,17 +71,6 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	private TargetStockInfo targetStock;
 	private EventConditionHolder conditionHolder;
 	
-	/**
-	 * @param stock 
-	 * @param startDate 
-	 * @param endDate 
-	 * @param calculationCurrency 
-	 * @param analyseName 
-	 * @param export 
-	 * @param persistTrainingEvents 
-	 * @param observers 
-	 * @throws WarningException 
-	 */
 	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) 
 			throws WarningException  {
 		
@@ -108,7 +100,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	}
 
 	@Override
-	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName) {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
 		
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 
@@ -170,9 +162,12 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 			//Add Double outputs
 			for (Output output : gatheredOutputs) {
-				SortedMap<Date, Double> data = ((DoubleMapValue) output.getOutputData()).getValue(targetStock);
-				normOutputs.add(data);
-				fullDateSet.addAll(data.keySet());
+				Value<?> outputData = output.getOutputData();
+				if (outputData != null) {
+					SortedMap<Date, Double> data = ((DoubleMapValue) outputData).getValue(targetStock);
+					normOutputs.add(data);
+					fullDateSet.addAll(data.keySet());
+				}
 			}
 			
 
@@ -242,6 +237,16 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMTAEvents;
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return 0;
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
 	}
 	
 }

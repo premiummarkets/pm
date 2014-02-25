@@ -30,11 +30,10 @@
 package com.finance.pms.talib.indicators;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
 public class MFI extends TalibIndicator {
@@ -43,21 +42,22 @@ public class MFI extends TalibIndicator {
     private Integer upperThreshold;
     private Integer lowerThreshold;
 	private Integer period;
-	
 
-	public MFI(Stock stock, Integer timePeriod, Integer lowerThres, Integer upperThres, Date startDate, Date endDate, Currency transactionCurrency) throws TalibException, NoQuotationsException {
-		super(stock, startDate, 100 + timePeriod,  endDate, 0, transactionCurrency , timePeriod);
+	
+	public MFI( Integer timePeriod, Integer lowerThres, Integer upperThres) {
+		super(timePeriod, lowerThres, upperThres);
 		this.lowerThreshold = lowerThres;
 		this.upperThreshold = upperThres;
 		this.period = timePeriod;
 	}
 
+
 	@Override
-	protected double[][] getInputData() {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
-		double inLow[] = this.getIndicatorQuotationData().getLowValues();
-		double inHigh[] = this.getIndicatorQuotationData().getHighValues();
-		double[] volumes = this.getIndicatorQuotationData().getVolumes();
+	protected double[][] getInputData(Quotations quotations) {
+		double[] closeValues = quotations.getCloseValues();
+		double inLow[] = quotations.getLowValues();
+		double inHigh[] = quotations.getHighValues();
+		double[] volumes = quotations.getVolumes();
 		
 		double[][] ret = new double[4][Math.max(Math.max(Math.max(closeValues.length,inHigh.length),inLow.length),volumes.length)];
 		ret[0]= closeValues;
@@ -74,11 +74,11 @@ public class MFI extends TalibIndicator {
 	}
 
 	@Override
-	protected String getLine(int indicator, int quotation) {
+	protected String getLine(Integer indicator, QuotationUnit qU) {
 		String line =
 				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
-						this.getIndicatorQuotationData().get(quotation).getDate()) + "," +
-						this.getIndicatorQuotationData().get(quotation).getClose() + "," +
+						qU.getDate()) + "," +
+						qU.getClose() + "," +
 						mfi[indicator] + "\n";
 			return line;
 	}
@@ -112,7 +112,18 @@ public class MFI extends TalibIndicator {
 
 	@Override
 	public double[] getOutputData() {
-		// TODO Auto-generated method stub
 		return null;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return  100 + period;
+	}
+
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.OHLCV;
 	}
 }

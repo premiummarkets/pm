@@ -71,7 +71,9 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.chartUtils.ChartGenerator;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
@@ -169,8 +171,10 @@ public class OTFTuningFinalizer {
 		}
 
 		//Other init
-		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 1, 0);
-		BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
+		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+		SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+//		BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
+		BigDecimal lastClose = (BigDecimal) mapFromQuotationsClose.get(mapFromQuotationsClose.lastKey());
 
 		Pattern pattern = Pattern.compile("config : (.*) es : ");
 		DateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
@@ -194,14 +198,18 @@ public class OTFTuningFinalizer {
 		SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
 		SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 		
-		while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
+//		while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
 			
-			BigDecimal closeForDate;
-			try {
-				closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-			} catch (InvalidAlgorithmParameterException e1) {
-				continue;
-			}
+//			BigDecimal closeForDate;
+//			try {
+//				closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
+//			} catch (InvalidAlgorithmParameterException e1) {
+//				continue;
+//			}
+		for (Date currentDateDate : mapFromQuotationsClose.keySet()) {
+			
+			BigDecimal closeForDate = (BigDecimal) mapFromQuotationsClose.get(currentDateDate);
+			currentDate.setTime(currentDateDate);
 			
 			String line = "";
 			if (generateBuySellCsv) {
@@ -391,9 +399,9 @@ public class OTFTuningFinalizer {
 				bufferedWriter.write(line);
 			}
 
-			QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+//			QuotationsFactories.getFactory().incrementDate(currentDate, 1);
 			
-		}//End while
+		} //End for ex while
 
 		if (generateBuySellCsv) {
 			bufferedWriter.close();
@@ -637,14 +645,6 @@ public class OTFTuningFinalizer {
 	 * As in fact the config elected will change at the pace of the tuning periods which are different from the trend periods.
 	 * On the other hand, when trend changes, also does the trend period dates.
 	 * In the same way the same config can be elected over several consecutive trend period changes.
-	 * 
-	 * @param analysisName
-	 * @param tuningRes
-	 * @param endDate 
-	 * @param startDate 
-	 * @param calculatedRating 
-	 * @return
-	 * @throws IOException
 	 */
 	public void exportConfigRating(String analysisName, TuningResDTO tuningRes, Date startDate, Date endDate, FinalRating calculatedRating) throws IOException {
 				

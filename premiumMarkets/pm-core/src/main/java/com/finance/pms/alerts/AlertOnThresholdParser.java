@@ -34,13 +34,13 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
@@ -48,7 +48,9 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.EventCompostionCalculator;
-import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.talib.dataresults.AlertEventValue;
 
@@ -59,35 +61,41 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 
 	private PortfolioShare portfolioShare;
 	
-	public AlertOnThresholdParser(PortfolioShare portfolioShare, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(portfolioShare.getStock(),startDate, endDate, calculationCurrency);	
-		this.portfolioShare = portfolioShare;
-		
+//	public AlertOnThresholdParser(PortfolioShare portfolioShare, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+//		super(portfolioShare.getStock(),startDate, endDate, calculationCurrency, ValidityFilter.CLOSE);	
+//		this.portfolioShare = portfolioShare;
+//		
+//	}
+	public AlertOnThresholdParser(Observer...observers) {
+		super(observers);
 	}
 
 	@Override
-	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName) {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
 		
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
-		if (this.getCalculatorQuotationData().size() == 0) return edata;
+		if (quotations.size() == 0) return edata;
 		
-		for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx && quotationIndex < this.getCalculatorQuotationData().size(); quotationIndex++) {
+		//for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx && quotationIndex < quotations.size(); quotationIndex++) {
+		for (int quotationIndex = quotations.getFirstDateShiftedIdx(); quotationIndex <= quotations.getLastDateIdx() && quotationIndex < quotations.size(); quotationIndex++) {
 
 			LOGGER.debug("Calculate alerts for : " + portfolioShare);
 
 			BigDecimal quantity = portfolioShare.getQuantity(EventSignalConfig.getNewDate());
-			if (quantity.compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(this.getCalculatorQuotationData().get(quotationIndex).getDate())) {
+			QuotationUnit quotation = quotations.get(quotationIndex);
+			
+			if (quantity.compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(quotation.getDate())) {
 
-				checkAlertCrossingUp(edata, quotationIndex);
-				checkAlertCrossingDown(edata, quotationIndex);
+				checkAlertCrossingUp(quotation, edata);
+				checkAlertCrossingDown(quotation, edata);
 
 				if (!edata.isEmpty()) {
 					LOGGER.info(
 							"Alerts on Threshold crossing for share "+portfolioShare.getName() + " : " + portfolioShare.getAlertsOnThreshold() +
-							" quotation " + this.getCalculatorQuotationData().get(quotationIndex).getClose() +" and resulting events : "+edata);
+							" quotation " + quotation.getClose() +" and resulting events : "+edata);
 				}
 			} else {
-				LOGGER.debug("Can't parse alert on the " + getCalculatorQuotationData().get(quotationIndex).getDate() +
+				LOGGER.debug("Can't parse alert on the " + quotation.getDate() +
 						" cause either : the share was bought after on " + portfolioShare.getLastTransactionDate() +
 						" or the share as been sold by another thread and there is none left : quantity left is " + quantity);
 
@@ -97,11 +105,11 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		return edata;
 	}
 
-	private void checkAlertCrossingDown(Map<EventKey, EventValue> edata, Integer quotationIndex) {
+	private void checkAlertCrossingDown(QuotationUnit quotation, Map<EventKey, EventValue> edata) {
 		
 		if (portfolioShare.getAlertsOnThresholdDown() != null) {
 			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(portfolioShare.getAlertsOnThresholdDown());
-			BigDecimal todaysQuotation = this.getCalculatorQuotationData().get(quotationIndex).getClose();
+			BigDecimal todaysQuotation = quotation.getClose();
 			for (AlertOnThreshold alert : alertsSetDown) {
 				
 				if (alert.getValue().compareTo(todaysQuotation) > 0) {
@@ -121,7 +129,7 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 						eventType = EventType.BEARISH;
 					}
 				
-					alertDetected(edata, quotationIndex, eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
+					alertDetected(edata, quotation.getDate(), eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
 					
 				}
 				
@@ -129,11 +137,11 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		}
 	}
 
-	private void checkAlertCrossingUp(Map<EventKey, EventValue> edata, Integer quotationIndex) {
+	private void checkAlertCrossingUp(QuotationUnit quotation, Map<EventKey, EventValue> edata) {
 		
 		if (portfolioShare.getAlertsOnThresholdUp() != null) {
 			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(portfolioShare.getAlertsOnThresholdUp());
-			BigDecimal todaysQuotation = this.getCalculatorQuotationData().get(quotationIndex).getClose();
+			BigDecimal todaysQuotation = quotation.getClose();
 			for (AlertOnThreshold alert : alertsSetUp) {
 
 				if (alert.getValue().compareTo(todaysQuotation) < 0) {
@@ -155,7 +163,7 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 						//An info event is raised.
 					}
 					
-					alertDetected(edata, quotationIndex, eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
+					alertDetected(edata, quotation.getDate(), eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
 				}
 			}
 		}
@@ -171,8 +179,7 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		return ".\nFYI, price ("+todaysQuotation+") is "+new DecimalFormat("#0.00 %").format(avgPriceDist.doubleValue())+" away from average cost per unit ("+avgBuyPrice+").";
 	}
 
-	private void alertDetected(Map<EventKey, EventValue> eventData, Integer quotationDataIndex, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {
-		Date current = this.getCalculatorQuotationData().getDate(quotationDataIndex);
+	private void alertDetected(Map<EventKey, EventValue> eventData, Date current, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {
 		AlertEventKey iek = new AlertEventKey(current, eventDefinition, eventType, alertType);
 		EventValue iev = new AlertEventValue(current, eventDefinition, eventType, message, eventListName);
 		eventData.put(iek, iev);
@@ -195,6 +202,16 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMTAEvents;
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return 0;
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
 	}
 	
 }

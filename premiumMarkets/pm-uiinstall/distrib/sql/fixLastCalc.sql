@@ -75,6 +75,8 @@ select SHARES.*, PORTFOLIO.NAME, PERF_SUPPLEMENT.PERFDATE from SHARES left join 
 --Update last quote in SHARES V. QUOTATIONS
 select SHARES.* from SHARES join (select QUOTATIONS.SYMBOL, QUOTATIONS.ISIN, max(DATE) maxQDate from QUOTATIONS group by QUOTATIONS.SYMBOL, QUOTATIONS.ISIN) Q on SHARES.symbol=Q.symbol and SHARES.isin=Q.isin where SHARES.lastquote <> Q.maxQDate;
 update SHARES join (select QUOTATIONS.SYMBOL, QUOTATIONS.ISIN, max(DATE) maxQDate from QUOTATIONS group by QUOTATIONS.SYMBOL, QUOTATIONS.ISIN) Q on SHARES.symbol=Q.symbol and SHARES.isin=Q.isin set lastquote = Q.maxQDate;
+select SHARES.* from SHARES left join QUOTATIONS on SHARES.SYMBOL=QUOTATIONS.SYMBOL and SHARES.ISIN=QUOTATIONS.ISIN where QUOTATIONS.SYMBOL is NULL and QUOTATIONS.ISIN is NULL;
+
 
 --Derby : 
 	-- drop table QUOT_MAX_TMP;

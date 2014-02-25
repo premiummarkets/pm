@@ -33,12 +33,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -46,44 +45,42 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 import com.finance.pms.talib.indicators.FormulatRes;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public abstract class TalibIndicatorsCompositionCalculator extends EventCompostionCalculator {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionCalculator.class);
-	
-	 SortedMap<Date, double[]>  calculationOutput;
-	
-	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		this.calculationOutput = new TreeMap<Date, double[]>();
-	}
 
-	public TalibIndicatorsCompositionCalculator(Stock stock, Date startDate, Date endDate, Currency transactionCurrency, int calculatorIndexShift) throws NotEnoughDataException {
-		super(stock, startDate, endDate, transactionCurrency, calculatorIndexShift);
+	SortedMap<Date, double[]>  calculationOutput;
+
+	public TalibIndicatorsCompositionCalculator(Observer... observers) {
+		super(observers);
 		this.calculationOutput = new TreeMap<Date, double[]>();
 	}
 
 	@Override
-	public SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName) {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws TalibException {
 		
+		initIndicators(quotations);
+	
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
-		
 		FormulatRes res;
 		try {
-			for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx ; quotationIndex++) {
-				res = eventFormulaCalculation(quotationIndex);
-				res.setCurrentDate(this.getCalculatorQuotationData().getDate(quotationIndex));
+			for (int quotationIndex = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); quotationIndex <= quotations.getLastDateIdx() ; quotationIndex++) {
+				
+				QuotationUnit qU = quotations.get(quotationIndex);
+				res = eventFormulaCalculation(qU, quotationIndex);
+				res.setCurrentDate(qU.getDate());
 				
 				if (res.formulaTrend() != 0) {
 					Date current = res.getCurrentDate();
@@ -92,103 +89,46 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 					EventValue iev = new StandardEventValue(current, res.getEventDefinition(), eventType, eventListName);
 					edata.put(iek, iev);
 				}
+				
 			}
 			
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		} finally {
 			if (LOGGER.isTraceEnabled()) {
-				exportToCSV(edata, eventListName);
+				exportToCSV(edata, quotations, eventListName);
 			}
 		}
 		
-		calculationOutput = buildOutput();
+		calculationOutput = buildOutput(quotations); //Here because of divergences
 		
-
 		return edata;
 
 	}
 
-	protected abstract FormulatRes eventFormulaCalculation(Integer quotationIdx) throws InvalidAlgorithmParameterException;
-	
-	
-	/**
-	 * @param stock
-	 * @param indicator
-	 * @param startDate
-	 * @param indicatorQuotationEndDateIdx
-	 * @throws NotEnoughDataException
-	 */
-	protected void isValidData(Stock stock, TalibIndicator indicator, Date startDate, Integer indicatorQuotationStartDateIdx, Integer indicatorQuotationEndDateIdx) throws NotEnoughDataException {
-		
-		if (indicator.getOutBegDate() == null) {
-			throw new NotEnoughDataException(stock, indicator.toString(),new Throwable());
-		}
-		if ((indicatorQuotationEndDateIdx - indicatorQuotationStartDateIdx) > indicator.getOutNBElement().value 
-				|| indicator.getOutBegDate().after(startDate) 
-				|| !isInDataRange(indicator,getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationStartIdx, indicatorQuotationStartDateIdx)) 
-				|| !isInDataRange(indicator,getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationEndIdx, indicatorQuotationStartDateIdx))) {
-			String message = "Not enought quotations for calculating indicator "+ indicator.getClass().getSimpleName() +" for calculator "+ this.getClass().getSimpleName() + " for " + stock.getName() + "!\n "
-					+ " \t\tCalculation start date requested from " + new SimpleDateFormat("yyyy-MM-dd").format(startDate)+ ". Indicator first date availabe : "+indicator.getOutBegDate() + ".\n"
-					+ " \t\tIndicator indexes may be out of range : from " + this.getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationStartIdx, indicatorQuotationStartDateIdx) + " to "+ this.getIndicatorIndexFromCalculatorQuotationIndex(indicator, calculationEndIdx, indicatorQuotationStartDateIdx) + ".\n"
-					+ " \t\tNb indicator quotations requested : " + (indicatorQuotationEndDateIdx - indicatorQuotationStartDateIdx)+" And calculated " + indicator.getOutNBElement().value + ".\n"
-					+ " \t\tAvailable quotations for indicator init : "+  getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculationStartIdx, indicatorQuotationStartDateIdx) + ".\n"
-					+ " \t\tIf you realy want that one calculated, quotation data investigation is needed as there may be some gaps in the quotations data leading to insufficient amount of quotations for the indicator calculation.";
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(indicator.getOutBegDate());
-			QuotationsFactories.getFactory().incrementDate(calendar, getDaysSpan());
-			throw new NotEnoughDataException(stock, calendar.getTime(), stock.getLastQuote(), message, new Throwable());
-		}
-		
-	}
-	
+	protected abstract void initIndicators(Quotations quotations) throws TalibException;
+
+	protected abstract FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException;
 	
 	protected abstract Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex);
 
-	/**
-	 * @param calculatorQuotationIndex
-	 * @param indicatorQuotationStartIdx 
-	 * @return
-	 */
-	protected Integer getIndicatorIndexFromCalculatorQuotationIndex(TalibIndicator indicator, Integer calculatorQuotationIndex, Integer indicatorQuotationStartIdx) {
-		int indicatorQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorQuotationIndex, indicatorQuotationStartIdx);
-		Integer indicatorIndex = indicatorQuotationIndex - indicator.getOutBegIdx().value;
+	protected Integer getIndicatorIndexFromQuotationIndex(TalibIndicator indicator, Integer quotationIndex) {
+		Integer indicatorIndex = quotationIndex - indicator.getOutBegIdx().value;
 		return indicatorIndex;
 	}
 	
-	/**
-	 * @param calculatorQuotastrionIndex
-	 * @return
-	 */
-	protected int getIndicatorQuotationIndexFromCalculatorQuotationIndex(Integer calculatorQuotationIndex, Integer indicatorQuotationStartIdx) {
-		int deltaFromCalulatorStartIdx = calculatorQuotationIndex - calculationStartIdx;
-		int indicatorQuotationIndex = deltaFromCalulatorStartIdx + indicatorQuotationStartIdx;
-		return indicatorQuotationIndex;
-	}
-	
-	/**
-	 * Export mac dto csv.
-	 * 
-	 * @param filename the filename
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param edata 
-	 * @param eventListName 
-	 */
-	public void exportToCSV(Map<EventKey, EventValue> edata, String eventListName) {
+	public void exportToCSV(Map<EventKey, EventValue> edata, Quotations quotations, String eventListName) {
 		
-		File export = 
-				new File(
-						System.getProperty("installdir") + File.separator + "tmp" + File.separator +
-						this.stock.getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_") + "_"+ this.getClass().getSimpleName() + "_" + eventListName +".csv");
+		String stockName = this.stock.getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_");
+		File export = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator + stockName + "_"+ this.getClass().getSimpleName() + "_" + eventListName +".csv");
 
 		FileWriter fos = null;
 		try {
 			fos = new FileWriter(export);
 			String header = getHeader(null);
 			fos.write(header);
-			for (int i = calculationStartIdx; i <= calculationEndIdx; i++) {
-				String line = buildLine(i, edata, null);
+			for (int i = quotations.getFirstDateShiftedIdx(); i <= quotations.getLastDateIdx(); i++) {
+				String line = buildLine(i, edata, quotations.get(i), null);
 				fos.write(line);
 			}
 			fos.flush();
@@ -233,7 +173,7 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 
 	protected  abstract String getHeader(List<Integer> scoringSmas);
 
-	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects);
+	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects);
 	
 
 	protected Boolean lowerLow(double[] data, double[] threshCurve) {
@@ -335,15 +275,16 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 		return calculationOutput;
 	}
 
-	protected SortedMap<Date, double[]> buildOutput() {
+	protected SortedMap<Date, double[]> buildOutput(Quotations quotations) {
 		
 		Boolean returnOutput = Boolean.valueOf(MainPMScmd.getPrefs().get("indicators.returnoutput", "false"));
 
 		SortedMap<Date, double[]> outputMap = new TreeMap<Date, double[]>();
 		if (returnOutput) {
-			for (int i = calculationStartIdx; i <= calculationEndIdx; i++) {
-				Date calculatorDate = this.getCalculatorQuotationData().get(i).getDate();
-				double[] output = buildOneOutput(i);
+			for (int i = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); i <= quotations.getLastDateIdx(); i++) {
+				QuotationUnit quotationUnit = quotations.get(i);
+				Date calculatorDate = quotationUnit.getDate();
+				double[] output = buildOneOutput(quotationUnit, i);
 				outputMap.put(calculatorDate, output);
 			}
 		}
@@ -352,12 +293,13 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	}
 
 
-	protected abstract double[] buildOneOutput(int calculatorIndex);
+	protected abstract double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx);
 
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMTAEvents;
 	}
 
+	public abstract Integer getOutputBeginIdx();
 
 }

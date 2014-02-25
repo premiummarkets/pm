@@ -46,7 +46,6 @@ import javax.crypto.spec.DESedeKeySpec;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class StringEncrypter.
  * 
@@ -54,50 +53,18 @@ import sun.misc.BASE64Encoder;
  */
 public class StringEncrypter {
 
-	/** The Constant DESEDE_ENCRYPTION_SCHEME. */
 	public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
-	
-	/** The Constant DES_ENCRYPTION_SCHEME. */
 	public static final String DES_ENCRYPTION_SCHEME = "DES";
-	
-	/** The Constant DEFAULT_ENCRYPTION_KEY. */
 	public static final String DEFAULT_ENCRYPTION_KEY = "Chez les Papous il y a des Papous papas, des Papous pas papas, des Papous � poux et des Papous pas � poux.";
-
-	/** The key spec. */
 	private KeySpec keySpec;
-	
-	/** The key factory. */
 	private SecretKeyFactory keyFactory;
-	
-	/** The cipher. */
 	private Cipher cipher;
-
-	/** The Constant UNICODE_FORMAT. */
 	private static final String UNICODE_FORMAT = "UTF8";
-	
-	
 
-	/**
-	 * Instantiates a new string encrypter.
-	 * 
-	 * @throws EncryptionException the encryption exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StringEncrypter() throws EncryptionException  {
 		this(DES_ENCRYPTION_SCHEME, DEFAULT_ENCRYPTION_KEY);
 	}
 
-	/**
-	 * Instantiates a new string encrypter.
-	 * 
-	 * @param encryptionScheme the encryption scheme
-	 * @param encryptionKey the encryption key
-	 * 
-	 * @throws EncryptionException the encryption exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public StringEncrypter(String encryptionScheme, String encryptionKey) throws EncryptionException {
 
 		if (encryptionKey == null)
@@ -131,17 +98,6 @@ public class StringEncrypter {
 
 	}
 
-	/**
-	 * Encrypt.
-	 * 
-	 * @param unencryptedString the unencrypted string
-	 * 
-	 * @return the string
-	 * 
-	 * @throws EncryptionException the encryption exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public String encrypt(String unencryptedString) throws EncryptionException {
 		if (unencryptedString == null || unencryptedString.trim().length() == 0)
 			throw new IllegalArgumentException("unencrypted string was null or empty");
@@ -159,17 +115,6 @@ public class StringEncrypter {
 		}
 	}
 
-	/**
-	 * Decrypt.
-	 * 
-	 * @param encryptedString the encrypted string
-	 * 
-	 * @return the string
-	 * 
-	 * @throws EncryptionException the encryption exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public String decrypt(String encryptedString) throws EncryptionException {
 		if (encryptedString == null || encryptedString.trim().length() <= 0)
 			throw new IllegalArgumentException("encrypted string was null or empty");
@@ -187,15 +132,6 @@ public class StringEncrypter {
 		}
 	}
 
-	/**
-	 * Bytes2 string.
-	 * 
-	 * @param bytes the bytes
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private static String bytes2String(byte[] bytes) {
 		StringBuffer stringBuffer = new StringBuffer();
 		for (int i = 0; i < bytes.length; i++) {
@@ -204,37 +140,15 @@ public class StringEncrypter {
 		return stringBuffer.toString();
 	}
 
-	/**
-	 * The Class EncryptionException.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static class EncryptionException extends Exception {
-		
-		/**
-		 * 
-		 */
+
 		private static final long serialVersionUID = 5326641184977052246L;
 
-		/**
-		 * Instantiates a new encryption exception.
-		 * 
-		 * @param t the t
-		 * 
-		 * @author Guillaume Thoreton
-		 */
 		public EncryptionException(Throwable t) {
 			super(t);
 		}
 	}
-	
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static void main(String... args) {
 		
 		try {
@@ -252,8 +166,6 @@ public class StringEncrypter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
+	
 	}
 }

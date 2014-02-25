@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.jms.Queue;
 
@@ -51,8 +52,10 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
+import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
+//TODO To facilitate error handling : move initialisations from the constructor to calculateEventsFor method
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);
@@ -70,38 +73,37 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 	}
 
 	@Override
-	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(final Observer... observers) throws IncompleteDataSetException {
+	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, final Observer... observers) throws IncompleteDataSetException {
 		
 		final Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
 		
 		Boolean isDataSetComplete = true;
+		String failingCalculators = "";
 		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
 			if (checkWanted(eventDefinition)) {
-				try {
-					
-					final Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
-					
-					List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
-					
-					for (final EventInfo eventInfo : eventInfos) {
+
+				final Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
+
+				List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
+				for (final EventInfo eventInfo : eventInfos) {
+					try {
 						EventCompostionCalculator instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
 						eventCalculations.add(instanciatedECC);
+					} catch (InvocationTargetException e) {
+						isDataSetComplete = false;
+						failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
+						symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
+					} catch (Exception e) {
+						isDataSetComplete = false;
+						failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
+						symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
+						LOGGER.warn(e,e);
 					}
-					
-				} catch (InvocationTargetException e) {
-					
-					isDataSetComplete = false;
-					
-				} catch (Exception e) {
-					
-					LOGGER.warn(e,e);
-					isDataSetComplete = false;
-					
 				}
 			}
 		}
 		
-		if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete for "+stock);
+		if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete for "+stock+ ". Are failing : "+failingCalculators);
 		
 		return eventCalculations;
 	}

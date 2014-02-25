@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.SortedSet;
 
-
 /**
  * The Class QuotationData.
  * 
@@ -51,16 +50,23 @@ class QuotationData implements List<QuotationUnit> {
 
 	private StripedQuotations stripedQuotations;
 
-
-	protected QuotationData(StripedQuotations stripedQuotations) {
-		this.stripedQuotations = stripedQuotations;
+	protected QuotationData(StripedQuotations striped) {
+		this.stripedQuotations = striped;
 	}
 
 	protected QuotationData(SortedSet<QuotationUnit> quotationUnits) {
-		this.stripedQuotations = new StripedQuotations(quotationUnits.size());
-		this.addAll(quotationUnits);
+		init(quotationUnits);
+	}
+	
+	public QuotationData(List<QuotationUnit> sortedQuotationUnits) {
+		init(sortedQuotationUnits);
+	}
+
+	protected void init(Collection<QuotationUnit> sortedQuotationUnits) {
+		this.stripedQuotations = new StripedQuotations(sortedQuotationUnits.size());
+		this.addAll(sortedQuotationUnits);
 		int i = 0 ;
-		for (QuotationUnit quotationUnit : quotationUnits) {
+		for (QuotationUnit quotationUnit : sortedQuotationUnits) {
 			this.stripedQuotations.addStripedValues(i, quotationUnit.getClose(), quotationUnit.getHigh(), quotationUnit.getLow());
 			i++;
 		}
@@ -69,7 +75,6 @@ class QuotationData implements List<QuotationUnit> {
 	public boolean remove(QuotationUnit o) {
 		return this.stripedQuotations.getBarList().remove(o);
 	}
-
 
 	public QuotationUnit get(int index) {
 		return this.stripedQuotations.getBarList().get(index);

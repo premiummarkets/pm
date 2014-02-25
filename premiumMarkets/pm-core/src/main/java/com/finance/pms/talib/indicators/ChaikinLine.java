@@ -29,28 +29,26 @@
  */
 package com.finance.pms.talib.indicators;
 
-import java.util.Date;
-
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
 public class ChaikinLine extends TalibIndicator {
 	
 	private double[] chaikinLine;
 
-	public ChaikinLine(Stock stock, Date firstDate, Date lastDate, Currency calculationCurrency) throws TalibException, NoQuotationsException {
-		super(stock, firstDate, 100, lastDate, 0, calculationCurrency);
-
+	public ChaikinLine() {
+		super();
 	}
+	
 
 	@Override
-	protected double[][] getInputData() {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
-		double inLow[] = this.getIndicatorQuotationData().getLowValues();
-		double inHigh[] = this.getIndicatorQuotationData().getHighValues();
-		double inVolume[] = this.getIndicatorQuotationData().getVolumes();
+	protected double[][] getInputData(Quotations quotations) {
+		double[] closeValues = quotations.getCloseValues();
+		double inLow[] = quotations.getLowValues();
+		double inHigh[] = quotations.getHighValues();
+		double inVolume[] = quotations.getVolumes();
 		
 		double[][] ret = new double[4][Math.max(Math.max(Math.max(closeValues.length, inHigh.length), inLow.length), inVolume.length)];
 		ret[0]= closeValues;
@@ -74,13 +72,11 @@ public class ChaikinLine extends TalibIndicator {
 
 	@Override
 	protected String getHeader() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected String getLine(int indicator, int quotation) {
-		// TODO Auto-generated method stub
+	protected String getLine(Integer indicator, QuotationUnit qU) {
 		return null;
 	}
 
@@ -91,6 +87,18 @@ public class ChaikinLine extends TalibIndicator {
 
 	public double[] getChaikinLine() {
 		return chaikinLine;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return 100;
+	}
+
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.OHLCV;
 	}
 
 }

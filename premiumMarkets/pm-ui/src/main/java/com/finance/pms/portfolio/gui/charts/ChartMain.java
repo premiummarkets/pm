@@ -105,6 +105,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
@@ -372,122 +373,132 @@ public class ChartMain extends Chart {
 			
 			public void run() {
 				
-				TimeSeriesCollection barDataSets = new TimeSeriesCollection();
-				
-				XYBarRenderer renderer = (XYBarRenderer) mainPlot.getRenderer(1);
-				renderer.removeAnnotations();
-		
-				renderer.setMargin(0);
-				renderer.setBarPainter(new XYBarPainter() {
+				try {
 					
-					@Override
-					public void paintBarShadow(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base, boolean pegShadow) {
-					}
+					TimeSeriesCollection barDataSets = new TimeSeriesCollection();
 					
-					@Override
-					public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base) {
+					XYBarRenderer renderer = (XYBarRenderer) mainPlot.getRenderer(1);
+					renderer.removeAnnotations();
+
+					renderer.setMargin(0);
+					renderer.setBarPainter(new XYBarPainter() {
 						
-						//System.out.printf("%f %f %f %f %d %d %d\n", bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight(), row/3, ((int) bar.getX()) % (barSeries.size()/3), row);
-						if ( barSettings.getSideBySide() && ((int) bar.getX()) % (barSeries.size()/3) != row/3 ) return;//TODO??
-						
-						if (barSettings.getIsZeroBased()) {
-							bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight());
-						} else {
-							int seriesIdx = (row/3) +1;
-							double barHeight = bar.getHeight()/seriesIdx ;
-							bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), barHeight);
+						@Override
+						public void paintBarShadow(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base, boolean pegShadow) {
 						}
-			       
-			            g2.setColor((Color) renderer.getSeriesPaint(row));
-			            g2.fill(bar);
-			            g2.draw(bar);
-					}
-				});
-				
-				TimeSeries lineSerie = ((TimeSeriesCollection) mainPlot.getDataset(0)).getSeries(lineSerieIdx);
-				double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
-				int eventDefSerieIdx = 0;
-				final SimpleDateFormat df = new SimpleDateFormat("dd MMM yy");
-				final NumberFormat pf = new DecimalFormat("#0.00 %");
-				for (final DataSetBarDescr serieDef : barSeries.keySet()) {
-
-					TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(serieDef.getSerieName(), barSeries.get(serieDef), lineSerie);
-					barDataSets.addSeries(barDataSet);
-
-					//Annotation
-					if (serieDef.isLabeled()) {
-						RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
-						Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-						String stopLossString = (!MainPMScmd.getPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
-						XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + stopLossString + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
-						annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
-						annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
-						annotation.setPaint(Color.BLUE);
-						Color transpWhite = new Color(1f, 1f, 1f, 0.5f);
-						annotation.setBackgroundPaint(transpWhite);
-						renderer.addAnnotation(annotation);
-					}
-
-					//ToolTip
-					XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-						public String generateToolTip(XYDataset dataset, int series, int item) {
-
-							String x = "NaN";
-							EventType type = EventType.NONE;
-							String desrc = "Indeterministic simultaneous BULLISH and BEARISH";
-							try {
-
-								Date date = new Date((long) dataset.getXValue(series, item));
-								x = df.format(date);
-
-								switch (serieDef.getId() % 3) {
-								case 0:
-									type = EventType.BULLISH;
-									desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
-									break;
-								case 2:
-									type = EventType.BEARISH;
-									desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
-									break;
-								default:
-									break;
-								}
-
-								return "<html>" + "<font size='2'>" + 
-											"<b>" + serieDef.getStockDescr() + "</b><br>" +
-											"<b>" + serieDef.getEventDisplayeDef()+ "</b> on the " + x + "<br>" +
-											"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
-											"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" + 
-										"</font>" + "</html>";
-
-							} catch (Exception e) {
-								LOGGER.debug(e, e);
+						
+						@Override
+						public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column, RectangularShape bar, RectangleEdge base) {
+							
+							//System.out.printf("%f %f %f %f %d %d %d\n", bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight(), row/3, ((int) bar.getX()) % (barSeries.size()/3), row);
+							if ( barSettings.getSideBySide() && ((int) bar.getX()) % (barSeries.size()/3) != row/3 ) return;//TODO??
+							
+							if (barSettings.getIsZeroBased()) {
+								bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight());
+							} else {
+								int seriesIdx = (row/3) +1;
+								double barHeight = bar.getHeight()/seriesIdx ;
+								bar.setFrame(bar.getX(), bar.getY(), bar.getWidth(), barHeight);
 							}
-							return "NaN";
-
+					   
+					        g2.setColor((Color) renderer.getSeriesPaint(row));
+					        g2.fill(bar);
+					        g2.draw(bar);
 						}
-					};
+					});
 					
-					renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
-					renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
-					renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
-					renderer.setSeriesOutlinePaint(eventDefSerieIdx, serieDef.getSerieColor());
-					renderer.setSeriesPaint(eventDefSerieIdx, serieDef.getSerieColor());
-					renderer.setSeriesFillPaint(eventDefSerieIdx, serieDef.getSerieColor());
-		
-					eventDefSerieIdx++;
+					TimeSeries lineSerie = ((TimeSeriesCollection) mainPlot.getDataset(0)).getSeries(lineSerieIdx);
+					double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
+					int eventDefSerieIdx = 0;
+					final SimpleDateFormat df = new SimpleDateFormat("dd MMM yy");
+					final NumberFormat pf = new DecimalFormat("#0.00 %");
+					for (final DataSetBarDescr serieDef : barSeries.keySet()) {
+
+						TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(serieDef.getSerieName(), barSeries.get(serieDef), lineSerie);
+						barDataSets.addSeries(barDataSet);
+
+						//Annotation
+						if (serieDef.isLabeled()) {
+							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
+							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
+							String stopLossString = (!MainPMScmd.getPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
+							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + stopLossString + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
+							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
+							annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
+							annotation.setPaint(Color.BLUE);
+							Color transpWhite = new Color(1f, 1f, 1f, 0.5f);
+							annotation.setBackgroundPaint(transpWhite);
+							renderer.addAnnotation(annotation);
+						}
+
+						//ToolTip
+						XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+
+							public String generateToolTip(XYDataset dataset, int series, int item) {
+
+								String x = "NaN";
+								EventType type = EventType.NONE;
+								String desrc = "Indeterministic simultaneous BULLISH and BEARISH";
+								try {
+
+									Date date = new Date((long) dataset.getXValue(series, item));
+									x = df.format(date);
+
+									switch (serieDef.getId() % 3) {
+									case 0:
+										type = EventType.BULLISH;
+										desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
+										break;
+									case 2:
+										type = EventType.BEARISH;
+										desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
+										break;
+									default:
+										break;
+									}
+
+									return "<html>" + "<font size='2'>" + 
+												"<b>" + serieDef.getStockDescr() + "</b><br>" +
+												"<b>" + serieDef.getEventDisplayeDef()+ "</b> on the " + x + "<br>" +
+												"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
+												"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" + 
+											"</font>" + "</html>";
+
+								} catch (Exception e) {
+									LOGGER.debug(e, e);
+								}
+								return "NaN";
+
+							}
+						};
+						
+						renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
+						renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
+						renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
+						renderer.setSeriesOutlinePaint(eventDefSerieIdx, serieDef.getSerieColor());
+						renderer.setSeriesPaint(eventDefSerieIdx, serieDef.getSerieColor());
+						renderer.setSeriesFillPaint(eventDefSerieIdx, serieDef.getSerieColor());
+
+						eventDefSerieIdx++;
+						
+					}
 					
+					mainPlot.setDataset(1, barDataSets);
+					
+					resetVerticalLines(plotArea);
+					
+				} catch (Exception e) {
+					LOGGER.error(e,e);
 				}
-				
-				mainPlot.setDataset(1, barDataSets);
-				
-				resetVerticalLines(plotArea);
 			}
 			
 		};
 		
-		EventQueue.invokeLater(runnable);
+		try {
+			EventQueue.invokeLater(runnable);
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
 	}
 
 	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors, final Rectangle2D plotArea) {
@@ -721,7 +732,7 @@ public class ChartMain extends Chart {
 		Date endDate = stripedCloseFunction.getArbitraryEndDate();
 		Quotations bdQuotes;
 		try {
-			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, portfolioShare.getTransactionCurrency(), 1, 0);
+			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, portfolioShare.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
 		} catch (NoQuotationsException e) {
 			throw e;
 		}

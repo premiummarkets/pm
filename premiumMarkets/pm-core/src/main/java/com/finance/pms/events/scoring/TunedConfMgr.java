@@ -182,17 +182,18 @@ public class TunedConfMgr {
 	}
 	
 	public void updateConf(TunedConf tunedConf, Stock stock, Date lastEventDate) {
-		
 		if (lastEventDate != null) tunedConf.setLastCalculatedEvent(lastEventDate);
 		getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
-		
+	}
+	
+	public void resetConf(TunedConf tunedConf, Stock stock) {
+		tunedConf.reset();
+		getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
 	}
 	
 	//TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
 	public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
-		
 		PeriodSpliter periodSpliter = new PeriodSpliter();
-		//return periodSpliter.splitForward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
 		return periodSpliter.splitBackward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
 	}
 

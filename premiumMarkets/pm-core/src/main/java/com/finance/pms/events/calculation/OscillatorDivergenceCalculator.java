@@ -38,22 +38,25 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsCompositionCalculator {
@@ -61,30 +64,32 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 	protected SortedMap<Integer,Double> higherLows;
 	protected SortedMap<Integer,Double> lowerHighs;
 	private HighLowSolver highLowSolver;
-
-	public OscillatorDivergenceCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
+	private Quotations quotationsCopy;
+	
+	public OscillatorDivergenceCalculator(Observer ...observers) {
+		super(observers);
 		
 		highLowSolver = new HighLowSolver();
 		higherLows = new TreeMap<Integer, Double>();
 		lowerHighs = new TreeMap<Integer, Double>();
 	}
 
+
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
 		FormulatRes res = new FormulatRes((EventDefinition) getEventDefinition());
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+		res.setCurrentDate(qU.getDate());
 		
 		Calendar currentDateCal = Calendar.getInstance();
 		currentDateCal.setTime(res.getCurrentDate());
 		Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDateCal, -getDaysSpan()).getTime();
-		int lookBackPeriodStartIdx = this.getCalculatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, lookBackPeriodStart);
-		int idxSpan = calculatorIndex - lookBackPeriodStartIdx;
+		int lookBackPeriodStartIdx = quotationsCopy.getClosestIndexBeforeOrAtDateOrIndexZero(0, lookBackPeriodStart);
+		int idxSpan = quotationIdx - lookBackPeriodStartIdx;
 		
 		if (idxSpan < 4) return res; //We need a least 3 days to draw higher low or lower high
 		
-		int mfiIdx = getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx());
+		int mfiIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
 		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), mfiIdx - idxSpan, mfiIdx));
 	
 		{
@@ -108,13 +113,13 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 					int lastPeakRightShifted = (int) (Math.min(lastPeakIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1)); //lastPeakIdx.intValue();
 					int coveredSpan = lastPeakRightShifted - firstPeakLeftShifted;
 					Double leftSigma = 0d;
-					int lastPeakCalculatorIdx = calculatorIndex - (regline.size() - lastPeakRightShifted);
+					int lastPeakCalculatorIdx = quotationIdx - (regline.size() - lastPeakRightShifted);
 					for (int i = lastPeakCalculatorIdx - coveredSpan; i <= lastPeakCalculatorIdx - coveredSpan/2; i++) {
-						leftSigma = leftSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+						leftSigma = leftSigma + quotationsCopy.get(i).getClose().doubleValue();
 					}	
 					Double rightSigma=0d;
 					for (int i = lastPeakCalculatorIdx - coveredSpan/2; i <= lastPeakCalculatorIdx; i++) {
-						rightSigma = rightSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+						rightSigma = rightSigma +  quotationsCopy.get(i).getClose().doubleValue();
 					}
 					isPriceDown = leftSigma/(coveredSpan - coveredSpan/2) > rightSigma/(coveredSpan/2);
 
@@ -151,13 +156,13 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 					int lastTroughRightShifted = (int) (Math.min(lastTroughIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1));
 					int coveredSpan = lastTroughRightShifted - firstTroughLeftShifted;
 					Double leftSigma = 0d;
-					int lastTroughCalculatorIdx = calculatorIndex - (regline.size() -lastTroughRightShifted);
+					int lastTroughCalculatorIdx = quotationIdx - (regline.size() -lastTroughRightShifted);
 					for (int i = lastTroughCalculatorIdx - coveredSpan; i <= lastTroughCalculatorIdx - coveredSpan/2; i++) {
-						leftSigma = leftSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+						leftSigma = leftSigma + quotationsCopy.get(i).getClose().doubleValue();
 					}	
 					Double rightSigma=0d;
 					for (int i = lastTroughCalculatorIdx - coveredSpan/2; i <= lastTroughCalculatorIdx; i++) {
-						rightSigma = rightSigma + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+						rightSigma = rightSigma + quotationsCopy.get(i).getClose().doubleValue();
 					}
 					isPriceUp = leftSigma/(coveredSpan - coveredSpan/2) < rightSigma/(coveredSpan/2);
 
@@ -200,18 +205,19 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 	protected abstract TalibIndicator getOscillator();	
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,getOscillatorQuotationStartDateIdx());
-		double mfiV = getOscillatorOutput()[getIndicatorIndexFromCalculatorQuotationIndex(getOscillator(), calculatorIndex, getOscillatorQuotationStartDateIdx())];
+		BigDecimal calculatorClose = qU.getClose();
+//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, getOscillatorQuotationStartDateIdx());
+		double mfiV = getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), calculatorIndex)];
 		String thresholdString = printThresholdsCSV();
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," + calculatorClose + "," + 
-			getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," + getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," + 
-			((this.higherLows.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + 
+//			getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," + getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," + 
+//			((this.higherLows.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + 
+			((this.higherLows.get(calculatorIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(calculatorIndex)!=null)?mfiV:"") + "," + 
 			thresholdString + "," + mfiV;
 		
 		if (bearishEventValue != null) {
@@ -252,5 +258,28 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 	}
 	
 	protected abstract Double getAlphaBalance();
+	
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		
+		this.quotationsCopy = quotations;
+		
+		getOscillator().calculateIndicator(quotations);
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return getOscillator().getStartShift() + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return getOscillator().quotationValidity();
+	}
+	
+	@Override
+	public Integer getOutputBeginIdx() {
+		return getOscillator().getOutBegIdx().value + getDaysSpan();
+	}
 
 }

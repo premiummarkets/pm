@@ -72,8 +72,7 @@ public class DayQuoteInflationFormater extends LineFormater {
 		
 
 		try {
-			if (null == DayQuoteInflationFormater.PATTERNS)
-				DayQuoteInflationFormater.PATTERNS = new PatternProperties("patterns.properties");
+			if (null == DayQuoteInflationFormater.PATTERNS) DayQuoteInflationFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
 			LOGGER.debug("", e);
 		}

@@ -135,21 +135,6 @@ public abstract class IndicatorsCalculationService {
 	 * - The events are calculated using d-1, d and d+1. This means that the latest calculated event will be on today-1.
 	 * In the case of the daily calculation, the next iteration will then start on today-1 (lets call it �)
 	 * The first calculation for the next daily iteration will then be on � - daysbackwardday + 1.
-	 * @param symbols the symbols
-	 * @param dateDeb the datedeb
-	 * @param dateFin the datefin
-	 * @param calculationCurrency 
-	 * @param periodType the period type
-	 * @param passNumber 
-	 * @param export 
-	 * @param limitedCache 
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param persistEvents 
-	 * @param passOneCalcMode 
-	 * @return 
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws IncompleteDataSetException 
 	 */
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
@@ -157,24 +142,6 @@ public abstract class IndicatorsCalculationService {
 		return this.analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, persistEvents, passOneCalcMode, observers);		
 	}
 	
-	/**
-	 * Part analyze.
-	 * @param symbols the symbols
-	 * @param dateDeb the datedeb
-	 * @param dateFin the datefin
-	 * @param calculationCurrency 
-	 * @param periodType the period type
-	 * @param passNumer 
-	 * @param export 
-	 * @param limitedCache 
-	 * @author Guillaume Thoreton
-	 * @param persistEvents 
-	 * @param observers 
-	 * @param passOneCalcMode 
-	 * @return 
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws IncompleteDataSetException 
-	 */
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> partialAnalyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumer, Boolean persistEvents, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
@@ -190,19 +157,6 @@ public abstract class IndicatorsCalculationService {
 		this.portfolioDAO = portfolioDAO;
 	}
 
-	/**
-	 * Analyse symbol collection.
-	 * @param symbols the symbols
-	 * @param datedeb the datedeb
-	 * @param datefin the datefin
-	 * @param calculationCurrency TODO
-	 * @param periodType the period type
-	 * @author Guillaume Thoreton
-	 * @param observers 
-	 * @return 
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws IncompleteDataSetException 
-	 */
 	protected abstract Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers) 

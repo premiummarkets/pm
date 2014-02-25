@@ -12,3 +12,9 @@ CALL SYSCS_UTIL.SYSCS_EXPORT_QUERY ('select * from investirQ','/home/guil/tmp/in
 -- clean (delete) then
 CALL SYSCS_UTIL.SYSCS_IMPORT_TABLE(null,'QUOTATIONS','/home/guil/tmp/investirQ.dat',null,null,null,0);
 -- then resync shares last quotes => fixLastCals.sql
+
+
+
+select * from SHARES where QUOTATIONPROVIDER ='Investir';
+delete from QUOTATIONS where exists ( select * from SHARES where SHARES.SYMBOL=QUOTATIONS.SYMBOL and SHARES.ISIN=QUOTATIONS.ISIN and SHARES.QUOTATIONPROVIDER ='Investir');
+update SHARES set LASTQUOTE='1970-01-01' where QUOTATIONPROVIDER ='Investir';

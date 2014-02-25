@@ -30,29 +30,31 @@
 package com.finance.pms.talib.indicators;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
 public class LinearRegression extends TalibIndicator {
-	
-	private double[] linearRegression;
-	
-	public LinearRegression(Stock stock, Date firstDate, Date lastDate, Currency transactionCurrency, Integer timePeriod) throws TalibException, NoQuotationsException {
-		super(stock, firstDate, timePeriod, lastDate, 0, transactionCurrency, timePeriod);
-		
-	}
 
-	public LinearRegression(Stock stock, Date firstDate, Date lastDate, Currency transactionCurrency) throws TalibException, NoQuotationsException {
-		super(stock, firstDate, 0, lastDate, 0, transactionCurrency, 0);
+	private double[] linearRegression;
+	private Integer timePeriod;
+
+	public LinearRegression() throws TalibException {
+		super(0);
+		this.timePeriod = 0;
+	}
+	
+	
+	public LinearRegression(Integer period) throws TalibException {
+		super(period);
+		this.timePeriod = period;
 	}
 
 	@Override
-	protected double[][] getInputData() {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
+	protected double[][] getInputData(Quotations quotations) {
+		double[] closeValues = quotations.getCloseValues();
 		double[][] ret = new double[1][closeValues.length];
 		ret[0]= closeValues;
 		return 	ret;
@@ -65,10 +67,11 @@ public class LinearRegression extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inReal, Number... indicatorParams) {
+		
 		RetCode rc = RetCode.Success;
 		Integer period = (Integer) indicatorParams[0];
 		if (period == 0) {
-			period = this.getIndicatorQuotationData().size()*2/3;
+			period = (endIdx-startIdx+1)*2/3;
 		}
 		rc = TalibCoreService.getCore().linearReg(startIdx, endIdx, inReal[0], period, outBegIdx, outNBElement, this.linearRegression);
 
@@ -81,18 +84,25 @@ public class LinearRegression extends TalibIndicator {
 	}
 
 	@Override
-	protected String getLine(int indicator, int quotation) {
-		String line =
-				new SimpleDateFormat("yyyy-MM-dd").format(
-						this.getIndicatorQuotationData().get(quotation).getDate()) + "," +
-						this.getIndicatorQuotationData().get(quotation).getClose() + "," +
-						linearRegression[indicator] + "\n";
-			return line;
+	protected String getLine(Integer indicator, QuotationUnit qU) {
+		String line = new SimpleDateFormat("yyyy-MM-dd").format(qU.getDate()) + "," + qU.getClose() + "," + linearRegression[indicator] + "\n";
+		return line;
 	}
 
 	@Override
 	public double[] getOutputData() {
-		// TODO Auto-generated method stub
 		return null;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return timePeriod;
+	}
+
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.CLOSE;
 	}
 }

@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
@@ -42,33 +41,18 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
 public abstract class EventCompostionCalculator {
 	
 	protected Stock stock;
-	private Quotations quotations;
-	protected Integer calculationStartIdx;
-	protected Integer calculationEndIdx;
 	protected Observer[] observers;
 	
-	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Integer calculatorIndexShift) throws NotEnoughDataException {//With quotation init
-		super();
-		this.stock = stock;
-		initQuotationCache(stock, startDate, endDate, calculationCurrency, calculatorIndexShift);
-	}
-	
-	public EventCompostionCalculator(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Observer... observers) throws NotEnoughDataException {//With obs and No indexShift
-		this(stock, startDate, endDate, calculationCurrency, 0);
+	public EventCompostionCalculator(Observer... observers) {
 		this.observers = observers;
-	}
-	
-	public EventCompostionCalculator(Stock stock) { //No quotation related calculator
-		this.stock = stock;
 	}
 	
 	public EventCompostionCalculator(Stock stock, Observer... observers) { //With obs and No quotation init
@@ -76,21 +60,9 @@ public abstract class EventCompostionCalculator {
 		this.observers = observers;
 	}
 	
-	protected void initQuotationCache(Stock stock, Date startDate, Date endDate, Currency calculationCurrency, Integer calculatorIndexShift) throws NotEnoughDataException {
-		try {
-			this.quotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, calculationCurrency, calculatorIndexShift + 15 + 1, 0);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		this.calculationStartIdx =  this.getCalculatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		this.calculationEndIdx = this.getCalculatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate);
-	}
+	public abstract Integer getStartShift();
 
-	public abstract SortedMap<EventKey, EventValue> calculateEventsFor(String eventListName);
-	
-	protected Quotations getCalculatorQuotationData() {
-		return this.quotations;
-	}
+	public abstract SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws Exception;
 
 	protected void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventDefinition eventDefinition, EventType eventType, String message, String eventListName) {
 		StandardEventKey iek = new StandardEventKey(currentDate, eventDefinition, eventType);
@@ -105,6 +77,8 @@ public abstract class EventCompostionCalculator {
 	public abstract EventInfo getEventDefinition();
 	
 	public abstract EmailFilterEventSource getSource();
+	
+	public abstract ValidityFilter quotationsValidity();
 
 	
 	//If output is NaN this means that the output is not available and should not be displayed at that date on chart.

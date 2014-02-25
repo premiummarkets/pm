@@ -40,12 +40,12 @@ public abstract class QuotationsIntraDay extends Quotations {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(QuotationsIntraDay.class);
 
-	QuotationsIntraDay(Stock stock, Date firstDate, Date lastDate, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
-		super(stock, firstDate, lastDate, true, targetCurrency, firstIndexShift, lastIndexShift);
+	QuotationsIntraDay(Stock stock, Date firstDate, Date lastDate, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters ) throws NoQuotationsException {
+		super(stock, firstDate, lastDate, true, targetCurrency, firstIndexShift, validityFilter, otherValidityFilters);
 	}
 
-	QuotationsIntraDay(Stock stock, QuotationData quotationData, Currency targetCurrency) {
-		super(stock, quotationData, targetCurrency);
+	QuotationsIntraDay(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
+		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
 	}
 	
 	@Override

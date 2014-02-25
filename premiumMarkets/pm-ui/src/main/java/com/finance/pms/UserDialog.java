@@ -78,38 +78,29 @@ public class UserDialog extends Dialog {
 	}
 
 	public void open() {
+		
 		try {
 
 			GridLayout dialogShellLayout = new GridLayout();
 			this.getParent().setLayout(dialogShellLayout);
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 			
-			if (erreur != null) {
+			{
 				errorTxt = new Text(getParent(), SWT.WRAP);
 				GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
 				errorTxt.setLayoutData(layoutData);
 				errorTxt.setFont(MainGui.DEFAULTFONT);
 				errorTxt.setBackground(MainGui.pOPUP_BG);
-				errorTxt.setText(cleanMsg(this.erreur, false));
 				errorTxt.setEditable(false);
-				
+				if (erreur == null) {
+					errorTxt.setVisible(false);
+				} else {
+					errorTxt.setText(cleanMsg(this.erreur, false));
+				}
 			}
-			if (addMessage != null) {
-				addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
-				addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-				addMsgTxt.setFont(MainGui.DEFAULTFONT);
-				addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
-				addMsgTxt.setEditable(false);
-				addMsgTxt.setCapture(false);
-				addMsgTxt.setText(cleanMsg(this.addMessage, true));
-			}
-			{
-				valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
-				GridData validerbuttonLData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
-				valideButton.setLayoutData(validerbuttonLData);
-				validationButtonTxtAndAction();
-			}
-
+			initAddMsg();
+			initButton();
+			
 			layout();
 			
 			Point pt = getParent().getDisplay().getCursorLocation();
@@ -136,11 +127,36 @@ public class UserDialog extends Dialog {
 		}
 	}
 
+	private void initButton() {
+		
+		valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
+		GridData validerbuttonLData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
+		valideButton.setLayoutData(validerbuttonLData);
+		validationButtonTxtAndAction();
+		
+	}
+
+	private void initAddMsg() {
+		
+		addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
+		addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		addMsgTxt.setFont(MainGui.DEFAULTFONT);
+		addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
+		addMsgTxt.setEditable(false);
+		addMsgTxt.setCapture(false);
+		if (addMessage == null) {
+			addMsgTxt.setVisible(false);
+		} else {
+			addMsgTxt.setText(cleanMsg(this.addMessage, true));
+		}
+		
+	}
+
 	protected void layout() {
 		
 		if (errorTxt != null) {
 			errorTxt.pack();
-			if (errorTxt.getSize().y < 50) ((GridData)errorTxt.getLayoutData()).heightHint = 50;
+			//if (errorTxt.getSize().y < 50) ((GridData)errorTxt.getLayoutData()).heightHint = 50;
 		}
 	
 		if (addMsgTxt != null) {
@@ -161,12 +177,20 @@ public class UserDialog extends Dialog {
 		
 		if (erreur != null && errorTxt != null)  {
 			errorTxt.setText(cleanMsg(this.erreur, false));
+			errorTxt.setVisible(true);
+		} else {
+			errorTxt.setText("");
+			errorTxt.setVisible(false);
 		}
-		if (addMessage != null && addMsgTxt != null) {
+		if (addMessage != null  && addMsgTxt != null) {
 			addMsgTxt.setText(cleanMsg(this.addMessage, true));
+			addMsgTxt.setVisible(true);
+		} else {
+			addMsgTxt.setText("");
+			addMsgTxt.setVisible(false);
 		}
 		valideButton.setText("Ok");
-		
+	
 		layout();
 		
 		getParent().setActive();
@@ -179,12 +203,12 @@ public class UserDialog extends Dialog {
 		String cleanMessage = message;
 		if (addCR) {
 			cleanMessage = message.replaceAll("\\. ", ".\n");
-			cleanMessage = cleanMessage+"\n";
+			//cleanMessage = cleanMessage+"\n";
 		}
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
 		
-		return cleanMessage;
+		return cleanMessage+"\n";
 	}
 
 	protected void validationButtonTxtAndAction() {

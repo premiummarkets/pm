@@ -166,7 +166,7 @@ public abstract class EventModelStrategyEngine<X> {
 				isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
 			}
 			
-			if (!isAllEventsOk) throw new RuntimeException("\nCause : "+msg);
+			if (!isAllEventsOk) throw new RuntimeException("\nCause :\n"+msg);
 			
 		}
 	}

@@ -99,10 +99,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(talibSmaOperation);
 		
 		//Pm
-		PMMACDOperation pmmacdOperation = new PMMACDOperation();
-		nativeOperations.addOperation(pmmacdOperation);
-		PMSMAOperation pmsmaOperation = new PMSMAOperation();
-		nativeOperations.addOperation(pmsmaOperation);
+		PMMACDOperation pmMacdOperation = new PMMACDOperation();
+		nativeOperations.addOperation(pmMacdOperation);
+		PMSMAOperation pmSmaOperation = new PMSMAOperation();
+		nativeOperations.addOperation(pmSmaOperation);
 		PMLogRocOperation houseTrendOperation = new PMLogRocOperation();
 		nativeOperations.addOperation(houseTrendOperation);
 		PMAroonOperation pmAroonOperation = new PMAroonOperation();

@@ -192,7 +192,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		} catch (TimeoutException e) {
 			LOGGER.error("Unable to get Connection. Is database started? Thread lock ?", e);
 		}
-		LOGGER.error("Unable to get Connection. For one reason or the other ...");
+		LOGGER.error("Unable to get Connection for some reason or another ...");
 		//System.exit(1);
 		return null;
 	}

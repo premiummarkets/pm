@@ -51,13 +51,13 @@ public class StripedQuotations {
 	private double[] highList;
 	private double[] lowList;
 	
-	public StripedQuotations() {
-		super();
-		this.barList = new ArrayList<QuotationUnit>();
-		this.closeList = new double[500];
-		this.highList = new double[500];
-		this.lowList =  new double[500];
-	}
+//	public StripedQuotations() {
+//		super();
+//		this.barList = new ArrayList<QuotationUnit>();
+//		this.closeList = new double[500];
+//		this.highList = new double[500];
+//		this.lowList =  new double[500];
+//	}
 
 	public StripedQuotations(Integer limit) {
 		super();
@@ -121,8 +121,8 @@ public class StripedQuotations {
 		return closeList;
 	}
 	
-	public void addBar(int i, Date date, double close, Stock stock) {
-		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO, new BigDecimal(close),0l, null);
+	public void addCloseOnlyBar(Stock stock, int i, Date date, double close) {
+		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(close),0l, null);
 		this.getBarList().add(quotationUnit);
 		this.closeList[i] = close;
 		

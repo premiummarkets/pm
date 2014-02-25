@@ -36,10 +36,9 @@ import java.util.SortedMap;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public interface QuotationsFactory {
-
-	public abstract Date getFirstQuotationDateFromQuotations(Stock stock);
 
 	public abstract Date getValidQuotationDateBefore(Date date);
 
@@ -57,11 +56,11 @@ public interface QuotationsFactory {
 
 	public abstract Calendar incrementDate(Calendar calendar, int amount);
 
-	public abstract Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency) throws NoQuotationsException;
+	public abstract Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter) throws NoQuotationsException;
 
-	public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency) throws NoQuotationsException;
+	public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter cacheFilter) throws NoQuotationsException;
 
-	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException;
+	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter) throws NoQuotationsException;
 
 	int nbOpenIncrementBetween(Date firstDate, Date secondDate);
 
@@ -72,11 +71,13 @@ public interface QuotationsFactory {
 	SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException;
 	
 	SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
+	SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 
 	public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Stock stock);
 
 	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 
 	SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
-	
+
+		
 }

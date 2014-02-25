@@ -39,6 +39,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.indicators.MACD;
 
 @XmlRootElement
@@ -73,16 +75,22 @@ public class PMMACDOperation extends PMDataFreeOperation {
 		
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-			MACD macd = new MACD(targetStock.getStock(), fastPeriod, slowPeriod, signalPeriod, targetStock.getStartDate(), targetStock.getEndDate(), null);
-	
+//			MACD macd = new MACD(targetStock.getStock(), fastPeriod, slowPeriod, signalPeriod, targetStock.getStartDate(), targetStock.getEndDate(), null);
+			MACD macd = new MACD(fastPeriod, slowPeriod, signalPeriod);
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					true, targetStock.getStock().getMarketValuation().getCurrency(), 
+					macd.getStartShift(), macd.quotationValidity());
+			macd.calculateIndicator(quotations);
+			
 			if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("history")) {
-				return doubleArrayMapToDoubleMap(targetStock, macd, macd.getHistory());
+				return doubleArrayMapToDoubleMap(quotations, targetStock, macd, macd.getHistory());
 			}
 			else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("signal")) {
-				return doubleArrayMapToDoubleMap(targetStock, macd, macd.getSignal());
+				return doubleArrayMapToDoubleMap(quotations, targetStock, macd, macd.getSignal());
 			} else {
 				//macd
-				return doubleArrayMapToDoubleMap(targetStock, macd, macd.getOutputData());
+				return doubleArrayMapToDoubleMap(quotations, targetStock, macd, macd.getOutputData());
 			}
 			
 		} catch (Exception e) {

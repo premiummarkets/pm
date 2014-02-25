@@ -52,6 +52,7 @@ import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.StandAloneCondition;
 import com.finance.pms.events.operations.nativeops.ArithmeticOperation;
+import com.finance.pms.events.operations.nativeops.ArithmeticUnaryOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
@@ -66,7 +67,7 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
  **/
 @XmlRootElement
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formula", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector"} )
-@XmlSeeAlso({ArithmeticOperation.class,Condition.class, NumberOperation.class, DoubleMapOperation.class, EventConditionHolder.class, StringOperation.class})
+@XmlSeeAlso({ArithmeticOperation.class, ArithmeticUnaryOperation.class, Condition.class, NumberOperation.class, DoubleMapOperation.class, EventConditionHolder.class, StringOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);

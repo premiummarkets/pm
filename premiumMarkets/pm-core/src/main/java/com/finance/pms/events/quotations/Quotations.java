@@ -34,11 +34,16 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -48,7 +53,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.PortfolioMgr;
 
 /**
- * The Class TalibIndicators.
+ * The Class Quotations.
  * 
  * @author Guillaume Thoreton
  */
@@ -56,33 +61,54 @@ public class Quotations {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 	
-	private static ConcurrentHashMap<Stock, SoftReference<QuotationData>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<QuotationData>>(1000,0.90f);
+	public static enum ValidityFilter {ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV};
+	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
 	private static ConcurrentHashMap<Stock, LastUpdateStampChecker> UPDATESTAMP_CACHE = new ConcurrentHashMap<Stock, LastUpdateStampChecker>();
 
 	protected Stock stock;
-	private QuotationData quotationData;
-	protected Integer firstDateShiftedIdx;
-	protected Integer lastDateIdx;
 	private Currency targetCurrency;
+	
+	private Map<String, QuotationData> quotationDataFilters;
+	private ValidityFilter cacheFilter;
+	private ValidityFilter[] otherCacheFilters;
+
+	private Date firstDateRequested;
+	private Integer firstIndexShiftRequested;
+	private Date lastDateRequested;
+	
+	private Integer firstDatedIndex;
+	private Integer lastDateIndex;
 
 	//Called in indicator calculation and event composition calculations
-	Quotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
+	Quotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) throws NoQuotationsException {
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;
-		init(stock, firstDate, lastDate, keepCache, firstIndexShift, lastIndexShift);
+		this.cacheFilter = cacheFilter;
+		this.otherCacheFilters = otherCacheFilters;
+		
+		this.firstIndexShiftRequested = firstIndexShift;
+		this.firstDateRequested = firstDate;
+		this.lastDateRequested = lastDate;
+				
+		init(stock, firstDate, lastDate, keepCache, firstIndexShift);
 	}
 
 	//Called in CalculationQuotations (inheritance)
-	Quotations(Stock stock, QuotationData quotationData, Currency targetCurrency) {
+	Quotations(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.stock = stock;
 		this.targetCurrency = targetCurrency;
-		firstDateShiftedIdx = 0;
-		lastDateIdx = quotationData.size()-1;
-		this.setQuotationData(quotationData);
+		this.cacheFilter = cacheFilter;
+		this.otherCacheFilters = otherCacheFilters;
+		
+		firstIndexShiftRequested = 0;
+		firstDateRequested = quotationData.getDate(0);
+		lastDateRequested = quotationData.getDate(quotationData.size() -1);
+				
+		this.setUnfilteredQuotationData(quotationData);
 	}
 
-	protected void init(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
+	protected void init(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Integer firstIndexShift) throws NoQuotationsException {
 		this.stock = stock;
 		
 		QuotationData requestedQuotationsData;
@@ -120,14 +146,9 @@ public class Quotations {
 				}
 			}
 		}
-		this.setQuotationData(requestedQuotationsData);
-
-		if (hasQuotations()) {
-			firstDateShiftedIdx =  Math.max( this.getQuotationData().getClosestIndexBeforeOrAtDate(0, firstDate) - firstIndexShift, 0 );
-			lastDateIdx = Math.min( this.getQuotationData().getClosestIndexBeforeOrAtDate(firstDateShiftedIdx, lastDate) + lastIndexShift, this.getQuotationData().size() -1 );
-		} else {
-			firstDateShiftedIdx = 0;
-			lastDateIdx = 0;
+		this.setUnfilteredQuotationData(requestedQuotationsData);
+		
+		if (!hasQuotations()) {
 			throw new NoQuotationsException("No quotation available for "+this.stock+" within "+firstDate+" and "+lastDate);
 		}
 	}
@@ -138,17 +159,16 @@ public class Quotations {
 		QuotationData cachedQuotationData = Quotations.getCashedStock(stock);
 		
 		QuotationUnit lastQU;
-//		int firstDateIdx;
-		boolean isCached = Quotations.QUOTATIONS_CACHE.containsKey(stock)
-									&& cachedQuotationData != null
+		Integer fdIdx = 0;
+		boolean isCached = //Quotations.QUOTATIONS_CACHE.containsKey(stock) &&
+									cachedQuotationData != null
 									&& !cachedQuotationData.isEmpty()
-									&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0 && cachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate) >= indexShift //TODO add first date in stock object
+									&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0 
+									&& (//TODO first date in SHARES table
+										(cachedQuotationData.get((fdIdx = cachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate))).getDate().equals(firstDate) &&  fdIdx >= indexShift) ||
+										(cachedQuotationData.get(fdIdx).getDate().before(firstDate) && fdIdx >= indexShift-1)
+										)
 									&& ( (lastQU = cachedQuotationData.get(cachedQuotationData.size()-1)).getDate().compareTo(lastDate) >= 0 || lastQU.getDate().compareTo(stock.getLastQuote()) == 0 );
-									//&&  ( 
-											//( cachedQuotationData.get(firstDateIdx = cachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate)).getDate().before(firstDate) && firstDateIdx >= indexShift -1 ) ||
-											//( cachedQuotationData.get(firstDateIdx).getDate().equals(firstDate) && firstDateIdx >= indexShift )
-											
-									//	);
 		
 		if (isCached) {
 			return cachedQuotationData;
@@ -158,82 +178,72 @@ public class Quotations {
 		
 	}
 
-	public Boolean hasQuotationsInDateRange(Date start, Date end) {
-		if (hasQuotations()) {
-			Date firstDate = this.getQuotationData().get(this.getFirstDateShiftedIdx()).getDate();
-			if (firstDate.after(start)) { 
-				LOGGER.warn("Not enough quotation from " + firstDate + " to " + start + " for "+ this.stock.toString()+ ". Available loaded quotations start from : "+firstDate);
-				return false;
-			}
-			
-			return true;
-		}
-		
-		LOGGER.warn("No Quotation at all for "+ this.stock.toString());
-		return false;
-	}
-
 	protected QuotationData retreiveQuotationsData(Date firstDate, Integer indexShiftBefore) {
-		
-		SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
 		
 		ArrayList<QuotationUnit> nStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(stock, firstDate, indexShiftBefore, false);
 		ArrayList<QuotationUnit> stripedQuotationsAfter = DataSource.getInstance().loadStripedQuotationsAfter(stock, firstDate);
 		
-		ArrayList<QuotationUnit> stripedQuotations = nStripedQuotationsBefore;
-		stripedQuotations.addAll(stripedQuotationsAfter);
+		Collections.reverse(nStripedQuotationsBefore);
+		nStripedQuotationsBefore.addAll(stripedQuotationsAfter);
 		
-		//Remove splits
-		ArrayList<QuotationUnit> noSplitQuotations = new ArrayList<QuotationUnit>(stripedQuotations);
-		for (int j = 1; j < stripedQuotations.size(); j++) {
-			
-			double span = Math.max(4, QuotationsFactories.getFactory().nbOpenIncrementBetween(stripedQuotations.get(j-1).getDate(), stripedQuotations.get(j).getDate()));
-			double dj = stripedQuotations.get(j).getClose().doubleValue();
-			double djm1 =  stripedQuotations.get(j-1).getClose().doubleValue();
-			double change = (dj - djm1)/djm1;
-			//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
-			if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
-				for (int i = 0; i < j; i++) {
-					QuotationUnit oldValue = noSplitQuotations.get(i);
-					Double factorDouble = Double.valueOf(dj/djm1);
-					BigDecimal factor = new BigDecimal(factorDouble.toString());
-					int scale = oldValue.getOpen().scale();
-					QuotationUnit newValue = 
-							new QuotationUnit(
-									oldValue.getStock(), oldValue.getCurrency(),
-									oldValue.getDate(), 
-									oldValue.getOpen().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getHigh().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
-									oldValue.getLow().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getClose().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
-									oldValue.getVolume(), oldValue.getOrigin());
-					noSplitQuotations.set(i, newValue);
-				}
+		return new QuotationData(nStripedQuotationsBefore);
+	}
+
+	private void solveSplitBetween(QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitOut) {
+		
+		double span = Math.max(4, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
+		double dj = qj.getClose().doubleValue();
+		double djm1 =  qjm1.getClose().doubleValue();
+		double change = (dj - djm1)/djm1;
+		
+		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
+		if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
+			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
+				QuotationUnit oldValue = quotationsUnitOut.get(i);
+				Double factorDouble = Double.valueOf(dj/djm1);
+				BigDecimal factor = new BigDecimal(factorDouble.toString());
+				int scale = oldValue.getOpen().scale();
+				QuotationUnit newValue = 
+						new QuotationUnit(
+								oldValue.getStock(), oldValue.getCurrency(),
+								oldValue.getDate(), 
+								oldValue.getOpen().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getHigh().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
+								oldValue.getLow().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getClose().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
+								oldValue.getVolume(), oldValue.getOrigin());
+				quotationsUnitOut.set(i, newValue);
 			}
 		}
 		
-		quotationUnits.addAll(noSplitQuotations);
-		
-		return new QuotationData(quotationUnits);
 	}
 
 	public Stock getStock() {
 		return stock;
 	}
 
-	public Integer getLastDateIdx() {
-		return lastDateIdx;
-	}
-
 	public Boolean hasQuotations() {
-		if (this.getQuotationData() == null || this.getQuotationData().size() == 0) {
+		QuotationData quotationData = getQuotationData();
+		if (quotationData == null || quotationData.size() == 0) {
 			LOGGER.debug("No Quotations for :" + this.stock + " !! ");
 			return false;
 		}
-		
 		return true;
+	}
+	
+	public Boolean hasQuotationsDownToStartShift() {
+		QuotationData quotationData = getQuotationData();
+		return hasQuotations() && quotationData.getClosestIndexBeforeOrAtDate(0, firstDateRequested) >= (firstIndexShiftRequested-1); 
 	}
 
 	public Integer getFirstDateShiftedIdx() {
-		return firstDateShiftedIdx;
+		return 0;
+	}
+	
+	public Integer getFirstDateIdx() {
+		return firstDatedIndex;
+	}
+
+	public Integer getLastDateIdx() {
+		return lastDateIndex;
 	}
 
 
@@ -256,7 +266,8 @@ public class Quotations {
 
 	public QuotationUnit get(int index) {
 		try {
-			return convertUnit(getQuotationData().get(index));
+			QuotationData quotationData = getQuotationData();
+			return convertUnit(quotationData.get(index));
 		} catch (RuntimeException e) {
 			LOGGER.error("No quotation for "+this.stock+" at index : "+index, e);
 			throw e;
@@ -290,7 +301,6 @@ public class Quotations {
 		
 	}
 
-
 	private boolean notToBeConverted() {
 		MarketValuation marketCurrency = this.stock.getMarketValuation();
 		return (this.targetCurrency.equals(marketCurrency.getCurrency()) && marketCurrency.getCurrencyFactor().compareTo(BigDecimal.ONE) == 0) || 
@@ -300,7 +310,8 @@ public class Quotations {
 	public List<QuotationUnit> getQuotationUnits(Integer startIndex, Integer endIndex) {
 		List<QuotationUnit> ret = new ArrayList<QuotationUnit>();
 		
-		for (QuotationUnit quotationUnit : this.getQuotationData()) {
+		QuotationData quotationData = getQuotationData();
+		for (QuotationUnit quotationUnit : quotationData) {
 			ret.add(convertUnit(quotationUnit));
 		}
 		
@@ -312,10 +323,11 @@ public class Quotations {
 	}
 	
 	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+		QuotationData quotationData = getQuotationData();
 		if (field.equals(QuotationDataType.VOLUME)) {
-			return getQuotationData().getClosestFieldBeforeOrAtDate(date, field);
+			return quotationData.getClosestFieldBeforeOrAtDate(date, field);
 		} else {
-			return convert((BigDecimal) getQuotationData().getClosestFieldBeforeOrAtDate(date, field), date);
+			return convert((BigDecimal) quotationData.getClosestFieldBeforeOrAtDate(date, field), date);
 		}
 	}
 
@@ -329,13 +341,15 @@ public class Quotations {
 
 
 	private double[] convertArray(double[] amountsArray) {
+		
 		if (notToBeConverted()) {
 			return amountsArray;
 		}
 		
 		double[] ret = new double[amountsArray.length];
+		QuotationData quotationData = getQuotationData();
 		for (int i = 0; i < amountsArray.length; i++) {
-			ret[i] = convert(BigDecimal.valueOf(amountsArray[i]), getQuotationData().getDate(i)).doubleValue();
+			ret[i] = convert(BigDecimal.valueOf(amountsArray[i]), quotationData.getDate(i)).doubleValue();
 		}
 		
 		return ret;
@@ -468,8 +482,6 @@ public class Quotations {
 			variance = variance/(period-1); //sample standard deviation is used for the corrected estimator (using N - 1)
 			
 			double stdDev= Math.sqrt(variance);
-			
-			//meanStdVariance = meanStdVariance + (stdDev/mean);
 			meanStdDev = meanStdDev + (stdDev);
 		}
 		
@@ -526,25 +538,123 @@ public class Quotations {
 	}
 
 
-	protected void setQuotationData(QuotationData quotationData) {
-		this.quotationData = quotationData;
+	protected void setUnfilteredQuotationData(QuotationData unfilteredQuotationData) {
+		this.quotationDataFilters = new HashMap<String, QuotationData>();
+		this.quotationDataFilters.put(ValidityFilter.ALL.name(), unfilteredQuotationData);
+		
+		String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
+		quotationDataFilters.put(filterName, buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters));
 	}
 
 
 	protected QuotationData getQuotationData() {
+
+		String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
+		QuotationData quotationData = quotationDataFilters.get(filterName);
+		if (quotationData == null) {
+			quotationData = buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters);
+			quotationDataFilters.put(filterName, quotationData);
+		}
+		
 		return quotationData;
+		
+	}
+
+	private QuotationData buildQuotationDataFilter(Date firstDate, Date lastDate, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
+		
+		ArrayList<ValidityFilter> filters = new ArrayList<Quotations.ValidityFilter>();
+		filters.add(cacheFilter);
+		filters.addAll(Arrays.asList(otherCacheFilters));
+		
+		boolean validClose = filters.contains(ValidityFilter.CLOSE) || filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV) || filters.contains(ValidityFilter.VOLUME);
+		boolean validOhlc = filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV);
+		boolean validVolume = filters.contains(ValidityFilter.VOLUME) || filters.contains(ValidityFilter.OHLCV);
+		boolean splitFree = filters.contains(ValidityFilter.SPLITFREE);
+		
+		QuotationData allQs = quotationDataFilters.get(ValidityFilter.ALL.name());
+		ArrayList<QuotationUnit> quotationsUnitOut = new ArrayList<QuotationUnit>();
+		ArrayList<QuotationUnit> quotationsUnitOutHead = new ArrayList<QuotationUnit>();
+		QuotationUnit qjm1 = null; //allQs.get(0);
+		for (int j = 0; j < allQs.size(); j++) {
+			
+			QuotationUnit qj = allQs.get(j);
+	
+			if ( validClose && qj.getClose().compareTo(BigDecimal.ZERO) == 0 ) {
+				continue;
+			}
+			if ( validOhlc && qj.getHigh().compareTo(qj.getLow()) == 0 && qj.getHigh().compareTo(qj.getClose()) == 0 ) {
+				continue;
+			}
+			if ( validVolume && qj.getVolume() == 0 ) {
+				continue;
+			}
+			
+			if ( qj.getDate().compareTo(firstDate) > 0) {
+				if (quotationsUnitOut.isEmpty()) {
+					quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
+					firstDatedIndex = Math.max(0, quotationsUnitOut.size()-1);
+				}
+				if (qj.getDate().compareTo(lastDate) <= 0) {
+					quotationsUnitOut.add(qj);
+					if (qjm1 != null && splitFree) {
+						solveSplitBetween(qjm1, qj, quotationsUnitOut);
+					}
+				}
+				
+			} else {
+				quotationsUnitOutHead.add(qj);
+			}
+			
+			//qjm1 = quotationsUnitOut.get(quotationsUnitOut.size()-1);
+			qjm1 = qj;
+		}
+		
+		if (quotationsUnitOut.isEmpty() && !quotationsUnitOutHead.isEmpty()) {
+			quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
+			firstDatedIndex = Math.max(0, quotationsUnitOut.size()-1);
+		}
+		
+		lastDateIndex = quotationsUnitOut.size()-1;
+		
+		return new QuotationData(quotationsUnitOut);
+		
+	}
+
+	private String buildFilterNameKey(ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
+		SortedSet<ValidityFilter> filterNameSet = new TreeSet<Quotations.ValidityFilter>();
+		filterNameSet.add(cacheFilter);
+		for (ValidityFilter filter : otherCacheFilters) {
+			if (filter.equals(ValidityFilter.ALL)) throw new NotImplementedException("You must specify a filter.");
+			filterNameSet.add(filter);
+		}
+		String filterName = "";
+		for (ValidityFilter filter : filterNameSet) {
+			filterName = filterName+filter.name();
+		}
+		return filterName;
 	}
 
 	public static void updateCachedStockKey(Stock stock) {
 
-		SoftReference<QuotationData> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
+		SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
 		if (softReference != null) Quotations.QUOTATIONS_CACHE.put(stock, softReference);
 
 	}
 	
-	public static void removeCachedStockKey(Stock stock) {
+	public static Date refreshCaches(Stock stock) {
+		
+		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
+		stock.setLastQuote(lastQuote);
+		DataSource.getInstance().getShareDAO().saveOrUpdateStock(stock);
+		
+		Quotations.removeCachedStockKey(stock);
+		
+		return lastQuote;
+	}
+	
+	private static void removeCachedStockKey(Stock stock) {
 
-		SoftReference<QuotationData> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
+		SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
 		if (softReference != null) {
 			softReference.clear();
 			Quotations.QUOTATIONS_CACHE.remove(stock);
@@ -552,21 +662,24 @@ public class Quotations {
 
 	}
 	
-	public static void putCashedStock(Stock stock, QuotationData quotationData) {
+	private static void putCashedStock(Stock stock, QuotationData quotationData) {
 		
-		SoftReference<QuotationData> oldValue = Quotations.QUOTATIONS_CACHE.put(stock, new SoftReference<QuotationData>(quotationData));
+		Map<String, QuotationData> cachedMap = new HashMap<String, QuotationData>();
+		cachedMap.put(ValidityFilter.ALL.name(), quotationData);
+		SoftReference<Map<String, QuotationData>> oldValue = Quotations.QUOTATIONS_CACHE.put(stock, new SoftReference<Map<String, QuotationData>>(cachedMap));
 		if (oldValue != null) {
 			oldValue.clear();
 		}
+		
 	}
 	
-	public static QuotationData getCashedStock(Stock stock) {
+	protected static QuotationData getCashedStock(Stock stock) {//XXX Should be private
 		
-		SoftReference<QuotationData> softRef = Quotations.QUOTATIONS_CACHE.get(stock);
-		if (softRef==null) {
+		SoftReference<Map<String, QuotationData>> softRef = Quotations.QUOTATIONS_CACHE.get(stock);
+		if (softRef==null || softRef.get() == null) {
 			return null;
 		} else {
-			return softRef.get();
+			return softRef.get().get(ValidityFilter.ALL.name());
 		}
 	}
 
@@ -577,6 +690,10 @@ public class Quotations {
 			UPDATESTAMP_CACHE.put(stock, lastUpdateStamp);
 		}
 		return lastUpdateStamp;
+	}
+
+	public Currency getTargetCurrency() {
+		return targetCurrency;
 	}
 
 }

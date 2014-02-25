@@ -434,7 +434,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 							
 							@Override
 							public void run() {
-								if (isInPanelChartSlider && panelClickPosition != null) {
+								if (isInPanelChartSlider != null && isInPanelChartSlider && panelClickPosition != null) {
 									int indicChartSlideIncrement = (int) ((((double) panelClickPosition.y - e.getPoint().y)/(double) mainChartComposite.getSize().y)*100);
 									chartDisplayStrategy.slideChart(indicChartSlideIncrement);
 								}
@@ -1046,10 +1046,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		
 		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
 		if (viewStateParams != null) {
-			
 			checkChartSelectionValidity();
 			chartDisplayStrategy.highLight(highligtedId, viewStateParams, false);
-			
 		}
 		chartDisplayStrategy.refreshView(exceptions);
 		

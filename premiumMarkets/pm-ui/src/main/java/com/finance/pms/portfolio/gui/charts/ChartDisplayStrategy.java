@@ -174,7 +174,6 @@ public abstract class ChartDisplayStrategy {
 			public void run() {
 				if (popupDialog == null || popupDialog.getParent().isDisposed()) {
 					popupDialog = new ActionDialog(chartTarget.getShell(), "Warning", errorMessage, addMessage, buttonTxt, fAction);
-					//popupDialog.open(true);
 					popupDialog.open();
 				} else {
 					if (!popupDialog.sameDialog(errorMessage, addMessage, buttonTxt)) {

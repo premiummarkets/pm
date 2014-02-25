@@ -35,40 +35,37 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.MFI;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 	
 	private MFI mfi;
-	private Integer mfiQuotationStartDateIdx;
-	
-	public MFIThreshold(Stock stock, MFI mfi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		this.mfi = mfi;
-		
-		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(mfiQuotationStartDateIdx, endDate);
-		isValidData(stock, mfi, startDate, mfiQuotationStartDateIdx, macdQuotationEndDateIdx);
-		
+
+	public MFIThreshold(Integer mfTimePeriod, Integer mfiLowerThreshold, Integer mfiUpperThreshold, Observer[] observers) {
+		super(observers);
+		this.mfi = new MFI(mfTimePeriod, mfiLowerThreshold, mfiUpperThreshold);
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		FormulatRes res = new FormulatRes(EventDefinition.PMMFITHRESHOLD);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+		res.setCurrentDate(qU.getDate());
 		
-		Integer mfiIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx);
+		Integer mfiIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.mfi, quotationIdx);
 		
 		{
 			//BULL : MFI cross below low threshold (over sold)
@@ -91,18 +88,18 @@ public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+	protected  String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects)  {
+		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFITHRESHOLD, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFITHRESHOLD, EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
+		BigDecimal calculatorClose = qU.getClose();
+//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
+//			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
 			+ this.mfi.getLowerThreshold() + ","
 			+ this.mfi.getUpperThreshold() + ","
-			+ this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)];
+			+ this.mfi.getMfi()[getIndicatorIndexFromQuotationIndex(this.mfi, calculatorIndex)];
 		
 		if (bearsihEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
@@ -118,11 +115,11 @@ public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected  double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		
 		return new double[]
 				{
-					this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)],
+					this.mfi.getMfi()[getIndicatorIndexFromQuotationIndex(this.mfi, idx)],
 					this.mfi.getLowerThreshold(),
 					this.mfi.getUpperThreshold()
 				};
@@ -131,7 +128,8 @@ public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI, bearish, bullish";
+//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, LOW TH, UP TH, MFI, bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, LOW TH, UP TH, MFI, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
 	}
@@ -144,5 +142,26 @@ public class MFIThreshold extends TalibIndicatorsCompositionCalculator {
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMMFITHRESHOLD;
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.mfi.calculateIndicator(quotations);
+		
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return this.mfi.getStartShift() + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return mfi.quotationValidity();
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return this.mfi.getOutBegIdx().value + getDaysSpan();
 	}
 }

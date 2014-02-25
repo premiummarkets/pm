@@ -144,7 +144,6 @@ import com.finance.pms.datasources.files.GnuCashTransactionReportParser;
 import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.files.TransactionType;
-import com.finance.pms.datasources.quotation.GetQuotation;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Currency;
@@ -159,6 +158,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.AbstractSharesList;
 import com.finance.pms.portfolio.InOutWeighted;
@@ -411,8 +411,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[4], inDate), 
 										(Long)actForm.values[5], ORIGIN.USER);
 								DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnit(quotationUnit);
-								GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
-								getQuotation.refreshCaches();
+								//GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
+								//getQuotation.refreshCaches();
+								Quotations.refreshCaches(stock);
 								
 								//Ui ...
 								tabUpdateTableItem(table.getSelection()[0], ss);
@@ -1247,14 +1248,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 			List<Portfolio> visiblePortfolios = PortfolioMgr.getInstance().getVisiblePortfolios();
 			for (Portfolio portfolio : visiblePortfolios) {
-				for (final PortfolioShare portfolioShare : portfolio.getListShares().values()) {
+				for (final PortfolioShare pS : portfolio.getListShares().values()) {
 
 					try {
 
 						Runnable loadQRunnable = new Runnable() {
 							public void run() {
 								try {
-									QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), chartsComposite.getSlidingStartDate(), EventSignalConfig.getNewDate(), true,portfolioShare.getTransactionCurrency(), 1, 0);
+									QuotationsFactories.getFactory().getQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), EventSignalConfig.getNewDate(), true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
 								} catch (NoQuotationsException e) {
 									LOGGER.warn(e);
 								}
@@ -1564,7 +1565,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							if (tabIdx != -1) {
 								SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), tabIdx);
 								Stock stock = ss.getStock();
-								if (stock.getSymbol().equals(ProvidersInflation.SYMBOL) && stock.getIsin().equals(ProvidersInflation.SYMBOL)) {
+								if (stock.equals(ProvidersInflation.inflationStock())) {
 									resetQuotesMenuItem.setEnabled(false);
 								} else {
 									resetQuotesMenuItem.setEnabled(true);
@@ -1627,8 +1628,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										}
 										
 										//Caches
-										GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, true);
-										getQuotation.refreshCaches();
+										//GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, true);
+										//getQuotation.refreshCaches();
+										Quotations.refreshCaches(stock);
 										
 										//Ui ...
 										tabUpdateTableItem(table.getSelection()[0], ss);
@@ -1701,8 +1703,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								
 								//Db and caches ...
 								DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnits(quotationUnits);
-								GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
-								getQuotation.refreshCaches();
+								//GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
+								//getQuotation.refreshCaches();
+								Quotations.refreshCaches(stock);
 								
 								//Ui ...
 								tabUpdateTableItem(table.getSelection()[0], ss);
@@ -1753,9 +1756,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								stock.setOverrideUserQuotes(allowOverride.getSelection());
 								
 								//Db
-								GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
 								DataSource.getInstance().getShareDAO().saveOrUpdateStock(stock);
-								getQuotation.refreshCaches();
+								//GetQuotation getQuotation = new GetQuotation(EventSignalConfig.getNewDate(), stock, false);
+								//getQuotation.refreshCaches();
+								Quotations.refreshCaches(stock);
 								//Ui
 								tabUpdateTableItem(table.getSelection()[0], ss);
 								refreshChartData(false, true);
@@ -1833,7 +1837,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						String lastCloseDate = "NA";
 						String origin = selectedShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
 						try {
-							Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(selectedShare.getStock(), EventSignalConfig.getNewDate(), true, selectedShare.getStock().getMarketValuation().getCurrency());
+							Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(selectedShare.getStock(), EventSignalConfig.getNewDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 							if (quotationsInstance.hasQuotations()) {
 								lastClose = quotationsInstance.get(quotationsInstance.size()-1);
 								lastCloseDate = dateFormat.format(selectedShare.getStock().getLastQuote());
@@ -2025,7 +2029,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 			BigDecimal transactionPrice = BigDecimal.ZERO;
 			try {
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency());
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency(), ValidityFilter.CLOSE);
 				transactionPrice = quotationsInstance.getClosestCloseForDate(newDate);
 			} catch (Exception e1) {
 				LOGGER.warn(e1);
@@ -2252,9 +2256,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				if (currentStock == null || !currentStock.equals(te.getStock())) {
 					try {
 						currentStock = te.getStock();
-						Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, currentStock.getMarketValuation().getCurrency());
+						Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 						BigDecimal lastClosePrice = quotations.getClosestCloseForDate(endDate);
-						Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, portfolioCurrency);
+						Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, portfolioCurrency, ValidityFilter.CLOSE);
 						BigDecimal lastConvertedClosePrice = convertedQuotations.getClosestCloseForDate(endDate);
 						BigDecimal LastConvertionRate = currencyConverter.convert(currentStock.getMarketValuation(), portfolioCurrency, BigDecimal.ONE, endDate);
 						messagePortCurrency = messagePortCurrency +"\n"+te.getStock().getFriendlyName()+","+dateFormat.format(endDate)+",,,,,, "+portfolioCurrency+", "+lastConvertedClosePrice;
@@ -2268,9 +2272,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				BigDecimal convertedClosePrice = BigDecimal.ZERO;
 				BigDecimal convertionRate = BigDecimal.ONE;
 				try {
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, currentStock.getMarketValuation().getCurrency());
+					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 					closePrice = quotations.getClosestCloseForDate(te.getDate());
-					Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, portfolioCurrency);
+					Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, portfolioCurrency, ValidityFilter.CLOSE);
 					convertedClosePrice = convertedQuotations.getClosestCloseForDate(te.getDate());
 					convertionRate = currencyConverter.convert(currentStock.getMarketValuation(), portfolioCurrency, BigDecimal.ONE, te.getDate());
 				} catch (Exception e) {

@@ -56,7 +56,13 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
 
-	public static final String SYMBOL = "Inflation";
+	private static Stock inflationStock;
+	public static final Stock inflationStock() {
+		if (inflationStock == null) {
+			inflationStock = DataSource.getInstance().loadStockBySymbol("Inflation");
+		}
+		return inflationStock;
+	}
 
 	public ProvidersInflation(String pathToProps) {
 		super();
@@ -84,7 +90,8 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 		
 		try {
 			
-			if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
+//			if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
+			if (!stock.equals(ProvidersInflation.inflationStock())) {
 				String message = "Error : This should be used to retrieve inflation historical only, not : "+stock.toString();
 				LOGGER.error(message);
 				throw new RuntimeException(message);

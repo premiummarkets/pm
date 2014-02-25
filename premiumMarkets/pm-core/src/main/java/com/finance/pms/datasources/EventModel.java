@@ -226,15 +226,8 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		eventInfoChangeStamp = new Date().getTime();
 		return eventInfoChangeStamp;
 	}
+
 	
-	/**
-	 * Instantiates a new event refresh model.
-	 * 
-	 * @param startAnalyseDate the start analyse date
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param modelStrategyEngine 
-	 */
 	private EventModel(T modelStrategyEngine) {
 		
 		tuningFinalizer = (OTFTuningFinalizer) SpringContext.getSingleton().getBean("tuningFinalizer");
@@ -494,7 +487,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		Boolean needsUpdate = false;
 		for (EventInfo eventInfo : eventInfos) {
 			EventDefCacheEntry cacheEntry = cacheEntry4Stock.get(eventInfo);
-			if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before( cacheEntry.getUpdateStamp().start) || end.after( cacheEntry.getUpdateStamp().end)) {
+			if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before( cacheEntry.getUpdateStamp().start) || end.after(cacheEntry.getUpdateStamp().end)) {
 				LOGGER.info("Events : "+eventInfo.getEventReadableDef()+" needs update : time stamp is "+((cacheEntry == null || cacheEntry.getOutputMap() == null)?"null": cacheEntry.getUpdateStamp().start+ " to "+ cacheEntry.getUpdateStamp().end)+". and requested is "+start + " to "+end);
 				notUpToDateEventInfos.add(eventInfo);
 				needsUpdate = true;

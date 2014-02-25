@@ -32,13 +32,12 @@
 
 package com.finance.pms.events.calculation;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Observer;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
@@ -47,17 +46,12 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	
 	private StochasticOscillator stochOsc;
 	private Integer stochQuotationStartDateIdx;
-
-	public StochasticDivergence(Stock stock, StochasticOscillator stochasticOscillator, HouseAroon aroon, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		this.stochOsc = stochasticOscillator;
-		stochQuotationStartDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer stochQuotationEndDateIdx = stochasticOscillator.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(stochQuotationStartDateIdx, endDate);
-		isValidData(stock, stochasticOscillator, startDate, stochQuotationStartDateIdx, stochQuotationEndDateIdx);
 	
+	public StochasticDivergence(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
+		super(observers);
+		this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 	}
-	
+
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
 		if (indicator instanceof HouseAroon) return this.isInDataRange((HouseAroon)indicator, indicatorIndex);
@@ -88,14 +82,14 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected  double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx)  {
 			
-		int stochIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.stochOsc, calculatorIndex, stochQuotationStartDateIdx);
+		int stochIndex = getIndicatorIndexFromQuotationIndex(this.stochOsc, idx);
 		return new double[]
 				{
 				this.stochOsc.getSlowK()[stochIndex],
-				translateOutputForCharting(this.higherLows.get(calculatorIndex)),
-				translateOutputForCharting(this.lowerHighs.get(calculatorIndex)),
+				translateOutputForCharting(this.higherLows.get(idx)),
+				translateOutputForCharting(this.lowerHighs.get(idx)),
 				this.stochOsc.getSlowD()[stochIndex],
 				this.stochOsc.getLowerThreshold(),
 				this.stochOsc.getUpperThreshold(),

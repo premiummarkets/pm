@@ -51,12 +51,12 @@ import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 
-	QuotationsIntradayNyseEuroNext(Stock stock, Date firstDate, Date lastDate, Currency targetCurrency, Integer firstIndexShift, Integer lastIndexShift) throws NoQuotationsException {
-		super(stock, firstDate, lastDate, targetCurrency, firstIndexShift, lastIndexShift);
+	QuotationsIntradayNyseEuroNext(Stock stock, Date firstDate, Date lastDate, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) throws NoQuotationsException {
+		super(stock, firstDate, lastDate, targetCurrency, firstIndexShift, validityFilter, otherValidityFilters);
 	}
 
-	public QuotationsIntradayNyseEuroNext(Stock stock, QuotationData quotationData, Currency targetCurrency) {
-		super(stock, quotationData, targetCurrency);
+	public QuotationsIntradayNyseEuroNext(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
+		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
 	}
 	
 	@Override

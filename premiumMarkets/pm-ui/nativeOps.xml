@@ -53,7 +53,7 @@
             </operands>
             <availableOutputSelectors/>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="doubleMapOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryProduct">
             <reference>productUnary_</reference>
             <description>Product of a series by a number</description>
             <operands>
@@ -207,7 +207,7 @@
             <operands/>
             <availableOutputSelectors/>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="doubleMapOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unarySum">
             <reference>sumUnary_</reference>
             <description>Summation of a series with a number</description>
             <operands>
@@ -251,7 +251,7 @@
             <operands/>
             <availableOutputSelectors/>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="doubleMapOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryDivision">
             <reference>divisionUnary_</reference>
             <description>Division of a series by a number</description>
             <operands>

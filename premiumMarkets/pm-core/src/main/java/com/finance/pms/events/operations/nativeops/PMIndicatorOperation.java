@@ -39,6 +39,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 @XmlSeeAlso({
@@ -59,16 +60,17 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
 		this(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 	
-	protected DoubleMapValue doubleArrayMapToDoubleMap(TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
+	protected DoubleMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
 		
 		DoubleMapValue dateDoubleMap = new DoubleMapValue();
-		for (int i = talibIndicator.getOutBegIdx().value; i < talibIndicator.getOutBegIdx().value+talibIndicator.getOutNBElement().value; i++) {
-			Date calculatorDate = talibIndicator.getIndicatorQuotationData().get(i).getDate();
-			Double output = outputs[i - talibIndicator.getOutBegIdx().value];
+		for (int i = 0; i < talibIndicator.getOutNBElement().value; i++) {
+			Date calculatorDate = quotations.getDate(i + talibIndicator.getOutBegIdx().value);
+			Double output = outputs[i];
 			dateDoubleMap.getValue(targetStock).put(calculatorDate, output);
 		}
 		
 		return dateDoubleMap;
+		
 	}
 	
 	protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, DoubleMapValue input) {

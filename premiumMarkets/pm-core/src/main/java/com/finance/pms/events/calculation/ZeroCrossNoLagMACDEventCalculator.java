@@ -35,42 +35,40 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.houseIndicators.ZeroLagMACD;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.MACD;
 import com.finance.pms.talib.indicators.SMA;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositionCalculator {
 	
 	private ZeroLagMACD macd;
-	private Integer macdQuotationStartDateIdx;
-	
-	public ZeroCrossNoLagMACDEventCalculator(Stock stock, ZeroLagMACD macd, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		this.macd = macd;
-		macdQuotationStartDateIdx = macd.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer macdQuotationEndDateIdx = macd.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(macdQuotationStartDateIdx, endDate);
-		isValidData(stock, macd, startDate, macdQuotationStartDateIdx, macdQuotationEndDateIdx);
+
+	public ZeroCrossNoLagMACDEventCalculator(Integer fastPeriod, Integer slowPeriod, Integer signalPeriod, Observer... observers) {
+		super(observers);
+		this.macd = new ZeroLagMACD(fastPeriod, slowPeriod, signalPeriod);
 	}
 	
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
 		FormulatRes res = new FormulatRes(EventDefinition.PMMACDZEROCROSS);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+		res.setCurrentDate(qU.getDate());
 		
-		Integer macdIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx);
+		Integer macdIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.macd, quotationIdx);
 		
 		{
 			//BULL : MACD above its signal line over 2 days cross over 0
@@ -90,7 +88,8 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositio
 		return res;
 		
 	}
-	
+
+
 	@Override
 	public Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
 		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, indicatorIndex);
@@ -108,23 +107,24 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositio
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MACD DATE, MACD QUOTE, MACD, SIGNAL,bearish, bullish";
+//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MACD DATE, MACD QUOTE, MACD, SIGNAL,bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MACD, SIGNAL,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDZEROCROSS, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDZEROCROSS, EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,macdQuotationStartDateIdx);
+		BigDecimal calculatorClose = qU.getClose();
+//		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,macdQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
-			+ this.macd.getMacd()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100+"," 
-			+ this.macd.getSignal()[getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx)]*100;
+//			+ this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.macd.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
+			+ this.macd.getMacd()[getIndicatorIndexFromQuotationIndex(this.macd, calculatorIndex)]*100+"," 
+			+ this.macd.getSignal()[getIndicatorIndexFromQuotationIndex(this.macd, calculatorIndex)]*100;
 		
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
@@ -140,9 +140,9 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositio
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 			
-		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.macd, calculatorIndex, macdQuotationStartDateIdx);
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.macd, idx);
 		return new double[]
 				{
 				this.macd.getMacd()[indicatorIndexFromCalculatorQuotationIndex],
@@ -158,6 +158,27 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositio
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMMACDZEROCROSS;
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.macd.calculateIndicator(quotations);
+		
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return this.macd.getStartShift() + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return this.macd.getOutBegIdx().value + getDaysSpan();
 	}
 	
 	

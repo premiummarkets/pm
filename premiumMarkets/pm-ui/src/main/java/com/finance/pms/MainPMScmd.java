@@ -46,18 +46,12 @@ import org.apache.log4j.Logger;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockCategories;
-import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
-import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.ProvidersInflation;
-import com.finance.pms.events.calculation.DateFactory;
 
 
 // TODO: Auto-generated Javadoc
@@ -188,10 +182,11 @@ public class MainPMScmd {
 				dbHi.getQuotesForSharesListInDB(sharesListName, indices);
 			}
 			if (getInflationData) {
-				Stock inflationStock = new Stock(
-						ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
-						true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
-						new SymbolMarketQuotationProvider(),new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
+//				Stock inflationStock = new Stock(
+//						ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
+//						true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
+//						new SymbolMarketQuotationProvider(),new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
+				Stock inflationStock = ProvidersInflation.inflationStock();
 				DataSource.getInstance().getShareDAO().saveOrUpdateStock(inflationStock);
 				Providers.getInstance("inflation").getQuotes(inflationStock, null, null);
 			}
@@ -231,10 +226,6 @@ public class MainPMScmd {
 		SpringContext.getSingleton().close();
 	}
 
-	/**
-	 * @param args
-	 * @param runningStartDate 
-	 */
 	public static void commandParamsPrinter(String[] args, @SuppressWarnings("rawtypes") Class mainClazz, Date runningStartDate) {
 		StringBuffer str = new StringBuffer("Your command : java -jar com.finance.pm.jar "+mainClazz.getName()+" ");
 		for (int i = 0; i < args.length; i++) {

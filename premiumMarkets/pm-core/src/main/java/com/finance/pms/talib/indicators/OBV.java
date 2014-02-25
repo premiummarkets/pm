@@ -30,11 +30,10 @@
 package com.finance.pms.talib.indicators;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
 public class OBV extends TalibIndicator {
@@ -42,8 +41,8 @@ public class OBV extends TalibIndicator {
 	
 	private double[] obv;
 
-	public OBV(Stock stock, Date startDate, Date endDate, Currency transactionCurrency) throws TalibException, NoQuotationsException {
-		super(stock, startDate, 150, endDate, 0, transactionCurrency);
+	public OBV() {
+		super();
 	}
 
 	@Override
@@ -53,13 +52,8 @@ public class OBV extends TalibIndicator {
 	}
 
 	@Override
-	protected String getLine(int indicator, int quotation) {
-		String line =
-				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
-						this.getIndicatorQuotationData().get(quotation).getDate()) + "," +
-						this.getIndicatorQuotationData().get(quotation).getClose() + "," +
-						this.getIndicatorQuotationData().get(quotation).getVolume()+ "," +
-						obv[indicator] + "\n";
+	protected String getLine(Integer indicatorIdx, QuotationUnit qU) {
+		String line = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(qU.getDate()) + "," + qU.getClose() + "," + qU.getVolume() + "," + obv[indicatorIdx] + "\n";
 		return line;
 	}
 
@@ -75,9 +69,9 @@ public class OBV extends TalibIndicator {
 	}
 
 	@Override
-	protected double[][] getInputData()  {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
-		double[] volumes = this.getIndicatorQuotationData().getVolumes();
+	protected double[][] getInputData(Quotations quotations)  {
+		double[] closeValues = quotations.getCloseValues();
+		double[] volumes = quotations.getVolumes();
 		double[][] ret = new double[2][Math.max(closeValues.length,volumes.length)];
 		ret[0]= closeValues;
 		ret[1]= volumes;
@@ -92,5 +86,15 @@ public class OBV extends TalibIndicator {
 	@Override
 	public double[] getOutputData() {
 		return obv;
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return 150;
+	}
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.OHLCV;
 	}
 }

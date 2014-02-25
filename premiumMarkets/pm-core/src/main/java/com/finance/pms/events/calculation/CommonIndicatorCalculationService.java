@@ -66,7 +66,6 @@ import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ObserverMsg;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class TalibIndicatorCalculationService.
  * 
@@ -82,13 +81,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	/**
 	 * Instantiates a new talib indicator calculation service.
 	 * Initialized in spring context
-	 * 
-	 * @param jmsTemplate the jms template
-	 * @param eventQueue the event queue
-	 * 
-	 * @author Guillaume Thoreton
 	 */
-	//Initialised in spring context
 	public CommonIndicatorCalculationService(Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators, JmsTemplate jmsTemplate, Queue eventQueue) {
 		this.eventQueue = eventQueue;
 		this.jmsTemplate = jmsTemplate;
@@ -242,7 +235,8 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					LOGGER.warn(e1,e1);
 					failingStocks.addAll(((IncompleteDataSetException) e1.getCause()).getFailingStocks());
 					allEvents.addAll(((IncompleteDataSetException) e1.getCause()).getSymbolEvents());
-					calculatedOutputReturn.putAll(((IncompleteDataSetException) e1.getCause()).getCalculatedOutput());
+					Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput = ((IncompleteDataSetException) e1.getCause()).getCalculatedOutput();
+					calculatedOutputReturn.putAll(calculatedOutput);
 				} else {
 					LOGGER.error(e1,e1);
 				}

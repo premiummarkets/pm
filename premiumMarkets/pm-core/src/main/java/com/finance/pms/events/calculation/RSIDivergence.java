@@ -29,12 +29,11 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Observer;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.RSI;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibIndicator;
@@ -44,16 +43,11 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	RSI rsi;
 	private Integer rsiQuotationStartDateIdx;
 	
-	public RSIDivergence(Stock stock, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-
-		this.rsi = rsi;
-		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(rsiQuotationStartDateIdx, endDate);
-		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
-		
+	public RSIDivergence(Integer rsiTimePeriod, Integer rsiUpperThreshold, Integer rsiLowerThreshold, Observer... observers) {
+		super(observers);
+		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
 	}
-	
+
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
 		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, index);
 		if (indicator instanceof RSI) return this.isInDataRange((RSI)indicator, index);
@@ -75,19 +69,20 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
+//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
 	}
 
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 			
 		return new double[]
 				{
-				this.rsi.getRsi()[getIndicatorIndexFromCalculatorQuotationIndex(this.rsi, calculatorIndex, rsiQuotationStartDateIdx)],
-				translateOutputForCharting(this.higherLows.get(calculatorIndex)),
-				translateOutputForCharting(this.lowerHighs.get(calculatorIndex)),
+				this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
+				translateOutputForCharting(this.higherLows.get(idx)),
+				translateOutputForCharting(this.lowerHighs.get(idx)),
 				this.rsi.getLowerThreshold(),
 				this.rsi.getUpperThreshold(),
 				};
@@ -130,4 +125,5 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	protected Double getAlphaBalance() {
 		return (double) (getDaysSpan()/4);
 	}
+
 }

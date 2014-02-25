@@ -44,6 +44,8 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.indicators.TalibException;
 
 @XmlRootElement
@@ -72,9 +74,15 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), fastPeriod, slowPeriod);
+//			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), fastPeriod, slowPeriod);
+			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(fastPeriod, slowPeriod);
 			
-			SortedMap<EventKey, EventValue> eventsFor = mChaikin.calculateEventsFor("inMem"+this.getClass().getSimpleName()+"Operation ");
+			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(
+					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					true, targetStock.getStock().getMarketValuation().getCurrency(),
+					mChaikin.getStartShift(), mChaikin.quotationsValidity());
+			
+			SortedMap<EventKey, EventValue> eventsFor = mChaikin.calculateEventsFor(quotationsInstance, "inMem"+this.getClass().getSimpleName()+"Operation ");
 			
 			DoubleMapValue buySellEvents = new DoubleMapValue();
 			for (EventKey eventKey : eventsFor.keySet()) {

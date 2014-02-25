@@ -30,23 +30,20 @@
 package com.finance.pms.talib.indicators;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class MACD.
  * 
  * @author Guillaume Thoreton
  */
 public class MACD extends TalibIndicator {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(MACD.class);
 	
 	public Integer fastPeriod;
@@ -58,27 +55,13 @@ public class MACD extends TalibIndicator {
 	private double[] signal;
 	private double[] history;
 
-	/**
-	 * Instantiates a new mACD.
-	 * 
-	 * @param stock the stock
-	 * @param firstDate the first date
-	 * @param lastDate the last date
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param transactionCurrency 
-	 * @param endDate2 
-	 * @param endDate 
-	 * @throws TalibException 
-	 * @throws NoQuotationsException 
-	 */
-	public MACD(Stock stock, Integer fastPeriod, Integer slowPeriod, Integer signalPeriod, Date startDate, Date endDate, Currency transactionCurrency) throws TalibException, NoQuotationsException {
-		super(stock,startDate, Math.max(slowPeriod, fastPeriod) + signalPeriod +1, endDate, 0, transactionCurrency, fastPeriod, slowPeriod, signalPeriod);
-		
+	public MACD(Integer fastPeriod, Integer slowPeriod, Integer signalPeriod) {
+		super(fastPeriod, slowPeriod, signalPeriod);
 		this.fastPeriod = fastPeriod;
 		this.signalPeriod = signalPeriod;
 		this.slowPeriod = slowPeriod;
 	}
+
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number...indicatorParams) {
@@ -94,25 +77,16 @@ public class MACD extends TalibIndicator {
 		history = new double[length];
 	}
 
-
-	/**
-	 * @param df
-	 * @param i
-	 * @return
-	 */
 	@Override
-	protected String getLine(int indicator, int quotation) {
+	protected String getLine(Integer indicator, QuotationUnit qU) {
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
-					this.getIndicatorQuotationData().get(quotation).getDate()) + "," +
-					this.getIndicatorQuotationData().get(quotation).getClose() + "," +
+					qU.getDate()) + "," +
+					qU.getClose() + "," +
 					macd[indicator] + "," + signal[indicator]  + "," + history[indicator]  + "\n";
 		return line;
 	}
 
-	/**
-	 * @return
-	 */
 	@Override
 	protected String getHeader() {
 		String header = "DATE,QUOTE,MACD,SIGNAL,HISTORY\n";
@@ -132,8 +106,8 @@ public class MACD extends TalibIndicator {
 	}
 
 	@Override
-	protected double[][] getInputData() {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
+	protected double[][] getInputData(Quotations quotations) {
+		double[] closeValues = quotations.getCloseValues();
 		double[][] ret = new double[1][closeValues.length];
 		ret[0]= closeValues;
 		return 	ret;
@@ -142,6 +116,18 @@ public class MACD extends TalibIndicator {
 	@Override
 	public double[] getOutputData() {
 		return macd;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return Math.max(slowPeriod, fastPeriod) + signalPeriod +1;
+	}
+
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.CLOSE;
 	}
 
 }

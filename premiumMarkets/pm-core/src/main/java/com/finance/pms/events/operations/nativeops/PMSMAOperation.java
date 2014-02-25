@@ -38,6 +38,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.indicators.SMA;
 
 @XmlRootElement
@@ -64,8 +66,16 @@ public class PMSMAOperation extends PMDataFreeOperation {
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-			SMA sma = new SMA(targetStock.getStock(), period, targetStock.getStartDate(), targetStock.getEndDate(), null);
-			return doubleArrayMapToDoubleMap(targetStock, sma, sma.getOutputData());
+//			SMA sma = new SMA(targetStock.getStock(), period, targetStock.getStartDate(), targetStock.getEndDate(), null);
+			SMA sma = new SMA(period);
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					true, targetStock.getStock().getMarketValuation().getCurrency(), 
+					sma.getStartShift(), sma.quotationValidity());
+			sma.calculateIndicator(quotations);
+			
+			
+			return doubleArrayMapToDoubleMap(quotations, targetStock, sma, sma.getOutputData());
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);

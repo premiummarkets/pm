@@ -101,7 +101,6 @@ import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
 import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.datasources.TaskId;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
@@ -581,7 +580,8 @@ public class MainGui extends SashForm implements RefreshableView {
 									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 									
 									fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
+									//Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
+									Stock inflationStock = ProvidersInflation.inflationStock();
 									fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
 									
 									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);

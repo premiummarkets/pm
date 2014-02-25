@@ -41,6 +41,8 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.indicators.TalibException;
 
 @XmlRootElement
@@ -67,16 +69,23 @@ public class PMAroonOperation extends PMDataFreeOperation {
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-			HouseAroon arron = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
+			
+			//HouseAroon arron = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
+			HouseAroon arron = new HouseAroon(period);
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					true, targetStock.getStock().getMarketValuation().getCurrency(), 
+					arron.getStartShift(), arron.quotationValidity());
+			arron.calculateIndicator(quotations);
 			
 			if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("down")) {
-				return doubleArrayMapToDoubleMap(targetStock, arron, arron.getOutAroonDown());
+				return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonDown());
 			}
 			else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("up")) {
-				return doubleArrayMapToDoubleMap(targetStock, arron, arron.getOutAroonUp());
+				return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonUp());
 			} else {
 				//error
-				return doubleArrayMapToDoubleMap(targetStock, arron, arron.getOutputData());
+				return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutputData());
 			}
 			
 		} catch (NoQuotationsException e) {

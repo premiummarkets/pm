@@ -33,29 +33,27 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
-import com.finance.pms.threads.ConfigThreadLocal;
 
 public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 	
@@ -70,35 +68,15 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 	private String analysisName;
 	
 	private SMA sma;
-	private Integer smaQuotationStartDateIdx;
 
-	public VarianceCalculator(Stock stock, Integer timePeriod, Integer devSpanDiff, Integer minValid, Date startDate, Date endDate, Currency transactionCurrency, String analysisName) 
-																																										throws NotEnoughDataException {
-		super(stock, startDate, endDate, transactionCurrency,  timePeriod);
-		this.analysisName = analysisName;
+	public VarianceCalculator(Integer timePeriod, Integer devSpanDiff, Integer minValid, Integer smaPeriod, String eventListName, Observer... observers) {
+		super(observers);
+		this.analysisName = eventListName;
 		this.timePeriod = timePeriod;
 		this.devSpanDiff = devSpanDiff;
 		this.minValid = minValid;
-		
-		try {
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(startDate);
-			//calendar.add(Calendar.DAY_OF_YEAR, - timePeriod);
-			QuotationsFactories.getFactory().incrementDate(calendar, -timePeriod);
-			Integer smaPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVarianceSmaPeriod();
-			this.sma = new SMA(stock, smaPeriod, startDate, endDate, transactionCurrency);
-		} catch (TalibException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-		
+		this.sma = new SMA(smaPeriod);
 		initExport();
-		
 	}
 
 	private void initExport() {
@@ -138,13 +116,6 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 		}
 	}
 
-	/**
-	 * @param variations
-	 * @param startAvgIdx
-	 * @param calculationEndIdx
-	 * @param meanPreviousVariation
-	 * @return
-	 */
 	double stdDev(double[] variations, int startAvgIdx, Integer calculationEndIdx, double meanPreviousVariation) {
 		double variance = 0;
 		for (int i = startAvgIdx; i < calculationEndIdx ; i++) {
@@ -157,13 +128,6 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 		return stdDev;
 	}
 
-	/**
-	 * @param startAvgIdx
-	 * @param calculationEndIdx
-	 * @param variations
-	 * @param avgPreviousVariation
-	 * @return
-	 */
 	double mean(Integer startAvgIdx, Integer calculationEndIdx, double[] variations) {
 		double avgPreviousVariation = 0;
 		for (int i = startAvgIdx; i < calculationEndIdx ; i++) {
@@ -173,11 +137,6 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 		return avgPreviousVariation;
 	}
 
-	/**
-	 * @param quotationCloseValues
-	 * @param iStart
-	 * @return
-	 */
 	private double periodVariation(double[] quotationCloseValues, int iStart, int iEnd) {
 		double closeAtI = quotationCloseValues[iEnd];
 		double closeAtIPeriodStart = quotationCloseValues[iStart];
@@ -185,12 +144,12 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calcQuotationIdx) {
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		FormulatRes res = new FormulatRes(EventDefinition.VARIANCE);
-		Date date = this.getCalculatorQuotationData().getDate(calcQuotationIdx);
+		Date date = qU.getDate();
 		res.setCurrentDate(date);
 		
-		Integer smaIndQuoteIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calcQuotationIdx, smaQuotationStartDateIdx);
+		Integer smaIndQuoteIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 		double[] smaData = this.sma.getSma();
 
 		double lastVariation = periodVariation(smaData, smaIndQuoteIndex - devSpanDiff, smaIndQuoteIndex);
@@ -233,7 +192,7 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 			LOGGER.warn("Variance can't be calculated for "+stock.getSymbol()+" at "+date);
 		}
 		
-		exportLineToFile(date, this.getCalculatorQuotationData().get(calcQuotationIdx).getClose(), smaData[smaIndQuoteIndex], resType);
+		exportLineToFile(date, qU.getClose(), smaData[smaIndQuoteIndex], resType);
 
 		return res;
 	}
@@ -255,20 +214,42 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.VARIANCE;
 	}
 
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.sma.calculateIndicator(quotations);
+		
+	}
+
+	@Override
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return Math.max(timePeriod, this.sma.getStartShift()) + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return this.sma.getOutBegIdx().value + getDaysSpan();
 	}
 
 

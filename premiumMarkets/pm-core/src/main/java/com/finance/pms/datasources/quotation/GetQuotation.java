@@ -211,19 +211,6 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		
 	}
 	
-	
-	public Date refreshCaches() {
-		
-		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-		
-		stock.setLastQuote(lastQuote);
-		updateLastQuoteDateForShareInDB(lastQuote);
-		
-		Quotations.removeCachedStockKey(stock);
-		
-		return lastQuote;
-	}
-	
 	public class GetQuotationResult {
 
 		Stock stock;

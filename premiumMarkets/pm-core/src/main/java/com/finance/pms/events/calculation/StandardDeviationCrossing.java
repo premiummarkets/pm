@@ -35,76 +35,53 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.admin.config.IndicatorsConfig;
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.StandardDeviation;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
-import com.finance.pms.threads.ConfigThreadLocal;
 
 public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalculator {
 	
 	private StandardDeviation standardDeviation;
-	private int stddevQuotationStartDateIdx;
-	
 	private SMA sma;
-	private Integer smaQuotationStartDateIdx;
 
-	public StandardDeviationCrossing(Stock stock, StandardDeviation standardDeviation, Date startDate, Date endDate, Currency calculationCurrency, String analysisName) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		this.standardDeviation = standardDeviation;
-		
-		try {
-			Integer smaPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getStdDevSmaPeriod();
-			this.sma = new SMA(stock, smaPeriod, startDate, endDate, calculationCurrency);
-		} catch (TalibException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-		
-		stddevQuotationStartDateIdx = standardDeviation.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer stddevQuotationEndDateIdx = standardDeviation.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(stddevQuotationStartDateIdx, endDate);
-		isValidData(stock, standardDeviation, startDate, stddevQuotationStartDateIdx, stddevQuotationEndDateIdx);
-		
+	public StandardDeviationCrossing(Observer[] observers) {
+		super(observers);
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calcQuotationIdx) throws InvalidAlgorithmParameterException {
+	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
 		FormulatRes res = new FormulatRes(EventDefinition.STDDEV);
-		Date date = this.getCalculatorQuotationData().getDate(calcQuotationIdx);
+		Date date = qU.getDate();
 		res.setCurrentDate(date);
 		
-		Integer smaIndicatorIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calcQuotationIdx, smaQuotationStartDateIdx);
-		Integer stddevIndQuoteIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.standardDeviation, calcQuotationIdx, stddevQuotationStartDateIdx);
+		Integer smaIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
+		Integer stddevIndQuoteIndex = getIndicatorIndexFromQuotationIndex(this.standardDeviation, quotationIdx);
 		
 		double periodMean = 0;
-		for (int i = calcQuotationIdx - standardDeviation.getPeriod(); i < calcQuotationIdx ; i++) {
-			periodMean = periodMean + this.getCalculatorQuotationData().get(i).getClose().doubleValue();
+		for (int i = quotationIdx - standardDeviation.getPeriod(); i < quotationIdx ; i++) {
+			periodMean = periodMean + qU.getClose().doubleValue();
 		}
 		periodMean = periodMean / standardDeviation.getPeriod();
 		
-		double currentQuote = this.getCalculatorQuotationData().get(calcQuotationIdx).getClose().doubleValue();
+		double currentQuote = qU.getClose().doubleValue();
 		double currentDev = currentQuote - periodMean;
 		
 		//EventType resType = EventType.NONE;
 		if (Math.abs(currentDev) > this.standardDeviation.getStdDev()[stddevIndQuoteIndex]) {
-			boolean isPriceAboveSMA = this.getCalculatorQuotationData().get(calcQuotationIdx).getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
+			boolean isPriceAboveSMA = qU.getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			if (currentDev < 0 && !isPriceAboveSMA) {
 				res.setBearishCrossBellow(true);
 				//resType = EventType.BEARISH;
@@ -141,23 +118,24 @@ public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalcula
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		return "CALCULATOR DATE; CALCULATOR QUOTE; STDDEV DATE; STDDEV QUOTE; STDEV; SMA DATE; SMA QUOTE; SMA; bearish; bullish\n";
+//		return "CALCULATOR DATE; CALCULATOR QUOTE; STDDEV DATE; STDDEV QUOTE; STDEV; SMA DATE; SMA QUOTE; SMA; bearish; bullish\n";
+		return "CALCULATOR DATE, CALCULATOR QUOTE, STDEV, SMA, bearish, bullish\n";
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
-		int stddevQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,stddevQuotationStartDateIdx);
+		BigDecimal calculatorClose = qU.getClose();
+//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
+//		int stddevQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,stddevQuotationStartDateIdx);
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + ";" +calculatorClose + ";" 
-			+ this.standardDeviation.getIndicatorQuotationData().get(stddevQuotationIndex).getDate() + ";" +this.standardDeviation.getIndicatorQuotationData().get(stddevQuotationIndex).getClose() + ";" 
-			+ this.standardDeviation.getStdDev()[getIndicatorIndexFromCalculatorQuotationIndex(this.standardDeviation, calculatorIndex, stddevQuotationStartDateIdx)]  + ";" 
-			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + ";" +this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + ";" 
-			+ this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)];
+			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + ","+calculatorClose + ","
+//			+ this.standardDeviation.getIndicatorQuotationData().get(stddevQuotationIndex).getDate() + ","+this.standardDeviation.getIndicatorQuotationData().get(stddevQuotationIndex).getClose() + ","
+			+ this.standardDeviation.getStdDev()[getIndicatorIndexFromQuotationIndex(this.standardDeviation, calculatorIndex)]  + ","
+//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + ","+this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + ","
+			+ this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, calculatorIndex)];
 		
 		if (bearsihEventValue != null) {
 			line = line + ";"+calculatorClose+";0;\n";
@@ -170,12 +148,12 @@ public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalcula
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected  double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 			
 		return new double[]
 				{
-					this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
-					this.standardDeviation.getStdDev()[getIndicatorIndexFromCalculatorQuotationIndex(this.standardDeviation, calculatorIndex, stddevQuotationStartDateIdx)],
+					this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, idx)],
+					this.standardDeviation.getStdDev()[getIndicatorIndexFromQuotationIndex(this.standardDeviation, idx)],
 					
 				};
 	}
@@ -183,5 +161,27 @@ public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalcula
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.STDDEV;
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.sma.calculateIndicator(quotations);
+		this.standardDeviation.calculateIndicator(quotations);
+		
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return Math.max(this.sma.getStartShift(), this.standardDeviation.getStartShift()) + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return Math.max(this.sma.getOutBegIdx().value, this.standardDeviation.getOutBegIdx().value) + getDaysSpan();
 	}
 }

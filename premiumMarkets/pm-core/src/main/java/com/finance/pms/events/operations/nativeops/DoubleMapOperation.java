@@ -34,8 +34,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -66,7 +64,8 @@ public class DoubleMapOperation extends Operation {
 
 	@Override
 	public int operationStartDateShift() {
-		throw new NotImplementedException();
+		//throw new NotImplementedException();
+		return 0;
 	}
 
 }

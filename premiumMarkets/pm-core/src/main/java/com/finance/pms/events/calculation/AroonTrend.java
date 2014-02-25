@@ -35,21 +35,20 @@ package com.finance.pms.events.calculation;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
-import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.SMA;
@@ -65,37 +64,18 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 	int middleThreshold = 50;
 
 	private HouseAroon aroon;
-	private Integer aroonQuotationStartDateIdx;
-	
-	public AroonTrend(Stock stock, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		try {
-			
-			int aroonPeriod = getDaysSpan();
-			this.aroon =  new HouseAroon(stock, startDate, endDate, calculationCurrency, aroonPeriod);
-			
-		} catch (TalibException e) {
-			Calendar startDateCal = Calendar.getInstance();
-			startDateCal.setTime(startDate);
-			QuotationsFactories.getFactory().incrementDate(startDateCal, getDaysSpan()*2);
-			throw new NotEnoughDataException(stock, startDateCal.getTime(), endDate, e.getMessage(),e);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		
-		aroonQuotationStartDateIdx = aroon.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer aroonQuotationEndDateIdx = aroon.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(aroonQuotationStartDateIdx, endDate);
-		isValidData(stock, aroon, startDate, aroonQuotationStartDateIdx, aroonQuotationEndDateIdx);
-		
+
+	public AroonTrend(Observer...observers) {
+		this.aroon = new HouseAroon(getDaysSpan());
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
-		FormulatRes res = new FormulatRes(EventDefinition.PMAROONTREND);
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
-		int aroonIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.aroon, calculatorIndex, aroonQuotationStartDateIdx);
+		FormulatRes res = new FormulatRes(EventDefinition.PMAROONTREND);
+		res.setCurrentDate(qU.getDate());
+		
+		int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, quotationIdx);
 		
 		{
 			Boolean wasAroonUpCrossingAboveAroonDown = 
@@ -149,19 +129,19 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 	}
 	
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
 		
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
+		BigDecimal calculatorClose = qU.getClose();
 		
-		int aroonIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.aroon, calculatorIndex, aroonQuotationStartDateIdx);
-		int aroonQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, aroonQuotationStartDateIdx);
+		int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, calculatorIndex);
+//		int aroonQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, aroonQuotationStartDateIdx);
 		
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
-			+ this.aroon.getIndicatorQuotationData().get(aroonQuotationIndex).getDate() + "," 
+//			+ this.aroon.getIndicatorQuotationData().get(aroonQuotationIndex).getDate() + "," 
 			+ this.aroon.getOutAroonUp()[aroonIndex] + "," + this.aroon.getOutAroonDown()[aroonIndex];
 		
 		if (bearishEventValue != null) {
@@ -178,14 +158,14 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		
-		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.aroon, calculatorIndex, aroonQuotationStartDateIdx);
+		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.aroon, idx);
 		return new double[]
 				{
-				this.aroon.getOutAroonDown()[indicatorIndexFromCalculatorQuotationIndex],
-				this.aroon.getOutAroonUp()[indicatorIndexFromCalculatorQuotationIndex],
-				middleThreshold, lowerThreshold, upperThreshold
+					this.aroon.getOutAroonDown()[indicatorIndexFromCalculatorQuotationIndex],
+					this.aroon.getOutAroonUp()[indicatorIndexFromCalculatorQuotationIndex],
+					middleThreshold, lowerThreshold, upperThreshold
 				};
 	}
 	
@@ -198,6 +178,27 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMAROONTREND;
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.aroon.calculateIndicator(quotations);
+		
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return aroon.getStartShift() + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return aroon.quotationValidity();
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return aroon.getOutBegIdx().value + getDaysSpan();
 	}
 
 }

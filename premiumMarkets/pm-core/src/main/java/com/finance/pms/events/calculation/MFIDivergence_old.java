@@ -39,14 +39,13 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.MFI;
@@ -57,51 +56,27 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	
 	MFI mfi;
-	private Integer mfiQuotationStartDateIdx;
-	
 	SMA sma;
-	private Integer smaQuotationStartDateIdx;
+
+	private Quotations quotationCopy;
 	
-	public MFIDivergence_old(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
-//		mfiTimePeriod = 14;
-//		mfiLowerThres = 20;
-//		mfiUpperThres = 80;
-		this(stock,new MFI(stock, 14, 20, 80, startDate, endDate, calculationCurrency), startDate,endDate,calculationCurrency);
-	}
-	
-	public MFIDivergence_old(Stock stock, MFI mfi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-		super(stock, startDate, endDate, calculationCurrency);
-		
-		this.mfi = mfi;
-		mfiQuotationStartDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer macdQuotationEndDateIdx = mfi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(mfiQuotationStartDateIdx, endDate);
-		isValidData(stock, mfi, startDate, mfiQuotationStartDateIdx, macdQuotationEndDateIdx);
-		
-		try {
-			this.sma = new SMA(stock,12, startDate, endDate, calculationCurrency, Math.max(20, getDaysSpan()), 0);
-		} catch (TalibException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		} catch (NoQuotationsException e) {
-			throw new NotEnoughDataException(stock, e.getMessage(),e);
-		}
-		
-		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
-		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-	
+	public MFIDivergence_old(Integer mfiTimePeriod, Integer mfiLowerThres, Integer mfiUpperThres, Observer... observers) {
+		super(observers);
+		this.mfi = new MFI(mfiTimePeriod, mfiLowerThres, mfiUpperThres);
+		this.sma = new SMA(12);
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(Integer calculatorIndex) throws InvalidAlgorithmParameterException {
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
 		FormulatRes res = new FormulatRes(getEventDefinition());
-		res.setCurrentDate(this.getCalculatorQuotationData().getDate(calculatorIndex));
+		res.setCurrentDate(qU.getDate());
 		
-		int mfiIdx = getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx);
+		int mfiIdx = getIndicatorIndexFromQuotationIndex(this.mfi, quotationIdx);
 		double[] mfiLookBackP = Arrays.copyOfRange(this.mfi.getMfi(), mfiIdx - getDaysSpan(), mfiIdx);
-		double[] quotationLookBackP = Arrays.copyOfRange(this.getCalculatorQuotationData().getCloseValues(), calculatorIndex - getDaysSpan(), calculatorIndex);
+		double[] quotationLookBackP = Arrays.copyOfRange(quotationCopy.getCloseValues(), quotationIdx - getDaysSpan(), quotationIdx);
 		
-		int smaIndex = getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx);
+		int smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
 		
 		double[] lowThreshLookBackP = new double[getDaysSpan()];
@@ -147,18 +122,18 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, List<SortedMap<Date, double[]>> linearsExpects) {
-		Date calculatorDate = this.getCalculatorQuotationData().get(calculatorIndex).getDate();
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects){
+		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
-		BigDecimal calculatorClose = this.getCalculatorQuotationData().get(calculatorIndex).getClose();
-		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
+		BigDecimal calculatorClose = qU.getClose();
+//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
+//			+ this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," +this.mfi.getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," 
 			+ this.mfi.getLowerThreshold() + ","
 			+ this.mfi.getUpperThreshold() + ","
-			+ this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)];
+			+ this.mfi.getMfi()[getIndicatorIndexFromQuotationIndex(this.mfi, calculatorIndex)];
 		
 		if (bearsihEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
@@ -174,11 +149,11 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	}
 	
 	@Override
-	protected double[] buildOneOutput(int calculatorIndex) {
+	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx)  {
 		
 		return new double[]
 				{
-					this.mfi.getMfi()[getIndicatorIndexFromCalculatorQuotationIndex(this.mfi, calculatorIndex, mfiQuotationStartDateIdx)],
+					this.mfi.getMfi()[getIndicatorIndexFromQuotationIndex(this.mfi, idx)],
 					//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)],
 					this.mfi.getLowerThreshold(),
 					this.mfi.getUpperThreshold()
@@ -202,5 +177,26 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMMFIDIVERGENCEOLD;
+	}
+
+	@Override
+	protected void initIndicators(Quotations quotations) throws TalibException {
+		this.quotationCopy = quotations;
+		
+	}
+
+	@Override
+	public Integer getStartShift() {
+		return Math.max(mfi.getStartShift(), sma.getStartShift()) + getDaysSpan();
+	}
+
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.OHLCV;
+	}
+
+	@Override
+	public Integer getOutputBeginIdx() {
+		return Math.max(mfi.getOutBegIdx().value, sma.getOutBegIdx().value) + getDaysSpan();
 	}
 }

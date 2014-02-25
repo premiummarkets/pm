@@ -17,6 +17,12 @@
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>
+                <operand xsi:type="condition">
+                    <reference>alsoDisplay</reference>
+                    <description>alsoDisplay</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
                 <operand xsi:type="stringOperation">
                     <reference>eventListName</reference>
                     <description>eventListName</description>

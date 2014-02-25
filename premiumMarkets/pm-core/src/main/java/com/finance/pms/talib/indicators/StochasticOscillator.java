@@ -30,14 +30,13 @@
 package com.finance.pms.talib.indicators;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.MAType;
 import com.tictactec.ta.lib.RetCode;
 
@@ -48,18 +47,16 @@ public class StochasticOscillator extends TalibIndicator {
 	
 	private double[] slowK;
 	private double[] slowD;
+	private int fastKLookBackPeriod;
 
-	public StochasticOscillator(Stock stock, Date firstDate, Date lastDate, Currency transactionCurrency, Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) 
-																																							throws TalibException, NoQuotationsException {
-		super(stock, firstDate, fastKLookBackPeriod + 200, lastDate, 0, transactionCurrency, fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
-		
+	public StochasticOscillator(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
+		super(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		this.fastKLookBackPeriod = fastKLookBackPeriod;
 	}
-	
+
+
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number...indicatorParams) {
-		
-//		TalibCoreService.getCore()
-//		.stoch(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowK, outSlowD)
 		RetCode rc = TalibCoreService.getCore()
 				.stoch(
 						startIdx, endIdx, inData[2], inData[1], inData[0],
@@ -82,20 +79,20 @@ public class StochasticOscillator extends TalibIndicator {
 	}
 
 	@Override
-	protected String getLine(int indicator, int quotation) {
+	protected String getLine(Integer indicator, QuotationUnit qU) {
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss").format(
-					this.getIndicatorQuotationData().get(quotation).getDate()) + "," +
-					this.getIndicatorQuotationData().get(quotation).getClose() + "," +
+					qU.getDate()) + "," +
+					qU.getClose() + "," +
 					slowK[indicator] + "," + slowD[indicator] + "\n";
 		return line;
 	}
 
 	@Override
-	protected double[][] getInputData() {
-		double[] closeValues = this.getIndicatorQuotationData().getCloseValues();
-		double inLow[] = this.getIndicatorQuotationData().getLowValues();
-		double inHigh[] = this.getIndicatorQuotationData().getHighValues();
+	protected double[][] getInputData(Quotations quotations) {
+		double[] closeValues = quotations.getCloseValues();
+		double inLow[] = quotations.getLowValues();
+		double inHigh[] = quotations.getHighValues();
 		
 		double[][] ret = new double[3][Math.max(Math.max(closeValues.length, inHigh.length), inLow.length)];
 		ret[0]= closeValues;
@@ -123,6 +120,18 @@ public class StochasticOscillator extends TalibIndicator {
 
 	public int getUpperThreshold() {
 		return 80;
+	}
+
+
+	@Override
+	public Integer getStartShift() {
+		return  fastKLookBackPeriod + 200;
+	}
+
+
+	@Override
+	public ValidityFilter quotationValidity() {
+		return ValidityFilter.OHLC;
 	}	
 	
 }

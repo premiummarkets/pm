@@ -63,6 +63,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 
@@ -261,19 +262,14 @@ public class TransactionPriceDialog extends Dialog {
 						try {
 							Date newTransactionDate = dateFormat.parse(dateText.getText());
 							transaction.setDate(newTransactionDate);
-							//ArrayList<QuotationUnit> loadNStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(portfolioShare.getStock(), newTransactionDate, 1, true);
 							BigDecimal close = null;
 							try {
-								Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), newTransactionDate, true, portfolioShare.getStock().getMarketValuation().getCurrency());
+								Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), newTransactionDate, true, portfolioShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 								close = quotations.getClosestCloseForDate(newTransactionDate);
 							} catch (Exception exc) {
 								LOGGER.warn(exc,exc);
 							}
-							//if (loadNStripedQuotationsBefore != null && loadNStripedQuotationsBefore.size() > 0) {
 							if (close != null) {
-//								CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
-//								BigDecimal close = loadNStripedQuotationsBefore.get(0).getClose();
-//								close = currencyConverter.convert(portfolioShare.getStock().getMarketValuation(), portfolioShare.getStock().getMarketValuation().getCurrency(), close, newTransactionDate);
 								sharePriceText.setText(moneysFormat.format(close));
 								if (sharePricePivot.getSelection()) {//Price is the pivot
 									transaction.setTransactionSharePrice(close);
