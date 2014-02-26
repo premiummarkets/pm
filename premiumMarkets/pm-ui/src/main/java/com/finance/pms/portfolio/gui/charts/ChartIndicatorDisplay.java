@@ -311,7 +311,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		
 	}
 	
-	private void updateBarChart(final Stock selectedShare, final Date exentedStartDate, final Boolean recalculationGranted, final Boolean needsUpdate) {
+	private void updateBarChart(final Stock selectedShare, Date exentedStartDate, final Boolean recalculationGranted, final Boolean needsUpdate) {
 		
 		final Map<String, Config> configs = ConfigThreadLocal.getAll();
 
@@ -335,35 +335,35 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					final Map<EventInfo, TuningResDTO> tuningRess = new ConcurrentHashMap<EventInfo, TuningResDTO>();
 					for (final EventInfo eventDefinition : chartTarget.getChartedEvtDefsTrends()) {
 
-						Runnable runnable = new Runnable() {
-							public void run() {
-
-								ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, configs.get(Config.EVENT_SIGNAL_NAME));
-								ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, configs.get(Config.INDICATOR_PARAMS_NAME));
-
-								TuningResDTO tuningResCache = null;
-								try {
-									tuningResCache = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
-								} catch (Exception e) {
-									LOGGER.error(e, e);
-								}
-								if (tuningResCache != null) {
-									tuningRess.put(eventDefinition, tuningResCache);
-								} else {
-									noDataTrends.add(eventDefinition);
-								}
-							}
-						};
-						//updateBarChartExecutor.execute(runnable);
-						runnable.run();
+						TuningResDTO tuningResCache = null;
+						try {
+							tuningResCache = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
+						} catch (Exception e) {
+							LOGGER.error(e, e);
+						}
+						if (tuningResCache != null) {
+							tuningRess.put(eventDefinition, tuningResCache);
+						} else {
+							noDataTrends.add(eventDefinition);
+						}
 
 					}
 					
 					Runnable runnable = new Runnable() {
 						public void run() {
-							SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barsData = 
-									ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), (SymbolEvents) arg, tuningRess, barChartSettings);
-							chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings, chartTarget.getPlotChartDimensions());
+							try {
+								SymbolEvents ses = (SymbolEvents) arg;
+								SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barsData = 
+										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRess, barChartSettings);
+								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings, chartTarget.getPlotChartDimensions());
+							} catch (Exception e) {
+								LOGGER.error(
+										"arg : "+ arg +
+										", chartTarget.getMainChartWraper() : "+chartTarget.getMainChartWraper()+
+										", chartTarget.getHighligtedId() : "+chartTarget.getHighligtedId()+
+										", barChartSettings : "+barChartSettings+
+										", chartTarget.getPlotChartDimensions() : "+chartTarget.getPlotChartDimensions(),e);
+							}
 						}
 					};
 					try {
@@ -659,12 +659,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public int retreivePreviousSelection() {
-		int cpt = 0;
-		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
-			if (sShare.getDisplayOnChart()){
-				return cpt;
+		
+		if (chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
+			
+			Stock stock = chartTarget.getHightlitedEventModel().getViewParamRoot();
+			int cpt = 0;
+			for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
+				//if (sShare.getDisplayOnChart()){
+				if (sShare.getStock().equals(stock)) {
+					return cpt;
+				}
+				cpt ++;
 			}
-			cpt ++;
 		}
 		return -1;
 		

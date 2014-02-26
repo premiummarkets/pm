@@ -49,8 +49,6 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 		this.chaikinOscillator = new ChaikinOscillator(chkInfastPeriod, chkInslowPeriod);
 	}
 
-	
-
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
 //		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
@@ -73,7 +71,6 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 					translateOutputForCharting(this.lowerHighs.get(idx))
 				};
 	}
-	
 
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {

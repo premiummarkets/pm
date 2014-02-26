@@ -49,7 +49,6 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.portfolio.PortfolioDAO;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class IndicatorCalculationService.
  * 
@@ -70,32 +69,10 @@ public abstract class IndicatorsCalculationService {
 		super();
 	}
 
-	/**
-	 * Load all stocks from db.
-	 * 
-	 * @return the collection< stock>
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	protected Collection<Stock> loadAllStocksFromDB() {
 		return DataSource.getInstance().loadStocksForCurrentShareList();
 	}
 
-	/**
-	 * Full analyze.
-	 * @param datedeb the datedeb
-	 * @param datefin the datefin
-	 * @param calculationCurrency 
-	 * @param periodType the period type
-	 * @param passNumber 
-	 * @param limitedCache 
-	 * 
-	 * @author Guillaume Thoreton
-	 * @param observers 
-	 * @param passOneCalcMode 
-	 * @return 
-	 * @throws InvalidAlgorithmParameterException 
-	 */
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException {
 		
 		if ((this.symbolsCache == null) || !keepCache) this.symbolsCache = loadAllStocksFromDB();
@@ -138,15 +115,14 @@ public abstract class IndicatorsCalculationService {
 	 */
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-			String periodType, Boolean kc, Integer passNumber, Boolean persistEvents,  String passOneCalcMode, Observer... observers)	throws InvalidAlgorithmParameterException, IncompleteDataSetException {
-		return this.analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, persistEvents, passOneCalcMode, observers);		
+			String periodType, Boolean kc, Integer passNumber, Boolean persistEvents,  String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
+		return analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, persistEvents, passOneCalcMode, observers);		
 	}
 	
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> partialAnalyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumer, Boolean persistEvents, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
-		
-		return this.analyze(symbols, dateDeb, dateFin, calculationCurrency, eventListName,periodType , keepCache, passNumer, persistEvents, passOneCalcMode, observers);
+		return analyze(symbols, dateDeb, dateFin, calculationCurrency, eventListName,periodType , keepCache, passNumer, persistEvents, passOneCalcMode, observers);
 	}
 	
 	public void setShareDAO(ShareDAO shareDAO) {
@@ -161,16 +137,14 @@ public abstract class IndicatorsCalculationService {
 			Collection<Stock> symbols, Date datedeb, Date datefin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
 			throws InvalidAlgorithmParameterException, IncompleteDataSetException;
-
 	
 	
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(
 			Collection<Stock> shareList, String eventListName, Date startDate, Date endDate, Currency calculationCurrency, 
 			String periodType, Integer passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers)
-																				throws InvalidAlgorithmParameterException, IncompleteDataSetException {
+			throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
 		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calcRes = null;
-		
 		if (shareList.size() > 0) {
 				calcRes = partialAnalyze(shareList, startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, persistEvents, passOneCalcMode, observers);
 		} else {

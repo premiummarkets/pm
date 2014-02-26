@@ -47,7 +47,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	
 	
 	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift, ValidityFilter.SPLITFREE, validityFilter);
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(1, firstIndexShift), ValidityFilter.SPLITFREE, validityFilter);
 	}
 	
 	public  Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {

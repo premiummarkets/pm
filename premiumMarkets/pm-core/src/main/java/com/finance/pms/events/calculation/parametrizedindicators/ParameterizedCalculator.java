@@ -74,7 +74,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 	public ParameterizedCalculator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) 
 			throws WarningException  {
 		
-		super(stock);	
+		super(observers);	
 		this.conditionHolder = (EventConditionHolder) eventInfo;
 		
 		//Adjust start

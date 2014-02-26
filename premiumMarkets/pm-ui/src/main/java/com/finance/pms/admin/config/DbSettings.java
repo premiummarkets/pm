@@ -74,22 +74,15 @@ public class DbSettings extends Dialog {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(DbSettings.class);
 
-	final private Properties propList;
+	private Properties propList;
+	private String pathToProps;
 	
-	/** The path to props. */
-	final private String pathToProps;
-	
-	/** The config tab. */
 	private final String[] configTab = { "EMail setting", "Feeds performance and defaults", "Database", "Technical analysis"};
-	
-	/** The configtab comment. */
 	private final String[] configtabComment = {
 			"Email setting - Please fill in",
 			"Default quotations provider - Possible values : "+MarketQuotationProviders.YAHOO.getCmdParam()+","+MarketQuotationProviders.INVESTIR.getCmdParam()+","+MarketQuotationProviders.GOOGLE.getCmdParam(),
 			"Internal Data Base parameters - You normally don't have to change this.",
 		    "Technical analysis - Indicator calculation tuning"};
-	
-	/** The keys. */
 	private final String[][] keys = {
 			{ "mail.from", "mail.to", "mail.host", "mail.username", "mail.password", "mail.log.activated" },
 			{ //"quotes.listfile", "quotes.listprovider", 
@@ -98,8 +91,6 @@ public class DbSettings extends Dialog {
 			},
 			{ "software", "username", "password", "driver", "database", "dbpath", "db.poolsize" },
 			{ "talib.daysbackwardday" }};
-	
-	/** The key comments. */
 	private final String[][] keyComments = {
 			{ 
 					"From email address", "To email address",
@@ -121,22 +112,9 @@ public class DbSettings extends Dialog {
 			{ 
 					"Number of additional analysis calculation days before every calculations" 
 			}};
-			
-	
-	/** The hidden keys. */
 	private final String hiddenKeys[] = {"mail.password","password","http.password"};
-	
-	/** The hidden keys list. */
 	private  List<String> hiddenKeysList = Arrays.asList(hiddenKeys);
 	
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws FileNotFoundException 
-	 */
 	public static void main(String[] args) throws FileNotFoundException {
 		
 			Display display = Display.getDefault();
@@ -161,16 +139,7 @@ public class DbSettings extends Dialog {
 			}
 			
 	}
-	
-	/**
-	 * Instantiates a new db settings.
-	 * 
-	 * @param pathToProps the path to props
-	 * @param parent the shell
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws FileNotFoundException 
-	 */
+
 	public DbSettings(Shell parent, String pathToProps) throws FileNotFoundException {
 		
 		//super(new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));

@@ -201,7 +201,7 @@ public class TunedConfMgr {
 		return tunedConfDAO;
 	}
 	
-	public Date adjustStartDate(Stock stock) {
+	public Date adjustStartDate(Stock stock) {//200 days after first quotation available
 		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(firstQuotationDateFromQuotations);

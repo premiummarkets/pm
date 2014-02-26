@@ -43,15 +43,19 @@ import com.tictactec.ta.lib.RetCode;
 public class StochasticOscillator extends TalibIndicator {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StochasticOscillator.class);
-
 	
 	private double[] slowK;
 	private double[] slowD;
+	
 	private int fastKLookBackPeriod;
+	private Integer slowKSmaPeriod;
+	private Integer slowDSmaPeriod;
 
 	public StochasticOscillator(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
 		super(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 		this.fastKLookBackPeriod = fastKLookBackPeriod;
+		this.slowKSmaPeriod = slowKSmaPeriod;
+		this.slowDSmaPeriod = slowDSmaPeriod;
 	}
 
 
@@ -61,7 +65,7 @@ public class StochasticOscillator extends TalibIndicator {
 				.stoch(
 						startIdx, endIdx, inData[2], inData[1], inData[0],
 						(Integer) indicatorParams[0], (Integer) indicatorParams[1], MAType.Sma, (Integer)indicatorParams[2], MAType.Sma, 
-						outBegIdx, outNBElement, this.slowK, this.slowD);
+						outBegIdx, outNBElement, slowK, slowD);
 		
 		return rc;
 	}
@@ -125,7 +129,8 @@ public class StochasticOscillator extends TalibIndicator {
 
 	@Override
 	public Integer getStartShift() {
-		return  fastKLookBackPeriod + 200;
+		//return  fastKLookBackPeriod + 200;
+		return fastKLookBackPeriod + slowKSmaPeriod + slowDSmaPeriod + 100;
 	}
 
 

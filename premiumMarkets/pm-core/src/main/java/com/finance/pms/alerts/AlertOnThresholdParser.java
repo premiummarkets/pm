@@ -66,8 +66,9 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 //		this.portfolioShare = portfolioShare;
 //		
 //	}
-	public AlertOnThresholdParser(Observer...observers) {
+	public AlertOnThresholdParser(PortfolioShare portfolioShare, Observer...observers) {
 		super(observers);
+		this.portfolioShare = portfolioShare;
 	}
 
 	@Override

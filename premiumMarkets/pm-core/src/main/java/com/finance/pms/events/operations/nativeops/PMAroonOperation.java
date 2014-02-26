@@ -70,7 +70,7 @@ public class PMAroonOperation extends PMDataFreeOperation {
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
 			
-			//HouseAroon arron = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
+			//HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
 			HouseAroon arron = new HouseAroon(period);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
 					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 

@@ -115,7 +115,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		}
 		
 		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
-		return this.allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, persistEvents, passOneCalcMode, observers);
+		return allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, persistEvents, passOneCalcMode, observers);
 		
 	}
 
@@ -171,6 +171,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					continue;
 				}
 				
+				LOGGER.info("Final dates adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " are now from "+adjustedStartDate+" to "+adjustedEndDate);
 				//Calculations
 				if (passNumber == 1) {//pass 1
 

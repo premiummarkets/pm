@@ -109,7 +109,7 @@ public class RSI extends TalibIndicator {
 
 	@Override
 	public Integer getStartShift() {
-		return 100+ timePeriod;
+		return 100 + timePeriod;
 	}
 
 	@Override

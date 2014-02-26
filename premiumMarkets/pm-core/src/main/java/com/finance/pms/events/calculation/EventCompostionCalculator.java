@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.SortedMap;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -47,19 +46,13 @@ import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
 public abstract class EventCompostionCalculator {
-	
-	protected Stock stock;
+
 	protected Observer[] observers;
 	
 	public EventCompostionCalculator(Observer... observers) {
 		this.observers = observers;
 	}
-	
-	public EventCompostionCalculator(Stock stock, Observer... observers) { //With obs and No quotation init
-		this.stock = stock;
-		this.observers = observers;
-	}
-	
+
 	public abstract Integer getStartShift();
 
 	public abstract SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws Exception;

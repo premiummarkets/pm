@@ -595,10 +595,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		private final Integer tabIdx;
 		private final AbstractSharesList portfolio;
+		private Boolean isSamePortfolio;
+		private Boolean hasPortfolioChanged;
 
-		private TabInit(Integer tabIdx, AbstractSharesList portfolio) {
+		private TabInit(Integer tabIdx, AbstractSharesList portfolio, Boolean isSamePortfolio, Boolean hasPortfolioChanged) {
 			this.tabIdx = tabIdx;
 			this.portfolio = portfolio;
+			this.isSamePortfolio = isSamePortfolio;
+			this.hasPortfolioChanged = hasPortfolioChanged;
 		}
 
 		public void run() {
@@ -614,7 +618,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					}
 
 					if (tabIdx == portfolioCTabFolder1.getSelectionIndex()) {
-						refreshChartData(false, false);
+						refreshChartData(isSamePortfolio, hasPortfolioChanged);
 						refreshPortfolioTotalsInfos(tabIdx);
 					}
 
@@ -809,15 +813,16 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										ttomod.setSelection(-1);
 										
 										if (ttomod.getItems().length != portfolio.getListShares().size()) {
-											tabUpdateItemsFromPortfolio(selectionIndex, portfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
+											tabUpdateItemsFromPortfolio(selectionIndex, portfolio, false, false, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
 										} else {
 											if (!cTabItem[selectionIndex].isDisposed()) {
 												refreshChartData(false, false);
+												refreshPortfolioTotalsInfos(selectionIndex);
 											}
 										}
 										
 										highLightSlidingColsAndInfos();
-										refreshPortfolioTotalsInfos(selectionIndex);
+										
 										
 									} finally {
 										getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -1142,9 +1147,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		}
 	}
 
-	public void tabUpdateItemsFromPortfolio(final Integer tabIdx, final AbstractSharesList portfolio, Observer... tabInitObservers) {
+	public void tabUpdateItemsFromPortfolio(final Integer tabIdx, final AbstractSharesList portfolio, Boolean isSamePortfolio, Boolean hasPortfolioChanged, Observer... tabInitObservers) {
 
-		TabInit runnable = new TabInit(tabIdx, portfolio);
+		TabInit runnable = new TabInit(tabIdx, portfolio, isSamePortfolio, hasPortfolioChanged);
 		for (Observer observer : tabInitObservers) {
 			runnable.addObserver(observer);
 		}
@@ -1228,7 +1233,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				}
 				observers[addObss.length] = new CursorChangerObserver(1, SWT.CURSOR_APPSTARTING);
 				
-				tabUpdateItemsFromPortfolio(selectedTabIdx, visiblePortfolios.get(selectedTabIdx), observers);
+				tabUpdateItemsFromPortfolio(selectedTabIdx, visiblePortfolios.get(selectedTabIdx), false, false, observers);
 				
 			}
 
@@ -1972,12 +1977,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					}
 
 					private void handleChangeCurrency() {
+						
 						item.setText(col, combo.getText());
 						item.setFont(MainGui.CONTENTFONT);
 						doChangeDisplayedCurrency(table.getSelectionIndex(), combo.getText());
 						int tabindex = selectedPortfolioIdx();
-						tabUpdateItemsFromPortfolio(tabindex, modelControler.getPortfolio(tabindex), new CursorChangerObserver(1, SWT.CURSOR_WAIT));
+						tabUpdateItemsFromPortfolio(tabindex, modelControler.getPortfolio(tabindex), true, false, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
 						combo.dispose();
+						
 					}
 
 				};
@@ -2583,7 +2590,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		tabAddOneTab(cTabItem.length-1, portfolio);
 		cTabItem[cTabItem.length-1].getParent().setSelection(cTabItem.length-1);
 		
-		tabUpdateItemsFromPortfolio(cTabItem.length-1, portfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
+		tabUpdateItemsFromPortfolio(cTabItem.length-1, portfolio, false, false, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
 
 		return cTabItem.length-1;
 	}
@@ -2910,10 +2917,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		Integer tabIdx = tabGetTabIdxFor(newPortfolio.getName());
 		((Table) cTabItem[tabIdx].getData()).removeAll();
 	
-		tabUpdateItemsFromPortfolio(tabIdx, newPortfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
+		tabUpdateItemsFromPortfolio(tabIdx, newPortfolio, false, true, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
+		//refreshChartData(false, true);
+		//refreshPortfolioTotalsInfos(tabIdx);
 		
-		refreshChartData(false, true);
-		refreshPortfolioTotalsInfos(tabIdx);
 	}
 
 	private String[] selectFilePaths(final String title) {
@@ -3023,10 +3030,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		int tabindex = portfolioCTabFolder1.getSelectionIndex();
 		Portfolio portfolio = modelControler.getPortfolio(tabindex);
 	
-		tabUpdateItemsFromPortfolio(tabindex, portfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
-		
-		refreshChartData(true, true);
-		refreshPortfolioTotalsInfos(tabindex);
+		tabUpdateItemsFromPortfolio(tabindex, portfolio, true, true, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
+		//refreshChartData(true, true);
+		//refreshPortfolioTotalsInfos(tabindex);
 		
 		if (tabindex == -1) return;
 

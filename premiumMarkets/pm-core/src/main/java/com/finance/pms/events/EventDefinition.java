@@ -87,10 +87,13 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new  EventDefDescriptorStatic("Macd",null,null,"Signal line",null,null,
 					"Macd(%d,%d,%d) > 0  and Macd crosses below Signal",new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}, 
 					"Macd(%d,%d,%d) < 0  and Macd crosses above Signal", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}), 10),//
-	PMAROONTREND (104,"Aroon Divergence", false,
-			new EventDefDescriptorStatic(null,"Down","Up","Middle line","Lower threshold","Upper threshold",
-					"Aroon down crosses above Aroon up and Aroon down > 90 and Aroon up < 30",null,
-					"Aroon up crosses above Aroon down and Aroon up > 90 and Aroon down < 30",null), 4), //
+	PMAROONTREND (104,"Aroon Oscillator", false,
+			new EventDefDescriptorStatic("Oscillator","Down","Up","Middle line","Lower threshold","Upper threshold",
+					//"Aroon down crosses above Aroon up and Aroon down > 90 and Aroon up < 30",null,
+					//"Aroon up crosses above Aroon down and Aroon up > 90 and Aroon down < 30",null), 
+					"Aroon oscillator (Up-Down) is above 90", null,
+					"Aroon oscillator (Up-Down) is below -90", null),
+					4), //
 	
 	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  
 			new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold", 
@@ -107,20 +110,20 @@ public enum EventDefinition implements Serializable, EventInfo {
 
 	PMRSIDIVERGENCE (120,"RSI Divergence", false, 
 			new  EventDefDescriptorStatic("Rsi","Rsi higher low","Rsi lower high",null,"Lower threshold","Upper threshold",
-					"Price is up and Rsi%d lower high over 60 days and above %d", new String[]{Config.INDICATOR_PARAMS_NAME,"RsiTimePeriod", "RsiUpperThreshold"},
-					"Price is down and Rsi%d higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME,"RsiTimePeriod", "RsiLowerThreshold"}), 30), //
+					"Price is up and Rsi%d makes a lower high over 60 days and above %d", new String[]{Config.INDICATOR_PARAMS_NAME,"RsiTimePeriod", "RsiUpperThreshold"},
+					"Price is down and Rsi%d makes a higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME,"RsiTimePeriod", "RsiLowerThreshold"}), 30), //
 	PMMFIDIVERGENCE (121,"MFI Divergence", false, 
 			new  EventDefDescriptorStatic("Mfi","Mfi higher low","Mfi lower high", null,"Lower threshold","Upper threshold",
-					"Price is up and Mfi lower high over 40 days and above 80", null, 
-					"Price is down and Mfi higher low over 40 days and below 20", null), 35), //
+					"Price is up and Mfi makes a lower high over 40 days and above 80", null, 
+					"Price is down and Mfi makes a higher low over 40 days and below 20", null), 35), //
 	PMSSTOCHDIVERGENCE (122,"Stochastic Divergence", false,
 			new  EventDefDescriptorStatic("Slow K","Stoch higher low","Stoch lower high", "Slow D","Lower threshold","Upper threshold",
-					"Price is up and Stochastic(14,3,3) lower high over 60 days and above 80", null, 
-					"Price is down and Stochastic(14,3,3) higher low over 60 days and below 20",null), 20), // 
+					"Price is up and Stochastic(14,3,3) makes a lower high over 60 days and above 80", null, 
+					"Price is down and Stochastic(14,3,3) makes a higher low over 60 days and below 20",null), 20), // 
 	PMCHAIKINOSCDIVERGENCE (123,"Chaikin Oscillator Divergence", false, 
 			new  EventDefDescriptorStatic("Chaikin","Chaikin higher low","Chaikin lower high",null,null,null,
-					"Price is up and Chaikin lower high over 60 days",null, 
-					"Price is down and Chaikin higher low over 60 days", null), 10), //
+					"Price is up and Chaikin makes a lower high over 60 days",null, 
+					"Price is down and Chaikin makes a higher low over 60 days", null), 10), //
 					
 	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic("Mighty Chaikin",null,null,null,null,null,"Bearish",null, "Bullish", null), 1),
 	
@@ -205,14 +208,6 @@ public enum EventDefinition implements Serializable, EventInfo {
 	private Integer eventOccWeight;
 
 	
-	/**
-	 * Instantiates a new event definition.
-	 * 
-	 * @param eventDefId the order
-	 * @param eventDef the value
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private EventDefinition(Integer eventDefId, String eventDef, Boolean isContinous, EventDefDescriptorStatic eventDefDescriptor, Integer eventOccWeight) {
 		
 		this.eventReadableDef = eventDef;
@@ -222,16 +217,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 		
 		this.eventOccWeight = eventOccWeight;
 	}
-	
-	/**
-	 * Value of.
-	 * 
-	 * @param ordinal the ordinal
-	 * 
-	 * @return the event definition
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static EventDefinition valueOf(Integer evDefId){
 		EventDefinition retour = EventDefinition.UNKNOWN99;
 		for (EventDefinition eventDefinition : EventDefinition.values()) {

@@ -112,7 +112,6 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		}
 		
 		if (dataSetExceptions.size() > 0) {
-			//LOGGER.warn("Failing : "+dataSetExceptions);
 			throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set for "+stock.getFriendlyName()+" may invalidate further usage.");
 		}
 		
@@ -123,6 +122,8 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
 		
 		Set<EventCompostionCalculator> eventsCalculators;
+		
+		LOGGER.info("Effective recalculation (potentially incremental) for "+stock+" will occur from "+startDate+" to "+endDate);
 		
 		//Init calculators
 		try {
@@ -153,7 +154,6 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		
 		Boolean incomplete = false;
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
-//		final List<Exception> exceptions = new ArrayList<Exception>();
 		final List<EventInfo> failing = new ArrayList<EventInfo>();
 		for (final EventCompostionCalculator evtCalculator: evtCalculators ) {
 

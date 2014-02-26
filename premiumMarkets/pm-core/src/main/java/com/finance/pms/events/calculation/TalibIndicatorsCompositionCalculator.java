@@ -75,7 +75,9 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		FormulatRes res;
+		
 		try {
+			
 			for (int quotationIndex = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); quotationIndex <= quotations.getLastDateIdx() ; quotationIndex++) {
 				
 				QuotationUnit qU = quotations.get(quotationIndex);
@@ -93,14 +95,16 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 			}
 			
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			String message = "Talib indicator failed :"+this.getClass().getSimpleName()+" for "+quotations.getStock();
+			LOGGER.error(message,e);
+			throw new TalibException(message, e);
 		} finally {
 			if (LOGGER.isTraceEnabled()) {
 				exportToCSV(edata, quotations, eventListName);
 			}
 		}
 		
-		calculationOutput = buildOutput(quotations); //Here because of divergences
+		calculationOutput = buildOutput(quotations); //Here because divergences output can't be calculated in the loop
 		
 		return edata;
 
@@ -119,7 +123,7 @@ public abstract class TalibIndicatorsCompositionCalculator extends EventComposti
 	
 	public void exportToCSV(Map<EventKey, EventValue> edata, Quotations quotations, String eventListName) {
 		
-		String stockName = this.stock.getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_");
+		String stockName = quotations.getStock().getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_");
 		File export = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator + stockName + "_"+ this.getClass().getSimpleName() + "_" + eventListName +".csv");
 
 		FileWriter fos = null;

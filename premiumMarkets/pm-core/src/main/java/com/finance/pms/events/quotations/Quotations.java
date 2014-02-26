@@ -34,7 +34,6 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +60,7 @@ public class Quotations {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 	
-	public static enum ValidityFilter {ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV};
+	public static enum ValidityFilter {NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV};
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
 	private static ConcurrentHashMap<Stock, LastUpdateStampChecker> UPDATESTAMP_CACHE = new ConcurrentHashMap<Stock, LastUpdateStampChecker>();
 
@@ -70,7 +69,7 @@ public class Quotations {
 	
 	private Map<String, QuotationData> quotationDataFilters;
 	private ValidityFilter cacheFilter;
-	private ValidityFilter[] otherCacheFilters;
+	private List<ValidityFilter> otherCacheFilters;
 
 	private Date firstDateRequested;
 	private Integer firstIndexShiftRequested;
@@ -84,7 +83,7 @@ public class Quotations {
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;
 		this.cacheFilter = cacheFilter;
-		this.otherCacheFilters = otherCacheFilters;
+		this.otherCacheFilters = Arrays.asList(otherCacheFilters);
 		
 		this.firstIndexShiftRequested = firstIndexShift;
 		this.firstDateRequested = firstDate;
@@ -99,7 +98,7 @@ public class Quotations {
 		this.stock = stock;
 		this.targetCurrency = targetCurrency;
 		this.cacheFilter = cacheFilter;
-		this.otherCacheFilters = otherCacheFilters;
+		this.otherCacheFilters = Arrays.asList(otherCacheFilters);
 		
 		firstIndexShiftRequested = 0;
 		firstDateRequested = quotationData.getDate(0);
@@ -110,6 +109,11 @@ public class Quotations {
 
 	protected void init(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Integer firstIndexShift) throws NoQuotationsException {
 		this.stock = stock;
+		
+		if (otherCacheFilters.contains(ValidityFilter.NONE)) {
+			setUnfilteredQuotationData(new QuotationData(new ArrayList<QuotationUnit>()));
+			return;
+		}
 		
 		QuotationData requestedQuotationsData;
 		if (!keepCache) {
@@ -183,7 +187,7 @@ public class Quotations {
 		ArrayList<QuotationUnit> nStripedQuotationsBefore = DataSource.getInstance().loadNStripedQuotationsBefore(stock, firstDate, indexShiftBefore, false);
 		ArrayList<QuotationUnit> stripedQuotationsAfter = DataSource.getInstance().loadStripedQuotationsAfter(stock, firstDate);
 		
-		Collections.reverse(nStripedQuotationsBefore);
+		//Collections.reverse(nStripedQuotationsBefore); This is already reverse in loadNStripedQuotationsBefore
 		nStripedQuotationsBefore.addAll(stripedQuotationsAfter);
 		
 		return new QuotationData(nStripedQuotationsBefore);
@@ -560,11 +564,11 @@ public class Quotations {
 		
 	}
 
-	private QuotationData buildQuotationDataFilter(Date firstDate, Date lastDate, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
+	private QuotationData buildQuotationDataFilter(Date firstDate, Date lastDate, ValidityFilter cacheFilter, List<ValidityFilter> otherCacheFilters) {
 		
 		ArrayList<ValidityFilter> filters = new ArrayList<Quotations.ValidityFilter>();
 		filters.add(cacheFilter);
-		filters.addAll(Arrays.asList(otherCacheFilters));
+		filters.addAll(otherCacheFilters);
 		
 		boolean validClose = filters.contains(ValidityFilter.CLOSE) || filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV) || filters.contains(ValidityFilter.VOLUME);
 		boolean validOhlc = filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV);
@@ -614,21 +618,23 @@ public class Quotations {
 			firstDatedIndex = Math.max(0, quotationsUnitOut.size()-1);
 		}
 		
-		lastDateIndex = quotationsUnitOut.size()-1;
+		lastDateIndex = Math.max(0, quotationsUnitOut.size()-1);
 		
 		return new QuotationData(quotationsUnitOut);
 		
 	}
 
-	private String buildFilterNameKey(ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
+	private String buildFilterNameKey(ValidityFilter cacheFilter, List<ValidityFilter> otherCacheFilters) {
 		SortedSet<ValidityFilter> filterNameSet = new TreeSet<Quotations.ValidityFilter>();
+		if (cacheFilter == null) throw new NotImplementedException("Filters can't be null : "+cacheFilter+", "+otherCacheFilters);
 		filterNameSet.add(cacheFilter);
 		for (ValidityFilter filter : otherCacheFilters) {
-			if (filter.equals(ValidityFilter.ALL)) throw new NotImplementedException("You must specify a filter.");
+			if (filter == null) throw new NotImplementedException("Filters can't be null : "+cacheFilter+", "+otherCacheFilters);
 			filterNameSet.add(filter);
 		}
 		String filterName = "";
 		for (ValidityFilter filter : filterNameSet) {
+			if (filter.equals(ValidityFilter.ALL)) throw new NotImplementedException("You must specify a filter.");
 			filterName = filterName+filter.name();
 		}
 		return filterName;

@@ -209,7 +209,7 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 		this.sma.calculateIndicator(quotations);
 		this.chaikinLine.calculateIndicator(quotations);
 	
-		this.obvSma.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), obv.indicatorStrip(quotations)));
+		this.obvSma.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), obv.indicatorStrip(quotations), obv.quotationValidity()));
 		
 	}
 

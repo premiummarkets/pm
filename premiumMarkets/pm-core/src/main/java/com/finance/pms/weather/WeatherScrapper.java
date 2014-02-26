@@ -116,14 +116,13 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 			throw new InterruptedException(e.toString());
 		}
 	
-		//if (lastWeatherDateInDB.before(endDate)) {
 		Calendar lastDBDateMinus2Month = Calendar.getInstance();
 		lastDBDateMinus2Month.setTime(lastWeatherDateInDB);
 		lastDBDateMinus2Month.add(Calendar.MONTH, -2);
 		List<WeatherElement> weatherElements = this.scrape(lastDBDateMinus2Month.getTime(), endDate);
 		
 		weatherDao.saveAndUpDate(weatherElements);
-		//}
+	
 	}
 	
 	public static void main(String... args) throws InterruptedException, ParseException {
@@ -133,7 +132,6 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 		Date endDate = simpleDateFormat.parse(args[2]);
 		
 		SpringContext springContext = new SpringContext(dbProps);
-		//springContext.setDataSource(dbProps);
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 		springContext.refresh();
 		
@@ -161,13 +159,6 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 		if (springContext != null) springContext.close();
 	}
 
-	/**
-	 * @param startDate
-	 * @param endDate
-	 * @param scrapper
-	 * @return
-	 * @throws InterruptedException
-	 */
 	public List<WeatherElement> scrape(Date startDate, Date endDate) throws InterruptedException {
 		
 		Calendar calendar = Calendar.getInstance();

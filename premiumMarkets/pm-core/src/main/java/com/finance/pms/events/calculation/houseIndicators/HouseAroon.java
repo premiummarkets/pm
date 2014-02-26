@@ -49,6 +49,7 @@ public class HouseAroon extends TalibIndicator {
 	
 	private double[] outAroonDown;
 	private double[] outAroonUp;
+	private double[] outAroonOsc;
 	private Integer period;
 
 	public HouseAroon(Integer period) {
@@ -60,15 +61,21 @@ public class HouseAroon extends TalibIndicator {
 		
 		try {
 			
-			Integer perd = (Integer) indicatorParams[0];
+			Integer period = (Integer) indicatorParams[0];
 			
 			outBegIdx.value = startIdx + getStartShift();
 			outNBElement.value = endIdx - outBegIdx.value;
 			
+			//From Talib
+			//			 outAroonUp[outIdx] = factor*(optInTimePeriod-(today-highestIdx));
+			//	         outAroonDown[outIdx] = factor*(optInTimePeriod-(today-lowestIdx));
+			//	         aroon = factor*(highestIdx-lowestIdx);
+			
 			for (int i = outBegIdx.value ; i <= endIdx; i++) {
-				int[] periodHighLowIdxs = periodHighLowIdxs(i, inData[1], inData[2], inData[0], perd);
-				outAroonUp[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[0]))/perd.doubleValue()) * 100;
-				outAroonDown[ i - outBegIdx.value ] = (new Double(perd - (i - periodHighLowIdxs[1]))/perd.doubleValue()) * 100;
+				int[] periodHighLowIdxs = periodHighLowIdxs(i, inData[1], inData[2], inData[0], period);
+				outAroonUp[ i - outBegIdx.value ] = (new Double(period - (i - periodHighLowIdxs[0]))/period.doubleValue()) * 100;
+				outAroonDown[ i - outBegIdx.value ] = (new Double(period - (i - periodHighLowIdxs[1]))/period.doubleValue()) * 100;
+				outAroonOsc[ i - outBegIdx.value ] = (new Double(periodHighLowIdxs[0] - periodHighLowIdxs[1])/period.doubleValue()) * 100;
 			}
 			
 		} catch (IndexOutOfBoundsException e) {
@@ -83,16 +90,16 @@ public class HouseAroon extends TalibIndicator {
 		
 	}
 
-	private int[] periodHighLowIdxs(Integer currentIdx, double[] lows, double[] highs, double[] closes, Integer perd) {
+	private int[] periodHighLowIdxs(Integer currentIdx, double[] lows, double[] highs, double[] closes, Integer period) {
 		
-		int periodStartIdx = currentIdx - perd;
+		int periodStartIdx = currentIdx - period;
 		
 		Integer periodHighIdx = currentIdx;
 		Integer periodLowIdx = currentIdx;
 		
 		
 		double[] meanHighs = new double[currentIdx - periodStartIdx + 1];
-		int smoothingPerd = 2*perd;
+		int smoothingPerd = 2*period;
 		for (int i = periodStartIdx; i <= currentIdx; i++) {
 			int relIdx = i - periodStartIdx;
 			double high = highs[i-smoothingPerd];
@@ -160,6 +167,7 @@ public class HouseAroon extends TalibIndicator {
 	protected void initResArray(int length) {
 		outAroonDown = new double[length];
 		outAroonUp = new double[length];
+		outAroonOsc = new double[length];
 		
 	}
 
@@ -185,7 +193,11 @@ public class HouseAroon extends TalibIndicator {
 
 	@Override
 	public ValidityFilter quotationValidity() {
-		return ValidityFilter.CLOSE;
+		return ValidityFilter.OHLC;
+	}
+
+	public double[] getOutAroonOsc() {
+		return outAroonOsc;
 	}
 
 }

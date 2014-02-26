@@ -59,7 +59,7 @@ public class MFI extends TalibIndicator {
 		double inHigh[] = quotations.getHighValues();
 		double[] volumes = quotations.getVolumes();
 		
-		double[][] ret = new double[4][Math.max(Math.max(Math.max(closeValues.length,inHigh.length),inLow.length),volumes.length)];
+		double[][] ret = new double[4][Math.max(Math.max(Math.max(closeValues.length, inHigh.length), inLow.length), volumes.length)];
 		ret[0]= closeValues;
 		ret[1]= inLow;
 		ret[2]= inHigh;

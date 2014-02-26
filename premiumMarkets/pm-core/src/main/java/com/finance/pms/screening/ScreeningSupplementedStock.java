@@ -193,11 +193,11 @@ public class ScreeningSupplementedStock extends Validatable {
 			CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
 			
 			ArrayList<QuotationUnit> firstEndDate = DataSource.getInstance().loadNStripedQuotationsBefore(stock, endDate, 1, true);
-			close = firstEndDate.get(0).getClose();
+			close = firstEndDate.get(firstEndDate.size()-1).getClose();
 			close = currencyConverter.convert(stock.getMarketValuation(), stock.getMarketValuation().getCurrency(), close, endDate);
 			
 			ArrayList<QuotationUnit> firstTtmDate = DataSource.getInstance().loadNStripedQuotationsBefore(stock, ttm, 1, true);
-			ttmClose = firstTtmDate.get(0).getClose();
+			ttmClose = firstTtmDate.get(firstEndDate.size()-1).getClose();
 			ttmClose = currencyConverter.convert(stock.getMarketValuation(), stock.getMarketValuation().getCurrency(), ttmClose, ttm);
 			
 		} catch (IndexOutOfBoundsException e) {

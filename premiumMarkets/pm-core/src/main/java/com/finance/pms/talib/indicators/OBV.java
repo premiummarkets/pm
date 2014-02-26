@@ -64,7 +64,7 @@ public class OBV extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] indata, Number... indicatorParams) {
-		RetCode rc = TalibCoreService.getCore().obv(startIdx, endIdx, indata[0], indata[1], outBegIdx, outNBElement, this.obv);
+		RetCode rc = TalibCoreService.getCore().obv(startIdx, endIdx, indata[0], indata[1], outBegIdx, outNBElement, obv);
 		return rc;
 	}
 
@@ -90,7 +90,8 @@ public class OBV extends TalibIndicator {
 
 	@Override
 	public Integer getStartShift() {
-		return 150;
+		//return 150;
+		return 100;
 	}
 
 	@Override

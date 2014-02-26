@@ -251,14 +251,14 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		
 		//Variation
 		if (variationWanted) {
-				VariationCalculator variationCalc = new VariationCalculator(variationTimePeriod, variationSpanDiff, eventListName, observers);
+				VariationCalculator variationCalc = new VariationCalculator(stock, variationTimePeriod, variationSpanDiff, eventListName, observers);
 				startDateShift =  Math.max(startDateShift, variationCalc.getStartShift());
 				eventCalculations.add(variationCalc);
 		}
 		
 		//Variance
 		if (varianceWanted) {
-			VarianceCalculator varianceCalc = new VarianceCalculator(varianceTimePeriod, varianceSpanDiff, varianceMinValid, varianceTimePeriod,eventListName, observers);
+			VarianceCalculator varianceCalc = new VarianceCalculator(stock, varianceTimePeriod, varianceSpanDiff, varianceMinValid, varianceTimePeriod,eventListName, observers);
 			startDateShift =  Math.max(startDateShift, varianceCalc.getStartShift());
 			eventCalculations.add(varianceCalc);
 		}
@@ -312,7 +312,6 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 	@Override
 	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
-		
 		
 		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName());
 

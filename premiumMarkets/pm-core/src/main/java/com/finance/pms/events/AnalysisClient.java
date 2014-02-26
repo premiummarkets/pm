@@ -173,16 +173,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     	}
     }
 
-
-
-	/**
-	 * @param symbolEvents
-	 * @param eventType
-	 * @param source
-	 * @param fromUI
-	 * @param eventListName 
-	 * @param eventInfoRef 
-	 */
     private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
     	
     	LOGGER.debug(
@@ -208,9 +198,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		} 
     }
 
-	/**
-	 * @param m
-	 */
     private void runSynchTask(String analysisName, Runnable runnable) {
 
     		LOGGER.debug("Executing executor :"+runnable.getClass().getName()+" for "+ analysisName);
@@ -218,11 +205,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
     }
 
-	/**
-	 * @param message
-	 * @return
-	 * @throws JMSException
-	 */
 	private SymbolEvents extractSymbolEventsObject(Message message) throws JMSException {
 	
 		try {
@@ -339,26 +321,14 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		return evenTypeAdd;
 	}
 
-
-	/**
-     * Sets the mail sender.
-     * 
-     * @param mailSender the new mail sender
-     */
     public void setMailSender(MailSender mailSender) {
         this.mailSender = mailSender;
     }
 
-    /**
-     * Sets the template message.
-     * 
-     * @param templateMessage the new template message
-     */
     public void setTemplateMessage(SimpleMailMessage templateMessage) {
     	this.templateMessage = templateMessage;
     }
 	
-   
 	public void close() {
 		
 		try {

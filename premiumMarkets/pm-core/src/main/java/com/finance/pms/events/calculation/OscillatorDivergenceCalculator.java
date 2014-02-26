@@ -61,6 +61,8 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 
 public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsCompositionCalculator {
 	
+//	private static MyLogger LOGGER = MyLogger.getLogger(OscillatorDivergenceCalculator.class);
+	
 	protected SortedMap<Integer,Double> higherLows;
 	protected SortedMap<Integer,Double> lowerHighs;
 	private HighLowSolver highLowSolver;
@@ -90,7 +92,12 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsComp
 		if (idxSpan < 4) return res; //We need a least 3 days to draw higher low or lower high
 		
 		int mfiIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
-		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), mfiIdx - idxSpan, mfiIdx));
+		int lookBackSpan = mfiIdx - idxSpan;
+		if (lookBackSpan < 0) {//No enough data
+			throw new InvalidAlgorithmParameterException("Negative look back span for "+quotationsCopy.getStock()+" and "+this.getEventDefinition()+". LookBackPeriodStart : "+lookBackPeriodStart+", days span "+getDaysSpan()+", first date available : "+quotationsCopy.get(0));
+		}
+		
+		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), lookBackSpan, mfiIdx));
 	
 		{
 			Boolean isPriceDown = false;

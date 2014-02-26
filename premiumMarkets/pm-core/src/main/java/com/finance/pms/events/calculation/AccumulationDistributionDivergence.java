@@ -75,7 +75,7 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
 	}
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
 		FormulatRes res = new FormulatRes(EventDefinition.PMACCDISTDIVERGENCE);
 		res.setCurrentDate(qU.getDate());
@@ -189,8 +189,8 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
 		this.priceSma65.calculateIndicator(quotations);
 		this.priceSma20.calculateIndicator(quotations);
 		
-		this.chaikinSma65.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations)));
-		this.chaikinSma20.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations)));
+		this.chaikinSma65.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
+		this.chaikinSma20.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
 		
 	}
 

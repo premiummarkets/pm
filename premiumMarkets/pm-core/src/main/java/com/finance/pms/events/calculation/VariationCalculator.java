@@ -39,6 +39,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
@@ -55,9 +56,12 @@ public class VariationCalculator extends EventCompostionCalculator {
 	
 	private FileWriter fos;
 	private String analysisName;
+	private Stock stock;
 
-	public VariationCalculator(Integer variationTimePeriod, Integer variationSpanDiff, String eventListName, Observer[] observers) {
+	public VariationCalculator(Stock stock, Integer variationTimePeriod, Integer variationSpanDiff, String eventListName, Observer[] observers) {
 		super(observers);
+		
+		this.stock=stock;
 		
 		this.analysisName = eventListName;
 		this.timePeriod = variationTimePeriod;

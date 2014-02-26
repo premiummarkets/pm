@@ -242,12 +242,11 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			setHighligtedId(null);
 			chartDisplayStrategy.lightResetChart();
 			
-		} 
-		
+		}
 		
 		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
 		if (viewStateParams != null) {
-			chartDisplayStrategy.highLight(getHighligtedId(),viewStateParams, grantEventsUpdate);
+			chartDisplayStrategy.highLight(getHighligtedId(), viewStateParams, grantEventsUpdate);
 		}
 
 	}

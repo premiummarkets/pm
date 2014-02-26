@@ -43,6 +43,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
@@ -65,17 +66,23 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 
 	
 	private FileWriter fos;
+
+	private Stock stock;
 	private String analysisName;
 	
 	private SMA sma;
 
-	public VarianceCalculator(Integer timePeriod, Integer devSpanDiff, Integer minValid, Integer smaPeriod, String eventListName, Observer... observers) {
+	
+
+	public VarianceCalculator(Stock stock, Integer timePeriod, Integer devSpanDiff, Integer minValid, Integer smaPeriod, String eventListName, Observer... observers) {
 		super(observers);
+		this.stock =stock;
 		this.analysisName = eventListName;
 		this.timePeriod = timePeriod;
 		this.devSpanDiff = devSpanDiff;
 		this.minValid = minValid;
 		this.sma = new SMA(smaPeriod);
+		
 		initExport();
 	}
 
@@ -145,6 +152,7 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
+		
 		FormulatRes res = new FormulatRes(EventDefinition.VARIANCE);
 		Date date = qU.getDate();
 		res.setCurrentDate(date);

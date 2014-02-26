@@ -35,8 +35,8 @@ import com.finance.pms.datasources.shares.Stock;
 
 public class CalculationQuotations extends Quotations {
 
-	public CalculationQuotations(Stock stock, Currency targetCurrency, StripedQuotations striped) {
-		super(stock, new QuotationData(striped), targetCurrency, ValidityFilter.ALL);
+	public CalculationQuotations(Stock stock, Currency targetCurrency, StripedQuotations striped, ValidityFilter quotationsValidityFiler) {
+		super(stock, new QuotationData(striped), targetCurrency, quotationsValidityFiler);
 		
 	}	
 }

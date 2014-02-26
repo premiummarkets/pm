@@ -64,8 +64,6 @@ import com.finance.pms.CustomDialog;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class MyLogger.
  * 
@@ -73,13 +71,6 @@ import com.finance.pms.SpringContext;
  */
 public class MyLogger {
 	
-	/**
-	 * Gets the logger.
-	 * 
-	 * @param clazz the clazz
-	 * 
-	 * @return the logger
-	 */
 	public static MyLogger getLogger(Class<? extends Object> clazz) {
 		return new MyLogger(Logger.getLogger(clazz));
 	}
@@ -100,8 +91,6 @@ public class MyLogger {
 	private static Semaphore semaphore;
 	
 	private static String mailActivationType;
-	
-	//public static String lastMessage = ""; 
 	public static GuiLoggerObservable lastMsg = new GuiLoggerObservable();
 	
 	public static String version = "None";
@@ -113,26 +102,31 @@ public class MyLogger {
 		MyLogger.semaphore = new Semaphore(1);
 		
 		try {
+			
 			//Init props
 			Properties props = new Properties();
 			String dbProperty = System.getProperty("dbproperties");
 			if (dbProperty == null) dbProperty = "db.properties";
 			props.load(new FileInputStream((new File(System.getProperty("installdir")+File.separator+dbProperty))));
+			
 			if (props.containsKey("mail.log.delay")) {
 				msgDelay = new Long(props.getProperty("mail.log.delay"));
 			} else {
 				msgDelay = 4000;
 			}
+			
 			if (props.containsKey("mail.log.activated")) {
 				MainPMScmd.getPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
 				MyLogger.mailActivationType = props.getProperty("mail.log.activated");  
+				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
 			} else {
 				MyLogger.mailActivationType =  MainPMScmd.getPrefs().get("mail.log.activated", "false");
+				System.out.println("Logger activation status (no 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
 			}
+			
 			if (props.containsKey("mail.log.local")) {
 				MainPMScmd.getPrefs().put("mail.log.local", props.getProperty("mail.log.local"));
 			}
-
 			if (props.containsKey("mail.username")) {
 				MainPMScmd.getPrefs().put("mail.username", props.getProperty("mail.username"));
 			}
@@ -145,7 +139,12 @@ public class MyLogger {
 			if (props.containsKey("mail.from")) {
 				MainPMScmd.getPrefs().put("mail.from", props.getProperty("mail.from"));
 			}
-			MainPMScmd.getPrefs().flush();
+			
+			try {
+				MainPMScmd.getPrefs().flush();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 		} catch (Throwable e3) {
 			e3.printStackTrace();
@@ -164,7 +163,9 @@ public class MyLogger {
 			String propsMailPassword = MainPMScmd.getPrefs().get("mail.password","nopassword"); 
 			String propsMailHost = MainPMScmd.getPrefs().get("mail.host", null);
 			boolean allConnectionFieldsAreValid = propsMailHost != null && !propsMailHost.isEmpty();
+			
 			if ( allConnectionFieldsAreValid ) {
+				
 				MyLogger.mailHost = propsMailHost;
 				MyLogger.mailUserName = propsMailUserName;
 				MyLogger.mailPassword = propsMailPassword;
@@ -220,26 +221,33 @@ public class MyLogger {
 					try {
 						transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 						transport.sendMessage(testMsg, testMsg.getAllRecipients());
-						System.out.println("Valid auths connection");
+						System.out.println("Auth Secure connection is valid");
 					} catch (Exception e) {
+						System.out.println("Auth Secure connection is Invalid");
 						mailSessionProps.put("mail.smtp.starttls.enable", "false");
 						MyLogger.session = Session.getInstance(mailSessionProps);
 						try {
 							transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 							transport.sendMessage(testMsg, testMsg.getAllRecipients());
-							System.out.println("Valid auth connection");
+							System.out.println("Auth connection is valid");
 						} catch (Exception e1) {
+							System.out.println("Auth connection is Invalid");
 							mailSessionProps.put("mail.smtp.auth", "false");
 							MyLogger.session = Session.getInstance(mailSessionProps);
 							try {
 								transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 								transport.sendMessage(testMsg, testMsg.getAllRecipients());
-								System.out.println("Valid non auth smtp connection");
+								System.out.println("Non Auth SMTP connection is valid");
 							} catch (Exception e2) {
+								System.out.println("Non Auth SMTP connection is Invalid");
 								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
 								if (MyLogger.mailActivationType.equals("true")) {
 									MainPMScmd.getPrefs().put("mail.log.activated", "failed");
-									MainPMScmd.getPrefs().flush();
+									try {
+										MainPMScmd.getPrefs().flush();
+									} catch (BackingStoreException en) {
+										en.printStackTrace();
+									}
 								}
 
 							}
@@ -248,20 +256,22 @@ public class MyLogger {
 				}
 				
 			} else {
+				
+				System.out.println("SMTP connection params are Invalid : propsMailUserName="+propsMailUserName+", propsMailPassword=xxx, propsMailHost="+propsMailHost);
 				if (MyLogger.mailActivationType.equals("true")) {
 					MainPMScmd.getPrefs().put("mail.log.activated", "failed");
-					MainPMScmd.getPrefs().flush();
+					try {
+						MainPMScmd.getPrefs().flush();
+					} catch (BackingStoreException e1) {
+						e1.printStackTrace();
+					}
 				};
-				try {
-					MainPMScmd.getPrefs().flush();
-				} catch (BackingStoreException e1) {
-					e1.printStackTrace();
-				}
+				
 			}
 
 		} catch (Throwable e) {
 			
-			System.out.println("log send failed, exception: " + e); 
+			System.out.println("Log send failed, exception: " + e); 
 			System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
 			if (MyLogger.mailActivationType.equals("true")) {
 				MainPMScmd.getPrefs().put("mail.log.activated", "failed");
@@ -746,13 +756,17 @@ public class MyLogger {
 	//forceNoTest (send only errors, no test and no popup)
 	private void sendMail(Object errorMsg, final Throwable error, final Boolean isTest) {
 		
-		final String errorStr = (null == errorMsg)?"No message available":errorMsg.toString();
-		
 		//Is active?
 		MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
-		System.out.println("Mail Settings : log activated : " + MyLogger.mailActivationType); 
+		String errorMailSetup = "Mail Settings : log activation type : " + MyLogger.mailActivationType;
+		System.out.println(errorMailSetup);
+		delegateLogger.info(errorMailSetup);
+		
+		//No sending mail
 		if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
 		
+		//Sending
+		final String errorStr = (null == errorMsg)?"No message available":errorMsg.toString();
 		Thread sendLogThread = new Thread() {
 			@Override
 			public void run() {
@@ -774,8 +788,9 @@ public class MyLogger {
 					Boolean isPopup = ("true".equals(MyLogger.mailActivationType) || "failed".equals(MyLogger.mailActivationType)) && !isTest ;
 					Boolean hasDuplicate = isTest;
 					
-					
-					if (!isSendingEmail && !isPopup) return;
+					boolean errorMailHandlingsGrants = !isSendingEmail && !isPopup;
+					delegateLogger.info("Sending mail on error grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup);
+					if (errorMailHandlingsGrants) return;
 					
 					//Msg hash
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
@@ -811,11 +826,15 @@ public class MyLogger {
 								if (isSendingEmail) doSend(bodyHashcode, isTest);
 							} else {
 								MainPMScmd.getPrefs().put("mail.log.activated", "false");
-								MainPMScmd.getPrefs().flush();
+								try {
+									MainPMScmd.getPrefs().flush();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
 
 						} catch (Throwable e) {
-							delegateLogger.error("Can't open error popup for acknowledgement.");
+							delegateLogger.error("Can't open error Popup for acknowledgement.");
 							e.printStackTrace();
 						}
 						
@@ -846,7 +865,7 @@ public class MyLogger {
 			}
 
 			private void doSend(Integer bodyHashcode, boolean isTestMail) throws IOException, MessagingException {
-
+	
 				//Email msg
 				Transport transport = MyLogger.session.getTransport("smtp"); 
 				transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
@@ -873,6 +892,7 @@ public class MyLogger {
 
 				msg.saveChanges();      // don't forget this
 
+				delegateLogger.info("Sending error mail : senderAddress="+senderAddress.getAddress()+ ", recipient="+MyLogger.mailTo+", transport="+transport.getURLName().toString());
 				transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
 				
 				transport.close();

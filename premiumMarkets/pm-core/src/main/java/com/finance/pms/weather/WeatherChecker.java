@@ -72,14 +72,13 @@ public class WeatherChecker extends EventCompostionCalculator {
 	public WeatherChecker(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Boolean persistTrainingEvents, Observer...observers) 
 			throws NotEnoughDataException {
 		
-		super(stock);
+		super(observers);
 		
 		weatherElements = WeatherDAOImpl.getInstance().getMonthlyWeatherUntil(endDate, new WeatherElementsComparator());
 		this.startDate = startDate;
 		this.endDate = endDate;
 		
 	}
-
 
 	@Override 
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
@@ -251,10 +250,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 		addEventConcat(eventValue, EventType.INFO, message);
 		
 	}
-	
-	/**
-	 * @param monthWeatherElementHistory
-	 */
+
 	private Integer calculateMeanHistory(SortedSet<WeatherElement> monthWeatherElementHistory) {
 		Integer meanMonthAvgHistory = 0, i = 0;
 		for (WeatherElement weatherElement : monthWeatherElementHistory) {
@@ -317,7 +313,7 @@ public class WeatherChecker extends EventCompostionCalculator {
 
 	@Override
 	public ValidityFilter quotationsValidity() {
-		return null;
+		return ValidityFilter.NONE;
 	}
 
 }

@@ -65,13 +65,10 @@ public class ChaikinOscillator extends TalibIndicator {
 	@Override
 	protected void initResArray(int length) {
 		chaikinOsc = new double[length];
-
 	}
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams) {
-//		fastPeriod = 3;
-//		slowPeriod = 10;
 		RetCode rc = TalibCoreService.getCore().adOsc(startIdx, endIdx, inData[2], inData[1], inData[0], inData[fastPeriod], fastPeriod, slowPeriod, outBegIdx, outNBElement, chaikinOsc);
 		return rc;
 	}
@@ -97,7 +94,7 @@ public class ChaikinOscillator extends TalibIndicator {
 
 	@Override
 	public Integer getStartShift() {
-		return 200;
+		return 100 + slowPeriod;
 	}
 
 	@Override

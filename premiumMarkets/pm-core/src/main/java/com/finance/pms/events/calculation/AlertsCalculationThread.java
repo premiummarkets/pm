@@ -83,7 +83,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		try {
 				LOGGER.debug("Analysing events for portfolio share "+portfolioShare+", starting at "+startDate);
 				
-				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser((Observer[]) observers.toArray());
+				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
 
 				try {
 					cleanEventsFor(this.eventListName, startDate, endDate, true);
@@ -91,7 +91,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 					LOGGER.error(e,e);
 				}
 
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 0, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 1, ValidityFilter.CLOSE);
 				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(quotations, this.eventListName);
 
 				for (EventValue eventValue : calculatedEventsForCalculator.values()) {
@@ -109,7 +109,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				
 		} catch (Exception e) {
 			// Oops
-			LOGGER.error("ERROR : While calculating Events for " + portfolioShare, e);
+			LOGGER.error("ERROR : While calculating Alerts for " + portfolioShare, e);
 		}
 		
 		return ret;
