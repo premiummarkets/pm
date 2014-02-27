@@ -60,9 +60,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	
 	private static final long serialVersionUID = -257553176773712060L;
 	
-	private Portfolio portfolio;
-	private String externalAccount;
-
+	
 	private Long id;
 	private Stock stock;
 	
@@ -70,6 +68,10 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	private BigDecimal quantity;
 	private BigDecimal price;
 	private Currency currency;
+	
+	private Portfolio portfolio;
+	private String externalAccount;
+
 	
 	@SuppressWarnings("unused")
 	private TransactionElement() {
@@ -87,6 +89,17 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		this.currency = currency;
 		
 		this.id = DateFactory.milliSecStamp();
+	}
+
+	public TransactionElement(TransactionElement transactionElement) {
+		this.id = transactionElement.getId();
+		this.stock = transactionElement.getStock();
+		this.date = transactionElement.getDate();
+		this.quantity = transactionElement.getQuantity();
+		this.price = transactionElement.getPrice();
+		this.currency = transactionElement.getCurrency();
+		this.portfolio = transactionElement.getPortfolio();
+		this.externalAccount = transactionElement.getExternalAccount();
 	}
 
 	@Override

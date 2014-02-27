@@ -72,7 +72,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartPerfDisplay.class);
 	
 	private Quotations refereeQuotations;
-	private boolean isShutDown = false;
+	private Boolean isShutDown;
 
 	private Button closeFunctionBut;
 	private String cmpModeToolTipRoot;
@@ -80,9 +80,16 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 	public ChartPerfDisplay(ChartsComposite chartTarget) {
 		super();
+		this.isShutDown = false;
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
 		this.chartTarget.getMainChartWraper().initMainPlot(ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
+	
+		//TODO keep object and state
+		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRelativeToStart(this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
+			
+		resetChart(true);
+		
 	}
 
 	@Override
@@ -182,7 +189,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								public void action(Control targetControl) {
 									actionDialogForm.values[0] = Boolean.valueOf(uPrice.getSelection());
 									chartTarget.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0]));
-									chartTarget.updateCharts( true, true, false);
+									chartTarget.updateCharts(false);
 								}
 							};
 
@@ -197,7 +204,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						@Override
 						public void action(Control targetControl) {
 							chartTarget.setStripedCloseFunction( new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
-							chartTarget.updateCharts( true, true, false);
+							chartTarget.updateCharts(false);
 						}
 					}),
 					new TransfoInfo("Change to Previous day (log ROC)", new ActionDialogAction() {
@@ -239,8 +246,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 									} catch (NumberFormatException e) {
 										pSmth = StripedCloseLogRoc.DEFAULTLOGROCSMTH;
 									}
-									chartTarget.setStripedCloseFunction( new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), (Boolean)actionDialogForm.values[0], pSmth) );
-									chartTarget.updateCharts( true, true, false);
+									chartTarget.setStripedCloseFunction(new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), (Boolean)actionDialogForm.values[0], pSmth) );
+									chartTarget.updateCharts(false);
 								}
 							};
 
@@ -269,7 +276,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							final String previousSymbol = symbolSplit;
 							final String previousIsin = isinSplit;
 							final Stock previousReferee = relativeToRefereeSetting(previousSymbol, previousIsin);
-							if (previousReferee != null) chartTarget.updateCharts( true, true, false);
+							if (previousReferee != null) chartTarget.updateCharts(false);
 							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
@@ -373,7 +380,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 											slidingPortfolioShare.setDisplayOnChart(false);
 										}
 									}
-									chartTarget.updateCharts(true, true, false);
+									chartTarget.updateCharts(false);
 								}
 							}
 						};
@@ -442,26 +449,16 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	}
 	
 	@Override
-	public void resetChart() {
+	public void resetChart(Boolean resetDisplayedList) {
 		
-		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
-			sShare.setDisplayOnChart(true);
+		if (resetDisplayedList) {
+			for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
+				sShare.setDisplayOnChart(true);
+			}
 		}
-		
-		//TODO keep object an state
-		chartTarget.setStripedCloseFunction(new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
-		
-		lightResetChart();
-		
-	}
-	
 
-	@Override
-	public void lightResetChart() {
-		
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
-		
 		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
 		
 	}
@@ -469,23 +466,6 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	@Override
 	public Boolean getIsApplyColor() {
 		return true;
-	}
-
-	@Override
-	public int retreivePreviousSelection() {
-		
-		if (chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
-			
-			Stock stock = chartTarget.getHightlitedEventModel().getViewParamRoot();
-			int cpt = 0;
-			for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
-				if (stock.equals(slidingPortfolioShare.getStock())) return cpt;
-				cpt++;
-			}
-		} 
-		
-		return -1;
-		
 	}
 
 	@Override
@@ -501,10 +481,6 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void shutDownDisplay() {
-
-		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
-			slidingPortfolioShare.setDisplayOnChart(false);
-		}
 		
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();

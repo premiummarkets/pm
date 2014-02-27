@@ -751,8 +751,7 @@ public class ShareListUpdateDialog extends Dialog {
 				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
 				sharesListForThisListProvider.addShares(stocksInFile);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
-			//} catch (QuotationUpdateException e) {
-				
+		
 				UserDialog inst = new UserDialog(getParent().getShell(), "The following stock were found in the file and updated", stocksInFile.toString());
 				inst.open();
 				

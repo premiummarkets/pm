@@ -487,7 +487,6 @@ public class MainGui extends SashForm implements RefreshableView {
 										public void run() {
 											try {
 												ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, evtConfig);
-												
 												Runnable runnable2 = new Runnable() {
 													public void run() {
 														setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
@@ -527,7 +526,22 @@ public class MainGui extends SashForm implements RefreshableView {
 							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
-									((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
+									try {
+										Runnable runnable2 = new Runnable() {
+											public void run() {
+												setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+											}
+										};
+										getDisplay().syncExec(runnable2);
+										((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
+									} finally {
+										Runnable runnable2 = new Runnable() {
+											public void run() {
+												setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+											}
+										};
+										getDisplay().syncExec(runnable2);
+									}
 								}
 							});
 						}

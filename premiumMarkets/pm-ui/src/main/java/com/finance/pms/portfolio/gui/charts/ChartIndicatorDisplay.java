@@ -114,7 +114,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartIndicatorDisplay.class);
 
 	protected static final String TRENDBUTTXT = "Charted Trends ...";
@@ -126,8 +125,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private PopupMenu<EventInfo> evtDefTrendPopupMenu;
 	private PopupMenu<EventInfo> evtDefChartingPopupMenu;
 	
-	
-//	private ThreadPoolExecutor updateBarChartExecutor;
 	private BarSettings barChartSettings;
 	private BarSettingsDialog barSettingsDialog;
 	
@@ -149,8 +146,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				"Use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select your calculator(s).\n" +
 				"Also check the portfolio stocks and sliding date ranges. There may be no quotations available.");
 		
-		//updateBarChartExecutor = Executors.newFixedThreadPool(5);
-		//updateBarChartExecutor = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice());
+		
+		resetChart(true);
 		
 	}
 	
@@ -625,7 +623,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 	@Override
-	public void resetChart() {
+	public void resetChart(Boolean resetDisplayedList) {
 		
 		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 			Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
@@ -635,47 +633,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				sShare.setDisplayOnChart(false);
 			}
 		}
-		chartTarget.setStripedCloseFunction(new StripedCloseRealPrice());
-
+	
 		chartTarget.getMainChartWraper().resetLineChart();
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
 		
 	}
 	
-	@Override
-	public void lightResetChart() {
-		resetChart();
-	}
-
-
 
 	@Override
 	public Boolean getIsApplyColor() {
 		return false;
 	}
-
-
-
-	@Override
-	public int retreivePreviousSelection() {
-		
-		if (chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
-			
-			Stock stock = chartTarget.getHightlitedEventModel().getViewParamRoot();
-			int cpt = 0;
-			for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
-				//if (sShare.getDisplayOnChart()){
-				if (sShare.getStock().equals(stock)) {
-					return cpt;
-				}
-				cpt ++;
-			}
-		}
-		return -1;
-		
-	}
-
 
 	@Override
 	public void exportBarChartPng() {
@@ -929,9 +898,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	@Override
 	public void shutDownDisplay() {
 		
-		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
-			slidingPortfolioShare.setDisplayOnChart(true);
-		}
+//		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
+//			slidingPortfolioShare.setDisplayOnChart(true);
+//		}
 		
 		if (evtDefChartingPopupMenu != null) evtDefChartingPopupMenu.getSelectionShell().dispose();
 		if (evtDefTrendPopupMenu != null) evtDefTrendPopupMenu.getSelectionShell().dispose();

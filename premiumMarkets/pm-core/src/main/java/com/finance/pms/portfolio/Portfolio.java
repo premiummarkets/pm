@@ -93,10 +93,13 @@ public class Portfolio extends AbstractSharesList {
 
 	public Portfolio(Portfolio portfolio) {
 		super(portfolio);
-		this.transactions = new TreeSet<TransactionElement>();
 		this.buyPonderationRule = portfolio.buyPonderationRule;
 		this.sellPonderationRule = portfolio.sellPonderationRule;
 		this.portfolioCurrency = portfolio.portfolioCurrency;
+		this.transactions = new TreeSet<TransactionElement>();
+		for (TransactionElement transactionElement : portfolio.getTransactions()) {
+			this.transactions.add(new TransactionElement(transactionElement));
+		}
 	}
 
 	public Portfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency portfolioCurrency) {
@@ -125,7 +128,6 @@ public class Portfolio extends AbstractSharesList {
 		
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, mLevel, trCurrency);
 		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {
-			//throw new InvalidQuantityException("Invalid Quantity : "+quantity+" or Invalid Buy Price : "+buyPrice+" for "+stock, new Exception());
 			shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
 		}
 		
@@ -271,15 +273,14 @@ public class Portfolio extends AbstractSharesList {
 	}
 	
 	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, MonitorLevel mLevel, Currency transactionCurrency) throws InvalidAlgorithmParameterException {
-//		if (this.portfolioCurrency != null && !this.portfolioCurrency.equals(transactionCurrency)) {
-//			throw new InvalidAlgorithmParameterException("Currency is inconsistent : Portfolio currency is " + this.portfolioCurrency + " and " + stock.getSymbol() + " is " + transactionCurrency);
-//		}
+		
 		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());
 		if (portfolioShare == null) {
 			portfolioShare = new PortfolioShare(this, stock, mLevel, transactionCurrency);
 			addShareToList(portfolioShare);
 		}
 		return portfolioShare;
+		
 	}
 
 	@Transient

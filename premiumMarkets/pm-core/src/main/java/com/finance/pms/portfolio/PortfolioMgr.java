@@ -136,6 +136,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		} else {
 			return (AbstractSharesList) this.portfolios.get(index);
 		}
+		
 	}
 	
 
@@ -159,17 +160,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		this.portfolios.remove(portfolioToRm);
 		this.portfolioDAO.delete(portfolioToRm);
 	}
-	
-	public void replacePortfolio(Portfolio oldPortfolio, Portfolio newPortfolio) throws InvalidAlgorithmParameterException {
-		int indexOf = this.portfolios.indexOf(oldPortfolio);
-		if (indexOf == -1) {
-			throw new InvalidAlgorithmParameterException("Portfolio "+oldPortfolio.getName()+" does not exists and can't be deleted.");
-		}
-		this.portfolios.set(indexOf, newPortfolio);
-		//this.portfolioDAO.delete(oldPortfolio);
-		this.portfolioDAO.saveOrUpdatePortfolio(newPortfolio);
-	}
-	
+
 	public void hibStorePortfolio() {
 		
 		for (AbstractSharesList portfolio: this.portfolios) {
@@ -276,8 +267,8 @@ public class PortfolioMgr implements ApplicationContextAware {
 	private void copyPortfolioToList(Portfolio portfolio, List<Portfolio> list) throws InstantiationError {
 		if (portfolio instanceof AutoPortfolio) {
 			list.add(new AutoPortfolio((AutoPortfolio)portfolio));
-		} else 
-		if (portfolio instanceof UserPortfolio) {
+		} 
+		else if (portfolio instanceof UserPortfolio) {
 			list.add(new UserPortfolio((UserPortfolio)portfolio));
 		}
 		else {
@@ -402,18 +393,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 			return false;
 		}
 		
-	}
-
-	public boolean hasBeenAdded(PortfolioShare portfolioShare) {
-		int indexOf = oldPortfolios.indexOf(portfolioShare.getPortfolio());
-		if (indexOf != -1) {
-			Portfolio oldPortfolio = oldPortfolios.get(indexOf);
-			PortfolioShare oldPortfolioShare = oldPortfolio.getListShares().get(portfolioShare.getStock());
-			if (oldPortfolioShare != null) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	

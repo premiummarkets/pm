@@ -119,13 +119,9 @@ public abstract class ChartDisplayStrategy {
 		return false;
 	}
 
-	public abstract void resetChart();
-	
-	public abstract void lightResetChart();
+	public abstract void resetChart(Boolean resetDisplayedList);
 
 	public abstract Boolean getIsApplyColor();
-
-	public abstract int retreivePreviousSelection();
 
 	public abstract void exportBarChartPng();
 

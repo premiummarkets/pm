@@ -179,7 +179,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 				Stock relativeToRefereeSetting = perfDisplay.relativeToRefereeSetting(newReferree.getSymbol(), newReferree.getIsin());
 				
 				if (relativeToRefereeSetting != null) {
-					((ChartsComposite)caller).updateCharts( true, true, false);
+					((ChartsComposite)caller).updateCharts(false);
 					UserDialog inst = new UserDialog(getParent().getShell(), "Added referee : "+((newReferree != null)?newReferree.getFriendlyName():"None"), null);
 					inst.open();
 				}

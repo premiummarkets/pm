@@ -32,7 +32,6 @@ package com.finance.pms.events;
 import java.io.Serializable;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum EventType.
  * 
@@ -48,54 +47,21 @@ public enum EventType implements Serializable {
 	//Mas
 	//public static final char[] eventTypes = {'b','s','n','o'}; 
 	//"b": buy signal; "s": sell signal; "n": neutral signal; "o": other
-	
-	/** The event type. */
-	private final String eventType;
-	
-	/** The event type index. */
-	private final Integer eventTypeIndex;
 
-	/** The event type char. */
+	private final String eventType;
+	private final Integer eventTypeIndex;
 	private final Character eventTypeChar;
-	
-	
-	/**
-	 * Instantiates a new event type.
-	 * 
-	 * @param arg0 the arg0
-	 * @param arg1 the arg1
-	 * @param arg2 the arg2
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	private EventType(String arg0,Integer arg1,Character arg2) {
 		eventType=arg0;
 		eventTypeIndex=arg1;
 		eventTypeChar=arg2;
 	}
-	
-	/**
-	 * Value of.
-	 * 
-	 * @param ordinal the ordinal
-	 * 
-	 * @return the event type
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static EventType valueOf(Integer ordinal){
 		return EventType.values()[ordinal];
 	}
-	
-	/**
-	 * Value of.
-	 * 
-	 * @param et the et
-	 * 
-	 * @return the event type
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static EventType valueOf(Character et) {
 		et = Character.toLowerCase(et);
 		EventType eValues[] = EventType.values();
@@ -106,24 +72,13 @@ public enum EventType implements Serializable {
 		throw new IllegalArgumentException("No enum const EventType." + et);
 	}
 
-	/**
-	 * Gets the event type.
-	 * 
-	 * @return the event type
-	 */
 	public String getEventType() {
 		return eventType;
 	}
 
-	/**
-	 * Gets the event type char.
-	 * 
-	 * @return the event type char
-	 */
 	public Character getEventTypeChar() {
 		return eventTypeChar;
 	}
-	
 	
 	public Integer getEventTypeIndex() {
 		return eventTypeIndex;

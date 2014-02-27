@@ -106,7 +106,6 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	private List<SymbolEvents> loadEventsForCalculation(Date currentDate, String... eventListName) {
 		
-		//Date dateStart = IndicatorCalculationServiceMain.getDateMoinsNJours(currentDate,((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBackwardDaySpan());
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(currentDate);
 		Calendar nDaysAgoAtCurrentDate = QuotationsFactories.getFactory().incrementDate(calendar, -((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBackwardDaySpan());

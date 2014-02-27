@@ -59,7 +59,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PortfolioDAOImpl.class);  
 	
-	private SharesList unknownSharelIstCache;
+	private SharesList unknownShareListCache;
 
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
@@ -146,10 +146,10 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		String upperShareListName = shareListName.toUpperCase();
 		
 		if (shareListName.equalsIgnoreCase(SharesListId.UNKNOWN.getSharesListCmdParam())) {
-			if (unknownSharelIstCache == null) {
-				unknownSharelIstCache = (SharesList)this.getHibernateTemplate().get(SharesList.class, upperShareListName);
+			if (unknownShareListCache == null) {
+				unknownShareListCache = (SharesList)this.getHibernateTemplate().get(SharesList.class, upperShareListName);
 			}
-			return unknownSharelIstCache;
+			return unknownShareListCache;
 		}
 	
 		SharesList shareList= (SharesList)this.getHibernateTemplate().get(SharesList.class, upperShareListName);
@@ -207,7 +207,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 	
 	public void close() {
-		if (unknownSharelIstCache != null) saveOrUpdatePortfolio(unknownSharelIstCache);
+		if (unknownShareListCache != null) saveOrUpdatePortfolio(unknownShareListCache);
 	}
 
 	@Override

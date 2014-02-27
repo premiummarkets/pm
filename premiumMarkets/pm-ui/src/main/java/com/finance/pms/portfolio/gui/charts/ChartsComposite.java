@@ -181,7 +181,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.stripedCloseFunction = new StripedCloseRelativeToStart(slidingStartDate, slidingEndDate);
 		this.initGUI();
 		chartDisplayStrategy = new ChartPerfDisplay(this);
-		chartDisplayStrategy.resetChart();
 		
 	}
 
@@ -200,14 +199,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 		getHightlitedEventModel().resetOtherViewParams();
 		setHighligtedId(null);
-		chartDisplayStrategy.resetChart();
+		chartDisplayStrategy.resetChart(true);
 		
 	}
 	
-	public void updateChartsWith(List<SlidingPortfolioShare> listShares, Boolean isSamePortfolio, Boolean hasChanged) {
+	public void updateChartsWith(List<SlidingPortfolioShare> listShares) {
 		
 		this.currentTabShareList = listShares;
-		updateCharts(isSamePortfolio, hasChanged, false);
+		updateCharts(false);
 		
 	}
 	
@@ -215,34 +214,20 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
-	void updateCharts(Boolean isSamePortfolio, Boolean portfolioHasChanged, Boolean grantEventsUpdate) {
+	void updateCharts(Boolean grantEventsUpdate) {
 		
 		stripedCloseFunction.updateStartDate(slidingStartDate);
 		stripedCloseFunction.updateEndDate(slidingEndDate);
 		
-		if (isSamePortfolio) {
-			
-			if (portfolioHasChanged) {
-				
-				int previousSelection = chartDisplayStrategy.retreivePreviousSelection();
-				if (previousSelection != -1) {
-					getHightlitedEventModel().setViewParamRoot(getCurrentTabShareList().get(previousSelection).getStock());
-					setHighligtedId(previousSelection);
-				} else {
-					getHightlitedEventModel().resetOtherViewParams();
-					setHighligtedId(null);
-				}
-				chartDisplayStrategy.lightResetChart();
-				
-			} 
-			
+		int previousSelection = retreivePreviousSelection();
+		if (previousSelection != -1) {
+			getHightlitedEventModel().setViewParamRoot(getCurrentTabShareList().get(previousSelection).getStock());
+			setHighligtedId(previousSelection);
 		} else {
-			
 			getHightlitedEventModel().resetOtherViewParams();
 			setHighligtedId(null);
-			chartDisplayStrategy.lightResetChart();
-			
 		}
+		chartDisplayStrategy.resetChart(false);
 		
 		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
 		if (viewStateParams != null) {
@@ -252,6 +237,11 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 	
 	
+	private Integer retreivePreviousSelection() {
+		return portfolioComposite.getCurrentShareSelectionIdx();
+	}
+
+
 	private void initGUI() {
 		try {
 			
@@ -1097,7 +1087,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		if (sliderSelection) {
 			synchronized (sliderEndDate) {
 				sliderSelection = false;
-				updateCharts(true, true, true);
+				updateCharts(true);
 				portfolioComposite.slidingDateChange();
 			}
 		}
@@ -1159,14 +1149,20 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
+	void setStripedCloseFunction(ChartDisplayStrategy chartDisplayStrategy, StripedCloseFunction stripedCloseFunction) {
+		
+		this.stripedCloseFunction = stripedCloseFunction;
+		updateButtonsToolTips(chartDisplayStrategy);
+	}
+	
 	public void setStripedCloseFunction(StripedCloseFunction stripedCloseFunction) {
 		
 		this.stripedCloseFunction = stripedCloseFunction;
-		updateButtonsToolTips();
+		updateButtonsToolTips(this.chartDisplayStrategy);
 	}
 
 
-	private void updateButtonsToolTips() {
+	private void updateButtonsToolTips(ChartDisplayStrategy chartDisplayStrategy) {
 		chartDisplayStrategy.updateButtonsToolTips();		
 	}
 
@@ -1174,16 +1170,15 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public void setChartDisplayStrategy(ChartDisplayStrategy chartDisplayStrategy) {
 		
 		this.chartDisplayStrategy = chartDisplayStrategy;
-		this.chartDisplayStrategy.resetChart();
-		
+	
 		//XXX XXX
 		if (MainGui.viewEventsMenuItem.getSelection()) {
 			MainGui.viewEventsMenuItem.setSelection(false);
 			Listener[] listeners = MainGui.viewEventsMenuItem.getListeners(SWT.Selection);
 			((SelectionListener)((TypedListener)listeners[0]).getEventListener()).widgetSelected(null);
-			updateCharts(true, false, true);
+			updateCharts(true);
 		} else {
-			updateCharts(true, false, true);
+			updateCharts(true);
 		}
 
 	}
