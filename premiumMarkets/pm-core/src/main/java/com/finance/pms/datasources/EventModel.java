@@ -167,11 +167,11 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 
 	public static Date DEFAULT_DATE;
 	static {
-		DEFAULT_DATE = new Date();
+		DEFAULT_DATE = new Date(0);
 		try {
 			DEFAULT_DATE = new SimpleDateFormat("yyyy/MM/dd").parse("1970/01/01");
 		} catch (ParseException e1) {
-			LOGGER.error("Shouldn't be here",e1);
+			LOGGER.error("Shouldn't be here", e1);
 		}
 	}
 	

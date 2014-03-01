@@ -78,7 +78,7 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 			public void run() {
 				try {
 					String url = httpSource.getMonthHistory(date); 
-					LOGGER.debug("Url : "+url);
+					LOGGER.info("Weather Url : "+url);
 					weathers.addAll(httpSource.readURL(new WeatherFormater(url,date)));
 				} catch (HttpException e) {
 					LOGGER.error("",e);
@@ -161,13 +161,14 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 
 	public List<WeatherElement> scrape(Date startDate, Date endDate) throws InterruptedException {
 		
+		LOGGER.info("Fetching Weather infos from "+startDate+" to "+endDate);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(startDate);
 		
 		List<WeatherElement> weatherElements = new ArrayList<WeatherElement>();
 		
 		for (; calendar.getTime().compareTo(endDate) <= 0; calendar.add(Calendar.MONTH, 1)) {
-			weatherElements.addAll(this.getWeather(calendar.getTime()));
+			weatherElements.addAll(getWeather(calendar.getTime()));
 		}
 		return weatherElements;
 	}
