@@ -34,7 +34,6 @@ import java.io.InputStream;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BaseCheckPanelDescriptor.
  * 

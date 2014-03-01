@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -82,17 +83,30 @@ public class DbInstaller extends Observable {
 	public void extractDB(URL urlfrom, String dbZipFileName, File folderTo) throws NoPreparedDbException {
 		//extract db
 		System.out.println("Extract db : "+ dbZipFileName +" to "+ folderTo + " and alternatively from "+ urlfrom);
+	
+		fis = this.getClass().getClassLoader().getResourceAsStream(dbZipFileName);
+		
 		try {
-			fis = this.getClass().getClassLoader().getResourceAsStream(dbZipFileName);
 			if (null == fis) {
 				System.out.println("No Data base found in package. Will download.");
 				fis = downloadDb(urlfrom, dbZipFileName);
 			} else {
 				System.out.println("Data base found in package.");
 			}
-			
-			fis.read(new byte[2]); //Reads the BZ odd bytes
-			CBZip2InputStream bzipIS = new CBZip2InputStream(fis);
+		} catch (Exception e1) {
+			System.out.println("Error reading for remote db copy.");
+			e1.printStackTrace();
+		}
+		uncompressBzip2(fis, folderTo);
+		System.out.println("Extract db. Done!");
+	}
+
+	protected void uncompressBzip2(InputStream bzip2FileIS, File folderTo) {
+
+		try {
+
+			bzip2FileIS.read(new byte[2]); //Reads the BZ odd bytes
+			CBZip2InputStream bzipIS = new CBZip2InputStream(bzip2FileIS);
 			TarInputStream tis = new TarInputStream(bzipIS);
 			TarEntry tarEntry = tis.getNextEntry();
 
@@ -107,7 +121,7 @@ public class DbInstaller extends Observable {
 					}
 				}
 				if (!tarEntry.isDirectory()) {
-					
+
 					if (!destPath.getParentFile().exists()) {
 						System.out.println("Creating directory " + destPath.getParent());
 						destPath.getParentFile().mkdirs();
@@ -115,19 +129,21 @@ public class DbInstaller extends Observable {
 					FileOutputStream fout = new FileOutputStream(destPath);
 					tis.copyEntryContents(fout);
 					fout.close();
-					
+
 					this.setChanged();
 					this.notifyObservers("extracting "+destPath.getAbsolutePath());
-					
+
 				} else {
-					
+
 					System.out.println("Creating directory " + destPath.getAbsoluteFile());
 					destPath.mkdirs();
-					
+
 				}
 				tarEntry = tis.getNextEntry();
 			}
+
 			tis.close();
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -136,7 +152,7 @@ public class DbInstaller extends Observable {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		System.out.println("Extract db. Done!");
+
 	}
 	
 	
@@ -362,7 +378,28 @@ public class DbInstaller extends Observable {
 		String installPath = piggyMarketSqueakFolder.getAbsolutePath()+File.separator;
 		
 		File datDir = new File(installPath+extractDirName);
-		File [] lsdat = datDir.listFiles(new FileFilter() {
+		
+		//Potential compressed
+		File [] bzip2Files = datDir.listFiles(new FileFilter() {
+
+			public boolean accept(File pathname) {
+				String fname = pathname.getName();
+				return fname.endsWith(".bz2");
+			}
+			
+		});
+		for (File bz2File : bzip2Files) {
+			try {
+				InputStream bzip2FileIS = new FileInputStream(bz2File);
+				uncompressBzip2(bzip2FileIS, datDir.getAbsoluteFile());
+			} catch (FileNotFoundException e) {
+				System.out.println("Well I couldn't find the file : " + bz2File.getAbsolutePath() + ". Also I could list it in " + datDir.getAbsoluteFile() + " as a .bz2 compressed file");
+				e.printStackTrace();
+			}
+		}
+		
+		//Import .dat s
+		File [] datFiles = datDir.listFiles(new FileFilter() {
 
 			public boolean accept(File pathname) {
 				String fname = pathname.getName();
@@ -371,32 +408,32 @@ public class DbInstaller extends Observable {
 			
 		});
 		
-		for (int i = 0; i < lsdat.length; i++) {
+		for (int i = 0; i < datFiles.length; i++) {
 			
 			try {
 				
-				String name = lsdat[i].getName();
+				String name = datFiles[i].getName();
 				String fnNoExt = name.substring(0,name.length()-4);
 				
-				System.out.println(new Date() + " : Processing "+lsdat[i].getAbsolutePath());
+				System.out.println(new Date() + " : Processing "+datFiles[i].getAbsolutePath());
 				
 				PreparedStatement psQuotation = connection.prepareStatement("CALL SYSCS_UTIL.SYSCS_IMPORT_TABLE (?,?,?,?,?,?,?)");
 				psQuotation.setString(1, null);
 				psQuotation.setString(2, fnNoExt.toUpperCase());
-				psQuotation.setString(3, lsdat[i].getAbsolutePath());
+				psQuotation.setString(3, datFiles[i].getAbsolutePath());
 				psQuotation.setString(4, null);
 				psQuotation.setString(5, null);
 				psQuotation.setString(6, null);
 				psQuotation.setString(7, "1");
 				
 				psQuotation.execute();
-				System.out.println(new Date() + " : "+lsdat[i].getAbsolutePath() +". Done!");
+				System.out.println(new Date() + " : "+datFiles[i].getAbsolutePath() +". Done!");
 				
 				this.setChanged();
 				this.notifyObservers("setting Quotations data");
 				
 			} catch (Exception e) {
-				System.out.println("Error importing "+lsdat[i].getAbsolutePath());
+				System.out.println("Error importing "+datFiles[i].getAbsolutePath());
 				e.printStackTrace();
 			}
 		}
