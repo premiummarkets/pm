@@ -47,28 +47,23 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.AutoCompletePopupMenu;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.UserDialog;
@@ -101,9 +96,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	private Composite listCmp;
 	private Table symbolTable;
 
-	
 	private CCombo moniCombo;
-//	private Text quantityText;
 
 	protected StockList stockList;
 	protected Composite ctrlComposite;
@@ -173,135 +166,155 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			autocompleteGroup.setBackground(MainGui.pOPUP_GRP);
 			autocompleteGroup.setFont(biggerFont);
 			autocompleteGroup.setText("Find a share");
-			autocompleteGroup.setToolTipText("Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
+			String toolTiptxt = "Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu";
+			autocompleteGroup.setToolTipText(toolTiptxt);
 			
-			
-			final Text text = new Text(autocompleteGroup, SWT.SINGLE | SWT.BORDER);
-			text.setLayoutData(new GridData(SWT.FILL,SWT.TOP, true, false));
-			
-			text.setToolTipText("Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
-			text.setFont(MainGui.CONTENTFONT);
+//			final Text text = new Text(autocompleteGroup, SWT.SINGLE | SWT.BORDER);
+//			text.setLayoutData(new GridData(SWT.FILL,SWT.TOP, true, false));
+//			text.setToolTipText(toolTiptxt);
+//			text.setFont(MainGui.CONTENTFONT);
+//			{
+//				final Shell popupShell = new Shell(getShell(), SWT.ON_TOP);
+//				getShell().addListener(SWT.Traverse, new Listener() {
+//					public void handleEvent(Event event) {
+//						switch (event.detail) {
+//						case SWT.TRAVERSE_ESCAPE:
+//							event.detail = SWT.TRAVERSE_NONE;
+//							event.doit = false;
+//							break;
+//						}
+//					}
+//				});
+//				getShell().addShellListener(new ShellAdapter() {
+//					@Override
+//					public void shellClosed(ShellEvent evt) {
+//						if (!popupShell.isDisposed()) popupShell.dispose();
+//					}
+//				});
+//				popupShell.setLayout(new FillLayout());
+//				final Table table = new Table(popupShell, SWT.SINGLE);
+//				table.setFont(MainGui.CONTENTFONT);
+//				
+//				text.addListener(SWT.KeyDown, new Listener() {
+//					public void handleEvent(Event event) {
+//						switch (event.keyCode) {
+//							case SWT.ARROW_DOWN:
+//								if (popupShell.isVisible() && table.getItemCount() != 0) {
+//									int index = (table.getSelectionIndex() + 1) % table.getItemCount();
+//									table.setSelection(index);
+//									event.doit = false;
+//								}
+//								break;
+//							case SWT.ARROW_UP:
+//								if (popupShell.isVisible() && table.getItemCount() != 0) {
+//									int index = table.getSelectionIndex() - 1;
+//									if (index < 0) index = table.getItemCount() - 1;
+//									table.setSelection(index);
+//									event.doit = false;
+//								}
+//								break;
+//							case SWT.CR:
+//								if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
+//									text.setText(table.getSelection()[0].getText());
+//									popupShell.setVisible(false);
+//								}
+//								break;
+//							case SWT.ESC:
+//								popupShell.setVisible(false);
+//								break;
+//						}
+//					}
+//				});
+//				text.addListener(SWT.Modify, new Listener() {
+//					public void handleEvent(Event event) {
+//						final String string = text.getText();
+//						if (string.length() == 0) {
+//							popupShell.setVisible(false);
+//						} else {
+//							List<Stock> likeShares = DataSource.getInstance().getShareDAO().loadSharesLike(string, 50);
+//							
+//							TableItem[] items = table.getItems();
+//							for (int i = 0; i < likeShares.size(); i++) {
+//								if(i < items.length) {
+//									items[i].setText(likeShares.get(i).getFriendlyName());
+//								} else {
+//									TableItem tableItem = new TableItem(table, SWT.NONE);
+//									tableItem.setText(likeShares.get(i).getFriendlyName());
+//								}
+//							}
+//							table.remove(likeShares.size(), table.getItems().length-1);
+//							
+//							if (table.getItems().length > 0) {
+//								table.select(0);
+//							}
+//							
+//							Rectangle textBounds = getDisplay().map(autocompleteGroup, null, text.getBounds());
+//							popupShell.setBounds(textBounds.x, textBounds.y + textBounds.height, textBounds.width, 150);
+//							popupShell.setVisible(true);
+//						}
+//					}
+//				});
+//
+//				table.addListener(SWT.DefaultSelection, new Listener() {
+//					public void handleEvent(Event event) {
+//						text.setText(table.getSelection()[0].getText());
+//						popupShell.setVisible(false);
+//					}
+//				});
+//				table.addListener(SWT.KeyDown, new Listener() {
+//					public void handleEvent(Event event) {
+//						if (event.keyCode == SWT.ESC) {
+//							popupShell.setVisible(false);
+//						}
+//					}
+//				});
+//
+//				Listener focusOutListener = new Listener() {
+//					public void handleEvent(Event event) {
+//						/* async is needed to wait until focus reaches its new Control */
+//						getDisplay().asyncExec(new Runnable() {
+//							public void run() {
+//								if (popupShell.isDisposed() || getDisplay().isDisposed()) return;
+//								Control control = getDisplay().getFocusControl();
+//								if (control == null || (control != text && control != table) && control != popupShell) {
+//									popupShell.setVisible(false);
+//								}
+//							}
+//						});
+//					}
+//				};
+//				table.addListener(SWT.FocusOut, focusOutListener);
+//				text.addListener(SWT.FocusOut, focusOutListener);
+//
+//				getShell().addListener(SWT.Move, new Listener() {
+//					public void handleEvent(Event event) {
+//						popupShell.setVisible(false);
+//					}
+//				});
+//			}
+		
 			{
-				final Shell popupShell = new Shell(getShell(), SWT.ON_TOP);
-				getShell().addListener(SWT.Traverse, new Listener() {
-					public void handleEvent(Event event) {
-						switch (event.detail) {
-						case SWT.TRAVERSE_ESCAPE:
-							event.detail = SWT.TRAVERSE_NONE;
-							event.doit = false;
-							break;
-						}
-					}
-				});
-				getShell().addShellListener(new ShellAdapter() {
-					@Override
-					public void shellClosed(ShellEvent evt) {
-						if (!popupShell.isDisposed()) popupShell.dispose();
-					}
-				});
-				popupShell.setLayout(new FillLayout());
-				final Table table = new Table(popupShell, SWT.SINGLE);
-				table.setFont(MainGui.CONTENTFONT);
+				Text textBox = new Text(autocompleteGroup, SWT.SINGLE | SWT.BORDER);
+				textBox.setLayoutData(new GridData(SWT.FILL,SWT.TOP, true, false));
+				textBox.setToolTipText(toolTiptxt);
+				textBox.setFont(MainGui.CONTENTFONT);
 				
-				text.addListener(SWT.KeyDown, new Listener() {
-					public void handleEvent(Event event) {
-						switch (event.keyCode) {
-							case SWT.ARROW_DOWN:
-								if (popupShell.isVisible() && table.getItemCount() != 0) {
-									int index = (table.getSelectionIndex() + 1) % table.getItemCount();
-									table.setSelection(index);
-									event.doit = false;
-								}
-								break;
-							case SWT.ARROW_UP:
-								if (popupShell.isVisible() && table.getItemCount() != 0) {
-									int index = table.getSelectionIndex() - 1;
-									if (index < 0) index = table.getItemCount() - 1;
-									table.setSelection(index);
-									event.doit = false;
-								}
-								break;
-							case SWT.CR:
-								if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
-									text.setText(table.getSelection()[0].getText());
-									popupShell.setVisible(false);
-								}
-								break;
-							case SWT.ESC:
-								popupShell.setVisible(false);
-								break;
-						}
-					}
-				});
-				text.addListener(SWT.Modify, new Listener() {
-					public void handleEvent(Event event) {
-						final String string = text.getText();
-						if (string.length() == 0) {
-							popupShell.setVisible(false);
-						} else {
-							List<Stock> likeShares = DataSource.getInstance().getShareDAO().loadSharesLike(string, 50);
-							
-							TableItem[] items = table.getItems();
-							for (int i = 0; i < likeShares.size(); i++) {
-								if(i < items.length) {
-									items[i].setText(likeShares.get(i).getFriendlyName());
-								} else {
-									TableItem tableItem = new TableItem(table, SWT.NONE);
-									tableItem.setText(likeShares.get(i).getFriendlyName());
-								}
-							}
-							table.remove(likeShares.size(), table.getItems().length-1);
-							
-							if (table.getItems().length > 0) {
-								table.select(0);
-							}
-							
-							Rectangle textBounds = getDisplay().map(autocompleteGroup, null, text.getBounds());
-							popupShell.setBounds(textBounds.x, textBounds.y + textBounds.height, textBounds.width, 150);
-							popupShell.setVisible(true);
-						}
-					}
-				});
+				final AutoCompletePopupMenu<Stock> autoCompletePopupMenu = new AutoCompletePopupMenu<Stock>(getShell(), autocompleteGroup, textBox) {
 
-				table.addListener(SWT.DefaultSelection, new Listener() {
-					public void handleEvent(Event event) {
-						text.setText(table.getSelection()[0].getText());
-						popupShell.setVisible(false);
+					@Override
+					public String transalateALike(Stock alike) {
+						return alike.getFriendlyName();
 					}
-				});
-				table.addListener(SWT.KeyDown, new Listener() {
-					public void handleEvent(Event event) {
-						if (event.keyCode == SWT.ESC) {
-							popupShell.setVisible(false);
-						}
-					}
-				});
 
-				Listener focusOutListener = new Listener() {
-					public void handleEvent(Event event) {
-						/* async is needed to wait until focus reaches its new Control */
-						getDisplay().asyncExec(new Runnable() {
-							public void run() {
-								if (popupShell.isDisposed() || getDisplay().isDisposed()) return;
-								Control control = getDisplay().getFocusControl();
-								if (control == null || (control != text && control != table) && control != popupShell) {
-									popupShell.setVisible(false);
-								}
-							}
-						});
+					@Override
+					public List<Stock> loadAlikes(String typedInString) {
+						List<Stock> alikes = DataSource.getInstance().getShareDAO().loadSharesLike(typedInString, 50);
+						return alikes;
 					}
+					
 				};
-				table.addListener(SWT.FocusOut, focusOutListener);
-				text.addListener(SWT.FocusOut, focusOutListener);
-
-				getShell().addListener(SWT.Move, new Listener() {
-					public void handleEvent(Event event) {
-						popupShell.setVisible(false);
-					}
-				});
-			}
-
-			{
+				autoCompletePopupMenu.initPopupMenu();
+				
 				Button autoCompletAddBut = new Button(autocompleteGroup, SWT.PUSH);
 				autoCompletAddBut.setLayoutData(new GridData(SWT.END,SWT.TOP,false,false));
 
@@ -311,7 +324,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				autoCompletAddBut.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-						addSearchSelection(text);
+						addSearchSelection(autoCompletePopupMenu.getTextBox());
 					}
 
 				});

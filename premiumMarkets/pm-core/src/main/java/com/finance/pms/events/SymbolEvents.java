@@ -96,14 +96,7 @@ public class SymbolEvents implements Serializable {
 		}
 		this.eventsState = state;
 	}
-	
-	/**
-	 * Instantiates a new symbol events.
-	 * 
-	 * @param stock the stock
-	 * @param eState the e state
-	 * @author Guillaume Thoreton
-	 */
+
 	public SymbolEvents(Stock stock,EventState eState) {
 		this.stock = stock;
 		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
@@ -125,11 +118,6 @@ public class SymbolEvents implements Serializable {
 		
 	}
 
-	/**
-	 * Gets the datat result list.
-	 * 
-	 * @return the datat result list
-	 */
 	public SortedMap<EventKey, EventValue> getDataResultMap() {
 		return dataResultMap;
 	}
@@ -159,41 +147,19 @@ public class SymbolEvents implements Serializable {
 		Collections.sort(sortedList,comparator);
 		return sortedList;
 	}
-	
-	/**
-	 * Gets the symbol.
-	 * 
-	 * @return the symbol
-	 */
+
 	public String getSymbol() {
 		return this.stock.getSymbol();
 	}
-	
-	/**
-	 * Gets the isin.
-	 * 
-	 * @return the isin
-	 */
+
 	public String getIsin() {
 		return this.stock.getIsin();
 	}
-	
-	/**
-	 * Gets the event def list.
-	 * 
-	 * @return the event def list
-	 */
+
 	public Set<String> getEventDefList() {
 		return eventDefList;
 	}
-	
-	/**
-	 * Gets the weight.
-	 * 
-	 * @param ponderationRule the pr
-	 * 
-	 * @return the weight
-	 */
+
 	public float getWeight(PonderationRule ponderationRule) {
 			return ponderationRule.finalWeight(this);
 	}

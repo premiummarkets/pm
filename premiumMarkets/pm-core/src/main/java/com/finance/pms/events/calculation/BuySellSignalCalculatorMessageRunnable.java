@@ -48,8 +48,7 @@ import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.portfolio.AutoPortfolioLogAnalyser;
+import com.finance.pms.portfolio.AutoPortfolioAnalyser;
 import com.finance.pms.portfolio.AutoPortfolioWays;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.TransactionHistory;
@@ -93,11 +92,12 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), message.getAdditionalEventListNames());
 				sendTransactionHistory(calculationTransactions);
 				
-				QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+				//QuotationsFactories.getFactory().incrementDate(currentDate, 1);
+				currentDate.add(Calendar.DAY_OF_YEAR, 1);
 				
 			}
 			
-			AutoPortfolioLogAnalyser logAnalyser = new AutoPortfolioLogAnalyser(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + portfolio.getName()+"_Log.csv", ",");
+			AutoPortfolioAnalyser logAnalyser = new AutoPortfolioAnalyser(portfolio);
 			String logAnalysisMsg = logAnalyser.message();
 			if (!logAnalysisMsg.isEmpty()) sendTransactionSummary(portfolio, logAnalysisMsg);
 			

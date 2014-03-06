@@ -94,12 +94,13 @@ public abstract class SymbolNameResolver {
 	public abstract String resolveClueFromExtension(String extension);
 	
 	public String getFullSymbol(String symbol, String extensionClue) throws InvalidAlgorithmParameterException {
+		
 		String newSymbol;
 
 		if (symbol == null || symbol.equals(Stock.MISSINGCODE)) {
 			//LOGGER.error("ERROR : don't want to set a null symbol, find somthing else :).");
 			//throw new InvalidAlgorithmParameterException("ERROR : don't want to set a null symbol, find somthing :).",new Throwable());
-			LOGGER.debug("Warning : don't want to set a null symbol, can't you find somthing else :).");
+			LOGGER.debug("Warning : don't want to set a null symbol, can't you find something else :).");
 			return null;
 		}
 
@@ -115,11 +116,12 @@ public abstract class SymbolNameResolver {
 		String dotSuffixe = ("".equals(extension))?"":"." + this.resolveExtensionFromClue(extensionClue);
 
 		if ((symbol.contains("."))) {
-			if (!symbol.substring(symbol.length()-dotSuffixe.length(), symbol.length()).equals(dotSuffixe)) {
+			String symbolDotSuffix = symbol.substring(symbol.indexOf("."), symbol.length());
+			if (!symbolDotSuffix.equals(dotSuffixe)) {
 				LOGGER.warn("WARN : Invalid match between symbol :" + symbol
-						+ " suffixe - extension Clue :" + dotSuffixe+" - "+extensionClue
+						+ " suffix - extension Clue :" + dotSuffixe+" - "+extensionClue
 						+ " while setting symbol");
-				newSymbol = symbol.substring(0, symbol.length()-dotSuffixe.length()) + dotSuffixe;
+				newSymbol = symbol.substring(0, symbol.indexOf(".")) + dotSuffixe;
 			} else {
 				newSymbol = symbol;
 			}

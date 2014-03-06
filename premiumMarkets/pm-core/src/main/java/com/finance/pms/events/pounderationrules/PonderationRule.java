@@ -72,7 +72,7 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 			if (isAddingUp != -1) {
 				isAddingUp = this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
 			} else {
-				//check remaining alerts as all alerts must be checked and prevail
+				//Check remaining alerts as all alerts must be checked and prevail
 				if (isNonCumulativeEvent(sortedEventMap.get(eventKey))) this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
 			}
 			
@@ -138,18 +138,7 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 
 	protected abstract Signal initSignal(SymbolEvents symbolEvents);
 
-	/**
-	 * Compare cal.
-	 * 
-	 * @param se1 the se1
-	 * @param se2 the se2
-	 * @param p1 the p1
-	 * @param p2 the p2
-	 * 
-	 * @return the int
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	protected int compareCal(SymbolEvents se1, SymbolEvents se2, PonderationRule p1, PonderationRule p2) {
 		int retour;
 		//inverse order (for data base access purpose??)

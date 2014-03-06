@@ -39,7 +39,6 @@ import javax.jms.Queue;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class InnerQueue.
  * 
@@ -48,8 +47,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 public class InnerQueue implements Queue {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(InnerQueue.class);
-	
-	/** The my queue. */
+
 	private ConcurrentLinkedQueue<Message> myQueue;
 	private int myQueueSize;
 	private Map<Integer,IdentifiedObjecMessage> inProcessQueue;
@@ -61,14 +59,7 @@ public class InnerQueue implements Queue {
 		myQueueSize = 0;
 		this.inProcessQueue = new ConcurrentHashMap<Integer,IdentifiedObjecMessage>();
 	}
-	
-	/**
-	 * Adds the message.
-	 * 
-	 * @param myMessage the my message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void addMessage(Message myMessage) {
 		synchronized (myQueue) {
 			 myQueueSize++;
@@ -76,13 +67,6 @@ public class InnerQueue implements Queue {
 		}
 	}
 
-	/**
-	 * Checks if is empty.
-	 * 
-	 * @return the boolean
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public Boolean isEmpty() {
 		synchronized (myQueue) {
 			return myQueueSize == 0;
@@ -95,14 +79,7 @@ public class InnerQueue implements Queue {
 		}
 		
 	}
-	
-	/**
-	 * Next message.
-	 * 
-	 * @return the inner message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public Message nextMessage() {
 		
 		Message nextMess;
@@ -116,14 +93,7 @@ public class InnerQueue implements Queue {
 		
 		return nextMess;
 	}
-	
-	/**
-	 * Removes the message.
-	 * 
-	 * @return the inner message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void removeMessage(Message identifiedObjecMessage) {
 		synchronized (myQueue) {
 			inProcessQueue.remove(((IdentifiedObjecMessage)identifiedObjecMessage).getMessageKey());
@@ -136,7 +106,6 @@ public class InnerQueue implements Queue {
 	}
 	
 	public Integer size() {
-		//return myQueue.size();
 		synchronized (myQueue) {
 			return myQueueSize;
 		}

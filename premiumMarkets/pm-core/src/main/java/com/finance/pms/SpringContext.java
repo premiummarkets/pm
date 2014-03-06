@@ -118,13 +118,6 @@ public class SpringContext extends GenericApplicationContext {
      
 	}
 	
-	/**
-	 * Load beans.
-	 * 
-	 * @param args the args
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void loadBeans(String ...args) {
 	
         XmlBeanDefinitionReader xmlReader = new XmlBeanDefinitionReader(this);
@@ -133,11 +126,7 @@ public class SpringContext extends GenericApplicationContext {
         }
 		
 	}
-	
-	/**
-	 * @param ctx
-	 * @param args
-	 */
+
 	public void standardInit(String[] args) {
 		ArrayList<String> springconf = new ArrayList<String>(Arrays.asList(new String[] { "/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml"}));
 		loadBeans(springconf.toArray(new String[0]));

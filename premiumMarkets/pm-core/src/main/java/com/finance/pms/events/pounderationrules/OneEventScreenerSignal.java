@@ -62,14 +62,14 @@ public abstract class OneEventScreenerSignal extends LatestEventsSignal {
 	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		
 		if (isFilteredEvent(eventValue)) {
-			//Bearish Neural
+			//Bearish event occurred
 			if (getTriggeringEventDef().equals(eventValue.getEventDef()) &&  eventValue.getEventType().equals(EventType.BEARISH) && portfolio.getListShares().containsKey(this.stock)) { 
 				listTriggeringEvent(eventValue, EventType.BEARISH, getTriggeringEventDef());
 				this.signalWeight = ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold();
 				return -1;
 			} 
 			
-			//Bullish Neural
+			//Bullish event occurred
 			if (getTriggeringEventDef().equals(eventValue.getEventDef()) &&  eventValue.getEventType().equals(EventType.BULLISH)){
 				listTriggeringEvent(eventValue, EventType.BULLISH, getTriggeringEventDef());
 				//Ok now we also need a share in top screener to buy ie screener with type none.

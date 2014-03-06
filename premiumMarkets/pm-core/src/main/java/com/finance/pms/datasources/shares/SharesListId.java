@@ -81,7 +81,6 @@ public enum SharesListId {
 	UNKNOWN ("unknown",ProvidersTypes.NONE,"No comment","No market", false, new String[0]);
 
 
-
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);
 
 	private String sharesListCmdParam;
@@ -93,16 +92,6 @@ public enum SharesListId {
 	
 	private String[] options;
 
-
-	/**
-	 * Instantiates a new market list providers.
-	 * 
-	 * @param market the market
-	 * @param providersType the providers type
-	 * @param cmdParam the cmd param
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private SharesListId(String cmdParam, ProvidersTypes providersType, String comment, String description, Boolean isIndicesComposite, String[] options) {
 		this.providersType = providersType;
 		this.sharesListCmdParam = cmdParam;
@@ -111,16 +100,7 @@ public enum SharesListId {
 		this.isIndicesComposite = isIndicesComposite;
 		this.options = options;
 	}
-	
-	/**
-	 * Value of cmd.
-	 * 
-	 * @param st the st
-	 * 
-	 * @return the market list providers
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static SharesListId valueOfCmd(String st) {
 		SharesListId eValues[] = SharesListId.values();
 		for (int i=0; i < eValues.length; i++) {
@@ -130,15 +110,6 @@ public enum SharesListId {
 				"No enum const MarketListProviders." + st);
 	}
 
-	/**
-	 * Check provider.
-	 * 
-	 * @param prov the prov
-	 * 
-	 * @return true, if successful
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static boolean checkProvider(String prov) {
 		boolean contains = false;
 		try {
@@ -151,13 +122,6 @@ public enum SharesListId {
 		return contains;
 	}
 
-	/**
-	 * Cmds values.
-	 * 
-	 * @return the string[]
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static String[] cmdsValues() {
 		String[] retour = new String[SharesListId.values().length];
 		for (int i=0; i < SharesListId.values().length; i++) {
@@ -170,18 +134,10 @@ public enum SharesListId {
 		return sharesListCmdParam;
 	}
 
-
-	/**
-	 * Gets the providers type.
-	 * 
-	 * @return the providers type
-	 */
 	public ProvidersTypes getProvidersType() {
 		return providersType;
 	}
 	
-
-
 	public String getDescription() {
 		return description;
 	}

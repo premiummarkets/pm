@@ -88,7 +88,7 @@ public class ScreeningSupplementExporter extends ScreeningSupplementStockExporte
 						screeningEvents.add(constructEvent(eventListName, screenedStock, EventDefinition.SCREENER, rank, previousRank, EventType.NONE, "Screener rank still in top "+TOP_RANK, endDate));
 					}
 					if (rank > TOP_RANK && previousRank <= TOP_RANK) {
-						screeningEvents.add(constructEvent(eventListName, screenedStock, EventDefinition.SCREENER, rank, previousRank, EventType.BEARISH, "Screener rank is got out of top "+TOP_RANK, endDate));
+						screeningEvents.add(constructEvent(eventListName, screenedStock, EventDefinition.SCREENER, rank, previousRank, EventType.BEARISH, "Screener rank just got out of top "+TOP_RANK, endDate));
 					}
 				}
 				

@@ -172,7 +172,11 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 				"STATUS : Success " + ret.isSuccessfulUpdate +" (as granted was " + updateGranted +"), New data " + ret.hasNewQuotations+", Has previous data " + ret.hasPreviousQuotations + 
 				" (also there may well be user entries, fyi user quotations overshadowing is set to "+stock.isOverrideUserQuotes()+")");
 
-		Quotations.updateCachedStockKey(stock);
+		if (reset) {
+			Quotations.removeCachedStockKey(stock);
+		} else {
+			Quotations.updateCachedStockKey(stock);
+		}
 		
 		return ret;
 	}

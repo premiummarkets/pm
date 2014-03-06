@@ -225,8 +225,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
 		
-		//Boolean override = stock.isRemovableQuotes() && ignoreUserEntries;
-		//String originConstraint = (override)?"AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 		String originConstraint = (ignoreUserEntries)?"AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 		
 		String endConstraint = testEndConstraint();
@@ -234,8 +232,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + 
 					" where "+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
 					" order by "+QUOTATIONS.DATE_FIELD+" desc ";
-		
-		//return this.getLastFormerQuote(stock, override, q);
+
 		return this.getLastFormerQuote(stock, ignoreUserEntries, q);
 	}
 
@@ -687,7 +684,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD +" in "+eventTypeConstraint+" AND " 
 					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD + " = ? AND " 
 					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD + " = ? AND " 
-					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEF_FIELD + " = ? "
+					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEF_FIELD + " = ? AND "
+					+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " <= ? "
 				+ " ORDER BY "+EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.DATE_FIELD+ " DESC ") {
 
 					@Override
@@ -710,20 +708,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(stock.getIsin());
 		select.addValue(stock.getSymbol());
 		select.addValue(EventDefinition.SCREENER.getEventDefinitionRef());
+		select.addValue(endDate);
 		
 		LOGGER.debug(select.getQuery());
-		List<EventValue> eventValues = exectuteSelect(EventValue.class, select);
+		List<EventValue> eventValues = executeQuery(select, 1);
 		if (eventValues.size() == 0) return null; 
-
-		EventValue eventValue = null;
-		for (int i = 0; i < eventValues.size(); i++) {
-			if (eventValues.get(i).getDate().after(endDate)) {
-				continue;
-			} else {
-				eventValue = eventValues.get(i);
-				break;
-			}
-		}
+		EventValue eventValue = eventValues.get(0);
+		
 		return eventValue;
 	
 	}
@@ -838,8 +829,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-	public <T> List<T> exectuteSelect(Class<T> retClass,Query query) {
-		return this.executeQuery(query,0);
+	public <T> List<T> exectuteSelect(Class<T> retClass, Query query) {
+		return executeQuery(query, 0);
 	}
 
 	@SuppressWarnings("unchecked")

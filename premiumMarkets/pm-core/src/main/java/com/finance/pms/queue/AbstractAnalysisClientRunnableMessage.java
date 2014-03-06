@@ -89,10 +89,10 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 		});
 	}
 	
-	//TODO factorise with IndicatorsCalculationService to create a specific service.
+	//TODO Factorisation with IndicatorsCalculationService to create a specific service.
 	//Analyse name : the name of the auto portfolio.
 	//Event list name : event list to process. It will be added to an event list with the portfolio name at processing time
-	public BuySellSignalCalculatorMessage sendAutoportfolioSignalProcessingEvent(String signalProcessingPortfolioName, Date startDate, Date endDate, String... additionalEventListName)  throws InterruptedException{
+	public BuySellSignalCalculatorMessage sendAutoPortfolioSignalProcessingEvent(String signalProcessingPortfolioName, Date startDate, Date endDate, String... additionalEventListName)  throws InterruptedException{
 
 		final BuySellSignalCalculatorMessage message = 
 				new BuySellSignalCalculatorMessage(

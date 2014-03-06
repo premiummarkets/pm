@@ -33,7 +33,9 @@ package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,6 +65,7 @@ import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.web.currency.CurrencyConverter;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -85,6 +88,8 @@ public class Portfolio extends AbstractSharesList {
 	private PonderationRule sellPonderationRule;
 	private Currency portfolioCurrency;
 	private SortedSet<TransactionElement> transactions;
+	
+	private Boolean uiDirty = true;
 
 	protected Portfolio() {
 		super();
@@ -178,13 +183,6 @@ public class Portfolio extends AbstractSharesList {
 			throws InvalidAlgorithmParameterException {
 		
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, monitorLevel, transactionCurrency);
-		
-//		//As per the new parsing, if the stock as already been parsed we ignore it
-//		BigDecimal quantity = portfolioShare.getQuantity(currentDate);
-//		if (quantity.compareTo(BigDecimal.ZERO) > 0) {
-//			throw new NotImplementedException("Fix me : As per the new parsing, if the stock as already been parsed we ignore it.");
-//		}
-
 		portfolioShare.addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account); 
 
@@ -192,30 +190,9 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
-		
-//		if (this.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin()) == null) {
-//			throw new InvalidQuantityException("The share "+portfolioShare+" is not in the portfolio "+this, new Throwable());
-//		}
-		
 		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
-		
-//		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
-//			this.removeShareFromList(portfolioShare);
-//		}
-		
-	}
 
-//	public void removeOrUpdateShareForQuantity(PortfolioShare portfolioShare, BigDecimal quantity, Date date) throws InvalidAlgorithmParameterException, InvalidQuantityException {
-//		try {
-//			
-//			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), date, true, portfolioShare.getTransactionCurrency());
-//			BigDecimal lastQuotation = quotations.getClosestCloseForDate(date);
-//			
-//			removeOrUpdateShare(portfolioShare, quantity, date, lastQuotation, TransactionType.AOUT);
-//		} catch (NoQuotationsException e) {
-//			throw new InvalidAlgorithmParameterException(e);
-//		}
-//	}
+	}
 
 	@Lob
 	private PonderationRule getBuyPonderationRule() {
@@ -525,6 +502,96 @@ public class Portfolio extends AbstractSharesList {
 
 	}
 	
-	
+	public String extractTransactionLog(Date startDate, Date endDate) throws Throwable {
+		
+		try {
+			
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			SortedSet<TransactionElement> sortedByStock = new TreeSet<TransactionElement>(new Comparator<TransactionElement>() {
+
+				@Override
+				public int compare(TransactionElement o1, TransactionElement o2) {
+					int stock = o1.getStock().compareTo(o2.getStock());
+					if (stock == 0) {
+						int equalDate = o2.getDate().compareTo(o1.getDate());
+						if (equalDate == 0) {
+							int id = o2.getId().compareTo(o1.getId());
+							return id;
+						}
+						return equalDate;
+					}
+					return stock;
+				}
+			});
+			//Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+			//Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
+			sortedByStock.addAll(headTransactionsTo(startDate, endDate));
+			
+			CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
+			Currency portfolioCurrency = inferPortfolioCurrency();
+			
+			String messagePortCurrency = "Transactions ("+portfolioCurrency+") in " + getName() + " :\nstock, date, transaction price, quantity in, amount in, quantity out, amount out, currency, close price";
+			String messageNoConvertion = "Transactions (Original currencies) in " + getName() + " :\nstock, date, transaction price, quantity in, amount in, quantity out, amount out, currency, close price, exchange rate";
+			Stock currentStock = null;
+			
+			for (TransactionElement te : sortedByStock) {
+				
+				if (currentStock == null || !currentStock.equals(te.getStock())) {
+					try {
+						currentStock = te.getStock();
+						Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+						BigDecimal lastClosePrice = quotations.getClosestCloseForDate(endDate);
+						Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, portfolioCurrency, ValidityFilter.CLOSE);
+						BigDecimal lastConvertedClosePrice = convertedQuotations.getClosestCloseForDate(endDate);
+						BigDecimal LastConvertionRate = currencyConverter.convert(currentStock.getMarketValuation(), portfolioCurrency, BigDecimal.ONE, endDate);
+						messagePortCurrency = messagePortCurrency +"\n"+te.getStock().getFriendlyName()+","+dateFormat.format(endDate)+",,,,,, "+portfolioCurrency+", "+lastConvertedClosePrice;
+						messageNoConvertion = messageNoConvertion +"\n"+te.getStock().getFriendlyName()+","+dateFormat.format(endDate)+",,,,,, "+currentStock.getMarketValuation().getCurrency()+", "+lastClosePrice+", "+LastConvertionRate;
+					} catch (Exception e) {
+						LOGGER.warn("Error loading last stock prices for "+currentStock+" : "+e);
+					}
+				}
+				
+				BigDecimal closePrice = BigDecimal.ZERO;
+				BigDecimal convertedClosePrice = BigDecimal.ZERO;
+				BigDecimal convertionRate = BigDecimal.ONE;
+				try {
+					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+					closePrice = quotations.getClosestCloseForDate(te.getDate());
+					Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, portfolioCurrency, ValidityFilter.CLOSE);
+					convertedClosePrice = convertedQuotations.getClosestCloseForDate(te.getDate());
+					convertionRate = currencyConverter.convert(currentStock.getMarketValuation(), portfolioCurrency, BigDecimal.ONE, te.getDate());
+				} catch (Exception e) {
+					LOGGER.warn("Error loading stock prices for "+currentStock+" : "+e);
+				}
+				
+				BigDecimal convertedTransPrice  = currencyConverter.convert(te.getCurrency(), portfolioCurrency, te.getPrice(), te.getDate());
+				BigDecimal transAmount =  te.getPrice().multiply(te.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal convertedTransAmount = convertedTransPrice.multiply(te.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				
+				if (te.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
+					messagePortCurrency = messagePortCurrency + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+convertedTransPrice+","+te.getQuantity()+","+convertedTransAmount+",,,"+portfolioCurrency+","+convertedClosePrice;
+					messageNoConvertion = messageNoConvertion + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+te.getPrice()+","+te.getQuantity()+","+transAmount+",,,"+te.getCurrency()+","+closePrice+","+convertionRate;
+				} else {
+					messagePortCurrency = messagePortCurrency + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+convertedTransPrice+",,,"+te.getQuantity()+","+convertedTransAmount+","+portfolioCurrency+","+convertedClosePrice;
+					messageNoConvertion = messageNoConvertion + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+te.getPrice()+",,,"+te.getQuantity()+","+transAmount+","+te.getCurrency()+","+closePrice+","+convertionRate;
+				}
+			}
+			
+			return messagePortCurrency + "\n\n" + messageNoConvertion;
+			
+		} catch (Throwable e) {
+			throw e;
+		}
+	}
+
+	@Transient
+	public Boolean isUiDirty() {
+		return uiDirty;
+	}
+
+	public void setIsUiDirty(Boolean hasChanged) {
+		this.uiDirty = hasChanged;
+	}
+
 
 }

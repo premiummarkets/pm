@@ -389,18 +389,17 @@ public class MainGui extends SashForm implements RefreshableView {
 									super.widgetSelected(null);
 								}
 								
-								
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
 									
-									final ShareListUpdateDialog instance = new ShareListUpdateDialog(getShell());
+									final ShareListUpdateDialog slDialog = new ShareListUpdateDialog(getShell());
 									ActionDialogAction actionDialogAction = new ActionDialogAction() {
 										
 										@Override
 										public void action(Control targetControl) {
 											
-											Providers provider = instance.getProvider();
-											if (provider != null && instance.getIsOk()) {
+											Providers provider = slDialog.getProvider();
+											if (provider != null && slDialog.getIsOk()) {
 												
 												allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
 												LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
@@ -412,8 +411,23 @@ public class MainGui extends SashForm implements RefreshableView {
 											}
 										}
 									};
-									instance.setAction(actionDialogAction);
-									instance.open();
+									ActionDialogAction refreshAction = new ActionDialogAction() {
+
+										@Override
+										public void action(Control targetControl) {
+											Runnable runnable = new Runnable() {
+												public void run() {
+													((PortfolioComposite) MainGui.this.portfolioSash()).refreshView(new ArrayList<Exception>());
+												}
+											};
+											getDisplay().asyncExec(runnable);
+										}
+										
+									};
+									
+									slDialog.setAction(actionDialogAction);
+									slDialog.setRefreshAction(refreshAction);
+									slDialog.open();
 							
 								}
 							});
@@ -754,8 +768,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 		try {
 			// Set cross-platform Java L&F (also called "Metal")
-			UIManager.setLookAndFeel(
-					UIManager.getCrossPlatformLookAndFeelClassName());
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 		} 
 		catch (UnsupportedLookAndFeelException e) {
 			e.printStackTrace();

@@ -82,19 +82,10 @@ public class LatestEventsSignal extends Signal {
 		}
 	}
 
-	/**
-	 * @param eventValue
-	 * @return
-	 */
 	protected boolean isAlreadyChecked(EventValue eventValue) {
 		return parsedEventDefs.contains(eventValue.getEventDef());
 	}
 
-
-	/**
-	 * @param eventValue
-	 * @return
-	 */
 	protected boolean isSameTrend(EventValue eventValue) {
 		return this.lastParsedEventType == null || this.lastParsedEventType.equals(eventValue.getEventType()) || this.lastParsedEventType.equals(EventType.NONE);
 	}
@@ -114,11 +105,7 @@ public class LatestEventsSignal extends Signal {
 			this.signalWeight--;
 		}
 	}
-	
-	/**
-	 * @param eventValue
-	 * @return
-	 */
+
 	protected Integer eventTypeDivergence(EventValue eventValue) {
 		//Different event type (ie Trend) : stop - we are only interested in the latest indicators trend or potentially some other alerts if nothing else
 		if (isAlert(eventValue)) {
@@ -131,12 +118,6 @@ public class LatestEventsSignal extends Signal {
 		
 	}
 
-	/**
-	 * @param eventValue
-	 * @param currentEventType
-	 * @param currentEventDef
-	 * @return
-	 */
 	protected void listTriggeringEvent(EventValue eventValue, EventType eventType, EventInfo eventDefinition) {
 			if (this.latestEventDate == null) this.latestEventDate = eventValue.getDate();
 			this.lastParsedEventType = eventType;
@@ -153,12 +134,6 @@ public class LatestEventsSignal extends Signal {
 		this.parsedEventDefs.add(eventValue.getEventDef());
 }
 
-
-	/**
-	 * @param eventValue
-	 * @param isOkEvent
-	 * @return
-	 */
 	protected Boolean isFilteredEvent(EventValue eventValue) {
 		
 		if (eventValue.getEventType().equals(EventType.INFO)) return false;
@@ -183,10 +158,6 @@ public class LatestEventsSignal extends Signal {
 		return isOkEvent;
 	}
 
-	/**
-	 * @param eventValue
-	 * @return
-	 */
 	protected boolean isAlert(EventValue eventValue) {
 		return (eventValue.getEventDef().equals(EventDefinition.ALERTTHRESHOLD) || eventValue.getEventDef().equals(EventDefinition.SCREENER));
 	}

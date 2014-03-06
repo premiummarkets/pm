@@ -63,12 +63,6 @@ public class LatestEventsScreenerBuySignal extends LatestEventsSignal {
 		return this.lastParsedEventType == null || this.lastParsedEventType.equals(EventType.BULLISH) || this.lastParsedEventType.equals(EventType.NONE);
 	}
 	
-
-	/**
-	 * @param eventValue
-	 * @param isOkEvent
-	 * @return
-	 */
 	@Override
 	protected Boolean isFilteredEvent(EventValue eventValue) {
 

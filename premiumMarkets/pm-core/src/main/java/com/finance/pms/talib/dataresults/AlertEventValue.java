@@ -61,6 +61,7 @@ public class AlertEventValue extends StandardEventValue {
 	}
 	
 	public Integer extractAdditionalRankWeight() {
+		
 		String rankString = "NAN";
 		Pattern pattern = Pattern.compile("--([0-9]*)--");
 		Matcher matcher = pattern.matcher(message);

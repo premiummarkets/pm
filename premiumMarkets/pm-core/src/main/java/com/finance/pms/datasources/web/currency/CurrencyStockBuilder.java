@@ -68,9 +68,10 @@ public class CurrencyStockBuilder {
 		Stock currencyStock = DataSource.getInstance().getShareDAO().loadStockBy(isinSymbol, isinSymbol);
 		if (currencyStock == null) {
 			currencyStock = new Stock(
-				isinSymbol, isinSymbol, name, 
-				true, StockCategories.CURRENCY_RATE,
-				new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), new MarketValuation(Market.UNKNOWN, BigDecimal.ONE, target), "", TradingMode.CONTINUOUS, 0l);
+					isinSymbol, isinSymbol, name, 
+					true, StockCategories.CURRENCY_RATE,
+					new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), new MarketValuation(Market.UNKNOWN, BigDecimal.ONE, target), "", TradingMode.CONTINUOUS, 0l
+				);
 		}
 		
 		QuotationUpdate quotationUpdate = new QuotationUpdate();

@@ -53,48 +53,20 @@ public enum MarketQuotationProviders {
 	private ProvidersTypes providersType;
 	private String cmdParam;
 
-	/**
-	 * Instantiates a new market quotation providers.
-	 * 
-	 * @param providersType the providers type
-	 * @param marketQuotationProviderExtentions the market quotation provider extentions
-	 * @param cmdParam the cmd param
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private MarketQuotationProviders(ProvidersTypes providersType, SymbolNameResolver marketQuotationProviderExtentions, String cmdParam) {
 		this.providersType = providersType;
 		this.symbolNameResolver = marketQuotationProviderExtentions;
 		this.cmdParam = cmdParam;
 	}
 	
-	/**
-	 * Value of cmd.
-	 * 
-	 * @param cmdParam the st
-	 * 
-	 * @return the market quotation providers
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public static MarketQuotationProviders valueOfCmd(String cmdParam) {
 		MarketQuotationProviders eValues[] = MarketQuotationProviders.values();
 		for (int i=0; i < eValues.length; i++) {
 			if (eValues[i].cmdParam.equals(cmdParam)) return eValues[i];
 		}
-		throw new IllegalArgumentException(
-	            "No enum const ProvidersTypes." + cmdParam);
+		throw new IllegalArgumentException("No enum const ProvidersTypes." + cmdParam);
 	}
-	
-	/**
-	 * Check provider.
-	 * 
-	 * @param prov the prov
-	 * 
-	 * @return true, if successful
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static boolean checkProvider(String prov) {
 		boolean contains = false;
 		try {
@@ -106,14 +78,7 @@ public enum MarketQuotationProviders {
 		}
 		return contains;
 	}
-	
-	/**
-	 * Cmds values.
-	 * 
-	 * @return the string[]
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static String[] cmdsValues() {
 		String[] retour = new String[MarketQuotationProviders.values().length];
 		for (int i=0; i < MarketQuotationProviders.values().length; i++) {
@@ -121,12 +86,7 @@ public enum MarketQuotationProviders {
 		}
 		return retour;	
 	}
-	
-	/**
-	 * Gets the cmd param.
-	 * 
-	 * @return the cmd param
-	 */
+
 	public String getCmdParam() {
 		return cmdParam;
 	}
@@ -135,12 +95,6 @@ public enum MarketQuotationProviders {
 		return providersType;
 	}
 
-	
-	/**
-	 * Gets the symbol name resolver.
-	 * 
-	 * @return the symbol name resolver
-	 */
 	public SymbolNameResolver getSymbolNameResolver() {
 		return symbolNameResolver;
 	}

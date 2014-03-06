@@ -335,9 +335,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		return refDate;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#retreiveStockListFromCmdLine(java.util.List)
-	 */
+
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
 		LOGGER.info("From Command Line : ");
@@ -356,11 +354,11 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 
 
 	@Override
-	public void retrieveAndCompleteStockInfo(Stock st,StockList stockList) {
-		this.supplementAndValidateStock(st,stockList);
+	public void retrieveAndCompleteStockInfo(Stock st, StockList stockList) {
+		supplementAndValidateStock(st, stockList);
 	}
 	
-	private void supplementAndValidateStock(Stock s,StockList stockList) {
+	private void supplementAndValidateStock(Stock s, StockList stockList) {
 		List<Validatable> listReq = new ArrayList<Validatable>();
 		List<Validatable> ltmp  = new ArrayList<Validatable>();
 		

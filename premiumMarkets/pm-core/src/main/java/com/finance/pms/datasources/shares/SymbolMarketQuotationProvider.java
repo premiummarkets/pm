@@ -63,10 +63,10 @@ public class SymbolMarketQuotationProvider implements Serializable {
 		this.extentionClue=SymbolNameResolver.UNKNOWNEXTENSIONCLUE;
 	}
 
-	public SymbolMarketQuotationProvider(MarketQuotationProviders marketQuotationsProviders,String extentionClue) {
+	public SymbolMarketQuotationProvider(MarketQuotationProviders marketQuotationsProviders, String extentionClue) {
 		super();
 		this.marketQuotationProvider = marketQuotationsProviders;
-		this.extentionClue=(null == extentionClue ||extentionClue.equals(""))? SymbolNameResolver.UNKNOWNEXTENSIONCLUE : extentionClue;
+		this.extentionClue = (null == extentionClue || extentionClue.equals(""))? SymbolNameResolver.UNKNOWNEXTENSIONCLUE : extentionClue;
 	}
 
 	public SymbolMarketQuotationProvider(String marketQuotationsProviders, String symbolWExtension) {

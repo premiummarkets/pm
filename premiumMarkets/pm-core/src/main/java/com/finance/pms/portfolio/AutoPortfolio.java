@@ -87,7 +87,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, EventSignalConfig eventSignalConfig) {
-		super(name,buyPonderationRule,sellPonderationRule,null);
+		super(name, buyPonderationRule, sellPonderationRule, null);
 		this.eventSignalConfig = eventSignalConfig;
 		autoPortfolioDelegate = new AutoPortfolioDelegate(this);
 	}
@@ -98,16 +98,22 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 		BigDecimal totalInAmountEver = getTotalInAmountEver(null, currentDate);
 		BigDecimal totalOutAmountEver = getTotalOutAmountEver(null, currentDate);
-		if (totalInAmountEver.compareTo(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH) <= 0) {
+		if (totalInAmountEver.subtract(totalOutAmountEver).compareTo(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH) <= 0) {
 			ret = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
-		} else {
-			//ret = getTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
-			ret = totalOutAmountEver.subtract(totalInAmountEver);
-		}
-
-		if (ret.compareTo(BigDecimal.ZERO) <= 0) {
+		} 
+		else {
 			throw new NoCashAvailableException("No cash left : out " + totalOutAmountEver+" in "+ totalInAmountEver);
 		}
+		
+//		else {
+//			//ret = getTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
+//			ret = totalOutAmountEver.subtract(totalInAmountEver);
+//		}
+
+
+//		if (ret.compareTo(BigDecimal.ZERO) <= 0) {
+//			throw new NoCashAvailableException("No cash left : out " + totalOutAmountEver+" in "+ totalInAmountEver);
+//		}
 
 		return PortfolioMgr.getInstance().getCurrencyConverter().convert(Currency.EUR, transactionCurrency, ret, currentDate);
 	}

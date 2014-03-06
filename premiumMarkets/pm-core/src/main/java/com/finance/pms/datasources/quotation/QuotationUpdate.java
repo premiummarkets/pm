@@ -54,13 +54,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
-import com.finance.pms.datasources.shares.SymbolNameResolver;
-import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.threads.ObserverMsg;
@@ -146,23 +141,18 @@ public class QuotationUpdate {
 		
 	}
 	
-	public Stock getQuotesForUiForm(
-			Providers sharesList, String isin, String symbol, String name, 
-			StockCategories category, MarketQuotationProviders quoteProvider, MarketValuation market) throws InvalidAlgorithmParameterException, QuotationUpdateException {
-
+	public Stock getQuotesForUiForm(Providers sharesList, Stock newStock) throws InvalidAlgorithmParameterException, QuotationUpdateException {
+	
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
-
-		Stock newStock = new Stock(isin, symbol, name, true, category, new SymbolMarketQuotationProvider(quoteProvider,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), market,"",TradingMode.CONTINUOUS,0l);
 		sharesList.retrieveAndCompleteStockInfo(newStock, dbStockList);
-
+		
 		try {
-			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))));
+			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))), true);
 		} catch (QuotationUpdateException e) {
-			//if (!e.getStockNotFound().keySet().isEmpty()) return null;
 			throw e;
 		}
-		
+
 		return newStock;
 
 	}
@@ -255,6 +245,7 @@ public class QuotationUpdate {
 		ExecutorService executor = Executors.newFixedThreadPool((new Integer(MainPMScmd.getPrefs().get("quotationretrieval.semaphore.nbthread", "20"))));
 		List<Future<GetQuotationResult>> getQuoteRess = new ArrayList<Future<GetQuotationResult>>();
 		while (stlIt.hasNext()) {
+			
 			Stock stock = stlIt.next();
 			
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
@@ -265,6 +256,7 @@ public class QuotationUpdate {
 
 			Future<GetQuotationResult> getQuoteRes = executor.submit(command);
 			getQuoteRess.add(getQuoteRes);
+			
 		}
 
 		executor.shutdown();
@@ -272,11 +264,11 @@ public class QuotationUpdate {
 			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
-				LOGGER.error(shutdownNow,new Exception());
+				LOGGER.error(shutdownNow, new Exception());
 			}
 		} catch (InterruptedException e) {
 			List<Runnable> shutdownNow = executor.shutdownNow();
-			LOGGER.error(shutdownNow,e);
+			LOGGER.error(shutdownNow, e);
 		}
 		
 		QuotationUpdateException exceptions = new QuotationUpdateException("Unable to update quotations");

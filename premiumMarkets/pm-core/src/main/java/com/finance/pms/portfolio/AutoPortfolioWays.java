@@ -66,5 +66,7 @@ public interface AutoPortfolioWays {
 	public Currency getPortfolioCurrency();
 	
 	public void log(TransactionRecord transactionRecord);
+	
+	public String extractTransactionLog(Date startDate, Date endDate) throws Throwable;
 
 }

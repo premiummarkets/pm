@@ -524,14 +524,6 @@ public class AdminDB {
 	}
 	
 	
-	/**
-	 * Adds the extension.
-	 * 
-	 * @param shares the shares
-	 * @param justCheck the just check
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private static void addExtension(StockList shares, Boolean justCheck) {
 		
 		List<Validatable> lstUpdate = new ArrayList<Validatable>();
@@ -558,7 +550,7 @@ public class AdminDB {
 			try {
 				MarketQuotationProviders marketQuotationProvidersList = symbolMarketQuotationProvider.getMarketQuotationProvider();
 				String extensionClue = selectMarket(symbol,ns.getIsin());
-				SymbolMarketQuotationProvider newSymbolMarketQuotationProvider = new SymbolMarketQuotationProvider(marketQuotationProvidersList,extensionClue);
+				SymbolMarketQuotationProvider newSymbolMarketQuotationProvider = new SymbolMarketQuotationProvider(marketQuotationProvidersList, extensionClue);
 				ns.setSymbolMarketQuotationProvider(newSymbolMarketQuotationProvider);
 				ns.setSymbol(symbol);
 			} catch (InvalidAlgorithmParameterException e) {

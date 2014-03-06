@@ -49,8 +49,8 @@ public class LatestEventsPonderationRule extends PonderationRule {
 		
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;
-		PonderationRule p1 = new LatestEventsPonderationRule(sellThreshold,buyThreshold);
-		PonderationRule p2 = new LatestEventsPonderationRule(sellThreshold,buyThreshold);
+		PonderationRule p1 = new LatestEventsPonderationRule(sellThreshold, buyThreshold);
+		PonderationRule p2 = new LatestEventsPonderationRule(sellThreshold, buyThreshold);
 		
 		return  compareCal(se1, se2, p1, p2);
 	}

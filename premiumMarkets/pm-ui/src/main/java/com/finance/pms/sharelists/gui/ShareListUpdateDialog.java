@@ -64,10 +64,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
+import com.finance.pms.AutoCompletePopupMenu;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Market;
@@ -76,9 +78,14 @@ import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
+import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
+import com.finance.pms.datasources.shares.SymbolNameResolver;
+import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
+import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.SharesList;
 
 public class ShareListUpdateDialog extends Dialog {
@@ -95,7 +102,7 @@ public class ShareListUpdateDialog extends Dialog {
 	private Composite paramsComboBound;
 	private Group paramsGroup;
 	private Text paramsForm;
-	private  org.eclipse.swt.widgets.List paramsCombo;
+	private org.eclipse.swt.widgets.List paramsCombo;
 
 	private Group insertManualGroup;
 	private String symbolProvExtention;
@@ -106,14 +113,13 @@ public class ShareListUpdateDialog extends Dialog {
 	private Boolean isOk = false;
 
 	private ActionDialogAction actionDialogAction;
+	private ActionDialogAction refreshAction;
 
 	public ShareListUpdateDialog(Shell parent) {
 		
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
-		getParent().setText("Premium Markets - Add or Update a Stock list");
-				
+		getParent().setText("Premium Markets - Add or Update a Stock list");	
 		biggerFont = MainGui.DEFAULTFONT;
-		
 		initGui();
 		
 	}
@@ -141,7 +147,7 @@ public class ShareListUpdateDialog extends Dialog {
 
 			existingCCombo = new CCombo(existingGroup, SWT.NONE);
 			existingCCombo.setFont(MainGui.CONTENTFONT);
-			existingCCombo.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true, false));
+			existingCCombo.setLayoutData(new GridData(SWT.FILL,SWT.TOP, true, false));
 			for (String shareListName : loadShareListNames) {
 				if (!shareListName.equals(SharesListId.UNKNOWN.name())) existingCCombo.add(shareListName);
 			}
@@ -150,15 +156,15 @@ public class ShareListUpdateDialog extends Dialog {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleExistingList();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleExistingList();
 				}
 
-				private void handle() {
+				private void handleExistingList() {
 					
 					newCCombo.deselectAll();
 					newDersc.setVisible(false);
@@ -182,16 +188,16 @@ public class ShareListUpdateDialog extends Dialog {
 			});	
 			
 			existDersc = new Label(existingGroup, SWT.NONE);
-			existDersc.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true, false));
+			existDersc.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 			existDersc.setBackground(MainGui.pOPUP_GRP);
 			existDersc.setFont(MainGui.DEFAULTFONT);
 			existDersc.setVisible(true);
 			
 			{
 				final Button valideButton1 = new Button(existingGroup, SWT.PUSH | SWT.CENTER);
-				valideButton1.setLayoutData(new GridData(SWT.RIGHT,SWT.TOP,false, false));
+				valideButton1.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false));
 				valideButton1.setText("Update an existing list");
-				valideButton1.setToolTipText("The updated content will be available for addition in portoflios using 'Add shares ...' in 'Portfolios' menu");
+				valideButton1.setToolTipText("The updated content will be available for addition in Portoflios using 'Add shares ...' in 'Portfolios' menu");
 				valideButton1.setFont(MainGui.DEFAULTFONT);
 				valideButton1.addMouseListener(new MouseAdapter() {
 					@Override
@@ -229,7 +235,7 @@ public class ShareListUpdateDialog extends Dialog {
 			
 			newCCombo = new CCombo(newGroup, SWT.NONE);
 			newCCombo.setFont(MainGui.CONTENTFONT);
-			GridData newCL = new GridData(SWT.FILL,SWT.TOP,true, false);
+			GridData newCL = new GridData(SWT.FILL ,SWT.TOP, true, false);
 			newCCombo.setLayoutData(newCL);
 			
 			for (final SharesListId shareListId : SharesListId.values()) {
@@ -258,7 +264,10 @@ public class ShareListUpdateDialog extends Dialog {
 			paramsGroup.setVisible(false);
 			
 			Label paramsLabel = new Label(paramsGroup, SWT.NONE);
-			paramsLabel.setText("You have selected a customisable list. You must customise it using the list below.\nYou can also directly type in a comma separated combination in the blank field.\nUse Ctrl F to search and Ctrl click for multi selection.");
+			paramsLabel.setText(
+					"You have selected a customisable list. You must customise it using the list below.\n"
+					+ "You can also directly type in a comma separated combination in the blank field.\n"
+					+ "Use Ctrl F to search and Ctrl click for multi selection.");
 			paramsLabel.setBackground(MainGui.pOPUP_GRP);
 			paramsLabel.setFont(MainGui.CONTENTFONT);
 			
@@ -271,15 +280,15 @@ public class ShareListUpdateDialog extends Dialog {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleNewList();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleNewList();
 				}
 
-				private void handle() {
+				private void handleNewList() {
 					
 					existingCCombo.deselectAll();
 					existDersc.setVisible(false);
@@ -363,7 +372,7 @@ public class ShareListUpdateDialog extends Dialog {
 				final Button valideButton1 = new Button(newGroup, SWT.PUSH | SWT.CENTER);
 				valideButton1.setLayoutData(new GridData(SWT.RIGHT,SWT.TOP,false, false));
 				valideButton1.setText("Download a new list");
-				valideButton1.setToolTipText("The downloaded content will be available for addition in portfolios using 'Add shares ...' in 'Portfolios' menu");
+				valideButton1.setToolTipText("The download content will be available for addition in Portfolios using 'Add shares ...' in 'Portfolios' menu");
 				valideButton1.setFont(MainGui.DEFAULTFONT);
 				valideButton1.addMouseListener(new MouseAdapter() {
 					@Override
@@ -425,26 +434,43 @@ public class ShareListUpdateDialog extends Dialog {
 				typeLab.setBackground(MainGui.pOPUP_GRP);
 				typeLab.setText("Type");
 				typeLab.setFont(MainGui.DEFAULTFONT);
-
+				
 				final Text symbolTxt = new Text(insertManualGroup, SWT.BORDER);
-				symbolTxt.setEditable(true);
-				symbolTxt.setFont(MainGui.CONTENTFONT);
-				symbolTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				{
+					symbolTxt.setEditable(true);
+					symbolTxt.setFont(MainGui.CONTENTFONT);
+					symbolTxt.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+					AutoCompletePopupMenu<Stock> autoCompletePopupMenu = new AutoCompletePopupMenu<Stock>(getParent().getShell(), insertManualGroup, symbolTxt) {
+						
+						@Override
+						public String transalateALike(Stock alike) {
+							return alike.getSymbol();
+						}
+						
+						@Override
+						public List<Stock> loadAlikes(String typedInString) {
+							List<Stock> alikes = DataSource.getInstance().getShareDAO().loadSharesLike(typedInString, 50);
+							return alikes;
+						}
+					};
+					autoCompletePopupMenu.initPopupMenu();
+				}
+				
 				final Text isinTxt = new Text(insertManualGroup, SWT.BORDER);
 				isinTxt.setEditable(true);
 				isinTxt.setFont(MainGui.CONTENTFONT);
-				isinTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				isinTxt.setLayoutData(new GridData(SWT.FILL,SWT.TOP, true, false));
 				final Text nameTxt = new Text(insertManualGroup, SWT.BORDER);
 				nameTxt.setEditable(true);
 				nameTxt.setFont(MainGui.CONTENTFONT);
-				nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 				final CCombo typeCombo = new CCombo(insertManualGroup, SWT.READ_ONLY|SWT.BORDER);
-				typeCombo.setFont(MainGui.DEFAULTFONT);
+				typeCombo.setFont(MainGui.CONTENTFONT);
 				for (int j = 0, n = StockCategories.values().length; j < n; j++) {
 					typeCombo.add(StockCategories.values()[j].name());
 				}
 				typeCombo.select(0);
-				typeCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				typeCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
 
 				Label marketLab = new Label(insertManualGroup, SWT.NONE);
@@ -470,7 +496,7 @@ public class ShareListUpdateDialog extends Dialog {
 					marketCombo.add(Market.values()[j].name());
 				}
 				marketCombo.select(0);
-				marketCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				marketCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
 				final Text currencyFactorTxt = new Text(insertManualGroup, SWT.BORDER);
 
@@ -498,18 +524,19 @@ public class ShareListUpdateDialog extends Dialog {
 						"It is usually OK to leave it as one.";
 				currencyFactorLab.setToolTipText(curFactToolTip);
 				currencyFactorTxt.setToolTipText(curFactToolTip);
-				currencyFactorTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				currencyFactorTxt.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 				currencyFactorTxt.setText("1");
 				final CCombo provCombo = new CCombo(insertManualGroup, SWT.READ_ONLY|SWT.BORDER);
 				provCombo.setFont(MainGui.DEFAULTFONT);
-				provCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				provCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 				provCombo.select(0);
 				final CCombo symbolExtTxt = new CCombo(insertManualGroup, SWT.READ_ONLY|SWT.BORDER);
-				GridData symExtData = new GridData(SWT.LEFT,SWT.CENTER,true,true);
+				GridData symExtData = new GridData(SWT.LEFT, SWT.TOP, true, false);
 				symbolExtTxt.setLayoutData(symExtData);
+				symbolExtTxt.setFont(MainGui.CONTENTFONT);
 				symbolProvExtention = "NONE";
 				symbolExtTxt.add(symbolProvExtention);
-				symbolExtTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				symbolExtTxt.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 				for (int j = 0, n = MarketQuotationProviders.values().length; j < n; j++) {
 					provCombo.add(MarketQuotationProviders.values()[j].name());
 				}
@@ -534,7 +561,6 @@ public class ShareListUpdateDialog extends Dialog {
 						"Every provider as its own set of extensions.";
 				extLab.setToolTipText(extToolTip);
 				symbolExtTxt.setToolTipText(extToolTip);
-				symbolExtTxt.setFont(MainGui.CONTENTFONT);
 				symbolExtTxt.addFocusListener(new FocusListener() {
 
 					@Override
@@ -580,7 +606,35 @@ public class ShareListUpdateDialog extends Dialog {
 					}
 				});
 				provCombo.select(0);
+				
+				symbolTxt.addSelectionListener(new SelectionListener() {
+					
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						handleSymbolSelection();
+					}
+					
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handleSymbolSelection();
+					}
 
+					private void handleSymbolSelection() {
+						Stock stockBySymbol = DataSource.getInstance().loadStockBySymbol(symbolTxt.getText());
+						if (stockBySymbol != null) {
+							isinTxt.setText(stockBySymbol.getIsin());
+							nameTxt.setText(stockBySymbol.getName());
+							typeCombo.setText(stockBySymbol.getCategory().name());
+							marketCombo.setText(stockBySymbol.getMarket().name());
+							currencyFactorTxt.setText(stockBySymbol.getMarketValuation().getCurrencyFactor().toString());
+							provCombo.setText(stockBySymbol.getSymbolMarketQuotationProvider().getMarketQuotationProvider().name());
+							//symbolExtTxt.setText(Market.getExtensionFor(stockBySymbol.getSymbolMarketQuotationProvider().getMarketQuotationProvider(), stockBySymbol.getMarket()));
+							symbolExtTxt.setText("NONE");
+						}
+					}
+				});
+
+				//Manual ack button
 				Button manualAddOkButton = new Button(insertManualGroup, SWT.PUSH);
 				GridData newShareValidateButtonLData = new GridData(GridData.FILL_HORIZONTAL);
 				newShareValidateButtonLData.horizontalSpan = 4;
@@ -622,7 +676,7 @@ public class ShareListUpdateDialog extends Dialog {
 				Button insertFromFile = new Button(insertFromFileGroup, SWT.PUSH);
 				insertFromFile.setLayoutData(new GridData(SWT.END,SWT.DEFAULT,true,false));
 				insertFromFile.setText("Insert your own file of stocks ...");
-				insertFromFile.setToolTipText("The inserted stocks will be available in the UNKNOWN list for addition in portfolios using 'Add shares ...' in 'Portfolios' menu.\n"+toolTipTxt);
+				insertFromFile.setToolTipText("The inserted stocks will be available in the UNKNOWN list for addition in Portfolios using 'Add shares ...' in 'Portfolios' menu.\n"+toolTipTxt);
 				insertFromFile.setFont(MainGui.DEFAULTFONT);
 				insertFromFile.addSelectionListener(new SelectionAdapter() {
 					@Override
@@ -640,8 +694,12 @@ public class ShareListUpdateDialog extends Dialog {
 			}
 		}
 		
-		getParent().layout();
 		getParent().pack();
+		getParent().layout();
+		
+		Point computeSize = getParent().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		getParent().setSize((int)(computeSize.x*.8), computeSize.y);
+		
 			
 	}
 
@@ -661,50 +719,63 @@ public class ShareListUpdateDialog extends Dialog {
 		newDersc.setVisible(false);
 		existingCCombo.deselectAll();
 		existDersc.setVisible(false);
-		Providers unknownProvider  = Providers.setupProvider(SharesListId.UNKNOWN.name());
+		Providers unknownProvider  = Providers.setupProvider(SharesListId.UNKNOWN.name());//defaults to Yahoo
 
 		
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
-	
-		boolean isExtSet = symbolProvExtention != null && !symbolProvExtention.isEmpty() && !symbolProvExtention.equals("NONE");
-		String symbol = symbolTxt.getText()+(isExtSet?"."+symbolProvExtention:"");
-
+		
 		try {
-			Stock newStock = null;
+			
+			//Create or update the stock
+			String symbolProvExtention2 = SymbolNameResolver.UNKNOWNEXTENSIONCLUE;
+			boolean isExtSet = symbolProvExtention != null && !symbolProvExtention.isEmpty() && !symbolProvExtention.equals("NONE");
+			if (isExtSet) {
+				symbolProvExtention2 = symbolProvExtention;
+			}
+
+			String isin = isinTxt.getText();
+			String symbol = symbolTxt.getText();
+			//Stock newStock = DataSource.getInstance().getShareDAO().loadStockBy(symbol, isin);
+			String name = nameTxt.getText();
+			StockCategories category = StockCategories.valueOf(typeCombo.getText());
+			SymbolMarketQuotationProvider qProv = new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOf(provCombo.getText()), symbolProvExtention2);
+			MarketValuation marketValuation = new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText()));
+			Stock newStock = new Stock(isin, symbol, name, true, category, qProv,  marketValuation, "", TradingMode.CONTINUOUS, 0l);
+			
+			//Reset quotations
 			try {
-				newStock = quotationUpdate.getQuotesForUiForm(
-						unknownProvider, 
-						isinTxt.getText(), symbol, nameTxt.getText(), 
-						StockCategories.valueOf(typeCombo.getText()), 
-						MarketQuotationProviders.valueOf(provCombo.getText()), new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText())));
+				newStock = quotationUpdate.getQuotesForUiForm(unknownProvider, newStock);
 			} catch (QuotationUpdateException e) {
+				
 				if (!e.getStockNotFound().isEmpty()) {
-				newStock = e.getStockNotFound().keySet().iterator().next();
-				UserDialog inst = new UserDialog(getParent().getShell(), 
-						"The stock quotations could not be found using your settings. It may be that the information typed in is not valid.\n"+
-						"You may want to review the 'Insert Manually' form information and try again.\n" +
-						"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
-				inst.open();
+					newStock = e.getStockNotFound().keySet().iterator().next();
+					UserDialog inst = new UserDialog(getParent().getShell(), 
+							"The stock quotations could not be found using your settings. It may be that the information typed in is not valid.\n"+
+							"You may want to review the 'Insert Manually' form information and try again.\n" +
+							"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
+					inst.open();
 				} else {
 					throw e;
 				}
+				
 			}
+			
+			//Save or update stock and unknown share list
 			if (newStock != null) {
+				DataSource.getInstance().getShareDAO().saveOrUpdateStock(newStock);
 				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
 				sharesListForThisListProvider.addShare(newStock);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
 			} else {
-				String message = "Stock is null for "+nameTxt.getText()+" / "+symbol+" / "+isinTxt.getText();
+				String message = "Stock is null for "+name+" / "+symbol+" / "+isin;
 				LOGGER.error(message);
 				throw new Exception(message);
 			}
-//			else {
-//				UserDialog inst = new UserDialog(getParent().getShell(), 
-//						"The stock was not found. It may be that the information typed in is not valid.\n"+
-//						"You may want to review the 'Insert Manually' form information and try again.", null);
-//				inst.open();
-//			}
+			
+			updateReferencedStock(newStock);
+			
 		} catch (Exception e) {
+			LOGGER.warn(e, e);
 			UserDialog inst = new UserDialog(getParent().getShell(), 
 					"An error occurred. It may be that the information typed in is not valid.\n"+
 					"You may want to review the 'Insert Manually' form information and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
@@ -717,10 +788,10 @@ public class ShareListUpdateDialog extends Dialog {
 		try {
 			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 			portfolioInsertShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
+			refreshAction.action(null);
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
-			UserDialog inst = new UserDialog(
-					getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
+			UserDialog inst = new UserDialog(getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		} finally {
 			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));	
@@ -747,11 +818,19 @@ public class ShareListUpdateDialog extends Dialog {
 			
 			QuotationUpdate quotationUpdate = new QuotationUpdate();
 			try {
+				
 				List<Stock> stocksInFile = quotationUpdate.getQuotesForListInFile(selectedFile, unknownProvider);
 				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
 				sharesListForThisListProvider.addShares(stocksInFile);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
-		
+				
+				//Update references
+				for (Stock newStock : stocksInFile) {
+					updateReferencedStock(newStock);
+				}
+				
+				refreshAction.action(null);
+				
 				UserDialog inst = new UserDialog(getParent().getShell(), "The following stock were found in the file and updated", stocksInFile.toString());
 				inst.open();
 				
@@ -766,6 +845,25 @@ public class ShareListUpdateDialog extends Dialog {
 	}
 
 
+	protected void updateReferencedStock(Stock newStock) {
+		for (Portfolio portfolio : PortfolioMgr.getInstance().getVisiblePortfolios()) {
+			for (PortfolioShare ps : portfolio.getListShares().values()) {
+				Stock stock = ps.getStock();
+				if (stock.equals(newStock)) {
+					stock.setName(newStock.getName());
+					stock.setCategory(newStock.getCategory());
+					stock.setSymbolMarketQuotationProvider(newStock.getSymbolMarketQuotationProvider());
+					stock.setMarketValuation(newStock.getMarketValuation());
+					stock.setSectorHint(newStock.getSectorHint());
+					stock.setCapitalisation(newStock.getCapitalisation());
+					stock.setTradingMode(newStock.getTradingMode());
+					portfolio.setIsUiDirty(true);
+				}
+			}
+		}
+	}
+
+
 	public Boolean getIsOk() {
 		return isOk;
 	}
@@ -774,7 +872,6 @@ public class ShareListUpdateDialog extends Dialog {
 	public Providers getProvider() {
 		return provider;
 	}
-
 
 	private void disposeParams() {
 		if (paramsComboBound != null && !paramsComboBound.isDisposed()) {
@@ -785,10 +882,13 @@ public class ShareListUpdateDialog extends Dialog {
 		}
 	}
 
-
 	public void setAction(ActionDialogAction actionDialogAction) {
 		this.actionDialogAction = actionDialogAction;
 		
+	}
+	
+	public void setRefreshAction(ActionDialogAction actionDialogAction) {
+		this.refreshAction = actionDialogAction;
 	}
 
 }

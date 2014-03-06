@@ -44,7 +44,5 @@ public class WeatherScreenerSignal extends OneEventScreenerSignal {
 	EventDefinition getTriggeringEventDef() {
 		return EventDefinition.WEATHER;
 	}
-
-	
 	
 }

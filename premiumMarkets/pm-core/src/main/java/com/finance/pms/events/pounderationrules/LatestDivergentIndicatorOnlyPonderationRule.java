@@ -35,7 +35,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
- * Bearish event wont mitigate Bullish events and vice versa
+ * Bearish event won't mitigate Bullish events and vice versa
  * @author Guillaume Thoreton
  */
 public class LatestDivergentIndicatorOnlyPonderationRule extends LatestEventsPonderationRule {

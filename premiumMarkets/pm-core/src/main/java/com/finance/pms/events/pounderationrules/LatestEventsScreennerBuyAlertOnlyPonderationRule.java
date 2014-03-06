@@ -57,7 +57,7 @@ public class LatestEventsScreennerBuyAlertOnlyPonderationRule extends LatestEven
 
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
-		return new LatestEventsScreenerBuySignal(symbolEvents.getStock(),portfolioName,true,false);
+		return new LatestEventsScreenerBuySignal(symbolEvents.getStock(), portfolioName, true, false);
 	}
 	
 	@Override

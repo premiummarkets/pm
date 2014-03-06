@@ -160,7 +160,6 @@ import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.portfolio.AbstractSharesList;
 import com.finance.pms.portfolio.InOutWeighted;
 import com.finance.pms.portfolio.InvalidQuantityException;
 import com.finance.pms.portfolio.MonitorLevel;
@@ -592,9 +591,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	private final class TabInit extends Observable implements Runnable {
 
 		private final Integer tabIdx;
-		private final AbstractSharesList portfolio;
+		private final Portfolio portfolio;
 
-		private TabInit(Integer tabIdx, AbstractSharesList portfolio) {
+		private TabInit(Integer tabIdx, Portfolio portfolio) {
 			this.tabIdx = tabIdx;
 			this.portfolio = portfolio;
 		}
@@ -602,7 +601,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		public void run() {
 
 			synchronized (this.portfolio) {
-
+				
+				this.portfolio.setIsUiDirty(false);
+				
 				try {
 
 					ArrayList<SlidingPortfolioShare> listOfShares = tabBuildSlidingPortfolioShareList(portfolio.getListShares().values());
@@ -803,9 +804,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 										Portfolio portfolio = modelControler.getPortfolio(selectionIndex);
 										Table ttomod = (Table) cTabItem[selectionIndex].getData();
-										//ttomod.setSelection(-1);
 										
-										if (ttomod.getItems().length != portfolio.getListShares().size()) {
+										if (portfolio.isUiDirty() || ttomod.getItems().length != portfolio.getListShares().size()) {
 											tabUpdateItemsFromPortfolio(selectionIndex, portfolio, new CursorChangerObserver(1, SWT.CURSOR_WAIT));
 										} else {
 											if (!cTabItem[selectionIndex].isDisposed()) {
@@ -1098,18 +1098,18 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 		if (!cTabItemElem.isDisposed() && cTabItemElem.isShowing()) {
 		
-			Table t  = (Table)  cTabItemElem.getData();
+			Table t = (Table) cTabItemElem.getData();
 			
 			Color bgColor;
 			Color fgColor;
 
 			boolean isSlidingStart = slidingStartAnchor.getSelection();
 			if (isSlidingStart) {
-				bgColor = new Color(getDisplay(),246,244,242);
-				fgColor = new Color(getDisplay(),230,225,220);
+				bgColor = new Color(getDisplay(), 246, 244, 242);
+				fgColor = new Color(getDisplay(), 230, 225, 220);
 			} else {
-				bgColor = new Color(getDisplay(),255,255,255);
-				fgColor = new Color(getDisplay(),0,0,0);
+				bgColor = new Color(getDisplay(), 255, 255, 255);
+				fgColor = new Color(getDisplay(), 0, 0, 0);
 			}
 			
 			for (TableItem item : t.getItems()) {
@@ -1140,7 +1140,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		}
 	}
 
-	public void tabUpdateItemsFromPortfolio(final Integer tabIdx, final AbstractSharesList portfolio, Observer... tabInitObservers) {
+	public void tabUpdateItemsFromPortfolio(Integer tabIdx, Portfolio portfolio, Observer... tabInitObservers) {
 
 		TabInit runnable = new TabInit(tabIdx, portfolio);
 		for (Observer observer : tabInitObservers) {
@@ -1622,9 +1622,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 											UserDialog dialog = new UserDialog(getShell(), "No quotation found for "+stock.getFriendlyName(), e.toString());
 											dialog.open();
 										}
-										
-										//Caches
-										Quotations.refreshCaches(stock);
 										
 										//Ui ...
 										tabUpdateTableItem(table.getSelection()[0], ss);
@@ -2152,7 +2149,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				
 				if (LOGGER.isDebugEnabled()) {
 					try {
-						LOGGER.debug(extractTransactionLog(currentPortfolio));
+						LOGGER.debug(currentPortfolio.extractTransactionLog( (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero(), (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate()));
 					} catch (Throwable e) {
 						e.printStackTrace();
 					}
@@ -2204,90 +2201,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 	}
 
-	protected String extractTransactionLog(Portfolio currentPortfolio) throws Throwable {
-		
-		try {
-			
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			SortedSet<TransactionElement> sortedByStock = new TreeSet<TransactionElement>(new Comparator<TransactionElement>() {
-
-				@Override
-				public int compare(TransactionElement o1, TransactionElement o2) {
-					int stock = o1.getStock().compareTo(o2.getStock());
-					if (stock == 0) {
-						int equalDate = o2.getDate().compareTo(o1.getDate());
-						if (equalDate == 0) {
-							int id = o2.getId().compareTo(o1.getId());
-							return id;
-						}
-						return equalDate;
-					}
-					return stock;
-				}
-			});
-			Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
-			Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
-			sortedByStock.addAll(currentPortfolio.headTransactionsTo(startDate, endDate));
-			
-			CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
-			Currency portfolioCurrency = currentPortfolio.inferPortfolioCurrency();
-			
-			String messagePortCurrency = "Transactions ("+portfolioCurrency+") in " +currentPortfolio.getName() + " :\nstock, date, transaction price, quantity in, amount in, quantity out, amount out, currency, close price";
-			String messageNoConvertion = "Transactions (Original currencies) in " +currentPortfolio.getName() + " :\nstock, date, transaction price, quantity in, amount in, quantity out, amount out, currency, close price, exchange rate";
-			Stock currentStock = null;
-			
-			for (TransactionElement te : sortedByStock) {
-				
-				if (currentStock == null || !currentStock.equals(te.getStock())) {
-					try {
-						currentStock = te.getStock();
-						Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
-						BigDecimal lastClosePrice = quotations.getClosestCloseForDate(endDate);
-						Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, endDate, true, portfolioCurrency, ValidityFilter.CLOSE);
-						BigDecimal lastConvertedClosePrice = convertedQuotations.getClosestCloseForDate(endDate);
-						BigDecimal LastConvertionRate = currencyConverter.convert(currentStock.getMarketValuation(), portfolioCurrency, BigDecimal.ONE, endDate);
-						messagePortCurrency = messagePortCurrency +"\n"+te.getStock().getFriendlyName()+","+dateFormat.format(endDate)+",,,,,, "+portfolioCurrency+", "+lastConvertedClosePrice;
-						messageNoConvertion = messageNoConvertion +"\n"+te.getStock().getFriendlyName()+","+dateFormat.format(endDate)+",,,,,, "+currentStock.getMarketValuation().getCurrency()+", "+lastClosePrice+", "+LastConvertionRate;
-					} catch (Exception e) {
-						LOGGER.warn("Error loading last stock prices for "+currentStock+" : "+e);
-					}
-				}
-				
-				BigDecimal closePrice = BigDecimal.ZERO;
-				BigDecimal convertedClosePrice = BigDecimal.ZERO;
-				BigDecimal convertionRate = BigDecimal.ONE;
-				try {
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
-					closePrice = quotations.getClosestCloseForDate(te.getDate());
-					Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, portfolioCurrency, ValidityFilter.CLOSE);
-					convertedClosePrice = convertedQuotations.getClosestCloseForDate(te.getDate());
-					convertionRate = currencyConverter.convert(currentStock.getMarketValuation(), portfolioCurrency, BigDecimal.ONE, te.getDate());
-				} catch (Exception e) {
-					LOGGER.warn("Error loading stock prices for "+currentStock+" : "+e);
-				}
-				
-				BigDecimal convertedTransPrice  = currencyConverter.convert(te.getCurrency(), portfolioCurrency, te.getPrice(), te.getDate());
-				BigDecimal transAmount =  te.getPrice().multiply(te.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
-				BigDecimal convertedTransAmount = convertedTransPrice.multiply(te.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
-				
-				if (te.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
-					messagePortCurrency = messagePortCurrency + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+convertedTransPrice+","+te.getQuantity()+","+convertedTransAmount+",,,"+portfolioCurrency+","+convertedClosePrice;
-					messageNoConvertion = messageNoConvertion + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+te.getPrice()+","+te.getQuantity()+","+transAmount+",,,"+te.getCurrency()+","+closePrice+","+convertionRate;
-				} else {
-					messagePortCurrency = messagePortCurrency + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+convertedTransPrice+",,,"+te.getQuantity()+","+convertedTransAmount+","+portfolioCurrency+","+convertedClosePrice;
-					messageNoConvertion = messageNoConvertion + "\n"+te.getStock().getFriendlyName()+","+dateFormat.format(te.getDate())+","+te.getPrice()+",,,"+te.getQuantity()+","+transAmount+","+te.getCurrency()+","+closePrice+","+convertionRate;
-				}
-			}
-			
-			return messagePortCurrency + "\n\n" + messageNoConvertion;
-			
-		} catch (Throwable e) {
-			throw e;
-		}
-	}
-
-
-
 	protected String signumRoundedFormat(NumberFormat numberFormat, BigDecimal bigDecimalValue) {
 		int signum = bigDecimalValue.signum();
 		String signumTxt = (signum == -1)?"-":"";
@@ -2319,7 +2232,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		ti.setText(Titles.WTotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, portfolioShare.getGainTotalWeightedPercent()));
 		ti.setText(Titles.Monitor.ordinal(), portfolioShare.getMonitorLevel().getMonitorLevel());
 		ti.setText(Titles.DisplayedCurrency.ordinal(), portfolioShare.getDisplayedCurrency().name());
-	
+
 	}
 
 	private void sortColumn(String colStr) {
@@ -3099,7 +3012,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		String transactionExportName = portfolio.getName()+"_"+dateStr;
 		
 		try {
-			String extractTransactionLog = extractTransactionLog(portfolio);
+			String extractTransactionLog = portfolio.extractTransactionLog((slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero(), (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate());
 			
 			String dir = System.getProperty("installdir") + File.separator + "transactionsexports" + File.separator;
 			new File(dir).mkdirs();

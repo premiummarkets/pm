@@ -71,26 +71,28 @@ public class Stock extends Validatable {
 	
     private String symbol;
     private String isin;
+    
     private String name;
-    private Boolean overrideUserQuotes;
     private StockCategories category;
     private Date lastQuote;
-    private  MarketValuation marketValuation;
-    private  SymbolMarketQuotationProvider symbolMarketQuotationProvider;
+    private MarketValuation marketValuation;
+    private SymbolMarketQuotationProvider symbolMarketQuotationProvider;
     private String sectorHint;
     private TradingMode tradingMode;
     private Long capitalisation;
+    
+    private Boolean overrideUserQuotes;
 	private String refName;
 
 	public Stock() {
 		super();
-		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,null);
+		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT, null);
 	}
 	
 	public Stock(String symbol, String isin) {
 		this.symbol=symbol;
 		this.isin=isin;
-		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,null);
+		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT, null);
 	}
 
 	public Stock(Stock si) {
@@ -414,8 +416,7 @@ public class Stock extends Validatable {
 		return lastQuote;
 	}
 
-	@SuppressWarnings("unused")
-	private void setCategory(StockCategories category) {
+	public void setCategory(StockCategories category) {
 		this.category = category;
 	}
 
@@ -434,21 +435,19 @@ public class Stock extends Validatable {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name="TRADING_MODE")
-	private TradingMode getTradingMode() {
+	public TradingMode getTradingMode() {
 		return tradingMode;
 	}
 
-	@SuppressWarnings("unused")
-	private void setTradingMode(TradingMode tradingMode) {
+	public void setTradingMode(TradingMode tradingMode) {
 		this.tradingMode = tradingMode;
 	}
 	
-	private Long getCapitalisation() {
+	public Long getCapitalisation() {
 		return capitalisation;
 	}
 
-	@SuppressWarnings("unused")
-	private void setCapitalisation(Long capitalisation) {
+	public void setCapitalisation(Long capitalisation) {
 		this.capitalisation = capitalisation;
 	}
 
@@ -460,7 +459,7 @@ public class Stock extends Validatable {
 
 	@Transient
 	public String getFriendlyName() {
-		return this.getName()+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+		return this.getName().replaceAll("[,;/]"," ")+" ("+this.getSymbol()+" / "+this.getIsin()+")";
 	}
 	
 }

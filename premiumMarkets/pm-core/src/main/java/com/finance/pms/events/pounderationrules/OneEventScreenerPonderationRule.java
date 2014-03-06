@@ -57,9 +57,6 @@ public abstract class OneEventScreenerPonderationRule extends LatestEventsPonder
 		return  compareCal(se1, se2, p1, p2);
 	}
 
-	/**
-	 * @return
-	 */
 	abstract OneEventScreenerPonderationRule getPonderationRuleImpl();
 	
 	@Override

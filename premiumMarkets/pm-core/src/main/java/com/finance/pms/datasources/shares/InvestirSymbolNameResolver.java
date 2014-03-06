@@ -33,7 +33,7 @@ public class InvestirSymbolNameResolver extends SymbolNameResolver {
 	
 	@Override
 	public String resolveExtensionFromClue(String extensionClue) {
-		return extensionClue;
+		return (extensionClue == null || extensionClue.equals("UNKNOWN"))? SymbolNameResolver.UNKNOWNEXTENSION : extensionClue;
 	}
 
 	@Override

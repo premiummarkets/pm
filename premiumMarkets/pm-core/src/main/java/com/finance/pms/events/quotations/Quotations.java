@@ -643,7 +643,10 @@ public class Quotations {
 	public static void updateCachedStockKey(Stock stock) {
 
 		SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
-		if (softReference != null) Quotations.QUOTATIONS_CACHE.put(stock, softReference);
+		if (softReference != null) {
+			Quotations.QUOTATIONS_CACHE.remove(stock);
+			Quotations.QUOTATIONS_CACHE.put(stock, softReference);
+		}
 
 	}
 	
@@ -658,14 +661,13 @@ public class Quotations {
 		return lastQuote;
 	}
 	
-	private static void removeCachedStockKey(Stock stock) {
+	public static void removeCachedStockKey(Stock stock) {
 
 		SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
 		if (softReference != null) {
 			softReference.clear();
 			Quotations.QUOTATIONS_CACHE.remove(stock);
 		}
-
 	}
 	
 	private static void putCashedStock(Stock stock, QuotationData quotationData) {
@@ -676,7 +678,6 @@ public class Quotations {
 		if (oldValue != null) {
 			oldValue.clear();
 		}
-		
 	}
 	
 	protected static QuotationData getCashedStock(Stock stock) {//XXX Should be private

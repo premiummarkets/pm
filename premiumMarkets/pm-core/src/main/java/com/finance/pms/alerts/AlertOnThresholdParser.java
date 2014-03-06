@@ -77,7 +77,6 @@ public class AlertOnThresholdParser extends EventCompostionCalculator {
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		if (quotations.size() == 0) return edata;
 		
-		//for (int quotationIndex = calculationStartIdx; quotationIndex <= calculationEndIdx && quotationIndex < quotations.size(); quotationIndex++) {
 		for (int quotationIndex = quotations.getFirstDateShiftedIdx(); quotationIndex <= quotations.getLastDateIdx() && quotationIndex < quotations.size(); quotationIndex++) {
 
 			LOGGER.debug("Calculate alerts for : " + portfolioShare);
