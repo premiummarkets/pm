@@ -41,7 +41,6 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
-import java.util.prefs.BackingStoreException;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -151,7 +150,7 @@ public class MyLogger {
 			MainPMScmd.getPrefs().put("mail.log.activated", "false");
 			try {
 				MainPMScmd.getPrefs().flush();
-			} catch (BackingStoreException e1) {
+			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -175,7 +174,7 @@ public class MyLogger {
 					MainPMScmd.getPrefs().put("mail.log.activated", "true");
 					try {
 						MainPMScmd.getPrefs().flush();
-					} catch (BackingStoreException e1) {
+					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
 				}
@@ -245,7 +244,7 @@ public class MyLogger {
 									MainPMScmd.getPrefs().put("mail.log.activated", "failed");
 									try {
 										MainPMScmd.getPrefs().flush();
-									} catch (BackingStoreException en) {
+									} catch (Exception en) {
 										en.printStackTrace();
 									}
 								}
@@ -262,7 +261,7 @@ public class MyLogger {
 					MainPMScmd.getPrefs().put("mail.log.activated", "failed");
 					try {
 						MainPMScmd.getPrefs().flush();
-					} catch (BackingStoreException e1) {
+					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
 				};
@@ -278,7 +277,7 @@ public class MyLogger {
 			}
 			try {
 				MainPMScmd.getPrefs().flush();
-			} catch (BackingStoreException e1) {
+			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 			e.printStackTrace();

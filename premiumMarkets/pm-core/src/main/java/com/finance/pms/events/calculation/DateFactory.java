@@ -72,5 +72,9 @@ public class DateFactory {
 		return time;
 		
 	}
+	
+	public static Calendar now() {
+		return Calendar.getInstance();
+	}
 
 }
