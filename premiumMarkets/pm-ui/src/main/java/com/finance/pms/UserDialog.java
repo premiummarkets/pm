@@ -56,7 +56,7 @@ public class UserDialog extends Dialog {
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 
 
-	private Text errorTxt;
+	protected Text errorTxt;
 	private Text addMsgTxt;
 	private String erreur;
 	private String addMessage;
@@ -156,7 +156,6 @@ public class UserDialog extends Dialog {
 		
 		if (errorTxt != null) {
 			errorTxt.pack();
-			//if (errorTxt.getSize().y < 50) ((GridData)errorTxt.getLayoutData()).heightHint = 50;
 		}
 	
 		if (addMsgTxt != null) {
@@ -198,7 +197,7 @@ public class UserDialog extends Dialog {
 		
 	}
 
-	private String cleanMsg(String message, Boolean addCR) {
+	String cleanMsg(String message, Boolean addCR) {
 	
 		String cleanMessage = message;
 		if (addCR) {

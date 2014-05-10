@@ -314,12 +314,6 @@ public class AutoPortfolioDelegate {
 		return checkSellability(symbolEvents, currentDate, null);
 	}
 
-
-	/**
-	 * @param sortedSet
-	 * @param portfolioShare1
-	 * @throws IgnoredEventDateException 
-	 */
 	private TransactionRecord checkSellability(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
 
 		//check if already done 

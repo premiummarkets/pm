@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -95,7 +94,7 @@ public class EventsResources {
 	public List<SymbolEvents> finList;
 	public List<SymbolEvents> debList;
 	
-	Map<Stock, Lock> locks;
+	ConcurrentHashMap<Stock, Lock> locks;
 	
 	//"EVENTS_PKEY" UNIQUE ( "SYMBOL", "ISIN",  "ANALYSENAME", "DATE", "EVENTDEFID", "EVENTDEFEXTENSION");
 	private class EventCacheEntry {
@@ -310,7 +309,7 @@ public class EventsResources {
 		isEventCached = new Boolean(eventCacheProp);
 		isCachePersistent = false;
 		
-		locks = new HashMap<Stock, Lock>();
+		locks = new ConcurrentHashMap<Stock, Lock>();
 		
 		singleton = this;
 		
@@ -324,6 +323,7 @@ public class EventsResources {
 	}
 	
 	public static EventsResources getInstance() {
+		
 		if (singleton == null) {
 			singleton = new EventsResources();
 		}
@@ -513,10 +513,7 @@ public class EventsResources {
 		return retVal;
 	}
 
-	/**
-	 * @param eventListNames
-	 * @return
-	 */
+
 	private Set<String> disctinctNames(String... eventListNames) {
 		Set<String> eventListNamesSet = new HashSet<String>();
 		eventListNamesSet.addAll(Arrays.asList(eventListNames));
@@ -621,18 +618,17 @@ public class EventsResources {
 			lockIds.add(se.getStock());
 		}
 		
-		//synchronized (locks) {
-			for (Stock stock : lockIds) {
-				Lock stockLock = locks.get(stock);
-				if (stockLock == null) {
-					stockLock = new ReentrantLock();
-					locks.put(stock, stockLock);
-				} 
-				stockLock.lock();
-			}
-		//}
+		for (Stock stock : lockIds) {
+			Lock stockLock = locks.get(stock);
+			if (stockLock == null) {
+				stockLock = new ReentrantLock();
+				locks.put(stock, stockLock);
+			} 
+			stockLock.lock();
+		}
 		
 		try {
+			
 			DataSourceTransactionManager txManager = (DataSourceTransactionManager) SpringContext.getSingleton().getBean("txManager");
 
 			DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -720,21 +716,17 @@ public class EventsResources {
 			} 
 
 		} finally {
-			//synchronized (locks) {
-				for (Stock stock : lockIds) {
-					Lock stockLock = locks.get(stock);
-					stockLock.unlock();
-				}
-			//}
+
+			for (Stock stock : lockIds) {
+				Lock stockLock = locks.get(stock);
+				if (stockLock != null) stockLock.unlock(); else LOGGER.error(stock+ "is does have a lock!");
+			}
+
 		}
 		
 	}
 
-	/**
-	 * @param events
-	 * @param lqinsert
-	 * @param lqupdate
-	 */
+
 	private void buildUpdateValidatableList(Collection<SymbolEvents> events, ArrayList<Query> lqinsert, ArrayList<Validatable> lqupdate) {
 
 		Iterator<SymbolEvents> sortedListIt = events.iterator();

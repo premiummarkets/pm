@@ -74,8 +74,6 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	@Override
 	public void run() {
 		
-		//this.holdingThread = Thread.currentThread();
-		
 		try {
 			
 			builtOperation = parseFormula(operationName, formula);
@@ -165,7 +163,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		//If there is a pre parameterised operation, we use it
 		Operation nativeOperations = fetchNativeOperation(child.getText());
 		if (nativeOperations != null) {
-			LOGGER.debug("Cloning pre parameterise op : "+nativeOperations);
+			LOGGER.debug("Cloning pre parameterised native op : "+nativeOperations);
 
 			Operation clone = (Operation) nativeOperations.clone();
 			clone.setOperands(operands);
@@ -175,7 +173,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		
 		Operation userOperation = fetchUserOperation(child.getText());
 		
-		//No native. If the is a user operation, we use it
+		//No native. If there is a user operation, we use it
 		if (userOperation != null) {
 			LOGGER.debug("Using user op : "+userOperation);
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
@@ -188,7 +186,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			try {
 
 				String childText = opPackage + child.getToken().getText();
-				LOGGER.debug("Instantiating NON pre parameterise op : "+childText);
+				LOGGER.debug("Instantiating NON pre parameterise native op : "+childText);
 
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);

@@ -263,15 +263,16 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands;
 	}
 
-	//Parameter for this operation
+	//Parameter for this operation (this is actually a pre evaluated value for the operand)
 	public void setParameter(Value<?> parameter) {
 		this.parameter = parameter;
 	}
 	
-	//Must have one param per operand in the same order
+	//Must have one param per operand in the same order. Null parameter does nothing
 	public void setOperandsParams(Value<?>... parameters) {
 		for (int i = 0; i < operands.size(); i++) {
-			operands.get(i).setParameter(parameters[i]);
+			Value<?> parameter = parameters[i];
+			if (parameter != null) operands.get(i).setParameter(parameter);
 		}
 	}
 
@@ -279,11 +280,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return parameter;
 	}
 
-	//Operands are set in the default constructor or unknown before usage 
-	//Either all the operands (with no already set parameter) are overridden or none at all. 
+	//This operation operands are either set in the default constructor or unknown before usage.
+	//In this setter, either all the operands (with no already set parameters) are overridden or none at all. 
 	//Hence an empty ArrayList as overriding operands means that no change will be made to this.operands
 	//A subset of operand will be rejected if it is not complementary of the parameters pre set to this.
-	//The case when this.operands is empty means that the operands and their number are unknown from a priory. In that case, we blindly add all the operands.
+	//The case when this.operands is empty means that the operands and their amount are unknown a priory before usage. In that case, we blindly add all the operands.
 	public void setOperands(ArrayList<Operation> overridingOperands) throws IllegalArgumentException {
 		
 		//No overridingOprands means we keep this as it is

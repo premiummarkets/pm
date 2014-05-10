@@ -64,7 +64,6 @@ public class DoubleMapOperation extends Operation {
 
 	@Override
 	public int operationStartDateShift() {
-		//throw new NotImplementedException();
 		return 0;
 	}
 

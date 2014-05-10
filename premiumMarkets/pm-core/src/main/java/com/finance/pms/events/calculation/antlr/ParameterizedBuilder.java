@@ -195,12 +195,10 @@ public abstract class ParameterizedBuilder extends Observable {
 				throw new InstantiationException("Can't solve : "+formulaParser+". Please fix.");
 			}
 			
-			
 			updateCaches(operation, isNewOp);
 			
 		} catch (Exception e) {
 			throw new IOException(e);
-			
 		} finally {
 			if (formulaParser != null) formulaParser.shutdown();
 		}

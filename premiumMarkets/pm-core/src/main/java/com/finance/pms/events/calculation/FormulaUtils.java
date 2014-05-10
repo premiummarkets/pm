@@ -48,7 +48,7 @@ public class FormulaUtils {
 		newCarretPosition = previousCaretPosition - (preCaret.length() - formatedPreCaret.length());
 		String formatedF = formatedPreCaret + formatedPostCaret;
 		
-		String[] keywordBeforeCR = new String[]{"also display", "is bullish when ", "is bearish when ", "is bearish if not bullish and ", "is bearish if not bullish or ", ";", "(", ")"};
+		String[] keywordBeforeCR = new String[]{"override start shift with", "also display", "is bullish when ", "is bearish when ", "is bearish if not bullish and ", "is bearish if not bullish or ", ";", "(", ")"};
 		String[] keyWordAfterCR = new String[]{" or ", " and ", "(", ")"};
 
 		String indentStr = "";

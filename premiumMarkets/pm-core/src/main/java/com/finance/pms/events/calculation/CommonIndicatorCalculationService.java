@@ -248,19 +248,23 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		try {
 			
 			if (LOGGER.isInfoEnabled()) {
-				int nbEvents = 0;
-				String eventDefs = "";
-				String stocksNames = "";
-				String sep= "";
-				for (SymbolEvents se : allEvents) {
-					stocksNames = stocksNames + sep + se.getStock().getSymbol();
-					eventDefs = eventDefs + sep + se.getEventDefList().toString();
-					sep = ",";
-					nbEvents = nbEvents + se.getSortedDataResultList().size();
+				try {
+					int nbEvents = 0;
+					String eventDefs = "";
+					String stocksNames = "";
+					String sep= "";
+					for (SymbolEvents se : allEvents) {
+						stocksNames = stocksNames + sep + se.getStock().getSymbol();
+						eventDefs = eventDefs + sep + se.getEventDefList().toString();
+						sep = ",";
+						nbEvents = nbEvents + se.getSortedDataResultList().size();
+					}
+					String stocksHint = (allEvents.size() > 1)?allEvents.size()+ " stocks":stocksNames;
+					LOGGER.info("Storing pass "+passNumber+" for "+stocksHint+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
+					LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+stocksHint+"), from "+dateFormat.format(startDate)+" to "+dateFormat.format(endDate));
+				} catch (Throwable e) {
+					e.printStackTrace();
 				}
-				String stocksHint = (allEvents.size() > 1)?allEvents.size()+ " stocks":stocksNames;
-				LOGGER.info("Storing pass "+passNumber+" for "+stocksHint+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
-				LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+stocksHint+"), from "+dateFormat.format(startDate)+" to "+dateFormat.format(endDate));
 			}
 			
 			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName);

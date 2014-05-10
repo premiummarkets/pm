@@ -349,6 +349,7 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("sectors.refHTSmoothSMA",props);
 			putInPrefs("sectors.sectorsHTSmoothSMA",props);
 			putInPrefs("sectors.supportStocks",props);
+			putInPrefs("sectors.inputGenerator",props);
 			
 			//Tune 
 			putInPrefs("perceptron.retuneSpan", props);

@@ -57,6 +57,8 @@ public class ZeroLagEMASmoother extends Smoother {
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixLag) {
 		
+		if (this.period <= 1) return data;
+		
 		double[][] inReal = new double[data.size()][];
 		int i=0;
 		for (double[] dv : data.values()) {
@@ -91,7 +93,7 @@ public class ZeroLagEMASmoother extends Smoother {
 	}
 
 
-	public double[][] smooth(double[][] inReal) {
+	private double[][] smooth(double[][] inReal) {
 		
 		List<double[]> inRealDecomp = new ArrayList<double[]>();
 		double[] ds0 = inReal[0];

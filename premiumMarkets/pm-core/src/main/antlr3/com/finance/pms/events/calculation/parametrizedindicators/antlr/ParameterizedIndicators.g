@@ -141,7 +141,8 @@ tokens {
 }
 
 complete_expression :
-   bcond=bullish_condition bearish_condition[$bcond.tree] also_display -> ^(EventConditionHolder bullish_condition bearish_condition also_display StringOperation) 
+   //TODO : common optionnal statement contion for also_display and fixed_start_shift
+   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(EventConditionHolder bullish_condition bearish_condition also_display fixed_start_shift StringOperation) 
    ;
 
 bullish_condition :
@@ -154,7 +155,11 @@ bearish_condition[CommonTree bcond] :
  also_display :
   'also display' WhiteChar primary_expression WhiteChar* COMMA -> ^(AndDoubleMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
   -> NullCondition
-  ;
+ ;
+ fixed_start_shift :
+  'override start shift with' WhiteChar fixedStartShift=constant WhiteChar DAYS COMMA -> {$fixedStartShift.tree} |
+  -> ^(Number NumberToken["-1"])
+ ;
  
 bearish_not_bullish[CommonTree bcond] :
  'is bearish if not bullish' 

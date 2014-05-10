@@ -115,19 +115,21 @@ public class TargetStockInfo {
 
 	}
 	
-	Stock stock;
-	Date startDate;
-	Date endDate;
+	private Stock stock;
+	private Date startDate;
+	private Date endDate;
 	private String analysisName;
+	private String conditionHolderReference;
 	
-	List<Output> calculatedOutputsCache;
+	private List<Output> calculatedOutputsCache;
 	
-	List<Output> gatheredChartableOutputs;
-	List<ChartedOutputGroup> chartedOutputGroups;
+	private List<Output> gatheredChartableOutputs;
+	private List<ChartedOutputGroup> chartedOutputGroups;
 	
-	public TargetStockInfo(String analysisName, Stock stock, Date startDate, Date endDate) throws WarningException {
+	public TargetStockInfo(String analysisName, String eventConditionHolderReference, Stock stock, Date startDate, Date endDate) throws WarningException {
 		super();
 		this.analysisName = analysisName;
+		this.conditionHolderReference = eventConditionHolderReference;
 		this.stock = stock;
 		
 		Date lastQuote = stock.getLastQuote();
@@ -310,5 +312,9 @@ public class TargetStockInfo {
 			System.out.println(line);
 		}
 		
+	}
+
+	public String getConditionHolderReference() {
+		return conditionHolderReference;
 	}
 }

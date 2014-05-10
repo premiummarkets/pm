@@ -201,7 +201,8 @@ public class Quotations {
 		double change = (dj - djm1)/djm1;
 		
 		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
-		if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
+		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
+		if ( !Double.isInfinite(change) && !Double.isNaN(change) && change <= -(span*Math.log(1.1)) ) {
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
 				QuotationUnit oldValue = quotationsUnitOut.get(i);
 				Double factorDouble = Double.valueOf(dj/djm1);

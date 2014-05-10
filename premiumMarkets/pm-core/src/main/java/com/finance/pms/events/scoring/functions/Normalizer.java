@@ -81,24 +81,13 @@ public class Normalizer<T> {
 
 	public SortedMap<Date, T> normalised(SortedMap<Date,T> data) {
 		
-		//b = [(a - minA) / (maxA - minA)] * (maxNorm - minNorm) + minNorm 
-		//with maxNorm = 1 and minNorm = 0
-		//b = [(a - minA) / (maxA - minA)]
-
-//		if (data.get(data.firstKey()).length > 1) {
-//			LOGGER.warn("Normalised data contains element value size > 1 is not supported. Only the first series will be normalised.");
-//		}
-		
 		SortedMap<Date, T> ret = new TreeMap<Date, T>();
 		
 		SortedMap<Date, T> subD = data.subMap(start, end);
-		
 		calculateMinMax(subD);
 		
 		for (Date date : subD.keySet()) {
-			//double value = data.get(date)[0];
 			double value = valueOf(subD.get(date));
-			//ret.put(date, new double[]{ ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm});
 			ret.put(date,  tOf(((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm));
 		}
 		
@@ -112,7 +101,6 @@ public class Normalizer<T> {
 		min = Double.MAX_VALUE;
 		
 		for (Date date : subD.keySet()) {
-			//double value = subD.get(date)[0];
 			double value = valueOf(subD.get(date));
 			if (value >= max) max = value;
 			if (value <= min) min = value;

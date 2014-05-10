@@ -59,6 +59,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -76,9 +77,15 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 		
 		super(observers);	
 		this.conditionHolder = (EventConditionHolder) eventInfo;
-		
+			
 		//Adjust start
-		int operationStartDateShift = this.conditionHolder.operationStartDateShift();
+		Integer startShiftOverrideValue = ((NumberValue) this.conditionHolder.getOperands().get(3).getParameter()).getNumberValue().intValue();
+		int operationStartDateShift = 0;
+		if (!startShiftOverrideValue.equals(-1)) {
+			operationStartDateShift = startShiftOverrideValue;
+		} else {
+			operationStartDateShift = this.conditionHolder.operationStartDateShift();
+		}
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
 		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, -operationStartDateShift);
@@ -95,7 +102,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 		}
 		
 		//Target stock instance
-		this.targetStock = new TargetStockInfo(analyseName, stock, adjustedStartCal.getTime(), adjustedEndDate);
+		this.targetStock = new TargetStockInfo(analyseName, this.conditionHolder.getReference(), stock, adjustedStartCal.getTime(), adjustedEndDate);
 		
 	}
 
@@ -106,7 +113,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 
 		if (conditionHolder.getFormula() != null) {
 			
-			conditionHolder.setOperandsParams(null, null, null, new StringValue(eventListName));
+			conditionHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
 			EventDataValue run = (EventDataValue) conditionHolder.run(targetStock);
 
 			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
@@ -134,7 +141,6 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 				eventValue.setEventType(EventType.NONE);
 				returnedEvents.put(noneEventKey,eventValue);
 			}
-			
 			
 			edata.putAll(returnedEvents);
 		}

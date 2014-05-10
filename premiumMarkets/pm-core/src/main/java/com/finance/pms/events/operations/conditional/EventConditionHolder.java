@@ -51,6 +51,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescrip
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.talib.dataresults.StandardEventValue;
@@ -63,7 +64,8 @@ public class EventConditionHolder extends Operation implements EventInfo {
 
 	public EventConditionHolder() {
 		super("eventconditionholder","eventconditionholder", 
-		new ArrayList<Operation>(Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new StringOperation("eventListName")})));
+		new ArrayList<Operation>(
+				Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new NumberOperation("startShiftOverride"), new StringOperation("eventListName")})));
 		eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
@@ -79,7 +81,8 @@ public class EventConditionHolder extends Operation implements EventInfo {
 		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
 		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2));
-		StringValue eventListName = ((StringValue) inputs.get(3));
+		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));
+		StringValue eventListName = ((StringValue) inputs.get(4));
 		
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		for (Date date :  bullishMap.getValue(targetStock).keySet()) {

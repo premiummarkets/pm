@@ -50,7 +50,7 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 	
 
 	@Override
-	public int operationStartDateShift() {//The shift must be done in internally in the operation implementer
+	public int operationStartDateShift() {//The shift must be done ad'hoc and internally in the operation implementer
 		return 0;
 	}
 

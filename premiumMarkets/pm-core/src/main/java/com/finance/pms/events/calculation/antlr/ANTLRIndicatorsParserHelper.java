@@ -426,7 +426,14 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					} 
 					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
 				}
-				
+				else if (lastStack.equals("fixed_start_shift")) {
+					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
+					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"override start shift with"}, "To set a constant calculation start date shift : ", TokenType.KEYWORDS);
+					if (!foundMatch) {
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'also display' expected", null, deletePosition));
+					} 
+					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
+				}
 				else if (lastStack.equals("primary_expression") || lastStack.equals("atom")) {
 
 					//Open a new sub condition

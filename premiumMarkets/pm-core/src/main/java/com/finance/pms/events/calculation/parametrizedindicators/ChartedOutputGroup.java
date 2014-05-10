@@ -131,18 +131,11 @@ public class ChartedOutputGroup {
 
 		@Override
 		public String tootTip() {
-			//return fullQualifiedName();
-			//return fullQualifiedName() + ((outputReference.getFormula() != null)?" "+outputReference.getFormula():"");
 			return (outputReference.getFormula() != null)?outputReference.getFormula():fullQualifiedName();
 		}
 
 		@Override
 		public int compareTo(OutputDescr o) {
-//			if (outputName != null && o.outputName != null && !outputName.equals(o.outputName)) {
-//				return outputName.compareTo(o.outputName);
-//			} else {
-//				return outputIndex.compareTo(o.outputIndex);
-//			}
 			return this.fullQualifiedName().compareTo(o.fullQualifiedName());
 		}
 	}
@@ -161,9 +154,6 @@ public class ChartedOutputGroup {
 	
 	//Adding a main
 	public ChartedOutputGroup(Operation operation, int outputIndex) {
-		
-//		String outputName = operation.getReference();
-//		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
 		OutputReference outputReference = new OutputReference(operation);
 		thisDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
 		thisReference = outputReference;
@@ -171,8 +161,6 @@ public class ChartedOutputGroup {
 	}
 	
 	public OutputDescr addSignal(Operation operation, int outputIndex) {
-//		String outputName = operation.getReference();
-//		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
 		OutputReference outputReference = new OutputReference(operation);
 		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null);
 		this.components.put(outputReference, outputDescr);
@@ -180,16 +168,12 @@ public class ChartedOutputGroup {
 	}
 
 	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue) {
-//		String outputNameOverride = doubleValue.getNumberValue() +" ("+parentReference+" "+operation.getReferenceAsOperand()+")";
-		//OutputReference outputReference = new OutputReference(operation);
 		String referenceAsOperandOverride = parentReference+" "+operation.getReferenceAsOperand();
 		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, true, operation.getOperationReference()); 
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
 	}
 	
 	public void addAdditonalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
-//		String outputName = outputKey + " ("+operation.getReference()+")";
-//		if (operation.getOutputSelector() != null) outputName = operation.getOutputSelector() + " ("+outputName+")";
 		OutputReference outputReference = new OutputReference(operation, outputKey);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null));
 	}

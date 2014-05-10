@@ -53,7 +53,6 @@ public class OutputReference implements Comparable<OutputReference> {
 	
 	public OutputReference(Operation operation) {
 		this.reference = operation.getReference();
-		//this.outputSelector = (operation.getOutputSelector() != null)? operation.getOutputSelector() : operation.getReference();
 		this.outputSelector  = operation.getOutputSelector();
 		this.formula = operation.getFormula();
 		this.referenceAsOperand = operation.getReferenceAsOperand();

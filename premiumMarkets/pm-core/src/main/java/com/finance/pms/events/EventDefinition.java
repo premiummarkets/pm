@@ -157,7 +157,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Logarithmic ROC(%d,%d) crosses below 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}, 
 					"Logarithmic ROC(%d,%d) crosses above 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
 	SECTOR(507,"Sector Ranks Trend", true, 
-			new  EventDefDescriptorStatic("Sector output", null, null, null, null, null,"Neural signal is down", null, "Neural signal is up", null), 0),
+			new  EventDefDescriptorStatic("Second Sector output", "Sector output", null, null, null, null,"Second sector is down", null, "Second sector is up", null), 0),
 	ROCANDNEURAL (508,"Roc 'n' Neural", false, 
 			new  EventDefDescriptorStatic("First Neural output","Short Logarithmic ROC" , "Long Logarithmic ROC", "Second Neural output", "Short Roc Zero line", "Long Roc Zero line",
 					"First Neural(%d,%d) reverses down and Roc(%d,%d) crosses below 0\nOr Neural is down and Roc < 0",new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"},
@@ -242,21 +242,12 @@ public enum EventDefinition implements Serializable, EventInfo {
 		return this.eventDefId;
 	}
 
-	/**
-	 * @param ordinal 
-	 * @return
-	 */
 	private static EventDefinition[] subEventArray(int ordinalLow, int ordinalHigh) {
 		ArrayList<EventInfo> retVal = subEventList(ordinalLow, ordinalHigh);
 		EventDefinition[] eventDefinitions = new EventDefinition[retVal.size()] ;
 		return retVal.toArray(eventDefinitions);
 	}
 
-	/**
-	 * @param ordinalLow
-	 * @param ordinalHigh
-	 * @return
-	 */
 	private static ArrayList<EventInfo> subEventList(int ordinalLow, int ordinalHigh) {
 		ArrayList<EventInfo> retVal = new ArrayList<EventInfo>();
 		for (EventDefinition eventDefinition : EventDefinition.values()) {

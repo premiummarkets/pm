@@ -96,8 +96,12 @@ public class ActionDialog extends UserDialog {
 								LOGGER.warn(e);
 								errorHandler.action(valideButton);
 							} else {
+								ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
+								ActionDialog.this.errorTxt.setVisible(true);
+								ActionDialog.this.getParent().pack();
+								//ActionDialog.this.getParent().layout();
 								LOGGER.error(e,e);
-								dispose();
+								//dispose();
 							}
 						} finally {
 							if (!getParent().isDisposed()) getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
