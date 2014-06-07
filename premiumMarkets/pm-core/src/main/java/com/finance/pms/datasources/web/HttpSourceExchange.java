@@ -48,13 +48,19 @@ public class HttpSourceExchange extends HttpSourceYahoo {
 		return String.format(url,currency.toString(),"EUR");
 	}
 	
-	public String getOandaHistoryUrl(Currency fromCurrency,Currency toCurrency, Date start,Date end) {
+	public String getOandaHistoryUrl(Currency fromCurrency,Currency toCurrency, Date start, Date end) {
 		String url="http://www.oanda.com/transactionCurrency/historical-rates?date_fmt=us&date=%s&date1=%s&exch=%S&expr=%S&margin_fixed=0&format=CSV&redirected=1";
 		return String.format(url,new SimpleDateFormat("MM/dd/yy").format(end),new SimpleDateFormat("MM/dd/yy").format(start),fromCurrency.toString(),toCurrency.toString());
 	}
 	
 	public String getImfHistoryUrl(Date date) {
 		String url="http://www.imf.org/external/np/fin/data/rms_mth.aspx?SelectDate=%s&reportType=REP&tsvflag=Y";
+		//String url="http://www.imf.org/external/np/fin/data/rms_mth.aspx?SelectDate=%s";
+		return String.format(url,new SimpleDateFormat("yyyy-MM-dd").format(date));
+	}
+	
+	public String getXRatesHistoryUrl(Date date) {
+		String url="http://www.x-rates.com/historical/?from=USD&amount=1.00&date=%s";
 		return String.format(url,new SimpleDateFormat("yyyy-MM-dd").format(date));
 	}
 	

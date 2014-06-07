@@ -60,7 +60,21 @@ public class CurrencyStockBuilder {
 		
 	}
 	
-	public Stock buildStock() throws InvalidAlgorithmParameterException, SQLException, QuotationUpdateException {
+	public Stock buildAndFetchRates() throws InvalidAlgorithmParameterException, SQLException, QuotationUpdateException {
+		
+		Stock currencyStock = buildStock();
+		
+		QuotationUpdate quotationUpdate = new QuotationUpdate();
+		StockList stockList = new StockList();
+		stockList.add(currencyStock);
+		quotationUpdate.getQuotes(stockList);
+		
+		DataSource.getInstance().getShareDAO().saveOrUpdateStock(currencyStock);
+		
+		return currencyStock;
+	}
+
+	public Stock buildStock() throws InvalidAlgorithmParameterException {
 		
 		final String isinSymbol = target.name()+"Per"+referee.name();
 		String name = target.name()+" Per " +referee.name();
@@ -73,15 +87,8 @@ public class CurrencyStockBuilder {
 					new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), new MarketValuation(Market.UNKNOWN, BigDecimal.ONE, target), "", TradingMode.CONTINUOUS, 0l
 				);
 		}
-		
-		QuotationUpdate quotationUpdate = new QuotationUpdate();
-		StockList stockList = new StockList();
-		stockList.add(currencyStock);
-		quotationUpdate.getQuotes(stockList);
-		
-		DataSource.getInstance().getShareDAO().saveOrUpdateStock(currencyStock);
-		
 		return currencyStock;
+		
 	}
 
 }

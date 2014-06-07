@@ -38,6 +38,7 @@ import java.util.TreeMap;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -257,7 +258,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 	@Override
-	public LastUpdateStampChecker checkLastQuotationUpdateFor(Stock stock) {
+	public LastUpdateStampChecker checkLastQuotationUpdateFor(Validatable stock) {
 		return Quotations.checkLastQuotationUpdateFor(stock);
 	}
 

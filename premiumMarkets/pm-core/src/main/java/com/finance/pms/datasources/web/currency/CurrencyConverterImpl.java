@@ -30,6 +30,7 @@
 package com.finance.pms.datasources.web.currency;
 
 import java.math.BigDecimal;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -55,10 +56,12 @@ import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.MarketValuation;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.HttpSourceExchange;
 import com.finance.pms.datasources.web.MyBeanFactoryAware;
-import com.finance.pms.datasources.web.formaters.ImfCurrencyHistoryFormater;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.quotations.LastUpdateStampChecker;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAware {
 	
@@ -67,7 +70,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	private HttpSourceExchange httpSource;
 	private CurrencyDAO currencyDao;	
 	private NumberFormat numberFormater = NumberFormat.getNumberInstance();
-	private Map<Currency,Map<Currency,List<CurrencyRate>>> cache;
+	private Map<Currency, Map<Currency, List<CurrencyRate>>> cache;
 	
 	private Semaphore currencyDBAccessSemaphore;
 	private BeanFactory beanFactory;
@@ -88,46 +91,55 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			currencyDBAccessSemaphore.acquire();
 			
 			NavigableSet<CurrencyRate> dbRates = new TreeSet<CurrencyRate>();
-			dbRates.addAll(currencyDao.getRates(fromCurrency,toCurrency));
+			dbRates.addAll(currencyDao.getRates(fromCurrency, toCurrency));
 			
-//			Calendar todayCal = Calendar.getInstance();
-//			todayCal.set(Calendar.HOUR_OF_DAY, 0);
-//			todayCal.set(Calendar.MINUTE, 0);
-//			todayCal.set(Calendar.SECOND, 0);
-//			todayCal.set(Calendar.MILLISECOND,0);
-//			Date today = todayCal.getTime();
 			Date today = DateFactory.midnithDate(new Date());
 			
 			Date lastCurrencyRateDate = (!dbRates.isEmpty())?dbRates.last().getDate():new Date(1104537600000L); //date -d"01 January 2005" +%s
-//			Date lastAvail = todayCal.getTime();
 			if (dbRates.isEmpty() || lastCurrencyRateDate.before(today)) {
-
-				@SuppressWarnings("rawtypes")
-				List webRates = new ArrayList<Validatable>();
-				try {
-					webRates.addAll(this.getRatesForPeriod(fromCurrency, toCurrency, lastCurrencyRateDate, today));
-					currencyDao.storeCurrencyRates(webRates);
-				} catch (LockAcquisitionException e) {
-					LOGGER.warn("",e);
-				} catch (HttpException e) {
-					LOGGER.error("",e);
-				} catch (InterruptedException e) {
-					LOGGER.error("",e);
+				
+				Stock currencyStock = new CurrencyStockBuilder(fromCurrency, toCurrency).buildStock();
+				LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(currencyStock);
+				Boolean updateGranted = lastUpdateChecker.isUpdateGranted();
+				
+				if (updateGranted) {//Additional Grant check necessary as the update of exchange rate can come also from calls to convert as well as update quotations
+					
+					LOGGER.info("Currency update granted for "+currencyStock+ " and "+today);
+					
+					@SuppressWarnings("rawtypes")
+					List webRates = new ArrayList<Validatable>();
+					try {
+						//ExchangeRatesFetcher fetcher = new OneRequestFetcher(httpSource);
+						ExchangeRatesFetcher fetcher = new IterativeRequestFetcher(httpSource);
+						webRates.addAll(fetcher.getRatesForPeriod(fromCurrency, toCurrency, lastCurrencyRateDate, today));
+						currencyDao.storeCurrencyRates(webRates);
+					} catch (LockAcquisitionException e) {
+						LOGGER.warn("",e);
+					} catch (HttpException e) {
+						LOGGER.error("",e);
+					} catch (InterruptedException e) {
+						LOGGER.error("",e);
+					}
+					dbRates.addAll(webRates);
+					
+				} else {
+					LOGGER.info("Currency update NOT granted for "+currencyStock+ " and "+today);
 				}
-				dbRates.addAll(webRates);
 
 			}
 			
 			Map<Currency, List<CurrencyRate>> toMap = new ConcurrentHashMap<Currency, List<CurrencyRate>>();
 			toMap.put(toCurrency, new ArrayList<CurrencyRate>(dbRates));
-			cache.put(fromCurrency,toMap);
+			cache.put(fromCurrency, toMap);
 			
 		} catch (InterruptedException e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
+		} catch (InvalidAlgorithmParameterException e1) {
+			LOGGER.error("", e1);
 		} finally {
 			currencyDBAccessSemaphore.release();
 		}
-
+		
 	}
 
 	//We can convert only toward Base Unit not toward sub unit like pence for pound
@@ -152,7 +164,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			exchangeRate = fetchRateForDate(fromCurrency, toCurrency, date);
 		}
 		
-		//return exchangeRate.multiply(amount).setScale(4, BigDecimal.ROUND_HALF_UP);
 		return exchangeRate.multiply(amount).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
@@ -241,50 +252,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		throw new InvalidParameterException("No data for transactionCurrency");
 	}
 	
-	@SuppressWarnings("unchecked")
-	private List<CurrencyRate> getRatesForPeriod(final Currency fromCurrency,final Currency toCurrency, Date start, Date end) throws HttpException, InterruptedException {
-
-		@SuppressWarnings("rawtypes")
-		final List rates = new ArrayList<CurrencyRate>();
-		Calendar startDateCalendar = Calendar.getInstance();
-		startDateCalendar.setTime(start);
-		Calendar endDateCalendar = Calendar.getInstance();
-		endDateCalendar.setTime(end);
-
-		final String url = httpSource.getImfHistoryUrl(start);
-		LOGGER.debug("Url : "+url);
-		
-		Thread thread = new Thread(new Runnable() {
-
-			public void run() {
-				try {
-					rates.addAll(httpSource.readURL(new ImfCurrencyHistoryFormater(fromCurrency, toCurrency,url)));
-				} catch (HttpException e) {
-					LOGGER.error("",e);
-				} finally {
-					
-				}
-			}
-		});
-	
-		thread.start();
-
-
-		int lastDayOfStartDate = startDateCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-		if (startDateCalendar.get(Calendar.DAY_OF_MONTH) == lastDayOfStartDate) {
-			startDateCalendar.add(Calendar.MONTH, 1);
-			startDateCalendar.set(Calendar.DAY_OF_MONTH, 1);
-		} else {
-			startDateCalendar.set(Calendar.DAY_OF_MONTH, lastDayOfStartDate);
-		}
-
-		if (startDateCalendar.before(endDateCalendar)) {
-			rates.addAll(getRatesForPeriod(fromCurrency,toCurrency,startDateCalendar.getTime(),end));
-		} 
-		
-		thread.join();
-		return rates;
-	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory=beanFactory;

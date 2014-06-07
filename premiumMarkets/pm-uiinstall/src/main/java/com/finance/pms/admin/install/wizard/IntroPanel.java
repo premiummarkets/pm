@@ -239,11 +239,6 @@ public class IntroPanel extends JPanel {
         
     }
 
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
     private ImageIcon getImageIcon() {
     	URL resource = this.getClass().getClassLoader().getResource(Install.iconFile+".png");
     	if (resource != null){

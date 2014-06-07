@@ -30,73 +30,81 @@
 package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.web.MyUrl;
+import com.finance.pms.events.calculation.DateFactory;
 
-public class StockComplementBSEFormater extends LineFormater {
+public class CurrencyXRatesDailyFormater extends LineFormater {
 
 	private static PatternProperties PATTERNS;
 	
-	private Pattern codePatternExtended;
-	private Pattern codePatternShort;
-	
-	
-	public StockComplementBSEFormater(String url, Stock stockPart) {
-		super(new MyUrl(url));
-		params.add(stockPart);
+	private Pattern fromCurrencyPattern;
+	private Pattern toCurrencyPattern;
 
+	private Currency fromCurrency;
+	private Currency toCurrency;
+
+	private Date date;
+	private BigDecimal fromCurrencyRate;
+	private BigDecimal toCurrencyRate;
+
+	
+	public CurrencyXRatesDailyFormater(Currency fromCurrency, Currency toCurrency, Date date, String url) {
+		super(new MyUrl(url));
+		
+		this.date = DateFactory.midnithDate(date);
+		this.fromCurrency = fromCurrency;
+		this.toCurrency = toCurrency;
+		
 		try {
-			if (null == StockComplementBSEFormater.PATTERNS)
-				StockComplementBSEFormater.PATTERNS = new PatternProperties("patterns.properties");
+			if (null == CurrencyXRatesDailyFormater.PATTERNS) CurrencyXRatesDailyFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
 			LOGGER.debug("", e);
 		}
 
-		String name = stockPart.getName().replace("(", "\\(").replace(")","\\)");
-		codePatternExtended = Pattern.compile(StockComplementBSEFormater.PATTERNS.getProperty("extendscripidbyname", name));
-		String shortN = name.split(" ")[0];
-		codePatternShort= Pattern.compile(StockComplementBSEFormater.PATTERNS.getProperty("extendscripidbyname", shortN.substring(0,(shortN.length()<4)?shortN.length():4)));
+		fromCurrencyPattern = Pattern.compile(String.format(CurrencyXRatesDailyFormater.PATTERNS.getProperty("xRatesCurrencyLine"), fromCurrency.name()));
+		toCurrencyPattern = Pattern.compile(String.format(CurrencyXRatesDailyFormater.PATTERNS.getProperty("xRatesCurrencyLine"), toCurrency.name()));
+		
+		if (fromCurrency.equals(Currency.USD)) fromCurrencyRate = BigDecimal.ONE;
+		if (toCurrency.equals(Currency.USD)) toCurrencyRate = BigDecimal.ONE;
 	}
 
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
-		Stock stockPart = (Stock) params.get(0);	
 
 		Matcher fit;
 
 		LOGGER.trace(line);
-		fit = codePatternExtended.matcher(line);
-		if (fit.find()) {
-			setSymbol(stockPart, fit);
-		} else {
-			fit = codePatternShort.matcher(line);
+		if (fromCurrencyRate == null)  {
+			fit = fromCurrencyPattern.matcher(line);
 			if (fit.find()) {
-				setSymbol(stockPart, fit);
+				String rate = fit.group(1);
+				fromCurrencyRate = ("NA".equals(rate))?BigDecimal.ONE.negate():new BigDecimal(rate);
+			} 
+		}
+		if (toCurrencyRate == null ){
+			fit = toCurrencyPattern.matcher(line);
+			if (fit.find()) {
+				String rate = fit.group(1);
+				toCurrencyRate = ("NA".equals(rate))?BigDecimal.ONE.negate():new BigDecimal(rate);
 			}
 		}
 
-		if (stockPart.isFieldSet("isin") && stockPart.isFieldSet("symbol") && stockPart.isFieldSet("name")) {
-			Validatable v = stockPart;
-			v.setState(Validatable.VALID);
-			throw new StopParseFoundException(v);
+		if (fromCurrencyRate != null && toCurrencyRate !=null) {
+			BigDecimal rate = toCurrencyRate.divide(fromCurrencyRate, 10, BigDecimal.ROUND_HALF_EVEN);
+			Validatable rateLine = new CurrencyRate(fromCurrency, toCurrency, date, rate);
+			throw new StopParseFoundException(rateLine);
 		}
 
 		return null;
-	}
-
-	private void setSymbol(Stock stockPart, Matcher fit) throws StopParseErrorException {
-		try {
-			stockPart.setSymbol(fit.group(1));
-		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.debug("", e);
-			throw new StopParseErrorException("Invalid match scrip code while setting scrip id", e.getMessage());
-		}
 	}
 
 	@Override

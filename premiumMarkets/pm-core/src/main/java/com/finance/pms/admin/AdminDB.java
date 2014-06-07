@@ -683,6 +683,15 @@ public class AdminDB {
 				public Query toDataBase() {
 					return uQ;
 				}
+				@Override
+				public int hashCode() {
+					return System.identityHashCode(this);
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					return (this == obj);
+				}
 			});
 			List<Object> ss = DataSource.getInstance().exectuteSelect(Object.class,uQ);
 			
@@ -706,6 +715,15 @@ public class AdminDB {
 					public Query toDataBase() {
 						return uQ2;
 					}
+					@Override
+					public int hashCode() {
+						return System.identityHashCode(this);
+					}
+
+					@Override
+					public boolean equals(Object obj) {
+						return (this == obj);
+					}
 				});
 				List<Object> ssn = DataSource.getInstance().exectuteSelect(Object.class,uQ2);
 				if (ssn.size() > 0) {
@@ -717,6 +735,15 @@ public class AdminDB {
 						@Override
 						public Query toDataBase() {
 							return uQ3;
+						}
+						@Override
+						public int hashCode() {
+							return System.identityHashCode(this);
+						}
+
+						@Override
+						public boolean equals(Object obj) {
+							return (this == obj);
 						}
 					});
 
@@ -755,6 +782,15 @@ public class AdminDB {
 				public Query toDataBase() {
 					return uQ;
 				}
+				@Override
+				public int hashCode() {
+					return System.identityHashCode(this);
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					return (this == obj);
+				}
 			});
 			
 			List<Object> ss = DataSource.getInstance().exectuteSelect(Object.class,uQ);
@@ -779,6 +815,15 @@ public class AdminDB {
 					public Query toDataBase() {
 						return uQ2;
 					}
+					@Override
+					public int hashCode() {
+						return System.identityHashCode(this);
+					}
+
+					@Override
+					public boolean equals(Object obj) {
+						return (this == obj);
+					}
 				});
 				List<Object> ssn = DataSource.getInstance().exectuteSelect(Object.class,uQ2);
 				if (ssn.size() > 0) {
@@ -790,6 +835,15 @@ public class AdminDB {
 						@Override
 						public Query toDataBase() {
 							return uQ3;
+						}
+						@Override
+						public int hashCode() {
+							return System.identityHashCode(this);
+						}
+
+						@Override
+						public boolean equals(Object obj) {
+							return (this == obj);
 						}
 					});
 
@@ -828,6 +882,15 @@ public class AdminDB {
 				public Query toDataBase() {
 					return uQ;
 				}
+				@Override
+				public int hashCode() {
+					return System.identityHashCode(this);
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					return (this == obj);
+				}
 			});
 			
 			List<Object> ss = DataSource.getInstance().exectuteSelect(Object.class,uQ);
@@ -841,6 +904,15 @@ public class AdminDB {
 						@Override
 						public Query toDataBase() {
 							return uQ3;
+						}
+						@Override
+						public int hashCode() {
+							return System.identityHashCode(this);
+						}
+
+						@Override
+						public boolean equals(Object obj) {
+							return (this == obj);
 						}
 					});
 

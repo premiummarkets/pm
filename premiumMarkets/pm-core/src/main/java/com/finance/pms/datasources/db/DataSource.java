@@ -1168,6 +1168,16 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 						return qupdate;
 						
 					}
+					
+					@Override
+					public int hashCode() {
+						return System.identityHashCode(this);
+					}
+
+					@Override
+					public boolean equals(Object obj) {
+						return (this == obj);
+					}
 
 					@Override
 					public String toString() {

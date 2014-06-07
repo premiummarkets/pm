@@ -85,100 +85,104 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	@Override
 	public GetQuotationResult call() {
 		
-		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
-		ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
-		Date dateAtZero = DateFactory.dateAtZero();
-		
-		GetQuotationResult ret = new GetQuotationResult(stock);
-		Date lasteQuoteBeforeUpdate;
-		if (reset) {
-			lasteQuoteBeforeUpdate = dateAtZero;
-			stock.setLastQuote(dateAtZero);
-		} else {
-			lasteQuoteBeforeUpdate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
-		}
-		Boolean updateGranted = null;
-		Date updateStart = null;
-		
-		try {	
-			
-			Calendar startDayMidNight = Calendar.getInstance();
-			startDayMidNight.setTime(DateFactory.midnithDate(lasteQuoteBeforeUpdate));
-			startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-			updateStart = startDayMidNight.getTime();
-			
-			if (dateFin.before(updateStart)) {//Update not needed
-				LOGGER.guiInfo("Quotation for "+stock.getFriendlyName()+ " are up to date to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
-			} else {//Check last quote update
-				LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(stock);
-				updateGranted = lastUpdateChecker.isUpdateGranted();
-				if (reset || updateGranted) { //Update granted for today
-					
-					LOGGER.guiInfo(	"Updating quotation for "+stock.getFriendlyName()+
-									" from the " +new SimpleDateFormat("yyyy/MM/dd").format(updateStart)+ 
-									" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
-					LOGGER.guiInfo("Downloading for "+stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin);
-					
-					Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, updateStart, dateFin);
-					ret.isSuccessfulUpdate = true;
-					
-				} else {//No Update : already done today
-					
-					ret.isSuccessfulUpdate = null;
-					LOGGER.guiInfo("Request for updating "+stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin + " : nothing to do as last update was on the "+lastUpdateChecker);
-					
+		synchronized (stock) {
+
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
+			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
+			Date dateAtZero = DateFactory.dateAtZero();
+
+			GetQuotationResult ret = new GetQuotationResult(stock);
+			Date lasteQuoteBeforeUpdate;
+			if (reset) {
+				lasteQuoteBeforeUpdate = dateAtZero;
+				stock.setLastQuote(dateAtZero);
+			} else {
+				lasteQuoteBeforeUpdate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
+			}
+			Boolean updateGranted = null;
+			Date updateStart = null;
+
+			try {	
+
+				Calendar startDayMidNight = Calendar.getInstance();
+				startDayMidNight.setTime(DateFactory.midnithDate(lasteQuoteBeforeUpdate));
+				startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
+				updateStart = startDayMidNight.getTime();
+
+				if (dateFin.before(updateStart)) {//Update not needed
+					LOGGER.guiInfo("Quotation for "+stock.getFriendlyName()+ " are up to date to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+				} else {//Check last quote update
+					LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(stock);
+					updateGranted = lastUpdateChecker.isUpdateGranted();
+					if (reset || updateGranted) { //Update granted for today
+
+						LOGGER.guiInfo(	"Updating quotation for "+stock.getFriendlyName()+
+								" from the " +new SimpleDateFormat("yyyy/MM/dd").format(updateStart)+ 
+								" to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+						LOGGER.guiInfo("Downloading for "+stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin);
+
+						Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, updateStart, dateFin);
+						ret.isSuccessfulUpdate = true;
+
+					} else {//No Update : already done today
+
+						ret.isSuccessfulUpdate = null;
+						LOGGER.guiInfo("Request for updating "+stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin + " : nothing to do as last update was on the "+lastUpdateChecker);
+
+					}
 				}
+
+			} catch (Exception e) {
+
+				String scrapErrorMess = "Failed to update quotes for :" + stock.toString() +".\n" +
+						"\tBecause "+e+".\n" +
+						"\tIn update request from "+updateStart+ " to "+ dateFin+ ".";
+				LOGGER.warn(scrapErrorMess);
+				ret.isSuccessfulUpdate = false;
+				ret.failureCause = e;
+
+			} finally {
+
+				this.setChanged();
+				this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
+
 			}
-			
-		} catch (Exception e) {
-			
-			String scrapErrorMess = "Failed to update quotes for :" + stock.toString() +".\n" +
-					"\tBecause "+e+".\n" +
-					"\tIn update request from "+updateStart+ " to "+ dateFin+ ".";
-			LOGGER.warn(scrapErrorMess);
-			ret.isSuccessfulUpdate = false;
-			ret.failureCause = e;
-			
-		} finally {
-			
-			this.setChanged();
-			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
-			
-		}
-		
-		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-		
-		if (lastQuote.after(dateAtZero)) {//existing data (could be user)
-			if (lasteQuoteBeforeUpdate.equals(dateAtZero) && (ret.isSuccessfulUpdate == null || !ret.isSuccessfulUpdate)) {//but from web was 10700101 and no update was made
+
+			Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
+
+			if (lastQuote.after(dateAtZero)) {//existing data (could be user)
+				if (lasteQuoteBeforeUpdate.equals(dateAtZero) && (ret.isSuccessfulUpdate == null || !ret.isSuccessfulUpdate)) {//but from web was 10700101 and no update was made
+					ret.hasPreviousQuotations = false;
+				} else {//and update was successful
+					ret.hasPreviousQuotations = true;
+				}
+			} else {
 				ret.hasPreviousQuotations = false;
-			} else {//and update was successful
-				ret.hasPreviousQuotations = true;
 			}
-		} else {
-			ret.hasPreviousQuotations = false;
-		}
-		
-		if (ret.isSuccessfulUpdate != null && ret.isSuccessfulUpdate && (lastQuote.after(lasteQuoteBeforeUpdate) || lastQuote.equals(lasteQuoteBeforeUpdate))) {
-			ret.hasNewQuotations = true;
-		} else {
-			ret.hasNewQuotations = false;
-		}
-		
-		stock.setLastQuote(lastQuote);
-		updateLastQuoteDateForShareInDB(lastQuote);
 
-		LOGGER.guiInfo(
-				"Done quotations for "+stock.getFriendlyName()+" from " + updateStart + " to " + dateFin + ", last quotation : " + stock.getLastQuote() + ", " +
-				"STATUS : Success " + ret.isSuccessfulUpdate +" (as granted was " + updateGranted +"), New data " + ret.hasNewQuotations+", Has previous data " + ret.hasPreviousQuotations + 
-				" (also there may well be user entries, fyi user quotations overshadowing is set to "+stock.isOverrideUserQuotes()+")");
+			if (ret.isSuccessfulUpdate != null && ret.isSuccessfulUpdate && (lastQuote.after(lasteQuoteBeforeUpdate) || lastQuote.equals(lasteQuoteBeforeUpdate))) {
+				ret.hasNewQuotations = true;
+			} else {
+				ret.hasNewQuotations = false;
+			}
 
-		if (reset) {
-			Quotations.removeCachedStockKey(stock);
-		} else {
-			Quotations.updateCachedStockKey(stock);
+			stock.setLastQuote(lastQuote);
+			updateLastQuoteDateForShareInDB(lastQuote);
+
+			LOGGER.guiInfo(
+					"Done quotations for "+stock.getFriendlyName()+" from " + updateStart + " to " + dateFin + ", last quotation : " + stock.getLastQuote() + ", " +
+							"STATUS : Success " + ret.isSuccessfulUpdate +" (as granted was " + updateGranted +"), New data " + ret.hasNewQuotations+", Has previous data " + ret.hasPreviousQuotations + 
+							" (also there may well be user entries, fyi user quotations overshadowing is set to "+stock.isOverrideUserQuotes()+")");
+
+			if (reset) {
+				Quotations.removeCachedStockKey(stock);
+			} else {
+				Quotations.updateCachedStockKey(stock);
+			}
+
+			return ret;
+
 		}
-		
-		return ret;
 	}
 
 	private void updateLastQuoteDateForShareInDB(Date lastQuote) {

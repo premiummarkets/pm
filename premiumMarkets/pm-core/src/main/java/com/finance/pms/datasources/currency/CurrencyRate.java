@@ -52,8 +52,8 @@ public class CurrencyRate extends Validatable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private Currency toCurrency;
 	private Currency fromCurrency;
+	private Currency toCurrency;
 	private Date date;
 	private BigDecimal rate;
 	
@@ -141,9 +141,41 @@ public class CurrencyRate extends Validatable {
 		this.toCurrency = toCurrency;
 	}
 	
+	
+	
 	public String toString(){
 		return this.fromCurrency+" ; "+this.toCurrency+" ; "+this.date+" ; "+this.rate;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + ((fromCurrency == null) ? 0 : fromCurrency.hashCode());
+		result = prime * result + ((toCurrency == null) ? 0 : toCurrency.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CurrencyRate other = (CurrencyRate) obj;
+		if (date == null) {
+			if (other.date != null)
+				return false;
+		} else if (!date.equals(other.date))
+			return false;
+		if (fromCurrency != other.fromCurrency)
+			return false;
+		if (toCurrency != other.toCurrency)
+			return false;
+		return true;
+	}
 
 }

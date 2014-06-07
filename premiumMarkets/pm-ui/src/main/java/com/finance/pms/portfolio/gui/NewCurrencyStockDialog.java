@@ -162,7 +162,7 @@ public class NewCurrencyStockDialog extends Dialog {
 				CurrencyStockBuilder currencyToStockBuilder = new CurrencyStockBuilder(fromCurrency, toCurrency);
 				getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 				try {
-					Stock currencyStock = currencyToStockBuilder.buildStock();
+					Stock currencyStock = currencyToStockBuilder.buildAndFetchRates();
 					Set<Stock> stocks = new TreeSet<Stock>();
 					stocks.add(currencyStock);
 					int currentTabSelection = ((PortfolioComposite) caller).getCurrentTabSelection();
