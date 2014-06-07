@@ -46,10 +46,10 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.web.MyUrl;
 
-public class ImfCurrencyHistoryFormater extends LineFormater {
+public class CurrencyImfHistoryFormater extends LineFormater {
 	
 	private static PatternProperties PATTERNS;
-	private static MyLogger LOGGER = MyLogger.getLogger(ImfCurrencyHistoryFormater.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(CurrencyImfHistoryFormater.class);
 
 	private Pattern imfDateLine;
 	private Pattern imfFromCurrencyLine;
@@ -69,7 +69,7 @@ public class ImfCurrencyHistoryFormater extends LineFormater {
 
 
 
-	public ImfCurrencyHistoryFormater(Currency fromCurrency, Currency toCurrency, String url) {
+	public CurrencyImfHistoryFormater(Currency fromCurrency, Currency toCurrency, String url) {
 		super(new MyUrl(url));
 		this.fromCurrency = fromCurrency;
 		this.toCurrency = toCurrency;
@@ -79,15 +79,15 @@ public class ImfCurrencyHistoryFormater extends LineFormater {
 		toCurrencyRateList = new ArrayList<BigDecimal>();
 		
 		try {
-			if (null == ImfCurrencyHistoryFormater.PATTERNS)
-				ImfCurrencyHistoryFormater.PATTERNS = new PatternProperties("patterns.properties");
+			if (null == CurrencyImfHistoryFormater.PATTERNS)
+				CurrencyImfHistoryFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
 			LOGGER.debug("", e);
 		}
 
-		imfDateLine = Pattern.compile(ImfCurrencyHistoryFormater.PATTERNS.getProperty("imfdateline"));
-		imfFromCurrencyLine = Pattern.compile(fromCurrency.getImfCurrencyName()+ImfCurrencyHistoryFormater.PATTERNS.getProperty("imfCurrencyLine"));
-		imfToCurrencyLine = Pattern.compile(toCurrency.getImfCurrencyName()+ImfCurrencyHistoryFormater.PATTERNS.getProperty("imfCurrencyLine"));
+		imfDateLine = Pattern.compile(CurrencyImfHistoryFormater.PATTERNS.getProperty("imfdateline"));
+		imfFromCurrencyLine = Pattern.compile(fromCurrency.getImfCurrencyName()+CurrencyImfHistoryFormater.PATTERNS.getProperty("imfCurrencyLine"));
+		imfToCurrencyLine = Pattern.compile(toCurrency.getImfCurrencyName()+CurrencyImfHistoryFormater.PATTERNS.getProperty("imfCurrencyLine"));
 	}
 
 	@Override

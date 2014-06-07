@@ -31,6 +31,7 @@ package com.finance.pms.events.quotations;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import com.finance.pms.events.calculation.DateFactory;
 
@@ -79,7 +80,7 @@ public class LastUpdateStampChecker {
 	//Now will always be after the last market close time
 	private Calendar lastMarketCloseTime(Date now) {
 		
-		Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance(Locale.US);
 		calendar.setTime(now);
 		
 		if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {//Before 6PM, we take the previous day

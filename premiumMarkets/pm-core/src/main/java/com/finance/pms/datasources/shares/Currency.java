@@ -33,17 +33,26 @@ import java.io.Serializable;
 
 public enum Currency  implements Serializable {
 
-	NAN("NAN"), EUR("Euro"), USD("U.S. Dollar"), AUD("Australian Dollar"), GBP("U.K. Pound Sterling"), INR("Indian Rupee"), CAD("Canadian Dollar"), 
-	TWD("New Taiwan Dollar"), NZD("New Zealand Dollar"), ILS("Israeli New Sheqel"), HKD("Hong Kong Dollar"), KRW("South Korean Won"), SGD("Singapore Dollar"), IDR("Indonesian Rupiah"), CHF("Swiss Franc");
+	NAN("NAN", "NAN"), EUR("Euro", "Euro"), USD("U.S. Dollar", "US Dollar"), AUD("Australian Dollar", "Australian Dollar"), GBP("U.K. Pound Sterling", "British Pound"), INR("Indian Rupee", "Indian Rupee"), CAD("Canadian Dollar", "Canadian Dollar"), 
+	TWD("New Taiwan Dollar", "Taiwan New Dollar"), NZD("New Zealand Dollar", "New Zealand Dollar"), ILS("Israeli New Sheqel", "Israeli Shekel"), HKD("Hong Kong Dollar", "Hong Kong Dollar"), KRW("South Korean Won", "South Korean Won"), SGD("Singapore Dollar", "Singapore Dollar"), IDR("Indonesian Rupiah", "Indonesian Rupiah"),
+	CHF("Swiss Franc", "Swiss Franc");
 
 	private String imfCurrencyName;
+	private String xRateCurrencyName;
 
-	private Currency(String imfCurrencyName) {
+	private Currency(String imfCurrencyName, String xRateCurrencyName) {
 		this.imfCurrencyName = imfCurrencyName;
+		this.xRateCurrencyName = xRateCurrencyName;
 	}
 	
 	public String getImfCurrencyName() {
 		return imfCurrencyName;
 	}
+
+	public String getxRateCurrencyName() {
+		return xRateCurrencyName;
+	}
+	
+	
 
 }

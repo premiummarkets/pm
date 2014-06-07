@@ -145,6 +145,38 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		public String toString() {
 			return "ValidatableQuotationUnit [quotationUnit=" + quotationUnit + "]";
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((quotationUnit == null) ? 0 : quotationUnit.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ValidatableQuotationUnit other = (ValidatableQuotationUnit) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (quotationUnit == null) {
+				if (other.quotationUnit != null)
+					return false;
+			} else if (!quotationUnit.equals(other.quotationUnit))
+				return false;
+			return true;
+		}
+
+		private RealTimeGoogleLineFormater getOuterType() {
+			return RealTimeGoogleLineFormater.this;
+		}
 	}
 	
 	

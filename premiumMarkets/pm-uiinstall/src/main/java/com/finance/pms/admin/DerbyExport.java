@@ -34,8 +34,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class DerbyExport.
  * 
@@ -57,25 +55,12 @@ public class DerbyExport {
 	//final String dbName = "piggymarketsqueak_euronext_yahoo";
 	//final String dbName = "piggymarketsqueak_initialdb";
 	final String dbName = "premiummarkets";
-	
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static void main(String[] args) {
 		DerbyExport de=new DerbyExport();
 		de.exportDB();
 	}
-	
-	
-	/**
-	 * Export db.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void exportDB() {
 		
 		try {
@@ -161,15 +146,6 @@ public class DerbyExport {
 		}
 	}
 	
-	/**
-	 * Connect.
-	 * 
-	 * @param autocommit the autocommit
-	 * 
-	 * @return the connection
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private Connection connect(boolean autocommit) {
 		String connectionURL;
 		Connection conn = null;

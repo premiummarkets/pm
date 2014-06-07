@@ -122,7 +122,7 @@ public class StripedQuotations {
 	}
 	
 	public void addCloseOnlyBar(Stock stock, int i, Date date, double close) {
-		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(close),0l, null);
+		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(close), 0l, null);
 		this.getBarList().add(quotationUnit);
 		this.closeList[i] = close;
 		

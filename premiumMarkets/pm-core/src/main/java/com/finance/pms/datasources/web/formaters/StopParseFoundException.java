@@ -31,7 +31,6 @@ package com.finance.pms.datasources.web.formaters;
 
 import com.finance.pms.datasources.db.Validatable;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class StopParseFoundException.
  * 
@@ -39,19 +38,9 @@ import com.finance.pms.datasources.db.Validatable;
  */
 public class StopParseFoundException extends StopParseException {
 
-
-	
-	
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 6842447479427345855L;
 
-	/**
-	 * Instantiates a new stop parse founded exception.
-	 * 
-	 * @param last the last
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public StopParseFoundException(Validatable last) {
 		super(last);
 	}

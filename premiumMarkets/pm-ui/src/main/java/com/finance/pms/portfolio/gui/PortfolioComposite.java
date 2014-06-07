@@ -1129,7 +1129,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				item.setForeground(Titles.UrPercentGain.ordinal(),fgColor);
 				item.setBackground(Titles.WTotalPercentGain.ordinal(),bgColor);
 				item.setForeground(Titles.WTotalPercentGain.ordinal(),fgColor);
-
 				
 			}
 		

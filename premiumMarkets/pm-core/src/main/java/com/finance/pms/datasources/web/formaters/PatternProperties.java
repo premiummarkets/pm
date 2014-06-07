@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Properties;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class PatternProperties.
  * 
@@ -41,29 +40,14 @@ import java.util.Properties;
  */
 public class PatternProperties extends Properties {
 	
-	
 
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -4212322995153221739L;
 
-	/**
-	 * Instantiates a new pattern properties.
-	 * 
-	 * @param projectRelqtiveFilePath the project relqtive file path
-	 * 
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public PatternProperties(String projectRelqtiveFilePath)  throws IOException {
 		super();
 		this.load(projectRelqtiveFilePath);
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see java.util.Properties#getProperty(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public String getProperty(String key, String uParam) {
 		Object[] parmA= new String[1];
@@ -71,16 +55,6 @@ public class PatternProperties extends Properties {
 		return this.getProperty(key, parmA);
 	}
 
-
-
-	/**
-	 * Gets the property.
-	 * 
-	 * @param key the key
-	 * @param variables the variables
-	 * 
-	 * @return the property
-	 */
 	public String getProperty(String key, Object ...variables) {
 		String prop = super.getProperty(key);
 		if (null != prop) {
@@ -90,15 +64,6 @@ public class PatternProperties extends Properties {
 		return prop;
 	}
 
-	/**
-	 * Load.
-	 * 
-	 * @param projectRelativeFilePath the project relqtive file path
-	 * 
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void load(String projectRelativeFilePath) throws IOException {
 		this.load(this.getClass().getClassLoader().getResourceAsStream(projectRelativeFilePath));
 	}

@@ -32,7 +32,6 @@ package com.finance.pms.datasources.db;
 import java.io.Serializable;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Validatable.
  * 
@@ -49,37 +48,27 @@ public abstract class Validatable implements Serializable, Comparable<Validatabl
 	public static final int TOUPDATESYMBOL =2;
 	public static final int TOUPDATEISIN =3;
 	public static final int INVALIDE=4;
+	
 	private int state;
 	
 	public Validatable() {
 		super();
 	}
 
-	/**
-	 * Gets the state.
-	 * 
-	 * @return the state
-	 */
 	public int getState() {
 		return state;
 	}
-	
-	/**
-	 * Sets the state.
-	 * 
-	 * @param state the new state
-	 */
+
 	public void setState(int state) {
 		this.state = state;
 	}
 	
-	/**
-	 * To data base.
-	 * 
-	 * @return the query
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public abstract Query toDataBase();
+
+	@Override
+	public abstract int hashCode();
+
+	@Override
+	public abstract boolean equals(Object obj);
 	
 }

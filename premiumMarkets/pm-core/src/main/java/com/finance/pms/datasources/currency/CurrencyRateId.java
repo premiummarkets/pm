@@ -68,15 +68,48 @@ public class CurrencyRateId implements Serializable {
 		this.date = date;
 	}
 	
+	
+//	@Override
+//	public int hashCode() {
+//		final int prime = 31;
+//		int result = 1;
+//		result = prime * result + ((toCurrency == null) ? 0 : toCurrency.hashCode());
+//		result = prime * result + ((date == null) ? 0 : date.hashCode());
+//		return result;
+//	}
+//	
+//	@Override
+//	public boolean equals(Object obj) {
+//		if (this == obj)
+//			return true;
+//		if (obj == null)
+//			return false;
+//		if (getClass() != obj.getClass())
+//			return false;
+//		CurrencyRateId other = (CurrencyRateId) obj;
+//		if (toCurrency == null) {
+//			if (other.toCurrency != null)
+//				return false;
+//		} else if (!toCurrency.equals(other.toCurrency))
+//			return false;
+//		if (date == null) {
+//			if (other.date != null)
+//				return false;
+//		} else if (date.compareTo(other.date) != 0)
+//			return false;
+//		return true;
+//	}
+	
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((toCurrency == null) ? 0 : toCurrency.hashCode());
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + ((fromCurrency == null) ? 0 : fromCurrency.hashCode());
+		result = prime * result + ((toCurrency == null) ? 0 : toCurrency.hashCode());
 		return result;
 	}
-	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -86,17 +119,19 @@ public class CurrencyRateId implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		CurrencyRateId other = (CurrencyRateId) obj;
-		if (toCurrency == null) {
-			if (other.toCurrency != null)
-				return false;
-		} else if (!toCurrency.equals(other.toCurrency))
-			return false;
 		if (date == null) {
 			if (other.date != null)
 				return false;
-		} else if (date.compareTo(other.date) != 0)
+		} else if (!date.equals(other.date))
+			return false;
+		if (fromCurrency != other.fromCurrency)
+			return false;
+		if (toCurrency != other.toCurrency)
 			return false;
 		return true;
 	}
+	
+
+	
 	
 }

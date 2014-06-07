@@ -109,10 +109,6 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 		return null;
 	}
 
-	/**
-	 * @param stockPart
-	 * @throws StopParseFoundException
-	 */
 	private void endScrapping(ScreeningSupplementedStock stockPart) throws StopParseFoundException {
 		
 		if (!stockPart.isNOTSetBoursoMeanRecommendations() && !stockPart.isNOTSetBoursoTargetPrice()) {

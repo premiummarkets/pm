@@ -49,11 +49,6 @@ public class DataResultValue extends EventValue {
 
 	/**
 	 * Instantiates a new data result value.
-	 * 
-	 * @param date the date
-	 * @param eventdef the eventdef
-	 * @param eventtype the eventtype
-	 * 
 	 * @author Guillaume Thoreton
 	 */
 	@Deprecated

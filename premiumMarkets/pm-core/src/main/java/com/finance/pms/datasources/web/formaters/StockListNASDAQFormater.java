@@ -55,16 +55,7 @@ public class StockListNASDAQFormater extends LineFormater {
 
 	StockCategories stockCategorie;
 	MarketQuotationProviders marketQuotationsProviders;
-	
-	/**
-	 * Instantiates a new stock list euro next formater.
-	 * 
-	 * @param url the url
-	 * @param stockCategorie the stock categorie
-	 * @param marketQuotationsProviders the market quotations providers
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public StockListNASDAQFormater(String url, StockCategories stockCategorie,MarketQuotationProviders marketQuotationsProviders) {
 		super(new MyUrl(url));
 		this.stockCategorie = stockCategorie;
@@ -105,16 +96,6 @@ public class StockListNASDAQFormater extends LineFormater {
 		}
 	}
 	
-	/**
-	 * Removes the text delim.
-	 * 
-	 * @param txt the txt
-	 * @param textDeli the text deli
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private String removeTextDelim(String txt, String textDeli) {
 		String ret = txt;
 		return ret.replaceAll(textDeli, "");

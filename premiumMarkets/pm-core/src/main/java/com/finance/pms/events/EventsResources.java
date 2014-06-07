@@ -660,6 +660,16 @@ public class EventsResources {
 							public Query toDataBase() {
 								return query;
 							}
+							
+							@Override
+							public int hashCode() {
+								return System.identityHashCode(this);
+							}
+
+							@Override
+							public boolean equals(Object obj) {
+								return (this == obj);
+							}
 
 							@Override
 							public String toString() {
@@ -766,6 +776,16 @@ public class EventsResources {
 					@Override
 					public String toString() {
 						return "["+se.getSymbol().toUpperCase()+","+se.getIsin()+","+eventValue.getDate()+","+eventValue.getEventDefId()+","+eventKey.getEventInfoExtra().toString()+","+eventValue.getEventListName()+"]";
+					}
+
+					@Override
+					public int hashCode() {
+						return System.identityHashCode(this);
+					}
+
+					@Override
+					public boolean equals(Object obj) {
+						return (this == obj);
 					}
 				});
 

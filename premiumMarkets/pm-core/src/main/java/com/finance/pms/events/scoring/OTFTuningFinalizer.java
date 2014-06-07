@@ -139,6 +139,7 @@ public class OTFTuningFinalizer {
 			throws IOException, NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
 		
 		//stopLossThrRatio = new BigDecimal(".95"); //Test
+		LOGGER.info("Building Tuning res for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calc res is "+endCalcRes);
 		
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 		String trendFile = "noOutputAvailable";
@@ -173,7 +174,7 @@ public class OTFTuningFinalizer {
 		//Other init
 		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 		SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-//		BigDecimal lastClose = quotations.getClosestCloseForDate(endDate);
+
 		BigDecimal lastClose = (BigDecimal) mapFromQuotationsClose.get(mapFromQuotationsClose.lastKey());
 
 		Pattern pattern = Pattern.compile("config : (.*) es : ");
@@ -198,17 +199,10 @@ public class OTFTuningFinalizer {
 		SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
 		SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 		
-//		while (currentDate.getTime().before(endDate) || currentDate.getTime().compareTo(endDate) == 0) {
-			
-//			BigDecimal closeForDate;
-//			try {
-//				closeForDate = quotations.getClosestCloseForDate(currentDate.getTime());
-//			} catch (InvalidAlgorithmParameterException e1) {
-//				continue;
-//			}
 		for (Date currentDateDate : mapFromQuotationsClose.keySet()) {
 			
 			BigDecimal closeForDate = (BigDecimal) mapFromQuotationsClose.get(currentDateDate);
+			if (closeForDate.equals(BigDecimal.ZERO)) LOGGER.error("Close for date is zero for at "+currentDateDate+" for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calc res is "+endCalcRes);
 			currentDate.setTime(currentDateDate);
 			
 			String line = "";
@@ -248,7 +242,14 @@ public class OTFTuningFinalizer {
 					//TO
 					if (prevEventType != null) {//Not the First trend : we accumulate
 
-						BigDecimal followpPriceChange = closeForDate.subtract(prevTrendClose).divide(prevTrendClose, 10, BigDecimal.ROUND_HALF_EVEN);
+						BigDecimal followpPriceChange;
+						try {
+							followpPriceChange = closeForDate.subtract(prevTrendClose).divide(prevTrendClose, 10, BigDecimal.ROUND_HALF_EVEN);
+						} catch (RuntimeException e) {
+							LOGGER.error("Error calculating followpPriceChance : "
+									+ "prevEventType "+prevEventType+", "+" eventType "+eventType+", currentDateDate "+currentDateDate+", closeForDate "+closeForDate+", prevTrendClose "+prevTrendClose ,e);
+							throw e;
+						}
 
 						//Period
 						period.setTo(currentEvent.getDate());
@@ -299,7 +300,6 @@ public class OTFTuningFinalizer {
 						} else if (eventType.equals(EventType.BULLISH)) {//buy
 							
 							//Follow Profit
-							//prevTrendClose = quotations.getClosestCloseForDate(currentDate.getTime());
 							prevTrendClose = closeForDate;
 							if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Compound profit at "+trendFollowProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
 							
