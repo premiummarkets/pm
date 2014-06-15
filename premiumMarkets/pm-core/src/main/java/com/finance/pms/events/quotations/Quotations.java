@@ -203,7 +203,10 @@ public class Quotations {
 		
 		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
 		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
-		if ( !Double.isInfinite(change) && !Double.isNaN(change) && change <= -(span*Math.log(1.1)) ) {
+		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && change <= -(span*Math.log(1.1)) ) {
+		double valideSpliMax = (3d/4d)*(1+span*0.05);
+		double valideSpliMin = (1d/2d)*(1-span*0.05);
+		if ( !Double.isInfinite(change) && !Double.isNaN(change) && -valideSpliMax <= change && change <= -valideSpliMin ) {
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
 				QuotationUnit oldValue = quotationsUnitOut.get(i);
 				Double factorDouble = Double.valueOf(dj/djm1);
@@ -219,6 +222,8 @@ public class Quotations {
 				quotationsUnitOut.set(i, newValue);
 			}
 		}
+		if (change < -valideSpliMax) 
+			LOGGER.error("Invalid split for "+this.stock.getFriendlyName()+". Check your data.");
 		
 	}
 
@@ -595,7 +600,7 @@ public class Quotations {
 				continue;
 			}
 			
-			if ( qj.getDate().compareTo(firstDate) > 0) {
+			if ( qj.getDate().compareTo(firstDate) > 0 ) {
 				if (quotationsUnitOut.isEmpty()) {
 					quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
 					firstDatedIndex = Math.max(0, quotationsUnitOut.size()-1);

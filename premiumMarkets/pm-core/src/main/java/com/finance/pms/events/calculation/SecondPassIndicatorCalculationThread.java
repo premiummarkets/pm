@@ -144,7 +144,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 			} else if (e.getCause() instanceof ErrorException) {
 				LOGGER.error(stock+ " second pass calculation error ",e);
 			} else {
-				LOGGER.error(stock+ " second pass calculation unhandled error ",e);
+				LOGGER.error(String.format("%s second pass calculation unhandled error. Params : %s, %s, %s, %s, %s, %s ", stock, eventInfo, startDate, endDate, calculationCurrency, eventListName, persistTrainingEvents), e);
 			}
 			throw e;
 		} catch (Exception e) {

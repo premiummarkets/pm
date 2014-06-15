@@ -29,10 +29,8 @@
  */
 package com.finance.pms.admin.install.logging;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Enumeration;
@@ -84,7 +82,7 @@ public class MyLogger {
 	
 	
 	private static TreeSet<Integer> hashesSet = new TreeSet<Integer>();
-	private static File hashCodesFile = new File("hashes.txt");
+//	private static File hashCodesFile = new File("hashes.txt");
 	
 	private static Session session;
 	private static Semaphore semaphore;
@@ -284,14 +282,14 @@ public class MyLogger {
 			
 		}
 		
-		//Init hashesSet
-		try {
-			hashCodesFile.delete();
-			
-		} catch (Throwable e) {
-			System.out.println("log send failed, exception: " + e); 
-			e.printStackTrace();
-		}
+//		//Init hashesSet
+//		try {
+//			hashCodesFile.delete();
+//			
+//		} catch (Throwable e) {
+//			System.out.println("log send failed, exception: " + e); 
+//			e.printStackTrace();
+//		}
 		
 		//Get version
 		try {
@@ -325,60 +323,23 @@ public class MyLogger {
 		
 	}
 
-	/**
-	 * Instantiates a new my logger.
-	 * 
-	 * @param delagateLogger the delegate logger
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public MyLogger(Logger delagateLogger) {
 		super();
 		this.delegateLogger = delagateLogger;
 	}
 
-	/**
-	 * Adds the appender.
-	 * 
-	 * @param newAppender the new appender
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void addAppender(Appender newAppender) {
 		delegateLogger.addAppender(newAppender);
 	}
 
-	/**
-	 * Assert log.
-	 * 
-	 * @param assertion the assertion
-	 * @param msg the msg
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void assertLog(boolean assertion, String msg) {
 		delegateLogger.assertLog(assertion, msg);
 	}
 
-	/**
-	 * Call appenders.
-	 * 
-	 * @param event the event
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void callAppenders(LoggingEvent event) {
 		delegateLogger.callAppenders(event);
 	}
 
-	/**
-	 * Debug.
-	 * 
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void debug(Object message, Throwable t) {
 		delegateLogger.debug(message, t);
 	}
@@ -422,282 +383,115 @@ public class MyLogger {
 		this.sendMail(message, null, false);
 	}
 
-	/**
-	 * Gets the additivity.
-	 * 
-	 * @return the additivity
-	 */
 	public boolean getAdditivity() {
 		return delegateLogger.getAdditivity();
 	}
 
-	/**
-	 * Gets the all appenders.
-	 * 
-	 * @return the all appenders
-	 */
 	public Enumeration<?> getAllAppenders() {
 		return delegateLogger.getAllAppenders();
 	}
 
-	/**
-	 * Gets the appender.
-	 * 
-	 * @param name the name
-	 * 
-	 * @return the appender
-	 */
 	public Appender getAppender(String name) {
 		return delegateLogger.getAppender(name);
 	}
 
-	/**
-	 * Gets the chained priority.
-	 * 
-	 * @return the chained priority
-	 */
 	@Deprecated
 	public Priority getChainedPriority() {
 		return delegateLogger.getChainedPriority();
 	}
 
-	/**
-	 * Gets the effective level.
-	 * 
-	 * @return the effective level
-	 */
 	public Level getEffectiveLevel() {
 		return delegateLogger.getEffectiveLevel();
 	}
 
-	/**
-	 * Gets the hierarchy.
-	 * 
-	 * @return the hierarchy
-	 */
 	@Deprecated
 	public LoggerRepository getHierarchy() {
 		return delegateLogger.getHierarchy();
 	}
 
-	/**
-	 * Gets the level.
-	 * 
-	 * @return the level
-	 */
 	public final Level getLevel() {
 		return delegateLogger.getLevel();
 	}
 
-	/**
-	 * Gets the logger repository.
-	 * 
-	 * @return the logger repository
-	 */
 	public LoggerRepository getLoggerRepository() {
 		return delegateLogger.getLoggerRepository();
 	}
 
-	/**
-	 * Gets the name.
-	 * 
-	 * @return the name
-	 */
 	public final String getName() {
 		return delegateLogger.getName();
 	}
 
-	/**
-	 * Gets the parent.
-	 * 
-	 * @return the parent
-	 */
 	public final Category getParent() {
 		return delegateLogger.getParent();
 	}
 
-	/**
-	 * Gets the priority.
-	 * 
-	 * @return the priority
-	 */
 	@Deprecated
 	public final Level getPriority() {
 		return delegateLogger.getPriority();
 	}
 
-	/**
-	 * Gets the resource bundle.
-	 * 
-	 * @return the resource bundle
-	 */
 	public ResourceBundle getResourceBundle() {
 		return delegateLogger.getResourceBundle();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		return delegateLogger.hashCode();
 	}
 
-	/**
-	 * Info.
-	 * 
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void info(Object message, Throwable t) {
 		delegateLogger.info(message, t);
 	}
 
-	/**
-	 * Info.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void info(Object message) {
 		delegateLogger.info(message);
 	}
-	
-	/**
-	 * Gui info.
-	 * 
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void guiInfo(Object message) {
 		delegateLogger.info(message);
 		lastMsg.setLastMessage(message.toString());
 	}
 
-	/**
-	 * Checks if is attached.
-	 * 
-	 * @param appender the appender
-	 * 
-	 * @return true, if is attached
-	 */
 	public boolean isAttached(Appender appender) {
 		return delegateLogger.isAttached(appender);
 	}
 
-	/**
-	 * Checks if is debug enabled.
-	 * 
-	 * @return true, if is debug enabled
-	 */
 	public boolean isDebugEnabled() {
 		return delegateLogger.isDebugEnabled();
 	}
-
-	/**
-	 * Checks if is enabled for.
-	 * 
-	 * @param level the level
-	 * 
-	 * @return true, if is enabled for
-	 */
+	
 	public boolean isEnabledFor(Priority level) {
 		return delegateLogger.isEnabledFor(level);
 	}
-
-	/**
-	 * Checks if is info enabled.
-	 * 
-	 * @return true, if is info enabled
-	 */
+	
 	public boolean isInfoEnabled() {
 		return delegateLogger.isInfoEnabled();
 	}
 
-	/**
-	 * Checks if is trace enabled.
-	 * 
-	 * @return true, if is trace enabled
-	 */
 	public boolean isTraceEnabled() {
 		return delegateLogger.isTraceEnabled();
 	}
 
-	/**
-	 * L7dlog.
-	 * 
-	 * @param priority the priority
-	 * @param key the key
-	 * @param params the params
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void l7dlog(Priority priority, String key, Object[] params, Throwable t) {
 		delegateLogger.l7dlog(priority, key, params, t);
 	}
 
-	/**
-	 * L7dlog.
-	 * 
-	 * @param priority the priority
-	 * @param key the key
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void l7dlog(Priority priority, String key, Throwable t) {
 		delegateLogger.l7dlog(priority, key, t);
 	}
 
-	/**
-	 * Log.
-	 * 
-	 * @param priority the priority
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void log(Priority priority, Object message, Throwable t) {
 		delegateLogger.log(priority, message, t);
 	}
 
-	/**
-	 * Log.
-	 * 
-	 * @param priority the priority
-	 * @param message the message
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void log(Priority priority, Object message) {
 		delegateLogger.log(priority, message);
 	}
 
-	/**
-	 * Log.
-	 * 
-	 * @param callerFQCN the caller fqcn
-	 * @param level the level
-	 * @param message the message
-	 * @param t the t
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void log(String callerFQCN, Priority level, Object message, Throwable t) {
 		delegateLogger.log(callerFQCN, level, message, t);
 	}
 
-	/**
-	 * Removes the all appenders.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void removeAllAppenders() {
 		delegateLogger.removeAllAppenders();
 	}
@@ -774,7 +568,6 @@ public class MyLogger {
 				CustomDialog customDialog = null;
 				
 				try {
-					semaphore.acquire();
 					
 					MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
 					if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
@@ -788,57 +581,65 @@ public class MyLogger {
 					Boolean hasDuplicate = isTest;
 					
 					boolean errorMailHandlingsGrants = !isSendingEmail && !isPopup;
-					delegateLogger.info("Sending mail on error grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup);
 					if (errorMailHandlingsGrants) return;
 					
 					//Msg hash
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
-					if (!hasDuplicate && hashesSet.contains(bodyHashcode)) {
-						return;
-					} 
-					if (hasDuplicate && !hashesSet.contains(bodyHashcode)) {
-						hashesSet.add(bodyHashcode);
-						writeHashesToFile(bodyHashcode);
+					if (!hasDuplicate) {
+						if (hashesSet.contains(bodyHashcode)) {
+							return;
+						} else {
+							hashesSet.add(bodyHashcode);
+						}
 					}
 					
-					if (isPopup) {
+					try {
 						
-						///Dialog
-						try {
+						semaphore.acquire();
+						delegateLogger.info("Sending mail on error; grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup+", has duplicate "+hasDuplicate);	
+						
+						if (isPopup) {
+							
+							///Dialog
+							try {
 
-							frame = new JFrame();
-							String report = "An error has occurred.\nThis error may be recoverable.\n";
-							if (isFailed) {
-								report = report + "Your smtp connection is not set. In order to proceed with solving this error, you will have to go into Settings and setup your SMTP connection.\n";
-							} else {
-								report = report + "By cliking OK on the button below this error will automatically be sent to the development team.\n";
-							}
-							report = report + "You can also disable these popups in the Settings menu by setting activate error logging to false and restart.\n";
-									
-							customDialog = new CustomDialog(frame, report, createMsgBodyFirstLines(error, errorStr, 20).toString(), "Error Report", true);
-							customDialog.pack();
-							customDialog.setVisible(true);
-							customDialog.dispose();
-							frame.dispose();
-
-							if ("Ok".equals(customDialog.getOptionPane().getValue())) {
-								if (isSendingEmail) doSend(bodyHashcode, isTest);
-							} else {
-								MainPMScmd.getPrefs().put("mail.log.activated", "false");
-								try {
-									MainPMScmd.getPrefs().flush();
-								} catch (Exception e) {
-									e.printStackTrace();
+								frame = new JFrame();
+								String report = "An error has occurred.\nThis error may be recoverable.\n";
+								if (isFailed) {
+									report = report + "Your smtp connection is not set. In order to proceed with solving this error, you will have to go into Settings and setup your SMTP connection.\n";
+								} else {
+									report = report + "By cliking OK on the button below this error will automatically be sent to the development team.\n";
 								}
-							}
+								report = report + "You can also disable these popups in the Settings menu by setting activate error logging to false and restart.\n";
+										
+								customDialog = new CustomDialog(frame, report, createMsgBodyFirstLines(error, errorStr, 20).toString(), "Error Report", true);
+								customDialog.pack();
+								customDialog.setVisible(true);
+								customDialog.dispose();
+								frame.dispose();
 
-						} catch (Throwable e) {
-							delegateLogger.error("Can't open error Popup for acknowledgement.");
-							e.printStackTrace();
+								if ("Ok".equals(customDialog.getOptionPane().getValue())) {
+									if (isSendingEmail) doSend(bodyHashcode, isTest);
+								} else {
+									MainPMScmd.getPrefs().put("mail.log.activated", "false");
+									try {
+										MainPMScmd.getPrefs().flush();
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+
+							} catch (Throwable e) {
+								delegateLogger.error("Can't open error Popup for acknowledgement.");
+								e.printStackTrace();
+							}
+							
+						} else if (isSendingEmail) {
+							doSend(bodyHashcode, isTest);
 						}
 						
-					} else if (isSendingEmail) {
-						doSend(bodyHashcode, isTest);
+					} finally {
+						semaphore.release();
 					}
 					
 					
@@ -856,9 +657,7 @@ public class MyLogger {
 						Thread.sleep(msgDelay);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
-					}
-					semaphore.release();
-					
+					}		
 				}
 				
 			}
@@ -928,13 +727,13 @@ public class MyLogger {
 				return msgBoddy;
 			}
 
-			private void writeHashesToFile(Integer bodyHashcode) throws IOException {
-				BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(hashCodesFile,true));
-				bufferedWriter.write(bodyHashcode.toString());
-				bufferedWriter.newLine();
-				bufferedWriter.flush();
-				bufferedWriter.close();
-			}
+//			private void writeHashesToFile(Integer bodyHashcode) throws IOException {
+//				BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(hashCodesFile, true));
+//				bufferedWriter.write(bodyHashcode.toString());
+//				bufferedWriter.newLine();
+//				bufferedWriter.flush();
+//				bufferedWriter.close();
+//			}
 		};
 		
 		sendLogThread.setDaemon(true);

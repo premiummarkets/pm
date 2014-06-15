@@ -174,6 +174,7 @@ public class OTFTuningFinalizer {
 		//Other init
 		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endCalcRes, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 		SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+		LOGGER.info("Quotations map for "+stock.getFriendlyName()+" ranges from "+mapFromQuotationsClose.firstKey()+" to "+mapFromQuotationsClose.lastKey()+" while requested from "+startDate+" to "+endCalcRes);
 
 		BigDecimal lastClose = (BigDecimal) mapFromQuotationsClose.get(mapFromQuotationsClose.lastKey());
 
@@ -202,7 +203,8 @@ public class OTFTuningFinalizer {
 		for (Date currentDateDate : mapFromQuotationsClose.keySet()) {
 			
 			BigDecimal closeForDate = (BigDecimal) mapFromQuotationsClose.get(currentDateDate);
-			if (closeForDate.equals(BigDecimal.ZERO)) LOGGER.error("Close for date is zero for at "+currentDateDate+" for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calc res is "+endCalcRes);
+			if (closeForDate.compareTo(BigDecimal.ZERO) == 0) 
+				LOGGER.error("Close for date is zero for at "+currentDateDate+" for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calc res is "+endCalcRes);
 			currentDate.setTime(currentDateDate);
 			
 			String line = "";
@@ -246,8 +248,9 @@ public class OTFTuningFinalizer {
 						try {
 							followpPriceChange = closeForDate.subtract(prevTrendClose).divide(prevTrendClose, 10, BigDecimal.ROUND_HALF_EVEN);
 						} catch (RuntimeException e) {
-							LOGGER.error("Error calculating followpPriceChance : "
-									+ "prevEventType "+prevEventType+", "+" eventType "+eventType+", currentDateDate "+currentDateDate+", closeForDate "+closeForDate+", prevTrendClose "+prevTrendClose ,e);
+							LOGGER.error(
+									"Error calculating followpPriceChance for "+stock.getFriendlyName()+" : "+
+									"prevEventType "+prevEventType+", "+" eventType "+eventType+", currentDateDate "+currentDateDate+", closeForDate "+closeForDate+", prevTrendClose "+prevTrendClose ,e);
 							throw e;
 						}
 
@@ -286,7 +289,7 @@ public class OTFTuningFinalizer {
 									stopLossThreshold = null;
 									if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy (reset as sell was not triggered) : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". Discarding stop loss threshold");
 								} else {
-									prevStopLossClose = closeForDate;
+									prevStopLossClose = assignPrevTrendWith(closeForDate, stock, currentDate.getTime());
 									if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
 								}
 							}
@@ -300,12 +303,12 @@ public class OTFTuningFinalizer {
 						} else if (eventType.equals(EventType.BULLISH)) {//buy
 							
 							//Follow Profit
-							prevTrendClose = closeForDate;
+							prevTrendClose = assignPrevTrendWith(closeForDate, stock, currentDate.getTime());
 							if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Compound profit at "+trendFollowProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
 							
 							//Stop Loss Profit
 							if (stopLossThrRatio.compareTo(BigDecimal.ZERO) != 0) {
-								prevStopLossClose = closeForDate;
+								prevStopLossClose = assignPrevTrendWith(closeForDate, stock, currentDate.getTime());
 								if (LOGGER.isDebugEnabled()) LOGGER.debug("Buy : Stop loss Profit is "+stopLossProfit+" at "+currentDate.getTime()+". First price is "+closeForDate+" at "+currentDate.getTime());
 							}
 						}
@@ -333,7 +336,7 @@ public class OTFTuningFinalizer {
 
 					if (!eventType.equals(EventType.NONE)){//Trend change (ie new trend is not NONE)
 						prevEventType = eventType;
-						prevTrendClose = closeForDate;
+						prevTrendClose = assignPrevTrendWith(closeForDate, stock, currentDate.getTime());
 					}
 					
 
@@ -505,6 +508,14 @@ public class OTFTuningFinalizer {
 		
 		return new TuningResDTO(periods, trendFile, chartFile, prevEventType.toString(), trendFollowProfit, stopLossProfit, buyAndHoldProfit, outputFirstKey, outputLastKey);
 		
+	}
+
+	private BigDecimal assignPrevTrendWith(BigDecimal closeForDate, Stock stock, Date date) {
+		if (closeForDate == null || closeForDate.compareTo(BigDecimal.ZERO) == 0) {
+			//throw new IllegalArgumentException("Value : "+closeForDate+" for "+stock.getFriendlyName()+" at "+ date);
+			LOGGER.error("Value : "+closeForDate+" for "+stock.getFriendlyName()+" at "+ date);
+		}
+		return closeForDate;
 	}
 
 	private void generateOutChart(
