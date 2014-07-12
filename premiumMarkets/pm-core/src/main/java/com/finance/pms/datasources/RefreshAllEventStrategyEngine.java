@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.datasources;
 
@@ -80,7 +80,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		LOGGER.debug("Updating list of shares  : "+rootParam);
 		for (Object shareList : rootParam) {
 			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
-			String marketQuotationsProviders = MainPMScmd.getPrefs().get("quotes.provider","yahoo");
+			String marketQuotationsProviders = MainPMScmd.getMyPrefs().get("quotes.provider","yahoo");
 			MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);
 
 			provider.addObservers(engineObservers);
@@ -118,7 +118,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 			Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 
 			//Init
-			String periodType = MainPMScmd.getPrefs().get("events.periodtype", "daily");
+			String periodType = MainPMScmd.getMyPrefs().get("events.periodtype", "daily");
 			String[] analysers = new String[analisysList.size()];
 			for (int j = 0; j < analysers.length; j++) {
 				analysers[j] = analisysList.get(j);
@@ -136,7 +136,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 						analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
 						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, engineObservers.toArray(new Observer[0]));
 
-				Integer maxPass = new Integer(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+				Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 				try {
 					actionThread.runIndicatorsCalculationPassOne(true, "auto");
 					if (maxPass == 2) {
@@ -180,9 +180,9 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	
 	public Date getLastListFetch(Date oldLastListFetch) {
 		try {
-			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getPrefs().get("quotes.lastlistfetch", "1970/01/01"));
+			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getMyPrefs().get("quotes.lastlistfetch", "1970/01/01"));
 		} catch (ParseException e) {
-			LOGGER.error("Wrong date format for last  shares list update, please check your settings. "+ MainPMScmd.getPrefs().get("quotes.lastlistfetch", "1970/01/01"),e);
+			LOGGER.error("Wrong date format for last  shares list update, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastlistfetch", "1970/01/01"),e);
 			LOGGER.debug(e,e);
 			return EventModel.DEFAULT_DATE;
 		}
@@ -191,9 +191,9 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	
 	public Date getLastQuotationFetch(Date oldLastQuotaitonFetch) {
 		try {
-			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getPrefs().get("quotes.lastfetch", "1970/01/01"));
+			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getMyPrefs().get("quotes.lastfetch", "1970/01/01"));
 		} catch (ParseException e) {
-			LOGGER.error("Wrong date format for last quotation update, please check your settings. "+ MainPMScmd.getPrefs().get("quotes.lastfetch", "1970/01/01"),e);
+			LOGGER.error("Wrong date format for last quotation update, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastfetch", "1970/01/01"),e);
 			LOGGER.debug(e,e);
 			return EventModel.DEFAULT_DATE;
 		}
@@ -202,26 +202,26 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	
 	public Date getLastAnalyse(Date oldLastAnalyse) {
 		try {
-			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getPrefs().get("quotes.lastanalyse", "1970/01/01"));
+			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getMyPrefs().get("quotes.lastanalyse", "1970/01/01"));
 		} catch (ParseException e) {
-			LOGGER.error("Wrong date format for last analyse, please check your settings. "+ MainPMScmd.getPrefs().get("quotes.lastanalyse", "1970/01/01"),e);
+			LOGGER.error("Wrong date format for last analyse, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastanalyse", "1970/01/01"),e);
 			LOGGER.debug(e,e);
 			return EventModel.DEFAULT_DATE;
 		}
 	}	
 	
 	public Date setLastListFetch(Date newD, Date oldD) {
-		MainPMScmd.getPrefs().put("quotes.lastlistfetch", new SimpleDateFormat("yyyy/MM/dd").format(newD));
+		MainPMScmd.getMyPrefs().put("quotes.lastlistfetch", new SimpleDateFormat("yyyy/MM/dd").format(newD));
 		return newD;
 	}
 
 	public Date setLastQuotationFetch(Date newD, Date oldD) {
-		MainPMScmd.getPrefs().put("quotes.lastfetch", new SimpleDateFormat("yyyy/MM/dd").format(newD));
+		MainPMScmd.getMyPrefs().put("quotes.lastfetch", new SimpleDateFormat("yyyy/MM/dd").format(newD));
 		return newD;
 	}
 
 	public Date setLastAnalyse(Date newD, Date oldD) {
-		MainPMScmd.getPrefs().put("quotes.lastanalyse", new SimpleDateFormat("yyyy/MM/dd").format(newD));
+		MainPMScmd.getMyPrefs().put("quotes.lastanalyse", new SimpleDateFormat("yyyy/MM/dd").format(newD));
 		return newD;
 	}
 

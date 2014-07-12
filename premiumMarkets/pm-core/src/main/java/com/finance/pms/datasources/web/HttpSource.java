@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.datasources.web;
 
@@ -61,8 +61,6 @@ import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class HttpSource.
  * 
@@ -70,63 +68,47 @@ import com.finance.pms.threads.SourceClient;
  */
 public abstract class HttpSource {
 
-	/** The initial state. */
-	private HttpState initialState;
-	
-	/** The nb http threads. */
-	protected int nbHttpThreads; // = 20;
-	
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSource.class);
-
-	private MyBeanFactoryAware beanFactoryAware;
 	
-	/**
-	 * Stop all threads.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+	private HttpState initialState;
+	protected int nbHttpThreads; // = 20;
+	private MyBeanFactoryAware beanFactoryAware;
+
 	public static void stopALLThreads() {
 		//TODO stop all instances
 	}
 	
-	
-	/**
-	 * Instantiates a new http source.
-	 * 
-	 * @param pathToprops the path toprops
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public HttpSource(String pathToprops, MyBeanFactoryAware beanFActoryAware) {
 		Properties props = new Properties();
 		try {
 			props.load(new FileInputStream((new File(pathToprops))));
 			//Connection
 			if (props.containsKey("http.login"))
-				MainPMScmd.getPrefs().put("http.login", props.getProperty("http.login"));
+				MainPMScmd.getMyPrefs().put("http.login", props.getProperty("http.login"));
 			if (props.containsKey("http.password"))
-				MainPMScmd.getPrefs().put("http.password", props.getProperty("http.password"));
+				MainPMScmd.getMyPrefs().put("http.password", props.getProperty("http.password"));
 			//Nb Threads
 			if (props.containsKey("http.poolsize"))
-				MainPMScmd.getPrefs().put("http.poolsize", props.getProperty("http.poolsize"));
+				MainPMScmd.getMyPrefs().put("http.poolsize", props.getProperty("http.poolsize"));
 			//Email
-			MainPMScmd.getPrefs().remove("mail.host");
-			MainPMScmd.getPrefs().remove("mail.username");
-			MainPMScmd.getPrefs().remove("mail.password");
-			MainPMScmd.getPrefs().remove("mail.from");
+			MainPMScmd.getMyPrefs().remove("mail.host");
+			MainPMScmd.getMyPrefs().remove("mail.username");
+			MainPMScmd.getMyPrefs().remove("mail.password");
+			MainPMScmd.getMyPrefs().remove("mail.from");
 			if (props.containsKey("mail.to"))
-				MainPMScmd.getPrefs().put("mail.to", props.getProperty("mail.to"));
+				MainPMScmd.getMyPrefs().put("mail.to", props.getProperty("mail.to"));
 			if (props.containsKey("mail.from") && !props.getProperty("mail.from").equals(""))
-				MainPMScmd.getPrefs().put("mail.from", props.getProperty("mail.from"));
+				MainPMScmd.getMyPrefs().put("mail.from", props.getProperty("mail.from"));
 			if (props.containsKey("mail.host") && !props.getProperty("mail.host").equals(""))
-				MainPMScmd.getPrefs().put("mail.host", props.getProperty("mail.host"));
+				MainPMScmd.getMyPrefs().put("mail.host", props.getProperty("mail.host"));
 			if (props.containsKey("mail.username") && !props.getProperty("mail.username").equals(""))
-				MainPMScmd.getPrefs().put("mail.username", props.getProperty("mail.username"));
+				MainPMScmd.getMyPrefs().put("mail.username", props.getProperty("mail.username"));
 			if (props.containsKey("mail.password") && !props.getProperty("mail.password").equals(""))
-				MainPMScmd.getPrefs().put("mail.password", props.getProperty("mail.password"));
+				MainPMScmd.getMyPrefs().put("mail.password", props.getProperty("mail.password"));
 			
-			MainPMScmd.getPrefs().flush();
+			MainPMScmd.getMyPrefs().flushy();
+			
+			
 		} catch (Exception e) {
 			LOGGER.error("Couldn't find propertie file. Check the propeties path",e);
 		}
@@ -139,18 +121,12 @@ public abstract class HttpSource {
 		// and then added to your HTTP state instance
 		initialState.addCookie(mycookie);
 		//init thread
-		this.nbHttpThreads = (new Integer(MainPMScmd.getPrefs().get("http.poolsize", "10"))).intValue();
+		this.nbHttpThreads = (new Integer(MainPMScmd.getMyPrefs().get("http.poolsize", "10"))).intValue();
 		
 		this.beanFactoryAware = beanFActoryAware;
 		
 	}
 
-	/**
-	 * Gets the connection from pool.
-	 * 
-	 * @return the connection from pool
-	 * @throws HttpException 
-	 */
 	public MyHttpClient getConnectionFromPool() throws HttpException {
 		MyHttpClient ret;
 		try {
@@ -207,7 +183,6 @@ public abstract class HttpSource {
 	
 		return ret;
 	}
-
 
 	private MetricsResType completeMetricRes(LineFormater formater, List<Validatable> ret) {
 		MetricsResType metricType;
@@ -351,7 +326,6 @@ public abstract class HttpSource {
 	public abstract PoolSemaphore getThreadPool();
 
 	public abstract void stopThreads();
-
 
 	public ScraperMetrics getScrapperMetrics() {
 		return beanFactoryAware.getBeanFactory().getBean(ScraperMetrics.class);

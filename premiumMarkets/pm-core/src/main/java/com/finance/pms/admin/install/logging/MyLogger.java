@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.admin.install.logging;
 
@@ -72,7 +72,7 @@ public class MyLogger {
 		return new MyLogger(Logger.getLogger(clazz));
 	}
 	
-	private static long msgDelay = new Long(MainPMScmd.getPrefs().get("mail.log.delay", "4000"));
+	private static long msgDelay = new Long(MainPMScmd.getMyPrefs().get("mail.log.delay", "4000"));
 
 	private static String mailUserName = null;
 	private static String mailPassword = null; 
@@ -113,52 +113,45 @@ public class MyLogger {
 			}
 			
 			if (props.containsKey("mail.log.activated")) {
-				MainPMScmd.getPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
+				MainPMScmd.getMyPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
 				MyLogger.mailActivationType = props.getProperty("mail.log.activated");  
 				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
 			} else {
-				MyLogger.mailActivationType =  MainPMScmd.getPrefs().get("mail.log.activated", "false");
+				MyLogger.mailActivationType =  MainPMScmd.getMyPrefs().get("mail.log.activated", "false");
 				System.out.println("Logger activation status (no 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
 			}
 			
 			if (props.containsKey("mail.log.local")) {
-				MainPMScmd.getPrefs().put("mail.log.local", props.getProperty("mail.log.local"));
+				MainPMScmd.getMyPrefs().put("mail.log.local", props.getProperty("mail.log.local"));
 			}
 			if (props.containsKey("mail.username")) {
-				MainPMScmd.getPrefs().put("mail.username", props.getProperty("mail.username"));
+				MainPMScmd.getMyPrefs().put("mail.username", props.getProperty("mail.username"));
 			}
 			if (props.containsKey("mail.password")) {
-				MainPMScmd.getPrefs().put("mail.password", props.getProperty("mail.password"));
+				MainPMScmd.getMyPrefs().put("mail.password", props.getProperty("mail.password"));
 			}
 			if (props.containsKey("mail.host")) {
-				MainPMScmd.getPrefs().put("mail.host", props.getProperty("mail.host"));
+				MainPMScmd.getMyPrefs().put("mail.host", props.getProperty("mail.host"));
 			}
 			if (props.containsKey("mail.from")) {
-				MainPMScmd.getPrefs().put("mail.from", props.getProperty("mail.from"));
+				MainPMScmd.getMyPrefs().put("mail.from", props.getProperty("mail.from"));
 			}
-			
-			try {
-				MainPMScmd.getPrefs().flush();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+
+			MainPMScmd.getMyPrefs().flushy();
+
 			
 		} catch (Throwable e3) {
 			e3.printStackTrace();
-			MainPMScmd.getPrefs().put("mail.log.activated", "false");
-			try {
-				MainPMScmd.getPrefs().flush();
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
+			MainPMScmd.getMyPrefs().put("mail.log.activated", "false");
+			MainPMScmd.getMyPrefs().flushy();
 		}
 
 		try {
 
 			//Reset smtp connection settings for log msgs if they have been set up by user
-			String propsMailUserName = MainPMScmd.getPrefs().get("mail.username", "nouser");
-			String propsMailPassword = MainPMScmd.getPrefs().get("mail.password","nopassword"); 
-			String propsMailHost = MainPMScmd.getPrefs().get("mail.host", null);
+			String propsMailUserName = MainPMScmd.getMyPrefs().get("mail.username", "nouser");
+			String propsMailPassword = MainPMScmd.getMyPrefs().get("mail.password","nopassword"); 
+			String propsMailHost = MainPMScmd.getMyPrefs().get("mail.host", null);
 			boolean allConnectionFieldsAreValid = propsMailHost != null && !propsMailHost.isEmpty();
 			
 			if ( allConnectionFieldsAreValid ) {
@@ -169,15 +162,11 @@ public class MyLogger {
 
 				//Recover from previous failure
 				if (MyLogger.mailActivationType.equals("failed")) {
-					MainPMScmd.getPrefs().put("mail.log.activated", "true");
-					try {
-						MainPMScmd.getPrefs().flush();
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
+					MainPMScmd.getMyPrefs().put("mail.log.activated", "true");
+					MainPMScmd.getMyPrefs().flushy();
 				}
 
-				MyLogger.mailFrom = MainPMScmd.getPrefs().get("mail.from", MyLogger.mailUserName);
+				MyLogger.mailFrom = MainPMScmd.getMyPrefs().get("mail.from", MyLogger.mailUserName);
 
 				//Session props and email addresses
 				Properties mailSessionProps = new Properties();
@@ -185,10 +174,10 @@ public class MyLogger {
 				mailSessionProps.put("mail.smtp.host", MyLogger.mailHost);
 
 
-				Boolean isLocal = new Boolean(MainPMScmd.getPrefs().get("mail.log.local", "false"));
+				Boolean isLocal = new Boolean(MainPMScmd.getMyPrefs().get("mail.log.local", "false"));
 				if (isLocal) {
 
-					MyLogger.mailTo = MainPMScmd.getPrefs().get("mail.to", MyLogger.mailFrom);
+					MyLogger.mailTo = MainPMScmd.getMyPrefs().get("mail.to", MyLogger.mailFrom);
 					MyLogger.session = Session.getInstance(mailSessionProps);
 
 				} else {
@@ -239,12 +228,8 @@ public class MyLogger {
 								System.out.println("Non Auth SMTP connection is Invalid");
 								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
 								if (MyLogger.mailActivationType.equals("true")) {
-									MainPMScmd.getPrefs().put("mail.log.activated", "failed");
-									try {
-										MainPMScmd.getPrefs().flush();
-									} catch (Exception en) {
-										en.printStackTrace();
-									}
+									MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
+									MainPMScmd.getMyPrefs().flushy();
 								}
 
 							}
@@ -256,12 +241,8 @@ public class MyLogger {
 				
 				System.out.println("SMTP connection params are Invalid : propsMailUserName="+propsMailUserName+", propsMailPassword=xxx, propsMailHost="+propsMailHost);
 				if (MyLogger.mailActivationType.equals("true")) {
-					MainPMScmd.getPrefs().put("mail.log.activated", "failed");
-					try {
-						MainPMScmd.getPrefs().flush();
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
+					MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
+					MainPMScmd.getMyPrefs().flushy();
 				};
 				
 			}
@@ -271,25 +252,12 @@ public class MyLogger {
 			System.out.println("Log send failed, exception: " + e); 
 			System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
 			if (MyLogger.mailActivationType.equals("true")) {
-				MainPMScmd.getPrefs().put("mail.log.activated", "failed");
+				MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
 			}
-			try {
-				MainPMScmd.getPrefs().flush();
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
+			MainPMScmd.getMyPrefs().flushy();
 			e.printStackTrace();
 			
 		}
-		
-//		//Init hashesSet
-//		try {
-//			hashCodesFile.delete();
-//			
-//		} catch (Throwable e) {
-//			System.out.println("log send failed, exception: " + e); 
-//			e.printStackTrace();
-//		}
 		
 		//Get version
 		try {
@@ -302,10 +270,8 @@ public class MyLogger {
 		}
 		
 	}
-	
-	/** The delegate logger. */
+
 	private Logger delegateLogger;
-	
 	
 	public static class GuiLoggerObservable extends Observable {
 		
@@ -550,7 +516,7 @@ public class MyLogger {
 	private void sendMail(Object errorMsg, final Throwable error, final Boolean isTest) {
 		
 		//Is active?
-		MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
+		MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");  
 		String errorMailSetup = "Mail Settings : log activation type : " + MyLogger.mailActivationType;
 		System.out.println(errorMailSetup);
 		delegateLogger.info(errorMailSetup);
@@ -569,7 +535,7 @@ public class MyLogger {
 				
 				try {
 					
-					MyLogger.mailActivationType = MainPMScmd.getPrefs().get("mail.log.activated", "true");  
+					MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");  
 					if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
 					
 					Boolean isSendingErrorEmail = "true".equals(MyLogger.mailActivationType) || "force".equals(MyLogger.mailActivationType) ||  "forceNoTest".equals(MyLogger.mailActivationType);
@@ -621,12 +587,8 @@ public class MyLogger {
 								if ("Ok".equals(customDialog.getOptionPane().getValue())) {
 									if (isSendingEmail) doSend(bodyHashcode, isTest);
 								} else {
-									MainPMScmd.getPrefs().put("mail.log.activated", "false");
-									try {
-										MainPMScmd.getPrefs().flush();
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
+									MainPMScmd.getMyPrefs().put("mail.log.activated", "false");
+									MainPMScmd.getMyPrefs().flushy();
 								}
 
 							} catch (Throwable e) {

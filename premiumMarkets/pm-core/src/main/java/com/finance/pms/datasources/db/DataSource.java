@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.datasources.db;
 
@@ -117,48 +117,48 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public DataSource() {
 		
-		QUOTATIONS.TABLE_NAME = MainPMScmd.getPrefs().get("quotations", "QUOTATIONS");
-		QUOTATIONS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("symbol", "SYMBOL");
-		QUOTATIONS.ISIN_FIELD = MainPMScmd.getPrefs().get("isin", "ISIN");
-		QUOTATIONS.DATE_FIELD = MainPMScmd.getPrefs().get("date", "DATE");
-		QUOTATIONS.DAY_OPEN_FIELD = MainPMScmd.getPrefs().get("open", "OPENVALUE");
-		QUOTATIONS.DAY_CLOSE_FIELD = MainPMScmd.getPrefs().get("close", "CLOSEVALUE");
-		QUOTATIONS.DAY_HIGH_FIELD = MainPMScmd.getPrefs().get("high", "HIGH");
-		QUOTATIONS.DAY_LOW_FIELD = MainPMScmd.getPrefs().get("low", "LOW");
-		QUOTATIONS.DAY_VOLUME_FIELD = MainPMScmd.getPrefs().get("volume", "VOLUME");
-		QUOTATIONS.CURRENCY_FIELD = MainPMScmd.getPrefs().get("currency", "CURRENCY");
-		QUOTATIONS.ORIGIN_FIELD = MainPMScmd.getPrefs().get("origin", "ORIGIN");
-		SHARES.TABLE_NAME = MainPMScmd.getPrefs().get("shares", "SHARES");
-		SHARES.ISIN_FIELD = MainPMScmd.getPrefs().get("lookup.isin", "ISIN");
-		SHARES.SYMBOL_FIELD = MainPMScmd.getPrefs().get("lookup.symbol", "SYMBOL");
-		SHARES.NAME_FIELD = MainPMScmd.getPrefs().get("lookup.name", "NAME");
-		SHARES.REMOVABLE = MainPMScmd.getPrefs().get("lookup.removable", "REMOVABLE");
-		SHARES.CATEGORY = MainPMScmd.getPrefs().get("lookup.category", "CATEGORY");
-		SHARES.LASTQUOTE = MainPMScmd.getPrefs().get("lookup.lastquote", "LASTQUOTE");
-		SHARES.QUOTATIONPROVIDER = MainPMScmd.getPrefs().get("lookup.provider", "QUOTATIONPROVIDER");
-		SHARES.MARKET = MainPMScmd.getPrefs().get("lookup.market", "MARKETLISTPROVIDER");
-		PORTFOLIO.TABLE_NAME = MainPMScmd.getPrefs().get("portfolio.table", "PORTFOLIO");
-		PORTFOLIO.SYMBOL_FIELD = MainPMScmd.getPrefs().get("portfolio.symbol", "SYMBOL");
-		PORTFOLIO.QUANTIY_FIELD = MainPMScmd.getPrefs().get("portfolio.quantity", "QUANTITY");
-		PORTFOLIO.DATE_FIELD = MainPMScmd.getPrefs().get("portfolio.buydate", "BUYDATE");
-		PORTFOLIO.CASHIN_FIELD = MainPMScmd.getPrefs().get("portfolio.cashin", "CASHIN");
-		PORTFOLIO.CASHOUT_FIELD = MainPMScmd.getPrefs().get("portfolio.cashout", "CASHOUT");
-		PORTFOLIO.NAME_FIELD = MainPMScmd.getPrefs().get("portfolio.name", "NAME");
-		PORTFOLIO.MONITOR_FIELD = MainPMScmd.getPrefs().get("portfolio.monitor", "MONITOR");
-		EVENTS.EVENTS_TABLE_NAME = MainPMScmd.getPrefs().get("events.table", "EVENTS");
-		EVENTS.SYMBOL_FIELD = MainPMScmd.getPrefs().get("events.symbol", "SYMBOL");
-		EVENTS.ISIN_FIELD = MainPMScmd.getPrefs().get("events.isin", "ISIN");
-		EVENTS.ACCURACY_FIELD = MainPMScmd.getPrefs().get("events.accuracy", "ACCURACY");
-		EVENTS.DATE_FIELD = MainPMScmd.getPrefs().get("events.date", "DATE");
-		EVENTS.EVENTDEFID_FIELD = MainPMScmd.getPrefs().get("events.eventdefid", "EVENTDEFID");
-		EVENTS.EVENTDEF_FIELD = MainPMScmd.getPrefs().get("events.eventdef", "EVENTDEF");
+		QUOTATIONS.TABLE_NAME = MainPMScmd.getMyPrefs().get("quotations", "QUOTATIONS");
+		QUOTATIONS.SYMBOL_FIELD = MainPMScmd.getMyPrefs().get("symbol", "SYMBOL");
+		QUOTATIONS.ISIN_FIELD = MainPMScmd.getMyPrefs().get("isin", "ISIN");
+		QUOTATIONS.DATE_FIELD = MainPMScmd.getMyPrefs().get("date", "DATE");
+		QUOTATIONS.DAY_OPEN_FIELD = MainPMScmd.getMyPrefs().get("open", "OPENVALUE");
+		QUOTATIONS.DAY_CLOSE_FIELD = MainPMScmd.getMyPrefs().get("close", "CLOSEVALUE");
+		QUOTATIONS.DAY_HIGH_FIELD = MainPMScmd.getMyPrefs().get("high", "HIGH");
+		QUOTATIONS.DAY_LOW_FIELD = MainPMScmd.getMyPrefs().get("low", "LOW");
+		QUOTATIONS.DAY_VOLUME_FIELD = MainPMScmd.getMyPrefs().get("volume", "VOLUME");
+		QUOTATIONS.CURRENCY_FIELD = MainPMScmd.getMyPrefs().get("currency", "CURRENCY");
+		QUOTATIONS.ORIGIN_FIELD = MainPMScmd.getMyPrefs().get("origin", "ORIGIN");
+		SHARES.TABLE_NAME = MainPMScmd.getMyPrefs().get("shares", "SHARES");
+		SHARES.ISIN_FIELD = MainPMScmd.getMyPrefs().get("lookup.isin", "ISIN");
+		SHARES.SYMBOL_FIELD = MainPMScmd.getMyPrefs().get("lookup.symbol", "SYMBOL");
+		SHARES.NAME_FIELD = MainPMScmd.getMyPrefs().get("lookup.name", "NAME");
+		SHARES.REMOVABLE = MainPMScmd.getMyPrefs().get("lookup.removable", "REMOVABLE");
+		SHARES.CATEGORY = MainPMScmd.getMyPrefs().get("lookup.category", "CATEGORY");
+		SHARES.LASTQUOTE = MainPMScmd.getMyPrefs().get("lookup.lastquote", "LASTQUOTE");
+		SHARES.QUOTATIONPROVIDER = MainPMScmd.getMyPrefs().get("lookup.provider", "QUOTATIONPROVIDER");
+		SHARES.MARKET = MainPMScmd.getMyPrefs().get("lookup.market", "MARKETLISTPROVIDER");
+		PORTFOLIO.TABLE_NAME = MainPMScmd.getMyPrefs().get("portfolio.table", "PORTFOLIO");
+		PORTFOLIO.SYMBOL_FIELD = MainPMScmd.getMyPrefs().get("portfolio.symbol", "SYMBOL");
+		PORTFOLIO.QUANTIY_FIELD = MainPMScmd.getMyPrefs().get("portfolio.quantity", "QUANTITY");
+		PORTFOLIO.DATE_FIELD = MainPMScmd.getMyPrefs().get("portfolio.buydate", "BUYDATE");
+		PORTFOLIO.CASHIN_FIELD = MainPMScmd.getMyPrefs().get("portfolio.cashin", "CASHIN");
+		PORTFOLIO.CASHOUT_FIELD = MainPMScmd.getMyPrefs().get("portfolio.cashout", "CASHOUT");
+		PORTFOLIO.NAME_FIELD = MainPMScmd.getMyPrefs().get("portfolio.name", "NAME");
+		PORTFOLIO.MONITOR_FIELD = MainPMScmd.getMyPrefs().get("portfolio.monitor", "MONITOR");
+		EVENTS.EVENTS_TABLE_NAME = MainPMScmd.getMyPrefs().get("events.table", "EVENTS");
+		EVENTS.SYMBOL_FIELD = MainPMScmd.getMyPrefs().get("events.symbol", "SYMBOL");
+		EVENTS.ISIN_FIELD = MainPMScmd.getMyPrefs().get("events.isin", "ISIN");
+		EVENTS.ACCURACY_FIELD = MainPMScmd.getMyPrefs().get("events.accuracy", "ACCURACY");
+		EVENTS.DATE_FIELD = MainPMScmd.getMyPrefs().get("events.date", "DATE");
+		EVENTS.EVENTDEFID_FIELD = MainPMScmd.getMyPrefs().get("events.eventdefid", "EVENTDEFID");
+		EVENTS.EVENTDEF_FIELD = MainPMScmd.getMyPrefs().get("events.eventdef", "EVENTDEF");
 		EVENTS.EVENTDEFEXTENSION_FIELD = "EVENTDEFEXTENSION";
-		EVENTS.EVENTTYPE_FIELD = MainPMScmd.getPrefs().get("events.type", "EVENTTYPE");
-		EVENTS.ANALYSE_NAME = MainPMScmd.getPrefs().get("events.type", "ANALYSENAME");
+		EVENTS.EVENTTYPE_FIELD = MainPMScmd.getMyPrefs().get("events.type", "EVENTTYPE");
+		EVENTS.ANALYSE_NAME = MainPMScmd.getMyPrefs().get("events.type", "ANALYSENAME");
 		
 		if (singleton == null) {
-			LOGGER.debug("Number of Long batch DB Threads :" + new Integer(MainPMScmd.getPrefs().get("db.poolsize", "10")));
-			threadPool = new PoolSemaphore((new Integer(MainPMScmd.getPrefs().get("db.poolsize", "10"))).intValue(), this, false);
+			LOGGER.debug("Number of Long batch DB Threads :" + new Integer(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
+			threadPool = new PoolSemaphore((new Integer(MainPMScmd.getMyPrefs().get("db.poolsize", "10"))).intValue(), this, false);
 			singleton = this;
 		}
 	}
@@ -296,7 +296,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	}
 	
 	public Set<Stock> loadStocksForCurrentShareList() {
-		String currentMarket =  MainPMScmd.getPrefs().get("quotes.listprovider", "euronext");
+		String currentMarket =  MainPMScmd.getMyPrefs().get("quotes.listprovider", "euronext");
 		Providers provider = Providers.getInstance(currentMarket);
 		return loadStocksList(currentMarket + Indice.formatSet(provider.getIndices()));
 	}
@@ -810,10 +810,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return "";
 	}
 
-	/**
-	 * @param eventDefinitions
-	 * @return
-	 */
 	private String eventDefinitionConstraint(EventInfo... eventDefinitions) {
 		if (eventDefinitions.length == 0) {
 			return "";
@@ -977,14 +973,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	private String connectionUrl() {
 		String connectionURL;
 
-		String protocol = MainPMScmd.getPrefs().get("software", "derby");
+		String protocol = MainPMScmd.getMyPrefs().get("software", "derby");
 		connectionURL = "jdbc:" + protocol;
 
 		connectionURL = connectionURL + ":" + DataSource.dbPathNname();
 
-		String username = MainPMScmd.getPrefs().get("username", "nouserspecified");
+		String username = MainPMScmd.getMyPrefs().get("username", "nouserspecified");
 		if (!username.isEmpty() && !username.equals("nouserspecified"))
-			connectionURL += "?user=" + username + "&password=" + MainPMScmd.getPrefs().get("password", "password");
+			connectionURL += "?user=" + username + "&password=" + MainPMScmd.getMyPrefs().get("password", "password");
 		return connectionURL;
 	}
 
@@ -1087,25 +1083,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return resReq;
 	}
 	
-	/**
-	 * Sets the object.
-	 * 
-	 * @param query the q
-	 * @param pst the pst
-	 * @param i the i
-	 * 
-	 * @throws SQLException the SQL exception
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void setObject(Query query, PreparedStatement pst, int i) throws SQLException {
 		Object o = query.getParameterValues().get(i);
 		if (o instanceof java.util.Date) {
 			java.sql.Date sqld = new java.sql.Date(((java.util.Date)o).getTime());
 			pst.setDate(i + 1, sqld);
 		}
-		else
+		else {
 			pst.setObject(i + 1, o);
+		}
 	}
 	
 	private void setObjectWithTimeStamp(Query query, PreparedStatement pst, int i) throws SQLException {
@@ -1114,8 +1100,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			java.sql.Timestamp sqld = new java.sql.Timestamp(((java.util.Date)o).getTime());
 			pst.setTimestamp(i + 1, sqld);
 		}
-		else
+		else {
 			pst.setObject(i + 1, o);
+		}
 	}
 
 	public int[] executeUpdateBlock(ArrayList<Validatable> qL, String preparedQuery, ArrayList<Validatable> s4UqL, String selectForUpDateQ) throws SQLException {

@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.admin.install.wizard;
 
@@ -37,7 +37,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Properties;
 
@@ -59,56 +58,23 @@ import javax.swing.text.Document;
  */
 public class IntroPanel extends JPanel {
  
-    /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -6101824066434845051L;
-	
-	/** The blank space. */
 	private JLabel blankSpace;
-    
-    /** The j label1. */
     private JLabel jLabel1;
-    
-    /** The j label2. */
     private JLabel jLabel2;
-    
-    /** The j label3. */
     private JLabel jLabel3;
-    
-    /** The j label4. */
     private JLabel jLabel4;
-    
-    /** The j label5. */
     private JLabel jLabel5;
-    
-    /** The j label6. */
     private JLabel jLabel6;
-    
-    /** The j label7. */
     private JLabel jLabel7;
-    
-    /** The j label8. */
     private JLabel jLabel8;
-    
-    /** The j label9. */
     private JLabel jLabel9;
-
-    /** The welcome title. */
     private JLabel welcomeTitle;
-    
-    /** The content panel. */
     private JPanel contentPanel;
-    
-    /** The icon label. */
     private JLabel iconLabel;
-    
-    /** The icon. */
     private ImageIcon icon;
     
-    /**
-     * Instantiates a new intro panel.
-     * 
-     * @author Guillaume Thoreton
-     */
+    
     public IntroPanel() {
         
         iconLabel = new JLabel();
@@ -119,8 +85,7 @@ public class IntroPanel extends JPanel {
 
         setLayout(new java.awt.BorderLayout());
 
-        if (icon != null)
-            iconLabel.setIcon(icon);
+        if (icon != null) iconLabel.setIcon(icon);
         
         iconLabel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
         
@@ -131,7 +96,16 @@ public class IntroPanel extends JPanel {
         secondaryPanel.add(contentPanel, BorderLayout.NORTH);
         
 	    try {
-			final URI uri = new URI("http://premiummarkets.elasticbeanstalk.com/");
+			String siteUrl = "none.com";
+			try {
+				Properties pbuild = new Properties();
+				pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
+				siteUrl = pbuild.getProperty("site.url");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			final URI uri = new URI("http://"+siteUrl+"/");
 			
 			class OpenUrlAction implements ActionListener {
 			    @Override public void actionPerformed(ActionEvent e) {   
@@ -142,8 +116,7 @@ public class IntroPanel extends JPanel {
 			JButton button = new JButton();
 			button.setText("<HTML>" +
 					"<FONT color=\"red\">I would also like to bring to your attention that Premium Markets announces its NEW Forecast engine!<br/>"+
-					"Click <FONT color=\"#000099\"><blink><U>http://premiummarkets.elasticbeanstalk.com/</U></blink></FONT> for a preview and a free workable demo.</FONT></HTML>");
-			//button.setHorizontalAlignment(SwingConstants.LEFT);
+					"Click <FONT color=\"#000099\"><blink><U>http://"+siteUrl+"/</U></blink></FONT> for a preview and a free workable demo.</FONT></HTML>");
 			button.setBorderPainted(false);
 			button.setOpaque(false);
 			button.setBackground(Color.WHITE);
@@ -153,19 +126,13 @@ public class IntroPanel extends JPanel {
 			
 			secondaryPanel.add(button, BorderLayout.CENTER);
 			
-		} catch (URISyntaxException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	    
         add(secondaryPanel, BorderLayout.CENTER);
     }
-    
-    
-    /**
-     * Gets the content panel.
-     * 
-     * @return the content panel
-     */
+
     private JPanel getContentPanel() {
         
         JPanel contentPanel1 = new JPanel();
@@ -250,29 +217,28 @@ public class IntroPanel extends JPanel {
     
     class ActivatedHyperlinkListener implements HyperlinkListener {
 
-    	  JEditorPane editorPane;
+    	JEditorPane editorPane;
 
-    	  public ActivatedHyperlinkListener(JEditorPane editorPane) {
-    	    this.editorPane = editorPane;
-    	  }
-
-    	  public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-    	    HyperlinkEvent.EventType type = hyperlinkEvent.getEventType();
-    	    final URL url = hyperlinkEvent.getURL();
-    	    if (type == HyperlinkEvent.EventType.ENTERED) {
-    	      System.out.println("URL: " + url);
-    	    } else if (type == HyperlinkEvent.EventType.ACTIVATED) {
-    	      System.out.println("Activated");
-    	      Document doc = editorPane.getDocument();
-    	      try {
-    	        editorPane.setPage(url);
-    	      } catch (IOException ioException) {
-    	        System.out.println("Error following link");
-    	        editorPane.setDocument(doc);
-    	      }
-    	    }
-    	  }
+    	public ActivatedHyperlinkListener(JEditorPane editorPane) {
+    		this.editorPane = editorPane;
     	}
-    
- 
+
+    	public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
+    		HyperlinkEvent.EventType type = hyperlinkEvent.getEventType();
+    		final URL url = hyperlinkEvent.getURL();
+    		if (type == HyperlinkEvent.EventType.ENTERED) {
+    			System.out.println("URL: " + url);
+    		} else if (type == HyperlinkEvent.EventType.ACTIVATED) {
+    			System.out.println("Activated");
+    			Document doc = editorPane.getDocument();
+    			try {
+    				editorPane.setPage(url);
+    			} catch (IOException ioException) {
+    				System.out.println("Error following link");
+    				editorPane.setDocument(doc);
+    			}
+    		}
+    	}
+    }
+
 }

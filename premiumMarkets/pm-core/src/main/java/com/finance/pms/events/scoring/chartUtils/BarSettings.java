@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.events.scoring.chartUtils;
 
@@ -46,12 +46,12 @@ public class BarSettings {
 	
 	public BarSettings() {
 		super();
-		this.alphaDividend = MainPMScmd.getPrefs().getDouble("chart.alphaDividend", 5);
-		this.maxFill = MainPMScmd.getPrefs().getInt("chart.maxFill", 12);
-		this.isZeroBased  = MainPMScmd.getPrefs().getBoolean("chart.isZeroBased", false);
-		this.isReachTop =  MainPMScmd.getPrefs().getBoolean("chart.isReachTop", false);
-		this.isGradiant = MainPMScmd.getPrefs().getBoolean("chart.isGradient", false);
-		this.sideBySide  = MainPMScmd.getPrefs().getBoolean("chart.isSideBySide", false); //TODO?? => calculate some kind of density
+		this.alphaDividend = MainPMScmd.getMyPrefs().getDouble("chart.alphaDividend", 5.0);
+		this.maxFill = MainPMScmd.getMyPrefs().getInt("chart.maxFill", 12);
+		this.isZeroBased  = MainPMScmd.getMyPrefs().getBoolean("chart.isZeroBased", false);
+		this.isReachTop =  MainPMScmd.getMyPrefs().getBoolean("chart.isReachTop", false);
+		this.isGradiant = MainPMScmd.getMyPrefs().getBoolean("chart.isGradient", false);
+		this.sideBySide  = MainPMScmd.getMyPrefs().getBoolean("chart.isSideBySide", false); //TODO?? => calculate some kind of density
 	}
 	
 	public Double getAlphaDividend() {
@@ -59,7 +59,7 @@ public class BarSettings {
 	}
 	public void setAlphaDividend(Double alphaDividend) {
 		try {
-			MainPMScmd.getPrefs().putDouble("chart.alphaDividend", alphaDividend);
+			MainPMScmd.getMyPrefs().putDouble("chart.alphaDividend", alphaDividend);
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}
@@ -71,7 +71,7 @@ public class BarSettings {
 	}
 	public void setMaxFill(int maxFill) {
 		try {
-			MainPMScmd.getPrefs().putInt("chart.maxFill", maxFill);
+			MainPMScmd.getMyPrefs().putInt("chart.maxFill", maxFill);
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}
@@ -82,7 +82,7 @@ public class BarSettings {
 	}
 	public void setIsZerobased(Boolean isZerobased) {
 		try {
-			MainPMScmd.getPrefs().putBoolean("chart.isZeroBased", isZerobased);
+			MainPMScmd.getMyPrefs().putBoolean("chart.isZeroBased", isZerobased);
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}
@@ -93,7 +93,7 @@ public class BarSettings {
 	}
 	public void setIsGradient(Boolean isGradiant) {
 		try {
-			MainPMScmd.getPrefs().putBoolean("chart.isGradient", isGradiant);
+			MainPMScmd.getMyPrefs().putBoolean("chart.isGradient", isGradiant);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -106,7 +106,7 @@ public class BarSettings {
 
 	public void setSideBySide(Boolean isReachTop) {
 		try {
-			MainPMScmd.getPrefs().putBoolean("chart.isSideBySide", isReachTop);
+			MainPMScmd.getMyPrefs().putBoolean("chart.isSideBySide", isReachTop);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -119,7 +119,7 @@ public class BarSettings {
 
 	public void setIsReachTop(Boolean isReachTop) {
 		try {
-			MainPMScmd.getPrefs().putBoolean("chart.isReachTop", isReachTop);
+			MainPMScmd.getMyPrefs().putBoolean("chart.isReachTop", isReachTop);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

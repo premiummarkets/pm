@@ -1,4 +1,4 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-06-08 19:09:41
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-07-12 21:19:42
  //parser
     package com.finance.pms.events.operations.parameterized.antlr;
     import com.finance.pms.events.calculation.antlr.IErrorReporter;
@@ -351,7 +351,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal5);
 
 			// AST REWRITE
-			// elements: Nativeop, params, OutputSelector
+			// elements: OutputSelector, params, Nativeop
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -480,7 +480,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_20.add(char_literal7);
 
 			// AST REWRITE
-			// elements: params, Userop
+			// elements: Userop, params
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 

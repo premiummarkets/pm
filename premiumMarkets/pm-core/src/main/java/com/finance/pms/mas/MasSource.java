@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.mas;
 
@@ -56,8 +56,6 @@ import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class MasSource.
  * 
@@ -145,9 +143,9 @@ public class MasSource implements SourceConnector {
 			props.load(new FileInputStream((new File(pathToprops))));
 			//Connection
 			if (props.containsKey("mas.hostname"))
-				MainPMScmd.getPrefs().put("mas.hostname", props.getProperty("mas.hostname"));
+				MainPMScmd.getMyPrefs().put("mas.hostname", props.getProperty("mas.hostname"));
 			if (props.containsKey("mas.port"))
-				MainPMScmd.getPrefs().put("mas.port", props.getProperty("mas.port"));
+				MainPMScmd.getMyPrefs().put("mas.port", props.getProperty("mas.port"));
 			//			if (props.containsKey("mas.startdate.daily"))
 			//				MainPMScmd.prefs.put("mas.startdate.daily", props.getProperty("mas.startdate.daily"));
 			//			if (props.containsKey("mas.enddate.daily"))
@@ -155,23 +153,24 @@ public class MasSource implements SourceConnector {
 			//			 if (props.containsKey("mas.period"))
 			//			 MainPMScmd.prefs.put("mas.period", props.getProperty("mas.period"));
 			if (props.containsKey("mas.poolsize"))
-				MainPMScmd.getPrefs().put("mas.poolsize", props.getProperty("mas.poolsize"));
+				MainPMScmd.getMyPrefs().put("mas.poolsize", props.getProperty("mas.poolsize"));
 			if (props.containsKey("mas.ctimeout"))
-				MainPMScmd.getPrefs().put("mas.ctimeout", props.getProperty("mas.ctimeout"));
+				MainPMScmd.getMyPrefs().put("mas.ctimeout", props.getProperty("mas.ctimeout"));
 			if (props.containsKey("mas.server.cmd"))
-				MainPMScmd.getPrefs().put("mas.server.cmd", props.getProperty("mas.server.cmd"));
+				MainPMScmd.getMyPrefs().put("mas.server.cmd", props.getProperty("mas.server.cmd"));
 			if (props.containsKey("mas.server.env"))
-				MainPMScmd.getPrefs().put("mas.server.env", props.getProperty("mas.server.env"));
+				MainPMScmd.getMyPrefs().put("mas.server.env", props.getProperty("mas.server.env"));
 			if (props.containsKey("mas.server.dir"))
-				MainPMScmd.getPrefs().put("mas.server.dir", props.getProperty("mas.server.dir"));
+				MainPMScmd.getMyPrefs().put("mas.server.dir", props.getProperty("mas.server.dir"));
 			if (props.containsKey("mas.server.wait"))
-				MainPMScmd.getPrefs().put("mas.server.wait", props.getProperty("mas.server.wait"));
+				MainPMScmd.getMyPrefs().put("mas.server.wait", props.getProperty("mas.server.wait"));
 			if (props.containsKey("mas.logserver"))
-				MainPMScmd.getPrefs().put("mas.logserver", props.getProperty("mas.logserver"));
+				MainPMScmd.getMyPrefs().put("mas.logserver", props.getProperty("mas.logserver"));
 			
-			MainPMScmd.getPrefs().flush();
+			MainPMScmd.getMyPrefs().flushy();
+			
 		} catch (Exception e) {
-			LOGGER.error("Couldn't find propertie file. Check the propeties path",e);
+			LOGGER.error("Couldn't find property file. Check the properties path",e);
 		}
 		
 		if(this.numPortMap == null) {
@@ -196,7 +195,7 @@ public class MasSource implements SourceConnector {
 	public MasSource(String pathToprops, Boolean startServers) {
 		this(pathToprops);
 		
-		MasSource.NBTHREADSMAS = (new Integer(MainPMScmd.getPrefs().get("mas.poolsize", "10"))).intValue();
+		MasSource.NBTHREADSMAS = (new Integer(MainPMScmd.getMyPrefs().get("mas.poolsize", "10"))).intValue();
 		
 		if (startServers) {		
 			startAllSources();
@@ -223,7 +222,7 @@ public class MasSource implements SourceConnector {
 			}
 			try {
 				synchronized (this) {
-					wait((new Integer(MainPMScmd.getPrefs().get("mas.server.wait", "5000"))));
+					wait((new Integer(MainPMScmd.getMyPrefs().get("mas.server.wait", "5000"))));
 				}
 			} catch (NumberFormatException e) {
 				// TODO Auto-generated catch block
@@ -281,8 +280,8 @@ public class MasSource implements SourceConnector {
 		int portNum = getNextAvailablePort(connectionId);
 		this.numPortMap.put(new Integer(connectionId), new Integer(portNum));
 		try {
-			return new MasConnection(MainPMScmd.getPrefs().get("mas.hostname", "localhost"), new Integer(portNum), loginParam, Integer
-					.parseInt(MainPMScmd.getPrefs().get("mas.ctimeout", "20000")));
+			return new MasConnection(MainPMScmd.getMyPrefs().get("mas.hostname", "localhost"), new Integer(portNum), loginParam, Integer
+					.parseInt(MainPMScmd.getMyPrefs().get("mas.ctimeout", "20000")));
 		} catch (IOException e) {
 			LOGGER.debug("", e);
 			throw new RuntimeException(e);
@@ -343,7 +342,7 @@ public class MasSource implements SourceConnector {
 			Integer oldport = this.numPortMap.get(new Integer(connectionId));
 			portNum = oldport.intValue() + MasSource.NBTHREADSMAS;
 		} else {
-			portNum = Integer.parseInt(MainPMScmd.getPrefs().get("mas.port", "13579")) + connectionId;
+			portNum = Integer.parseInt(MainPMScmd.getMyPrefs().get("mas.port", "13579")) + connectionId;
 		}
 		return portNum;
 	}
@@ -580,9 +579,6 @@ public class MasSource implements SourceConnector {
 		MasSource.singleton = null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
-	 */
 	public int crashResart(int connectionId) {
 		if (this.processMap.containsKey(new Integer(connectionId))) {
 			MasProcess mp = this.processMap.get(new Integer(connectionId));
@@ -590,15 +586,10 @@ public class MasSource implements SourceConnector {
 		}
 		startSource(connectionId);
 		// sleep time
-		int sleep = (new Integer(MainPMScmd.getPrefs().get("mas.server.wait", "5000")));
+		int sleep = (new Integer(MainPMScmd.getMyPrefs().get("mas.server.wait", "5000")));
 		return sleep;
 	}
-	
-	/**
-	 * Destroy.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public void destroy() {
 		for (MasProcess mp : this.processMap.values()) {
 			LOGGER.debug("Destroying mas process left running ");
@@ -606,22 +597,14 @@ public class MasSource implements SourceConnector {
 		}
 	}
 	
-
-	/**
-	 * Start source.
-	 * 
-	 * @param connectionId the connection id
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private void startSource(int connectionId) {
 		//cmd
 		int portNum = getNextAvailablePort(connectionId);
-		String cmd[] = { MainPMScmd.getPrefs().get("mas.server.cmd", "/usr/local/opt/Prgs/mas/bin/mas"), portNum + "", "-p", "-b" };
+		String cmd[] = { MainPMScmd.getMyPrefs().get("mas.server.cmd", "/usr/local/opt/Prgs/mas/bin/mas"), portNum + "", "-p", "-b" };
 		//env
 		LOGGER.debug("\n\nYour home : " + System.getenv("HOME"));
 		//dir (for cores and messages)
-		File dir = new File(MainPMScmd.getPrefs().get("mas.server.dir", System.getenv("HOME") + "/tmp"));
+		File dir = new File(MainPMScmd.getMyPrefs().get("mas.server.dir", System.getenv("HOME") + "/tmp"));
 		File outputfile = new File(dir, "output4thread_" + connectionId + ".log");
 		//exec
 		LOGGER.debug("\n\nStarting server (Thread " + connectionId + ") : " + Arrays.toString(cmd));
@@ -636,7 +619,7 @@ public class MasSource implements SourceConnector {
 			//Log
 			MasProcessLogging mpl = new MasProcessLogging(p, outputfile, connectionId);
 			MasProcess mp = new MasProcess(p, mpl);
-			if (new Boolean(MainPMScmd.getPrefs().get("mas.logserver","false"))) mpl.start();
+			if (new Boolean(MainPMScmd.getMyPrefs().get("mas.logserver","false"))) mpl.start();
 			this.processMap.put(new Integer(connectionId), mp);
 		} catch (IOException e) {
 			LOGGER.debug("", e);

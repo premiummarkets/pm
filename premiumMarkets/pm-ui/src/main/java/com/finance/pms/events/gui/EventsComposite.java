@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.events.gui;
 
@@ -205,15 +205,15 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	private void loadPrefs() {
 		
-		this.infCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.inf", "-1"));
-		this.supCrit = new Integer(MainPMScmd.getPrefs().get("gui.crit.sup", "1"));
-		this.nbDaysFilter = new Integer(MainPMScmd.getPrefs().get("gui.crit.filternbdays", "5"));
-		this.nbMonthsAnalysis = new Integer(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
+		this.infCrit = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.inf", "-1"));
+		this.supCrit = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.sup", "1"));
+		this.nbDaysFilter = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.filternbdays", "5"));
+		this.nbMonthsAnalysis = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.calcnbmonths", "18"));
 
 		this.selectedEventInfos = new HashSet<EventInfo>();//These are initialised in the set visible as it requires knowledge of the EventInfos (async back ground loaded)
 
 		this.selectedPortfolios = new HashSet<ShareListInfo>();
-		List<String> previouslySelectedPortfolios = Arrays.asList(MainPMScmd.getPrefs().get("gui.crit.selectedportfolios", "").split(","));
+		List<String> previouslySelectedPortfolios = Arrays.asList(MainPMScmd.getMyPrefs().get("gui.crit.selectedportfolios", "").split(","));
 		if (!previouslySelectedPortfolios.isEmpty()) {
 			for (String selectedPortfolio : previouslySelectedPortfolios) {
 				if (!selectedPortfolio.isEmpty()) {
@@ -226,17 +226,17 @@ public class EventsComposite extends Composite implements RefreshableView {
 				}
 			}
 		}
-		this.filter = StocksActionFilter.valueOf(MainPMScmd.getPrefs().get("gui.crit.sotckfilter", StocksActionFilter.ALLSTOCKS.name()));
+		this.filter = StocksActionFilter.valueOf(MainPMScmd.getMyPrefs().get("gui.crit.sotckfilter", StocksActionFilter.ALLSTOCKS.name()));
 		
 	}
 	
 	private void savePrefs() {
 		
-		MainPMScmd.getPrefs().put("gui.crit.inf", this.infCrit.toString());
-		MainPMScmd.getPrefs().put("gui.crit.sup", this.supCrit.toString());
-		MainPMScmd.getPrefs().put("gui.crit.filternbdays", this.nbDaysFilter.toString());
-		MainPMScmd.getPrefs().put("gui.crit.calcnbmonths", this.nbMonthsAnalysis.toString());
-		MainPMScmd.getPrefs().put("gui.crit.selectedeventinfos", EventDefinition.getEventDefSetAsString(",",selectedEventInfos));
+		MainPMScmd.getMyPrefs().put("gui.crit.inf", this.infCrit.toString());
+		MainPMScmd.getMyPrefs().put("gui.crit.sup", this.supCrit.toString());
+		MainPMScmd.getMyPrefs().put("gui.crit.filternbdays", this.nbDaysFilter.toString());
+		MainPMScmd.getMyPrefs().put("gui.crit.calcnbmonths", this.nbMonthsAnalysis.toString());
+		MainPMScmd.getMyPrefs().put("gui.crit.selectedeventinfos", EventDefinition.getEventDefSetAsString(",",selectedEventInfos));
 		
 		String sps = "";
 		String sep = "";
@@ -244,21 +244,17 @@ public class EventsComposite extends Composite implements RefreshableView {
 			sps = sps + sep + selectedPortfolio.info();
 			sep = ",";
 		}
-		MainPMScmd.getPrefs().put("gui.crit.selectedportfolios", sps);
-		MainPMScmd.getPrefs().put("gui.crit.sotckfilter", this.filter.name());
+		MainPMScmd.getMyPrefs().put("gui.crit.selectedportfolios", sps);
+		MainPMScmd.getMyPrefs().put("gui.crit.sotckfilter", this.filter.name());
 		
-		try {
-			MainPMScmd.getPrefs().flush();
-		} catch (BackingStoreException e) {
-			LOGGER.warn(e);
-		}
+		MainPMScmd.getMyPrefs().flushy();
 		
 	}
 
 	public void initData() {
 
 		//init events prefs
-		List<String> prefEventInfos = Arrays.asList(MainPMScmd.getPrefs().get("gui.crit.selectedeventinfos", EventDefinition.PMSMAREVERSAL.name()).split(","));
+		List<String> prefEventInfos = Arrays.asList(MainPMScmd.getMyPrefs().get("gui.crit.selectedeventinfos", EventDefinition.PMSMAREVERSAL.name()).split(","));
 		SortedSet<EventInfo> allKnownEventInfos = EventDefinition.loadMaxPassPrefsEventInfo();
 		for (EventInfo knownEventInfo : allKnownEventInfos) {
 			if (prefEventInfos.contains(knownEventInfo.getEventDefinitionRef())) selectedEventInfos.add(knownEventInfo);
@@ -1113,7 +1109,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 		try {
 			infCrit = Integer.parseInt(infCritp);
-			MainPMScmd.getPrefs().put("gui.crit.inf", infCritp);
+			MainPMScmd.getMyPrefs().put("gui.crit.inf", infCritp);
 		} catch (NumberFormatException e) {
 			UserDialog inst = new UserDialog(this.getShell(), e.toString(), null);
 			inst.open();
@@ -1122,7 +1118,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 		try {
 			supCrit = Integer.parseInt(supCritp);
-			MainPMScmd.getPrefs().put("gui.crit.sup", supCritp);
+			MainPMScmd.getMyPrefs().put("gui.crit.sup", supCritp);
 		} catch (NumberFormatException e) {
 			UserDialog inst = new UserDialog(this.getShell(), e.toString(), null);
 			inst.open();
@@ -1134,7 +1130,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 		} catch (NumberFormatException e) {
 			UserDialog inst = new UserDialog(this.getShell(), e.getMessage(), null);
 			inst.open();
-			dateCriteriatext.setText(MainPMScmd.getPrefs().get("gui.crit.calcnbmonths", "18"));
+			dateCriteriatext.setText(MainPMScmd.getMyPrefs().get("gui.crit.calcnbmonths", "18"));
 		}
 
 		try {
@@ -1144,11 +1140,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 			dialog.open();
 		}
 
-		try {
-			MainPMScmd.getPrefs().flush();
-		} catch (BackingStoreException e) {
-			LOGGER.warn("Can't save preferences", e);
-		}
+		MainPMScmd.getMyPrefs().flushy();
+		
 	}
 
 	protected void sortAndReload() {

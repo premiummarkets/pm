@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.admin.install.wizard;
 
@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Properties;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -52,7 +53,6 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.Document;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class IntroPanel.
  * 
@@ -60,19 +60,12 @@ import javax.swing.text.Document;
  */
 public class UpdateUrl extends JPanel {
  
-    /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -6101824066434845051L;
-
-    /** The content panel. */
+	
     private JPanel contentPanel;
     
     JPanel jPanel1;
-
-    
-    /** The icon label. */
     private JLabel iconLabel;
-    
-    /** The icon. */
     private ImageIcon icon;
     
     JLabel jLabel1;
@@ -90,12 +83,7 @@ public class UpdateUrl extends JPanel {
 	MyObs observable;
 	String versionNumber;
     
-
-    /**
-     * Instantiates a new intro panel.
-     * 
-     * @author Guillaume Thoreton
-     */
+	
     public UpdateUrl() {
     	
     	observable = new MyObs();
@@ -120,12 +108,6 @@ public class UpdateUrl extends JPanel {
         add(secondaryPanel, BorderLayout.CENTER);
     }
     
-    
-    /**
-     * Gets the content panel.
-     * 
-     * @return the content panel
-     */
     private JPanel getContentPanel() {
     	
     	JPanel contentPanel1 = new JPanel();
@@ -207,10 +189,6 @@ public class UpdateUrl extends JPanel {
         
     }
 
-
-	/**
-	 * @param jPanel1
-	 */
 	public void downLoadLatest(final String vn, Observer observer) {
 	     
 		versionNumber = vn;
@@ -222,9 +200,6 @@ public class UpdateUrl extends JPanel {
 
 	}
     
-	/**
-	 * 
-	 */
 	private void runLatest() {
 		
 //		try {
@@ -245,20 +220,24 @@ public class UpdateUrl extends JPanel {
 //			e.printStackTrace();
 //		}
 		 try {
-			URI uri = new URI("http://premiummarkets.elasticbeanstalk.com/html/swtui.html#Download");
+			 
+			 String siteUrl = "none.com";
+			 try {
+				 Properties pbuild = new Properties();
+				 pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
+				 siteUrl = pbuild.getProperty("site.url");
+			 } catch (Exception e) {
+				 e.printStackTrace();
+			 }
+				
+			URI uri = new URI("http://"+siteUrl+"/html/swtui.html#Download");
 			ProgressPanel.open(uri);
+			
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
 	}
     
-    
-
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
     private ImageIcon getImageIcon() {
     	URL resource = this.getClass().getClassLoader().getResource(Install.iconFile+".png");
     	if (resource != null){

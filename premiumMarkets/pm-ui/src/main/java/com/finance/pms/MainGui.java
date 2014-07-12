@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms;
 
@@ -120,6 +120,8 @@ import com.finance.pms.threads.ConfigThreadLocal;
  */
 public class MainGui extends SashForm implements RefreshableView { 
 
+	private String siteUrl;
+
 	private static MyLogger LOGGER = MyLogger.getLogger(MainGui.class);
 
 	private Integer cursorCpt = 0;
@@ -193,6 +195,8 @@ public class MainGui extends SashForm implements RefreshableView {
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
 		ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
 		
+		siteUrl = MainPMScmd.getMyPrefs().get("site.url", "none.com");
+		
 		AnalysisClient.setEmailMsgQeueingFilter(EmailFilterEventSource.uiSet());
 		
 		sashes = new SashForm(this, SWT.HORIZONTAL);
@@ -231,15 +235,17 @@ public class MainGui extends SashForm implements RefreshableView {
 						if (fit.find()) {
 							boolean isObsolete = isObsolete(line, fit, currentBuildDate);
 							if (isObsolete) {
-								ActionDialog dialog = new ActionDialog(getShell(), "A new version is available!", "-------------  A new version is available -------------", null, "Click to update. Close this popup otherwise.", new ActionDialogAction() {
+								ActionDialog dialog = new ActionDialog(
+									getShell(), "A new version is available!", "-------------  A new version is available -------------", null, "Click to update. Close this popup otherwise.", 
+									new ActionDialogAction() {
 									
-									@Override
-									public void action(Control targetControl) {
-										//Program.launch("http://premiummarkets.elasticbeanstalk.com/html/PremiumMarkets.jnlp");
-										Program.launch("http://premiummarkets.elasticbeanstalk.com/html/swtui.html#Download");
-										rootShellClosedRequested(null);
-									}
-								});
+										@Override
+										public void action(Control targetControl) {
+											//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
+											Program.launch("http://"+siteUrl+"/html/swtui.html#Download");
+											rootShellClosedRequested(null);
+										}
+									});
 								dialog.open();
 							}
 							break;
@@ -325,7 +331,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						forecast.addSelectionListener(new SelectionAdapter() {
 							@Override
 							public void widgetSelected(SelectionEvent evt) {
-								Program.launch("http://premiummarkets.elasticbeanstalk.com/");
+								Program.launch("http://"+siteUrl+"");
 							}
 						});
 					}
@@ -335,7 +341,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						doc.addSelectionListener(new SelectionAdapter() {
 							@Override
 							public void widgetSelected(SelectionEvent evt) {
-								Program.launch("http://premiummarkets.elasticbeanstalk.com/html/swtui.html");
+								Program.launch("http://"+siteUrl+"html/swtui.html");
 							}
 						});
 					}
@@ -351,7 +357,7 @@ public class MainGui extends SashForm implements RefreshableView {
 									pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
 									UserDialog dialog = new UserDialog(getShell(),"Premium Markets is an automated stock market analysis system.\n"+
 									"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
-									"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
+									"See the new Premium Markets FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
 									"\nPremium Markets\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
 									dialog.open();				
 									
@@ -451,7 +457,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	
 														@Override
 														public void action(Control targetControl) {
-															Program.launch("http://premiummarkets.elasticbeanstalk.com");
+															Program.launch("http://"+siteUrl);
 													}
 											});
 										  actionDialog.open();
@@ -691,7 +697,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 										@Override
 										public void action(Control targetControl) {
-											Program.launch("http://premiummarkets.elasticbeanstalk.com");
+											Program.launch("http://"+siteUrl);
 
 										}
 									});
@@ -785,7 +791,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 		try {
 			
-			MainPMScmd.getPrefs().put("mail.infoalert.activated", MainPMScmd.getPrefs().get("quotes.sendeventfromui", "false"));
+			MainPMScmd.getMyPrefs().put("mail.infoalert.activated", MainPMScmd.getMyPrefs().get("quotes.sendeventfromui", "false"));
 			
 			switch (args.length) {
 				case 1 :
@@ -897,7 +903,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			
 			//Post inits
 			//first time update
-			Integer hintNumber = new Integer(MainPMScmd.getPrefs().get("email.hint","0"));
+			Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
 			if (hintNumber == 0) {
 				LOGGER.info("First run : updating quotes");
 				QuotationUpdate quotationUpdate = new QuotationUpdate();
@@ -957,7 +963,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				"Double check that the installation has run successfully.\n" +
 				"Check your OS file system attributes and anti viruses as these may prevent the application to fully install.\n" +
 				"If you need to reinstall, it is recommended to install in a new folder fresh and free of any older version.\n" +
-				"Have a look at http://premiummarkets.elasticbeanstalk.com/html/swtui.html or http://sourceforge.net/projects/pmsqueak/ for support.";
+				"Type Premium markets FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
 		CustomDialog customDialog = new CustomDialog(frame, report, e.getMessage(), "Error Report", false);
 		customDialog.pack();
 		customDialog.setVisible(true);
@@ -1112,7 +1118,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			this.winTable[2].dispose();
 			this.getShell().dispose();
 			
-			Integer hintNumber = new Integer(MainPMScmd.getPrefs().get("email.hint","0"));
+			Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
 			this.emailHint(hintNumber);
 			
 			SpringContext.getSingleton().close();
@@ -1128,7 +1134,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		if (Desktop.isDesktopSupported() && hintNumber == 0) {
 			
 			desktop = Desktop.getDesktop();
-			String messageHead = "piggymarketsqueak@googlemail.com?SUBJECT=You have just been running Premium Markets UI from http://premiummarkets.elasticbeanstalk.com";
+			String messageHead = "piggymarketsqueak@gmail.com?SUBJECT=You have just been running Premium Markets UI from http://"+siteUrl;
 			String messageBody = "";
 			String release = "";
 
@@ -1147,7 +1153,7 @@ public class MainGui extends SashForm implements RefreshableView {
 							"It is also a work in progress that you and others can benefit from for free.\n"+
 							"Hence any suggestions or questions are welcome.\n" +
 							"Thank you for your time using Premium Markets.\n" +
-							"See the new Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the Forecast engine.\n\n\n"+
+							"See the new Premium Markets FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n"+
 							"Regards,\nGuillaume.\n\n\n\n" +
 							"Release reference : "+release+" ... "+hintNumber ; 
 
@@ -1161,7 +1167,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 
 
-			MainPMScmd.getPrefs().put("email.hint",(++hintNumber).toString());
+			MainPMScmd.getMyPrefs().put("email.hint",(++hintNumber).toString());
 
 		}   else {
 			LOGGER.info("Desktop mail support is "+Desktop.isDesktopSupported()+" for the "+hintNumber+" time.");

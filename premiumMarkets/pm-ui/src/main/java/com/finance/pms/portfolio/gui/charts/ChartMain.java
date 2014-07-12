@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.portfolio.gui.charts;
 
@@ -46,6 +46,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -208,7 +209,14 @@ public class ChartMain extends Chart {
 						try {
 							Date date = new Date((long) dataset.getXValue(series, item));
 							x = simpleDateFormat.format(date);
-							closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
+							SlidingPortfolioShare slPShare = portfolioShares.get(kf);
+							
+							try {
+								closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
+							} catch (Exception e) {
+								LOGGER.warn(e);
+								closeForDate = new QuotationUnit(slPShare.getStock(), slPShare.getTransactionCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER);
+							}
 
 							String variationAddInfo = "";
 							if (!stripedCloseFunction.lineToolTip().isEmpty()) {
@@ -216,18 +224,16 @@ public class ChartMain extends Chart {
 								variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
 							}
 
-							SlidingPortfolioShare slidingPortfolioShare = portfolioShares.get(kf);
 							String origin = 
 									(closeForDate.getOrigin().equals(ORIGIN.USER))?
-										ORIGIN.USER.name().toLowerCase():
-										slidingPortfolioShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
-							String trCurrency = slidingPortfolioShare.getTransactionCurrency().name();
-							String stockCurrency = slidingPortfolioShare.getStock().getMarketValuation().getCurrency().name();
+										ORIGIN.USER.name().toLowerCase():slPShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
+							String trCurrency = slPShare.getTransactionCurrency().name();
+							String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();
 							
 							String string = 
 								"<html>" + 
 								"<font size='2'>" + 
-								"<b>" + slidingPortfolioShare.getFriendlyName() + "</b> On the " + x + "<br>"+ 
+								"<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>"+ 
 								"</font>" +
 								"<table CELLSPACING=0 CELLPADDING=1>" +
 								"<tr><td><font size='2'>Open</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getOpen()) + "</font></td></tr>" + 
@@ -421,7 +427,7 @@ public class ChartMain extends Chart {
 						if (serieDef.isLabeled()) {
 							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-							String stopLossString = (!MainPMScmd.getPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
+							String stopLossString = (!MainPMScmd.getMyPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
 							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + stopLossString + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 							annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");

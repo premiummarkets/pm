@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.finance.pms.admin.config;
 
@@ -71,7 +71,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	}
 	
 	private static void initEndDate() {
-		String endDateStr = MainPMScmd.getPrefs().get("test.endDate",null);
+		String endDateStr = MainPMScmd.getMyPrefs().get("test.endDate",null);
 		if (endDateStr != null && !endDateStr.isEmpty()) {
 			try {
 				ENDDATE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endDateStr);
@@ -99,40 +99,40 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private Double supVolatility = 0d;
 	private Integer volatilityPeriod = 20;
 
-	private BigDecimal limitPriceAbove = new BigDecimal(MainPMScmd.getPrefs().get("event.stoploss", "0.04")).setScale(2);
-	private BigDecimal limitPriceBelow = new BigDecimal(MainPMScmd.getPrefs().get("event.maxloss", "0.05")).setScale(2);
-	private BigDecimal sellLimitToPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalert", "0.2")).setScale(2);
-	private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getPrefs().get("event.sellalertguard", "0.1")).setScale(2);
-	private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getPrefs().get("event.expectedrate", "0.05")).setScale(2);
+	private BigDecimal limitPriceAbove = new BigDecimal(MainPMScmd.getMyPrefs().get("event.stoploss", "0.04")).setScale(2);
+	private BigDecimal limitPriceBelow = new BigDecimal(MainPMScmd.getMyPrefs().get("event.maxloss", "0.05")).setScale(2);
+	private BigDecimal sellLimitToPrice = new BigDecimal(MainPMScmd.getMyPrefs().get("event.sellalert", "0.2")).setScale(2);
+	private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getMyPrefs().get("event.sellalertguard", "0.1")).setScale(2);
+	private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getMyPrefs().get("event.expectedrate", "0.05")).setScale(2);
 
-	private List<String> indicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));//Indicators used in pass one (as in db.properties)
+	private List<String> indicators = Arrays.asList(MainPMScmd.getMyPrefs().get("event.indicators", EventDefinition.getPMEventDefinitionsString()).split(","));//Indicators used in pass one (as in db.properties)
 	private SortedSet<EventInfo> indicatorSortedCache = null;
-	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));//Pass two indicators + Parent Parameterised event (as in db.properties)
+	private List<String> indepIndicators = Arrays.asList(MainPMScmd.getMyPrefs().get("event.indepIndicators", EventDefinition.getIndepEventDefinitionsString()).split(","));//Pass two indicators + Parent Parameterised event (as in db.properties)
 	private SortedSet<EventInfo> allTechIndicatorsSortedCache= null; //First and second pass indicators + Sub parameterised events
 	private SortedSet<EventInfo> allEventInfos = null; //First and second pass indicators + Sub parameterised events + alerts, screener events and 'constant' events.
 	private SortedSet<EventInfo> allParameterized = null;
 	private SortedSet<EventConditionHolder> filteredParameterised = null;
 
 	
-	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getPrefs().get("event.buytrigger", "3"));
-	private Integer sellEventTriggerThreshold = new Integer(MainPMScmd.getPrefs().get("event.selltrigger", "-1"));
-	private List<String> sellIndicators = Arrays.asList(MainPMScmd.getPrefs().get("event.sellindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
-	private List<String> buyIndicators =   Arrays.asList(MainPMScmd.getPrefs().get("event.buyindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
+	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getMyPrefs().get("event.buytrigger", "3"));
+	private Integer sellEventTriggerThreshold = new Integer(MainPMScmd.getMyPrefs().get("event.selltrigger", "-1"));
+	private List<String> sellIndicators = Arrays.asList(MainPMScmd.getMyPrefs().get("event.sellindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
+	private List<String> buyIndicators =   Arrays.asList(MainPMScmd.getMyPrefs().get("event.buyindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
 	
 	//TODO : different span and event thresholds for first and second pass ...
-	private Integer backwardDaySpan = new Integer(MainPMScmd.getPrefs().get("event.backwarddayspan", "40"));
+	private Integer backwardDaySpan = new Integer(MainPMScmd.getMyPrefs().get("event.backwarddayspan", "40"));
 	//private Integer secondPassbackwardDaySpan = new Integer(MainPMScmd.prefs.get("event.backwarddayspan", "45"));
 	
-	private String buyPonderationRule = MainPMScmd.getPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
-	private String sellPonderationRule = MainPMScmd.getPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
+	private String buyPonderationRule = MainPMScmd.getMyPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
+	private String sellPonderationRule = MainPMScmd.getMyPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
 	private String configListFileName = IndicatorCalculationServiceMain.UI_ANALYSIS;
 	
 	//Roc
-	private int rocNNeuralHouseTrendPeriod = new Integer(MainPMScmd.getPrefs().get("rocnneural.houseTrendPeriod", "21"));
-	private int rocNNeuralQuoteSmthPeriod = new Integer(MainPMScmd.getPrefs().get("rocnneural.quoteSmthPeriod", "1"));
+	private int rocNNeuralHouseTrendPeriod = new Integer(MainPMScmd.getMyPrefs().get("rocnneural.houseTrendPeriod", "21"));
+	private int rocNNeuralQuoteSmthPeriod = new Integer(MainPMScmd.getMyPrefs().get("rocnneural.quoteSmthPeriod", "1"));
 	
 	//Neural and Bar chart event occ span
-	private int perceptronTrainingPMEventOccLowerSpan = new Integer(MainPMScmd.getPrefs().get("perceptron.trainingPMEventOccLowerSpan", "12"));
+	private int perceptronTrainingPMEventOccLowerSpan = new Integer(MainPMScmd.getMyPrefs().get("perceptron.trainingPMEventOccLowerSpan", "12"));
 	
 	
 
@@ -232,7 +232,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 				allTechIndicatorsSortedCacheTmp.addAll(EventDefinition.loadFirstPassPrefEventDefinitions());
 
-				Integer maxPass = Integer.valueOf(MainPMScmd.getPrefs().get("event.nbPassMax", "1"));
+				Integer maxPass = Integer.valueOf(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 				if (maxPass > 1) {
 
 					List<EventInfo> indepIndicators = this.getIndepIndicators();

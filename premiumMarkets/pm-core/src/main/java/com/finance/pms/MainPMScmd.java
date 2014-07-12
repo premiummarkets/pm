@@ -1,31 +1,31 @@
 /**
  * Premium Markets is an automated stock market analysis system.
- * It implements a graphical environment for monitoring stock market technical analysis
- * major indicators, portfolio management and historical data charting.
- * In its advanced packaging, not provided under this license, it also includes :
+ * It implements a graphical environment for monitoring stock markets technical analysis
+ * major indicators, for portfolio management and historical data charting.
+ * In its advanced packaging -not provided under this license- it also includes :
  * Screening of financial web sites to pick up the best market shares, 
- * Price trend prediction based on stock market technical analysis and indexes rotation,
- * With in mind beating buy and hold, Back testing, 
- * Automated buy sell email notifications on trend change signals calculated over markets 
- * and user defined portfolios. See Premium Markets FORECAST web portal at 
- * http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo.
+ * Price trend prediction based on stock markets technical analysis and indices rotation,
+ * Back testing, Automated buy sell email notifications on trend signals calculated over
+ * markets and user defined portfolios. 
+ * With in mind beating the buy and hold strategy.
+ * Type 'Premium Markets FORECAST' in your favourite search engine for a free workable demo.
  * 
  * Copyright (C) 2008-2014 Guillaume Thoreton
  * 
  * This file is part of Premium Markets.
  * 
  * Premium Markets is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 // Jad home page: http://www.geocities.com/kpdus/jad.html
 // Decompiler options: packimports(3)
@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.prefs.Preferences;
@@ -54,7 +55,6 @@ import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.ProvidersInflation;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class MainPMScmd.
  * 
@@ -62,26 +62,14 @@ import com.finance.pms.datasources.web.ProvidersInflation;
  */
 public class MainPMScmd {	
 
-	protected static Logger LOGGER = Logger.getLogger(MainPMScmd.class);
-	
-	private static Preferences prefs = null;
+	static Logger LOGGER = Logger.getLogger(MainPMScmd.class);
+	private static MyPreference myPrefs = null;
 
 
-	/**
-	 * Instantiates a new main pm scmd.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public MainPMScmd() {
 	}
 
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static void main(String args[]) {
 
 		String dbProps = new String();
@@ -220,10 +208,7 @@ public class MainPMScmd {
 		SpringContext.getSingleton().close();
 	}
 
-	/**
-	 * @param args
-	 * @param runningStartDate 
-	 */
+
 	public static void commandParamsPrinter(String[] args, @SuppressWarnings("rawtypes") Class mainClazz, Date runningStartDate) {
 		StringBuffer str = new StringBuffer("Your command : java -jar com.finance.pm.jar "+mainClazz.getName()+" ");
 		for (int i = 0; i < args.length; i++) {
@@ -233,16 +218,213 @@ public class MainPMScmd {
 		LOGGER.warn("Started at "+runningStartDate);
 	}
 
-	public static Preferences getPrefs() {
-		if (prefs == null)  {
+	public static MyPreference getMyPrefs() {
+		if (myPrefs == null)  {
+			myPrefs = new MyPreference();
+		}
+		return myPrefs;
+	}
+	
+	static Preferences prefRoot() {
+		return Preferences.userRoot();
+	}
+	
+	public static class MyPreference {
+
+		private Preferences prefs;
+		private Boolean needsFlush;
+		private Properties sessionPrefs;
+
+		public MyPreference() {
 			try {
 				String prefdbpath = "com.finance.pms"+System.getProperty("installdir").replaceAll("/", ".");
-				prefs = Preferences.userRoot().node(prefdbpath);
+				prefs = prefRoot().node(prefdbpath);
 			} catch (Exception e) {
-				LOGGER.debug("prefs node name has been reduced to com.finance.pms because : "+e);
-				prefs = Preferences.userRoot().node("com.finance.pms");
+				LOGGER.warn("prefs node name has been reduced to com.finance.pms because : "+e);
+				try {
+					prefs = prefRoot().node("com.finance.pms");
+				} catch (Exception e1) {
+					LOGGER.error("Can't initialise prefs", e1);
+				}
+			}
+			
+			sessionPrefs = new Properties();
+			if (prefs != null) {
+				try {
+					for (String key : prefs.keys()) {
+						sessionPrefs.put(key, prefs.get(key, ""));
+					}
+					needsFlush = false;
+				} catch (Exception e) {
+					LOGGER.warn(e, e);
+				}
 			}
 		}
-		return prefs;
+
+		private Object get(String key, Object alt, PrefsGetter<? extends Object> pg) {
+			Object fromSessionPrefs = getFromSessionPrefs(key, alt);
+			if (fromSessionPrefs == null) {
+				Object fromBackingStore = fromBackingStore(key, alt, pg); 
+				if (fromBackingStore != null) {
+					return fromBackingStore;
+				} else {
+					return alt;
+				}
+			} else {
+				return fromSessionPrefs;
+			}
+		}
+
+		private Object fromBackingStore(String key, Object alt, PrefsGetter<? extends Object> pg) {
+			if (prefs != null) {
+				if (needsFlush ) {//This should never happen actually
+					flushy();
+				} 
+				return pg.get(key);
+			} else {
+				return alt;
+			}
+		}
+
+		private Object getFromSessionPrefs(String key, Object alt) {
+			Object object = sessionPrefs.get(key);
+			if (object != null && (alt == null || object.getClass().equals(alt.getClass())) ) {
+				return object;
+			} else {
+				return alt;
+			}
+		} 
+
+		private void put(String key, Object value, PrefsSetter<? extends Object> ps) {
+			if (prefs != null) {
+				ps.put(key);
+				needsFlush = true;
+			} 
+			sessionPrefs.put(key, value);
+		}
+
+		public void remove(String key) {
+			if (prefs != null) {
+				prefs.remove(key);
+				needsFlush = true;
+			} 
+			sessionPrefs.remove(key);
+		}
+
+		public Boolean flushy() {
+			if (prefs != null) {
+				try {
+					prefs.flush();
+					needsFlush = false;
+				} catch (Exception e) {
+					LOGGER.warn("Can't flush prefs", e);
+				}
+				return needsFlush;
+			}
+			return null;
+		}
+		
+
+		public String get(String key, String alt) {
+			return (String) get(key, alt, new PrefsGetter<String>(alt) {
+
+				@Override
+				String get(String key) {
+					return prefs.get(key, alt);
+				}
+				
+			});
+		}
+
+		public Double getDouble(String key, Double alt) {
+			return (Double) get(key, alt, new PrefsGetter<Double>(alt) {
+
+				@Override
+				Double get(String key) {
+					return prefs.getDouble(key, alt);
+				}
+				
+			});
+		}
+
+		public Boolean getBoolean(String key, Boolean alt) {
+			return (Boolean) get(key, alt, new PrefsGetter<Boolean>(alt) {
+
+				@Override
+				Boolean get(String key) {
+					return prefs.getBoolean(key, alt);
+				}
+				
+			});
+		}
+
+		public Integer getInt(String key, Integer alt) {
+			return (Integer) get(key, alt, new PrefsGetter<Integer>(alt) {
+
+				@Override
+				Integer get(String key) {
+					return prefs.getInt(key, alt);
+				}
+				
+			});
+		}
+		
+
+		public void put(String key, String alt) {
+			put(key, alt, new PrefsSetter<String>(alt) {
+
+				@Override
+				void put(String key) {
+					prefs.put(key, alt);	
+				}
+			});
+		}
+
+		public void putBoolean(String key, Boolean alt) {
+			put(key, alt, new PrefsSetter<Boolean>(alt) {
+
+				@Override
+				void put(String key) {
+					prefs.putBoolean(key, alt);	
+				}
+			});
+		}
+
+		public void putDouble(String key, Double alt) {
+			put(key, alt, new PrefsSetter<Double>(alt) {
+
+				@Override
+				void put(String key) {
+					prefs.putDouble(key, alt);	
+				}
+			});
+		}
+
+		public void putInt(String key, Integer alt) {
+			put(key, alt, new PrefsSetter<Integer>(alt) {
+
+				@Override
+				void put(String key) {
+					prefs.putInt(key, alt);	
+				}
+			});
+		}
+		
+		private abstract class PrefsGetter<T> {
+			T alt;
+			public PrefsGetter(T alt) {
+				this.alt = alt;
+			}
+			abstract T get(String key);
+		}
+		
+		private abstract class PrefsSetter<T> {
+			T alt;
+			public PrefsSetter(T alt) {
+				this.alt = alt;
+			}
+			abstract void put(String key);
+		}
+		
 	}
 }
