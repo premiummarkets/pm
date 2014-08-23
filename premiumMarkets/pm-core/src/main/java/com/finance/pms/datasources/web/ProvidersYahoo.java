@@ -129,28 +129,30 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 
     
 	@Override
-	public void retrieveAndCompleteStockInfo(Stock s, StockList stockList) {
+	public void retrieveAndCompleteStockInfo(Stock stock, StockList stockList) {
 
 		//No check available for Yahoo
-		if (!s.isFieldSet("isin") || !s.isFieldSet("symbol") || !s.isFieldSet("name")) {
-			LOGGER.warn("No completion check on symbol, isin, name is available for the Yahoo provider. Please provide the full info (symbol, isin, name) for each stock : "+s);
+		if (!stock.isFieldSet("isin") || !stock.isFieldSet("symbol") || !stock.isFieldSet("name")) {
+			LOGGER.warn("No completion check on symbol, isin, name is available for the Yahoo provider. Please provide the full info (symbol, isin, name) for each stock : "+stock);
+	
 		} else {
 			List<Validatable> listReq = new ArrayList<Validatable>();
 
-			if (!stockList.contains(s)) { // not already in base
+			if (!stockList.contains(stock)) { // not already in base
 				
 				//check for last former quotation
-				Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
-				s.setLastQuote(pastLastQuotationDate);
+				Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
+				stock.setLastQuote(pastLastQuotationDate);
 				
-				LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ pastLastQuotationDate);
+				LOGGER.info("New ticker : "+stock.toString()+" and will be added with last quote : "+ pastLastQuotationDate);
 				
-				listReq.add(s);
-				stockList.add(s);
+				listReq.add(stock);
+				stockList.add(stock);
 				
 			} else { // already in base : update name
-				stockList.get(stockList.indexOf(s)).setName(s.getName());
+				stockList.get(stockList.indexOf(stock)).setName(stock.getName());
 			}
+			
 			try {
 				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 			} catch (Exception e) {

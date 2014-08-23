@@ -1271,7 +1271,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					executor.shutdown();
 					
 					try {
-						boolean awaitTermination = executor.awaitTermination(10, TimeUnit.MINUTES);
+						boolean awaitTermination = executor.awaitTermination(20, TimeUnit.MINUTES);
 						if (!awaitTermination) {
 							List<Runnable> shutdownNow = executor.shutdownNow();
 							LOGGER.warn(shutdownNow, new Exception());

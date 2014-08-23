@@ -37,32 +37,54 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.SharesListId;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.ProvidersList;
+import com.finance.pms.portfolio.AbstractSharesList;
+import com.finance.pms.portfolio.PortfolioMgr;
+import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.portfolio.SharesList;
 
 
 //TODO Merge the rest of transaction and Portfolio Gnu parser commons.
 public class GnuCashParserHelper {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(GnuCashParserHelper.class);
+	
+	private Map<String, List<Stock>> matchingsCache;
+
+	public GnuCashParserHelper() {
+		super();
+		matchingsCache = new HashMap<String, List<Stock>>();
+	}
 
 	protected BigDecimal calculateBigDecimal(String textContent) throws ParseException {
 		try {
 			Number number = extractNumber(textContent);
 			return new BigDecimal(number.doubleValue()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
 		} catch (ParseException e) {
-//			GnuCashAdvPortfolioParser.LOGGER.error("can't format to BigD",e);
 			throw e;
 		}
 	}
 
 	protected Currency extractCurrency(String columnTxt) {
-		GnuCashAdvPortfolioParser.LOGGER.debug("Checking if :"+columnTxt+" contains $?");
+		LOGGER.debug("Checking if :"+columnTxt+" contains $?");
 		if (columnTxt.contains("$")) {
-			GnuCashAdvPortfolioParser.LOGGER.debug(columnTxt+" contains $!");
+			LOGGER.debug(columnTxt+" contains $!");
 			return Currency.USD;
 		}
-		GnuCashAdvPortfolioParser.LOGGER.debug("Checking if :"+columnTxt+" contains \u00A3?");
+		LOGGER.debug("Checking if :"+columnTxt+" contains \u00A3?");
 		if (columnTxt.contains("\u00A3")) {
-			GnuCashAdvPortfolioParser.LOGGER.debug(columnTxt+"contains \u00A3!");
+			LOGGER.debug(columnTxt+"contains \u00A3!");
 			return Currency.GBP;
 		}
 		return   Currency.valueOf(columnTxt.replace("\n","").trim().split("( |\n)")[0]);
@@ -112,4 +134,66 @@ public class GnuCashParserHelper {
 		br.close();
 		return outputWriter;
 	}
+	
+	protected Stock findMatchingStock(String symbol) {
+
+		List<Stock> matchingStocks = matchingsCache.get(symbol);
+		if (matchingStocks == null) {
+			matchingStocks = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(symbol);
+			matchingsCache.put(symbol, matchingStocks);
+		}
+		
+		Stock stock;
+		int size = matchingStocks.size();
+		switch(size) {
+			case 0 : {
+				LOGGER.warn("No stock for symbol or isin : "+symbol);
+				return null;
+			} 
+			case 1 :  {
+				stock = matchingStocks.get(0);
+				break;
+			} 
+			default : {// > 1
+				LOGGER.warn("Multiple stocks for symbol or isin : "+symbol+" in matchings "+matchingStocks);
+				stock = discriminateMatchingStocks(matchingStocks);
+				break;
+			}
+		}
+
+		if (stock == null) {
+			LOGGER.warn("Although No valid match for symbol or isin : "+symbol+" in matchings "+matchingStocks);
+		} else {
+			matchingsCache.put(symbol, Arrays.asList(new Stock[]{stock}));
+		}
+		return stock;
+		
+	}
+
+	private Stock discriminateMatchingStocks(List<Stock> matchingStocks) {
+		
+			for (Stock stock : matchingStocks) {
+				List<PortfolioShare> portfolioShareInShareList = PortfolioMgr.getInstance().getPortfolioDAO().loadPortfolioShareForStock(stock);
+				for (PortfolioShare portfolioShare : portfolioShareInShareList) {
+					AbstractSharesList portfolio = portfolioShare.getPortfolio();
+					if (portfolio instanceof SharesList) {
+						ProvidersList provider;
+						if (portfolio.getName().equals(SharesListId.UNKNOWN.name())) {//TODO infer stock list from extension?
+							provider =  (ProvidersList) Providers.getInstance(SharesListId.YAHOOINDICES.name());
+						} else {
+							provider = (ProvidersList) Providers.setupProvider(portfolio.getName());
+						}
+						Stock supplementedStock = provider.supplement(stock);
+						if (stock.equals(supplementedStock)) {
+							LOGGER.warn("Best match : "+stock+" for "+matchingStocks);
+							return stock;
+						}
+					}
+				}
+			}
+			LOGGER.warn("No match for "+matchingStocks);
+			return null;
+			
+	}
+	
 }

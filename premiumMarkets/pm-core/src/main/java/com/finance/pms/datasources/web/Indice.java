@@ -60,15 +60,6 @@ public class Indice implements Comparable<Indice> {
 		}
 		return extention;
 	}
-
-//	public static String formatName(Set<Indice> indices) {
-//		String txt = "";
-//		for (Indice indice : indices) {
-//			txt = txt+indice.toString();
-//		}
-//		return txt;
-//	}
-	
 	
 	public static Set<Indice> parseString(String yahooIndices) {
 		Set<Indice> listIndice = new TreeSet<Indice>();
@@ -83,11 +74,7 @@ public class Indice implements Comparable<Indice> {
 		}
 		return listIndice;
 	}
-	
-	/**
-	 * @param providersYahooIndex
-	 * @param indices
-	 */
+
 	public static void addIndicesToProvider(Providers providersYahooIndex, String... indices) {
 		for (int i=0; i < indices.length; i= i+2) {
 			providersYahooIndex.addIndice(new Indice(indices[i],indices[i+1]));

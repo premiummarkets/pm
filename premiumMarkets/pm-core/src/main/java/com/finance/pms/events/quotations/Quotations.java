@@ -223,7 +223,7 @@ public class Quotations {
 			}
 		}
 		if (change < -valideSpliMax) 
-			LOGGER.error("Invalid split for "+this.stock.getFriendlyName()+". Check your data.");
+			LOGGER.warn("Invalid split for "+this.stock.getFriendlyName()+". Check your data.");
 		
 	}
 

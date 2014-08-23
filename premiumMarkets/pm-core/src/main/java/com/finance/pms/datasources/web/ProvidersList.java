@@ -124,9 +124,9 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	@Override
 	public void retrieveAndCompleteStockInfo(Stock stock, StockList stockList) {
 		
-		//No check available by default
 		if (!stock.isFieldSet("isin") || !stock.isFieldSet("symbol") || !stock.isFieldSet("name")) {
 			stock.resetStock(supplement(stock));
+			
 		} else {
 			List<Validatable> listReq = new ArrayList<Validatable>();
 			if (!stockList.contains(stock)) { // not already in base	
@@ -144,12 +144,12 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				stockList.get(stockList.indexOf(stock)).setName(stock.getName());
 			}
 			try {
-				
 				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(listReq);
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
 		}
+		
 	}
 
 
@@ -342,18 +342,13 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		return new StockList(existingSharesList.toStocksSet());
 	}
 
-
-	/**
-	 * @param stockWeb
-	 * @return
-	 */
 	private boolean supplementRequiered(final Stock stockWeb) {
 		return 
 			!stockWeb.isFieldSet("isin")|| !stockWeb.isFieldSet("symbol") || !stockWeb.isFieldSet("name") || !stockWeb.isFieldSet("sectorHint") || stockWeb.getSymbol().equals(stockWeb.getIsin());
 	}
 
 
-	protected abstract Stock supplement(Stock stock);
+	public abstract Stock supplement(Stock stock);
 	
 	protected abstract Comparator<Stock> getNewStockComparator();
 

@@ -93,7 +93,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 						isDataSetComplete = false;
 						failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
 						symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
-					} catch (Exception e) {
+					} catch (Throwable e) {
 						isDataSetComplete = false;
 						failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
 						symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
@@ -127,7 +127,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 		secondPassWantedCalculations = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepIndicators();
 	}
 	
-	private EventCompostionCalculator instanciateECC(EventInfo eventInfo, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Exception {
+	private EventCompostionCalculator instanciateECC(EventInfo eventInfo, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Throwable {
 		
 		try {
 			
@@ -141,14 +141,20 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 				} else {
 					LOGGER.warn("Failed calculation : " + warnMessage(eventInfo.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
 				}
+				if (e.getCause() != null) throw e.getCause();
 			} else if (e.getCause() instanceof ErrorException) {
-				LOGGER.error(stock+ " second pass calculation error ",e);
+				LOGGER.error(stock + " second pass calculation error ", e);
+				if (e.getCause() != null) throw e.getCause();
 			} else {
-				LOGGER.error(String.format("%s second pass calculation unhandled error. Params : %s, %s, %s, %s, %s, %s ", stock, eventInfo, startDate, endDate, calculationCurrency, eventListName, persistTrainingEvents), e);
+				LOGGER.error(
+						String.format("%s second pass calculation un handled error.\n"
+						+ "Parameters :\n"
+						+ "event def = %s, start date = %s, end date = %s, calc currency = %s, event list name = '%s', is training persisted = %s ", stock, eventInfo, startDate, endDate, calculationCurrency, eventListName, persistTrainingEvents), e);
+				if (e.getCause() != null) throw e.getCause();
 			}
-			throw e;
+			if (e.getCause() != null) throw e.getCause(); else throw e;
 		} catch (Exception e) {
-			LOGGER.error(stock+ " second pass calculation error ",e);
+			LOGGER.error(stock+ " second pass calculation error ", e);
 			throw e;
 		}
 	}

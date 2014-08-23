@@ -39,11 +39,10 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum MarketListProviders.
  * Defines a market list providers
- * Links each market place with on to many web stock provider 
+ * Links each market place with one to many web stock provider 
  * 
  * @author Guillaume Thoreton
  */
@@ -100,13 +99,12 @@ public enum SharesListId {
 		this.options = options;
 	}
 
-	public static SharesListId valueOfCmd(String st) {
+	public static SharesListId valueOfCmd(String cmdString) {
 		SharesListId eValues[] = SharesListId.values();
 		for (int i=0; i < eValues.length; i++) {
-			if (eValues[i].sharesListCmdParam.equals(st)) return eValues[i];
+			if (eValues[i].sharesListCmdParam.equals(cmdString)) return eValues[i];
 		}
-		throw new IllegalArgumentException(
-				"No enum const MarketListProviders." + st);
+		throw new IllegalArgumentException("No enum const MarketListProviders." + cmdString);
 	}
 
 	public static boolean checkProvider(String prov) {

@@ -108,7 +108,7 @@ public class ProvidersNSEIndices extends ProvidersList {
 
 
 	@Override
-	protected Stock supplement(Stock stock) {
+	public Stock supplement(Stock stock) {
 
 		List<? extends Validatable> ltmp = new ArrayList<Validatable>();
 		

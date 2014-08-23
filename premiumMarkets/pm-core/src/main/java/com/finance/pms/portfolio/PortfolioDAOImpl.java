@@ -66,7 +66,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock) {
 	
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(PortfolioShare.class);
-		detachedCriteria.add(Restrictions.eq("stock",stock));
+		detachedCriteria.add(Restrictions.eq("stock", stock));
 		
 		return this.getHibernateTemplate().findByCriteria(detachedCriteria);
 		
@@ -208,15 +208,6 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	
 	public void close() {
 		if (unknownShareListCache != null) saveOrUpdatePortfolio(unknownShareListCache);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public List<PortfolioShare> loadPortfolioSharesFor(Stock stock) {
-		Criteria crit = getSession().createCriteria(PortfolioShare.class);
-		crit.add(Restrictions.eq("stock", stock));
-		return crit.list();
-
 	}
 
 	@Override

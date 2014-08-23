@@ -91,21 +91,6 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		return list;
 	}
 	
-	
-	@Transactional(readOnly=true)
-	public Stock loadStockByIsin(final String isin) {
-
-		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
-			
-			public Stock doInHibernate(Session session) throws HibernateException, SQLException {
-				Criteria criteria = session.createCriteria(Stock.class);
-				criteria.add(Restrictions.eq("isin", isin));
-				return (Stock)criteria.uniqueResult();
-			}
-
-		});	
-	}
-	
 	@Transactional(readOnly=true)
 	public List<Stock> loadAllStocks() {
 		return this.getHibernateTemplate().loadAll(Stock.class);
@@ -147,15 +132,28 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 
 	@Transactional(readOnly=true)
-	public Stock loadStockByIsinOrSymbol(final String ref) {
-		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
+	public List<Stock> loadStockByIsinOrSymbol(final String ref) {
+		
+		return this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
 			
-			public Stock doInHibernate(Session session) throws HibernateException, SQLException {
+			@SuppressWarnings("unchecked")
+			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
+				
 				String[] refSplit = ref.split("\\.");
 				String symbolRoot = (refSplit.length == 0)?ref:refSplit[0]+".%";
-				Criteria criteria = session.createCriteria(Stock.class);
-				criteria.add(Restrictions.or(Restrictions.eq("isin", ref),Restrictions.or(Restrictions.eq("symbol", ref), Restrictions.like("symbol", symbolRoot))));
-				return (Stock) criteria.uniqueResult();
+				
+				Criteria exactCriteria = session.createCriteria(Stock.class);
+				exactCriteria.add(Restrictions.eq("symbol", ref));
+				List<Stock> stocks = exactCriteria.list();
+				
+				if (stocks.isEmpty()) {
+					Criteria sndChanceCriteria = session.createCriteria(Stock.class);
+					sndChanceCriteria.add(Restrictions.or(Restrictions.like("symbol", symbolRoot), Restrictions.eq("isin", ref)));
+					stocks = sndChanceCriteria.list();
+				}
+				
+				return stocks;
+				
 			}
 
 		});

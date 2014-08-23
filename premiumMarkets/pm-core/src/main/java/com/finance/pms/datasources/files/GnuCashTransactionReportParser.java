@@ -45,6 +45,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.SortedSet;
 
 import javax.xml.xpath.XPath;
@@ -234,14 +235,8 @@ public class GnuCashTransactionReportParser {
 				return null;
 			}
 			
-			Stock stock = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(symbol);
-			if (stock == null) {
-				//throw new InvalidAlgorithmParameterException("No stock for symbol or isin : "+symbol+ ". In account "+gnucashAccount+" at "+date+" using "+transactionCurrency);
-				LOGGER.warn("No stock for symbol or isin : "+symbol+ ". In account "+gnucashAccount+" at "+date+" using "+transactionCurrency);
-				return null;
-			}
-		
-			return new TransactionElement(stock, null, gnucashAccount, date, price, quantity, transactionCurrency);
+			Stock stock = gnuCashParserHelper.findMatchingStock(symbol);
+			if (stock != null) return new TransactionElement(stock, null, gnucashAccount, date, price, quantity, transactionCurrency);
 			
 		} catch (Exception e) { //Error
 			LOGGER.error("Unparsable line :"+row.getTextContent()+" with error : "+e);

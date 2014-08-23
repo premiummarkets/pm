@@ -76,7 +76,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		this.indices = new TreeSet<Indice>();
 	}
 
-	public ProvidersYahooIndices(String pathToProps,List<Indice> indices) {
+	public ProvidersYahooIndices(String pathToProps, List<Indice> indices) {
 		this(pathToProps);
 		this.indices = new TreeSet<Indice>(indices);
 	}
@@ -101,7 +101,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	}
 
 	@Override
-	protected Stock supplement(Stock stock) {
+	public Stock supplement(Stock stock) {
 		
 		try {
 			
@@ -158,6 +158,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		
 		LOGGER.guiInfo("Updating stock list : "+stock.getSymbol());
 		return stock;
+		
 	}
 	
 	@Override

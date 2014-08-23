@@ -339,10 +339,10 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 	@Override
 	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
 		LOGGER.info("From Command Line : ");
-		// init des stocks command
+
 		StockList cmdStockList = new StockList(
-				new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(quotationsProvider),SymbolNameResolver.UNKNOWNEXTENSIONCLUE), listStocks);
-		LOGGER.guiInfo("Number of stocks retreived from commande line : "+cmdStockList.size());
+				new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(quotationsProvider), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), listStocks);
+		LOGGER.guiInfo("Number of stocks retrieved from command line : "+cmdStockList.size());
 		
 		//Merge
 		for (Stock stock : cmdStockList) {

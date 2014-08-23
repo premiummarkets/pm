@@ -41,7 +41,6 @@ import java.io.StringWriter;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,22 +62,10 @@ import org.xml.sax.InputSource;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Market;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockCategories;
-import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
-import com.finance.pms.datasources.shares.SymbolNameResolver;
-import com.finance.pms.datasources.shares.TradingMode;
-import com.finance.pms.datasources.web.MyUrl;
-import com.finance.pms.datasources.web.Providers;
-import com.finance.pms.datasources.web.QuotationProvider;
 import com.finance.pms.datasources.web.currency.CurrencyConverter;
-import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -109,7 +96,7 @@ public class GnuCashAdvPortfolioParser {
 	private static final int SYMBOL_COLUMN = 1;
 	private static final int ACCOUNT_COLUMN = 0;
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(GnuCashAdvPortfolioParser.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(GnuCashAdvPortfolioParser.class);
 	
 
 	private Map<String, Integer> titlesPositions = new HashMap<String, Integer>();
@@ -334,7 +321,7 @@ public class GnuCashAdvPortfolioParser {
 		for (TransactionElement transactionElement : transactionsForStock) {
 			portfolio.rawAddTransaction(transactionElement);
 		}
-		return portfolio.addOrUpdateShareWithoutTransaction(stock, account, MonitorLevel.BEARISH, portfolioReportCurrency, EventSignalConfig.getNewDate());
+		return portfolio.addOrUpdateShareWithoutTransaction(stock, account, portfolioReportCurrency, EventSignalConfig.getNewDate());
 		
 	}
 
@@ -342,71 +329,69 @@ public class GnuCashAdvPortfolioParser {
 	private Stock getStockFor(String ref, String name) {
 		
 		try {
-			Stock stock;
-			if ((stock = shareDAO.loadStockByIsinOrSymbol(ref)) != null ) {
-				return  stock;
-			}
+			Stock matchingStock = gnuCashParserHelper.findMatchingStock(ref);
+			if (matchingStock != null) return matchingStock;
 		} catch (DataAccessException e) {
-			LOGGER.error("Inconsistencies in DB for "+ref, e);
+			LOGGER.error("Inconsistencies in database for "+ref, e);
 		}
 		
-		LOGGER.info("The following stock was not found in db. Symbol or reference : "+ref+", name : "+name);
+		LOGGER.info("The following stock was not found in the database. Reference : "+ref+", name : "+name);
 		
-		String urls = "No quotation found in database for "+name+"/"+ref+".\n";
-		if (ref.startsWith("QS")) {
-			urls = urls + ref +" is a temporary code.\n";
-		} else {
-			urls = urls + "Possible feeds :\n";
-			for (MarketQuotationProviders quotationsProvider : MarketQuotationProviders.values()) {
-	
-				try {
-					String cmdParam = quotationsProvider.getCmdParam();
-					Providers providerInstance = Providers.getInstance(cmdParam);
-					MyUrl url = null;
-					String feed = "%s,%s,%s,TRACKERS,%s,%s\n";
-					String urlMsg = "Url : %s\n";
-					if (providerInstance instanceof QuotationProvider) {
-						try {
-							for (Market market : Market.values()) {
-								
-								Stock stock = new Stock(ref, ref, name, true, 
-										StockCategories.DEFAULT_CATEGORY, 
-										new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(cmdParam), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
-										new MarketValuation(market), 
-										"",TradingMode.CONTINUOUS,0l);
-								
-								Date end = EventSignalConfig.getNewDate();
-								Date fiveCalDaysBeforeEnd = new Date(end.getTime()-60*60*1000*24*5);
-								url = ((QuotationProvider) providerInstance).resolveUrlFor(stock, fiveCalDaysBeforeEnd, end);
-							
-								if (url != null) {
-									List<Validatable> pageRes = null;
-									try {
-										pageRes = ((QuotationProvider) providerInstance).readPage(stock, url, fiveCalDaysBeforeEnd);
-									} catch (Exception e) {
-										LOGGER.info("Trying "+url.getUrl()+"\n\t gives : "+e);
-									}
-									if (pageRes != null && !pageRes.isEmpty()) {
-										urls = urls + String.format(feed, ref,ref,name, market.name(), cmdParam);
-										urls = urls + String.format(urlMsg, url.getUrl());	
-									}
-								}
-								
-							}
-							
-						} catch (Exception e1) {
-							LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
-						}
-	
-					}
-				} catch (Exception e) {
-					LOGGER.error(e);
-				}
-			}
-		}
+		String urls = "No stock found in the database for "+name+"/"+ref+".\n";
+//		
+//		if (ref.startsWith("QS")) {
+//			urls = urls + ref +" is a temporary code.\n";
+//		} else {
+//			urls = urls + "Possible feeds :\n";
+//			for (MarketQuotationProviders quotationsProvider : MarketQuotationProviders.values()) {
+//	
+//				try {
+//					String cmdParam = quotationsProvider.getCmdParam();
+//					Providers providerInstance = Providers.getInstance(cmdParam);
+//					MyUrl url = null;
+//					String feed = "%s,%s,%s,TRACKERS,%s,%s\n";
+//					String urlMsg = "Url : %s\n";
+//					if (providerInstance instanceof QuotationProvider) {
+//						try {
+//							for (Market market : Market.values()) {
+//								
+//								Stock stock = new Stock(ref, ref, name, true, 
+//										StockCategories.DEFAULT_CATEGORY, 
+//										new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(cmdParam), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
+//										new MarketValuation(market), 
+//										"",TradingMode.CONTINUOUS,0l);
+//								
+//								Date end = EventSignalConfig.getNewDate();
+//								Date fiveCalDaysBeforeEnd = new Date(end.getTime()-60*60*1000*24*5);
+//								url = ((QuotationProvider) providerInstance).resolveUrlFor(stock, fiveCalDaysBeforeEnd, end);
+//							
+//								if (url != null) {
+//									List<Validatable> pageRes = null;
+//									try {
+//										pageRes = ((QuotationProvider) providerInstance).readPage(stock, url, fiveCalDaysBeforeEnd);
+//									} catch (Exception e) {
+//										LOGGER.info("Trying "+url.getUrl()+"\n\t gives : "+e);
+//									}
+//									if (pageRes != null && !pageRes.isEmpty()) {
+//										urls = urls + String.format(feed, ref,ref,name, market.name(), cmdParam);
+//										urls = urls + String.format(urlMsg, url.getUrl());	
+//									}
+//								}
+//								
+//							}
+//							
+//						} catch (Exception e1) {
+//							LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
+//						}
+//	
+//					}
+//				} catch (Exception e) {
+//					LOGGER.error(e);
+//				}
+//			}
+//		}
 
-		throw new NoResultException(urls); 
-		
+		throw new NoResultException(urls);
 		
 	}
 

@@ -47,8 +47,7 @@ public interface ShareDAO {
 	public List<Stock> loadShares(ShareFilter shareFilter);
 	
 	public Stock loadStockBy(String symbol, String isin);
-	public Stock loadStockByIsin(String isin);
-	public Stock loadStockByIsinOrSymbol(String ref);
+	public List<Stock> loadStockByIsinOrSymbol(String ref);
 
 	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> listTrends);
 	public ScreeningSupplementedStock loadTrendForStock(Stock stock);

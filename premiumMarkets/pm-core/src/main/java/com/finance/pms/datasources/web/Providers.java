@@ -147,7 +147,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 
     public abstract String getStockRefName(Stock stock);
 
-    public abstract void retrieveAndCompleteStockInfo(Stock s, StockList stockList);
+    public abstract void retrieveAndCompleteStockInfo(Stock stock, StockList stockList);
     
     public abstract void retrieveScreeningInfo(Collection<Stock> shareListInDB);
 
@@ -177,8 +177,8 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	}
 
 	public StockList retreiveStockListFromFile(String pathToList, StockList stockList) throws InputMismatchException {
+		
 		LOGGER.debug("From File : ");
-		//init des stocks fichier
 		StockList fileStockList = new StockList(pathToList);
 		
 		for (Stock stock : fileStockList) {

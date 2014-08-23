@@ -302,8 +302,8 @@ public class Stock extends Validatable {
 		return str;
 	}
 
-	public void retrieveStock(StockList stockList,String shareListName) {
-		Providers.getInstance(shareListName).retrieveAndCompleteStockInfo(this,stockList);
+	public void retrieveStock(StockList stockList, String shareListName) {
+		Providers.getInstance(shareListName).retrieveAndCompleteStockInfo(this, stockList);
 	}
 
     @Deprecated

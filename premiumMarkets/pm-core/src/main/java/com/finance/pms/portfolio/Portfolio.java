@@ -135,6 +135,7 @@ public class Portfolio extends AbstractSharesList {
 		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {
 			shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
 		}
+		portfolioShare.addBuyAlerts(buyPrice, currentDate);
 		
 		return portfolioShare;
 
@@ -150,7 +151,7 @@ public class Portfolio extends AbstractSharesList {
 		TransactionElement transactionElement = recipientPS.createTransactionElement(transaction);
 		this.transactions.add(transactionElement);
 		
-		if (recipientPS.getQuantity(buyDate).compareTo(BigDecimal.ZERO) > 0) recipientPS.addBuyAlerts(lastQuotation, buyDate);
+		//if (recipientPS.getQuantity(buyDate).compareTo(BigDecimal.ZERO) > 0) recipientPS.addBuyAlerts(lastQuotation, buyDate);
 	}
 
 	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
@@ -179,10 +180,10 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 
-	public PortfolioShare addOrUpdateShareWithoutTransaction(Stock stock, String account, MonitorLevel monitorLevel, Currency transactionCurrency, Date currentDate) 
+	public PortfolioShare addOrUpdateShareWithoutTransaction(Stock stock, String account, Currency transactionCurrency, Date currentDate) 
 			throws InvalidAlgorithmParameterException {
 		
-		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, monitorLevel, transactionCurrency);
+		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, MonitorLevel.BEARISH, transactionCurrency);
 		portfolioShare.addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account); 
 
@@ -191,7 +192,7 @@ public class Portfolio extends AbstractSharesList {
 
 	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
 		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
-
+		portfolioShare.addBuyAlerts(trPrice, currentDate);
 	}
 
 	@Lob
@@ -256,6 +257,7 @@ public class Portfolio extends AbstractSharesList {
 			portfolioShare = new PortfolioShare(this, stock, mLevel, transactionCurrency);
 			addShareToList(portfolioShare);
 		}
+		
 		return portfolioShare;
 		
 	}

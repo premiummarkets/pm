@@ -58,7 +58,7 @@ public class ProvidersASXMarket extends ProvidersMarket {
 	}
 
 	@Override
-	protected Stock supplement(Stock stock) {
+	public Stock supplement(Stock stock) {
 		return stock;
 	}
 

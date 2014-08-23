@@ -79,7 +79,7 @@ public class WeatherScrapper implements MyBeanFactoryAware {
 				try {
 					String url = httpSource.getMonthHistory(date); 
 					LOGGER.info("Weather Url : "+url);
-					weathers.addAll(httpSource.readURL(new WeatherFormater(url,date)));
+					weathers.addAll(httpSource.readURL(new WeatherFormater(url, date)));
 				} catch (HttpException e) {
 					LOGGER.error("",e);
 				} finally {

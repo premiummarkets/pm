@@ -387,8 +387,19 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			addWeightedZeroProfitAlertGuardSetter(avgCostPerUnit, currentDate);
 			addChannelAlerts(transcationPrice);
 
+		} else {
+			
+			removeAllAlertsOnThreshold();
+			
 		}
 		
+	}
+
+	private void removeAllAlertsOnThreshold() {
+		Set<AlertOnThreshold> alertsOnThresholdCp = new HashSet<AlertOnThreshold>(this.getAlertsOnThreshold());
+		for (AlertOnThreshold alertOnThreshold : alertsOnThresholdCp) {
+			removeAlertOnThreshold(alertOnThreshold);
+		}
 	}
 
 	private void addBuyPriceAlerts(BigDecimal currentPrice, Date currentDate) {

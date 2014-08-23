@@ -82,8 +82,7 @@ public class MyLogger {
 	
 	
 	private static TreeSet<Integer> hashesSet = new TreeSet<Integer>();
-//	private static File hashCodesFile = new File("hashes.txt");
-	
+
 	private static Session session;
 	private static Semaphore semaphore;
 	

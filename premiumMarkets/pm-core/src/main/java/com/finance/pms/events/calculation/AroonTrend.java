@@ -170,7 +170,11 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
-		this.aroon.calculateIndicator(quotations);
+		try {
+			this.aroon.calculateIndicator(quotations);
+		} catch (Exception e) {
+			throw new TalibException(e.toString(), e);
+		}
 	}
 
 	@Override

@@ -55,7 +55,7 @@ import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class ProvidersListStaticList extends ProvidersList {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahooIndices.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersListStaticList.class);
 	
 	private Set<Indice> indices;
 	
@@ -73,7 +73,7 @@ public class ProvidersListStaticList extends ProvidersList {
 
 	//TODO this should come in a delegate as it used in several providers eg ProvidersYahooIndices
 	@Override
-	protected Stock supplement(Stock stock) {
+	public Stock supplement(Stock stock) {
 	try {
 			
 			//isin && name

@@ -89,10 +89,24 @@ public class Install {
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
-					System.out.println("Connection check.");
-					Class<?> connectionCheker = Class.forName("com.finance.pm.ApacheConnectionChecker", false, this.getClass().getClassLoader());
-					Method method = connectionCheker.getMethod("checkBlindConnection", null);
-					method.invoke(null, null);
+					
+		        	String siteUrl = "none.com";
+					try {
+						Properties pbuild = new Properties();
+						pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
+						siteUrl = pbuild.getProperty("site.url");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					System.out.println("Connection check : "+siteUrl);
+					
+					if (!siteUrl.equals("none.com")) {
+						Class<?> connectionCheker = Class.forName("com.finance.pm.ApacheConnectionChecker", false, this.getClass().getClassLoader());
+						Method method = connectionCheker.getMethod("checkBlindConnection", String.class);
+						method.invoke(null, siteUrl);
+					}
+					
 				} catch (Throwable e) {
 					System.out.println("No Connection check available.");
 				} finally {

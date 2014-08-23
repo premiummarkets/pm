@@ -56,28 +56,12 @@ public enum ProvidersTypes {
 	private String className;
 	
 	
-	/**
-	 * Instantiates a new providers types.
-	 * 
-	 * @param cmdParam the cmd param
-	 * @param className the class name
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private ProvidersTypes(String cmdParam, String className) {
 		this.className = className;
 	}
 	
-
-	/**
- * Gets the class name.
- * 
- * @return the class name
- */
 	public String getClassName() {
 		return className;
 	}
-	
-	
 
 }

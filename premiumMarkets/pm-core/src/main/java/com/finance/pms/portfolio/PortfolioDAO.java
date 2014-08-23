@@ -39,45 +39,30 @@ import com.finance.pms.datasources.shares.Stock;
 
 
 public interface PortfolioDAO {
-
-	//User portfolio
-	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock);
 	
+	//All portfolios
 	public void saveOrUpdatePortfolio(AbstractSharesList portfolio);
-	
+
+	//User portfolio	
 	public List<Portfolio> loadVisiblePortfolios();
-	
 	public List<String> loadUserPortfolioNames();
-	
-	public void saveOrUpdatePortfolioShare(PortfolioShare portfolioShare);
-	
+
 	//Share lists
 	public void delete(AbstractSharesList portfolio);
-
 	public SharesList loadShareList(String listName);
-
 	public List<String> loadShareListNames();
-	
 	public List<String> loadShareListNames(String[] include, String[] exclude);
-	
-	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
 	//Transaction reports
 	public void saveOrUpdateTransactionReports(ArrayList<TransactionElement> reportElements);
-
 	public SortedSet<TransactionElement> loadOrphanTransactionReportFor(Stock stock, String account, Date date);
-
 	public void deleteALLTransactionReports();
-	
 	public void deleteOrphanTransactionReportsFor(String externalAccount);
 	
 	//PortfolioShare
+	public void saveOrUpdatePortfolioShare(PortfolioShare portfolioShare);
 	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
+	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock);
+	public void deletePortfolioShare(PortfolioShare portfolioShare);
 	
-	public List<PortfolioShare> loadPortfolioSharesFor(Stock stock);
-
-	
-	
-
-
 }

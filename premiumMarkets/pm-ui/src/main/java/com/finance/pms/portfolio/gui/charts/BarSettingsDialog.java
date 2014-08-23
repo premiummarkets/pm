@@ -29,8 +29,6 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
-import java.util.prefs.BackingStoreException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
