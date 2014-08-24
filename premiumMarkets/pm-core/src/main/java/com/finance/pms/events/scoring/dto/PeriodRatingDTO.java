@@ -30,7 +30,6 @@
 package com.finance.pms.events.scoring.dto;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -43,28 +42,42 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	
 	Date from;
 	Date to;
-	Double priceChange;
+	Double priceAtFrom;
+	Double priceAtTo;
 	
 	String trend;
 	Validity rating;
 	List<String> configs;
 	
 	boolean realised;
-	
+
 	public PeriodRatingDTO() {
 		super();
-		configs = new ArrayList<String>();
+		this.configs = new ArrayList<String>();
 		this.realised = false;
 	}
 
-	public PeriodRatingDTO(Date from, Date to, Validity rating, Double priceChange, String trend) {
+	public PeriodRatingDTO(Date from, Double priceAtFrom, String trend) {
+		
 		this.configs = new ArrayList<String>();
+		this.realised = false;
+		
 		this.from = from;
-		this.to = to;
-		this.rating = rating;
-		this.priceChange = priceChange;
+		this.priceAtFrom = priceAtFrom;
 		this.trend = trend;
-		this.realised = true;
+		
+	}
+	
+	public PeriodRatingDTO(Date from, Double priceAtFrom, Validity validity, String trend) {
+
+		this.configs = new ArrayList<String>();
+		this.realised = false;
+
+		this.from = from;
+		this.priceAtFrom = priceAtFrom;
+		this.rating = validity;
+		this.trend = trend;
+
 	}
 
 
@@ -86,13 +99,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	public void setTrend(String trend) {
 		this.trend = trend;
 	}
-	public Double getPriceChange() {
-		return priceChange;
-	}
-	public void setPriceChange(BigDecimal priceChange) {
-		this.priceChange = priceChange.doubleValue();
-	}
-	
+
 	public List<String> getConfigs() {
 		return configs;
 	}
@@ -101,7 +108,8 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	}
 	
 	public Long getPeriodLenght() {
-		return  (to.getTime() - from.getTime())/(1000*60*60*24);
+		int OneDayMilliSeconds = 1000*60*60*24;
+		return  (to.getTime() - from.getTime())/OneDayMilliSeconds;
 	}
 
 	public void addConfig(String cfg) {
@@ -162,8 +170,31 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 
 	@Override
 	public String toString() {
-		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceChange=" + priceChange + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
+		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom+ ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
+	}
+
+	public Double getPriceAtFrom() {
+		return priceAtFrom;
+	}
+
+	public Double getPriceAtTo() {
+		return priceAtTo;
+	}
+
+	public void setPriceAtTo(Double priceAtTo) {
+		this.priceAtTo = priceAtTo;
 	}
 	
+	private Double getPriceChange() {
+		return priceAtTo - priceAtFrom;
+	}
 	
+	public Double getPriceRateOfChange() {
+		try {
+			return getPriceChange()/priceAtFrom;
+		} catch (Exception e) {
+			return Double.NaN;
+		}
+	}
+
 }
