@@ -72,7 +72,7 @@ public class TuningResDTO implements Serializable {
 	
 	}
 
-	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, String lastTrend, BigDecimal followProfit, BigDecimal stopLossProfit, BigDecimal stockPriceChange, Date calculatedStart, Date calculatedEnd) {
+	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, String lastTrend, Double followProfit, Double stopLossProfit, BigDecimal stockPriceChange, Date calculatedStart, Date calculatedEnd) {
 		super();
 		this.calculatedStart = calculatedStart;
 		this.calculatedEnd = calculatedEnd;
@@ -80,8 +80,8 @@ public class TuningResDTO implements Serializable {
 		this.csvLink = csvLink;
 		this.chartLink = chartLink;
 		this.lastTrend = lastTrend;
-		this.followProfit = followProfit.doubleValue();
-		this.stopLossProfit = stopLossProfit.doubleValue();
+		this.followProfit = followProfit;
+		this.stopLossProfit = stopLossProfit;
 		this.stockPriceChange = stockPriceChange.doubleValue();
 	}
 	
