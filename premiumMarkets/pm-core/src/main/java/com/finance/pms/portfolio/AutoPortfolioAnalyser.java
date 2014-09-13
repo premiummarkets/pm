@@ -51,7 +51,7 @@ public class AutoPortfolioAnalyser {
 		try {
 			
 			File transactions = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + portfolioWays.getName()+"_TransactionsExport.csv");
-			String extractTransactionLog = portfolioWays.extractTransactionLog(DateFactory.dateAtZero(), EventSignalConfig.getNewDate());
+			String extractTransactionLog = portfolioWays.extractPortfolioTransactionLog(DateFactory.dateAtZero(), EventSignalConfig.getNewDate());
 			FileWriter fileWriter = new FileWriter(transactions);
 			fileWriter.write(extractTransactionLog);
 		

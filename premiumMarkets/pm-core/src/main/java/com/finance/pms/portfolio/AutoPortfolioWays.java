@@ -67,6 +67,6 @@ public interface AutoPortfolioWays {
 	
 	public void log(TransactionRecord transactionRecord);
 	
-	public String extractTransactionLog(Date startDate, Date endDate) throws Throwable;
+	public String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable;
 
 }

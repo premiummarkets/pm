@@ -27,4 +27,9 @@ echo $PATH
 
 cd "$INSTALLDIR"
 	
-java -splash:"$INSTALLDIR"/icons/squeakyPig.png -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path="$INSTALLDIR"/lib -Dinstalldir="$INSTALLDIR" -jar "$INSTALLDIR"/pm.jar "$INSTALLDIR"/db.properties 
+nohup java -splash:"$INSTALLDIR"/icons/squeakyPig.png -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path="$INSTALLDIR"/lib -Dinstalldir="$INSTALLDIR" -jar "$INSTALLDIR"/pm.jar "$INSTALLDIR"/db.properties > ~/tmp/pm.out &
+
+sleep 15
+
+
+

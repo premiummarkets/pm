@@ -104,16 +104,6 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		else {
 			throw new NoCashAvailableException("No cash left : out " + totalOutAmountEver+" in "+ totalInAmountEver);
 		}
-		
-//		else {
-//			//ret = getTotalOutAmountEver().subtract(this.getTotalInAmountEver()).add(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH);
-//			ret = totalOutAmountEver.subtract(totalInAmountEver);
-//		}
-
-
-//		if (ret.compareTo(BigDecimal.ZERO) <= 0) {
-//			throw new NoCashAvailableException("No cash left : out " + totalOutAmountEver+" in "+ totalInAmountEver);
-//		}
 
 		return PortfolioMgr.getInstance().getCurrencyConverter().convert(Currency.EUR, transactionCurrency, ret, currentDate);
 	}

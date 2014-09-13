@@ -94,7 +94,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -586,6 +585,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			cpt--;
 			if (cpt <= 0) getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
+		
 	}
 
 	private final class TabInit extends Observable implements Runnable {
@@ -619,11 +619,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 				} catch (Exception e) {
 					LOGGER.error("UnHandled error running the Tab initialisation :"+e, e);
-
 				} finally {
 					setChanged();
 					notifyObservers();
-					
 				}
 				
 			}
@@ -1185,12 +1183,17 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		TableItem[] titems = t.getItems();
 		for (int i = 0; i < titems.length; i++) {
 			Color color = ((SlidingPortfolioShare)titems[i].getData()).getColor();
-			titems[i].setBackground(Titles.Name.ordinal(), color);
-			titems[i].setForeground(new Color(getDisplay(), new RGB(0, 0, 0)));
-			titems[i].setBackground(Titles.Symbol.ordinal(), color);
-			titems[i].setForeground(new Color(getDisplay(), new RGB(0, 0, 0)));
-			titems[i].setBackground(Titles.Isin.ordinal(), color);
-			titems[i].setForeground(new Color(getDisplay(), new RGB(0, 0, 0)));
+			int red = color.getRed();
+			int green = color.getGreen();
+			int blue = color.getBlue();
+			Color shaded = new Color(getDisplay(), red*3/4, green*3/4, blue*3/4);
+			Color tinted = new Color(getDisplay(), red+((255-red)*3/4), green+((255-green)*3/4), blue + ((255-blue)*3/4));
+			titems[i].setBackground(Titles.Name.ordinal(), tinted);
+			titems[i].setForeground(Titles.Name.ordinal(), shaded);
+			titems[i].setBackground(Titles.Symbol.ordinal(), tinted);
+			titems[i].setForeground(Titles.Symbol.ordinal(), shaded);
+			titems[i].setBackground(Titles.Isin.ordinal(), tinted);
+			titems[i].setForeground(Titles.Isin.ordinal(), shaded);
 		}
 	
 	}
@@ -1250,6 +1253,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						Runnable loadQRunnable = new Runnable() {
 							public void run() {
 								try {
+									LOGGER.info("Loading in background quotations for "+pS.getStock().getFriendlyName());
 									QuotationsFactories.getFactory().getQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), EventSignalConfig.getNewDate(), true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
 								} catch (NoQuotationsException e) {
 									LOGGER.warn(e);
@@ -2148,7 +2152,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				
 				if (LOGGER.isDebugEnabled()) {
 					try {
-						LOGGER.debug(currentPortfolio.extractTransactionLog( (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero(), (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate()));
+						LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog( (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero(), (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate()));
 					} catch (Throwable e) {
 						e.printStackTrace();
 					}
@@ -3006,12 +3010,75 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	public void viewPortfolioTransactions() {
 		
-		Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
+		final Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
 		String dateStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 		String transactionExportName = portfolio.getName()+"_"+dateStr;
+		final Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
+		final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+		
+		TransactionExtractor te = new TransactionExtractor() {	
+			@Override
+			protected String run() throws Throwable {
+				return portfolio.extractPortfolioTransactionLog(startDate, endDate);
+			}
+		};
+		
+		extractTransactions(portfolio, transactionExportName, te);
+		
+	}
+	
+
+	public void transposePortfolioTransactions() {
+		
+		
+		final ActionDialogForm actionDialog = new ActionDialogForm(getShell(), "Select the target currency", null, "Transposition currency selection");
+		final CCombo currencyListCombo = new CCombo(actionDialog.getParent(), SWT.NONE);
+		currencyListCombo.setEditable(false);
+
+		SortedSet<Currency> currencies = new TreeSet<Currency>(new Comparator<Currency>() {
+			@Override
+			public int compare(Currency o1, Currency o2) {
+				return o1.name().compareTo(o2.name());
+			}
+		});
+		
+		currencies.addAll(Arrays.asList(Currency.values()));
+		for (Currency currency : currencies) {
+			currencyListCombo.add(currency.name());
+		}
+		
+		ActionDialogAction actionDialogAction = new ActionDialogAction() {
+			@Override
+			public void action(Control targetControl) {
+				final Currency targetCurrency = Currency.valueOf(currencyListCombo.getItem(currencyListCombo.getSelectionIndex()));
+				final Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
+				String dateStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+				String transactionExportName = portfolio.getName()+"_in"+targetCurrency.toString()+"_"+dateStr;
+				final Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
+				final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+				
+				TransactionExtractor te = new TransactionExtractor() {	
+					@Override
+					protected String run() throws Throwable {
+						return portfolio.extractTransposedTransactionLog(startDate, endDate, targetCurrency);
+					}
+				};
+				
+				extractTransactions(portfolio, transactionExportName, te);
+			}
+		};
+
+		actionDialog.setControl(currencyListCombo);
+		actionDialog.setAction(actionDialogAction);
+		
+		actionDialog.open();
+		
+	}
+
+
+	protected void extractTransactions(final Portfolio portfolio, String transactionExportName, TransactionExtractor te) {
 		
 		try {
-			String extractTransactionLog = portfolio.extractTransactionLog((slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero(), (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate());
 			
 			String dir = System.getProperty("installdir") + File.separator + "transactionsexports" + File.separator;
 			new File(dir).mkdirs();
@@ -3020,7 +3087,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(reportFile));
 			
 			try {
-				bufferedWriter.write(extractTransactionLog);
+				bufferedWriter.write(te.run());
 			} catch (Exception e) {
 				throw e;
 			} finally {
@@ -3057,6 +3124,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		}
 		
 	}
+	
+	private abstract class TransactionExtractor {
+		protected abstract String run() throws Throwable;
+	}
 
 	protected void runSpread(String transactionExportName, String dir, String gnumeric) throws IOException {
 		List<String> command = new ArrayList<String>();
@@ -3065,6 +3136,5 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		ProcessBuilder builder = new  ProcessBuilder(command);
 		builder.start();
 	}
-
 
 }

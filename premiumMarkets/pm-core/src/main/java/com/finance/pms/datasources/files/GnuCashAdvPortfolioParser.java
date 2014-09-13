@@ -31,10 +31,7 @@ package com.finance.pms.datasources.files;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
@@ -57,7 +54,6 @@ import org.springframework.dao.DataAccessException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.w3c.tidy.Tidy;
 import org.xml.sax.InputSource;
 
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -136,7 +132,7 @@ public class GnuCashAdvPortfolioParser {
 			StringWriter outputWriter = gnuCashParserHelper.deleteDocType(filePath);
 			
 			//Tidy
-			ByteArrayInputStream inputStream = tidyDocument(new StringInputStream(outputWriter.toString()));
+			ByteArrayInputStream inputStream = gnuCashParserHelper.tidyDocument(new StringInputStream(outputWriter.toString()));
 			
 			//LOG
 			if (LOGGER.isTraceEnabled()) {
@@ -414,18 +410,5 @@ public class GnuCashAdvPortfolioParser {
 		return nodeList;
 	}
 
-	private ByteArrayInputStream tidyDocument(InputStream inputStream) throws FileNotFoundException, IOException {
-		Tidy tidy = new Tidy();
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		tidy.setTrimEmptyElements(true);
-		tidy.setMakeClean(true);
-		tidy.setQuoteNbsp(true);
-		tidy.setXmlOut(true);
-		tidy.parseDOM(inputStream,outputStream);
-		
-		LOGGER.trace(outputStream.toString());
-		
-		return new ByteArrayInputStream(outputStream.toByteArray());
-	}
 
 }

@@ -31,9 +31,7 @@ package com.finance.pms.datasources.files;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,7 +43,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.SortedSet;
 
 import javax.xml.xpath.XPath;
@@ -56,14 +53,12 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.tools.ant.filters.StringInputStream;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.w3c.tidy.Tidy;
 import org.xml.sax.InputSource;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -104,7 +99,7 @@ public class GnuCashTransactionReportParser {
 			StringWriter outputWriter = gnuCashParserHelper.deleteDocType(filePath);
 
 			//Tidy
-			ByteArrayInputStream inputStream = tidyDocument(new StringInputStream(outputWriter.toString()));
+			ByteArrayInputStream inputStream = gnuCashParserHelper.tidyDocument(new StringInputStream(outputWriter.toString()));
 
 			//LOG
 			if (LOGGER.isDebugEnabled()) {
@@ -263,21 +258,6 @@ public class GnuCashTransactionReportParser {
 		NodeList nodeList =  (NodeList) xPath.evaluate(expression, row, XPathConstants.NODESET);
 		
 		return nodeList;
-	}
-
-	private ByteArrayInputStream tidyDocument(InputStream inputStream) throws FileNotFoundException, IOException {
-		Tidy tidy = new Tidy();
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		tidy.setTrimEmptyElements(true);
-		tidy.setMakeClean(true);
-		tidy.setQuoteNbsp(true);
-		tidy.setXmlOut(true);
-		tidy.setInputEncoding("UTF-8");
-		tidy.parseDOM(inputStream, outputStream);
-		
-		LOGGER.trace(outputStream.toString("UTF-8"));
-		
-		return new ByteArrayInputStream(outputStream.toByteArray());
 	}
 
 	public static void main(String... arg) throws IOException, InvalidAlgorithmParameterException {

@@ -30,9 +30,12 @@
 package com.finance.pms.datasources.files;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -41,6 +44,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.w3c.tidy.Tidy;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -66,6 +71,22 @@ public class GnuCashParserHelper {
 		super();
 		matchingsCache = new HashMap<String, List<Stock>>();
 	}
+	
+	protected ByteArrayInputStream tidyDocument(InputStream inputStream) throws FileNotFoundException, IOException {
+		
+		Tidy tidy = new Tidy();
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		tidy.setTrimEmptyElements(true);
+		tidy.setMakeClean(true);
+		tidy.setQuoteNbsp(true);
+		tidy.setXmlOut(true);
+		tidy.setInputEncoding("UTF-8");
+		tidy.parseDOM(inputStream, outputStream);
+		
+		LOGGER.trace(outputStream.toString("UTF-8"));
+		
+		return new ByteArrayInputStream(outputStream.toByteArray());
+	}
 
 	protected BigDecimal calculateBigDecimal(String textContent) throws ParseException {
 		try {
@@ -78,7 +99,7 @@ public class GnuCashParserHelper {
 
 	protected Currency extractCurrency(String columnTxt) {
 		LOGGER.debug("Checking if :"+columnTxt+" contains $?");
-		if (columnTxt.contains("$")) {
+		if (columnTxt.contains("$") || columnTxt.contains("\u0024")) {
 			LOGGER.debug(columnTxt+" contains $!");
 			return Currency.USD;
 		}
@@ -87,12 +108,17 @@ public class GnuCashParserHelper {
 			LOGGER.debug(columnTxt+"contains \u00A3!");
 			return Currency.GBP;
 		}
+		LOGGER.debug("Checking if :"+columnTxt+" contains \u20AC?");
+		if (columnTxt.contains("\u20AC")) {
+			LOGGER.debug(columnTxt+"contains \u20AC!");
+			return Currency.EUR;
+		}
 		return   Currency.valueOf(columnTxt.replace("\n","").trim().split("( |\n)")[0]);
 	}
 	
 	protected Number extractNumber(String textContent) throws ParseException {
 		NumberFormat numberFormat = NumberFormat.getInstance();
-		Number number = numberFormat.parse(textContent.replaceAll("($|\u00A3)","").replaceAll("[A-Z][A-Z][A-Z]( |\n)*", "").trim());
+		Number number = numberFormat.parse(textContent.replaceAll("(\\$|\u0024|\u00A3|\u20AC)","").replaceAll("[A-Z][A-Z][A-Z]( |\n)*", "").trim());
 		return number;
 	}
 
@@ -179,7 +205,7 @@ public class GnuCashParserHelper {
 					if (portfolio instanceof SharesList) {
 						ProvidersList provider;
 						if (portfolio.getName().equals(SharesListId.UNKNOWN.name())) {//TODO infer stock list from extension?
-							provider =  (ProvidersList) Providers.getInstance(SharesListId.YAHOOINDICES.name());
+							provider =  (ProvidersList) Providers.getInstance(SharesListId.YAHOOINDICES.getSharesListCmdParam());
 						} else {
 							provider = (ProvidersList) Providers.setupProvider(portfolio.getName());
 						}

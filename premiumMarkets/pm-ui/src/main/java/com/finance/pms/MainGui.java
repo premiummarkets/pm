@@ -542,7 +542,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						}
 						{
 							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("View Portfolio transactions ...");
+							loadPortofolioFromGnuCash.setText("Extract Portfolio transactions ...");
 							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
 								@Override
 								public void widgetSelected(SelectionEvent evt) {
@@ -554,6 +554,31 @@ public class MainGui extends SashForm implements RefreshableView {
 										};
 										getDisplay().syncExec(runnable2);
 										((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
+									} finally {
+										Runnable runnable2 = new Runnable() {
+											public void run() {
+												setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+											}
+										};
+										getDisplay().syncExec(runnable2);
+									}
+								}
+							});
+						}
+						{
+							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
+							loadPortofolioFromGnuCash.setText("Extract and transpose Portfolio transactions ...");
+							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent evt) {
+									try {
+										Runnable runnable2 = new Runnable() {
+											public void run() {
+												setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+											}
+										};
+										getDisplay().syncExec(runnable2);
+										((PortfolioComposite) portfolioSash()).transposePortfolioTransactions();
 									} finally {
 										Runnable runnable2 = new Runnable() {
 											public void run() {

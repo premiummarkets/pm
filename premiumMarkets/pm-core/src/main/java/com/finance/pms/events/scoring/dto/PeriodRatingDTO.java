@@ -46,6 +46,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	Double priceAtTo;
 	
 	String trend;
+	
 	Validity rating;
 	List<String> configs;
 	
@@ -156,21 +157,12 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		return rating;
 	}
 
-	public void setRating(Validity rating) {
-		this.rating = rating;
-	}
-
 	public boolean isRealised() {
 		return realised;
 	}
 
 	public void setRealised(boolean realised) {
 		this.realised = realised;
-	}
-
-	@Override
-	public String toString() {
-		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom+ ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
 	}
 
 	public Double getPriceAtFrom() {
@@ -195,6 +187,11 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		} catch (Exception e) {
 			return Double.NaN;
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom+ ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
 	}
 
 }

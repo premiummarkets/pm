@@ -73,6 +73,14 @@ public class SpringContext extends GenericApplicationContext {
 		//BuildInPrefs
 		try {
 			Properties pbuild = new Properties();
+			pbuild.load(this.getClass().getResourceAsStream("pmsbuild.properties"));
+			if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
+			MainPMScmd.getMyPrefs().flushy();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			Properties pbuild = new Properties();
 			pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
 			if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
 			MainPMScmd.getMyPrefs().flushy();
@@ -368,6 +376,8 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("tuning.configs",props);
 			putInPrefs("perceptron.nbfolds",props);
 			putInPrefs("perceptron.foldsize",props);
+			putInPrefs("nbMonthCalculation.SECTOR",props);
+			putInPrefs("nbMonthCalculation.NEURAL",props);
 			
 			//Q fact
 			putInPrefs("bean.quotationFactory", props);

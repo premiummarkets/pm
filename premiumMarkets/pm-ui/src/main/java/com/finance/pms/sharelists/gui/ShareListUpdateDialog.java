@@ -752,6 +752,7 @@ public class ShareListUpdateDialog extends Dialog {
 					UserDialog inst = new UserDialog(getParent().getShell(), 
 							"The stock quotations could not be found using your settings. It may be that the information typed in is not valid.\n"+
 							"You may want to review the 'Insert Manually' form information and try again.\n" +
+							"If you know this stock is listed with one of the available provider try and use the exact same SYMBOL and ISIN as the one used be the provider.\n"+
 							"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
 					inst.open();
 				} else {

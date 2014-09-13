@@ -60,7 +60,6 @@ import org.springframework.stereotype.Service;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -175,7 +174,7 @@ public class OTFTuningFinalizer {
 						period.setTo(currentEvent.getDate());
 						period.setPriceAtTo(closeForDate.doubleValue());
 						period.setRealised(true);
-						addFilteredPeriod(periods, period);
+						addFilteredPeriod(periods, period, 15);
 						
 					} else {//First trend : Nothing to close
 						
@@ -228,30 +227,37 @@ public class OTFTuningFinalizer {
 		period.setTo(endDate);
 		period.setPriceAtTo(lastClose.doubleValue());
 		period.setRealised(prevEventType.equals(EventType.BEARISH));
-		addFilteredPeriod(periods, period);
+		addFilteredPeriod(periods, period, -1);
 		
 		return periods;
 	}
 
-	private void addFilteredPeriod(List<PeriodRatingDTO> periods, PeriodRatingDTO period) {
-		
-		if (EventType.valueOf(period.getTrend()).equals(EventType.BULLISH)) {
-			if (periods.size() == 0) {
+	private void addFilteredPeriod(List<PeriodRatingDTO> periods, PeriodRatingDTO period, int sizeConstraint) {
+
+		if ((periods.size() == 0) && EventType.valueOf(period.getTrend()).equals(EventType.BULLISH)) {
+			LOGGER.info("First bullish period discarded : "+period);
+			return;
+		} 
+
+		if (sizeConstraint != -1 && period.getPeriodLenght() < sizeConstraint) {
+			String invFlasePositiveTrend = (EventType.valueOf(period.getTrend()).equals(EventType.BULLISH))?EventType.NONE.toString():EventType.BULLISH.toString();
+			LOGGER.info("Period is too short (false positive) : "+period+". Trend will be set as "+invFlasePositiveTrend);
+			period.setTrend(invFlasePositiveTrend);
+			if ((periods.size() == 0) && EventType.valueOf(period.getTrend()).equals(EventType.BULLISH)) {
 				LOGGER.info("First bullish period discarded : "+period);
-			} 
-			else if (period.getPeriodLenght() < 15) {
-				LOGGER.info("Short bullish period marked as no trend (false positive) : "+period);
-				period.setTrend(EventType.NONE.toString());
-				periods.add(period);
-			} 
-			else {
-				periods.add(period);
+				return;
 			}
-		}
-		else {
+		} 
+		
+		PeriodRatingDTO previousPeriod;
+		if (periods.size() > 0 && (previousPeriod = periods.get(periods.size()-1)).getTrend().equals(period.getTrend())) {
+			previousPeriod.setTo(period.getTo());
+			previousPeriod.setPriceAtTo(period.getPriceAtTo());
+			previousPeriod.setRealised(period.isRealised());
+		} else {
 			periods.add(period);
 		}
-		
+
 	}
 	
 	private TuningResDTO buildResOnValidPeriods(
@@ -472,7 +478,6 @@ public class OTFTuningFinalizer {
 		
 	}
 
-
 	public TuningResDTO buildTuningRes(
 			Stock stock, Date startDate, Date endDate, Date endCalcRes, String analyseName,
 			SortedMap<Date, double[]> calcOutput, Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
@@ -592,30 +597,6 @@ public class OTFTuningFinalizer {
 		currentDate.set(Calendar.SECOND,0);
 		currentDate.set(Calendar.MILLISECOND,0);
 		return currentDate;
-	}
-
-	//No longer needed as we filter in the sql request now.
-	@SuppressWarnings("unused")
-	private NavigableSet<EventValue> filterEventsDefs(SymbolEvents symbolEvents, EventDefinition... evtDefs) {
-
-		NavigableSet<EventValue> neuralEventsList =  new TreeSet<EventValue>(new Comparator<EventValue>() {
-			@Override
-			public int compare(EventValue o1, EventValue o2) {
-				return o1.getDate().compareTo(o2.getDate());
-			}
-		});
-
-		for (EventValue eventValue : symbolEvents.getDataResultMap().values()) {
-			for (EventDefinition evtDef : evtDefs) {
-				if (eventValue.getEventDef().equals(evtDef)) {
-					Calendar currentEventDate = zeroTimeCal(eventValue.getDate());
-					eventValue.setDate(currentEventDate.getTime());
-					neuralEventsList.add(eventValue);
-				}
-			}
-			
-		}
-		return neuralEventsList;
 	}
 	
 	/**
