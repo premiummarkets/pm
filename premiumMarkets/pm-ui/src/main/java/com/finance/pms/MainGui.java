@@ -341,7 +341,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						doc.addSelectionListener(new SelectionAdapter() {
 							@Override
 							public void widgetSelected(SelectionEvent evt) {
-								Program.launch("http://"+siteUrl+"html/swtui.html");
+								Program.launch("http://"+siteUrl+"/html/swtui.html");
 							}
 						});
 					}

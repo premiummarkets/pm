@@ -73,20 +73,20 @@ public class SpringContext extends GenericApplicationContext {
 		//BuildInPrefs
 		try {
 			Properties pbuild = new Properties();
-			pbuild.load(this.getClass().getResourceAsStream("pmsbuild.properties"));
-			if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
-			MainPMScmd.getMyPrefs().flushy();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		try {
-			Properties pbuild = new Properties();
 			pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
 			if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
 			MainPMScmd.getMyPrefs().flushy();
 		} catch (Exception e) {
-			e.printStackTrace();
+			try {
+				Properties pbuild = new Properties();
+				pbuild.load(this.getClass().getResourceAsStream("pmsbuild.properties"));
+				if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
+				MainPMScmd.getMyPrefs().flushy();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
 		}
+		
 		
 	}
 	
