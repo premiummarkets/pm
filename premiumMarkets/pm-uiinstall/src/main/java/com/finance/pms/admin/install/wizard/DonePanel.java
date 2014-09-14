@@ -43,7 +43,6 @@ import javax.swing.JSeparator;
 import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class DonePanel.
  * 
@@ -52,41 +51,21 @@ import javax.swing.border.EmptyBorder;
 public class DonePanel extends JPanel {
  
 
-    /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 3412318352164432070L;
 	
 	
-	/** The progress description. */
 	private JLabel progressDescription;
-    
-    /** The progress sent. */
     private JProgressBar progressSent;
-
-    
-    /** The content panel. */
     private JPanel contentPanel;
-    
-    /** The icon label. */
     private JLabel iconLabel;
-    
-    /** The separator. */
     private JSeparator separator;
-    
-    /** The text label. */
     private JLabel textLabel;
-    
-    /** The title panel. */
     private JPanel titlePanel;
 
 
 	JLabel endInstallLabel;
 	JTextPane endInstallTxt;
         
-    /**
-     * Instantiates a new done panel.
-     * 
-     * @author Guillaume Thoreton
-     */
     public DonePanel() {
         
         super();
@@ -110,8 +89,6 @@ public class DonePanel extends JPanel {
 		endInstallTxt = new JTextPane();
 		endInstallTxt.setBackground(new Color(192, 192, 192));
 		endInstallTxt.setFocusable(true);
-		//endInstallTxt.setEditable(false);
-		//endInstallTxt.setFont(endInstallLabel.getFont().deriveFont(12f));
 		endInstallTxt.setAlignmentY(Component.CENTER_ALIGNMENT);
 	    endInstallTxt.setContentType("text/html");
 	    contentPanel.add(endInstallTxt, BorderLayout.SOUTH);
@@ -148,30 +125,15 @@ public class DonePanel extends JPanel {
         add(secondaryPanel, BorderLayout.WEST);
         
     }  
-    
-    /**
-     * Sets the progress text.
-     * 
-     * @param s the new progress text
-     */
+
     public void setProgressText(String s) {
         progressDescription.setText(s);
     }
-    
-    /**
-     * Sets the progress value.
-     * 
-     * @param i the new progress value
-     */
+
     public void setProgressValue(int i) {
         progressSent.setValue(i);
     }
     
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
     private ImageIcon getImageIcon() {        
         return null;
     }

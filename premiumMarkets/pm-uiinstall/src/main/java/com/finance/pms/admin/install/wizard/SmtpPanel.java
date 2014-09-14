@@ -56,22 +56,19 @@ public class SmtpPanel extends JPanel {
 	
 	protected static final String[] keys = {
 		"mail.to", 
-		//"mail.from", 
 		"mail.host", "mail.username", "mail.password"};
 	
 	protected static final String[] exValue = {"", "", "", "", ""};
 
 	private final String[] keyComments = { 
-					"Your email address",
-				//	"Your reply email address",
-					"Your email provider Internet Address", 
-					"Your email provider User Name",
-					"Your email provider Password"};
+					"Recipient email address",
+					"SMTP service provider DNS or IP", 
+					"SMTP authentication User Name",
+					"SMTP authentication Password"};
 	
 	private String[] toolTip = {
-			"You can get these parameters from your email client account set up or webmail provider. This will be used for buy and sell and errors notifications.",
-		//	"Usually the same as your email address above.",
-			"Also called OutGoing Server SMTP dns name or IP. For Example : smtp.gmail.com, relay.plus.net, smtp.mail.yahoo.com ...",
+			"The email address you will use for buy and sell events and errors notifications.",
+			"You can get these parameters from your email client account or webmail set up. Also called OutGoing Server SMTP dns name or IP. For Example : smtp.gmail.com, relay.plus.net, smtp.mail.yahoo.com ...",
 			"You will find these in the authentication parameters of your email account set up. Leave blank if no authentication is required",
 			"Leave blank if no authentication is required"
 	};
@@ -109,7 +106,6 @@ public class SmtpPanel extends JPanel {
         textLabel.setBackground(Color.gray);
         textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
         textLabel.setText("Please setup your email address and ISP smtp access parameters");
-        //textLabel.setToolTipText("You can get these from your email client account set up or webmail provider. This will be used for buy and sell and errors notifications.");
         textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
         textLabel.setOpaque(true);
         
@@ -126,11 +122,11 @@ public class SmtpPanel extends JPanel {
         jTextAreaDescr.setText(
         	"<html>"+
         	"<p>" +
-        	"'From' and 'To' addresses are email addresses you may want to use if you are using the alert on event feature.<br />" +
-    		"For this feature to be activated, the system also requires an email service provider to send the messages.<br />" +
+        	"The settings below are necessary if you want to use the alert on event feature.<br />" +
+    		"To activate the feature, you also require an SMTP service provider DNS or IP to relay messages.<br />" +
     		"Note that you can also use a local SMTP server running on your machine.<br />" +
     		"<br />" +
-    		"You can safely ignore this for now. <br />" +
+    		"YOU CAN SAFELY IGNORE THIS SETTING FOR NOW.<br />" +
     		"These can be set later on using the Settings -> Email Dialog box." +
 			"<br /><br /><br />" +
 			"</p>" +
@@ -155,14 +151,12 @@ public class SmtpPanel extends JPanel {
 		JPanel jpc = new JPanel();
 		jpc.setLayout(new BorderLayout());
 		JPanel jp = new JPanel();
-		//jp.setBackground(new Color(239, 183, 103));
 		jpc.add(jp,BorderLayout.CENTER);
 		jp.setLayout(new GridLayout(7,2,30,20));
 		for (int i = 0;i < keys.length;i++) {
 			
 			//comment
 			JLabel label = new JLabel(keyComments[i]);
-			//label.setToolTipText(toolTip[i]);
 			jp.add(label);
 			
 			//text
