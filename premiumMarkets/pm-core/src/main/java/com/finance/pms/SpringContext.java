@@ -70,6 +70,11 @@ public class SpringContext extends GenericApplicationContext {
 		setDataSource();
 		singleton = this;
 		
+		buildStampPrefs();
+		
+	}
+
+	private void buildStampPrefs() {
 		//BuildInPrefs
 		try {
 			Properties pbuild = new Properties();
@@ -86,14 +91,15 @@ public class SpringContext extends GenericApplicationContext {
 				e1.printStackTrace();
 			}
 		}
-		
-		
 	}
 	
 	public SpringContext(ConfigurableApplicationContext configurableApplicationContext) {
+		
 		super(configurableApplicationContext);
 		setDataSource();
 		singleton = this;
+		
+		buildStampPrefs();
 	}
 	
 	//??

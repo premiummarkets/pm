@@ -40,8 +40,6 @@ import java.util.Properties;
 
 import com.nexes.wizard.WizardPanelDescriptor;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class SmtpPanelDescriptor.
  * 
@@ -49,23 +47,12 @@ import com.nexes.wizard.WizardPanelDescriptor;
  */
 public class SmtpPanelDescriptor extends WizardPanelDescriptor implements ActionListener {
     
-    /** The Constant IDENTIFIER. */
     public static final String IDENTIFIER = "SMTP_PANEL";
-    
-    /** The panel3. */
     SmtpPanel panel3;
-    
-    /** The p. */
-    static Properties p; // = new Properties();
-    
-    /** The pfile. */
+    static Properties p;
     File pfile;
     
-    /**
-     * Instantiates a new smtp panel descriptor.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public SmtpPanelDescriptor() {
 		
         panel3 = new SmtpPanel();
@@ -110,12 +97,6 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
         setNextButtonAccordingToForm();
     }
             
-    
-    /**
-     * Sets the next button according to form.
-     * 
-     * @author Guillaume Thoreton
-     */
     private void setNextButtonAccordingToForm() {
     	Install.selectNextButton();
     }
@@ -133,10 +114,8 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
 		try {
 			p.store(new FileOutputStream(pfile), "Added settings properties from install");
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

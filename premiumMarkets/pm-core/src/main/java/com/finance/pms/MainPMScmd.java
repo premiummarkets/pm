@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
@@ -260,6 +261,22 @@ public class MainPMScmd {
 				}
 			}
 		}
+		
+		@Override
+		public String toString() {
+			String toStr = prefs.absolutePath() + " : ";
+			try {
+				String[] keys = prefs.keys();
+				for (String key : keys) {
+					toStr = toStr + key + " = " + prefs.get(key, "Undefined")+ ";";
+				}
+			} catch (BackingStoreException e) {
+				toStr = toStr + e.toString();
+			}
+			return "Prefs =" + toStr + "]";
+		}
+		
+		
 
 		private Object get(String key, Object alt, PrefsGetter<? extends Object> pg) {
 			Object fromSessionPrefs = getFromSessionPrefs(key, alt);

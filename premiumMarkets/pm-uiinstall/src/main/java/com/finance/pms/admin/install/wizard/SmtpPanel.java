@@ -44,7 +44,6 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class SmtpPanel.
  * 
@@ -76,30 +75,17 @@ public class SmtpPanel extends JPanel {
 			"You will find these in the authentication parameters of your email account set up. Leave blank if no authentication is required",
 			"Leave blank if no authentication is required"
 	};
-	
-	/** The jtxt. */
+
 	protected JTextField[] jtxt = new JTextField[keyComments.length];
- 
-    /** The content panel. */
     private JPanel contentPanel;
-    
-    /** The icon label. */
     private JLabel iconLabel;
-    
-    /** The title panel. */
     private JPanel titlePanel;
-    
-    /** The text label. */
     private JLabel textLabel;
-    
-    /** The separator. */
     private JSeparator separator;
+    
+    private JLabel jTextAreaDescr;
         
-    /**
-     * Instantiates a new smtp panel.
-     * 
-     * @author Guillaume Thoreton
-     */
+    
     public SmtpPanel() {
     	
         super();
@@ -133,26 +119,37 @@ public class SmtpPanel extends JPanel {
         titlePanel.add(separator, BorderLayout.SOUTH);
         
         add(titlePanel, BorderLayout.NORTH);
+        
+        jTextAreaDescr = new JLabel();
+        jTextAreaDescr.setBackground(new Color(192, 192, 192));
+        jTextAreaDescr.setFocusable(true);
+        jTextAreaDescr.setText(
+        	"<html>"+
+        	"<p>" +
+        	"'From' and 'To' addresses are email addresses you may want to use if you are using the alert on event feature.<br />" +
+    		"For this feature to be activated, the system also requires an email service provider to send the messages.<br />" +
+    		"Note that you can also use a local SMTP server running on your machine.<br />" +
+    		"<br />" +
+    		"You can safely ignore this for now. <br />" +
+    		"These can be set later on using the Settings -> Email Dialog box." +
+			"<br /><br /><br />" +
+			"</p>" +
+			"</html>"
+        	);
+        contentPanel.add(jTextAreaDescr, java.awt.BorderLayout.NORTH);
+        
+        
+        
         JPanel secondaryPanel = new JPanel();
         secondaryPanel.add(contentPanel, BorderLayout.NORTH);
         add(secondaryPanel, BorderLayout.WEST);
         
 	}  
-    
-    /**
-     * Checks if is form filled.
-     * 
-     * @return true, if is form filled
-     */
+
     public boolean isFormFilled() {
     	return true;
     }
-    
-    /**
-     * Gets the content panel.
-     * 
-     * @return the content panel
-     */
+
     private JPanel getContentPanel() {
     	
 		JPanel jpc = new JPanel();
@@ -176,29 +173,19 @@ public class SmtpPanel extends JPanel {
 					jtxt[i] = new JTextField();
 			}
 			jtxt[i].setToolTipText(toolTip[i]);
-			txtjp.add(jtxt[i],BorderLayout.NORTH);
-			txtjp.add(new JLabel(exValue[i]),BorderLayout.SOUTH);
+			txtjp.add(jtxt[i], BorderLayout.NORTH);
+			txtjp.add(new JLabel(exValue[i]), BorderLayout.SOUTH);
 			jp.add(txtjp);
 		}
 		
 		return jpc;
 		
 	}
-    
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
+
     private ImageIcon getImageIcon() {
     	return null;
-    }    
+    }
     
-    /**
-     * Populate keys.
-     * 
-     * @author Guillaume Thoreton
-     */
     public void populateKeys() {
 		for (int i = 0;i < keys.length;i++) {
 			jtxt[i].setText(SmtpPanelDescriptor.p.getProperty(keys[i]));
