@@ -44,11 +44,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -476,6 +478,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									if (isVisible() && tabIndex != -1) {
 										tabUpdateItemsColors(tabIndex);
 									}
+									
 							}
 					});
 					
@@ -1248,23 +1251,34 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			for (Portfolio portfolio : visiblePortfolios) {
 				for (final PortfolioShare pS : portfolio.getListShares().values()) {
 
-					try {
-
-						Runnable loadQRunnable = new Runnable() {
-							public void run() {
-								try {
-									LOGGER.info("Loading in background quotations for "+pS.getStock().getFriendlyName());
-									QuotationsFactories.getFactory().getQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), EventSignalConfig.getNewDate(), true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
-								} catch (NoQuotationsException e) {
-									LOGGER.warn(e);
+					final Date today = EventSignalConfig.getNewDate();
+					if (pS.getQuantity(chartsComposite.getSlidingStartDate(), today).compareTo(BigDecimal.ZERO) > 0) {
+						try {
+	
+							Runnable loadQRunnable = new Runnable() {
+								public void run() {
+									try {
+										if (pS.getPortfolio().equals(modelControler.getPortfolio(portfolioCTabFolder1.getSelectionIndex()))) {
+											try {
+												Thread.sleep(1000);
+											} catch (InterruptedException e) {
+												LOGGER.warn(e);
+											}
+										} else {
+											LOGGER.info("Loading in background quotations for "+pS.getStock().getFriendlyName());
+											QuotationsFactories.getFactory().getQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), today, true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
+										}
+									} catch (NoQuotationsException e) {
+										LOGGER.warn(e);
+									}
 								}
-							}
-						};
-						if (SpringContext.getSingleton().isActive()) executor.submit(loadQRunnable);
-
-					} catch (Exception e) {
-						LOGGER.error(e, e);
-					} 
+							};
+							if (SpringContext.getSingleton().isActive()) executor.submit(loadQRunnable);
+	
+						} catch (Exception e) {
+							LOGGER.error(e, e);
+						}
+					}
 
 				}
 			}
@@ -1816,6 +1830,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							if (tableItem.equals(item)) break;
 							idx++;
 						}
+						if (idx == items.length) return;
 				
 						//Show tip
 						final SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), idx);
@@ -3030,8 +3045,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	public void transposePortfolioTransactions() {
 		
+		final ActionDialogForm actionDialog = new ActionDialogForm(getShell(), "Ok", null, "Transposition settings");
 		
-		final ActionDialogForm actionDialog = new ActionDialogForm(getShell(), "Select the target currency", null, "Transposition currency selection");
+		//Currency
+		final Label currencyLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		currencyLabel.setText("Target currency");
 		final CCombo currencyListCombo = new CCombo(actionDialog.getParent(), SWT.NONE);
 		currencyListCombo.setEditable(false);
 
@@ -3043,32 +3061,78 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		});
 		
 		currencies.addAll(Arrays.asList(Currency.values()));
+		int i = 0;
+		int gbpIdx = i;
 		for (Currency currency : currencies) {
+			if (currency.equals(Currency.GBP)) gbpIdx = i;
 			currencyListCombo.add(currency.name());
+			i++;
 		}
+		currencyListCombo.select(gbpIdx);
+		
+		//Capital gain period
+		Date slidingEnd = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+		final DateFormat dateInstance = new SimpleDateFormat("yyyy-MM-dd");
+		final Label startPeriodLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		startPeriodLabel.setText("Capital Gain from");
+		final Text startPeriodTxt = new Text(actionDialog.getParent(), SWT.NONE);
+		Calendar sCalendar = Calendar.getInstance();
+		sCalendar.setTime(slidingEnd);
+		sCalendar.add(Calendar.YEAR, (sCalendar.get(Calendar.MONTH) < 3)?-1:0);
+		sCalendar.set(Calendar.MONTH, 3);
+		sCalendar.set(Calendar.DAY_OF_MONTH, 6);
+		startPeriodTxt.setText(dateInstance.format(sCalendar.getTime()));
+		final Label endPeriodLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		endPeriodLabel.setText("Capital Gain to");
+		final Text endPeriodTxt = new Text(actionDialog.getParent(), SWT.NONE);
+		endPeriodTxt.setText(dateInstance.format(slidingEnd));
+		
+		final NumberFormat percentInstance = NumberFormat.getPercentInstance();
+		//Transaction Fees
+		final Label transactionFeeLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		transactionFeeLabel.setText("Transaction Fee");
+		final Text transactionFeeTxt = new Text(actionDialog.getParent(), SWT.NONE);
+		transactionFeeTxt.setText(percentInstance.format(0.00));
+		//Exchange Fees
+		final Label exchangeFeeLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		exchangeFeeLabel.setText("Exchange Fee");
+		final Text exchangeFeeTxt = new Text(actionDialog.getParent(), SWT.NONE);
+		exchangeFeeTxt.setText(percentInstance.format(0.01));
 		
 		ActionDialogAction actionDialogAction = new ActionDialogAction() {
 			@Override
 			public void action(Control targetControl) {
-				final Currency targetCurrency = Currency.valueOf(currencyListCombo.getItem(currencyListCombo.getSelectionIndex()));
-				final Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
-				String dateStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-				String transactionExportName = portfolio.getName()+"_in"+targetCurrency.toString()+"_"+dateStr;
-				final Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
-				final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
 				
-				TransactionExtractor te = new TransactionExtractor() {	
-					@Override
-					protected String run() throws Throwable {
-						return portfolio.extractTransposedTransactionLog(startDate, endDate, targetCurrency);
-					}
-				};
-				
-				extractTransactions(portfolio, transactionExportName, te);
+				try {
+					final Currency targetCurrency = Currency.valueOf(currencyListCombo.getItem(currencyListCombo.getSelectionIndex()));
+					final BigDecimal transactionFee = new BigDecimal(percentInstance.parse(transactionFeeTxt.getText()).toString());
+					final BigDecimal exchangeFee = new BigDecimal(percentInstance.parse(exchangeFeeTxt.getText()).toString());
+					final Date cpgPeriodStart = dateInstance.parse(startPeriodTxt.getText());
+					final Date cpgPeriodEnd = dateInstance.parse(endPeriodTxt.getText());
+					
+					final Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
+					String dateStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+					String transactionExportName = portfolio.getName()+"_in"+targetCurrency.toString()+"_"+dateStr;
+					final Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
+					final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate(); 
+					
+					TransactionExtractor te = new TransactionExtractor() {	
+						@Override
+						protected String run() throws Throwable {
+							return portfolio.extractTransposedTransactionLog(startDate, endDate, targetCurrency , cpgPeriodStart, cpgPeriodEnd, transactionFee, exchangeFee);
+						}
+					};
+					
+					extractTransactions(portfolio, transactionExportName, te);
+					
+				} catch (ParseException e) {
+					UserDialog dialog = new UserDialog(getShell(),"Invalid fee", e.toString());
+					dialog.open();
+				}
 			}
 		};
 
-		actionDialog.setControl(currencyListCombo);
+		actionDialog.setControl(currencyListCombo, startPeriodLabel, startPeriodTxt, endPeriodLabel, endPeriodTxt, transactionFeeLabel, transactionFeeTxt, exchangeFeeLabel, exchangeFeeTxt);
 		actionDialog.setAction(actionDialogAction);
 		
 		actionDialog.open();
@@ -3107,7 +3171,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						LOGGER.info("Trying "+commands[0]+" fall back");
 						runSpread(transactionExportName, dir, commands[1]);
 					} catch (Exception e2) {
-						UserDialog dialog = new UserDialog(getShell(),"Your Transaction summary  for "+portfolio.getName(),
+						UserDialog dialog = new UserDialog(getShell(), "Your Transaction summary  for "+portfolio.getName(),
 								"Your transaction summary for "+portfolio.getName()+" is available here :\n"+
 								reportFileName+"\n"+
 								"Alternatively, to automatically open it in as a spreadsheet, you may want to check the software associated with '.csv' file in your Operating System.");

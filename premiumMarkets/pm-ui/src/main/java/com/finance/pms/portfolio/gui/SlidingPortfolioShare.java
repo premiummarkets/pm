@@ -77,7 +77,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.slidingEnd = slidingEnd;
 		this.slidingStart = slidingStart;
 		this.color = color;
-		this.displayOnChart = true;
+		this.displayOnChart = portfolioShare.getQuantity(end).compareTo(BigDecimal.ZERO) > 0;
 		
 		this.displayedCurrency = portfolioShare.getTransactionCurrency();
 	}

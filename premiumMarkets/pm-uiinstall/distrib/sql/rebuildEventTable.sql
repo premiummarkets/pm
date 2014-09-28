@@ -10,6 +10,6 @@ CREATE TABLE `EVENTS` (\
   `EVENTDEFID` smallint(6) NOT NULL,\
   `EVENTDEFEXTENSION` varchar(100) NOT NULL DEFAULT '',\
   `ANALYSENAME` varchar(256) NOT NULL DEFAULT 'AutoPortfolio',\
-  `MESSAGE` mediumtext) ENGINE=InnoDB;
+  `MESSAGE` mediumtext) ENGINE=InnoDB DEFAULT CHARSET=latin1;
   
  

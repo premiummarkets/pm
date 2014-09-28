@@ -196,7 +196,7 @@ public class Quotations {
 
 	private void solveSplitBetween(QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitOut) {
 		
-		double span = Math.max(4, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
+		double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
 		double dj = qj.getClose().doubleValue();
 		double djm1 =  qjm1.getClose().doubleValue();
 		double change = (dj - djm1)/djm1;
@@ -204,9 +204,11 @@ public class Quotations {
 		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
 		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
 		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && change <= -(span*Math.log(1.1)) ) {
-		double valideSpliMax = (3d/4d)*(1+span*0.05);
-		double valideSpliMin = (1d/2d)*(1-span*0.05);
-		if ( !Double.isInfinite(change) && !Double.isNaN(change) && -valideSpliMax <= change && change <= -valideSpliMin ) {
+		double maxDailyChange = 0.05;
+		double valideSpliMax = -(0.75)-(Math.log((1+maxDailyChange)+span*maxDailyChange));
+		double valideSpliMin = -(0.5)+(Math.log((1+maxDailyChange)+span*maxDailyChange));
+		if ( !Double.isInfinite(change) && !Double.isNaN(change) && valideSpliMax <= change && change <= valideSpliMin ) {
+			LOGGER.warn("Split detected for "+this.stock.getFriendlyName()+" : span "+span+" max "+valideSpliMax+" change "+change+" min "+valideSpliMin+" between "+qjm1.getDate()+" and "+qj.getDate());
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
 				QuotationUnit oldValue = quotationsUnitOut.get(i);
 				Double factorDouble = Double.valueOf(dj/djm1);
@@ -222,8 +224,8 @@ public class Quotations {
 				quotationsUnitOut.set(i, newValue);
 			}
 		}
-		if (change < -valideSpliMax) 
-			LOGGER.warn("Invalid split for "+this.stock.getFriendlyName()+". Check your data.");
+		if (change < valideSpliMax) 
+			LOGGER.warn("Invalid split for "+this.stock.getFriendlyName()+" : span "+span+" max "+valideSpliMax+" change "+change+" min "+valideSpliMin+" between "+qjm1.getDate()+" and "+qj.getDate()+". Check your data.");
 		
 	}
 
