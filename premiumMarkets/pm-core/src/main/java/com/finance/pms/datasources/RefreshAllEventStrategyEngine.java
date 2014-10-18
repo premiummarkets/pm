@@ -37,8 +37,8 @@ import java.util.Date;
 import java.util.Observer;
 import java.util.Set;
 
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;

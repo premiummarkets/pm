@@ -29,6 +29,7 @@
  */
 package com.finance.pms.admin.install.wizard;
 
+import com.nexes.wizard.Wizard;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 /**
@@ -41,8 +42,8 @@ public class IntroPanelDescriptor extends WizardPanelDescriptor {
 	
     public static final String IDENTIFIER = "INTRODUCTION_PANEL";
 
-    public IntroPanelDescriptor() {
-        super(IDENTIFIER, new IntroPanel());
+    public IntroPanelDescriptor(Wizard wizard,  String siteUrl, String introButtonTxt, String copyRights) {
+        super(IDENTIFIER, new IntroPanel(siteUrl, introButtonTxt, copyRights));
     }
     
     @Override

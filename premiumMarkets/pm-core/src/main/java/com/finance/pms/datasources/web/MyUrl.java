@@ -32,8 +32,8 @@ package com.finance.pms.datasources.web;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.http.NameValuePair;
 
 public class MyUrl {
 	

@@ -29,26 +29,20 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
 public abstract class HttpSourceMarket extends HttpSource implements SourceConnector {
-	
-	/** The LOGGER. */
-	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceNASDAQ.class);
-	
-	/** The thread pool. */
+
+	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceMarket.class);
 	private PoolSemaphore threadPool;
 	
 	
@@ -59,8 +53,8 @@ public abstract class HttpSourceMarket extends HttpSource implements SourceConne
 	}
 
 	@Override
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		return new GetMethod(url.getUrl());
+	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		return new HttpGet(url.getUrl());
 	}
 
 	@Override
@@ -75,22 +69,6 @@ public abstract class HttpSourceMarket extends HttpSource implements SourceConne
 	}
 
 	@Override
-	public MyHttpClient httpConnect() { //throws IOException, HttpException {
-		MyHttpClient myHttpClient = null;
-		try {
-			myHttpClient = this.myHttpConnect();
-		} catch (HttpException e) {
-			LOGGER.error("Can't open http connection",e);
-		} catch (IOException e) {
-			LOGGER.error("Can't open http connection",e);
-		}
-		return myHttpClient;
-	}
-	
-
-	protected abstract MyHttpClient myHttpConnect() throws HttpException, IOException;
-
-	@Override
 	public void stopThreads() {
 		LOGGER.info("That's all ... Bye");
 	}
@@ -101,8 +79,6 @@ public abstract class HttpSourceMarket extends HttpSource implements SourceConne
 		retour = this.httpConnect();
 		return retour;
 	}
-
-
 	
 	public int crashResart(int connectionId) {
 		//silent

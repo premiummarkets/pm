@@ -45,10 +45,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.httpclient.Cookie;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.HttpState;
+import org.apache.http.Header;
+import org.apache.http.HttpException;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -70,7 +74,6 @@ public abstract class HttpSource {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSource.class);
 	
-	private HttpState initialState;
 	protected int nbHttpThreads; // = 20;
 	private MyBeanFactoryAware beanFactoryAware;
 
@@ -79,6 +82,7 @@ public abstract class HttpSource {
 	}
 	
 	public HttpSource(String pathToprops, MyBeanFactoryAware beanFActoryAware) {
+		
 		Properties props = new Properties();
 		try {
 			props.load(new FileInputStream((new File(pathToprops))));
@@ -112,14 +116,16 @@ public abstract class HttpSource {
 		} catch (Exception e) {
 			LOGGER.error("Couldn't find propertie file. Check the propeties path",e);
 		}
-		//Init connection
-		//HttpState initialState = new HttpState();
-		initialState = new HttpState();
-		// Initial set of cookies can be retrieved from persistent storage and
-		// re-created, using a persistence mechanism of choice,
-		Cookie mycookie = new Cookie(".foobar.com", "mycookie", "stuff", "/", null, false);
-		// and then added to your HTTP state instance
-		initialState.addCookie(mycookie);
+		
+//		//Init connection
+//		//HttpState initialState = new HttpState();
+//		initialState = new HttpState();
+//		// Initial set of cookies can be retrieved from persistent storage and
+//		// re-created, using a persistence mechanism of choice,
+//		Cookie mycookie = new Cookie(".foobar.com", "mycookie", "stuff", "/", null, false);
+//		// and then added to your HTTP state instance
+//		initialState.addCookie(mycookie);
+		
 		//init thread
 		this.nbHttpThreads = (new Integer(MainPMScmd.getMyPrefs().get("http.poolsize", "10"))).intValue();
 		
@@ -147,7 +153,21 @@ public abstract class HttpSource {
 		this.getThreadPool().releaseResource(conn);
 	}
 
-	public abstract MyHttpClient httpConnect(); //throws IOException, HttpException;
+	public MyHttpClient httpConnect() {
+		
+		RequestConfig.Builder requestBuilder = RequestConfig.custom();
+		requestBuilder = requestBuilder.setConnectTimeout(30000);
+		requestBuilder = requestBuilder.setSocketTimeout(30000);
+		requestBuilder = requestBuilder.setConnectionRequestTimeout(30000);
+		requestBuilder = requestBuilder.setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY);
+		
+		HttpClientBuilder builder = HttpClientBuilder.create();     
+		builder.setDefaultRequestConfig(requestBuilder.build());
+		CloseableHttpClient closeableHttpClient = builder.build();
+		
+		return new MyHttpClient(closeableHttpClient);
+		
+	}
 
 	public List<Validatable> readURL(LineFormater formater) throws HttpException {
 		
@@ -172,9 +192,8 @@ public abstract class HttpSource {
 			
 		} catch (Exception e) {
 			
-			LOGGER.error("ERROR processing url :" + e,e);
-			LOGGER.error("Is " + httpcx.getHostConfiguration().getHostURL() +" with params "+ httpcx.getParams() + " a valid url ?",e);
-			LOGGER.debug("",e);
+			LOGGER.error("ERROR processing url :" + e, e);
+			LOGGER.debug("", e);
 			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.FAILURE);
 			
 		} finally {
@@ -211,25 +230,28 @@ public abstract class HttpSource {
 		
 		Set<Validatable> resultSet= new HashSet<Validatable>();
 
-		HttpMethodBase  httpget = this.getRequestMethod(formater.getMyUrl());
-		List<Exception> otherExcpetions = new ArrayList<Exception>();
+		HttpUriRequest httpget = this.getRequestMethod(formater.getMyUrl());
+		CloseableHttpResponse response = httpcx.execute(httpget);
 		
+		List<Exception> otherExeptions = new ArrayList<Exception>();
 		try {
 
-			int result = httpcx.executeMethod(httpget);
+			int result = response.getStatusLine().getStatusCode();
 
 			//Display status code
 			while (result == 302) {//redirected
 
-				String locationRedir = httpget.getResponseHeader("location").getValue();
+				String locationRedir = response.getFirstHeader("location").getValue();
 				LOGGER.debug("Redirection URL :"+locationRedir);
-				httpget.releaseConnection();
+				//httpget.releaseConnection();
+				response.close();
 
 				MyUrl myNewUrl = new MyUrl(locationRedir);
 				myNewUrl.setHttpParams(formater.getMyUrl().getHttpParams());
 				httpget = this.getRequestMethod(myNewUrl);
-				result = httpcx.executeMethod(httpget);
+				response = httpcx.execute(httpget);
 			}
+			
 
 			if (result != 200) {
 				throw new HttpException("Service Error "+result+" for "+formater.getUrl());
@@ -237,23 +259,23 @@ public abstract class HttpSource {
 			} else {
 
 				InputStream in;
-				if (
-						httpget.getResponseHeader("Content-Encoding") != null && "gzip".contains(httpget.getResponseHeader("Content-Encoding").getValue()) ||
-						httpget.getResponseHeader("Content-Type") != null && "application/x-gzip".equals(httpget.getResponseHeader("Content-Type").getValue())
-						) {
-					in = new GZIPInputStream(httpget.getResponseBodyAsStream());
+				Header contentEncodingHeader = response.getFirstHeader("Content-Encoding");
+				Header contentEncodingType = response.getFirstHeader("Content-Type");
+				if (contentEncodingHeader != null && "gzip".contains(contentEncodingHeader.getValue()) ||
+					contentEncodingType != null && "application/x-gzip".equals(contentEncodingType.getValue())) {//gzip
+					in = new GZIPInputStream(response.getEntity().getContent());
 				}
-
-				else {
-					if (
-							httpget.getResponseHeader("Content-Type") != null && "application/x-zip-compressed".equals(httpget.getResponseHeader("Content-Type").getValue())
-							) {
-						in = new ZipInputStream(httpget.getResponseBodyAsStream());
-						((ZipInputStream) in).getNextEntry();
-					}
-					else {
-						in = httpget.getResponseBodyAsStream();
-					}
+				else if (contentEncodingType != null && "application/x-zip-compressed".equals(contentEncodingType.getValue())) {//zip
+					in = new ZipInputStream(response.getEntity().getContent());
+					((ZipInputStream) in).getNextEntry();
+				} 
+				else if (contentEncodingType != null && 
+						("application/vnd.ms-excel".equals(contentEncodingType.getValue()) || 
+						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentEncodingType.getValue()))) {//xlsx
+					in = new XlsxInputStream(response.getEntity().getContent());
+				}
+				else {//html or txt
+					in = response.getEntity().getContent();
 				}
 
 				BufferedReader dis = new BufferedReader(new InputStreamReader(in,"ISO-8859-15"));
@@ -292,7 +314,7 @@ public abstract class HttpSource {
 								
 								LOGGER.debug("Ignoring line :" + line);
 								LOGGER.trace(e);
-								otherExcpetions.add(e);
+								otherExeptions.add(e);
 								
 							}
 						}
@@ -301,21 +323,21 @@ public abstract class HttpSource {
 				} finally {
 					dis.close();
 				}
-
 			}
 
 		} finally {
-			httpget.releaseConnection();
+			//httpget.releaseConnection();
+			response.close();
 		}
 		
-		if (!otherExcpetions.isEmpty() && resultSet.isEmpty()) {
-			throw new IOException("Error(s) while parsing Url " + formater.getUrl() + " : "+ otherExcpetions );
+		if (!otherExeptions.isEmpty() && resultSet.isEmpty()) {
+			throw new IOException("Error(s) while parsing Url " + formater.getUrl() + " : "+ otherExeptions );
 		}
 				
 		return resultSet;
 	}
 
-	protected abstract HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException;
+	protected abstract HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException;
 
 	public abstract MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay);
 	

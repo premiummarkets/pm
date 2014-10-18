@@ -29,14 +29,15 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Market;
 
 public class Indice implements Comparable<Indice> {
 	
-	
+	private static MyLogger LOGGER = MyLogger.getLogger(Indice.class);
 	
 	private String name;
 	private Market market;
@@ -53,7 +54,7 @@ public class Indice implements Comparable<Indice> {
 		this.market = Market.valueOf(market);
 	}
 	
-	public static String formatSet(Set<Indice> indices) {
+	public static String formatSet(SortedSet<Indice> indices) {
 		String extention = "";
 		for (Indice indice : indices) {
 			extention = extention+","+indice.getName()+":"+indice.getMarket();
@@ -61,15 +62,19 @@ public class Indice implements Comparable<Indice> {
 		return extention;
 	}
 	
-	public static Set<Indice> parseString(String yahooIndices) {
-		Set<Indice> listIndice = new TreeSet<Indice>();
+	public static SortedSet<Indice> parseString(String yahooIndices) {
+		SortedSet<Indice> listIndice = new TreeSet<Indice>();
 		if (yahooIndices.isEmpty()) return listIndice;
 		
 		String[] indices = yahooIndices.split(",");
 		for (String indice : indices) {
-			String[] indiceElems = indice.split(":");
-			if (indiceElems.length == 2) {
-				listIndice.add(new Indice(indiceElems[0],indiceElems[1]));
+			try {
+				String[] indiceElems = indice.split(":");
+				if (indiceElems.length == 2) {
+					listIndice.add(new Indice(indiceElems[0], indiceElems[1]));
+				}
+			} catch (Exception e) {
+				LOGGER.warn("Invalid index : " + indice + ". " + e);
 			}
 		}
 		return listIndice;
@@ -77,7 +82,7 @@ public class Indice implements Comparable<Indice> {
 
 	public static void addIndicesToProvider(Providers providersYahooIndex, String... indices) {
 		for (int i=0; i < indices.length; i= i+2) {
-			providersYahooIndex.addIndice(new Indice(indices[i],indices[i+1]));
+			providersYahooIndex.addIndice(new Indice(indices[i], indices[i+1]));
 		}
 	}
 

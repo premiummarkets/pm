@@ -29,18 +29,13 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import org.apache.commons.httpclient.HttpException;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.threads.MyHttpClient;
-import com.finance.pms.threads.SimpleHttpClient;
 
 public class HttpSourceBSEMarket extends HttpSourceMarket {
 	
@@ -51,10 +46,6 @@ public class HttpSourceBSEMarket extends HttpSourceMarket {
 		super(pathToprops, beanFactory);
 	}
 
-	@Override
-	protected MyHttpClient myHttpConnect() throws HttpException, IOException {
-		return new SimpleHttpClient();
-	}
 
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {

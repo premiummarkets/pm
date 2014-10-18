@@ -45,23 +45,14 @@ public enum ProvidersTypes {
 	ASX ("asx","ASX"),
 	BSE ("bse","BSE"),
 	GOOGLE ("google","Google"),
-	NSEINDICES ("nseIndices","NseIndices"), 
+	NSEINDIAINDICES ("nseIndiaIndices","NseIndiaIndices"), 
 	YAHOOINDICES ("yahooindex","YahooIndex"), 
 	ALLMARKETS ("allmarkets","AllMarkets"), 
 	INVESTIR("investir","Investir"),
 	INFLATION("inflation","Inflation"),
 	CURRENCY("currency","Currency");
 	
-	
-	private String className;
-	
-	
 	private ProvidersTypes(String cmdParam, String className) {
-		this.className = className;
 	}
 	
-	public String getClassName() {
-		return className;
-	}
-
 }

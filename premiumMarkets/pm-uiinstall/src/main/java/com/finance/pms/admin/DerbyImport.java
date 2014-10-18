@@ -35,9 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class DerbyImport {
-	/**
-	 * @param args
-	 */
+
 	public static void main(String[] args) {
 		DerbyImport derbyImport = new DerbyImport();
 		derbyImport.importDB();

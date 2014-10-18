@@ -35,8 +35,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Observable;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.currency.CurrencyRate;
@@ -47,7 +48,7 @@ import com.finance.pms.datasources.web.formaters.CurrencyXRatesDailyFormater;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public class IterativeRequestFetcher implements ExchangeRatesFetcher {
+public class IterativeRequestFetcher extends Observable implements ExchangeRatesFetcher {
 	
 	private final MyLogger LOGGER = MyLogger.getLogger(IterativeRequestFetcher.class);
 	
@@ -87,9 +88,9 @@ public class IterativeRequestFetcher implements ExchangeRatesFetcher {
 					Date midnightEnd = DateFactory.midnithDate(end);
 					
 					while (currentCal.getTime().before(midnightEnd) || currentCal.getTime().equals(midnightEnd)) {
-						LOGGER.info("Fetching exchange rates : "+httpSource.getXRatesHistoryUrl(currentCal.getTime()));
+						LOGGER.guiInfo("Fetching exchange rates : "+httpSource.getXRatesHistoryUrl(currentCal.getTime()));
 						List<Validatable> readURL = httpSource.readURL(new CurrencyXRatesDailyFormater(fromCurrency, toCurrency, currentCal.getTime(), httpSource.getXRatesHistoryUrl(currentCal.getTime())));
-						LOGGER.info("Found : "+readURL);
+						LOGGER.guiInfo("Found : "+readURL);
 						rates.addAll(readURL);
 						QuotationsFactories.getFactory().incrementDate(currentCal, 1);
 					}

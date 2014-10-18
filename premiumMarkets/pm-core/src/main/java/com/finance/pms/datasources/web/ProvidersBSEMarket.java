@@ -33,9 +33,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.Validatable;
@@ -56,7 +56,6 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 		super();
 		this.httpSource = new HttpSourceBSEMarket(pathToProps, this);
 	}
-	
 
 	@Override
 	protected LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders) {
@@ -129,7 +128,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
 	}

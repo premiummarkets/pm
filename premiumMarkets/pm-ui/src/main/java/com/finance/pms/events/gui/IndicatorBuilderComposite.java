@@ -335,7 +335,5 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		}
 		
 	}
-		
-	
 
 }

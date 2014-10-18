@@ -583,7 +583,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 							// End Windos fix
 
 							Set<ShareListInfo> shareLists = new HashSet<ShareListInfo>();
-							for (String shareListName : PortfolioMgr.getInstance().getPortfolioDAO().loadShareListNames()) {
+							for (String shareListName : PortfolioMgr.getInstance().getPortfolioDAO().loadValidShareListNames()) {
 								shareLists.add(new ShareListInfo(shareListName));
 							}
 
@@ -752,7 +752,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 							taskIds.add(TaskId.Clean);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
-							initRefreshAction();
 							super.widgetSelected(evt);
 						}
 					};
@@ -777,7 +776,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 							taskIds.add(TaskId.Clean);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
-							initRefreshAction();
 							super.widgetSelected(evt);
 						}
 					};
@@ -799,7 +797,6 @@ public class EventsComposite extends Composite implements RefreshableView {
 							taskIds.add(TaskId.Clean);
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
-							initRefreshAction();
 							super.widgetSelected(evt);
 						}
 					};

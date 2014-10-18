@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -129,7 +129,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			
 		} else {
 			List<Validatable> listReq = new ArrayList<Validatable>();
-			if (!stockList.contains(stock)) { // not already in base	
+			if (!stockList.contains(stock)) { //not already in base	
 				
 				//check for last former quotation
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
@@ -340,6 +340,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		
 		
 		return new StockList(existingSharesList.toStocksSet());
+		
 	}
 
 	private boolean supplementRequiered(final Stock stockWeb) {
@@ -354,7 +355,6 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 	protected abstract LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders);
 
-	
 	protected abstract Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException;
 
 	public abstract void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock);

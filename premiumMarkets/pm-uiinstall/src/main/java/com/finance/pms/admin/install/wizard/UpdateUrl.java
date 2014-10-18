@@ -202,23 +202,6 @@ public class UpdateUrl extends JPanel {
     
 	private void runLatest() {
 		
-//		try {
-//			String params[];
-//			params = new String[] {
-//					System.getProperty("java.home")+File.separator+"bin"+File.separator+"javaws",
-//					"http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp/download"};
-//			Process process = Runtime.getRuntime().exec(params);
-//			String line = null;
-//			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//			while ((line = input.readLine()) != null) {
-//				System.out.println(line);
-//			}
-//					
-//		} catch (MalformedURLException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
 		 try {
 			 
 			 String siteUrl = "none.com";
@@ -236,6 +219,7 @@ public class UpdateUrl extends JPanel {
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
+		 
 	}
     
     private ImageIcon getImageIcon() {

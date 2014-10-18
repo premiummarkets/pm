@@ -44,8 +44,8 @@ public class DonePanelDescriptor extends WizardPanelDescriptor {
     
     public static final String IDENTIFIER = "DONE_PANEL";
     DonePanel panel3;
-    
-    public DonePanelDescriptor() {
+	
+    public DonePanelDescriptor(MyWizard wizard) {
         
         panel3 = new DonePanel();
         setPanelDescriptorIdentifier(IDENTIFIER);
@@ -69,12 +69,12 @@ public class DonePanelDescriptor extends WizardPanelDescriptor {
     	SystemTypes systemType = Install.systemType;
     	if (systemType == null) systemType = SystemTypes.WINDOWS;
     	
-		String installDir = InstallFolderPanel.getPmFolder().getAbsolutePath() + File.separator + "shell";
+		String installDir = InstallFolderPanel.getInstallFolder().getAbsolutePath() + File.separator + "shell";
 		String guiShell = installDir + File.separator + "gui" + systemType.getShext();
 	
 
 		String osSpecAdvice = "<html>I believe you are running a "+systemType+" OS.<br /><br />";
-		osSpecAdvice = osSpecAdvice +"If Premium Markets doesn't start and to launch it again (NB. You may want to be patient at first launch) :<br />";
+		osSpecAdvice = osSpecAdvice +"If "+Install.APP_NAME+" doesn't start and to launch it again (NB. You may want to be patient at first launch) :<br />";
 		
 		osSpecAdvice = osSpecAdvice +"<ul>";
 		if (systemType.equals(SystemTypes.WINDOWS)) {
@@ -86,13 +86,13 @@ public class DonePanelDescriptor extends WizardPanelDescriptor {
 			osSpecAdvice = osSpecAdvice + "<li>The "+systemType.getSdescr()+" for starting the application is : <br />\t"+guiShell+"</li>";
 			osSpecAdvice = osSpecAdvice + "<li>You may first want to check that the "+systemType.getSdescr()+" 'gui" + systemType.getShext()+"' has execution rights properly set up.</li>";
 		}
-		osSpecAdvice = osSpecAdvice + "<li>Make sure that Premium Markets is not already running. Quit and kill any instances.</li>";
+		osSpecAdvice = osSpecAdvice + "<li>Make sure that "+Install.APP_NAME+" is not already running. Quit and kill any instances.</li>";
 		osSpecAdvice = osSpecAdvice + "<li>Then double click on : gui" + systemType.getShext()+"</li>";
-		osSpecAdvice = osSpecAdvice + "<li>Alternatively, Premium Markets can also be run from a terminal or prompt, using the command line.</li>";
+		osSpecAdvice = osSpecAdvice + "<li>Alternatively, "+Install.APP_NAME+" can also be run from a terminal or prompt, using the command line.</li>";
 		osSpecAdvice = osSpecAdvice + "<ul>";
 		
 		osSpecAdvice = osSpecAdvice + "<br />Now you can click the 'Finish' button below.";
-		osSpecAdvice = osSpecAdvice +"<br /><br /><br />\t\t\tThank you for using Premium Markets.</html>";
+		osSpecAdvice = osSpecAdvice +"<br /><br /><br />\t\t\tThank you for using "+Install.APP_NAME+".</html>";
 		
 		panel3.endInstallTxt.setText(osSpecAdvice);
 		

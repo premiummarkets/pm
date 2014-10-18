@@ -30,7 +30,6 @@
 package com.finance.pms.events.scoring.dto;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -72,7 +71,7 @@ public class TuningResDTO implements Serializable {
 	
 	}
 
-	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, String lastTrend, Double followProfit, Double stopLossProfit, BigDecimal stockPriceChange, Date calculatedStart, Date calculatedEnd) {
+	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, String lastTrend, Double followProfit, Double stopLossProfit, Double stockPriceChange, Date calculatedStart, Date calculatedEnd) {
 		super();
 		this.calculatedStart = calculatedStart;
 		this.calculatedEnd = calculatedEnd;
@@ -82,7 +81,7 @@ public class TuningResDTO implements Serializable {
 		this.lastTrend = lastTrend;
 		this.followProfit = followProfit;
 		this.stopLossProfit = stopLossProfit;
-		this.stockPriceChange = stockPriceChange.doubleValue();
+		this.stockPriceChange = stockPriceChange;
 	}
 	
 	public Double getStockPriceChange() {

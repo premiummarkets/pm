@@ -41,6 +41,7 @@ import java.util.Observer;
 
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.Display;
 
 import com.finance.pms.AudioPlayer;
 import com.finance.pms.RefreshableView;
@@ -61,7 +62,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 	private static MyLogger LOGGER = MyLogger.getLogger(EventRefreshController.class);
 	
 	protected EventModel<? extends EventModelStrategyEngine<?>, ?> eventModel;
-	private RefreshableView view;
+	protected RefreshableView view;
 	Config config;
 	
 	private Date currentDate;
@@ -84,11 +85,13 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 	
 	@Override
 	public void widgetDefaultSelected(SelectionEvent arg0) {
+		view.initRefreshAction();
 		this.refreshAction(view.getAnalysisStartDate(), view.getAnalysisEndDate());
 	}
 
 	@Override
 	public void widgetSelected(SelectionEvent arg0) {
+		view.initRefreshAction();
 		this.refreshAction(view.getAnalysisStartDate(), view.getAnalysisEndDate());
 	}
 	
@@ -278,7 +281,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 							}
 
 							//Update potential registered view when finished
-							view.getDisplay().asyncExec(new Runnable() {
+							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
 									view.endRefreshAction(exceptions);
 								}

@@ -137,27 +137,26 @@ public class MainGui extends SashForm implements RefreshableView {
 	private MenuItem refreshStockListMenuItem;
 	private MenuItem refreshRecommendationsMenuItem;
 
-	private MenuItem quotationMenuItem;
+	protected MenuItem quotationMenuItem;
 	private MenuItem refreshAllPortfoliosQuotationsMenuItem;
 	private MenuItem refreshMonitoredQuotationsMenuItem;
 
 	private MenuItem eventsMenuItem;
-	private Menu eventsSubMenu;
+	protected Menu eventsSubMenu;
 	public static MenuItem viewEventsMenuItem;
 	private OperationBuilderDialog builderDialog;
 	
 	private  MenuItem portfolioMenuItem;
-	public static Menu portfolioSubMenu;
+	public   Menu portfolioSubMenu;
 	private MenuItem viewPortfolioMenuItem;
 	
-	public static Menu chartSubMenu;
+	public Menu chartSubMenu;
 	
 	private MenuItem fileMenuItem;
-	private Menu fileSubMenu;
+	protected Menu fileSubMenu;
 	private MenuItem exitMenuItem;
-	
-	
-	private static String dbfile;
+
+	private String dbfile;
 	
 	public static Font DEFAULTFONT;
 	public static Font CONTENTFONT;
@@ -174,6 +173,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	private EventModel<RefreshPortfolioStrategyEngine, Collection<Stock>> portfolioStocksEventModel;
 	private EventModel<RefreshFourToutStrategyEngine, Object> fourToutStrategyEventModel;
 
+
 	public static Color eVENTS_LIGHT;
 	public static Color eVENTS_DARKER;
 	public static Color cHART_LIGHT;
@@ -184,12 +184,18 @@ public class MainGui extends SashForm implements RefreshableView {
 	public static Color pOPUP_GRP;
 	public static Color tAB_SELECTION;
 
+	public static String APP_NAME;
+
 	public MainGui(Composite parent, String dbFilePath) {
 		
 		super(parent, SWT.VERTICAL);
 		this.setLayout(new FillLayout()); 
 		
-		MainGui.dbfile = dbFilePath;
+		dbfile = dbFilePath;
+		
+		setupAppName();
+		setupAppDefaultFont(getDisplay(), getShell());
+		setupAppDefaultColors(getDisplay());
 		
 		ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
@@ -222,7 +228,8 @@ public class MainGui extends SashForm implements RefreshableView {
 					String currentBuild = pbuild.getProperty("application.buildtime");
 					Date currentBuildDate = buildDateFormat.parse(currentBuild); //2009/08/31 12:54:39 BST
 
-					URL sourceforge = new URL("http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp");
+					String jnlpUrl = setupJnlpUrl();
+					URL sourceforge = new URL(jnlpUrl);
 				    URLConnection yc = sourceforge.openConnection();
 				    yc.setReadTimeout(15000);
 				    BufferedReader br = new BufferedReader(new InputStreamReader(yc.getInputStream()));
@@ -266,6 +273,14 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 	}
 	
+	protected String setupJnlpUrl() {
+		return "http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp";
+	}
+
+	protected void setupAppName() {
+		APP_NAME="Premium Markets";
+	}
+	
 	private boolean isObsolete(String line, Matcher fit, Date currentBuildDate) throws ParseException {
 		
 		 DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
@@ -300,7 +315,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			} catch (Exception e1) {
 				LOGGER.warn(e1);
 			}
-			getShell().setText("Premium Markets");
+			getShell().setText(MainGui.APP_NAME);
 			getShell().setFont(MainGui.DEFAULTFONT);
 			this.setBackground(MainGui.eVENTS_DARKER);
 
@@ -317,426 +332,22 @@ public class MainGui extends SashForm implements RefreshableView {
 			{
 				mainMenu = new Menu(getShell(), SWT.BAR);
 				getShell().setMenuBar(mainMenu);
-				{
-					fileMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					fileMenuItem.setText("Premium Markets");
-					FileInputStream exitImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/exit.png"));
-					Image exitImage = new Image(getDisplay(),exitImg);
-					fileMenuItem.setImage(new Image(getDisplay(), exitImage.getImageData()));
-					fileSubMenu = new Menu(fileMenuItem);
-					fileMenuItem.setMenu(fileSubMenu);
-					{
-						MenuItem forecast = new MenuItem(fileSubMenu, SWT.CASCADE);
-						forecast.setText("The Forecast Engine (NEW)");
-						forecast.addSelectionListener(new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent evt) {
-								Program.launch("http://"+siteUrl+"");
-							}
-						});
-					}
-					{
-						MenuItem doc = new MenuItem(fileSubMenu, SWT.CASCADE);
-						doc.setText("Project documentation");
-						doc.addSelectionListener(new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent evt) {
-								Program.launch("http://"+siteUrl+"/html/swtui.html");
-							}
-						});
-					}
-					new MenuItem(fileSubMenu, SWT.SEPARATOR);
-					{
-						MenuItem about = new MenuItem(fileSubMenu, SWT.CASCADE);
-						about.setText("About");
-						about.addSelectionListener(new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent evt) {
-								try {
-									Properties pbuild = new Properties();
-									pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
-									UserDialog dialog = new UserDialog(getShell(),"Premium Markets is an automated stock market analysis system.\n"+
-									"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
-									"See the new Premium Markets FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
-									"\nPremium Markets\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
-									dialog.open();				
-									
-								} catch (IOException e) {
-									LOGGER.debug(e);
-								}
-							}
-						});
-					}
-					new MenuItem(fileSubMenu, SWT.SEPARATOR);
-					{
-						exitMenuItem = new MenuItem(fileSubMenu, SWT.CASCADE);
-						exitMenuItem.setText("Exit");
-						exitMenuItem.addSelectionListener(new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent evt) {
-								closeButtonMouseDown(evt);
-							}
-						});
-					}
-				}
-				{
-					stockMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					stockMenuItem.setText("Stocks and Markets");
-					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
-					stockMenuItem.setImage(new Image(getDisplay(),portImg));
-					{
-						Menu stockSubMenu = new Menu(stockMenuItem);
-						{
-							refreshStockListMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
-							refreshStockListMenuItem.setText("Add or Update a set of stocks ...");
-							refreshStockListMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								
-								private void superwidgetSelected() {
-									super.widgetSelected(null);
-								}
-								
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									
-									final ShareListUpdateDialog slDialog = new ShareListUpdateDialog(getShell());
-									ActionDialogAction actionDialogAction = new ActionDialogAction() {
-										
-										@Override
-										public void action(Control targetControl) {
-											
-											Providers provider = slDialog.getProvider();
-											if (provider != null && slDialog.getIsOk()) {
-												
-												allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerShareListName(provider))}));
-												LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-												allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
-												updateEventRefreshModelState(0l, TaskId.FetchLists);
-												initRefreshAction();
-												superwidgetSelected();
-
-											}
-										}
-									};
-									ActionDialogAction refreshAction = new ActionDialogAction() {
-
-										@Override
-										public void action(Control targetControl) {
-											Runnable runnable = new Runnable() {
-												public void run() {
-													((PortfolioComposite) MainGui.this.portfolioSash()).refreshView(new ArrayList<Exception>());
-												}
-											};
-											getDisplay().asyncExec(runnable);
-										}
-										
-									};
-									
-									slDialog.setAction(actionDialogAction);
-									slDialog.setRefreshAction(refreshAction);
-									slDialog.open();
-							
-								}
-							});
-						}
-						{
-							refreshRecommendationsMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
-							refreshRecommendationsMenuItem.setText("Update web recommendations and advice download for your existing stock lists.");
-							refreshRecommendationsMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									
-									refreshRecommendationsMenuItem.addSelectionListener(new SelectionAdapter() {
-										@Override
-										public void widgetSelected(SelectionEvent evt) {
-											ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
-													"Web recommendation and advice feature is not available in this open source version.\n"+ 
-															"This feature is part of the advanced version including Premium Markets Forecast engine.\n",
-															null,
-															"Click here for more information and a workable demo",
-													new ActionDialogAction() {
-	
-														@Override
-														public void action(Control targetControl) {
-															Program.launch("http://"+siteUrl);
-													}
-											});
-										  actionDialog.open();
-										}
-									});
-								}
-							});
-							refreshRecommendationsMenuItem.setEnabled(true);
-						}
-						stockMenuItem.setMenu(stockSubMenu);
-					}
-				}
-				{
-					portfolioMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					portfolioMenuItem.setText("Portfolios");
-					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
-					portfolioMenuItem.setImage(new Image(getDisplay(),portImg));
-					{
-						portfolioSubMenu = new Menu(portfolioMenuItem);
-						portfolioMenuItem.setMenu(portfolioSubMenu);
-						{
-							viewPortfolioMenuItem = new MenuItem(portfolioSubMenu, SWT.CHECK);
-							viewPortfolioMenuItem.setText("View");
-							viewPortfolioMenuItem.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									setMainDisplay();
-									MenuItem[] items = portfolioSubMenu.getItems();
-									for (MenuItem menuItem : items) {
-										if (!menuItem.equals(viewPortfolioMenuItem)) menuItem.setEnabled(viewPortfolioMenuItem.getSelection());
-									}
-								}
-							});
-							viewPortfolioMenuItem.setSelection(true);
-						}
-						new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
-						{
-							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("Load Portfolio from GNUCASH 'Advanced Portfolio' HTML export ...");
-							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									
-									final Config evtConfig = ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
-									Runnable runnable = new Runnable() {
-										
-										public void run() {
-											try {
-												ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, evtConfig);
-												Runnable runnable2 = new Runnable() {
-													public void run() {
-														setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-													}
-												};
-												getDisplay().syncExec(runnable2);
-												((PortfolioComposite) portfolioSash()).loadGnucashAdvPortfolio();
-											} finally {
-												Runnable runnable2 = new Runnable() {
-													public void run() {
-														setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-													}
-												};
-												getDisplay().syncExec(runnable2);
-											}
-										}
-									};
-									Thread thread = new Thread(runnable);
-									thread.start();
-								}
-							});	
-						}
-						{
-							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("Create AutoPortfolio from gnucash advanced export ...");
-							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									((PortfolioComposite) portfolioSash()).loadGnucashAdvPortfolioForAutoPortfolio();
-								}
-							});
-							loadPortofolioFromGnuCash.setEnabled(false);
-						}
-						{
-							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("Extract Portfolio transactions ...");
-							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									try {
-										Runnable runnable2 = new Runnable() {
-											public void run() {
-												setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-											}
-										};
-										getDisplay().syncExec(runnable2);
-										((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
-									} finally {
-										Runnable runnable2 = new Runnable() {
-											public void run() {
-												setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-											}
-										};
-										getDisplay().syncExec(runnable2);
-									}
-								}
-							});
-						}
-						{
-							MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
-							loadPortofolioFromGnuCash.setText("Extract and transpose Portfolio transactions ...");
-							loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									try {
-										Runnable runnable2 = new Runnable() {
-											public void run() {
-												setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-											}
-										};
-										getDisplay().syncExec(runnable2);
-										((PortfolioComposite) portfolioSash()).transposePortfolioTransactions();
-									} finally {
-										Runnable runnable2 = new Runnable() {
-											public void run() {
-												setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-											}
-										};
-										getDisplay().syncExec(runnable2);
-									}
-								}
-							});
-						}
-						new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
-					}
-				}
-				{
-					quotationMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					quotationMenuItem.setText("Quotations");
-					FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
-					quotationMenuItem.setImage(new Image(getDisplay(),portImg));
-					{
-						Menu quotationMenu = new Menu(quotationMenuItem);
-						{
-							refreshAllPortfoliosQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshAllPortfoliosQuotationsMenuItem.setText("Update quotations download for all your portfolios"); 
-							refreshAllPortfoliosQuotationsMenuItem.addSelectionListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									portfolioStocksEventModel.setViewParamRoot(null); //reset (should mean all portfolio stocks)
-									portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								}
-							});
-						}
-						{
-							refreshMonitoredQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshMonitoredQuotationsMenuItem.setText("Update quotations download for your monitored shares");
-							refreshMonitoredQuotationsMenuItem.addSelectionListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									monitoredStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								}
-							});
-						}
-						{
-							final MenuItem refreshInflation = new MenuItem(quotationMenu, SWT.CASCADE);
-							refreshInflation.setText("Update Inflation data download (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics)");
-							refreshInflation.addSelectionListener(new EventRefreshController(fourToutStrategyEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-								
-								@Override
-								public void widgetSelected(SelectionEvent evt) {										
-									LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-									
-									fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-									//Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
-									Stock inflationStock = ProvidersInflation.inflationStock();
-									fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
-									
-									this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-									initRefreshAction();
-									super.widgetSelected(evt);
-								
-								}
-							});
-						}
-						quotationMenuItem.setMenu(quotationMenu);
-					}
-				}
-				{
-					MenuItem chartMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					chartMenuItem.setText("Charts");
-					FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/chart.png"));
-					chartMenuItem.setImage(new Image(getDisplay(), bellImg));	
-					{
-						chartSubMenu = new Menu(chartMenuItem);
-						chartMenuItem.setMenu(chartSubMenu);
-					}
-				}
-				{
-					eventsMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
-					eventsMenuItem.setText("Events");
-					FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/bell.png"));
-					eventsMenuItem.setImage(new Image(getDisplay(), bellImg));
-					{
-						eventsSubMenu = new Menu(eventsMenuItem);
-						eventsMenuItem.setMenu(eventsSubMenu);
-						{
-							viewEventsMenuItem = new MenuItem(eventsSubMenu, SWT.CHECK);
-							viewEventsMenuItem.setText("View");
-							viewEventsMenuItem.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									setMainDisplay();
-								}
-							});
-						}
-						new MenuItem(eventsSubMenu, SWT.SEPARATOR);
-						{
-							MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
-							eventClean.setText("Customise and Create calculators ...");
-							eventClean.addSelectionListener(new SelectionAdapter() {
-
-								@Override
-								public void widgetSelected(SelectionEvent e) {
-									if (builderDialog == null || builderDialog.getShell() == null || builderDialog.getShell().isDisposed()) {
-										builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
-										builderDialog.open(null, 0);
-									} else {
-										builderDialog.getShell().setVisible(true);
-										builderDialog.getShell().setActive();
-										builderDialog.getShell().setFocus();
-									}
-								}
-								
-							});
-						}
-						new MenuItem(eventsSubMenu, SWT.SEPARATOR);
-						{
-							MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
-							eventClean.setText("Clear All previous calculations");
-							eventClean.addSelectionListener(clearPreviousCalculationsControler());
-						}
-						{
-							MenuItem eventForecast = new MenuItem(eventsSubMenu, SWT.CASCADE);
-							eventForecast.setText("Run a forecast based on technical analysis");
-							eventForecast.addSelectionListener(new SelectionAdapter() {
-								@Override
-								public void widgetSelected(SelectionEvent evt) {
-									ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
-											"Running a neural network forecast on technical analysis is not available in this version.\n"+
-											"This feature is part of the advanced version including Premium Markets Forecast engine.\n", 
-											null,
-											"Click here for more information and a workable demo",
-											new ActionDialogAction() {
-
-										@Override
-										public void action(Control targetControl) {
-											Program.launch("http://"+siteUrl);
-
-										}
-									});
-									actionDialog.open();
-								}
-							});
-						}
-					}
-				}
+				menuFile();
+				menuStocksAndMarkets();
+				menuPortfolio();
+				menuQuotations();
+				menuCharts();
+				menuEvents();
+				
 				{
 					settingsSubMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 					settingsSubMenuItem.setText("Settings");
-					FileInputStream toolImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/tool.png"));
-					settingsSubMenuItem.setImage(new Image(getDisplay(),toolImg));
+					try {
+						FileInputStream toolImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/tool.png"));
+						settingsSubMenuItem.setImage(new Image(getDisplay(),toolImg));
+					} catch (Exception e) {
+						LOGGER.warn(e);
+					}
 					{
 						settingsSubMenu = new Menu(settingsSubMenuItem);
 						new MenuItem(settingsSubMenu, SWT.SEPARATOR);
@@ -758,11 +369,539 @@ public class MainGui extends SashForm implements RefreshableView {
 						settingsSubMenuItem.setMenu(settingsSubMenu);
 					}
 				}
+				
 			}
 
 			this.layout();
 		} catch (Exception e) {
 			LOGGER.error("",e);
+		}
+	}
+
+	protected void menuEvents() throws FileNotFoundException {
+		menuEventsInit();
+		new MenuItem(eventsSubMenu, SWT.SEPARATOR);
+		menuEventsCreateCalculators();
+		menuEventsClearEvents();
+		menuEventsForecast();
+	}
+
+	protected void menuEventsInit() {
+		eventsMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+		eventsMenuItem.setText("Events");
+		try {
+			FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/bell.png"));
+			eventsMenuItem.setImage(new Image(getDisplay(), bellImg));
+		} catch (Exception e) {
+			LOGGER.warn(e);
+		}
+		eventsSubMenu = new Menu(eventsMenuItem);
+		eventsMenuItem.setMenu(eventsSubMenu);
+		{
+			viewEventsMenuItem = new MenuItem(eventsSubMenu, SWT.CHECK);
+			viewEventsMenuItem.setText("View");
+			viewEventsMenuItem.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					setMainDisplay();
+				}
+			});
+		}
+	}
+
+	protected void menuEventsForecast() {
+		{
+			MenuItem eventForecast = new MenuItem(eventsSubMenu, SWT.CASCADE);
+			eventForecast.setText("Run a forecast based on technical analysis");
+			eventForecast.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
+							"Running a neural network forecast on technical analysis is not available in this version.\n"+
+							"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n", 
+							null,
+							"Click here for more information and a workable demo",
+							new ActionDialogAction() {
+
+								@Override
+								public void action(Control targetControl) {
+									Program.launch("http://"+siteUrl);
+		
+							}
+					});
+					actionDialog.open();
+				}
+			});
+		}
+	}
+
+	protected void menuEventsClearEvents() {
+		new MenuItem(eventsSubMenu, SWT.SEPARATOR);
+		{
+			MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
+			eventClean.setText("Clear All previous calculations");
+			eventClean.addSelectionListener(clearPreviousCalculationsControler());
+		}
+	}
+
+	protected void menuEventsCreateCalculators() {
+		{
+			MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
+			eventClean.setText("Customise and Create calculators ...");
+			eventClean.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					if (builderDialog == null || builderDialog.getShell() == null || builderDialog.getShell().isDisposed()) {
+						builderDialog = new OperationBuilderDialog(getShell(), MainGui.this);
+						builderDialog.open(null, 0);
+					} else {
+						builderDialog.getShell().setVisible(true);
+						builderDialog.getShell().setActive();
+						builderDialog.getShell().setFocus();
+					}
+				}
+				
+			});
+		}
+	}
+
+	protected void menuCharts() throws FileNotFoundException {
+		{
+			MenuItem chartMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+			chartMenuItem.setText("Charts");
+			try {
+				FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/chart.png"));
+				chartMenuItem.setImage(new Image(getDisplay(), bellImg));
+			} catch (Exception e) {
+				LOGGER.warn(e);
+			}	
+			{
+				chartSubMenu = new Menu(chartMenuItem);
+				chartMenuItem.setMenu(chartSubMenu);
+			}
+		}
+	}
+
+	protected void menuQuotations() throws FileNotFoundException {
+		Menu quotationMenu = menuQuotationsInit();
+		menuQuotationsUpdate(quotationMenu);
+		menuQuotationsUpdateMonitored(quotationMenu);
+		menuQuotationsUpdateInflation(quotationMenu);
+		quotationMenuItem.setMenu(quotationMenu);
+	}
+
+	protected Menu menuQuotationsInit() {
+		quotationMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+		quotationMenuItem.setText("Quotations");
+		try {
+			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+			quotationMenuItem.setImage(new Image(getDisplay(), portImg));
+		} catch (Exception e) {
+			LOGGER.warn(e);
+		}
+		Menu quotationMenu = new Menu(quotationMenuItem);
+		quotationMenuItem.setMenu(quotationMenu);
+		return quotationMenu;
+	}
+
+	protected void menuQuotationsUpdateInflation(Menu quotationMenu) {
+		{
+			final MenuItem refreshInflation = new MenuItem(quotationMenu, SWT.CASCADE);
+			refreshInflation.setText("Update Inflation data download (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics)");
+			refreshInflation.addSelectionListener(new EventRefreshController(fourToutStrategyEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				
+				@Override
+				public void widgetSelected(SelectionEvent evt) {										
+					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+					
+					fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+					//Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
+					Stock inflationStock = ProvidersInflation.inflationStock();
+					fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
+					
+					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
+					super.widgetSelected(evt);
+				
+				}
+			});
+		}
+	}
+
+	protected void menuQuotationsUpdateMonitored(Menu quotationMenu) {
+		{
+			refreshMonitoredQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
+			refreshMonitoredQuotationsMenuItem.setText("Update quotations download for your monitored shares");
+			refreshMonitoredQuotationsMenuItem.addSelectionListener(new EventRefreshController(monitoredStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+					monitoredStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
+					super.widgetSelected(evt);
+				}
+			});
+		}
+	}
+
+	protected void menuQuotationsUpdate(Menu quotationMenu) {
+		{
+			refreshAllPortfoliosQuotationsMenuItem = new MenuItem(quotationMenu, SWT.CASCADE);
+			refreshAllPortfoliosQuotationsMenuItem.setText("Update quotations download for all your portfolios"); 
+			refreshAllPortfoliosQuotationsMenuItem.addSelectionListener(new EventRefreshController(portfolioStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+					portfolioStocksEventModel.setViewParamRoot(null); //reset (should mean all portfolio stocks)
+					portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
+					super.widgetSelected(evt);
+				}
+			});
+		}
+	}
+
+	protected void menuPortfolio() throws FileNotFoundException {
+		menuPortfolioInit();
+		new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
+		menuPortfolioGnucashImport();
+		menuPortfolioAdvancedPortfolio();
+		menuPortfolioExtractTransactions();
+		menuPortfolioTransposeTransactions();
+		new MenuItem(portfolioSubMenu, SWT.SEPARATOR);
+	}
+
+	protected void menuPortfolioInit() {
+		
+		portfolioMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+		portfolioMenuItem.setText("Portfolios");
+		try {
+			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+			portfolioMenuItem.setImage(new Image(getDisplay(),portImg));
+		} catch (Exception e) {
+			LOGGER.warn(e);
+		}
+		portfolioSubMenu = new Menu(portfolioMenuItem);
+		portfolioMenuItem.setMenu(portfolioSubMenu);
+		{
+			viewPortfolioMenuItem = new MenuItem(portfolioSubMenu, SWT.CHECK);
+			viewPortfolioMenuItem.setText("View");
+			viewPortfolioMenuItem.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					setMainDisplay();
+					MenuItem[] items = portfolioSubMenu.getItems();
+					for (MenuItem menuItem : items) {
+						if (!menuItem.equals(viewPortfolioMenuItem)) menuItem.setEnabled(viewPortfolioMenuItem.getSelection());
+					}
+				}
+			});
+			viewPortfolioMenuItem.setSelection(true);
+		}
+		
+	}
+
+	protected void menuPortfolioTransposeTransactions() {
+		{
+			MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
+			loadPortofolioFromGnuCash.setText("Extract and transpose Portfolio transactions ...");
+			loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					try {
+						Runnable runnable2 = new Runnable() {
+							public void run() {
+								setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							}
+						};
+						getDisplay().syncExec(runnable2);
+						((PortfolioComposite) portfolioSash()).transposePortfolioTransactions();
+					} finally {
+						Runnable runnable2 = new Runnable() {
+							public void run() {
+								setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							}
+						};
+						getDisplay().syncExec(runnable2);
+					}
+				}
+			});
+		}
+	}
+
+	protected void menuPortfolioExtractTransactions() {
+		{
+			MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
+			loadPortofolioFromGnuCash.setText("Extract Portfolio transactions ...");
+			loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					try {
+						Runnable runnable2 = new Runnable() {
+							public void run() {
+								setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							}
+						};
+						getDisplay().syncExec(runnable2);
+						((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
+					} finally {
+						Runnable runnable2 = new Runnable() {
+							public void run() {
+								setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							}
+						};
+						getDisplay().syncExec(runnable2);
+					}
+				}
+			});
+		}
+	}
+
+	protected void menuPortfolioAdvancedPortfolio() {
+		{
+			MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
+			loadPortofolioFromGnuCash.setText("Create AutoPortfolio from gnucash advanced export ...");
+			loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					((PortfolioComposite) portfolioSash()).loadGnucashAdvPortfolioForAutoPortfolio();
+				}
+			});
+			loadPortofolioFromGnuCash.setEnabled(false);
+		}
+	}
+
+	protected void menuPortfolioGnucashImport() {
+		{
+			MenuItem loadPortofolioFromGnuCash = new MenuItem(portfolioSubMenu,SWT.CASCADE);
+			loadPortofolioFromGnuCash.setText("Load Portfolio from GNUCASH 'Advanced Portfolio' HTML export ...");
+			loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					
+					final Config evtConfig = ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
+					Runnable runnable = new Runnable() {
+						
+						public void run() {
+							try {
+								ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, evtConfig);
+								Runnable runnable2 = new Runnable() {
+									public void run() {
+										setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+									}
+								};
+								getDisplay().syncExec(runnable2);
+								((PortfolioComposite) portfolioSash()).loadGnucashAdvPortfolio();
+							} finally {
+								Runnable runnable2 = new Runnable() {
+									public void run() {
+										setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
+								};
+								getDisplay().syncExec(runnable2);
+							}
+						}
+					};
+					Thread thread = new Thread(runnable);
+					thread.start();
+				}
+			});	
+		}
+	}
+
+	protected void menuStocksAndMarkets() throws FileNotFoundException {
+		Menu stockSubMenu = menuStockAndMarkets();
+		menuStocksAndMarketsItemRefreshLists(stockSubMenu);
+		menuStocksAndMarketsRecommendations(stockSubMenu);
+	}
+
+	protected Menu menuStockAndMarkets() {
+		stockMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+		stockMenuItem.setText("Stocks and Markets");
+		try {
+			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+			stockMenuItem.setImage(new Image(getDisplay(), portImg));
+		} catch (Exception e) {
+			LOGGER.warn(e);
+		}
+		Menu stockSubMenu = new Menu(stockMenuItem);
+		stockMenuItem.setMenu(stockSubMenu);
+		return stockSubMenu;
+	}
+
+	protected void menuStocksAndMarketsRecommendations(Menu stockSubMenu) {
+		{
+			refreshRecommendationsMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
+			refreshRecommendationsMenuItem.setText("Update web recommendations and advice download for your existing stock lists.");
+			refreshRecommendationsMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					
+					refreshRecommendationsMenuItem.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent evt) {
+							ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
+									"Web recommendation and advice feature is not available in this open source version.\n"+ 
+											"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n",
+											null,
+											"Click here for more information and a workable demo",
+									new ActionDialogAction() {
+
+										@Override
+										public void action(Control targetControl) {
+											Program.launch("http://"+siteUrl);
+									}
+							});
+						  actionDialog.open();
+						}
+					});
+				}
+			});
+			refreshRecommendationsMenuItem.setEnabled(true);
+		}
+	}
+
+	protected void menuStocksAndMarketsItemRefreshLists(Menu stockSubMenu) {
+		{
+			
+			refreshStockListMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
+			refreshStockListMenuItem.setText("Add or Update stocks ...");
+			refreshStockListMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				
+				private void superwidgetSelected() {
+					super.widgetSelected(null);
+				}
+				
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					
+					final ShareListUpdateDialog slDialog = new ShareListUpdateDialog(getShell(), logComposite);
+					this.view = slDialog;
+					
+					ActionDialogAction actionDialogAction = new ActionDialogAction() {
+						
+						@Override
+						public void action(Control targetControl) {
+							
+							Providers provider = slDialog.getProvider();
+							if (provider != null) {
+								
+								allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerIndicedShareListName(provider))}));
+								LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
+								allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
+								updateEventRefreshModelState(0l, TaskId.FetchLists);
+								superwidgetSelected();
+
+							}
+						}
+					};
+					ActionDialogAction refreshAction = new ActionDialogAction() {
+
+						@Override
+						public void action(Control targetControl) {
+							Runnable runnable = new Runnable() {
+								public void run() {
+									((PortfolioComposite) MainGui.this.portfolioSash()).refreshView(new ArrayList<Exception>());
+								}
+							};
+							getDisplay().asyncExec(runnable);
+						}
+						
+					};
+					
+					slDialog.setAction(actionDialogAction);
+					slDialog.setRefreshAction(refreshAction);
+					slDialog.open();
+			
+				}
+			});
+		}
+	}
+
+	protected void menuFile() throws FileNotFoundException {
+			menuFileInit();
+			menuFileItemMainSite();
+			menuFileItemDoc();
+			new MenuItem(fileSubMenu, SWT.SEPARATOR);
+			menuFileItemAbout();
+			new MenuItem(fileSubMenu, SWT.SEPARATOR);
+			menuFileItemExit();
+	}
+
+	protected void menuFileInit() {
+		fileMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
+		fileMenuItem.setText(MainGui.APP_NAME);
+		try {
+			FileInputStream exitImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/exit.png"));
+			Image exitImage = new Image(getDisplay(), exitImg);
+			fileMenuItem.setImage(new Image(getDisplay(), exitImage.getImageData()));
+		} catch (Exception e) {
+			LOGGER.warn(e);
+		}
+		fileSubMenu = new Menu(fileMenuItem);
+		fileMenuItem.setMenu(fileSubMenu);
+	}
+
+	protected void menuFileItemExit() {
+		{
+			exitMenuItem = new MenuItem(fileSubMenu, SWT.CASCADE);
+			exitMenuItem.setText("Exit");
+			exitMenuItem.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					closeButtonMouseDown(evt);
+				}
+			});
+		}
+	}
+
+	protected void menuFileItemAbout() {
+		{
+			MenuItem about = new MenuItem(fileSubMenu, SWT.CASCADE);
+			about.setText("About");
+			about.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					try {
+						Properties pbuild = new Properties();
+						pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
+						UserDialog dialog = new UserDialog(getShell(),MainGui.APP_NAME+" is an automated stock market analysis system.\n"+
+						"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
+						"See the new "+MainGui.APP_NAME+" FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
+						"\n"+MainGui.APP_NAME+"\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
+						dialog.open();				
+						
+					} catch (IOException e) {
+						LOGGER.debug(e);
+					}
+				}
+			});
+		}
+	}
+
+	protected void menuFileItemDoc() {
+		{
+			MenuItem doc = new MenuItem(fileSubMenu, SWT.CASCADE);
+			doc.setText("Project documentation");
+			doc.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					Program.launch("http://"+siteUrl+"/html/swtui.html");
+				}
+			});
+		}
+	}
+
+	protected void menuFileItemMainSite() {
+		{
+			MenuItem forecast = new MenuItem(fileSubMenu, SWT.CASCADE);
+			forecast.setText("The Forecast Engine");
+			forecast.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					Program.launch("http://"+siteUrl+"");
+				}
+			});
 		}
 	}
 
@@ -777,7 +916,6 @@ public class MainGui extends SashForm implements RefreshableView {
 				allStocksEventModel.setViewParamRoot(null); //null means reset the param. All will be processed
 				allStocksEventModel.setViewParam(0, null);
 				this.updateEventRefreshModelState( 0l, TaskId.Clean);
-				initRefreshAction();
 				super.widgetSelected(evt);
 				
 			}
@@ -788,15 +926,213 @@ public class MainGui extends SashForm implements RefreshableView {
 	public static void main(String[] args) {
 		
 		Display.setAppName("Premium Markets");
+
+		unCaughErrorHandling();
 		
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				System.out.println("____________________Uncaught_________________________ "+e.toString());
-				e.printStackTrace();
+		crossPlateformLookAndFeel();
+		
+		try {
+			
+			prefsSetting();
+			
+			String dbfile = parseArgs(args);
+			
+			springContextInit(dbfile);
+			
+			Display display = Display.getDefault();
+			Shell shell = new Shell(display);
+			shell.setLayout(new FillLayout());
+			
+			MainGui inst = new MainGui(shell, dbfile);
+			
+			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING));
+			
+			shell.layout();
+            shell.pack();            	
+			shell.open();
+			
+            sashesSizes(shell, inst);
+            
+            shell.layout();
+            shell.pack();   
+			
+			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+			
+			postInstanceInit(inst);
+			
+			//Event loop
+			System.out.println("IHM RUNNING"); //Keep this as this is used by the installer
+			while (!shell.isDisposed()) {
+				try {
+					if (!display.readAndDispatch()) display.sleep();
+				} catch (Throwable e) {
+					try {
+						LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
+						inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+						UserDialog dialog = new UserDialog(inst.getShell(),"An Error occurred.", e.getMessage());
+						dialog.open();
+					} catch (Throwable e1) {
+						e1.printStackTrace();
+					}
+				}
 			}
-		});
+			
+		} catch (IllegalArgumentException | IllegalStateException e2) {
+			
+	
+		} catch (Throwable e) {
+			
+			System.out.println("Unhandled error running the ui : "+e);
+			e.printStackTrace();
+			genericSuddenDeathMsg(e);
+			
+		} finally {
+			
+			Runtime.getRuntime().exit(1);
+			
+		}
 		
+	}
+
+	protected static void prefsSetting() {
+		MainPMScmd.getMyPrefs().put("mail.infoalert.activated", MainPMScmd.getMyPrefs().get("quotes.sendeventfromui", "false"));
+	}
+
+	protected static void postInstanceInit(final MainGui inst) {
+		
+		//Post inits
+		//first time update
+		Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
+		if (hintNumber == 0) {
+			LOGGER.info("First run : updating quotes");
+			QuotationUpdate quotationUpdate = new QuotationUpdate();
+			quotationUpdate.getQuotesForAllUserPortfoliosAndMonitored();
+		} else {
+			LOGGER.info("This is not the First run : no quotes update");
+		}
+		
+		Runnable runnable = new Runnable() {
+			public void run() {
+				//load portfolios
+				try {
+
+					((PortfolioComposite) inst.portfolioSash()).updateMoniAndPSCachedModels();
+					((PortfolioComposite) inst.portfolioSash()).tabBuildAllTabs(0, new Observer() {
+						@Override
+						public void update(Observable o, Object arg) {
+							((PortfolioComposite) inst.portfolioSash()).backGroundLoadQuotationCache();
+						}
+					});
+
+					SpringContext.getSingleton().optionalPostInit();
+
+				} catch (Exception e1) {
+					LOGGER.error(e1, e1);
+				}
+			}
+		};
+//		Thread thread = new Thread(runnable);
+//		thread.start();
+		inst.getDisplay().asyncExec(runnable);
+		
+	}
+
+	protected static void sashesSizes(Shell shell, final MainGui inst) {
+		//Shell
+		{
+			Point swtPrefSize = inst.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+			Point myPrefSize = new Point(1024,768);
+			Point maxSize = new Point(shell.getDisplay().getBounds().width*9/10, shell.getDisplay().getBounds().height*9/10);
+			int width = Math.min(Math.max(swtPrefSize.x,myPrefSize.x), maxSize.x);
+			int height =  Math.min(Math.max(swtPrefSize.y,myPrefSize.y), maxSize.y);
+			Rectangle shellBounds = shell.computeTrim(0, 0, width, height); 
+			shell.setSize(shellBounds.width, shellBounds.height); 
+		}
+		
+		//Log
+		{
+			Rectangle mainBounds = shell.getClientArea();
+			
+			Point logPrefSize = inst.logComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+			Point logCompositeSize = inst.logComposite.computeSize(mainBounds.width, Math.max(10,logPrefSize.y));
+			inst.logComposite.setSize(logCompositeSize);
+			Rectangle logBounds = inst.logComposite.getBounds();
+			int xLog = 100*logBounds.height/mainBounds.height +1;
+			if ((100 -xLog) < 97) {
+				xLog=3;
+			}
+			inst.setWeights(new int[]{100-xLog, xLog});
+		}
+		
+		//Portfolio Composite
+		{
+			Rectangle portfolioShashBounds = ((PortfolioComposite)inst.winTable[2]).getClientArea();
+			
+			Point port1PrefSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+			Point port1CompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(port1PrefSize.x, Math.max(50, port1PrefSize.y));
+			((PortfolioComposite) inst.winTable[2]).portfolioInfosGroup.setSize(port1CompositeSize);
+			Rectangle infoBounds = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.getBounds();
+			
+			int x1Port = 100*infoBounds.height/portfolioShashBounds.height + 2;
+			if ((100 -x1Port) < 20) {
+				x1Port=30;
+			}
+			((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-x1Port, x1Port});
+		}
+		
+		//Chart
+		{
+			Rectangle chartShashBounds = ((ChartsComposite)inst.winTable[1]).getClientArea();
+			
+			Point chartPrefSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+			Point chartCompositeSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
+			((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.setSize(chartCompositeSize);
+			Rectangle chartButtonsBounds = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.getBounds();
+			int xChart = 100*chartButtonsBounds.height/chartShashBounds.height;
+			if ((100 -xChart) < 20) {
+				xChart=30;
+			}
+			((ChartsComposite)inst.winTable[1]).setWeights(new int[]{100-xChart, xChart});
+		}
+	}
+
+	protected static String parseArgs(String[] args) {
+		switch (args.length) {
+			case 1 :
+				return args[0];
+		   default :
+		   		LOGGER.info("Usage : MainGui <path>/db.properties");
+		   		throw new IllegalArgumentException();
+		}
+	}
+
+	protected static SpringContext springContextInit(String dbfile) {
+		//Spring Context init		
+		SpringContext ctx = new SpringContext(dbfile);
+		ctx.setMasSource(dbfile,"false");
+		ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
+		try {
+			ctx.refresh();
+		} catch (BeanCreationException e1) {
+			e1.printStackTrace();
+			Frame frame = new JFrame();
+			String report = 
+					"It may be that "+MainGui.APP_NAME+" is already running on this computer. You can run only one instance at a time.\n" +
+					"Make sure to close all other instances before starting a new one.\n" +
+					"If the process is running in the back ground and is not showing in a window, you will have to kill it. \n" +
+					"Use the tools and commands provided by your OS to do so.\n" +
+					"In case you don't know these, I am sorry to say that you will have to either ask someone that does or reboot.";
+			CustomDialog customDialog = new CustomDialog(frame, report, e1.getMostSpecificCause().toString(), "Error Report", false);
+			customDialog.pack();
+			customDialog.setVisible(true);
+			customDialog.dispose();
+			frame.dispose();
+			throw new IllegalStateException();
+		}
+		return ctx;
+	}
+
+	protected static void crossPlateformLookAndFeel() {
 		try {
 			// Set cross-platform Java L&F (also called "Metal")
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -813,171 +1149,16 @@ public class MainGui extends SashForm implements RefreshableView {
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
-		
-		try {
-			
-			MainPMScmd.getMyPrefs().put("mail.infoalert.activated", MainPMScmd.getMyPrefs().get("quotes.sendeventfromui", "false"));
-			
-			switch (args.length) {
-				case 1 :
-					dbfile = args[0];
-					break;
-			   default :
-			   		LOGGER.info("Usage : MainGui <path>/db.properties");
-			   		return;
+	}
+
+	protected static void unCaughErrorHandling() {
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				System.out.println("____________________Uncaught_________________________ "+e.toString());
+				e.printStackTrace();
 			}
-			
-			//Spring Context init		
-			SpringContext ctx = new SpringContext(dbfile);
-			ctx.setMasSource(dbfile,"false");
-			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
-			try {
-				ctx.refresh();
-			} catch (BeanCreationException e1) {
-				e1.printStackTrace();
-				Frame frame = new JFrame();
-				String report = 
-						"It may be that premium Markets is already running on this computer. You can run only one instance at a time.\n" +
-						"Make sure to close all other instances before starting a new one.\n" +
-						"If the process is running in the back ground and is not showing in a window, you will have to kill it. \n" +
-						"Use the tools and commands provided by your OS to do so.\n" +
-						"In case you don't know these, I am sorry to say that you will have to either ask someone that does or reboot.";
-				CustomDialog customDialog = new CustomDialog(frame, report, e1.getMostSpecificCause().toString(), "Error Report", false);
-				customDialog.pack();
-				customDialog.setVisible(true);
-				customDialog.dispose();
-				frame.dispose();
-				return;
-			}
-			
-			Display display = Display.getDefault();
-			Shell shell = new Shell(display);
-			shell.setLayout(new FillLayout());
-			
-			setupAppDefaultFont(display, shell);
-			setupAppDefaultColors(display);
-			
-			final MainGui inst = new MainGui(shell,dbfile);
-			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING));
-			
-			shell.layout();
-            shell.pack();            	
-			shell.open();
-			
-            //Shell
-            {
-				Point swtPrefSize = inst.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-				Point myPrefSize = new Point(1024,768);
-				Point maxSize = new Point(display.getBounds().width*9/10, display.getBounds().height*9/10);
-				int width = Math.min(Math.max(swtPrefSize.x,myPrefSize.x), maxSize.x);
-				int height =  Math.min(Math.max(swtPrefSize.y,myPrefSize.y), maxSize.y);
-				Rectangle shellBounds = shell.computeTrim(0, 0, width, height); 
-				shell.setSize(shellBounds.width, shellBounds.height); 
-            }
-            
-        	//Log
-            {
-				Rectangle mainBounds = shell.getClientArea();
-				
-				Point logPrefSize = inst.logComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-				Point logCompositeSize = inst.logComposite.computeSize(mainBounds.width, Math.max(10,logPrefSize.y));
-				inst.logComposite.setSize(logCompositeSize);
-				Rectangle logBounds = inst.logComposite.getBounds();
-				int xLog = 100*logBounds.height/mainBounds.height +1;
-				if ((100 -xLog) < 97) {
-					xLog=3;
-				}
-				inst.setWeights(new int[]{100-xLog, xLog});
-            }
-			
-			//Portfolio Composite
-            {
-				Rectangle portfolioShashBounds = ((PortfolioComposite)inst.winTable[2]).getClientArea();
-				
-				Point port1PrefSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-				Point port1CompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(port1PrefSize.x, Math.max(50, port1PrefSize.y));
-				((PortfolioComposite) inst.winTable[2]).portfolioInfosGroup.setSize(port1CompositeSize);
-				Rectangle infoBounds = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.getBounds();
-				
-				int x1Port = 100*infoBounds.height/portfolioShashBounds.height + 2;
-				if ((100 -x1Port) < 20) {
-					x1Port=30;
-				}
-				((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-x1Port, x1Port});
-            }
-			
-			//Chart
-            {
-				Rectangle chartShashBounds = ((ChartsComposite)inst.winTable[1]).getClientArea();
-				
-				Point chartPrefSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-				Point chartCompositeSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
-				((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.setSize(chartCompositeSize);
-				Rectangle chartButtonsBounds = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.getBounds();
-				int xChart = 100*chartButtonsBounds.height/chartShashBounds.height;
-				if ((100 -xChart) < 20) {
-					xChart=30;
-				}
-				((ChartsComposite)inst.winTable[1]).setWeights(new int[]{100-xChart, xChart});
-            }
-            
-            shell.layout();
-            shell.pack();   
-			
-			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-			
-			//Post inits
-			//first time update
-			Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
-			if (hintNumber == 0) {
-				LOGGER.info("First run : updating quotes");
-				QuotationUpdate quotationUpdate = new QuotationUpdate();
-				quotationUpdate.getQuotesForAllUserPortfoliosAndMonitored();
-			} else {
-				LOGGER.info("This is not the First run : no quotes update");
-			}
-			//load portfolios
-			try {
-				
-				((PortfolioComposite)inst.portfolioSash()).updateMoniAndPSCachedModels();
-				((PortfolioComposite)inst.portfolioSash()).tabBuildAllTabs(0, new Observer() {
-					@Override
-					public void update(Observable o, Object arg) {
-						((PortfolioComposite)inst.portfolioSash()).backGroundLoadQuotationCache();
-					}
-				});
-				
-				ctx.optionalPostInit();
-				
-			} catch (Exception e1) {
-				LOGGER.error(e1,e1);
-			}
-			
-			//Event loop
-			System.out.println("IHM RUNNING");
-			while (!shell.isDisposed()) {
-				try {
-					if (!display.readAndDispatch()) display.sleep();
-				} catch (Throwable e) {
-					try {
-						LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
-						inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-						UserDialog dialog = new UserDialog(inst.getShell(),"An Error occurred.", e.getMessage());
-						dialog.open();
-					} catch (Throwable e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
-	
-		} catch (Throwable e) {
-			System.out.println("Unhandled error running the ui : "+e);
-			e.printStackTrace();
-			genericSuddenDeathMsg(e);
-		} finally {
-			Runtime.getRuntime().exit(1);
-		}
-		
+		});
 	}
 
 	private static void genericSuddenDeathMsg(Throwable e) {
@@ -988,7 +1169,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				"Double check that the installation has run successfully.\n" +
 				"Check your OS file system attributes and anti viruses as these may prevent the application to fully install.\n" +
 				"If you need to reinstall, it is recommended to install in a new folder fresh and free of any older version.\n" +
-				"Type Premium markets FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
+				"Type "+MainGui.APP_NAME+" FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
 		CustomDialog customDialog = new CustomDialog(frame, report, e.getMessage(), "Error Report", false);
 		customDialog.pack();
 		customDialog.setVisible(true);
@@ -996,7 +1177,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		frame.dispose();
 	}
 
-	private static void setupAppDefaultColors(Display display) {
+	protected void setupAppDefaultColors(Display display) {
 		
 		eVENTS_LIGHT = new Color(display, 229,205,177);
 		eVENTS_DARKER =  new Color(display, 0, 0, 0);
@@ -1014,7 +1195,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		
 	}
 
-	private static void setupAppDefaultFont(Display display, Shell shell) {
+	protected void setupAppDefaultFont(Display display, Shell shell) {
 		
 		if (LOGGER.isTraceEnabled()) {
 			System.out.println("Available fonts :");
@@ -1159,7 +1340,8 @@ public class MainGui extends SashForm implements RefreshableView {
 		if (Desktop.isDesktopSupported() && hintNumber == 0) {
 			
 			desktop = Desktop.getDesktop();
-			String messageHead = "piggymarketsqueak@gmail.com?SUBJECT=You have just been running Premium Markets UI from http://"+siteUrl;
+			String email = setupContactEmail();
+			String messageHead = email+"?SUBJECT=You have just been running "+MainGui.APP_NAME+" UI from http://"+siteUrl;
 			String messageBody = "";
 			String release = "";
 
@@ -1174,11 +1356,11 @@ public class MainGui extends SashForm implements RefreshableView {
 
 			messageBody +=
 					"&BODY=" +
-							"Premium Markets is an open source and a non profitable development work.\n" +
+							MainGui.APP_NAME+" is an open source and a non profitable development work.\n" +
 							"It is also a work in progress that you and others can benefit from for free.\n"+
 							"Hence any suggestions or questions are welcome.\n" +
-							"Thank you for your time using Premium Markets.\n" +
-							"See the new Premium Markets FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n"+
+							"Thank you for your time using "+MainGui.APP_NAME+".\n" +
+							"See the new "+MainGui.APP_NAME+" FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n"+
 							"Regards,\nGuillaume.\n\n\n\n" +
 							"Release reference : "+release+" ... "+hintNumber ; 
 
@@ -1197,6 +1379,10 @@ public class MainGui extends SashForm implements RefreshableView {
 		}   else {
 			LOGGER.info("Desktop mail support is "+Desktop.isDesktopSupported()+" for the "+hintNumber+" time.");
 		}    
+	}
+
+	protected String setupContactEmail() {
+		return "piggymarketsqueak@gmail.com";
 	}
 	
 	private void rootShellClosedRequested(ShellEvent evt) {
@@ -1237,6 +1423,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		}
 	}
 
+	@Override
 	public void initRefreshAction() {
 		
 		setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));

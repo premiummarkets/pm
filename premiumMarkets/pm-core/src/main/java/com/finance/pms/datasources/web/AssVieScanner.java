@@ -34,7 +34,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 

@@ -39,22 +39,20 @@ import com.finance.pms.datasources.web.ProvidersTypes;
  */
 public enum MarketQuotationProviders {
 	
-	DEFAULT (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
-	YAHOO (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(),"yahoo"),
-	GOOGLE (ProvidersTypes.GOOGLE,new GoogleSymbolNameResolver(),"google"),
-	INVESTIR (ProvidersTypes.INVESTIR,new InvestirSymbolNameResolver(),"investir"),
-	INFLATION (ProvidersTypes.INFLATION,new InvestirSymbolNameResolver(),"inflation"),
-	CURRENCY (ProvidersTypes.CURRENCY,new InvestirSymbolNameResolver(),"currency");
+	DEFAULT (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo"),
+	YAHOO (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo"),
+	GOOGLE (ProvidersTypes.GOOGLE, new GoogleSymbolNameResolver(), "google"),
+	INVESTIR (ProvidersTypes.INVESTIR, new InvestirSymbolNameResolver(), "investir"),
+	INFLATION (ProvidersTypes.INFLATION, new InvestirSymbolNameResolver(), "inflation"),
+	CURRENCY (ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency");
 	
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);
 	
 	private SymbolNameResolver symbolNameResolver;
-	private ProvidersTypes providersType;
 	private String cmdParam;
 
 	private MarketQuotationProviders(ProvidersTypes providersType, SymbolNameResolver marketQuotationProviderExtentions, String cmdParam) {
-		this.providersType = providersType;
 		this.symbolNameResolver = marketQuotationProviderExtentions;
 		this.cmdParam = cmdParam;
 	}
@@ -89,10 +87,6 @@ public enum MarketQuotationProviders {
 
 	public String getCmdParam() {
 		return cmdParam;
-	}
-	
-	public ProvidersTypes getProvidersType() {
-		return providersType;
 	}
 
 	public SymbolNameResolver getSymbolNameResolver() {

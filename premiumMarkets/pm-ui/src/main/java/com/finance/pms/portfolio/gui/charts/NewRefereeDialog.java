@@ -89,7 +89,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 		NewRefereeDialog inst = null;
 		try {
 			Shell piShell = new Shell(shell, SWT.DIALOG_TRIM|SWT.RESIZE);
-			piShell.setText("Premium Markets - Referee selection.");
+			piShell.setText(MainGui.APP_NAME+" - Referee selection.");
 			piShell.setFont(MainGui.DEFAULTFONT);
 			piShell.setLayout(new FillLayout(SWT.VERTICAL));
 

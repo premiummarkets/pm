@@ -46,7 +46,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;

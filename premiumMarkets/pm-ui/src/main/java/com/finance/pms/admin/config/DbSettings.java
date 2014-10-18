@@ -45,6 +45,9 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -78,7 +81,7 @@ public class DbSettings extends Dialog {
 	private String pathToProps;
 	
 	private final String[] configTab = { "EMail setting", "Feeds performance and defaults", "Database", "Technical analysis"};
-	private final String[] configtabComment = {
+	private final String[] configTabComment = {
 			"Email setting - Please fill in",
 			"Default quotations provider - Possible values : "+MarketQuotationProviders.YAHOO.getCmdParam()+","+MarketQuotationProviders.INVESTIR.getCmdParam()+","+MarketQuotationProviders.GOOGLE.getCmdParam(),
 			"Internal Data Base parameters - You normally don't have to change this.",
@@ -116,34 +119,49 @@ public class DbSettings extends Dialog {
 	private  List<String> hiddenKeysList = Arrays.asList(hiddenKeys);
 	
 	public static void main(String[] args) throws FileNotFoundException {
-		
-			Display display = Display.getDefault();
-			Shell shell = new Shell(display);
-			DbSettings dbSettings = new DbSettings(shell,"db.properties");
+
+		Display display = Display.getDefault();
+		Shell shell = new Shell(display);
+
+//		MainGui.pOPUP_BG = tintedColor(display, new Color(display, 154, 103, 51), 1/4);
+//		MainGui.pOPUP_GRP = tintedColor(display, MainGui.pOPUP_BG, 1/4);
+		Color brown = new Color(display, 154, 103, 51);
+//		Color green = new Color(display, 58, 101, 49);
+		MainGui.pOPUP_BG = shadedColor(display, brown, 1.10);
+		MainGui.pOPUP_GRP = shadedColor(display, brown, 1.20);
+
+		new DbSettings(shell,"db.properties");
+
+		while (!shell.isDisposed()) {
 			try {
-				dbSettings.initGui();
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
+				if (!shell.getDisplay().readAndDispatch()) shell.getDisplay().sleep();
+			} catch (RuntimeException e) {
+				LOGGER.error("Error in MarketSettings Gui : "+e.getMessage(),e);
+				LOGGER.debug("Error in MarketSettings Gui : ",e);
+			} catch (Error e) {
+				LOGGER.error("Error in  Gui : "+e.getMessage(),e);
+				LOGGER.debug("Error in  Gui : ",e);
 			}
-			
-			while (!shell.isDisposed()) {
-				try {
-					if (!shell.getDisplay().readAndDispatch()) shell.getDisplay().sleep();
-				} catch (RuntimeException e) {
-					LOGGER.error("Error in MarketSettings Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in MarketSettings Gui : ",e);
-				} catch (Error e) {
-					LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-					LOGGER.debug("Error in  Gui : ",e);
-				}
-			}
-			
+		}
+
+	}
+	
+	protected static Color shadedColor(Display display, Color original, double factor) {
+		int red = original.getRed();
+		int green = original.getGreen();
+		int blue = original.getBlue();
+		return new Color(display, (int) (red*factor), (int) (green*factor), (int) (blue*factor));
+	}
+	
+	protected static Color tintedColor(Display display, Color original, double factor) {
+		int red = original.getRed();
+		int green = original.getGreen();
+		int blue = original.getBlue();
+		return new Color(display, red + (int)((255-red)*factor), green + (int)((255-green)*factor), blue + (int)((255-blue)*factor));
 	}
 
 	public DbSettings(Shell parent, String pathToProps) throws FileNotFoundException {
 		
-		//super(new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE));
-		//super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
 		super(new Shell(parent, SWT.SHELL_TRIM));
 		
 		this.pathToProps = pathToProps;
@@ -166,9 +184,7 @@ public class DbSettings extends Dialog {
 
 	private void initGui() throws FileNotFoundException {
 		
-//		FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons"+File.separator+MainGui.ICONNAME));
-//		getParent().setImage(new Image(getParent().getDisplay(),iconImg));
-		getParent().setText("Premium Markets - Settings");
+		getParent().setText(MainGui.APP_NAME+" - Settings");
 		getParent().setBackground(MainGui.pOPUP_BG);
 		getParent().setToolTipText("For more settings, see db.properties file at the root of the project installation folder.");
 		
@@ -189,6 +205,19 @@ public class DbSettings extends Dialog {
 				tabF.setSelectionBackground(MainGui.tAB_SELECTION);
 				tabF.setLayout(new FillLayout());
 				tabF.setFont(MainGui.DEFAULTFONT);
+				tabF.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						tabF.layout();
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						tabF.layout();
+					}
+					
+				});
 				CTabItem[] tabI = new CTabItem[configTab.length];
 				for (int j = 0; j < configTab.length; j++) {
 					tabI[j] = new CTabItem(tabF, SWT.NONE);
@@ -196,7 +225,7 @@ public class DbSettings extends Dialog {
 					{
 						Group tabGroup = new Group(tabF, SWT.SHADOW_NONE);
 						tabGroup.setBackground(MainGui.pOPUP_GRP);
-						GridLayout tabLayout = new GridLayout(2,false);
+						GridLayout tabLayout = new GridLayout(2, false);
 						tabGroup.setLayout(tabLayout);
 					
 						{
@@ -206,7 +235,7 @@ public class DbSettings extends Dialog {
 							tabDescr.setLayoutData(gdDescr);
 							tabDescr.setBackground(MainGui.pOPUP_GRP);
 							tabDescr.setFont(MainGui.DEFAULTFONT);
-							tabDescr.setText("Description : \n\t" + configtabComment[j]);
+							tabDescr.setText("Description : \n\t" + configTabComment[j]);
 							
 							Label keyTxt[] = new Label[keys[j].length];
 							Text keyVal[] = new Text[keys[j].length];
@@ -214,7 +243,7 @@ public class DbSettings extends Dialog {
 							GridData gdVal = new GridData(SWT.FILL, SWT.FILL,true, false);
 							for (int i = 0; i < keys[j].length; i++) {
 								{
-									keyTxt[i] = new Label(tabGroup,SWT.NONE);
+									keyTxt[i] = new Label(tabGroup, SWT.NONE);
 									keyTxt[i].setFont(MainGui.DEFAULTFONT);
 									keyTxt[i].setText(keyComments[j][i] + " : ");
 									keyTxt[i].setLayoutData(gdTxt);

@@ -143,8 +143,8 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 			}
 			
 			edata.putAll(returnedEvents);
+			
 		}
-
 		
 		return edata;
 	}

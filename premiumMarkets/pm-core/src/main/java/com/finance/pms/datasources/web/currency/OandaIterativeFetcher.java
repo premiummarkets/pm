@@ -34,7 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.currency.CurrencyRate;
@@ -97,9 +97,6 @@ public class OandaIterativeFetcher implements ExchangeRatesFetcher {
 			}
 
 		});
-	
-//		thread.start();
-//		thread.join();
 		
 		thread.run();
 		return rates;

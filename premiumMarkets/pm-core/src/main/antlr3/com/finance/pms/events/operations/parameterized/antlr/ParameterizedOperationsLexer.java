@@ -1,20 +1,16 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-08-24 12:31:56
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2014-10-18 13:53:56
  //lexer
     package com.finance.pms.events.operations.parameterized.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+    
+ 
 
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedOperationsLexer extends Lexer {
@@ -1029,9 +1025,9 @@ public class ParameterizedOperationsLexer extends Lexer {
 		"\1\uffff\1\1\1\2\1\3\15\uffff\1\10\1\11\1\12\1\13\20\uffff\1\14\1\15\20"+
 		"\uffff\1\6\1\7\7\uffff\1\5\3\uffff\1\4\3\uffff";
 	static final String DFA14_specialS =
-		"\1\30\3\uffff\1\32\1\27\1\23\1\22\1\21\1\11\1\6\1\5\1\2\1\57\1\71\1\65"+
+		"\1\30\3\uffff\1\33\1\27\1\23\1\22\1\21\1\11\1\6\1\5\1\2\1\57\1\71\1\65"+
 		"\1\64\5\uffff\1\3\1\37\1\4\1\12\1\13\1\17\1\24\1\26\1\31\1\34\1\35\1\41"+
-		"\1\44\1\50\1\46\2\uffff\1\0\1\14\1\7\1\10\1\56\1\16\1\60\1\61\1\67\1\33"+
+		"\1\44\1\50\1\46\2\uffff\1\0\1\14\1\7\1\10\1\56\1\16\1\60\1\61\1\67\1\32"+
 		"\1\43\1\42\1\62\1\51\1\55\1\1\2\uffff\1\53\1\54\1\63\1\15\1\70\1\66\1"+
 		"\36\1\uffff\1\52\1\40\1\47\1\uffff\1\20\1\45\1\25}>";
 	static final String[] DFA14_transitionS = {
@@ -1524,19 +1520,6 @@ public class ParameterizedOperationsLexer extends Lexer {
 						break;
 
 					case 26 : 
-						int LA14_4 = input.LA(1);
-						 
-						int index14_4 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_4=='l') && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())||(runtimeHistoryOpAhead())))) {s = 22;}
-						else if ( ((LA14_4 >= '0' && LA14_4 <= '9')||(LA14_4 >= 'A' && LA14_4 <= 'Z')||LA14_4=='_'||(LA14_4 >= 'a' && LA14_4 <= 'k')||(LA14_4 >= 'm' && LA14_4 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_4);
-						if ( s>=0 ) return s;
-						break;
-
-					case 27 : 
 						int LA14_48 = input.LA(1);
 						 
 						int index14_48 = input.index();
@@ -1547,6 +1530,19 @@ public class ParameterizedOperationsLexer extends Lexer {
 						else s = 40;
 						 
 						input.seek(index14_48);
+						if ( s>=0 ) return s;
+						break;
+
+					case 27 : 
+						int LA14_4 = input.LA(1);
+						 
+						int index14_4 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_4=='l') && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())||(runtimeHistoryOpAhead())))) {s = 22;}
+						else if ( ((LA14_4 >= '0' && LA14_4 <= '9')||(LA14_4 >= 'A' && LA14_4 <= 'Z')||LA14_4=='_'||(LA14_4 >= 'a' && LA14_4 <= 'k')||(LA14_4 >= 'm' && LA14_4 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_4);
 						if ( s>=0 ) return s;
 						break;
 

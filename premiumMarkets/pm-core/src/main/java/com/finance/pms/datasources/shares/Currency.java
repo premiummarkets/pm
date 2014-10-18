@@ -35,7 +35,8 @@ public enum Currency  implements Serializable {
 
 	NAN("NAN", "NAN"), EUR("Euro", "Euro"), USD("U.S. Dollar", "US Dollar"), AUD("Australian Dollar", "Australian Dollar"), GBP("U.K. Pound Sterling", "British Pound"), INR("Indian Rupee", "Indian Rupee"), CAD("Canadian Dollar", "Canadian Dollar"), 
 	TWD("New Taiwan Dollar", "Taiwan New Dollar"), NZD("New Zealand Dollar", "New Zealand Dollar"), ILS("Israeli New Sheqel", "Israeli Shekel"), HKD("Hong Kong Dollar", "Hong Kong Dollar"), KRW("South Korean Won", "South Korean Won"), SGD("Singapore Dollar", "Singapore Dollar"), IDR("Indonesian Rupiah", "Indonesian Rupiah"),
-	CHF("Swiss Franc", "Swiss Franc");
+	CHF("Swiss Franc", "Swiss Franc"),
+	KES("Kenyan Shilling","Kenyan Shilling");
 
 	private String imfCurrencyName;
 	private String xRateCurrencyName;

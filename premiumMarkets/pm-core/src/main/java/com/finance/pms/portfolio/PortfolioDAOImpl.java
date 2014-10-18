@@ -53,6 +53,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.web.Providers;
 
 @Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDAO {
@@ -160,8 +161,18 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
-	public List<String> loadShareListNames() {
-		return this.getHibernateTemplate().find("select name from SharesList");
+	public List<String> loadValidShareListNames() {
+		List<String> dbgShareListes = this.getHibernateTemplate().find("select name from SharesList");
+		List<String> validShareLists = new ArrayList<>();
+		for (String list : dbgShareListes) {
+			try {
+				SharesListId.valueOf(Providers.shareListSplit(list)[0]);
+				validShareLists.add(list);
+			} catch (IllegalArgumentException e) {
+				LOGGER.warn("Unrecognised list in the data base");
+			}
+		}
+		return validShareLists;
 	}
 
 	@SuppressWarnings("unchecked")

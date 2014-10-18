@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.finance.pms.MainGui;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 
@@ -50,7 +51,7 @@ public class EventsActionSort {
 	
 	public static enum EventsActionFilter {
 		ALLEVENTS ("All Events"),
-		TALIBEVENTS ("Premium Markets Indicators");
+		TALIBEVENTS (MainGui.APP_NAME+" Indicators");
 		
 		/** The text. */
 		private String text;

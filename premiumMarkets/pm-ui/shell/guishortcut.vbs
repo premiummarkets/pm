@@ -9,7 +9,7 @@ Set oLink = oWS.CreateShortcut(sLinkFile)
    
 oLink.TargetPath = strInstallFolder+"\shell\gui.bat"
 oLink.Arguments = ""
-oLink.Description = "Premium Markets is an automated financial technical analysis system. Please refer to Premium Markets PRICE TREND FORECAST web portal at http://premiummarkets.elasticbeanstalk.com/ for a preview of more advanced features."
+oLink.Description = "Premium Markets is an automated financial technical analysis system. Please refer to Premium Markets PRICE TREND FORECAST web portal at http://www.premiummarkets.uk for a preview of more advanced features."
 'oLink.HotKey = "ALT+CTRL+F"
 oLink.IconLocation = strInstallFolder+"\icons\icon.ico, 0"
 oLink.WindowStyle = "7"

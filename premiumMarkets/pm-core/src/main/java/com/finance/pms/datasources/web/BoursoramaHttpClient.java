@@ -29,61 +29,47 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.util.Collection;
 
-import org.apache.commons.httpclient.Cookie;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-
-import com.finance.pms.threads.MyHttpClient;
-
-public class BoursoramaHttpClient extends MyHttpClient {
+@Deprecated
+public class BoursoramaHttpClient {
 	
 	public BoursoramaHttpClient() {
-		this.setUpClient();
-		this.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+//		this.setUpClient();
+//		this.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
 	}
 	
-	@Override
-	public void preExecuteMethod(HttpMethod method) {
-		setHeader(method);	
-		this.addReceivedCookies(this, method);
-		
-		//add other cookies
-		method.addRequestHeader("Cookie","OBJECT_BOURSORAMA=1");
-		method.addRequestHeader("Cookie","TestIfCookieP=ok");
-		method.addRequestHeader("Cookie","useruid=66c85e494b5179772a3f665bb00690e9236b4d9ffcf297a368fa65a8105aa3b5");
-		method.addRequestHeader("Cookie","forced=1");
-		method.addRequestHeader("Cookie","version=19");
-	}
+//	@Override
+//	public void preExecuteMethod(HttpMethod method) {
+//		setHeader(method);	
+//		this.addReceivedCookies(this, method);
+//		
+//		//add other cookies
+//		method.addRequestHeader("Cookie","OBJECT_BOURSORAMA=1");
+//		method.addRequestHeader("Cookie","TestIfCookieP=ok");
+//		method.addRequestHeader("Cookie","useruid=66c85e494b5179772a3f665bb00690e9236b4d9ffcf297a368fa65a8105aa3b5");
+//		method.addRequestHeader("Cookie","forced=1");
+//		method.addRequestHeader("Cookie","version=19");
+//	}
+//
+//	@Override
+//	public void postExecuteMethod(HttpMethod method) {
+//		this.extractReceivedCookies(method);
+//		this.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
+//	}
 
-	@Override
-	public void postExecuteMethod(HttpMethod method) {
-		this.extractReceivedCookies(method);
-		this.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-	}
-	
-	/**
-	 * @param httpclient
-	 * @param httpget
-	 */
-	private void extractReceivedCookies(HttpMethod httpget) {
-		
-		Header[] receivedCookies = httpget.getResponseHeaders("Set-Cookie");
-		for (Header header:  receivedCookies) {
-			
-			String headerCookie = header.getValue();
-			if (!headerCookie.contains("OBJECT_BOURSORAMA")) {
-				splitCookie(headerCookie);
-			}
-			
-		}
-	}
+//	private void extractReceivedCookies(HttpMethod httpget) {
+//		
+//		Header[] receivedCookies = httpget.getResponseHeaders("Set-Cookie");
+//		for (Header header:  receivedCookies) {
+//			
+//			String headerCookie = header.getValue();
+//			if (!headerCookie.contains("OBJECT_BOURSORAMA")) {
+//				splitCookie(headerCookie);
+//			}
+//			
+//		}
+//	}
 
-	/**
-	 * @param headerValue
-	 */
 	private void splitCookie(String headerValue) {
 		String[] headerNVPairs = headerValue.split(";");
 		String name = null, value = null, expires = null, path = null, domain = null;
@@ -109,36 +95,57 @@ public class BoursoramaHttpClient extends MyHttpClient {
 			}
 		}
 		
-		this.createSessionCookie(domain, name, value, path, expires);
+//		this.createSessionCookie(domain, name, value, path, expires);
 	}
 	
-	private void addReceivedCookies(MyHttpClient httpclient, HttpMethod httpMethod, String... additionalCookies) {
-
-		Collection<Cookie> cookieValues = httpclient.getCookies().values();
-		for (Cookie cookie : cookieValues) {
-			String cookedCookie = cookie.getName()+"="+cookie.getValue();
-			httpMethod.addRequestHeader("Cookie",cookedCookie);
-		}
-		
-	}
+//	private void addReceivedCookies(MyHttpClient httpclient, HttpMethod httpMethod, String... additionalCookies) {
+//
+//		Collection<Cookie> cookieValues = httpclient.getCookies().values();
+//		for (Cookie cookie : cookieValues) {
+//			String cookedCookie = cookie.getName()+"="+cookie.getValue();
+//			httpMethod.addRequestHeader("Cookie",cookedCookie);
+//		}
+//		
+//	}
 	
-	/**
-	 * @param httppost
-	 */
-	private void setHeader(HttpMethod httppost) {
-		httppost.setRequestHeader("Host","www.boursorama.com");
-		httppost.setRequestHeader("User-Agent","Mozilla/5.0 (X11; U; Linux i686; en-GB; rv:1.9.2.22) Gecko/20110905 Ubuntu/10.04 (lucid) Firefox/3.6.22");
-		httppost.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-		httppost.setRequestHeader("Accept-Language","en-us,en;q=0.5");
-		httppost.setRequestHeader("Accept-Encoding","gzip,deflate");
-		httppost.setRequestHeader("Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-		httppost.setRequestHeader("Keep-Alive","115");
-		httppost.setRequestHeader("Connection","keep-alive");
-	}
+//	private void setHeader(HttpMethod httppost) {
+//		httppost.setRequestHeader("Host","www.boursorama.com");
+//		httppost.setRequestHeader("User-Agent","Mozilla/5.0 (X11; U; Linux i686; en-GB; rv:1.9.2.22) Gecko/20110905 Ubuntu/10.04 (lucid) Firefox/3.6.22");
+//		httppost.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+//		httppost.setRequestHeader("Accept-Language","en-us,en;q=0.5");
+//		httppost.setRequestHeader("Accept-Encoding","gzip,deflate");
+//		httppost.setRequestHeader("Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7");
+//		httppost.setRequestHeader("Keep-Alive","115");
+//		httppost.setRequestHeader("Connection","keep-alive");
+//	}
 
-	@Override
-	public Boolean isValid() {
-		return true;
-	}
+//	@Override
+//	public Boolean isValid() {
+//		return true;
+//	}
+//
+//	@Override
+//	public HttpParams getParams() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	@Override
+//	public ClientConnectionManager getConnectionManager() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	@Override
+//	public void close() throws IOException {
+//		// TODO Auto-generated method stub
+//		
+//	}
+//
+//	@Override
+//	protected CloseableHttpResponse doExecute(HttpHost target, HttpRequest request, HttpContext context) throws IOException, ClientProtocolException {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }

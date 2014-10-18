@@ -55,6 +55,7 @@ import javax.swing.text.html.HTMLEditorKit;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class BaseCheckPanel extends JPanel implements HyperlinkListener {
  
     /** The Constant serialVersionUID. */

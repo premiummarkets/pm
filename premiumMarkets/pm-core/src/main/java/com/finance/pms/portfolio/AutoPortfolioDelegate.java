@@ -415,6 +415,7 @@ public class AutoPortfolioDelegate {
 		File log = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName()+"_Log.csv");
 		FileWriter fos = null;
 		try {
+			
 			fos = new FileWriter(log, true);
 
 			StringBuilder line = new StringBuilder();

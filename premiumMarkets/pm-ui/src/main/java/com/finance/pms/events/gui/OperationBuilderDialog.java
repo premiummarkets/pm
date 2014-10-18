@@ -53,7 +53,7 @@ public class OperationBuilderDialog {
 	public Object open(Point location, int width) {
 	
         shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
-        shell.setText("Premium Markets - Customise and Create indicators ...");
+        shell.setText(MainGui.APP_NAME+" - Customise and Create indicators ...");
         
         initGui();
         

@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 
 import org.jdesktop.swingworker.SwingWorker;
 
+import com.nexes.wizard.Wizard;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 /**
@@ -60,8 +61,11 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 	Integer newestExist = 0;
 	String versionNumber;
 
-    public UpdateUrlPanelDescriptor() {
+	private String jnlpUrl;
+
+    public UpdateUrlPanelDescriptor(Wizard wizard, String jnlpUrl) {
         super(IDENTIFIER, new UpdateUrl());
+        this.jnlpUrl = jnlpUrl;
     }
     
     @Override
@@ -94,14 +98,14 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 
 
 
-	class Task extends SwingWorker<Void, Void> {
+	public class Task extends SwingWorker<Void, Void> {
 		
 		private WizardPanelDescriptor w;
 		Date lastReleaseDate;
 		Date currentBuildDate;
 		private DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
-
-		Task(WizardPanelDescriptor w) {
+	
+		public Task(WizardPanelDescriptor w) {
 			super();
 			this.w = w;
 		}
@@ -111,6 +115,7 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 				super.done();
 				
 				if (newestExist >= 1) {
+					
 					System.out.print("Need download");
 					UpdateUrl updateUrl = (UpdateUrl) getPanelComponent();
 					updateUrl.jLabel1.setText("Your version dates from "+currentBuildDate);
@@ -139,17 +144,17 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 
 
 		@Override
-		protected Void doInBackground() {
+		public Void doInBackground() {
 			
 			try {
+				
 				DateFormat buildDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
 				Properties pbuild = new Properties();
 				pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
 				String currentBuild = pbuild.getProperty("application.buildtime");
 				currentBuildDate = buildDateFormat.parse(currentBuild); //2009/08/31 12:54:39 BST
-				
-				//URL sourceforge = new URL("http://sourceforge.net/projects/pmsqueak/files/");
-				URL sourceforge = new URL("http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp");
+
+				URL sourceforge = new URL(jnlpUrl);
 			    URLConnection yc = sourceforge.openConnection();
 			    yc.setReadTimeout(15000);
 			    BufferedReader br = new BufferedReader(new InputStreamReader(yc.getInputStream()));

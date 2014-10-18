@@ -36,10 +36,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -52,39 +53,28 @@ import com.finance.pms.datasources.web.formaters.StockListEuroNextFormater;
 import com.finance.pms.portfolio.SharesList;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ProvidersEuroNext.
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class ProvidersEuroNext extends Providers implements MarketListProvider {
 	
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersEuroNext.class);
 	
-	/**
-	 * Instantiates a new providers euro next.
-	 * 
-	 * @param pathToProps the path to props
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public ProvidersEuroNext(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceEuroNext(pathToProps, this);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#getStockRefName(com.finance.pms.datasources.shares.Stock)
-	 */
+	
 	@Override
 	public String getStockRefName(Stock stock) {
 		return stock.getIsin();
 	}
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
 	
@@ -230,7 +220,7 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider {
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
 	}

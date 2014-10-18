@@ -51,7 +51,6 @@ import javax.swing.border.EmptyBorder;
  */
 public class SmtpPanel extends JPanel {
 	
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -2997823935558776268L;
 	
 	protected static final String[] keys = {
@@ -126,7 +125,7 @@ public class SmtpPanel extends JPanel {
     		"To activate the feature, you also require an SMTP service provider DNS or IP to relay messages.<br />" +
     		"Note that you can also use a local SMTP server running on your machine.<br />" +
     		"<br />" +
-    		"YOU CAN SAFELY IGNORE THIS SETTING FOR NOW.<br />" +
+    		"<b>YOU CAN SAFELY IGNORE THIS SETTING FOR NOW</b><br />" +
     		"These can be set later on using the Settings -> Email Dialog box." +
 			"<br /><br /><br />" +
 			"</p>" +

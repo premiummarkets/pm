@@ -40,13 +40,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -85,7 +86,7 @@ public class QuotationUpdate {
 		
 	}
 	
-	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, Set<Indice> indices) throws HttpException {
+	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, SortedSet<Indice> indices) throws HttpException {
 		
 		Providers provider =  Providers.getInstance(sharesListName);
 		provider.addIndices(indices, true);
@@ -211,7 +212,7 @@ public class QuotationUpdate {
 		}
 	}
 	
-	public void getQuotesForSharesListInDB(String sharesListName, Set<Indice> indices) {
+	public void getQuotesForSharesListInDB(String sharesListName, SortedSet<Indice> indices) {
 		
 		StockList stockList = new StockList();
 		

@@ -45,9 +45,12 @@ public class LicencePanelDescriptor extends WizardPanelDescriptor implements Act
     public static final String IDENTIFIER = "LICENCE_PANEL";
 
     LicencePanel panel2;
+	private MyWizard wizard;
 
-    public LicencePanelDescriptor() {
+    public LicencePanelDescriptor(MyWizard wizard) {
         
+    	this.wizard = wizard;
+    	
         panel2 = new LicencePanel();
         panel2.addCheckBoxActionListener(this);
         
@@ -69,7 +72,7 @@ public class LicencePanelDescriptor extends WizardPanelDescriptor implements Act
     @Override
 	public void aboutToDisplayPanel() {
         setNextButtonAccordingToCheckBox();
-        Install.selectNextButton();
+        wizard.selectNextButton();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -78,6 +81,6 @@ public class LicencePanelDescriptor extends WizardPanelDescriptor implements Act
 
     private void setNextButtonAccordingToCheckBox() {
     	getWizard().setNextFinishButtonEnabled(panel2.isCheckBoxSelected());
-    	Install.selectNextButton();
+    	wizard.selectNextButton();
     }
 }

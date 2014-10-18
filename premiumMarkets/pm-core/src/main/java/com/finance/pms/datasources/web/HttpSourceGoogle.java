@@ -29,34 +29,21 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.google.MarketList;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
-import com.finance.pms.threads.SimpleHttpClient;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 import com.google.gson.Gson;
 
+//FIXME
 public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceGoogle.class);
@@ -81,73 +68,71 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 		//&q=((exchange:NYSE) OR (exchange:NASDAQ) OR (exchange:AMEX)) [(MarketCap > 4989 | MarketCap = 4989) & (MarketCap < 2270000000000 | MarketCap = 2270000000000) & (PE > 0.21 | PE = 0.21) & (PE < 4663 | PE = 4663) & (DividendYield > 0 | DividendYield = 0) & (DividendYield < 328 | DividendYield = 328) & (Price52WeekPercChange > -99.81 | Price52WeekPercChange = -99.81) & (Price52WeekPercChange < 781 | Price52WeekPercChange = 781)]
 		//restype=company
 		
-		return getStockListRequest(20,null).getQueryString();
+//		return getStockListRequest(20,null).getQueryString();
+		return null;
 		
 	}
 
-	/**
-	 * @return
-	 */
 	private String getMarketStockListBaseURL() {
 		StringBuilder httpq = new StringBuilder("http://finance.google.com/finance?");
 		httpq.append("gl=us&hl=en&output=json&start=0&noIL=1&restype=company");
 		return httpq.toString();
 	}
 	
-	public GetMethod getStockListRequest(Integer numberStocksElements,Market market) {
-
-		String httpgetStr = this.getMarketStockListBaseURL();
-		httpgetStr = httpgetStr.concat("&num="+numberStocksElements);
-		try {
-			//String Q = "((exchange:NYSE) OR (exchange:NASDAQ) OR (exchange:AMEX)) [(MarketCap > 4989 | MarketCap = 4989) & (MarketCap < 2270000000000 | MarketCap = 2270000000000) & (PE > 0.21 | PE = 0.21) & (PE < 4663 | PE = 4663) & (DividendYield > 0 | DividendYield = 0) & (DividendYield < 328 | DividendYield = 328) & (Price52WeekPercChange > -99.81 | Price52WeekPercChange = -99.81) & (Price52WeekPercChange < 781 | Price52WeekPercChange = 781)]";
-			String Q = "(exchange:"+market.getMarketName()+") [(MarketCap > 4989 | MarketCap = 4989) & (MarketCap < 2270000000000 | MarketCap = 2270000000000) & (PE > 0.21 | PE = 0.21) & (PE < 4663 | PE = 4663) & (DividendYield > 0 | DividendYield = 0) & (DividendYield < 328 | DividendYield = 328) & (Price52WeekPercChange > -99.81 | Price52WeekPercChange = -99.81) & (Price52WeekPercChange < 781 | Price52WeekPercChange = 781)]";
-			httpgetStr  = httpgetStr.concat("&q=").concat(URLEncoder.encode(Q,"utf-8"));
-			
-		} catch (UnsupportedEncodingException e) {
-			LOGGER.debug(e);
-		}
-		
-		LOGGER.debug(httpgetStr);
-		
-		GetMethod httpget = new GetMethod(httpgetStr);
-		return httpget;
-		
-	}
+//	public GetMethod getStockListRequest(Integer numberStocksElements,Market market) {
+//
+//		String httpgetStr = this.getMarketStockListBaseURL();
+//		httpgetStr = httpgetStr.concat("&num="+numberStocksElements);
+//		try {
+//			//String Q = "((exchange:NYSE) OR (exchange:NASDAQ) OR (exchange:AMEX)) [(MarketCap > 4989 | MarketCap = 4989) & (MarketCap < 2270000000000 | MarketCap = 2270000000000) & (PE > 0.21 | PE = 0.21) & (PE < 4663 | PE = 4663) & (DividendYield > 0 | DividendYield = 0) & (DividendYield < 328 | DividendYield = 328) & (Price52WeekPercChange > -99.81 | Price52WeekPercChange = -99.81) & (Price52WeekPercChange < 781 | Price52WeekPercChange = 781)]";
+//			String Q = "(exchange:"+market.getMarketName()+") [(MarketCap > 4989 | MarketCap = 4989) & (MarketCap < 2270000000000 | MarketCap = 2270000000000) & (PE > 0.21 | PE = 0.21) & (PE < 4663 | PE = 4663) & (DividendYield > 0 | DividendYield = 0) & (DividendYield < 328 | DividendYield = 328) & (Price52WeekPercChange > -99.81 | Price52WeekPercChange = -99.81) & (Price52WeekPercChange < 781 | Price52WeekPercChange = 781)]";
+//			httpgetStr  = httpgetStr.concat("&q=").concat(URLEncoder.encode(Q,"utf-8"));
+//			
+//		} catch (UnsupportedEncodingException e) {
+//			LOGGER.debug(e);
+//		}
+//		
+//		LOGGER.debug(httpgetStr);
+//		
+//		GetMethod httpget = new GetMethod(httpgetStr);
+//		return httpget;
+//		
+//	}
 	
-	public MarketList readURL(GetMethod getMethod) {
-
-		MarketList ml = new MarketList();
-
-		try {
-			int result = this.getConnectionFromPool().executeMethod(getMethod);
-			// Display status code
-			if (result != 200) {
-				System.out.println("Http Request status : " + result);
-				System.out.println("Request : " + getMethod.getURI());
-			} else {
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getMethod.getResponseBodyAsStream()));
-				ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
-				BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(arrayOutputStream));
-				String line;
-				while ((line = bufferedReader.readLine()) != null) {
-					bufferedWriter.write(line.replace("\\x", "\\\\x"));
-				}
-				bufferedWriter.close();
-				ml = this.readUrl(new InputStreamReader(new ByteArrayInputStream(arrayOutputStream.toByteArray())));
-			}
-		} catch (URIException e) {
-			LOGGER.debug(e);
-		} catch (HttpException e) {
-			LOGGER.debug(e);
-		} catch (IOException e) {
-			LOGGER.debug(e);
-		} finally {
-			getMethod.releaseConnection();
-		}
-
-		return ml;
-
-	}
+//	public MarketList readURL(GetMethod getMethod) {
+//
+//		MarketList ml = new MarketList();
+//
+//		try {
+//			int result = this.getConnectionFromPool().executeMethod(getMethod);
+//			// Display status code
+//			if (result != 200) {
+//				System.out.println("Http Request status : " + result);
+//				System.out.println("Request : " + getMethod.getURI());
+//			} else {
+//				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getMethod.getResponseBodyAsStream()));
+//				ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+//				BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(arrayOutputStream));
+//				String line;
+//				while ((line = bufferedReader.readLine()) != null) {
+//					bufferedWriter.write(line.replace("\\x", "\\\\x"));
+//				}
+//				bufferedWriter.close();
+//				ml = this.readUrl(new InputStreamReader(new ByteArrayInputStream(arrayOutputStream.toByteArray())));
+//			}
+//		} catch (URIException e) {
+//			LOGGER.debug(e);
+//		} catch (HttpException e) {
+//			LOGGER.debug(e);
+//		} catch (IOException e) {
+//			LOGGER.debug(e);
+//		} finally {
+//			getMethod.releaseConnection();
+//		}
+//
+//		return ml;
+//
+//	}
 	
 	MarketList readUrl(Reader reader) {
 		
@@ -185,11 +170,6 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 	}
 
 	@Override
-	public MyHttpClient httpConnect() {
-		return new SimpleHttpClient();
-	}
-
-	@Override
 	public void stopThreads() {
 		LOGGER.info("That's all ... Bye");
 	}
@@ -211,10 +191,16 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 		LOGGER.info("Nothing to do for now here ...");
 	}
 
-	
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		return new GetMethod(url.getUrl());
+	@Override
+	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		// TODO Auto-generated method stub
+		return null;
 	}
+
+	
+//	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+//		return new GetMethod(url.getUrl());
+//	}
 	
 	
 }

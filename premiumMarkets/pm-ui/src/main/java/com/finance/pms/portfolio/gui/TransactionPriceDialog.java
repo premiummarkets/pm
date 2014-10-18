@@ -130,7 +130,7 @@ public class TransactionPriceDialog extends Dialog {
 	public void open() {
 		try {
 			
-			getParent().setText("Premium Markets - Alter Portfolio line");
+			getParent().setText(MainGui.APP_NAME+" - Alter Portfolio line");
 			
 			GridLayout dialogShellLayout = new GridLayout();
 			dialogShellLayout.verticalSpacing = 8;

@@ -50,7 +50,7 @@ public interface PortfolioDAO {
 	//Share lists
 	public void delete(AbstractSharesList portfolio);
 	public SharesList loadShareList(String listName);
-	public List<String> loadShareListNames();
+	public List<String> loadValidShareListNames();
 	public List<String> loadShareListNames(String[] include, String[] exclude);
 
 	//Transaction reports
