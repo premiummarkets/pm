@@ -20,6 +20,10 @@
 			<outputDirectory>export/upgrade</outputDirectory>
 		</fileSet>
 		<fileSet>
+			<directory>distrib/lib</directory>
+			<outputDirectory>lib</outputDirectory>
+		</fileSet>
+		<fileSet>
 			<directory>distrib/sql</directory>
 			<includes>
 				<include>KEYS.sql</include>

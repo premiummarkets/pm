@@ -31,26 +31,20 @@ package com.finance.pms.datasources.web;
 
 import java.io.UnsupportedEncodingException;
 
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
-import com.finance.pms.threads.SimpleHttpClient;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
 public class HttpSourceInvestir extends HttpSource implements SourceConnector {
-	
-	/** The LOGGER. */
+
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceInvestir.class);
-	
-	/** The thread pool. */
 	private PoolSemaphore threadPool;
 	
 	public HttpSourceInvestir(String pathToprops, MyBeanFactoryAware beanFActoryAware) {
@@ -59,35 +53,33 @@ public class HttpSourceInvestir extends HttpSource implements SourceConnector {
 		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
-	@Override
-	public MyHttpClient httpConnect() {
-		return new SimpleHttpClient() {
+//	@Override
+//	public MyHttpClient httpConnect() {
+//		return new SimpleHttpClient() {
 			
-			@Override
-			public void preExecuteMethod(HttpMethod method) {
-				setHeader(method);
-			}
-			
-			/**
-			 * @param httppost
-			 */
-			private void setHeader(HttpMethod httppost) {
-				httppost.setRequestHeader("Host","www.boursorama.com");
-				httppost.setRequestHeader("User-Agent","Mozilla/5.0 (X11; U; Linux i686; en-GB; rv:1.9.2.22) Gecko/20110905 Ubuntu/10.04 (lucid) Firefox/3.6.22");
-				httppost.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-				httppost.setRequestHeader("Accept-Language","en-us,en;q=0.5");
-				httppost.setRequestHeader("Accept-Encoding","gzip,deflate");
-				httppost.setRequestHeader("Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-				httppost.setRequestHeader("Keep-Alive","115");
-				httppost.setRequestHeader("Connection","keep-alive");
-			}
+//			@Override
+//			public void preExecuteMethod(HttpMethod method) {
+//				setHeader(method);
+//			}
+//
+//			private void setHeader(HttpMethod httppost) {
+//				httppost.setRequestHeader("Host","www.boursorama.com");
+//				httppost.setRequestHeader("User-Agent","Mozilla/5.0 (X11; U; Linux i686; en-GB; rv:1.9.2.22) Gecko/20110905 Ubuntu/10.04 (lucid) Firefox/3.6.22");
+//				httppost.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+//				httppost.setRequestHeader("Accept-Language","en-us,en;q=0.5");
+//				httppost.setRequestHeader("Accept-Encoding","gzip,deflate");
+//				httppost.setRequestHeader("Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7");
+//				httppost.setRequestHeader("Keep-Alive","115");
+//				httppost.setRequestHeader("Connection","keep-alive");
+//			}
 
-		};
-	}
+//		};
+		
+//	}
 
 	@Override
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		return new GetMethod(url.getUrl());
+	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		return new HttpGet(url.getUrl());
 	}
 
 	@Override

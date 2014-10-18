@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 

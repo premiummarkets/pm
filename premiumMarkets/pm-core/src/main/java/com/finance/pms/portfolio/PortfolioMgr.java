@@ -78,7 +78,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	private CurrencyConverterImpl currencyConverter;
 
 	
-	public PortfolioMgr(PortfolioDAO portfolioDAO,CurrencyConverterImpl currencyConverter) {
+	public PortfolioMgr(PortfolioDAO portfolioDAO, CurrencyConverterImpl currencyConverter) {
 		
 		this.portfolioDAO = portfolioDAO;
 		this.portfolios = portfolioDAO.loadVisiblePortfolios();

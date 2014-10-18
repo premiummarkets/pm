@@ -1,20 +1,15 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2014-08-24 12:31:58
+// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2014-10-18 13:53:58
  //lexer
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.IndsLexerDelegate;
 
-import com.finance.pms.events.calculation.antlr.IndsLexerDelegate;
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedIndicatorsLexer extends Lexer {

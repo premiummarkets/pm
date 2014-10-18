@@ -29,8 +29,6 @@
  */
 package com.finance.pms.admin.install.wizard;
 
-import java.io.InputStream;
-
 import com.nexes.wizard.WizardPanelDescriptor;
 
 
@@ -43,7 +41,7 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
     
 
     public static final String IDENTIFIER = "DB_PANEL";
-	public static final String initdbName = "pmdb-initialdb.tar.bz2";
+	public static final String initDbName = "pmdb-initialdb.tar.bz2";
     
     BaseCheckPanel panel2;
     
@@ -86,10 +84,12 @@ public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
         
         
 	}
-
+    
+    @Deprecated
 	public static Boolean checkAvailability() {
-    	InputStream fis = BaseCheckPanelDescriptor.class.getClassLoader().getResourceAsStream(BaseCheckPanelDescriptor.initdbName);
-    	return (fis != null || ProgressPanelDescriptor.isDbExists(InstallFolderPanel.getPmFolder()));
+//    	InputStream fis = BaseCheckPanelDescriptor.class.getClassLoader().getResourceAsStream(BaseCheckPanelDescriptor.initdbName);
+//    	return (fis != null || ProgressPanelDescriptor.isDbExists(InstallFolderPanel.getInstallFolder()));
+    	return null;
     }
        
     

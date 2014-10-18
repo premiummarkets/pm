@@ -40,7 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;

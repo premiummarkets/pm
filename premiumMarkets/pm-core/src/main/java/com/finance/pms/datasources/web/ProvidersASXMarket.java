@@ -30,7 +30,7 @@
 package com.finance.pms.datasources.web;
 
 import java.util.Comparator;
-import java.util.Set;
+import java.util.SortedSet;
 
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -79,7 +79,7 @@ public class ProvidersASXMarket extends ProvidersMarket {
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
 	}

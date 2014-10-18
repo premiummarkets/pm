@@ -164,12 +164,6 @@ public class OperationBuilderComposite extends Composite {
 			}
 
 			@Override
-			public Display getDisplay() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
 			public Date getAnalysisStartDate() {
 				// TODO Auto-generated method stub
 				return null;
@@ -422,25 +416,29 @@ public class OperationBuilderComposite extends Composite {
 
 				private void handleDeleteUnused() {
 
-					ActionDialog errorDialog = new ActionDialog(getShell(),"Warning", null, null, "Please, confirm the deletion of all unused/disabled "+builderLabel()+".", new ActionDialogAction() {	
-						@Override
-						public void action(Control targetControl) {
-							try {
-								OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-								int selectionIndex = formulaReference.getSelectionIndex();
-								deleteAllDisabledOrUnused();
-								formulaReference.removeAll();
-								isSaved = true;
-								savingAttemptStarted = false;
-								updateCombo(true);
-								if (formulaReference.getItemCount() > 0) {
-									forceSelection(selectionIndex % formulaReference.getItemCount());
+					ActionDialog errorDialog = 
+						new ActionDialog(
+							getShell(),"Warning", null, null, "Please, confirm the deletion of all unused/disabled "+builderLabel()+".", 
+							new ActionDialogAction() {	
+								@Override
+								public void action(Control targetControl) {
+									try {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+										int selectionIndex = formulaReference.getSelectionIndex();
+										deleteAllDisabledOrUnused();
+										formulaReference.removeAll();
+										isSaved = true;
+										savingAttemptStarted = false;
+										updateCombo(true);
+										if (formulaReference.getItemCount() > 0) {
+											forceSelection(selectionIndex % formulaReference.getItemCount());
+										}
+									} finally {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
 								}
-							} finally {
-								OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 							}
-						}
-					});
+						);
 					errorDialog.open();
 					
 				}
@@ -500,7 +498,7 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void initPopup() {
 
-		popupShell = new Shell(getShell(), SWT.ON_TOP);
+		popupShell = new Shell(getShell(), SWT.ON_TOP | SWT.RESIZE);
 		getShell().addListener(SWT.Traverse, new Listener() {
 			public void handleEvent(Event event) {
 				switch (event.detail) {
@@ -519,7 +517,7 @@ public class OperationBuilderComposite extends Composite {
 			}
 		});
 		popupShell.setLayout(new FillLayout());
-		popupShell.setText("Hello");
+		//popupShell.setText("Hello");
 
 		tokenAltsTable = new Table(popupShell, SWT.SINGLE);
 		tokenAltsTable.setFont(MainGui.CONTENTFONT);
@@ -534,8 +532,7 @@ public class OperationBuilderComposite extends Composite {
 		tokenAltsColumns[2].setText("synoptic and defaults");
 		tokenAltsColumns[2].setWidth(50);
 
-		if (editorListeners.get(VerifyKeyListener.class) != null)
-			editor.removeVerifyKeyListener((VerifyKeyListener) editorListeners.get(VerifyKeyListener.class));
+		if (editorListeners.get(VerifyKeyListener.class) != null) editor.removeVerifyKeyListener((VerifyKeyListener) editorListeners.get(VerifyKeyListener.class));
 		VerifyKeyListener vkListener = new VerifyKeyListener() {
 
 			@Override
@@ -571,8 +568,7 @@ public class OperationBuilderComposite extends Composite {
 		editorListeners.put(VerifyKeyListener.class, vkListener);
 		editor.addVerifyKeyListener(vkListener);
 
-		if (editorListeners.get(KeyListener.class) != null)
-			editor.removeKeyListener((KeyListener) editorListeners.get(KeyListener.class));
+		if (editorListeners.get(KeyListener.class) != null) editor.removeKeyListener((KeyListener) editorListeners.get(KeyListener.class));
 		KeyListener keyListener = new KeyListener() {
 
 			@Override
@@ -602,8 +598,7 @@ public class OperationBuilderComposite extends Composite {
 		editorListeners.put(KeyListener.class, keyListener);
 		editor.addKeyListener(keyListener);
 
-		if (editorListeners.get(MouseListener.class) != null)
-			editor.removeMouseListener((MouseListener) editorListeners.get(MouseListener.class));
+		if (editorListeners.get(MouseListener.class) != null) editor.removeMouseListener((MouseListener) editorListeners.get(MouseListener.class));
 		MouseListener mouseListener = new MouseListener() {
 
 			@Override
@@ -649,8 +644,7 @@ public class OperationBuilderComposite extends Composite {
 			}
 		});
 
-		if (editorListeners.get(FocusListener.class) != null)
-			editor.removeListener(SWT.FocusOut, (Listener) editorListeners.get(FocusListener.class));
+		if (editorListeners.get(FocusListener.class) != null) editor.removeListener(SWT.FocusOut, (Listener) editorListeners.get(FocusListener.class));
 		Listener focusOutListener = new Listener() {
 			public void handleEvent(Event event) {
 				/* async is needed to wait until focus reaches its new Control */
@@ -669,43 +663,43 @@ public class OperationBuilderComposite extends Composite {
 		editorListeners.put(FocusListener.class, focusOutListener);
 		editor.addListener(SWT.FocusOut, focusOutListener);
 
-		tokenAltsTable.addListener(SWT.FocusOut, focusOutListener);
+//		tokenAltsTable.addListener(SWT.FocusOut, focusOutListener);
 
-		Listener paintListener = new Listener() {
-			public void handleEvent(Event event) {
-				switch (event.type) {
-				case SWT.MeasureItem: {
-					TableItem item = (TableItem) event.item;
-					String text = getText(item, event.index);
-					Point size = event.gc.textExtent(text);
-					event.width = size.x;
-					event.height = Math.max(event.height, size.y);
-					break;
-				}
-				case SWT.PaintItem: {
-					TableItem item = (TableItem) event.item;
-					String text = getText(item, event.index);
-					Point size = event.gc.textExtent(text);
-					int offset2 = event.index == 0 ? Math.max(0, (event.height - size.y) / 2) : 0;
-					event.gc.drawText(text, event.x, event.y + offset2, true);
-					break;
-				}
-				case SWT.EraseItem: {
-					event.detail &= ~SWT.FOREGROUND;
-					break;
-				}
-				}
-			}
+//		Listener paintListener = new Listener() {
+//			public void handleEvent(Event event) {
+//				switch (event.type) {
+//				case SWT.MeasureItem: {
+//					TableItem item = (TableItem) event.item;
+//					String text = getText(item, event.index);
+//					Point size = event.gc.textExtent(text);
+//					event.width = size.x;
+//					event.height = Math.max(event.height, size.y);
+//					break;
+//				}
+//				case SWT.PaintItem: {
+//					TableItem item = (TableItem) event.item;
+//					String text = getText(item, event.index);
+//					Point size = event.gc.textExtent(text);
+//					int offset2 = event.index == 0 ? Math.max(0, (event.height - size.y) / 2) : 0;
+//					event.gc.drawText(text, event.x, event.y + offset2, true);
+//					break;
+//				}
+//				case SWT.EraseItem: {
+//					event.detail &= ~SWT.FOREGROUND;
+//					break;
+//				}
+//				}
+//			}
+//
+//			String getText(TableItem item, int column) {
+//				String text = item.getText(column);
+//				return text;
+//			}
+//		};
 
-			String getText(TableItem item, int column) {
-				String text = item.getText(column);
-				return text;
-			}
-		};
-
-		tokenAltsTable.addListener(SWT.MeasureItem, paintListener);
-		tokenAltsTable.addListener(SWT.PaintItem, paintListener);
-		tokenAltsTable.addListener(SWT.EraseItem, paintListener);
+//		tokenAltsTable.addListener(SWT.MeasureItem, paintListener);
+//		tokenAltsTable.addListener(SWT.PaintItem, paintListener);
+//		tokenAltsTable.addListener(SWT.EraseItem, paintListener);
 
 		getShell().addListener(SWT.Move, new Listener() {
 			public void handleEvent(Event event) {
@@ -843,7 +837,6 @@ public class OperationBuilderComposite extends Composite {
 			public void widgetSelected(SelectionEvent evt) {
 				LOGGER.guiInfo("Refreshing views");
 				this.updateEventRefreshModelState(0l);
-				((RefreshableView) mainGuiParent).initRefreshAction();
 				super.widgetSelected(evt);
 			}
 		};
@@ -1284,15 +1277,8 @@ public class OperationBuilderComposite extends Composite {
 	protected void filterOutUnWantedDeletes(NextToken errorToken, NextToken nextToken) {
 		List<Alternative> filteredErrorAlts = new ArrayList<Alternative>(errorToken.getAlternatives());
 		for (Alternative errorAlt : errorToken.getAlternatives()) {
-			boolean isDataOrConstSuggs = errorAlt.getTokenType().equals(TokenType.DATATOKEN) || errorAlt.getTokenType().equals(TokenType.CONSTANTTOKEN);// TODO
-																																						// add
-																																						// an
-																																						// other
-																																						// AltType
-																																						// to
-																																						// avoid
-																																						// filtering
-																																						// here
+			boolean isDataOrConstSuggs = errorAlt.getTokenType().equals(TokenType.DATATOKEN) || errorAlt.getTokenType().equals(TokenType.CONSTANTTOKEN);
+			//TODO add an other DATA type to avoid filtering here
 			if (isDataOrConstSuggs) {
 				filteredErrorAlts.remove(errorAlt);
 			} else {
@@ -1348,24 +1334,20 @@ public class OperationBuilderComposite extends Composite {
 		}
 
 		int[] position = ANTLROperationsParserHelper.translateCaretToPosition(editor.getText(), editor.getCaretOffset());
+		
 		tokenAltsColumns[0].setText("entry @ line " + position[0] + ", column " + position[1]);
 		for (TableColumn tableColumn : tokenAltsColumns) {
 			tableColumn.pack();
 		}
 
-		// tokenAltsTable.pack();
 		Point tableDefaultSize = tokenAltsTable.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		tokenAltsTable.setSize(Math.min(tableDefaultSize.x, getShell().getSize().x), Math.min(200, tableDefaultSize.y));
 
 		Caret caret = editor.getCaret();
 		Rectangle caretLocation = caret.getBounds();
 		Rectangle eventBounds = getParent().getDisplay().map(editor, null, caretLocation);
-		// getPopupShell().setBounds(eventBounds.x, eventBounds.y +
-		// eventBounds.height,
-		// Math.min(tableDefaultSize.x,getShell().getSize().x), 200);
 		Point popupSize = popupShell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, Math.min(popupSize.x, getShell().getSize().x),
-				Math.min(200, popupSize.y) + 10);
+		getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, Math.min(popupSize.x, getShell().getSize().x), Math.min(200, popupSize.y) + 10);
 		getPopupShell().setVisible(true);
 
 		LOGGER.debug("Items : " + tokenAltsTable.getItems());

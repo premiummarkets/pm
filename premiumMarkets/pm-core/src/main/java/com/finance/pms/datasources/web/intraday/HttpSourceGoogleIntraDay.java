@@ -31,27 +31,23 @@ package com.finance.pms.datasources.web.intraday;
 
 import java.io.UnsupportedEncodingException;
 
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.HttpSource;
-import com.finance.pms.datasources.web.HttpSourceGoogle;
 import com.finance.pms.datasources.web.MyBeanFactoryAware;
 import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
-import com.finance.pms.threads.SimpleHttpClient;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
 public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnector {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceGoogle.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceGoogleIntraDay.class);
 	private PoolSemaphore threadPool;
 
 	public HttpSourceGoogleIntraDay(String pathToprops, MyBeanFactoryAware beanFActoryAware) {
@@ -60,13 +56,10 @@ public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnec
 	}
 
 	@Override
-	public MyHttpClient httpConnect() {
-		return new SimpleHttpClient();
-	}
-
-	@Override
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		return new GetMethod(url.getUrl());
+	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		//return new GetMethod(url.getUrl());
+		//FIXME
+		return null;
 	}
 
 	@Override

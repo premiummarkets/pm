@@ -32,22 +32,16 @@ package com.finance.pms.datasources.web;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
-import com.finance.pms.threads.SimpleHttpClient;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class HttpSourceYahoo.
  * 
@@ -65,20 +59,6 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 		LOGGER.debug("Number of Http Threads : "+this.nbHttpThreads);
 		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
-	
-	@Override
-	public MyHttpClient httpConnect() {
-		SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
-		
-		HttpConnectionManagerParams connectionManagerParams = new HttpConnectionManagerParams();
-		connectionManagerParams.setSoTimeout(30000);
-		connectionManagerParams.setConnectionTimeout(30000);
-		MultiThreadedHttpConnectionManager manager = new MultiThreadedHttpConnectionManager();
-        manager.setParams(connectionManagerParams);
-		simpleHttpClient.setHttpConnectionManager(manager);
-		
-		return simpleHttpClient;
-	}
 
 	@Override
 	public MyUrl getStockQuotationURL(String ticker, 
@@ -93,20 +73,6 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 		return new MyUrl(this.getYahooQuoteURL(ticker, startYear,startMonth, startDay, endYear,endMonth, endDay));
 	}
 
-
-	/**
-	 * Gets the yahoo quote url.
-	 * 
-	 * @param ticker the ticker
-	 * @param startYear the start year
-	 * @param startMonth the start month
-	 * @param startDay the start day
-	 * @param endYear the end year
-	 * @param endMonth the end month
-	 * @param endDay the end day
-	 * 
-	 * @return the yahoo quote url
-	 */
 	public String getYahooQuoteURL(
 				String ticker, 
 				String startYear, String startMonth, String startDay, 
@@ -129,14 +95,14 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
     @Override
 	public String getStockInfoPageURL(String isin) {//throws ToDoYahooException {
         // TODO Completer la r�cup�ration des compl�ments de stocks sur Yahoo
-        LOGGER.debug("Fecthing stock information is not implemented for yahoo");
-        throw new RuntimeException("Fecthing stock information is not implemented for yahoo");
+        LOGGER.debug("Fetching stock information is not implemented for yahoo");
+        throw new RuntimeException("Fetching stock information is not implemented for yahoo");
     }
     
 
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
-		throw new RuntimeException("Fecthing stock list is not implemented for yahoo");
+		throw new RuntimeException("Fetching stock list is not implemented for yahoo");
 	}
 
 
@@ -144,33 +110,20 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	public PoolSemaphore getThreadPool() {
 		return this.threadPool;
 	}
-	
-	
-    /* (non-Javadoc)
-     * @see com.finance.pms.db.HttpSource#stopThreads()
-     */
+
     @Override
 	public void stopThreads() {
         LOGGER.info("That's all ... Bye");
     }
-    
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#restartSource(int)
-	 */
+
 	public int crashResart(int connectionId) {
 		return 0;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#shutdownSource(com.finance.pms.threads.SourceClient, int)
-	 */
+
 	public void shutdownSource(SourceClient c, int connectionId) {
 		LOGGER.info("Nothing to do for now here ...");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.finance.pms.threads.SourceConnector#connect(int)
-	 */
 	public SourceClient connect(int connectionId) throws RestartServerException {
 		SourceClient retour;
 		retour = this.httpConnect();
@@ -178,8 +131,8 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	}
 
 	@Override
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		return new GetMethod(url.getUrl());
+	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		return new HttpGet(url.getUrl());
 	}
 
 	

@@ -36,8 +36,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Shell;
@@ -64,7 +63,7 @@ public class UserDialog extends Dialog {
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHELL_TRIM));
-		this.getParent().setText("Premium Markets - Warning");
+		this.getParent().setText(MainGui.APP_NAME+" - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
@@ -81,14 +80,19 @@ public class UserDialog extends Dialog {
 		
 		try {
 
-			GridLayout dialogShellLayout = new GridLayout();
+			//GridLayout dialogShellLayout = new GridLayout();
+			//this.getParent().setLayout(dialogShellLayout);
+			RowLayout dialogShellLayout = new RowLayout(SWT.VERTICAL);
+			dialogShellLayout.fill = true;
+			dialogShellLayout.wrap = false;
 			this.getParent().setLayout(dialogShellLayout);
+			
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 			
 			{
 				errorTxt = new Text(getParent(), SWT.WRAP);
-				GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-				errorTxt.setLayoutData(layoutData);
+				//GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+				//errorTxt.setLayoutData(layoutData);
 				errorTxt.setFont(MainGui.DEFAULTFONT);
 				errorTxt.setBackground(MainGui.pOPUP_BG);
 				errorTxt.setEditable(false);
@@ -130,8 +134,8 @@ public class UserDialog extends Dialog {
 	private void initButton() {
 		
 		valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
-		GridData validerbuttonLData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
-		valideButton.setLayoutData(validerbuttonLData);
+		//GridData validerbuttonLData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
+		//valideButton.setLayoutData(validerbuttonLData);
 		validationButtonTxtAndAction();
 		
 	}
@@ -139,7 +143,7 @@ public class UserDialog extends Dialog {
 	private void initAddMsg() {
 		
 		addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
-		addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		//addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		addMsgTxt.setFont(MainGui.DEFAULTFONT);
 		addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
 		addMsgTxt.setEditable(false);

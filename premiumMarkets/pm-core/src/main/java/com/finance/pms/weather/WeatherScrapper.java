@@ -42,7 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 

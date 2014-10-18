@@ -39,6 +39,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 
@@ -104,15 +105,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				
 	}
 	
-	/**
-	 * Progress bar update.
-	 * 
-	 * @param nbIterDone the new per cent
-	 * @param oldPerCent the old per cent
-	 * @param startTime the start time
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public void progressBarUpdate() {
 
 		long currentTime = (new Date()).getTime();
@@ -136,7 +128,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 
 	}
 
-	
 	public void endJob(List<Exception> exceptions) {
 		progressBarLabel.setText("_ _ _");
 		progressBar.setSelection(0);
@@ -150,10 +141,6 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		view.refreshView(exceptions);
 	}
 
-	/**
-	 * @param view TODO
-	 * 
-	 */
 	public void initRefresh(RefreshableView view) {
 		
 		progressBar.setSelection(0);
@@ -165,7 +152,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			@Override
 			public void update(Observable o, final Object arg) {
 
-				LogComposite.this.view.getDisplay().asyncExec(new Runnable() {
+				Display.getDefault().asyncExec(new Runnable() {
 
 					public void run() {
 						logDisplay.setText((String) arg);
@@ -191,7 +178,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				totalIter = (Integer) observerMsg.getNameValuePairs().get(0).value;
 				nbIterDone = 0;
 				
-				view.getDisplay().asyncExec(new Runnable() {
+				Display.getDefault().asyncExec(new Runnable() {
 					
 					public void run() {
 						if (totalIter != null && nbIterDone != null) {
@@ -212,7 +199,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			
 		} else {//Increment
 		
-			view.getDisplay().asyncExec(new Runnable() {
+			Display.getDefault().asyncExec(new Runnable() {
 	
 				public void run() {
 					if (totalIter != null && nbIterDone != null) {

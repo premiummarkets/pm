@@ -4,12 +4,12 @@
 <!--<jnlp spec="1.6+" codebase="file:///C:" href="file:///C:/PremiumMarkets.jnlp"> -->
 <!--<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets-0.10.0.jnlp">-->
 
-	<jnlp spec="1.6+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets.jnlp">
+	<jnlp spec="1.7+" codebase="http://downloads.sourceforge.net/pmsqueak/" href="PremiumMarkets.jnlp">
 	
 	<information>
 		<title>PremiumMarkets</title>
 		<vendor>Premium Markets</vendor>
-		<homepage href="http://premiummarkets.elasticbeanstalk.com" />
+		<homepage href="http://www.premiummarkets.uk" />
 		<description>
 Premium Markets is an automated stock market analysis system.
 It implements a graphical environment for monitoring stock market technical analysis
@@ -41,7 +41,6 @@ details.
 You should have received a copy of the GNU Lesser General Public License along with
 this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 		</description>
-		<description>See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstalk.com for documentation and a free workable demo of the forecast engine.</description>
 		<description kind="short">
 			Premium Markets is an automated stock market analysis system.
 It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.
@@ -54,7 +53,7 @@ See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstal
 			<icon href="icons/icon.gif" />
 		</related-content>
 	</information>
-		
+
 	<security>
 		<all-permissions />
 	</security>
@@ -65,67 +64,75 @@ See Premium Markets FORECAST web portal at http://premiummarkets.elasticbeanstal
 	</resources>
 	
 	<resources os="Windows" arch="x86">
-		<property name="swt.jar" value="swt-3.7.2-win32-win32-x86.jar"/>
+		<property name="swt.jar" value="swt-4.4-win32-win32-x86.jar"/>
 	</resources>
 	
 	<resources os="Windows" arch="x86_64">
-		<property name="swt.jar" value="swt-3.7.2-win32-win32-x86_64.jar" />
+		<property name="swt.jar" value="swt-4.4-win32-win32-x86_64.jar" />
 	</resources>
 
 	<resources os="Windows" arch="amd64">
-		<property name="swt.jar" value="swt-3.7.2-win32-win32-x86_64.jar" />
-	</resources>
-	
-	<resources os="Windows CE" arch="arm">
-		<property name="swt.jar" value="swt-3.7.2-win32-wce_ppc-arm-j2se.jar" />
-	</resources>
-	
-	<resources os="Windows CE" arch="ppc-arm-j2me">
-		<property name="swt.jar" value="swt-3.7.2-win32-wce_ppc-arm-j2me.jar" />
-	</resources>
-	
-	<resources os="Linux">
-		<property name="swt.jar" value="swt-3.7.2-gtk-linux-x86.jar" />
-	</resources>
-
-	<resources os="Linux" arch="x86_64">
-		<property name="swt.jar" value="swt-3.7.2-gtk-linux-x86_64.jar" />
+		<property name="swt.jar" value="swt-4.4-win32-win32-x86_64.jar" />
 	</resources>
 	
 	<resources os="Linux" arch="ppc">
-		<property name="swt.jar" value="swt-3.7.2-gtk-linux-ppc64.jar" />
+		<property name="swt.jar" value="swt-4.4-gtk-linux-ppc.jar" />
 	</resources>
-
+	
+	<resources os="Linux" arch="x86_64">
+		<property name="swt.jar" value="swt-4.4-gtk-linux-x86_64.jar" />
+	</resources>
+	
 	<resources os="Linux" arch="amd64">
-		<property name="swt.jar" value="swt-3.7.2-gtk-linux-x86_64.jar" />
+		<property name="swt.jar" value="swt-4.4-gtk-linux-x86_64.jar" />
+	</resources>
+	
+	<resources os="Linux">
+		<property name="swt.jar" value="swt-4.4-gtk-linux-x86.jar" />
+	</resources>
+	
+	<resources os="Linux" arch="ppc64">
+		<property name="swt.jar" value="swt-4.4-gtk-linux-ppc64.jar" />
 	</resources>
 
 	<resources os="SunOS" arch="sparc">
-		<property name="swt.jar" value="swt-3.7.2-gtk-solaris-sparc.jar" />
+		<property name="swt.jar" value="swt-4.4-gtk-solaris-sparc.jar" />
 	</resources>
 
 	<resources os="SunOS" arch="x86">
-		<property name="swt.jar" value="swt-3.7.2-gtk-solaris-x86.jar" />
+		<property name="swt.jar" value="swt-4.4-gtk-solaris-x86.jar" />
+	</resources>
+	
+	<resources os="Mac OS X" arch="ppc64">
+		<property name="swt.jar" value="swt-4.4-cocoa-macosx-x86_64.jar" />
+	</resources>
+		
+	<resources os="Mac OS X" arch="x86_64">
+		<property name="swt.jar" value="swt-4.4-cocoa-macosx-x86_64.jar" />
 	</resources>
 	
 	<resources os="Mac OS X" arch="ppc">
-		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx-x86_64.jar" />
+		<property name="swt.jar" value="swt-4.4-cocoa-macosx.jar" />
 	</resources>
 	
 	<resources os="Mac OS X" arch="x86">
-		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx.jar" />
+		<property name="swt.jar" value="swt-4.4-cocoa-macosx.jar" />
 	</resources>
 	
-	<resources os="Mac OS X" arch="x86_64">
-		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx-x86_64.jar" />
+	<resources os="Mac OS" arch="PowerPC">
+		<property name="swt.jar" value="swt-4.4-carbon-macosx.jar" />
 	</resources>
 	
-	<resources os="Mac OS X" arch="ppc">
-		<property name="swt.jar" value="swt-3.7.2-cocoa-macosx.jar" />
+	<resources os="HPUX" arch="x86_64">
+		<property name="swt.jar" value="swt-4.4-gtk-hpux-ia64.jar" />
 	</resources>
 	
-    <resources os="Mac OS" arch="PowerPC">
-		<property name="swt.jar" value="swt-3.7.2-carbon-macosx.jar" />
+	<resources os="AIX" arch="ppc">
+		<property name="swt.jar" value="swt-4.4-gtk-aix-ppc.jar" />
+	</resources>
+	
+	<resources os="AIX" arch="ppc64">
+		<property name="swt.jar" value="swt-4.4-gtk-aix-ppc64.jar" />
 	</resources>
 	
 	<application-desc main-class="com.finance.pms.admin.install.wizard.Install">

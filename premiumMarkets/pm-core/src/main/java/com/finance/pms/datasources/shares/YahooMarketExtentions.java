@@ -54,7 +54,9 @@ public enum  YahooMarketExtentions implements Serializable {
 	
 	TW ("TW"), NZ("NZ"), VI("VI"), MI("MI"), ST("ST"), CO("CO"), TA("TA"), HK("HK"), HA("HA"), DU("DU"), 
 	HM("HM"), F("F"), SG("SG"), DE("DE"), MU("MU"), BE("BE"), KQ("KQ"), SI("SI"), 
-	JK("JK"), MC("MC"), MA("MA"), BR("BR"), SW("SW"), VX("VX"), AS("AS"), TO("TO"), LS("LS"), OL("OL");
+	JK("JK"), MC("MC"), MA("MA"), BR("BR"), SW("SW"), VX("VX"), AS("AS"), TO("TO"), LS("LS"), OL("OL"),
+	
+	KE("KE");
 	
 	private String marketExtension;
 

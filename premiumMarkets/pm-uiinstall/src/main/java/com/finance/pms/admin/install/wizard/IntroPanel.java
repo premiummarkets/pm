@@ -59,24 +59,19 @@ import javax.swing.text.Document;
 public class IntroPanel extends JPanel {
  
 	private static final long serialVersionUID = -6101824066434845051L;
-	private JLabel blankSpace;
     private JLabel jLabel1;
     private JLabel jLabel2;
-    private JLabel jLabel3;
-    private JLabel jLabel4;
-    private JLabel jLabel5;
-    private JLabel jLabel6;
-    private JLabel jLabel7;
-    private JLabel jLabel8;
-    private JLabel jLabel9;
     private JLabel welcomeTitle;
     private JPanel contentPanel;
     private JLabel iconLabel;
     private ImageIcon icon;
     
+	private String copyRights;
     
-    public IntroPanel() {
+    
+    public IntroPanel( String siteUrl, String introButtonTxt, String copyRights) {
         
+    	this.copyRights = copyRights;
         iconLabel = new JLabel();
         contentPanel = getContentPanel();
         contentPanel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
@@ -96,15 +91,6 @@ public class IntroPanel extends JPanel {
         secondaryPanel.add(contentPanel, BorderLayout.NORTH);
         
 	    try {
-			String siteUrl = "none.com";
-			try {
-				Properties pbuild = new Properties();
-				pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
-				siteUrl = pbuild.getProperty("site.url");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
 			final URI uri = new URI("http://"+siteUrl+"/");
 			
 			class OpenUrlAction implements ActionListener {
@@ -114,9 +100,7 @@ public class IntroPanel extends JPanel {
 			 }
 			
 			JButton button = new JButton();
-			button.setText("<HTML>" +
-					"<FONT color=\"red\">I would also like to bring to your attention that Premium Markets announces its NEW Forecast engine!<br/>"+
-					"Click <FONT color=\"#000099\"><blink><U>http://"+siteUrl+"/</U></blink></FONT> for a preview and a free workable demo.</FONT></HTML>");
+			button.setText(introButtonTxt);
 			button.setBorderPainted(false);
 			button.setOpaque(false);
 			button.setBackground(Color.WHITE);
@@ -139,61 +123,44 @@ public class IntroPanel extends JPanel {
         JPanel jPanel1 = new JPanel();
         
         welcomeTitle = new JLabel();
-        blankSpace = new JLabel();
         jLabel1 = new JLabel();
         jLabel2 = new JLabel();
-        jLabel3 = new JLabel();
-        jLabel4 = new JLabel();
-        jLabel5 = new JLabel();
-        jLabel7 = new JLabel();
-        jLabel6 = new JLabel();
-        jLabel8 = new JLabel();
-        jLabel9 = new JLabel();
-        
 
         contentPanel1.setLayout(new java.awt.BorderLayout());
 
         welcomeTitle.setFont(new java.awt.Font("MS Sans Serif", Font.BOLD, 16));
-        welcomeTitle.setText("Welcome to Premium Markets!");
+        welcomeTitle.setText("Welcome to "+Install.APP_NAME+"!");
         contentPanel1.add(welcomeTitle, java.awt.BorderLayout.NORTH);
 
         jPanel1.setLayout(new java.awt.GridLayout(0, 1));
 
-        jPanel1.add(blankSpace);
-        jLabel1.setText("You are going to install Premium Markets.");
+        jLabel1.setText("You are going to install "+Install.APP_NAME);
         jPanel1.add(jLabel1);
        
-        jLabel5.setText("Along the installation process, You may require the following :");
-        jPanel1.add(jLabel5);
-        jLabel6.setText(" - Your ISP smtp host name and login paramaters, in order to set up email notification.");
-        jPanel1.add(jLabel6);
-        jLabel7.setText(" - An installation folder. As this software stores quotations data, it will need around of 1GO of disk resources for a start.");
-        jPanel1.add(jLabel7);
-        jLabel8.setText("");
-        jPanel1.add(jLabel8);
-        jLabel3.setText("Depending on your hardware resources, it may take a few minutes to unpack and install.");
-        jPanel1.add(jLabel3);
-        jLabel9.setText("");
-        jPanel1.add(jLabel9);
-        jLabel4.setText("Thanks for using Premium Markets.");
-        jPanel1.add(jLabel4);
+        jLabel2.setText(
+        		"<html>" +
+        		"Along the installation process, You may require the following : <br />"+
+        		"<ul>"+
+        		"<li>Your ISP SMTP host name and login parameters, in order to set up email notification.</li>"+
+        		"<li>An installation folder. As this software stores quotations data, it will need around of 1GO of disk resources for a start.</li>"+
+        		"</ul>"+
+        		"Depending on your hardware resources, it may take a few minutes to unpack and install.<br />"+
+        		"Thanks for using "+Install.APP_NAME+"."+
+        		"</html>");
+        jPanel1.add(jLabel2);
         
         try {
 			Properties pbuild = new Properties();
 			pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
 			
 			JLabel panel1 = new JLabel();
-			JLabel panel2 = new JLabel();
 			JLabel panel3 = new JLabel();
-			
-			jLabel2.setText("");
-			panel1.setText("Premium Markets");
-			panel2.setText("Copyright (c) Thoreton Guillaume. see <http://www.gnu.org/licenses/>");
+
+			panel1.setText("<html>"+Install.APP_NAME+"<br />"+copyRights+"</html>");
 			panel3.setText("Build : "+ pbuild.getProperty("application.buildtime"));
 			
 			jPanel1.add(jLabel2);
 			jPanel1.add(panel1);
-			jPanel1.add(panel2);
 			jPanel1.add(panel3);
 			
 		} catch (IOException e) {
@@ -205,7 +172,7 @@ public class IntroPanel extends JPanel {
         return contentPanel1;
         
     }
-
+    
     private ImageIcon getImageIcon() {
     	URL resource = this.getClass().getClassLoader().getResource(Install.iconFile+".png");
     	if (resource != null){

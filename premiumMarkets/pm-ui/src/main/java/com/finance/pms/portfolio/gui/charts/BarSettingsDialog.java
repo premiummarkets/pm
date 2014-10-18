@@ -52,13 +52,12 @@ import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.UserDialog;
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 
 public class BarSettingsDialog {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(BarSettingsDialog.class);
+//	private static MyLogger LOGGER = MyLogger.getLogger(BarSettingsDialog.class);
 	
 	private Shell shell;
 	private Shell parent;
@@ -87,7 +86,7 @@ public class BarSettingsDialog {
 	public BarSettings open(Point location) {
 		
         shell = new Shell(parent.getShell(), SWT.DIALOG_TRIM);
-        shell.setText("Premium Markets - Trend Display Settings ...");
+        shell.setText(MainGui.APP_NAME+" - Trend Display Settings ...");
         
         shell.addDisposeListener(new DisposeListener() {
 			

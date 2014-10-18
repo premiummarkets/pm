@@ -30,18 +30,22 @@
 package com.finance.pms.datasources.web;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 
@@ -51,6 +55,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.SharesListId;
@@ -82,37 +87,100 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	
 	protected Set<Observer> observers;
 	
+
+		
+	protected static final Map<String,SharesListId> shareListIds = new HashMap<>();
+		
+	static	{
+
+		shareListIds.put("ALLMARKETS", new SharesListId(
+				"ALLMARKETS", "allMarkets", ProvidersTypes.ALLMARKETS, 
+				"Complete market as available. This may not be fully up to date. The format is as follow  ALL:<MARKET ID>.\n Where MARKET ID is like : "+ Arrays.asList(Market.values())+"\n", 
+				"Complete market aggregation as available", true, true, SharesListId.sharesListIdOptionsForAllMarkets()));
+		shareListIds.put("YAHOOINDICES", new SharesListId(
+				"YAHOOINDICES", "yahooIndices", ProvidersTypes.YAHOOINDICES, "Your custom index format is <INDICE ID>:<MARKET ID>.\n " +
+				"Where INDICE ID like NDX, FTLC, SBF250 ...\n" +
+				"(these are yahoo indices like the one you can find at http://finance.yahoo.com/indices for instance.)\n " +
+				"and MARKET ID is like : "+ Arrays.asList(Market.values()) + ".\n" +
+				"(for instance : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
+				"You can specify several indices comma separated and build you own composite list.\n" +
+				"If left blank, it will aggregate all the pre-existing YAHOO indices available in your database.\n", 
+				"YAHOO INDICES components aggregation", true, true, SharesListId.sharesListIdOptionsForYahooIndices()));
+		shareListIds.put("NSEINDIAINDICES", new SharesListId(
+				"NSEINDIAINDICES", "nseIndices", ProvidersTypes.NSEINDIAINDICES, "Your custom index format is <INDICE ID>:<MARKET ID>.\n " +
+				"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +
+				"(these are nse indices you can find at nseindia.com)\n " +
+				"and MARKET ID  has to be "+Market.NSEINDIA+".\n" +
+				"(for instance : NIFTY:NSE, CNX100:NSE, ... standing for cnx nifty, cnx 100 ...)\n" +
+				"You can specify several indices comma separated and build you own composite list.\n" +
+				"If left blank, it will aggregate all the pre-existing NSE indices available in your database.\n", 
+				"NSE India INDICES components aggregation", true, true,
+				new String[]{"NIFTY:NSEINDIA", "NIFTY:NSEINDIA", "JRNIFTYLISR:NSEINDIA", "CNX100:NSEINDIA", "CNX200:NSEINDIA", "CNX500:NSEINDIA", "NIFTYMIDCAP50:NSEINDIA", "CNXMIDCAP:NSEINDIA", "CNXSMALLCAP:NSEINDIA"}));
+		shareListIds.put("BSE", new SharesListId("BSE", "bse", ProvidersTypes.BSE, "No comment", "All BSE from bseindia.com", false, true, new String[0]));
+
+		//Broken
+		shareListIds.put("GOOGLENYSE", new SharesListId("GOOGLENYSE", "nyse", ProvidersTypes.GOOGLE, "No comment", "All NYSE from google.com", false, true,new String[0]));
+		shareListIds.put("GOOGLEAMEX", new SharesListId("GOOGLEAMEX", "amex", ProvidersTypes.GOOGLE, "No comment", "All AMEX from google.com", false, true, new String[0]));
+		shareListIds.put("EURONEXT", new SharesListId("EURONEXT", "euronext", ProvidersTypes.EURONEXT, "No comment", "All EURONEXT shares from euronext.com", false, true, new String[0]));
+		shareListIds.put("BOURSORAMA", new SharesListId("BOURSORAMA", "boursorama", ProvidersTypes.BOURSORAMA, "No comment", "All EURONEXT shares from boursorama.com", false, true, new String[0]));
+		shareListIds.put("NASDAQ", new SharesListId("NASDAQ", "nasdaq", ProvidersTypes.NASDAQ, "No comment", "All NASDAQ from nasdaq.com", false, true, new String[0]));
+		shareListIds.put("ASX", new SharesListId("ASX", "asx", ProvidersTypes.ASX, "No comment", "All ASX from asx.com.au", false, true,new String[0]));
+
+		//Other (ie quotations only providers)
+		shareListIds.put("UNKNOWN", SharesListId.UNKNOWN);
+		
+	}
+		
+	
+	
 	protected Providers() {
 		observers = new HashSet<Observer>();
 	}
 
-	public static Providers getInstance(String sharesListName) {
+	public static Providers getInstance(String baseSharesListName) {
 		
-		String providerBeanName = sharesListName+"ProviderSource";
+		String providerBeanName = baseSharesListName+"ProviderSource";
 		Providers provider = (Providers) SpringContext.getSingleton().getBean(providerBeanName);
-		Set<Indice> indices = Indice.parseString(MainPMScmd.getMyPrefs().get("quotes.listproviderindices", ""));
+		SortedSet<Indice> indices = Indice.parseString(MainPMScmd.getMyPrefs().get("quotes.listproviderindices", ""));
 		provider.addIndices(indices, false);
 		return provider;
 		
 	}
 	
-	public static Providers setupProvider(String item) {
-		int indexOfFirstComma = item.indexOf(",");
-		//extract and set base
-		String shareListBaseName = item;
-		Set<Indice> indices = new HashSet<Indice>();
-		if (indexOfFirstComma != -1) {
-			shareListBaseName = item.substring(0, indexOfFirstComma).trim();
-			//extract and set indices
-			indices = Indice.parseString(item.substring(indexOfFirstComma+1).trim());
+	public static Providers setupProvider(String[] shareListSplit) {
+
+		String shareListBaseName = shareListSplit[0];
+
+		SortedSet<Indice> indices = new TreeSet<Indice>();
+		if (!shareListSplit[1].isEmpty()) {
+			indices = Indice.parseString(shareListSplit[1]);
 		}
+
 		SharesListId sharesListId = SharesListId.valueOf(shareListBaseName);
 		Providers provider = Providers.getInstance(sharesListId.getSharesListCmdParam());
 		provider.addIndices(indices, true);
 		return provider;
+
 	}
 	
-	public static String providerShareListName(Providers provider) {
+	public static Providers setupProvider(String indicedSharesListName) {
+		String[] split = Providers.shareListSplit(indicedSharesListName);
+		return Providers.setupProvider(split);
+	}
+	
+	public static String[] shareListSplit(String indicedSharesListName) {
+		int indexOfFirstComma = indicedSharesListName.indexOf(",");
+		if (indexOfFirstComma != -1) {
+			String shareListBaseName = indicedSharesListName.substring(0, indexOfFirstComma).trim();
+			String indicesString = indicedSharesListName.substring(indexOfFirstComma+1).trim();
+			return new String[]{shareListBaseName, indicesString};
+		} else {
+			return new String[]{indicedSharesListName, ""};
+		}
+
+	}
+	
+	public static String providerIndicedShareListName(Providers provider) {
 		return provider.getSharesListIdEnum().name()+Indice.formatSet(provider.getIndices());
 	}
 	
@@ -152,6 +220,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
     public abstract void retrieveScreeningInfo(Collection<Stock> shareListInDB);
 
 	protected void buildLookupDeleteReq(List<Validatable> deleteS, List<Validatable> deleteL, Stock s) {
+		
 		final Query delL = new Query();
 		delL.addValue(s.getSymbol());
 		delL.addValue(s.getIsin());
@@ -174,6 +243,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 				return delS;
 			}
 		});
+		
 	}
 
 	public StockList retreiveStockListFromFile(String pathToList, StockList stockList) throws InputMismatchException {
@@ -194,6 +264,8 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	}
 
 	public void setSharesListId(String shareListId) {
+		SharesListId staticSharesListDef = Providers.shareListIds.get(shareListId);
+		if (staticSharesListDef != null) SharesListId.addSharesListId(staticSharesListDef);
 		this.sharesListId = shareListId;
 	}
 
@@ -231,9 +303,9 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	
 	public abstract void addIndice(Indice indice);
 	
-	public abstract void addIndices(Set<Indice> indices, Boolean replace);
+	public abstract void addIndices(SortedSet<Indice> indices, Boolean replace);
 	
-	public abstract Set<Indice> getIndices();
+	public abstract SortedSet<Indice> getIndices();
 
 	protected TreeSet<Validatable> initValidatableSet() {
 		TreeSet<Validatable> queries = new TreeSet<Validatable>() ;

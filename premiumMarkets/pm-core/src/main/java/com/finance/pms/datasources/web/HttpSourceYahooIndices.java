@@ -29,19 +29,15 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
-import com.finance.pms.threads.MyHttpClient;
-import com.finance.pms.threads.SimpleHttpClient;
 
 public class HttpSourceYahooIndices extends HttpSourceMarket {
 	
@@ -72,11 +68,6 @@ public class HttpSourceYahooIndices extends HttpSourceMarket {
 	
 	public HttpSourceYahooIndices(String pathToprops, Providers beanFactory) {
 		super(pathToprops, beanFactory);
-	}
-
-	@Override
-	protected MyHttpClient myHttpConnect() throws HttpException, IOException {
-		return new SimpleHttpClient();
 	}
 
 	@Override
@@ -117,9 +108,8 @@ public class HttpSourceYahooIndices extends HttpSourceMarket {
 	
 	
 	@Override
-	protected HttpMethodBase getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		GetMethod getMethod = new GetMethod(url.getUrl());
-		return getMethod;
+	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		return new HttpGet(url.getUrl());
 	}
 	
 	/////////////////Opinions

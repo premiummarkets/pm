@@ -399,28 +399,6 @@ public class OTFTuningFinalizer {
 		
 		observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
 
-		//Finalise profits
-		trendFollowProfit = trendFollowProfit - 1;
-		
-		PeriodRatingDTO firstPeriod = periods.get(0);
-		PeriodRatingDTO lastPeriod = periods.get(periods.size()-1);
-		
-		if (!periods.isEmpty() && lastRealisedBullIdx != -1) {
-			Date firstBullFrom = firstPeriod.getFrom();
-			BigDecimal firstBullStartPrice = quotations.getClosestCloseForDate(firstBullFrom);
-			PeriodRatingDTO lastBullPeriod = periods.get(lastRealisedBullIdx);
-			Date lastBullTo = lastBullPeriod.getTo();
-			BigDecimal lastBullStartPrice = quotations.getClosestCloseForDate(lastBullTo);
-			LOGGER.info("Trend following compounded profit calculation is first Close "+firstBullStartPrice+" at "+firstBullFrom+" and last Close "+lastBullStartPrice+" at "+lastBullTo+" : "+trendFollowProfit);
-		} else {
-			LOGGER.info("Trend following profit calculation is unknown (No bullish periods were detected or no trend change detected)");
-		}
-		
-		//Buy and hold profit
-		BigDecimal firstClose = quotations.getClosestCloseForDate(firstPeriod.getFrom());
-		BigDecimal buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10, BigDecimal.ROUND_HALF_EVEN):BigDecimal.ZERO;
-		LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstPeriod.getFrom()+" and last Close "+lastClose+" at "+endDate+" : ("+lastClose+"-"+firstClose+")/"+firstClose+"="+buyAndHoldProfit);
-		
 		//Output boundaries
 		Date outputFirstKey = startDate;
 		Date outputLastKey = endDate;
@@ -429,8 +407,35 @@ public class OTFTuningFinalizer {
 			outputLastKey = calcOutput.lastKey();
 		}
 		
-		//return
-		return new TuningResDTO(periods, trendFile, chartFile, lastPeriod.getTrend(), trendFollowProfit, Double.NaN, buyAndHoldProfit, outputFirstKey, outputLastKey);
+		//Finalise profits
+		trendFollowProfit = trendFollowProfit - 1;
+		
+		if (!periods.isEmpty()) {
+			
+			PeriodRatingDTO firstPeriod = periods.get(0);
+			PeriodRatingDTO lastPeriod = periods.get(periods.size()-1);
+
+			if (lastRealisedBullIdx != -1) {
+				Date firstBullFrom = firstPeriod.getFrom();
+				BigDecimal firstBullStartPrice = quotations.getClosestCloseForDate(firstBullFrom);
+				PeriodRatingDTO lastBullPeriod = periods.get(lastRealisedBullIdx);
+				Date lastBullTo = lastBullPeriod.getTo();
+				BigDecimal lastBullStartPrice = quotations.getClosestCloseForDate(lastBullTo);
+				LOGGER.info("Trend following compounded profit calculation is first Close "+firstBullStartPrice+" at "+firstBullFrom+" and last Close "+lastBullStartPrice+" at "+lastBullTo+" : "+trendFollowProfit);
+			} else {
+				LOGGER.info("Trend following profit calculation is unknown (No bullish periods were detected or no trend change detected)");
+			}
+
+			//Buy and hold profit
+			BigDecimal firstClose = quotations.getClosestCloseForDate(firstPeriod.getFrom());
+			Double buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10, BigDecimal.ROUND_HALF_EVEN).doubleValue():Double.NaN;
+			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstPeriod.getFrom()+" and last Close "+lastClose+" at "+endDate+" : ("+lastClose+"-"+firstClose+")/"+firstClose+"="+buyAndHoldProfit);
+
+			return new TuningResDTO(periods, trendFile, chartFile, lastPeriod.getTrend(), trendFollowProfit, Double.NaN, buyAndHoldProfit, outputFirstKey, outputLastKey);
+		}
+		
+		LOGGER.info("No event detected");
+		return new TuningResDTO(periods, trendFile, chartFile, EventType.NONE.toString(), Double.NaN, Double.NaN, Double.NaN, outputFirstKey, outputLastKey);
 		
 	}
 

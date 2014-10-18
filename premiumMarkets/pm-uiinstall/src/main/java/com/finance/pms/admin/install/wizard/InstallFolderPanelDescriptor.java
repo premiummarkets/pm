@@ -44,10 +44,14 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implemen
 
     public static final String IDENTIFIER = "INSTALL_FOLDER_PANEL";
     InstallFolderPanel panel3;
+	private MyWizard wizard;
 
-    public InstallFolderPanelDescriptor() {
+    public InstallFolderPanelDescriptor(MyWizard wizard) {
         
-        panel3 = new InstallFolderPanel();
+        
+        this.wizard = wizard;
+        
+        panel3 = new InstallFolderPanel(this.wizard);
         panel3.addTextFieldReturn(this);
         
         setPanelDescriptorIdentifier(IDENTIFIER);
@@ -76,7 +80,7 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implemen
 			updateInstallFolder(pmFolder);
 			
 			getWizard().setNextFinishButtonEnabled(true);
-			Install.selectNextButton();
+			wizard.selectNextButton();
 		}
 	}
 
@@ -107,8 +111,8 @@ public class InstallFolderPanelDescriptor extends WizardPanelDescriptor implemen
 				updateInstallFolder(pmFolder);
 				
 				getWizard().setNextFinishButtonEnabled(true);
-				Install.selectNextButton();
-				Install.pressNextButton();
+				wizard.selectNextButton();
+				wizard.pressNextButton();
 				
 			}
 			

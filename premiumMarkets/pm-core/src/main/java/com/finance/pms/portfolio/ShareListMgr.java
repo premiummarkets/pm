@@ -31,6 +31,7 @@ package com.finance.pms.portfolio;
 
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -90,7 +91,7 @@ public abstract class ShareListMgr {
 			if (shareListNameSplit.length == 1) {// Yahoo Indices list
 				provider = Providers.getInstance(SharesListId.valueOf(sharesList.getName()).getSharesListCmdParam());
 			} else {// No indices => Not yahooIndices
-				Set<Indice> indices = Indice.parseString(sharesList.getName());
+				SortedSet<Indice> indices = Indice.parseString(sharesList.getName());
 				provider = Providers.getInstance(SharesListId.valueOf(shareListNameSplit[0]).getSharesListCmdParam());
 				provider.addIndices(indices, true);
 			}

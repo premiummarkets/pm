@@ -32,9 +32,10 @@ package com.finance.pms.datasources.web;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Market;
@@ -49,7 +50,7 @@ public abstract class ProvidersMarket extends ProvidersList {
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersMarket.class);
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
 
@@ -73,7 +74,7 @@ public abstract class ProvidersMarket extends ProvidersList {
 		@SuppressWarnings("rawtypes")
 		List ltmp = new ArrayList();
 		try {
-			ltmp = ((HttpSourceMarket)this.httpSource).readURL(lsf);
+			ltmp = ((HttpSourceMarket) this.httpSource).readURL(lsf);
 		} catch (HttpException e) {
 			LOGGER.error("",e);
 		}

@@ -70,26 +70,36 @@ public class SpringContext extends GenericApplicationContext {
 		setDataSource();
 		singleton = this;
 		
-		buildStampPrefs();
-		
+		buildStampPrefs();	
 	}
 
 	private void buildStampPrefs() {
 		//BuildInPrefs
 		try {
 			Properties pbuild = new Properties();
-			pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
-			if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
-			MainPMScmd.getMyPrefs().flushy();
-		} catch (Exception e) {
 			try {
-				Properties pbuild = new Properties();
-				pbuild.load(this.getClass().getResourceAsStream("pmsbuild.properties"));
-				if (pbuild.containsKey("site.url")) MainPMScmd.getMyPrefs().put("site.url", pbuild.getProperty("site.url"));
-				MainPMScmd.getMyPrefs().flushy();
-			} catch (Exception e1) {
-				e1.printStackTrace();
+				pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
+			} catch (Exception e) {
+				try {
+					pbuild.load(this.getClass().getResourceAsStream("pmsbuild.properties"));
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
+			
+			String siteUrlProp = "none.com";
+			if (System.getProperty("site.url") != null) {
+				siteUrlProp = System.getProperty("site.url");
+			}
+			else if (pbuild.containsKey("site.url")) {
+				siteUrlProp = pbuild.getProperty("site.url");
+			}
+			
+			MainPMScmd.getMyPrefs().put("site.url", siteUrlProp);
+			MainPMScmd.getMyPrefs().flushy();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -100,6 +110,7 @@ public class SpringContext extends GenericApplicationContext {
 		singleton = this;
 		
 		buildStampPrefs();
+		
 	}
 	
 	//??

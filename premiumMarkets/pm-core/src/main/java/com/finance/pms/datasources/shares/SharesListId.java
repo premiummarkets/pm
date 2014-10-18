@@ -30,7 +30,6 @@
 package com.finance.pms.datasources.shares;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -40,63 +39,67 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
 /**
- * The Enum MarketListProviders.
  * Defines a market list providers
  * Links each market place with one to many web stock provider 
  * 
  * @author Guillaume Thoreton
  */
-public enum SharesListId {
+public class SharesListId  {
 	
-	ALLMARKETS ("allMarkets", ProvidersTypes.ALLMARKETS, 
-			"The format is as follow  ALL:<MARKET ID>.\n Where MARKET ID is like : "+ Arrays.asList(Market.values())+"\n", "Full market", true, SharesListId.sharesListIdOptionsForAllMarkets()),
-	YAHOOINDICES ("yahooIndices",ProvidersTypes.YAHOOINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
-			"Where INDICE ID like NDX, FTLC, SBF250 ...\n" +
-			"(these are yahoo indices like the one you can find at http://finance.yahoo.com/indices for instance.)\n " +
-			"and MARKET ID is like : "+ Arrays.asList(Market.values()) + ".\n" +
-			"(ex : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
-			"You can specify several indices comma separeted and build you own composite list.\n" +
-			"If left blank, it will aggregate all the prexisting YAHOO indices available in your database.\n", "YAHOO INDICES components", true,  SharesListId.sharesListIdOptionsForYahooIndices()),
-	NSEINDICES ("nseIndices",ProvidersTypes.NSEINDICES, "Your custom indice format is <INDICE ID>:<MARKET ID>.\n " +
-					"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +
-					"(these are nse indices you can find at nseindia.com)\n " +
-					"and MARKET ID  has to be "+Market.NSE+".\n" +
-					"(ex : NIFTY:NSE, CNX100:NSE, ... standing for cnx nifty, cnx 100 ...)\n" +
-					"You can specify several indices comma separeted and build you own composite list.\n" +
-					"If left blank, it will aggregate all the prexisting NSE indices available in your database.\n", "NSE INDICES components", true, 
-					new String[]{"NIFTY:NSE", "NIFTY:NSE", "JRNIFTYLISR:NSE", "CNX100:NSE", "CNX200:NSE", "CNX500:NSE", "NIFTYMIDCAP50:NSE", "CNXMIDCAP:NSE", "CNXSMALLCAP:NSE"}),
-	BSE ("bse",ProvidersTypes.BSE,"No comment","All BSE from bseindia.com", false, new String[0]),
-	
-	//Broken
-	GOOGLENYSE ("nyse",ProvidersTypes.GOOGLE,"No comment","All NYSE from google.com", false, new String[0]),
-	GOOGLEAMEX ("amex",ProvidersTypes.GOOGLE, "No comment","All AMEX from google.com", false, new String[0]),
-	EURONEXT ("euronext",ProvidersTypes.EURONEXT,"No comment", "All EURONEXT shares from euronext.com", false, new String[0]),
-	BOURSORAMA ("boursorama",ProvidersTypes.BOURSORAMA,"No comment","All EURONEXT shares from boursorama.com", false, new String[0]),
-	NASDAQ ("nasdaq",ProvidersTypes.NASDAQ,"No comment","All NASDAQ from nasdaq.com", false, new String[0]),
-	ASX ("asx",ProvidersTypes.ASX,"No comment","All ASX from asx.com.au", false, new String[0]),
-	
-	//Other
-	UNKNOWN ("unknown",ProvidersTypes.NONE,"No comment","No market", false, new String[0]);
+	public static final SharesListId UNKNOWN = new SharesListId("UNKNOWN", "unknown", ProvidersTypes.NONE, "Other stocks not related to a market", "Not in any market", false, false, 	new String[0]);
 
+	private static List<SharesListId> shareListIds = new ArrayList<SharesListId>();
 
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);
 
-	private String sharesListCmdParam;
-	private ProvidersTypes providersType;
+	private final String name;
+	private final String sharesListCmdParam;
+	private final ProvidersTypes providersType;
 	
-	private String comment;
-	private String description;
-	private Boolean isIndicesComposite;
+	private final String comment;
+	private final String description;
+	private final Boolean isIndicesComposite;
+	private final Boolean isDownloadable;
 	
-	private String[] options;
+	private final String[] options;
 
-	private SharesListId(String cmdParam, ProvidersTypes providersType, String comment, String description, Boolean isIndicesComposite, String[] options) {
+	public SharesListId(String name, String cmdParam, ProvidersTypes providersType, String comment, String description, Boolean isIndicesComposite, Boolean isDownloadable, String[] options) {
+		this.name = name;
 		this.providersType = providersType;
 		this.sharesListCmdParam = cmdParam;
 		this.comment = comment;
 		this.description=description;
 		this.isIndicesComposite = isIndicesComposite;
+		this.isDownloadable = isDownloadable;
 		this.options = options;
+	}
+	
+	private SharesListId(String name) {
+		this.name = name;
+		this.sharesListCmdParam = null;
+		this.providersType = null;
+		this.comment = null;
+		this.description = null;
+		this.isIndicesComposite = false;
+		this.isDownloadable = false;
+		this.options = null;
+		
+	}
+
+	public static SharesListId[] values() {
+		return SharesListId.shareListIds.toArray(new SharesListId[]{});
+	}
+	
+	public static SharesListId valueOf(String shareListBaseName) {
+		Integer ordinal = new SharesListId(shareListBaseName).ordinal();
+		if (ordinal == -1) throw new IllegalArgumentException();
+		return SharesListId.shareListIds.get(ordinal);
+	}
+	
+	public static void addSharesListId(SharesListId sharesListId) {
+		if (sharesListId != null && !SharesListId.shareListIds.contains(sharesListId)) {
+			SharesListId.shareListIds.add(sharesListId);
+		}
 	}
 
 	public static SharesListId valueOfCmd(String cmdString) {
@@ -126,7 +129,15 @@ public enum SharesListId {
 		}
 		return retour;	
 	}
+	
+	public Integer ordinal() {
+		return SharesListId.shareListIds.indexOf(this);
+	}
 
+	public String name() {
+		return name;
+	}
+	
 	public String getSharesListCmdParam() {
 		return sharesListCmdParam;
 	}
@@ -150,7 +161,7 @@ public enum SharesListId {
 		}
 		return sharesListIds;
 	}
-
+	
 	public static int getNbCompositeLists() {
 		int ret = 0;
 		for (SharesListId shareListId : SharesListId.values()) {
@@ -195,5 +206,38 @@ public enum SharesListId {
 		return options;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SharesListId other = (SharesListId) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
+
+	public Boolean getIsDownloadable() {
+		return isDownloadable;
+	}
+	
 }

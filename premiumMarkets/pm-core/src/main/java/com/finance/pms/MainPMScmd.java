@@ -38,7 +38,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -128,13 +128,13 @@ public class MainPMScmd {
 				marketQuotationProvider = sharesListName;
 			}
 			
-			Set<Indice> indices = new TreeSet<Indice>();
+			SortedSet<Indice> indices = new TreeSet<Indice>();
 			if (yahooIndicesSymbols) {
 				int i = argList.indexOf("-yahooIndicesSymbol")+1;
 				indices = Indice.parseString(args[i]);
 			}
 			if (updateSharesListAndQuotes) {
-				dbHi.getQuotesAndNewForShareListFromWeb(sharesListName, marketQuotationProvider,indices);
+				dbHi.getQuotesAndNewForShareListFromWeb(sharesListName, marketQuotationProvider, indices);
 			}
 			if (updateSharesList) {
 				LOGGER.info("Updating share list only");

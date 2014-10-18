@@ -51,35 +51,20 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class LicencePanel.
  * 
  * @author Guillaume Thoreton
  */
 public class LicencePanel extends JPanel {
- 
-    /** The Constant serialVersionUID. */
+
 	private static final long serialVersionUID = 7214467104369545258L;
-	
-    /** The j check box1. */
+
     private javax.swing.JCheckBox jCheckBox1;
-    
-    /** The content panel. */
     private JPanel contentPanel;
-    
-    /** The icon label. */
     private JLabel iconLabel;
-    
-    /** The title panel. */
     private JPanel titlePanel;
-        
-    /**
-     * Instantiates a new licence panel.
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public LicencePanel() {
     	
         super();
@@ -104,41 +89,19 @@ public class LicencePanel extends JPanel {
         add(contentPanel, BorderLayout.CENTER);
 
 	}  
-    
-    /**
-     * Adds the check box action listener.
-     * 
-     * @param l the l
-     * 
-     * @author Guillaume Thoreton
-     */
+
     public void addCheckBoxActionListener(ActionListener l) {
         jCheckBox1.addActionListener(l);
     }
-    
-    /**
-     * Checks if is check box selected.
-     * 
-     * @return true, if is check box selected
-     */
+ 
     public boolean isCheckBoxSelected() {
         return jCheckBox1.isSelected();
     }
-    
-    /**
-     * Gets the radio button selected.
-     * 
-     * @return the radio button selected
-     */
+
     public String getRadioButtonSelected() {
     	return null;
     }
-    
-    /**
-     * Gets the content panel.
-     * 
-     * @return the content panel
-     */
+
     private JPanel getContentPanel() {
     	
 		JPanel jpc = new JPanel();
@@ -171,26 +134,12 @@ public class LicencePanel extends JPanel {
 		
 	}
     
-    /**
-     * Gets the image icon.
-     * 
-     * @return the image icon
-     */
+
     private ImageIcon getImageIcon() {
     	return null;
 
     }
     
-	/**
-	 * Extract file.
-	 * 
-	 * @param baseFolder the base folder
-	 * @param fileName the file name
-	 * 
-	 * @return the file
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	private File extractFile(File baseFolder, String fileName) {
 		System.out.println("Writing file "+fileName+" to Folder : " + baseFolder.getAbsolutePath());
 		File file = new File(baseFolder,fileName);

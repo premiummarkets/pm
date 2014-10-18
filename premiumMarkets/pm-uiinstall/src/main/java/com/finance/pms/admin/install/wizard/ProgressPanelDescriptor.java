@@ -69,7 +69,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.finance.pms.admin.DbInstaller;
-import com.finance.pms.admin.NoPreparedDbException;
 import com.finance.pms.admin.install.SystemTypes;
 import com.nexes.wizard.WizardPanelDescriptor;
 
@@ -247,10 +246,17 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 	}
 
 	private Boolean done= false;
+	public String dbInstallUrl;
+	public String dbName;
+	public String packagedJnlp;
 
-    public ProgressPanelDescriptor() {
+    public ProgressPanelDescriptor(MyWizard wizard, String dbInstallUrl, String dbName, String packagedJnlp, String waitForProgressTxt, String siteUrl, String whileWeWaitUrl) {
         
-        panel3 = new ProgressPanel();
+    	this.dbInstallUrl = dbInstallUrl;
+    	this.dbName = dbName;
+    	this.packagedJnlp = packagedJnlp;
+    	
+        panel3 = new ProgressPanel(waitForProgressTxt, siteUrl, whileWeWaitUrl);
         setPanelDescriptorIdentifier(IDENTIFIER);
         setPanelComponent(panel3);
         
@@ -281,7 +287,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     @Override
 	public void displayingPanel() {
     	
-    	task = new Task(InstallFolderPanel.getPmFolder(), this, panel3);
+    	task = new Task(InstallFolderPanel.getInstallFolder(), this, panel3);
 		task.execute();
 		
 		SwingWorker<Void, Void> deltaPrg = new SwingWorker<Void,Void>() {
@@ -315,7 +321,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     
 	class Task extends SwingWorker<Void, Void> {
 		
-		private File piggyMarketSqueakFolder;
+		private File installFolder;
 		private WizardPanelDescriptor wizardPanelDescriptor;
 		private int nbComeOn = 0;
 		private Double progress = 0.0;
@@ -325,9 +331,9 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		private Long tnRef;
 
 
-		private Task(File piggyMarketSqueakFolder, WizardPanelDescriptor w, ProgressPanel panel3) {
+		private Task(File installFolder, WizardPanelDescriptor w, ProgressPanel panel3) {
 			super();
-			this.piggyMarketSqueakFolder = piggyMarketSqueakFolder;
+			this.installFolder = installFolder;
 			this.wizardPanelDescriptor = w;
 			this.addPropertyChangeListener(panel3);
 			
@@ -346,10 +352,10 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				
 				System.setOut(panelSystemOut);
 
-				Boolean dbAlreadyInstalled = ProgressPanelDescriptor.isDbExists(piggyMarketSqueakFolder);
+				Boolean dbAlreadyInstalled = isDbExists(installFolder);
 				//displayTime("start");
 				task.comeOn(PROGRESSBAR_REALINC, "start");
-				installCommon(piggyMarketSqueakFolder, dbAlreadyInstalled);
+				installCommon(installFolder, dbAlreadyInstalled);
 				
 				//displayTime("installCommon");
 				task.comeOn(PROGRESSBAR_REALINC,"installCommon");
@@ -366,11 +372,11 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				dbInstall(dbInstaller);
 				
 				if (dbAlreadyInstalled) {//upgrade
-					System.out.println("Premium Markets has been installed before. Will try and upgrade");
+					System.out.println(Install.APP_NAME+" has been installed before. Will try and upgrade");
 					try {
 						task.comeOn(PROGRESSBAR_REALINC, "Upgrading Database!");
 						System.out.println("Upgrading Database!");
-						dbInstaller.upgradeExisting(piggyMarketSqueakFolder, DbInstaller.EXTRACTDIR, connect(piggyMarketSqueakFolder));
+						dbInstaller.upgradeExisting(installFolder, DbInstaller.EXTRACTDIR, connect(installFolder));
 						System.out.println("Database upgraded");
 					} catch (Throwable e) {
 						System.out.println("Database upgrade didn't complete properly.");
@@ -382,11 +388,11 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 					
 				} else {//first install : populate
 					
-					System.out.println("Premium Markets first or new install! good luck :))");
+					System.out.println(Install.APP_NAME+" first or new install! good luck :))");
 					//displayTime("extract DB");
 					task.comeOn(PROGRESSBAR_REALINC, "Importing data in Database!");
 					System.out.println("Importing data in Database!");
-					dbInstaller.importDB(piggyMarketSqueakFolder, DbInstaller.EXTRACTDIR, connect(piggyMarketSqueakFolder));
+					dbInstaller.importDB(installFolder, DbInstaller.EXTRACTDIR, connect(installFolder));
 					closeConnection();
 					System.out.println("Database initialised");
 					//displayTime("importDB");
@@ -429,7 +435,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				
 				//Delete the other swt files
 				Boolean foundLib = false;
-				File libDir = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"lib");
+				File libDir = new File(installFolder.getAbsolutePath()+File.separatorChar+"lib");
 				File[] swtFiles = libDir.listFiles(new FilenameFilter() {
 					
 					public boolean accept(File dir, String name) {
@@ -441,7 +447,8 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				
 				if (jnlpSelectedFileName != null) {
 					for (File swtFile : swtFileList) {
-						String noMvnVersionLibSwtFileName = swtFile.getName().replaceAll("-[0-9]\\.[0-9]\\.[0-9]\\.", ".");
+						//String noMvnVersionLibSwtFileName = swtFile.getName().replaceAll("-[0-9]\\.[0-9]\\.[0-9]\\.", ".");
+						String noMvnVersionLibSwtFileName = swtFile.getName().replaceAll("-([0-9]\\.)+jar", ".jar");
 						System.out.println("testing, no mvn version swst lib file : "+noMvnVersionLibSwtFileName);
 						if (noMvnVersionLibSwtFileName.equals(jnlpSelectedFileName)) {
 							foundLib = true;
@@ -470,8 +477,8 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				//ICONS
 				SystemTypes systemType = Install.systemType;
 				if (systemType == null) systemType = SystemTypes.WINDOWS;
-				File icon = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon"+systemType.getIcoext());
-				File iconNewFile = new File(piggyMarketSqueakFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon.image");
+				File icon = new File(installFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon"+systemType.getIcoext());
+				File iconNewFile = new File(installFolder.getAbsolutePath()+File.separatorChar+"icons"+File.separatorChar+"icon.image");
 				try {
 					iconNewFile.delete();
 					System.out.println("copying from " +icon.getAbsolutePath() + " to "+ iconNewFile.getAbsolutePath());
@@ -506,16 +513,17 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		}
 
 		protected void dbInstall(DbInstaller dbInstaller) throws MalformedURLException {
+			
 			URL export = this.getClass().getClassLoader().getResource("export");
 			URL derby = this.getClass().getClassLoader().getResource("derby");
-			URL initialdb = new URL("http://downloads.sourceforge.net/pmsqueak/initialdb-0.1.2.jar?use_mirror=osdn");
 			if (derby != null && export != null) {
 				System.out.println("Pre-extracted database found in the jar but it is not supported yet. Thanks if any ideas.");
 			}
+			
 			System.out.println("Will try extract or download.");
 			try {
-				dbInstaller.extractDB(initialdb, BaseCheckPanelDescriptor.initdbName, piggyMarketSqueakFolder);
-			} catch (NoPreparedDbException e) {
+				dbInstaller.extractDB(dbName, dbInstallUrl, BaseCheckPanelDescriptor.initDbName, installFolder);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -562,7 +570,8 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 			
 			String swtFilenName = null;
 			
-			InputStream inputStream = this.getClass().getResourceAsStream("/PremiumMarkets.jnlp");
+			System.out.println("Analysing jnlp : "+packagedJnlp);
+			InputStream inputStream = this.getClass().getResourceAsStream(packagedJnlp);
 			XPathFactory factory = XPathFactory.newInstance();  
 			XPath xPath = factory.newXPath();  
 			InputSource inputSource= new InputSource(inputStream); 
@@ -602,7 +611,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		}
 		
 
-		private Connection connect(File piggyMarketSqueakFolder) {
+		private Connection connect(File installFolder) {
 			
 			//String connectionURL;
 			ProgressPanelDescriptor.connection = null;
@@ -614,7 +623,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						e.printStackTrace();
 					}
 					// Set up the connection
-					connectionURL = "jdbc:derby:"+piggyMarketSqueakFolder.getAbsolutePath()+File.separator+"derby"+File.separator+"premiummarkets";
+					connectionURL = "jdbc:derby:"+installFolder.getAbsolutePath()+File.separator+"derby"+File.separator+dbName;
 					ProgressPanelDescriptor.connection = DriverManager.getConnection(connectionURL);
 					ProgressPanelDescriptor.connection.setAutoCommit(true);
 				} catch (ClassNotFoundException e) {
@@ -673,7 +682,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 
 	}
 	
-	private void installCommon(File piggyMarketSqueakFolder, Boolean dbAlreadyInstalled) {
+	private void installCommon(File installFolder, Boolean dbAlreadyInstalled) {
 		//install common 
 		System.out.println("Install commons and jars");
 		
@@ -681,7 +690,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		//loading Old props
 		try {
 			System.out.println("Loading old props.");
-			File propFile = new File(piggyMarketSqueakFolder.getAbsoluteFile() + File.separator + "db.properties");
+			File propFile = new File(installFolder.getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(propFile);
 			oldProps.load(propFileIS);
 
@@ -693,7 +702,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		
 		//Unpack
 		try {
-			File f = extractFile(piggyMarketSqueakFolder, Install.archName);
+			File f = extractFile(installFolder, Install.ARCH_NAME);
 			ZipFile zf = new ZipFile(f);
 			Enumeration<? extends ZipEntry> zipEnum = zf.entries();
 			while (zipEnum.hasMoreElements()) {
@@ -701,14 +710,14 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				
 				if (item.isDirectory()) { //Directory
 					
-					File newdir = new File(piggyMarketSqueakFolder.getAbsolutePath() + File.separator + item.getName());
+					File newdir = new File(installFolder.getAbsolutePath() + File.separator + item.getName());
 					System.out.print("Creating directory " + newdir + " ... ");
 					boolean mkdir = newdir.mkdir();
 					System.out.println("Done! And created : "+mkdir);
 					
 				} else  {//File
 					
-					String newfile = piggyMarketSqueakFolder.getAbsolutePath() + File.separator + item.getName();
+					String newfile = installFolder.getAbsolutePath() + File.separator + item.getName();
 					System.out.println("Deleting previous file "+ newfile);
 					new File(newfile).delete();
 					System.out.print("Writing " + newfile+ " ... ");
@@ -735,7 +744,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 		//Merge props
 		try {
 			System.out.println("Merging props.");
-			File propFile = new File(piggyMarketSqueakFolder.getAbsoluteFile() + File.separator + "db.properties");
+			File propFile = new File(installFolder.getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(propFile);
 			Properties newProps = new Properties();
 			newProps.load(propFileIS);
@@ -766,9 +775,9 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 	}
 
 
-	public static Boolean isDbExists(File ifold) {
+	public Boolean isDbExists(File ifold) {
 		String ifpath = ifold.getAbsolutePath();
-		File dbFolder = new File(ifpath + File.separator + Install.dbName + File.separator + "premiummarkets");
+		File dbFolder = new File(ifpath + File.separator + Install.dbName + File.separator + dbName);
 		return dbFolder.exists();
 	}
 	

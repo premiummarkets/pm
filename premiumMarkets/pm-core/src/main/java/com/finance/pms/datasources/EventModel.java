@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;

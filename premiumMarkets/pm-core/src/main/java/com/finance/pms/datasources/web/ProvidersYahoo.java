@@ -36,10 +36,10 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -69,7 +69,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 	}
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
 		
@@ -123,7 +123,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
     
     
     @Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks,StockList stockList, String quotationsProvider) {
+	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
     	throw new UnsupportedOperationException("Please use another share list holder provider for that.");
     }
 
@@ -173,7 +173,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		//Nothing
 	}
 

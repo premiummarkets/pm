@@ -205,7 +205,7 @@ public class GnuCashParserHelper {
 					if (portfolio instanceof SharesList) {
 						ProvidersList provider;
 						if (portfolio.getName().equals(SharesListId.UNKNOWN.name())) {//TODO infer stock list from extension?
-							provider =  (ProvidersList) Providers.getInstance(SharesListId.YAHOOINDICES.getSharesListCmdParam());
+							provider =  (ProvidersList) Providers.getInstance(SharesListId.valueOf("YAHOOINDICES").getSharesListCmdParam());
 						} else {
 							provider = (ProvidersList) Providers.setupProvider(portfolio.getName());
 						}

@@ -32,7 +32,7 @@ package com.finance.pms.datasources.web;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;

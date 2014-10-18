@@ -36,10 +36,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -52,32 +53,23 @@ import com.finance.pms.datasources.web.formaters.StockListNASDAQFormater;
 import com.finance.pms.portfolio.SharesList;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ProvidersNASDAQ.
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 	
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersNASDAQ.class);
 	
-	
-	/**
-	 * Instantiates a new providers nasdaq.
-	 * 
-	 * @param pathToProps the path to props
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public ProvidersNASDAQ(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceNASDAQ(pathToProps, this);
 	}
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
 	
@@ -218,7 +210,7 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
 	}

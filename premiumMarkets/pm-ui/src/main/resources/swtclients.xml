@@ -69,58 +69,32 @@
 				<property name="portfolioDAO" ref="portfolioDAO"/>
 	</bean>
 	
-	<bean id="boursoramaProviderSource" class="com.finance.pms.datasources.web.ProvidersBoursorama" parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="sharesListId" value="BOURSORAMA" />
-	</bean>
-	
+	<!-- Quotations providers -->
 	<bean id="investirProviderSource" class="com.finance.pms.datasources.web.ProvidersInvestir">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="INVESTIR" />
 		<property name="portfolioDAO" ref="portfolioDAO"/>
 		<property name="shareDAO" ref="shareDAO"/>
 	</bean>
-	
 	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOO" />
 		<property name="portfolioDAO" ref="portfolioDAO"/>
 		<property name="shareDAO" ref="shareDAO"/>
 	</bean>
-	<bean id="euronextProviderSource" class="com.finance.pms.datasources.web.ProvidersEuroNext"  parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="sharesListId" value="EURONEXT" />
-	</bean>
-	<bean id="nasdaqProviderSource" class="com.finance.pms.datasources.web.ProvidersNASDAQ"  parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="sharesListId" value="NASDAQ" />
-	</bean>
-	<bean id="nyseProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="market" value="NYSE"/>
-		<property name="sharesListId" value="GOOGLENYSE" />
-	</bean>
-	<bean id="amexProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="market" value="AMEX"/>
-		<property name="sharesListId" value="GOOGLEAMEX" />
-	</bean>
 	<bean id="googleProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
-	<bean id="asxProviderSource" class="com.finance.pms.datasources.web.ProvidersASXMarket"  parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="sharesListId" value="ASX" />
-	</bean>
+	
+	<!--  Share lists providers -->
 	<bean id="bseProviderSource" class="com.finance.pms.datasources.web.ProvidersBSEMarket"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="BSE" />
 	</bean>
-	
-	<bean id="nseIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersNSEIndices" parent="provider">
-		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
-		<property name="sharesListId" value="NSEINDICES" />
+	<bean id="nseIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersNseIndiaIndices" parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="NSEINDIAINDICES" />
 	</bean>
     <bean id="yahooIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices" parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
@@ -130,13 +104,14 @@
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="ALLMARKETS" />
 	</bean>
-        
-    <bean id="inflationProviderSource" class="com.finance.pms.datasources.web.ProvidersInflation"  parent="provider">
-		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
-		<property name="sharesListId" value="UNKNOWN" />
-	</bean>
+
+	<!--  Others -->
 	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	<bean id="inflationProviderSource" class="com.finance.pms.datasources.web.ProvidersInflation"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
 	<bean id="currencyProviderSource" class="com.finance.pms.datasources.web.ProvidersCurrency"  parent="provider">

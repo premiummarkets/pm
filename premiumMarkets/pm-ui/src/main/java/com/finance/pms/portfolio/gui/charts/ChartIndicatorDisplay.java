@@ -251,11 +251,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			public void widgetSelected(SelectionEvent evt) {
 				
 				LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
-			
 				EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
-		
 				this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
-				parentView.initRefreshAction();
 				super.widgetSelected(evt);
 			}
 		
@@ -611,7 +608,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 					
 					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
-					((RefreshableView)chartTarget.getParent().getParent()).initRefreshAction();
 					super.widgetSelected(evt);
 				}
 			

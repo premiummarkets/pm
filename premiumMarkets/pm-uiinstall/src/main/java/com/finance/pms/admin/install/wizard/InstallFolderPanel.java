@@ -74,13 +74,17 @@ public class InstallFolderPanel extends JPanel {
     private JLabel textLabel;
     private JPanel titlePanel;
     
-    static private File piggyMarketSqueakFolder;
+    static private File installFolderPath;
 	private JTextField jt;
+
+	private MyWizard myWizard;
         
 
-    public InstallFolderPanel() {
+    public InstallFolderPanel(MyWizard myWizard) {
         
         super();
+        
+        this.myWizard = myWizard;
         
         contentPanel = getContentPanel();
         ImageIcon icon = getImageIcon();
@@ -154,7 +158,7 @@ public class InstallFolderPanel extends JPanel {
 				if (selectedFile != null && !fs.getCanceled()) {
 					if (checkInstallPath(selectedFile.getAbsolutePath())) {
 						jt.setText(selectedFile.getAbsolutePath());
-						Install.selectNextButton();
+						myWizard.selectNextButton();
 					}
 				}
 			}
@@ -223,7 +227,7 @@ public class InstallFolderPanel extends JPanel {
 
 	protected void errorPathDialog(String instFolderName) {
 		
-		JDialog errorPopup = new JDialog(Install.getWizard().getDialog(), "Invalid path", true);
+		JDialog errorPopup = new JDialog(myWizard.getDialog(), "Invalid path", true);
 		errorPopup.setLocation(MouseInfo.getPointerInfo().getLocation());
 		JPanel contentPane = new JPanel();
 		contentPane.add(new JLabel("Invalid installation path : "+instFolderName));
@@ -243,7 +247,7 @@ public class InstallFolderPanel extends JPanel {
 	}
 	
 	protected static File setPmFolder(String updatedName) {
-		piggyMarketSqueakFolder = new File(updatedName + File.separator + Install.piggyMarketSqueak);
+		installFolderPath = new File(updatedName + File.separator + Install.APP_SYS_NAME);
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
 		prefs.put("pm.default.install.folder", StringEscapeUtils.escapeJava(updatedName));
 		try {
@@ -251,11 +255,11 @@ public class InstallFolderPanel extends JPanel {
 		} catch (BackingStoreException e) {
 			e.printStackTrace();
 		}
-		return piggyMarketSqueakFolder;
+		return installFolderPath;
 	}
 
-	public static File getPmFolder() {
-		return piggyMarketSqueakFolder;
+	public static File getInstallFolder() {
+		return installFolderPath;
 	}
 
 	public JTextField getJt() {

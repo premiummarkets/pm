@@ -302,7 +302,7 @@ public class PoolSemaphore {
         		sourceConnector.shutdownSource(sourceClient[i], i);
         		LOGGER.info("Stopping Thread pool, "+sourceConnector.getClass().getName()+" shutting down : "+i);
         	} else {
-        		LOGGER.info("Stopping DB Thread pool, "+sourceConnector.getClass().getName()+" is empy  : "+i);
+        		LOGGER.debug("Stopping DB Thread pool, "+sourceConnector.getClass().getName()+" is empy  : "+i);
         	}
         }
     }

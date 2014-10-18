@@ -33,11 +33,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.widgets.Display;
 
 public interface RefreshableView {
-
-	Display getDisplay();
 
 	void endRefreshAction(List<Exception> exceptions);
 	

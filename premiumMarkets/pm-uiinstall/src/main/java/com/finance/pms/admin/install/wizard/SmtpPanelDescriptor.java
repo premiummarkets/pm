@@ -51,13 +51,16 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
     SmtpPanel panel3;
     static Properties p;
     File pfile;
+	private MyWizard wizard;
     
 
-    public SmtpPanelDescriptor() {
+    public SmtpPanelDescriptor(MyWizard wizard) {
 		
         panel3 = new SmtpPanel();
         setPanelDescriptorIdentifier(IDENTIFIER);
         setPanelComponent(panel3);
+        
+        this.wizard= wizard;
         
     }
 
@@ -79,7 +82,7 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
 		p = new Properties();
 		
 		try {
-			pfile = new File(InstallFolderPanel.getPmFolder().getAbsoluteFile() + File.separator + "db.properties");
+			pfile = new File(InstallFolderPanel.getInstallFolder().getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
 			p.load(propFileIS);
 
@@ -98,7 +101,7 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
     }
             
     private void setNextButtonAccordingToForm() {
-    	Install.selectNextButton();
+    	wizard.selectNextButton();
     }
     
    

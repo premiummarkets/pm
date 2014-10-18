@@ -36,9 +36,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -68,7 +69,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahooIndices.class);
 
-	private Set<Indice> indices;
+	private SortedSet<Indice> indices;
 
 	public ProvidersYahooIndices(String pathToProps) {
 		super();
@@ -80,7 +81,6 @@ public class ProvidersYahooIndices extends ProvidersList {
 		this(pathToProps);
 		this.indices = new TreeSet<Indice>(indices);
 	}
-	
 	
 	@Override
 	public SharesList loadSharesListForThisListProvider() {
@@ -418,12 +418,12 @@ public class ProvidersYahooIndices extends ProvidersList {
 	}
 	
 
-	public void setIndices(Set<Indice> indices) {
+	public void setIndices(SortedSet<Indice> indices) {
 		this.indices = indices;
 	}
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return indices;
 	}
 	
@@ -434,7 +434,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		if (replace) {
 			this.indices=indices;
 		} else {

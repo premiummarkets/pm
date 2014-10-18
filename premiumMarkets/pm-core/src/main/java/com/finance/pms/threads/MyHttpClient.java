@@ -30,40 +30,31 @@
 package com.finance.pms.threads;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.httpclient.Cookie;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.CloseableHttpClient;
 
-import com.finance.pms.admin.install.logging.MyLogger;
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class MyHttpClient.
  * 
  * @author Guillaume Thoreton
  */
-public abstract class MyHttpClient extends HttpClient implements SourceClient {
+public class MyHttpClient implements SourceClient {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(MyHttpClient.class);
+//	private static MyLogger LOGGER = MyLogger.getLogger(MyHttpClient.class);
 	
+	private CloseableHttpClient closeableHttpClient;
 	private Map<String, Cookie> cookies;
 	
-
-	/**
-	 * Instantiates a new my http client.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public MyHttpClient() {
+	public MyHttpClient(CloseableHttpClient closeableHttpClient) {
 		super();
 		this.cookies = new HashMap<String, Cookie>();
+		this.closeableHttpClient = closeableHttpClient;
 	}
 
 
@@ -72,48 +63,34 @@ public abstract class MyHttpClient extends HttpClient implements SourceClient {
 	}
 	
 	public void createSessionCookie(String domain, String name, String value, String path, String expirse) {
-		//Sun, 19-Sep-2021 14:02:35 GMT
-		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z");
-		Cookie cookie;
-		try {
-			cookie = new Cookie(domain, name, value, path,(expirse != null)?dateFormat.parse(expirse):null, false);
-			this.cookies.put(name,cookie);
-		} catch (ParseException e) {
-			LOGGER.warn("invalid cookie",e);
-		}
+		
+//		//Sun, 19-Sep-2021 14:02:35 GMT
+//		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z");
+//		Cookie cookie;
+//		try {
+//			cookie = new Cookie(domain, name, value, path,(expirse != null)?dateFormat.parse(expirse):null, false);
+//			this.cookies.put(name,cookie);
+//		} catch (ParseException e) {
+//			LOGGER.warn("invalid cookie",e);
+//		}
 		
 	}
 
-	@Override
-	public int executeMethod(HttpMethod method) throws IOException, HttpException {
-		
-		preExecuteMethod(method);
-		int ret =  super.executeMethod(method);
-		postExecuteMethod(method);
-		
+	public CloseableHttpResponse execute(HttpUriRequest method) throws IOException, ClientProtocolException {
+		CloseableHttpResponse ret =  closeableHttpClient.execute(method);
 		return ret;
-		
 	}
 	
-	public abstract void preExecuteMethod(HttpMethod method);
-	
-	public abstract void postExecuteMethod(HttpMethod method);
-	
-	/**
-	 * Gets the http client.
-	 * 
-	 * @return the http client
-	 */
 	public void setUpClient() {
 	
-		this.getParams().setSoTimeout(300000);
-		this.getHttpConnectionManager().getParams().setConnectionTimeout(300000);
+//		this.getParams().setSoTimeout(300000);
+//		this.getHttpConnectionManager().getParams().setConnectionTimeout(300000);
 		
 		// RFC 2101 cookie management spec is used per default
 		// to parse, validate, format & match cookies
 		//httpclient.getParams().setCookiePolicy(CookiePolicy.RFC_2109);
 		//httpclient.getParams().setCookiePolicy(CookiePolicy.NETSCAPE);
-		this.getParams().setCookiePolicy(CookiePolicy.DEFAULT);
+//		this.getParams().setCookiePolicy(CookiePolicy.DEFAULT);
 		
 		// A different cookie management spec can be selected when desired
 		//httpclient.getParams().setCookiePolicy(CookiePolicy.NETSCAPE);
@@ -141,6 +118,12 @@ public abstract class MyHttpClient extends HttpClient implements SourceClient {
 //		
 //		httpclient.getParams().setDefaults(httpParams);
 	
+	}
+
+
+	@Override
+	public Boolean isValid() {
+		return true;
 	}
 	
 }

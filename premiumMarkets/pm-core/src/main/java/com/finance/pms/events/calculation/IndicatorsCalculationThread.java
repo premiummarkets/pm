@@ -185,7 +185,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 							failing.add(evtCalculator.getEventDefinition());
 							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
 						} catch (Exception e) {
-							LOGGER.error(e,e);
+							LOGGER.error(e , e);
 							failing.add(evtCalculator.getEventDefinition());
 							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
 						}

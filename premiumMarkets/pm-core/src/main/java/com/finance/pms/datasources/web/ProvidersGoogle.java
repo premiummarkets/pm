@@ -37,14 +37,10 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -54,19 +50,17 @@ import com.finance.pms.datasources.shares.GoogleSymbolNameResolver;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteFormater;
 import com.finance.pms.datasources.web.formaters.DayQuoteGoogleFormater;
-import com.finance.pms.datasources.web.google.MarketList;
-import com.finance.pms.portfolio.SharesList;
+
 
 public class ProvidersGoogle extends Providers implements QuotationProvider {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ProvidersGoogle.class);
 
 	
-	private Market market;
+//	private Market market;
 
 	public ProvidersGoogle(String pathToProps) {
 		super();
@@ -75,7 +69,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 	}
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
 	
@@ -157,77 +151,77 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		throw new UnsupportedOperationException("Please use another share list holder provider for that.");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+//	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
 		LOGGER.info("From Web : ");
 		
-		//Share list
-		SharesList shareList = loadSharesListForThisListProvider();
-		Set<Stock> sharesListStocks = new ConcurrentSkipListSet<Stock>(); 
-		
-		List<Validatable> listNew = new ArrayList<Validatable>();
-		List<Validatable> listReqIns = new ArrayList<Validatable>();
-		
-		
-		//specific
-		GetMethod gmCheckNb = ((HttpSourceGoogle) this.httpSource).getStockListRequest(20,this.market);
-		try {
-			LOGGER.info("Google Url : " + gmCheckNb.getURI());
-		} catch (URIException e) {
-			LOGGER.error(e,e);
-		}
-		MarketList marketListCheckNb = ((HttpSourceGoogle) this.httpSource).readURL(gmCheckNb);
-		
-		Integer nbStocks = marketListCheckNb.getNum_company_results();
-		LOGGER.guiInfo("Number of stocks retreived from web on for the " + new Date() + " : " + nbStocks );
-		
-		GetMethod gm = ((HttpSourceGoogle) this.httpSource).getStockListRequest(nbStocks,this.market);
-		MarketList marketList = ((HttpSourceGoogle) this.httpSource).readURL(gm);
-		
-		List<? extends Validatable> ltmp = marketList.getStockList(market, StockCategories.DEFAULT_CATEGORY, marketQuotationsProviders);
-		//end specific
-		
-		listNew.addAll(ltmp);
-		LOGGER.guiInfo("Number of tickers retrieved from web for the : " + new Date() + " : " + listNew.size());
-		
-		//share list addition
-		sharesListStocks.addAll((List)listNew);
-		
-		//Update the last quote date and the stock list fetch from db
-		ListIterator<Validatable> newStockList = listNew.listIterator();
-		int nbNew = 0;
-		while (newStockList.hasNext()) {
-			Stock stockWeb = (Stock) newStockList.next();
-			if (stockList.contains(stockWeb)) {
-				int index = stockList.indexOf(stockWeb);
-				stockWeb.setLastQuote(stockList.get(index).getLastQuote());
-				stockList.set(index, stockWeb);
-				
-			} else {
-				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb, false);
-				((Stock)stockWeb).setLastQuote(formerQuotationDate);
-				
-				LOGGER.info("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);
-				listReqIns.add(stockWeb);
-				stockList.add((Stock)stockWeb);
-				nbNew++;
-			}
-		}
-		
-		LOGGER.guiInfo("Number of tickers to be added : " + nbNew);
-		LOGGER.info("Tickers to be added : " + listReqIns);
-		
-		this.shareDAO.saveOrUpdateStocks(listNew);
-		
-		//Share list
-		updatingShareListInDB(shareList, sharesListStocks);
+//		//Share list
+//		SharesList shareList = loadSharesListForThisListProvider();
+//		Set<Stock> sharesListStocks = new ConcurrentSkipListSet<Stock>(); 
+//		
+//		List<Validatable> listNew = new ArrayList<Validatable>();
+//		List<Validatable> listReqIns = new ArrayList<Validatable>();
+//		
+//		
+//		//specific
+//		GetMethod gmCheckNb = ((HttpSourceGoogle) this.httpSource).getStockListRequest(20,this.market);
+//		try {
+//			LOGGER.info("Google Url : " + gmCheckNb.getURI());
+//		} catch (URIException e) {
+//			LOGGER.error(e,e);
+//		}
+//		MarketList marketListCheckNb = ((HttpSourceGoogle) this.httpSource).readURL(gmCheckNb);
+//		
+//		Integer nbStocks = marketListCheckNb.getNum_company_results();
+//		LOGGER.guiInfo("Number of stocks retreived from web on for the " + new Date() + " : " + nbStocks );
+//		
+//		GetMethod gm = ((HttpSourceGoogle) this.httpSource).getStockListRequest(nbStocks,this.market);
+//		MarketList marketList = ((HttpSourceGoogle) this.httpSource).readURL(gm);
+//		
+//		List<? extends Validatable> ltmp = marketList.getStockList(market, StockCategories.DEFAULT_CATEGORY, marketQuotationsProviders);
+//		//end specific
+//		
+//		listNew.addAll(ltmp);
+//		LOGGER.guiInfo("Number of tickers retrieved from web for the : " + new Date() + " : " + listNew.size());
+//		
+//		//share list addition
+//		sharesListStocks.addAll((List)listNew);
+//		
+//		//Update the last quote date and the stock list fetch from db
+//		ListIterator<Validatable> newStockList = listNew.listIterator();
+//		int nbNew = 0;
+//		while (newStockList.hasNext()) {
+//			Stock stockWeb = (Stock) newStockList.next();
+//			if (stockList.contains(stockWeb)) {
+//				int index = stockList.indexOf(stockWeb);
+//				stockWeb.setLastQuote(stockList.get(index).getLastQuote());
+//				stockList.set(index, stockWeb);
+//				
+//			} else {
+//				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb, false);
+//				((Stock)stockWeb).setLastQuote(formerQuotationDate);
+//				
+//				LOGGER.info("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);
+//				listReqIns.add(stockWeb);
+//				stockList.add((Stock)stockWeb);
+//				nbNew++;
+//			}
+//		}
+//		
+//		LOGGER.guiInfo("Number of tickers to be added : " + nbNew);
+//		LOGGER.info("Tickers to be added : " + listReqIns);
+//		
+//		this.shareDAO.saveOrUpdateStocks(listNew);
+//		
+//		//Share list
+//		updatingShareListInDB(shareList, sharesListStocks);
 		
 		return stockList;
 	}
 	
 	public void setMarket(Market market) {
-		this.market = market;
+//		this.market = market;
 	}
 	
 	
@@ -238,7 +232,7 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
 	}

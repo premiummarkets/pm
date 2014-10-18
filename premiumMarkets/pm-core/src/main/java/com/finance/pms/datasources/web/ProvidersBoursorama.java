@@ -41,10 +41,11 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -65,26 +66,18 @@ import com.finance.pms.portfolio.SharesList;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class ProvidersBoursorama extends Providers implements MarketListProvider {
 		
-	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersBoursorama.class);
 
-	/**
-	 * Instantiates a new providers boursorama.
-	 * 
-	 * @param pathToProps the path to props
-	 * 
-	 * @author Guillaume Thoreton
-	 */
 	public ProvidersBoursorama(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceBoursorama(pathToProps, this);
 	}
 	
-	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
 	
@@ -93,10 +86,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		// Nothing
 	}
 
-	// TODO g�rer les jours et heures ouvr�es.
-	/* (non-Javadoc)
-	 * @see com.finance.pms.datasources.web.Providers#getQuotes(com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date)
-	 */
 	@Override
 	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException, HttpException {
 		
@@ -593,8 +582,9 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
 	}
+
 }

@@ -29,13 +29,7 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.io.IOException;
-
-import org.apache.commons.httpclient.HttpException;
-
 import com.finance.pms.datasources.shares.StockCategories;
-import com.finance.pms.threads.MyHttpClient;
-import com.finance.pms.threads.SimpleHttpClient;
 
 public class HttpSourceYahooScrapIndex extends HttpSourceMarket {
 	
@@ -50,11 +44,6 @@ public class HttpSourceYahooScrapIndex extends HttpSourceMarket {
 	
 	public HttpSourceYahooScrapIndex(String pathToprops, Providers beanFactory) {
 		super(pathToprops, beanFactory);
-	}
-
-	@Override
-	protected MyHttpClient myHttpConnect() throws HttpException, IOException {
-		return new SimpleHttpClient();
 	}
 
 	@Override

@@ -36,9 +36,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -57,7 +58,7 @@ public class ProvidersListStaticList extends ProvidersList {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersListStaticList.class);
 	
-	private Set<Indice> indices;
+	private SortedSet<Indice> indices;
 	
 
 	public ProvidersListStaticList(String pathToProps) {
@@ -178,7 +179,7 @@ public class ProvidersListStaticList extends ProvidersList {
 	}
 
 	@Override
-	public void addIndices(Set<Indice> indices, Boolean replace) {
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		System.out.println("idx :"+indices);
 		if (replace) {
 			this.indices=indices;
@@ -192,7 +193,7 @@ public class ProvidersListStaticList extends ProvidersList {
 	}
 	
 	@Override
-	public Set<Indice> getIndices() {
+	public SortedSet<Indice> getIndices() {
 		return indices;
 	}
 

@@ -41,7 +41,6 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Properties;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -80,12 +79,20 @@ public class ProgressPanel extends JPanel  implements PropertyChangeListener {
     private JPanel titlePanel;
     private JScrollPane jScrollPane;
     private JTextArea jTextArea;
-    public TextAreaStream textAreaStream; 
+    public TextAreaStream textAreaStream;
+
+	private String whileWeWaitText;
+	private String siteUrl;
+	private String whileWeWaitUrl; 
         
 
-public ProgressPanel() {
+public ProgressPanel(String waitForProgressTxt, String siteUrl, String whileWeWaitUrl) {
         
         super();
+        
+        this.whileWeWaitText = waitForProgressTxt;
+        this.siteUrl = siteUrl;
+        this.whileWeWaitUrl = whileWeWaitUrl;
                 
         contentPanel = getContentPanel();
         ImageIcon icon = getImageIcon();
@@ -153,35 +160,10 @@ public ProgressPanel() {
         jTextAreaDescr = new JLabel();
         jTextAreaDescr.setBackground(new Color(192, 192, 192));
         jTextAreaDescr.setFocusable(true);
-        jTextAreaDescr.setText(
-        	"<html>"+
-        	"<p>" +
-			"Premium Markets is an automated stock market analysis system.<br />"+
-			"It implements a graphical environment for monitoring stock market technical analysis major indicators, <br />portfolio management and historical data charting.<br />" +
-			"<br />"+
-			"I also invite you for a preview of Premium Markets Forecast advanced features (not provided under this license) which includes : <br />"+
-			"<ul>" +
-				"<li>Screening of financial web sites to pick up the best market shares,</li>"+
-				"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
-				"<li>Back testing,</li>"+
-				"<li>Buy sell email notifications on predictions with automated markets and user defined portfolios scanning.</li>" +
-			"</ul>" +
-			"<br />" +
-			"</p>" +
-			"</html>"
-        	);
+		jTextAreaDescr.setText(whileWeWaitText);
         contentPanel1.add(jTextAreaDescr, java.awt.BorderLayout.NORTH);
         
         try {
-        	
-        	String siteUrl = "none.com";
-			try {
-				Properties pbuild = new Properties();
-				pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
-				siteUrl = pbuild.getProperty("site.url");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 			
 			final URI uri = new URI("http://"+siteUrl+"/");
 			
@@ -192,7 +174,7 @@ public ProgressPanel() {
 			 }
 			
 			JButton button = new JButton();
-			button.setText("<HTML><FONT color=\"red\">Click <FONT color=\"#000099\"><blink><U>http://"+siteUrl+"/</U></blink></FONT> for a preview and a free workable demo of the <b>FORECAST</b> engine.</FONT></HTML>");
+			button.setText(whileWeWaitUrl);
 			button.setFont(button.getFont().deriveFont(14f));
 			button.setHorizontalAlignment(SwingConstants.LEFT);
 			button.setBorderPainted(false);
@@ -210,7 +192,7 @@ public ProgressPanel() {
 
         jPanel1.setLayout(new java.awt.GridLayout(0, 1));
         
-        jLabel1.setText("Unpacking Premium Markets and a small sample database.");
+        jLabel1.setText("Unpacking "+Install.APP_NAME+" and a small sample database.");
         jLabel1.setFont(new java.awt.Font("MS Sans Serif", 1, 11));
         jLabel2.setText("You will be invited to set up your specific markets and stocks lists later on while running the software.");
         jLabel2.setFont(new java.awt.Font("MS Sans Serif", 1, 11));

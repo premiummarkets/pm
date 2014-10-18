@@ -36,7 +36,7 @@ import java.util.Date;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.apache.commons.httpclient.HttpException;
+import org.apache.http.HttpException;
 import org.easymock.EasyMock;
 import org.eclipse.swt.widgets.Display;
 
@@ -50,9 +50,6 @@ import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.gui.EventsComposite;
 
-
-// TODO: Auto-generated Javadoc
-//@ContextConfiguration(locations = {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"})
 /**
  * The Class EventRefreshControllerTest.
  * 
@@ -335,23 +332,13 @@ public class EventRefreshControllerTest extends TestCase {
 		
 	}
 
-	/**
-	 * Check call for list share update.
-	 * 
-	 * @author Guillaume Thoreton
-	 * @throws HttpException 
-	 */
 	private void checkCallForListShareUpdate() throws HttpException {
 		org.easymock.EasyMock.expect(springContext.getBean((String)org.easymock.EasyMock.anyObject())).andStubReturn(providers);
 		providers.updateStockListFromWeb((MarketQuotationProviders)org.easymock.EasyMock.anyObject());
 		org.easymock.EasyMock.expectLastCall().times(1);
 	}
 	
-/**
- * Test mouse down change date all.
- * 
- * @author Guillaume Thoreton
- */
+
 public void testMouseDownChangeDateAll() {
 		
 		////Monitored test
