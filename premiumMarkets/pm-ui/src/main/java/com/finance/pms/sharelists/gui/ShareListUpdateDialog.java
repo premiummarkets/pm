@@ -103,8 +103,6 @@ import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.SharesList;
 
-
-
 public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 	
 	private static final String INDICES = "indices";
@@ -185,7 +183,6 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			String[] titles = {"Market / Stocks List", "Indices", "Description"};
 			for (int i=0; i<titles.length; i++) {
 				TableColumn column = new TableColumn(existingShareLists, SWT.NONE);
-				column.setText(titles [i]);
 				column.setText(titles [i]);
 			}
 			
@@ -280,7 +277,6 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			stocks.setLayoutData(stocksLayoutData);
 			stocks.setFont(MainGui.CONTENTFONT);
 			stocks.getVerticalBar().setVisible(true);
-			stocks.getVerticalBar().setVisible(true);
 			
 			String[] titles = new String[]{"Symbol", "Isin", "Name"};
 			for (String title : titles) {
@@ -344,7 +340,6 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 					cTabFolder.pack();
 					getParent().pack();
 				}
-				
 			});
 			cTabFolder.layout();
 			cTabFolder.pack();

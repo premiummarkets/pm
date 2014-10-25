@@ -7,6 +7,7 @@ import java.util.Iterator;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.tools.ant.filters.StringInputStream;
 
@@ -22,7 +23,7 @@ public class XlsxInputStream extends InputStream {
 		
 		// For storing data into CSV files
 		StringBuffer data = new StringBuffer();
-		org.apache.poi.ss.usermodel.Workbook wBook = null;
+		Workbook wBook = null;
 		try {
 		    // Get the workbook object for XLSX file
 		   

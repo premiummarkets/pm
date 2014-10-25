@@ -60,6 +60,7 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 		super();
 		this.httpSource = new HttpSourceBSEMarket(pathToProps, this);
 	}
+
 	@Override
 	protected LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders) {
 		return new StockListBSEFormater(httpSource.getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY), StockCategories.DEFAULT_CATEGORY, marketQuotationsProviders);

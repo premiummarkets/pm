@@ -91,6 +91,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 	public MarketQuotationProviders defaultMarketQuotationProviders() {
 		return MarketQuotationProviders.YAHOO;
 	}
+	
 	@Override
 	public SharesList loadSharesListForThisListProvider() {
 		String extention = Indice.formatSet(indices);
