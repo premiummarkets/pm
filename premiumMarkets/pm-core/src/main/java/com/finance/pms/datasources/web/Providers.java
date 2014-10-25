@@ -31,7 +31,6 @@ package com.finance.pms.datasources.web;
 
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -116,6 +115,61 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 		shareListIds.put("UNKNOWN", SharesListId.UNKNOWN);
 		
 	}
+		
+	
+	
+		
+	static	{
+
+		shareListIds.put("ALLMARKETS", new SharesListId(
+				"ALLMARKETS", "allMarkets", ProvidersTypes.ALLMARKETS, 
+				"Complete market as available. This may not be fully up to date. The format is as follow  ALL:<MARKET ID>.\n Where MARKET ID is like : "+ Arrays.asList(Market.values())+"\n", 
+				"Complete market aggregation as available", true, true, SharesListId.sharesListIdOptionsForAllMarkets()));
+		shareListIds.put("YAHOOINDICES", new SharesListId(
+				"YAHOOINDICES", "yahooIndices", ProvidersTypes.YAHOOINDICES, "Your custom index format is <INDICE ID>:<MARKET ID>.\n " +
+				"Where INDICE ID like NDX, FTLC, SBF250 ...\n" +
+				"(these are yahoo indices like the one you can find at http://finance.yahoo.com/indices for instance.)\n " +
+				"and MARKET ID is like : "+ Arrays.asList(Market.values()) + ".\n" +
+				"(for instance : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
+				"You can specify several indices comma separated and build you own composite list.\n" +
+				"If left blank, it will aggregate all the pre-existing YAHOO indices available in your database.\n", 
+				"YAHOO INDICES components aggregation", true, true, SharesListId.sharesListIdOptionsForYahooIndices()));
+		shareListIds.put("NSEINDIAINDICES", new SharesListId(
+				"NSEINDIAINDICES", "nseIndices", ProvidersTypes.NSEINDIAINDICES, "Your custom index format is <INDICE ID>:<MARKET ID>.\n " +
+				"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +
+				"(these are nse indices you can find at nseindia.com)\n " +
+				"and MARKET ID  has to be "+Market.NSEINDIA+".\n" +
+				"(for instance : NIFTY:NSE, CNX100:NSE, ... standing for cnx nifty, cnx 100 ...)\n" +
+				"You can specify several indices comma separated and build you own composite list.\n" +
+				"If left blank, it will aggregate all the pre-existing NSE indices available in your database.\n", 
+				"NSE India INDICES components aggregation", true, true,
+				new String[]{"NIFTY:NSEINDIA", "NIFTY:NSEINDIA", "JRNIFTYLISR:NSEINDIA", "CNX100:NSEINDIA", "CNX200:NSEINDIA", "CNX500:NSEINDIA", "NIFTYMIDCAP50:NSEINDIA", "CNXMIDCAP:NSEINDIA", "CNXSMALLCAP:NSEINDIA"}));
+		shareListIds.put("BSE", new SharesListId("BSE", "bse", ProvidersTypes.BSE, "No comment", "All BSE from bseindia.com", false, true, new String[0]));
+
+		//Broken
+		shareListIds.put("GOOGLENYSE", new SharesListId("GOOGLENYSE", "nyse", ProvidersTypes.GOOGLE, "No comment", "All NYSE from google.com", false, true,new String[0]));
+		shareListIds.put("GOOGLEAMEX", new SharesListId("GOOGLEAMEX", "amex", ProvidersTypes.GOOGLE, "No comment", "All AMEX from google.com", false, true, new String[0]));
+		shareListIds.put("EURONEXT", new SharesListId("EURONEXT", "euronext", ProvidersTypes.EURONEXT, "No comment", "All EURONEXT shares from euronext.com", false, true, new String[0]));
+		shareListIds.put("BOURSORAMA", new SharesListId("BOURSORAMA", "boursorama", ProvidersTypes.BOURSORAMA, "No comment", "All EURONEXT shares from boursorama.com", false, true, new String[0]));
+		shareListIds.put("NASDAQ", new SharesListId("NASDAQ", "nasdaq", ProvidersTypes.NASDAQ, "No comment", "All NASDAQ from nasdaq.com", false, true, new String[0]));
+		shareListIds.put("ASX", new SharesListId("ASX", "asx", ProvidersTypes.ASX, "No comment", "All ASX from asx.com.au", false, true,new String[0]));
+
+		//Other (ie quotations only providers)
+		shareListIds.put("UNKNOWN", SharesListId.UNKNOWN);
+
+	}
+	
+	public static String[] shareListSplit(String indicedSharesListName) {
+		int indexOfFirstComma = indicedSharesListName.indexOf(",");
+		if (indexOfFirstComma != -1) {
+			String shareListBaseName = indicedSharesListName.substring(0, indexOfFirstComma).trim();
+			String indicesString = indicedSharesListName.substring(indexOfFirstComma+1).trim();
+			return new String[]{shareListBaseName, indicesString};
+		} else {
+			return new String[]{indicedSharesListName, ""};
+		}
+
+	}
 	
 	public static QuotationProvider getInstance(String providerCmdName) {
 		String providerBeanName = providerCmdName+"ProviderSource";
@@ -171,6 +225,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 				return delS;
 			}
 		});
+		
 		
 	}
 

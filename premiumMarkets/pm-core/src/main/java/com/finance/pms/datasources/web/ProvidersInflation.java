@@ -67,7 +67,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 		super();
 		this.addObserver(new InflationUpdateObserver());
 	}
-
+	
 	public ProvidersInflation(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceInflation(pathToProps, this);

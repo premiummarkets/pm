@@ -1032,6 +1032,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		};
 		inst.getDisplay().asyncExec(runnable);
+//		thread.start();
+		inst.getDisplay().asyncExec(runnable);
 		
 	}
 

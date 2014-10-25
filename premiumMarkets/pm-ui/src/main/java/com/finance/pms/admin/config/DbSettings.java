@@ -127,6 +127,9 @@ public class DbSettings extends Dialog {
 		MainGui.pOPUP_GRP = shadedColor(display, brown, 1.20);
 
 		new DbSettings(shell,"db.properties");
+		MainGui.pOPUP_GRP = shadedColor(display, brown, 1.20);
+
+		new DbSettings(shell,"db.properties");
 
 		while (!shell.isDisposed()) {
 			try {

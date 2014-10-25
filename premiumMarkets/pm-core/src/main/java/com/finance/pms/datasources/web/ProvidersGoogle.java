@@ -247,7 +247,6 @@ public class ProvidersGoogle extends Providers implements MarketListProvider, Qu
 	@Override
 	public void retrieveStockListFromBase(StockList dbStockList) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
