@@ -52,7 +52,7 @@ import javax.persistence.Transient;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.ProvidersList;
 
 /**
  * The Class Stock.
@@ -303,21 +303,7 @@ public class Stock extends Validatable {
 	}
 
 	public void retrieveStock(StockList stockList, String shareListName) {
-		Providers.getInstance(shareListName).retrieveAndCompleteStockInfo(this, stockList);
-	}
-
-    @Deprecated
-    @Transient
-	public String getRefName() {
-		if (this.refName == null) {
-		    this.refName = Providers.getInstance(this.getSymbolMarketQuotationProvider().getCmdParam()).getStockRefName(this);
-		}
-		return this.refName;
-	}
-
-    @Deprecated
-	public void setRefName(String refName) {
-		this.refName = refName;
+		ProvidersList.getMarketListInstance(shareListName).retrieveAndCompleteStockInfo(this, stockList);
 	}
 
     public void setIsin(String isin) throws InvalidAlgorithmParameterException {
@@ -398,7 +384,7 @@ public class Stock extends Validatable {
     }
 
     @Embedded
-    @AttributeOverride(name="marketQuotationProvider", column = @Column(name="QUOTATIONPROVIDER"))
+    @AttributeOverride(name="marketQuotationProvider.name", column = @Column(name="QUOTATIONPROVIDER"))
 	public SymbolMarketQuotationProvider getSymbolMarketQuotationProvider() {
 		return symbolMarketQuotationProvider;
 	}

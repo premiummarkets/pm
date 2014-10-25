@@ -70,7 +70,4 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 		return false;
 	}
 	
-	
-
-	
 }

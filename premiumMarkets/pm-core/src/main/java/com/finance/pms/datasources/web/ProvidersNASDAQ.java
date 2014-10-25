@@ -46,6 +46,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -59,10 +60,14 @@ import com.finance.pms.portfolio.SharesList;
  * @author Guillaume Thoreton
  */
 @Deprecated
-public class ProvidersNASDAQ extends Providers implements MarketListProvider {
+public class ProvidersNASDAQ extends Providers implements MarketListProvider, QuotationProvider {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersNASDAQ.class);
-	
+
+	protected ProvidersNASDAQ() {
+		super();
+	}
+
 	public ProvidersNASDAQ(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceNASDAQ(pathToProps, this);
@@ -71,11 +76,6 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 	@Override
 	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
-	}
-	
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
 	}
 
 	@Override
@@ -116,11 +116,6 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 				LOGGER.error("", e);
 			}
 		}
-	}
-	
-	@Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks,StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -213,6 +208,60 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider {
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date startDate) throws HttpException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesListId getSharesListIdEnum() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retrieveStockListFromBase(StockList dbStockList) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Stock supplement(Stock stock) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesList loadSharesListForThisListProvider() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StockList retreiveStockListFromFile(String pathToFileList, StockList dbStockList) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

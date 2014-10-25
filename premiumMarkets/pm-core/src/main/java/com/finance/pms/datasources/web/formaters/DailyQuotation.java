@@ -44,7 +44,7 @@ public class DailyQuotation extends Stock {
 	LinkedList<Comparable<?>> mainQuery;
 	String currency;
 
-	public DailyQuotation(LinkedList<Comparable<?>> mainQuery, Stock stock,String currency) {
+	public DailyQuotation(LinkedList<Comparable<?>> mainQuery, Stock stock, String currency) {
 		super(stock);
 		this.mainQuery = mainQuery;
 		this.quoteDate = (Date) mainQuery.getFirst();

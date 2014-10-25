@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
@@ -174,13 +173,13 @@ public class SharesListId  {
 		return comment;
 	}
 	
-	//TODO :several share lists ie use the share lists in db instead of props.
-	public static void updatePrefs(String shareListName, String indices, String quotationProvider) {
-		MainPMScmd.getMyPrefs().put("quotes.listprovider", shareListName);
-		MainPMScmd.getMyPrefs().put("quotes.listproviderindices", indices);
-		MainPMScmd.getMyPrefs().put("quotes.provider", quotationProvider);
-		MainPMScmd.getMyPrefs().flushy();
-	}
+	//TODO : several share lists ie use the share lists with customised quotation providers and indices in DB instead of props.
+//	public static void updatePrefs(String shareListName, String indices) {
+////		MainPMScmd.getMyPrefs().put("quotes.listprovider", shareListName);
+////		MainPMScmd.getMyPrefs().put("quotes.listproviderindices", indices);
+////		MainPMScmd.getMyPrefs().put("quotes.provider", quotationProvider);
+////		MainPMScmd.getMyPrefs().flushy();
+//	}
 	
 	public static String[] sharesListIdOptionsForAllMarkets() {
 		SortedSet<String> ret = new TreeSet<String>();

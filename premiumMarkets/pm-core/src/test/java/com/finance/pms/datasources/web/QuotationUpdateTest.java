@@ -53,7 +53,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.finance.pms.admin.install.logging.Messages;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
@@ -185,7 +184,8 @@ public class QuotationUpdateTest extends TestCase {
 		//EasyMock.expect(httpSourceMock.readURL(EasyMock.eq(lsfind))).andReturn(new ArrayList<Validatable>());
 		
 		List fromBase = new ArrayList<Stock>();
-		fromBase.addAll(DataSource.getInstance().loadStocksForCurrentShareList());
+		//FIXME
+		//fromBase.addAll(DataSource.getInstance().loadStocksForCurrentShareList());
 		fromBase.addAll(listStockFromWeb);
 		// return for every checked stock
 		for (final Validatable v : (List<Validatable>) fromBase) {

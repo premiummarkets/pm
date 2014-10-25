@@ -54,6 +54,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.ProvidersInflation;
+import com.finance.pms.datasources.web.ProvidersList;
 
 
 /**
@@ -102,7 +103,6 @@ public class MainPMScmd {
 			Boolean getInflationData = argList.contains("-getInflationData");
 
 			SpringContext springContext = new SpringContext(dbProps);
-			//springContext.setDataSource(dbProps);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 			springContext.refresh();
 			
@@ -124,7 +124,7 @@ public class MainPMScmd {
 					marketQuotationProvider = sharesListName;
 				} 
 			} else {
-				LOGGER.warn("You should specify a Provider for the quotation via the option -quoteProvider (ex : -quoteProvider yahoo)");
+				LOGGER.warn("You should specify a Provider for the quotation via the option -quoteProvider (ex. : -quoteProvider yahoo)");
 				marketQuotationProvider = sharesListName;
 			}
 			
@@ -138,7 +138,7 @@ public class MainPMScmd {
 			}
 			if (updateSharesList) {
 				LOGGER.info("Updating share list only");
-				Providers.getInstance(sharesListName).updateStockListFromWeb(MarketQuotationProviders.valueOfCmd(marketQuotationProvider));
+				ProvidersList.getMarketListInstance(sharesListName).updateStockListFromWeb(MarketQuotationProviders.valueOfCmd(marketQuotationProvider));
 			}
 			if (updateQuotesForMonitoredOnly) {
 				dbHi.getQuotesForMonitored();

@@ -58,7 +58,7 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 	}
 
 	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) throws InterruptedException {
+	public void callbackForAlerts(Set<Observer> engineObservers, Collection<Stock> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) throws InterruptedException {
 		
 		Date endDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
 		

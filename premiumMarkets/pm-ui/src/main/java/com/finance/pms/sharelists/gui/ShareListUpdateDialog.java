@@ -96,7 +96,8 @@ import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.Indice;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
+import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -113,6 +114,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 	private Font biggerFont;
 
 	private Table existingShareLists;
+	private Text quoteProvidersCombo;
 	
 	private SharesListId newListSharesListId;
 	private SortedSet<Indice> newListIndices;
@@ -123,7 +125,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 	private Composite paramsListBound;
 
 	private String symbolProvExtention;
-	protected Providers provider;
+	protected MarketListProvider provider;
 
 	private ActionDialogAction actionDialogAction;
 	private ActionDialogAction refreshAction;
@@ -160,16 +162,18 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			existingGroup.setText("Your current stock lists.");
 			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			existingGroup.setLayoutData(gridData);
-			existingGroup.setLayout(new GridLayout());
+			GridLayout existingGrpLayout = new GridLayout();
+			existingGrpLayout.numColumns=2;
+			existingGroup.setLayout(existingGrpLayout);
 
 			Composite existingBounds = new Composite(existingGroup, SWT.NONE);
 			GridData bgridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+			bgridData.horizontalSpan = 2;
 			bgridData.heightHint = 150;
 			existingBounds.setLayoutData(bgridData);
 			existingBounds.setLayout(new GridLayout());
 			
 			existingShareLists = new Table(existingBounds, SWT.V_SCROLL | SWT.SINGLE |SWT.FULL_SELECTION);
-			//existingShareLists.setLinesVisible(true);
 			existingShareLists.setHeaderVisible(true);
 			GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			existingShareLists.setLayoutData(layoutData);
@@ -183,7 +187,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			}
 			
 			for (String shareListName : loadShareListNames) {
-				String[] shareListSplit = Providers.shareListSplit(shareListName);
+				String[] shareListSplit = ProvidersList.shareListSplit(shareListName);
 				SharesListId shareListId = SharesListId.valueOf(shareListSplit[0]);
 				
 				TableItem item = new TableItem (existingShareLists, SWT.NONE);
@@ -212,24 +216,40 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				}
 
 			});	
-			
 			existingShareLists.deselectAll();
 			
 			{
+				Label quoteProviderLabel = new Label(existingGroup, SWT.NONE);
+				quoteProviderLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+				quoteProviderLabel.setBackground(MainGui.pOPUP_GRP);
+				quoteProviderLabel.setFont(MainGui.DEFAULTFONT);
+				quoteProviderLabel.setText("Quotation provider for selected list");
+				quoteProvidersCombo = new Text(existingGroup, SWT.NONE);
+				GridData qPClayoutData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+				qPClayoutData.horizontalIndent = 20;
+				quoteProvidersCombo.setLayoutData(qPClayoutData);
+				quoteProvidersCombo.setFont(MainGui.CONTENTFONT);
+				quoteProvidersCombo.setToolTipText("This is the default, not editable for the moment.");
+				quoteProvidersCombo.setEditable(false);
+				//TODO
+//				for (MarketQuotationProviders quoteProvider : MarketQuotationProviders.values()) {
+//					quoteProvidersCombo.add(quoteProvider.name());
+//				}
+				quoteProvidersCombo.pack();
+	 		}
+			
+			{
 				final Button valideButton1 = new Button(existingGroup, SWT.PUSH | SWT.CENTER);
-				valideButton1.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
+				GridData validateButtLayout = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
+				validateButtLayout.horizontalSpan=2;
+				valideButton1.setLayoutData(validateButtLayout);
 				valideButton1.setText("Update selected list");
 				valideButton1.setToolTipText("You can add shares in Portflios using 'Add shares ...' in 'Portfolios' menu");
 				valideButton1.setFont(MainGui.DEFAULTFONT);
 				valideButton1.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-
-						if (provider != null) {
-							SharesListId.updatePrefs(provider.getSharesListIdEnum().getSharesListCmdParam(), Indice.formatSet(provider.getIndices()),  MarketQuotationProviders.YAHOO.getCmdParam());
-						}
 						ShareListUpdateDialog.this.actionDialogAction.action(valideButton1);
-
 					}
 				});
 			}
@@ -251,7 +271,6 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			composite.setLayout(new GridLayout());
 			
 			stocks = new Table(composite, SWT.NONE);
-			//stocks.setLinesVisible(true);
 			stocks.setHeaderVisible(true);
 			stocks.setToolTipText("These stocks can be added to you portfolios using the menu 'Portfolios' -> 'Add Shares...'");
 			GridData stocksLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -322,13 +341,14 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 					getParent().pack();
 				}
 			});
+			cTabFolder.layout();
 			cTabFolder.pack();
 			cTabFolder.setSelection(0);
 			
 		}
 		
-		getParent().pack();
 		getParent().layout();
+		getParent().pack();
 		
 	}
 	
@@ -341,21 +361,21 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 		if (!SharesListId.UNKNOWN.equals(shareListId)) {
 			
 			try {
-				provider = Providers.getInstance(shareListId.getSharesListCmdParam());
-				provider.addIndices(shareListIndices, true);
+				provider = (MarketListProvider) ProvidersList.getInstance(shareListId.getSharesListCmdParam(), shareListIndices);
+				quoteProvidersCombo.setText(provider.defaultMarketQuotationProviders().name());
+				quoteProvidersCombo.pack();
 				updateStocksList();
-				
-			} catch (java.lang.IllegalArgumentException e) {
-				UserDialog dialog = new UserDialog(getParent(), shareListId + "with (" + shareListIndices + ") is not a valid share list. Has it been added by hand?", null);
+			} catch (IllegalArgumentException e) {
+				UserDialog dialog = new UserDialog(getParent(), shareListId + " with (" + shareListIndices + ") is not a valid share list. Has it been added by hand?", null);
 				dialog.open();
 			}
 			
 		} else {
-			
+			quoteProvidersCombo.setText("None");
 			provider = null;
 			updateStocksList();
-			
 		}
+		
 		getParent().layout();
 		
 	}
@@ -371,7 +391,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 						
 						String providerIndicedShareListName = SharesListId.UNKNOWN.toString();
 						if (provider != null) {
-							providerIndicedShareListName = Providers.providerIndicedShareListName(provider);
+							providerIndicedShareListName = ProvidersList.providerIndicedShareListName(provider);
 						}
 						SharesList loadShareList = PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(providerIndicedShareListName);
 						StockList stockList = new StockList(loadShareList.toSortedStocksSet());
@@ -548,7 +568,9 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				handleMarketSelect();	
 			}
+			
 		});
+		
 		currencyFactorTxt.setEditable(true);
 		currencyFactorTxt.setFont(MainGui.CONTENTFONT);
 		String curFactToolTip = "This is to deal with quotations available in fractions of the main currency.\n" +
@@ -701,153 +723,159 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 		newGroup.setBackground(MainGui.pOPUP_GRP);
 		newGroup.setText("Add a new list - click add to proceed");
 		newGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		newGroup.setLayout(new GridLayout());
+		GridLayout newGroupLayout = new GridLayout();
+		newGroup.setLayout(newGroupLayout);
 		
 		{
 			final Composite listAParams = new Composite(newGroup, SWT.NONE);
-			listAParams.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			GridData listAParamDataLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
+			listAParams.setLayoutData(listAParamDataLayout);
 			FillLayout lApLayout = new FillLayout(SWT.HORIZONTAL);
 			listAParams.setLayout(lApLayout);
 			listAParams.setBackground(MainGui.pOPUP_GRP);
 		
-			newShareLists = new Table(listAParams, SWT.NONE | SWT.FULL_SELECTION | SWT.SINGLE);
-			//newShareLists.setLinesVisible (true);
-			newShareLists.setHeaderVisible (true);
-			newShareLists.setFont(MainGui.CONTENTFONT);
-			newShareLists.getVerticalBar().setVisible(true);
-		
-			String[] titles = {"Market / Stocks List", "Description"};
-			for (int i=0; i<titles.length; i++) {
-				TableColumn column = new TableColumn(newShareLists, SWT.NONE);
-				column.setText(titles [i]);
-			}
-			
-			for (final SharesListId shareListId : SharesListId.values()) {
-				if (shareListId.equals(SharesListId.UNKNOWN)) continue;
-				if ( shareListId.getIsDownloadable() && (!loadShareListNames.contains(shareListId.getSharesListCmdParam()) || shareListId.getIsIndicesComposite()) ) {
-					TableItem item = new TableItem (newShareLists, SWT.NONE);
-					item.setFont(MainGui.CONTENTFONT);
-					item.setText (0, shareListId.name());
-					item.setText (1, shareListId.getDescription());	
-				}
-			}
-			
-			for (int i=0; i< titles.length; i++) {
-				newShareLists.getColumn(i).pack();
-			}
-		
-			paramsGroup = new Group(listAParams, SWT.NONE);
-			paramsGroup.setBackground(MainGui.pOPUP_GRP);
-			paramsGroup.setFont(biggerFont);
-			paramsGroup.setText("Choose your indices");
-			paramsGroup.setLayout(new GridLayout());
-			paramsGroup.setVisible(false);
-			
-			paramsForm = new Text(paramsGroup, SWT.NONE);
-			paramsForm.setFont(MainGui.CONTENTFONT);
-			GridData paramsFormDL = new GridData(SWT.FILL, SWT.TOP, true, false);
-			paramsForm.setLayoutData(paramsFormDL);
-			
-			newShareLists.addSelectionListener(new SelectionListener() {
-	
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handleNewList();
-				}
-	
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleNewList();
-				}
-	
-				private void handleNewList() {
-					
-					TableItem[] selection = newShareLists.getSelection();
-					if (selection.length == 0) return;
-					
-					String newList = selection[0].getText();
-					newListSharesListId = SharesListId.valueOf(newList);
-					clearParamGroup();
-					
-					newListIndices = new TreeSet<>();
-					if (newListSharesListId.getIsIndicesComposite()) {
-						
-						paramsForm.setToolTipText(newListSharesListId.getComment());
-						paramsListBound = new Composite(paramsGroup, SWT.NONE);
-						GridData paramComboBoundLD = new GridData(SWT.FILL, SWT.FILL, true, true);
-						paramComboBoundLD.heightHint = 200;
-						paramsListBound.setLayoutData(paramComboBoundLD);
-						GridLayout paramComboBoundL = new GridLayout();
-						paramComboBoundL.marginHeight = 0;
-						paramComboBoundL.marginWidth = 0;
-						paramsListBound.setLayout(paramComboBoundL);
-						
-						final org.eclipse.swt.widgets.List paramIndicesList = new  org.eclipse.swt.widgets.List(paramsListBound, SWT.V_SCROLL | SWT.MULTI);
-						paramIndicesList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-						paramIndicesList.setFont(MainGui.CONTENTFONT);
-						paramIndicesList.getVerticalBar().setVisible(true);
-						String[] options = newListSharesListId.getOptions();
-						for (String param : options) {
-							paramIndicesList.add(param);
-						}
-						paramIndicesList.addSelectionListener(new SelectionListener() {
-							
-							@Override
-							public void widgetSelected(SelectionEvent e) {
-								handleSelection();
-							}
-							
-							@Override
-							public void widgetDefaultSelected(SelectionEvent e) {
-								handleSelection();
-							}
-	
-							private void handleSelection() {
-								String[] selection = paramIndicesList.getSelection();
-								String indice = "";
-								String separator = "";
-								for (String string : selection) {
-									indice = indice + separator + string;
-									separator = ",";
-								}
-								paramsForm.setText(indice);
-								if (newListIndices != null) newListIndices.clear();
-								newListIndices.addAll(Indice.parseString(indice));
-							}
-						});
-						paramIndicesList.addControlListener(new ControlListener() {
-							
-							@Override
-							public void controlResized(ControlEvent e) {
-								updateComboSize();
-							}
-							
-							@Override
-							public void controlMoved(ControlEvent e) {
-								updateComboSize();
-							}
-							
-							private void updateComboSize() {
-								Point computedSize = paramsListBound.getSize();
-								paramIndicesList.setSize(computedSize.x, computedSize.y);
-							}
-							
-						});
-						paramsGroup.pack();
-						paramsGroup.setVisible(true);
-					} else {
-						paramsGroup.setVisible(false);
+			{
+				{
+					newShareLists = new Table(listAParams, SWT.NONE | SWT.FULL_SELECTION | SWT.SINGLE);
+					newShareLists.setHeaderVisible (true);
+					newShareLists.setFont(MainGui.CONTENTFONT);
+					newShareLists.getVerticalBar().setVisible(true);
+
+					String[] titles = {"Market / Stocks List", "Description"};
+					for (int i=0; i<titles.length; i++) {
+						TableColumn column = new TableColumn(newShareLists, SWT.NONE);
+						column.setText(titles [i]);
 					}
-					
-					getParent().layout();
-					getParent().pack();
+
+					for (final SharesListId shareListId : SharesListId.values()) {
+						if (shareListId.equals(SharesListId.UNKNOWN)) continue;
+						if ( shareListId.getIsDownloadable() && (!loadShareListNames.contains(shareListId.getSharesListCmdParam()) || shareListId.getIsIndicesComposite()) ) {
+							TableItem item = new TableItem (newShareLists, SWT.NONE);
+							item.setFont(MainGui.CONTENTFONT);
+							item.setText (0, shareListId.name());
+							item.setText (1, shareListId.getDescription());	
+						}
+					}
+
+					for (int i=0; i< titles.length; i++) {
+						newShareLists.getColumn(i).pack();
+					}
 				}
-			});
+				{
+					paramsGroup = new Group(listAParams, SWT.NONE);
+					paramsGroup.setBackground(MainGui.pOPUP_GRP);
+					paramsGroup.setFont(biggerFont);
+					paramsGroup.setText("Choose your indices");
+					paramsGroup.setLayout(new GridLayout());
+					paramsGroup.setVisible(false);
+
+					paramsForm = new Text(paramsGroup, SWT.NONE);
+					paramsForm.setFont(MainGui.CONTENTFONT);
+					GridData paramsFormDL = new GridData(SWT.FILL, SWT.TOP, true, false);
+					paramsForm.setLayoutData(paramsFormDL);
+
+					newShareLists.addSelectionListener(new SelectionListener() {
+
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							handleNewList();
+						}
+
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							handleNewList();
+						}
+
+						private void handleNewList() {
+
+							TableItem[] selection = newShareLists.getSelection();
+							if (selection.length == 0) return;
+
+							String newList = selection[0].getText();
+							newListSharesListId = SharesListId.valueOf(newList);
+							clearParamGroup();
+
+							newListIndices = new TreeSet<>();
+							if (newListSharesListId.getIsIndicesComposite()) {
+
+								paramsForm.setToolTipText(newListSharesListId.getComment());
+								paramsListBound = new Composite(paramsGroup, SWT.NONE);
+								GridData paramComboBoundLD = new GridData(SWT.FILL, SWT.FILL, true, true);
+								paramComboBoundLD.heightHint = 200;
+								paramsListBound.setLayoutData(paramComboBoundLD);
+								GridLayout paramComboBoundL = new GridLayout();
+								paramComboBoundL.marginHeight = 0;
+								paramComboBoundL.marginWidth = 0;
+								paramsListBound.setLayout(paramComboBoundL);
+
+								final org.eclipse.swt.widgets.List paramIndicesList = new  org.eclipse.swt.widgets.List(paramsListBound, SWT.V_SCROLL | SWT.MULTI);
+								paramIndicesList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+								paramIndicesList.setFont(MainGui.CONTENTFONT);
+								paramIndicesList.getVerticalBar().setVisible(true);
+								String[] options = newListSharesListId.getOptions();
+								for (String param : options) {
+									paramIndicesList.add(param);
+								}
+								paramIndicesList.addSelectionListener(new SelectionListener() {
+
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										handleSelection();
+									}
+
+									@Override
+									public void widgetDefaultSelected(SelectionEvent e) {
+										handleSelection();
+									}
+
+									private void handleSelection() {
+										String[] selection = paramIndicesList.getSelection();
+										String indice = "";
+										String separator = "";
+										for (String string : selection) {
+											indice = indice + separator + string;
+											separator = ",";
+										}
+										paramsForm.setText(indice);
+										if (newListIndices != null) newListIndices.clear();
+										newListIndices.addAll(Indice.parseString(indice));
+									}
+								});
+								paramIndicesList.addControlListener(new ControlListener() {
+
+									@Override
+									public void controlResized(ControlEvent e) {
+										updateComboSize();
+									}
+
+									@Override
+									public void controlMoved(ControlEvent e) {
+										updateComboSize();
+									}
+
+									private void updateComboSize() {
+										Point computedSize = paramsListBound.getSize();
+										paramIndicesList.setSize(computedSize.x, computedSize.y);
+									}
+
+								});
+								paramsGroup.pack();
+								paramsGroup.setVisible(true);
+							} else {
+								paramsGroup.setVisible(false);
+							}
+
+							getParent().layout();
+							getParent().pack();
+						}
+					});
+				}
+			}
 		}
-		
 		{
 			final Button valideButton1 = new Button(newGroup, SWT.PUSH | SWT.CENTER);
-			valideButton1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			GridData validateLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+			valideButton1.setLayoutData(validateLayoutData);
 			valideButton1.setText("Add");
 			valideButton1.setFont(MainGui.DEFAULTFONT);
 			valideButton1.addMouseListener(new MouseAdapter() {
@@ -865,34 +893,37 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 		
 		TableItem[] items = existingShareLists.getItems();
 		Boolean doesNotContain = true;
-		for (TableItem tableItem : items) {
-			SharesListId shareListId = (SharesListId) tableItem.getData(SHARE_LIST_ID);
+		for (TableItem existingItem : items) {
+			SharesListId shareListId = (SharesListId) existingItem.getData(SHARE_LIST_ID);
 			@SuppressWarnings("unchecked")
-			SortedSet<Indice> indices = (SortedSet<Indice>) tableItem.getData(INDICES);
+			SortedSet<Indice> indices = (SortedSet<Indice>) existingItem.getData(INDICES);
 			if (shareListId.equals(newListSharesListId) && indices.size() == newListIndices.size()) {
 				Boolean sameIndices = true;
 				for (Indice indice : indices) {
 					sameIndices = sameIndices && newListIndices.contains(indice);
 				}
 				doesNotContain = !sameIndices;
+				if (!doesNotContain) {
+					existingShareLists.setSelection(existingItem);
+					handleExistingListSelection();
+					break;
+				}
 			}
 		}
 		if (doesNotContain) {
-			
-			TableItem item = new TableItem (existingShareLists, SWT.NONE);
-			item.setFont(MainGui.CONTENTFONT);
-			item.setText (0, newListSharesListId.name());
-			item.setText (1, Indice.formatSet(newListIndices).replaceFirst(",",""));
-			item.setText (2, newListSharesListId.getDescription());	
-			item.setData(SHARE_LIST_ID, SharesListId.valueOf(newListSharesListId.name()));
-			item.setData(INDICES, new TreeSet<Indice>(newListIndices));
+			TableItem newItem = new TableItem (existingShareLists, SWT.NONE);
+			newItem.setFont(MainGui.CONTENTFONT);
+			newItem.setText (0, newListSharesListId.name());
+			newItem.setText (1, Indice.formatSet(newListIndices).replaceFirst(",",""));
+			newItem.setText (2, newListSharesListId.getDescription());	
+			newItem.setData(SHARE_LIST_ID, SharesListId.valueOf(newListSharesListId.name()));
+			newItem.setData(INDICES, new TreeSet<Indice>(newListIndices));
 			
 			for (int i=0; i< existingShareLists.getColumns().length; i++) {
 				existingShareLists.getColumn(i).pack();
 			}	
-			existingShareLists.setSelection(item);
+			existingShareLists.setSelection(newItem);
 			handleExistingListSelection();
-			
 		}
 	}
 
@@ -903,7 +934,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 	private void portfolioInsertShareFromForm(Text symbolTxt, Text isinTxt, Text nameTxt, CCombo typeCombo, CCombo marketCombo,Text currencyFactor, CCombo provCombo)  throws InvalidAlgorithmParameterException {
 		
-		Providers unknownProvider  = Providers.setupProvider(SharesListId.UNKNOWN.name());//defaults to Yahoo
+		MarketListProvider unknownProvider = ProvidersList.getMarketListInstance(SharesListId.UNKNOWN.name());//defaults to Yahoo
 
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		try {
@@ -992,7 +1023,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 	
 	private void portfolioAddSharesFromFileMouseDown(SelectionEvent event) {
 
-		Providers unknownProvider  = Providers.setupProvider(SharesListId.UNKNOWN.name());
+		MarketListProvider unknownProvider  = ProvidersList.getMarketListInstance(SharesListId.UNKNOWN.name());
 		
 		//Update share list
 		String[] filterExtensions = {"*.txt"};
@@ -1051,7 +1082,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 		}
 	}
 
-	public Providers getProvider() {
+	public MarketListProvider getProvider() {
 		return provider;
 	}
 

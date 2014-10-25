@@ -55,7 +55,7 @@ public abstract class DayQuoteFormater extends LineFormater {
 		
 		LinkedList<Comparable<?>> mainQuery = mainQuery(line);
 		List<Validatable> ret = new ArrayList<Validatable>();
-		ret.add(new DailyQuotation(mainQuery,(Stock) params.get(0), (String) params.get(1)));
+		ret.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 		
 		return ret;
 	}

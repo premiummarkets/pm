@@ -58,6 +58,12 @@ public class ProvidersNseIndiaIndices extends ProvidersList {
 	
 	private SortedSet<Indice> indices;
 	
+	
+	protected ProvidersNseIndiaIndices() {
+		super();
+		this.indices = new TreeSet<Indice>();
+	}
+
 	private ProvidersNseIndiaIndices(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceNseIndiaMarket(pathToProps, this);
@@ -156,11 +162,11 @@ public class ProvidersNseIndiaIndices extends ProvidersList {
 		return super.initSharesList(this.getSharesListIdEnum().name(),extention);
 	}
 
-	@Override
-	public void addIndice(Indice indice) {
-		this.indices.add(indice);
-		MainPMScmd.getMyPrefs().put("quotes.listproviderindices",Indice.formatSet(indices));
-	}
+//	@Override
+//	public void addIndice(Indice indice) {
+//		this.indices.add(indice);
+//		MainPMScmd.getMyPrefs().put("quotes.listproviderindices",Indice.formatSet(indices));
+//	}
 
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
@@ -183,8 +189,12 @@ public class ProvidersNseIndiaIndices extends ProvidersList {
 
 	@Override
 	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
-		//throw new NotImplementedException();
+		//Nothing
 	}
-	
+
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		return MarketQuotationProviders.DEFAULT;
+	}
 	
 }

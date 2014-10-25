@@ -53,12 +53,7 @@ public abstract class ProvidersMarket extends ProvidersList {
 	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
 	}
-
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
-	}
-
+	
 	protected String getUrl() {
 		return httpSource.getCategoryStockListURL(StockCategories.DEFAULT_CATEGORY);
 	}

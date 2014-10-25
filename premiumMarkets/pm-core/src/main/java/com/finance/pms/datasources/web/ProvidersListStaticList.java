@@ -59,7 +59,12 @@ public class ProvidersListStaticList extends ProvidersList {
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersListStaticList.class);
 	
 	private SortedSet<Indice> indices;
+
 	
+	protected ProvidersListStaticList() {
+		super();
+		this.indices = new TreeSet<Indice>();
+	}
 
 	public ProvidersListStaticList(String pathToProps) {
 		super();
@@ -169,14 +174,13 @@ public class ProvidersListStaticList extends ProvidersList {
 	@Override
 	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
 		//throw new NotImplementedException();
-
 	}
 
-	@Override
-	public void addIndice(Indice indice) {
-		this.indices.add(indice);
-		MainPMScmd.getMyPrefs().put("quotes.listproviderindices", Indice.formatSet(indices));
-	}
+//	@Override
+//	public void addIndice(Indice indice) {
+//		this.indices.add(indice);
+//		MainPMScmd.getMyPrefs().put("quotes.listproviderindices", Indice.formatSet(indices));
+//	}
 
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
@@ -195,6 +199,11 @@ public class ProvidersListStaticList extends ProvidersList {
 	@Override
 	public SortedSet<Indice> getIndices() {
 		return indices;
+	}
+	
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		return MarketQuotationProviders.DEFAULT;
 	}
 
 }

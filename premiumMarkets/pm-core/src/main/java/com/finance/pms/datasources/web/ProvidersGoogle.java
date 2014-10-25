@@ -42,6 +42,7 @@ import java.util.TreeSet;
 
 import org.apache.http.HttpException;
 
+import com.finance.pms.admin.ToDoException;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
@@ -49,33 +50,33 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.GoogleSymbolNameResolver;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteFormater;
 import com.finance.pms.datasources.web.formaters.DayQuoteGoogleFormater;
+import com.finance.pms.portfolio.SharesList;
 
 
-public class ProvidersGoogle extends Providers implements QuotationProvider {
+public class ProvidersGoogle extends Providers implements MarketListProvider, QuotationProvider {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ProvidersGoogle.class);
-
+	
 	
 //	private Market market;
+	
+	protected ProvidersGoogle() {
+		super();
+	}
 
 	public ProvidersGoogle(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceGoogle(pathToProps, this);
-	
 	}
-	
+
 	@Override
 	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
-	}
-	
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
 	}
 
 	@Override
@@ -146,11 +147,6 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 		throw new UnsupportedOperationException("Please use another share list holder provider for that.");
 	}
 
-	@Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use another share list holder provider for that.");
-	}
-
 //	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
@@ -217,22 +213,63 @@ public class ProvidersGoogle extends Providers implements QuotationProvider {
 //		//Share list
 //		updatingShareListInDB(shareList, sharesListStocks);
 		
-		return stockList;
+//		return stockList;
+		throw new ToDoException();
 	}
 	
 	public void setMarket(Market market) {
 //		this.market = market;
-	}
-	
-	
-	@Override
-	public void retrieveScreeningInfo(Collection<Stock> shareList) {
-		throw new UnsupportedOperationException();
-		
+		throw new ToDoException();
 	}
 
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+		throw new ToDoException();
+		
+	}
+
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		throw new ToDoException();
+	}
+
+	@Override
+	public SharesListId getSharesListIdEnum() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retrieveStockListFromBase(StockList dbStockList) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Stock supplement(Stock stock) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesList loadSharesListForThisListProvider() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StockList retreiveStockListFromFile(String pathToFileList, StockList dbStockList) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retrieveScreeningInfo(Collection<Stock> shareListInDB) {
 		// TODO Auto-generated method stub
 		
 	}

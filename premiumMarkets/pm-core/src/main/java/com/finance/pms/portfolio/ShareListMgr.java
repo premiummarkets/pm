@@ -43,7 +43,8 @@ import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.Indice;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
+import com.finance.pms.datasources.web.ProvidersList;
 
 
 public abstract class ShareListMgr {
@@ -83,20 +84,19 @@ public abstract class ShareListMgr {
 
 	private StockList updateShareList(SharesList sharesList) {
 		
-		Providers provider = null;
+		MarketListProvider provider = null;
 		String[] shareListNameSplit = sharesList.getName().split(",");
 		
 		try {
 			
 			if (shareListNameSplit.length == 1) {// Yahoo Indices list
-				provider = Providers.getInstance(SharesListId.valueOf(sharesList.getName()).getSharesListCmdParam());
+				provider = ProvidersList.getMarketListInstance(SharesListId.valueOf(sharesList.getName()).getSharesListCmdParam());
 			} else {// No indices => Not yahooIndices
 				SortedSet<Indice> indices = Indice.parseString(sharesList.getName());
-				provider = Providers.getInstance(SharesListId.valueOf(shareListNameSplit[0]).getSharesListCmdParam());
-				provider.addIndices(indices, true);
+				provider = ProvidersList.getInstance(SharesListId.valueOf(shareListNameSplit[0]).getSharesListCmdParam(), indices);
 			}
 			
-			return provider.retrieveStockListFromWeb(MarketQuotationProviders.DEFAULT, new StockList(shareDAO.loadAllStocks()));
+			return ((MarketListProvider) provider).retrieveStockListFromWeb(MarketQuotationProviders.DEFAULT, new StockList(shareDAO.loadAllStocks()));
 			
 		} catch (IllegalArgumentException e) {
 			LOGGER.warn(sharesList.getName()+ " is not associated with any MarketListProvider and won't be updated.", true);

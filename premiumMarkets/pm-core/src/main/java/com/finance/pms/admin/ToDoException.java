@@ -27,59 +27,31 @@
  * You should have received a copy of the GNU Lesser General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.datasources.web;
+package com.finance.pms.admin;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ToDoYahooException.
  * 
  * @author Guillaume Thoreton
  */
-public class ToDoYahooException extends Exception {
+public class ToDoException extends RuntimeException {
 
     /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -1421423325501151579L;
 
-	/**
-	 * Instantiates a new to do yahoo exception.
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-    public ToDoYahooException() {
+    public ToDoException() {
         super();
     }
-
-    /**
-     * Instantiates a new to do yahoo exception.
-     * 
-     * @param message the message
-     * 
-     * @author Guillaume Thoreton
-     */
-    public ToDoYahooException(String message) {
+    
+    public ToDoException(String message) {
         super(message);
     }
 
-    /**
-     * Instantiates a new to do yahoo exception.
-     * 
-     * @param cause the cause
-     * 
-     * @author Guillaume Thoreton
-     */
-    public ToDoYahooException(Throwable cause) {
+    public ToDoException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * Instantiates a new to do yahoo exception.
-     * 
-     * @param message the message
-     * @param cause the cause
-     * 
-     * @author Guillaume Thoreton
-     */
-    public ToDoYahooException(String message, Throwable cause) {
+    public ToDoException(String message, Throwable cause) {
         super(message, cause);
     }
 

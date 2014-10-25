@@ -296,10 +296,10 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getMyPrefs().put("quotes.lastfetch", props.getProperty("quotes.lastfetch"));
 			if (props.containsKey("quotes.lastanalyse"))
 				MainPMScmd.getMyPrefs().put("quotes.lastanalyse", props.getProperty("quotes.lastanalyse"));
-			if (props.containsKey("quotes.provider"))
-				MainPMScmd.getMyPrefs().put("quotes.provider", props.getProperty("quotes.provider"));
-			if (props.containsKey("quotes.listprovider"))
-				MainPMScmd.getMyPrefs().put("quotes.listprovider", props.getProperty("quotes.listprovider"));
+//			if (props.containsKey("quotes.provider"))
+//				MainPMScmd.getMyPrefs().put("quotes.provider", props.getProperty("quotes.provider"));
+//			if (props.containsKey("quotes.listprovider"))
+//				MainPMScmd.getMyPrefs().put("quotes.listprovider", props.getProperty("quotes.listprovider"));
 			if (props.containsKey("analyse.mas.enable"))
 				MainPMScmd.getMyPrefs().put("analyse.mas.enable", props.getProperty("analyse.mas.enable"));
 			if (props.containsKey("quotes.sendeventfromui"))

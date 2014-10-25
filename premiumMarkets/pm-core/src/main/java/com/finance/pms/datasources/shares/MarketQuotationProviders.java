@@ -29,6 +29,14 @@
  */
 package com.finance.pms.datasources.shares;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Embeddable;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.AccessType;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
 
@@ -37,24 +45,63 @@ import com.finance.pms.datasources.web.ProvidersTypes;
  * 
  * @author Guillaume Thoreton
  */
-public enum MarketQuotationProviders {
-	
-	DEFAULT (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo"),
-	YAHOO (ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo"),
-	GOOGLE (ProvidersTypes.GOOGLE, new GoogleSymbolNameResolver(), "google"),
-	INVESTIR (ProvidersTypes.INVESTIR, new InvestirSymbolNameResolver(), "investir"),
-	INFLATION (ProvidersTypes.INFLATION, new InvestirSymbolNameResolver(), "inflation"),
-	CURRENCY (ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency");
-	
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);
-	
-	private SymbolNameResolver symbolNameResolver;
-	private String cmdParam;
+@Embeddable
+@AccessType("field") 
+public class MarketQuotationProviders {
 
-	private MarketQuotationProviders(ProvidersTypes providersType, SymbolNameResolver marketQuotationProviderExtentions, String cmdParam) {
+	private static MyLogger LOGGER = MyLogger.getLogger(MarketQuotationProviders.class);
+	
+	public static final MarketQuotationProviders DEFAULT = new MarketQuotationProviders("DEFAULT", ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo");
+	public static final MarketQuotationProviders YAHOO = new MarketQuotationProviders("YAHOO", ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo");
+	public static final MarketQuotationProviders GOOGLE = new MarketQuotationProviders("GOOGLE", ProvidersTypes.GOOGLE, new GoogleSymbolNameResolver(), "google");
+	public static final MarketQuotationProviders INVESTIR = new MarketQuotationProviders("INVESTIR", ProvidersTypes.INVESTIR, new InvestirSymbolNameResolver(), "investir");
+	public static final MarketQuotationProviders INFLATION = new MarketQuotationProviders("INFLATION", ProvidersTypes.INFLATION, new InvestirSymbolNameResolver(), "inflation");
+	public static final MarketQuotationProviders CURRENCY = new MarketQuotationProviders("CURRENCY", ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency");
+	
+	private static List<MarketQuotationProviders> marketQuotationProviders = new ArrayList<MarketQuotationProviders>();
+	static {
+		MarketQuotationProviders.addMarketQuotationProvider(DEFAULT);
+		MarketQuotationProviders.addMarketQuotationProvider(YAHOO);
+		MarketQuotationProviders.addMarketQuotationProvider(GOOGLE);
+		MarketQuotationProviders.addMarketQuotationProvider(INVESTIR);
+		MarketQuotationProviders.addMarketQuotationProvider(INFLATION);
+		MarketQuotationProviders.addMarketQuotationProvider(CURRENCY);
+	}
+	
+	private String name;
+	
+	@Transient
+	private SymbolNameResolver symbolNameResolver;
+	@Transient
+	private String cmdParam;
+	
+	//Hib
+	@SuppressWarnings("unused")
+	private MarketQuotationProviders() {
+		super();
+	}
+
+	public MarketQuotationProviders(String name, ProvidersTypes providersType, SymbolNameResolver marketQuotationProviderExtentions, String cmdParam) {
+		this.name = name;
 		this.symbolNameResolver = marketQuotationProviderExtentions;
 		this.cmdParam = cmdParam;
+	}
+	
+	public static MarketQuotationProviders[] values() {
+		return MarketQuotationProviders.marketQuotationProviders.toArray(new MarketQuotationProviders[]{});
+	}
+	
+	public static MarketQuotationProviders valueOf(String name) {
+		for (MarketQuotationProviders marketQuotationProvider : MarketQuotationProviders.marketQuotationProviders) {
+			if (marketQuotationProvider.name().equals(name)) return marketQuotationProvider;
+		}
+		throw new IllegalArgumentException();
+	}
+	
+	public static void addMarketQuotationProvider(MarketQuotationProviders marketListProvider) {
+		if (marketListProvider != null && !MarketQuotationProviders.marketQuotationProviders.contains(marketListProvider)) {
+			MarketQuotationProviders.marketQuotationProviders.add(marketListProvider);
+		}
 	}
 	
 	public static MarketQuotationProviders valueOfCmd(String cmdParam) {
@@ -63,6 +110,10 @@ public enum MarketQuotationProviders {
 			if (eValues[i].cmdParam.equals(cmdParam)) return eValues[i];
 		}
 		throw new IllegalArgumentException("No enum const ProvidersTypes." + cmdParam);
+	}
+	
+	public String name() {
+		return this.name;
 	}
 
 	public static boolean checkProvider(String prov) {
@@ -86,11 +137,53 @@ public enum MarketQuotationProviders {
 	}
 
 	public String getCmdParam() {
+		if (cmdParam == null) {
+			lateInitByCopy();
+		}
 		return cmdParam;
 	}
 
+	private void lateInitByCopy() {
+		MarketQuotationProviders valueOf = MarketQuotationProviders.valueOf(this.name());
+		cmdParam = valueOf.getCmdParam();
+		symbolNameResolver = valueOf.getSymbolNameResolver();
+	}
+
 	public SymbolNameResolver getSymbolNameResolver() {
+		if (symbolNameResolver == null) {
+			lateInitByCopy();
+		}
 		return symbolNameResolver;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MarketQuotationProviders other = (MarketQuotationProviders) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 }

@@ -67,7 +67,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
+import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -88,7 +89,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	protected Composite caller;
 
 	
-	private Providers selectedProvider;
+	private MarketListProvider selectedProvider;
 	private Composite compositeBounds;
 	private Table symbolTable;
 
@@ -260,20 +261,20 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						handle();
+						handleShareListSelection();
 					}
 
 					@Override
 					public void widgetDefaultSelected(SelectionEvent e) {
-						handle();
+						handleShareListSelection();
 					}
 
-					private void handle() {
+					private void handleShareListSelection() {
 
 						String item = existingCCombo.getItem(existingCCombo.getSelectionIndex());
 						try {
 
-							selectedProvider = Providers.setupProvider(item);
+							selectedProvider = ProvidersList.getMarketListInstance(item);
 							shareListGroup.setText("Select shares in "+selectedProvider.getSharesListIdEnum().getDescription());
 
 							getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
@@ -286,12 +287,10 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 							} finally {
 								getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 							}
-							
 					
-						} catch (java.lang.IllegalArgumentException e) {
-							UserDialog dialog = new UserDialog(NewPortfolioItemDialog.this.getShell(), item+" is not a valid share list. Has it been added by hand?", null);
+						} catch (IllegalArgumentException e) {
+							UserDialog dialog = new UserDialog(NewPortfolioItemDialog.this.getShell(), item + " is not a valid share list. Has it been added by hand?", null);
 							dialog.open();
-
 						}
 					}
 

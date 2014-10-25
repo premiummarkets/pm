@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.admin.ToDoException;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -58,7 +59,8 @@ import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.Indice;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
+import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.threads.ObserverMsg;
 
 /**
@@ -76,25 +78,25 @@ public class QuotationUpdate {
 
 	public void getQuotesForListInCmd(List<String> listSymbols, String shareList, String quotationsProvider) {
 		
-		StockList stockList = new StockList();
-		Providers.getInstance(shareList).retrieveStockListFromCmdLine(listSymbols, stockList, quotationsProvider);
-		try {
-			getQuotes(stockList);
-		} catch (QuotationUpdateException e) {
-			LOGGER.warn(e);
-		}
+//		StockList stockList = new StockList();
+//		Providers.getInstance(shareList).retrieveStockListFromCmdLine(listSymbols, stockList, quotationsProvider);
+//		try {
+//			getQuotes(stockList);
+//		} catch (QuotationUpdateException e) {
+//			LOGGER.warn(e);
+//		}
+		throw new ToDoException("FIXME");
 		
 	}
 	
 	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, SortedSet<Indice> indices) throws HttpException {
 		
-		Providers provider =  Providers.getInstance(sharesListName);
-		provider.addIndices(indices, true);
+		MarketListProvider provider =  ProvidersList.getInstance(sharesListName, indices);
 		getQuotesAndNewForShareListFromWeb(provider, marketQuotationProvider);
 		
 	}
 
-	private void getQuotesAndNewForShareListFromWeb(Providers provider, String marketQuotationsProvider) throws HttpException {
+	private void getQuotesAndNewForShareListFromWeb(MarketListProvider provider, String marketQuotationsProvider) throws HttpException {
 		
 		StockList existingDBStocks = new StockList();
 		provider.retrieveStockListFromBase(existingDBStocks);
@@ -114,8 +116,8 @@ public class QuotationUpdate {
 	public void getQuotesForListInFile(String pathToFileList, String sharesList) {
 		
 		StockList dbStockList = new StockList();
-		Providers.getInstance(sharesList).retrieveStockListFromBase(dbStockList);
-		StockList retreivedStockListFromFile = Providers.getInstance(sharesList).retreiveStockListFromFile(pathToFileList, dbStockList);
+		ProvidersList.getMarketListInstance(sharesList).retrieveStockListFromBase(dbStockList);
+		StockList retreivedStockListFromFile = ProvidersList.getMarketListInstance(sharesList).retreiveStockListFromFile(pathToFileList, dbStockList);
 		
 		try {
 			getQuotes(retreivedStockListFromFile);
@@ -126,7 +128,7 @@ public class QuotationUpdate {
 		
 	}
 	
-	public List<Stock> getQuotesForListInFile(String pathToFileList, Providers sharesList) {
+	public List<Stock> getQuotesForListInFile(String pathToFileList, MarketListProvider sharesList) {
 		
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
@@ -142,7 +144,7 @@ public class QuotationUpdate {
 		
 	}
 	
-	public Stock getQuotesForUiForm(Providers sharesList, Stock newStock) throws InvalidAlgorithmParameterException, QuotationUpdateException {
+	public Stock getQuotesForUiForm(MarketListProvider sharesList, Stock newStock) throws InvalidAlgorithmParameterException, QuotationUpdateException {
 	
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
@@ -198,26 +200,12 @@ public class QuotationUpdate {
 		monitoredStocks.addAll(monitoredSymbols);
 		return monitoredStocks;
 	}
-
-	public void getQuotesForCurrentListInDB() {
-		
-		StockList stockList = new StockList();
-		Collection<Stock> symbols = DataSource.getInstance().loadStocksForCurrentShareList();
-		
-		stockList.addAll(symbols);
-		try {
-			getQuotes(stockList);
-		} catch (QuotationUpdateException e) {
-			LOGGER.warn(e);
-		}
-	}
 	
 	public void getQuotesForSharesListInDB(String sharesListName, SortedSet<Indice> indices) {
 		
 		StockList stockList = new StockList();
 		
-		Providers provider =  Providers.getInstance(sharesListName);
-		provider.addIndices(indices, true);
+		MarketListProvider provider =  ProvidersList.getInstance(sharesListName, indices);
 		sharesListName = sharesListName+Indice.formatSet(provider.getIndices());
 		Collection<Stock> symbols = DataSource.getInstance().loadStocksList(sharesListName);
 		

@@ -68,8 +68,8 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
 
-		ProvidersBoursorama boursoramaProvider = (ProvidersBoursorama) ProvidersBoursorama.getInstance("boursorama");
-		httpSource = (HttpSourceBoursorama) boursoramaProvider.getHttpSource();
+		//ProvidersBoursorama boursoramaProvider = (ProvidersBoursorama) ProvidersBoursorama.getInstance("boursorama");
+		//httpSource = (HttpSourceBoursorama) boursoramaProvider.getHttpSource();
 
 	} 
 	

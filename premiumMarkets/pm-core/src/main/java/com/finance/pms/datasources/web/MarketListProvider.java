@@ -29,11 +29,45 @@
  */
 package com.finance.pms.datasources.web;
 
+import java.util.Collection;
+import java.util.Observer;
+import java.util.Set;
+import java.util.SortedSet;
+
+import org.apache.http.HttpException;
+
+import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
+import com.finance.pms.portfolio.SharesList;
 
 public interface MarketListProvider {
+
+	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stocksInDB) throws HttpException;
+
+	public void  updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException;
+
+	public MarketQuotationProviders defaultMarketQuotationProviders();
+
+	public void addIndices(SortedSet<Indice> indices, Boolean replace);
+
+	public abstract SortedSet<Indice> getIndices();
+
+	public SharesListId getSharesListIdEnum();
+
+	public void retrieveStockListFromBase(StockList dbStockList);
+
+	public Stock supplement(Stock stock);
+
+	public void addObservers(Set<Observer> engineObservers);
+
+	public SharesList loadSharesListForThisListProvider();
+
+	public StockList retreiveStockListFromFile(String pathToFileList, StockList dbStockList);
+
+	public void retrieveAndCompleteStockInfo(Stock newStock, StockList dbStockList);
 	
-	 public abstract void retrieveAndCompleteStockInfo(Stock s, StockList stockList);
+	public void retrieveScreeningInfo(Collection<Stock> shareListInDB);
 
 }

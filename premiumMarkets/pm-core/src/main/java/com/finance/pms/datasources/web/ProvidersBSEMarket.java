@@ -51,8 +51,12 @@ import com.finance.pms.screening.ScreeningSupplementedStock;
 public class ProvidersBSEMarket extends ProvidersMarket {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersBSEMarket.class);
-	
-	private ProvidersBSEMarket(String pathToProps) {
+
+	protected ProvidersBSEMarket() {
+		super();
+	}
+
+	protected ProvidersBSEMarket(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceBSEMarket(pathToProps, this);
 	}
@@ -129,16 +133,18 @@ public class ProvidersBSEMarket extends ProvidersMarket {
 
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
-		// TODO Auto-generated method stub
-		
+		//Nothing
 	}
 
 
 	@Override
 	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
-		//throw new NotImplementedException();
-		
+		//Nothing
 	}
 	
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		return MarketQuotationProviders.DEFAULT;
+	}
 	
 }

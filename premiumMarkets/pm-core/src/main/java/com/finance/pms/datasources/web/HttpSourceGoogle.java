@@ -47,7 +47,7 @@ import com.google.gson.Gson;
 public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceGoogle.class);
-	/** The thread pool. */
+	
 	private PoolSemaphore threadPool;
 	
 	public HttpSourceGoogle(String pathToprops, MyBeanFactoryAware beanFactory) {

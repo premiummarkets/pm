@@ -71,6 +71,11 @@ public class ProvidersYahooIndices extends ProvidersList {
 
 	private SortedSet<Indice> indices;
 
+	protected ProvidersYahooIndices() {
+		super();
+		this.indices = new TreeSet<Indice>();
+	}
+
 	public ProvidersYahooIndices(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceYahooIndices(pathToProps, this);
@@ -83,11 +88,15 @@ public class ProvidersYahooIndices extends ProvidersList {
 	}
 	
 	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		return MarketQuotationProviders.YAHOO;
+	}
+	
+	@Override
 	public SharesList loadSharesListForThisListProvider() {
 		String extention = Indice.formatSet(indices);
 		return super.initSharesList(this.getSharesListIdEnum().name(),extention);
 	}
-
 
 	@Override
 	protected LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders) {
@@ -427,11 +436,11 @@ public class ProvidersYahooIndices extends ProvidersList {
 		return indices;
 	}
 	
-	@Override
-	public void addIndice(Indice indice) {
-		this.indices.add(indice);
-		MainPMScmd.getMyPrefs().put("quotes.listproviderindices",Indice.formatSet(indices));
-	}
+//	@Override
+//	public void addIndice(Indice indice) {
+//		this.indices.add(indice);
+//		MainPMScmd.getMyPrefs().put("quotes.listproviderindices",Indice.formatSet(indices));
+//	}
 
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {

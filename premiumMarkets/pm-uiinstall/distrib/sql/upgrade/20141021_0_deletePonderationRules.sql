@@ -1,0 +1,1 @@
+update portfolio_name set SELLPONDERATIONRULE = NULL, BUYPONDERATIONRULE = NULL;

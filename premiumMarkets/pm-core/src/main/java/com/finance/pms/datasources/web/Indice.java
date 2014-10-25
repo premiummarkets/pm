@@ -80,11 +80,11 @@ public class Indice implements Comparable<Indice> {
 		return listIndice;
 	}
 
-	public static void addIndicesToProvider(Providers providersYahooIndex, String... indices) {
-		for (int i=0; i < indices.length; i= i+2) {
-			providersYahooIndex.addIndice(new Indice(indices[i], indices[i+1]));
-		}
-	}
+//	public static void addIndicesToProvider(Providers providersYahooIndex, String... indices) {
+//		for (int i=0; i < indices.length; i= i+2) {
+//			providersYahooIndex.addIndice(new Indice(indices[i], indices[i+1]));
+//		}
+//	}
 
 	public String getName() {
 		return name;

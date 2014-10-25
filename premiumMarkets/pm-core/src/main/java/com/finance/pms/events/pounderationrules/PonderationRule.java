@@ -42,8 +42,6 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Interface PonderationRule.
  * 

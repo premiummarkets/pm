@@ -52,7 +52,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
 import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.portfolio.AbstractSharesList;
 import com.finance.pms.portfolio.PortfolioMgr;
@@ -203,11 +203,11 @@ public class GnuCashParserHelper {
 				for (PortfolioShare portfolioShare : portfolioShareInShareList) {
 					AbstractSharesList portfolio = portfolioShare.getPortfolio();
 					if (portfolio instanceof SharesList) {
-						ProvidersList provider;
+						MarketListProvider provider;
 						if (portfolio.getName().equals(SharesListId.UNKNOWN.name())) {//TODO infer stock list from extension?
-							provider =  (ProvidersList) Providers.getInstance(SharesListId.valueOf("YAHOOINDICES").getSharesListCmdParam());
+							provider =  ProvidersList.getMarketListInstance(SharesListId.valueOf("YAHOOINDICES").getSharesListCmdParam());
 						} else {
-							provider = (ProvidersList) Providers.setupProvider(portfolio.getName());
+							provider = ProvidersList.getMarketListInstance(portfolio.getName());
 						}
 						Stock supplementedStock = provider.supplement(stock);
 						if (stock.equals(supplementedStock)) {

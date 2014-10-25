@@ -86,7 +86,7 @@ public class AssVieScanner implements MyBeanFactoryAware {
 		
 		StockList dbStockList = new StockList();
 		String sharesListName = "euronext";
-		Providers.getInstance(sharesListName).retrieveStockListFromBase(dbStockList);
+		ProvidersList.getMarketListInstance(sharesListName).retrieveStockListFromBase(dbStockList);
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		
 		try {

@@ -33,8 +33,7 @@ import java.io.Serializable;
 import java.security.InvalidAlgorithmParameterException;
 
 import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.Embedded;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.AccessType;
@@ -51,7 +50,7 @@ public class SymbolMarketQuotationProvider implements Serializable {
 	
 	private static final long serialVersionUID = 2005494963121200376L;
 
-	@Enumerated(EnumType.STRING)
+	@Embedded
 	private MarketQuotationProviders marketQuotationProvider;
 
 	@Transient

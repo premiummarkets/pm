@@ -36,7 +36,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.http.HttpException;
@@ -46,7 +45,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -59,25 +57,19 @@ import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
  * 
  * @author Guillaume Thoreton
  */
-public class ProvidersYahoo extends Providers implements QuotationProvider, MarketListProvider {
+public class ProvidersYahoo extends Providers implements QuotationProvider {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahoo.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahoo.class);
+
+	protected ProvidersYahoo() {
+		super();
+	}
 
 	public ProvidersYahoo(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceYahoo(pathToProps, this);
 	}
-	
-	@Override
-	public SortedSet<Indice> getIndices() {
-		return new TreeSet<Indice>();
-	}
-		
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
-	}
-	
+
 	@Override
 	public void getQuotes(Stock stock, Date start, Date end) throws HttpException, SQLException {
 
@@ -113,20 +105,11 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		DayQuoteYahooFormater dsf = new DayQuoteYahooFormater(url, stock, stock.getMarketValuation().getCurrency().name());
 		return this.httpSource.readURL(dsf);
 	}
-
-    @Override
-	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
-        // TODO Recuperation de la liste des stocks sur yahoo
-        LOGGER.error("retreiving ticker list is not implemented for yahoo");
-        throw new UnsupportedOperationException("Please use another provider the share list holder for that.");
-    }
     
-    
-    @Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-    	throw new UnsupportedOperationException("Please use another share list holder provider for that.");
-    }
-
+//    @Override
+//	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
+//    	throw new UnsupportedOperationException("Please use another share list holder provider for that.");
+//    }
     
 	@Override
 	public void retrieveAndCompleteStockInfo(Stock stock, StockList stockList) {
@@ -164,17 +147,6 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
     @Override
 	public String getStockRefName(Stock ticker){
 	    return ticker.getSymbol();
-	}
-	
-	@Override
-	public void retrieveScreeningInfo(Collection<Stock> shareList) {
-		throw new UnsupportedOperationException();
-		
-	}
-
-	@Override
-	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
-		//Nothing
 	}
 
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException {

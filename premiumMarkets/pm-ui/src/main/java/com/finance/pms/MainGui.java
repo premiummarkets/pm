@@ -103,8 +103,9 @@ import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.datasources.TaskId;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
 import com.finance.pms.datasources.web.ProvidersInflation;
+import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.gui.EventsComposite;
@@ -192,6 +193,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		this.setLayout(new FillLayout()); 
 		
 		dbfile = dbFilePath;
+		springContextInit(dbfile);
 		
 		setupAppName();
 		setupAppDefaultFont(getDisplay(), getShell());
@@ -783,10 +785,10 @@ public class MainGui extends SashForm implements RefreshableView {
 						@Override
 						public void action(Control targetControl) {
 							
-							Providers provider = slDialog.getProvider();
+							MarketListProvider provider = slDialog.getProvider();
 							if (provider != null) {
 								
-								allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(Providers.providerIndicedShareListName(provider))}));
+								allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(ProvidersList.providerIndicedShareListName(provider))}));
 								LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 								allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
 								updateEventRefreshModelState(0l, TaskId.FetchLists);
@@ -937,8 +939,6 @@ public class MainGui extends SashForm implements RefreshableView {
 			
 			String dbfile = parseArgs(args);
 			
-			springContextInit(dbfile);
-			
 			Display display = Display.getDefault();
 			Shell shell = new Shell(display);
 			shell.setLayout(new FillLayout());
@@ -1031,8 +1031,6 @@ public class MainGui extends SashForm implements RefreshableView {
 				}
 			}
 		};
-//		Thread thread = new Thread(runnable);
-//		thread.start();
 		inst.getDisplay().asyncExec(runnable);
 		
 	}
@@ -1106,7 +1104,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		}
 	}
 
-	protected static SpringContext springContextInit(String dbfile) {
+	protected SpringContext springContextInit(String dbfile) {
 		//Spring Context init		
 		SpringContext ctx = new SpringContext(dbfile);
 		ctx.setMasSource(dbfile,"false");

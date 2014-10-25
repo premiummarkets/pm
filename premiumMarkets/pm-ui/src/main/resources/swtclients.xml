@@ -65,22 +65,22 @@
 	</bean>
 	
 	<bean id="provider" class="com.finance.pms.datasources.web.Providers" abstract="true">
-				<property name="shareDAO" ref="shareDAO"/>
-				<property name="portfolioDAO" ref="portfolioDAO"/>
+	<!-- 			<property name="shareDAO" ref="shareDAO"/>
+				<property name="portfolioDAO" ref="portfolioDAO"/> -->
 	</bean>
 	
 	<!-- Quotations providers -->
 	<bean id="investirProviderSource" class="com.finance.pms.datasources.web.ProvidersInvestir">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="INVESTIR" />
-		<property name="portfolioDAO" ref="portfolioDAO"/>
-		<property name="shareDAO" ref="shareDAO"/>
+		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
+		<property name="shareDAO" ref="shareDAO"/> -->
 	</bean>
 	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOO" />
-		<property name="portfolioDAO" ref="portfolioDAO"/>
-		<property name="shareDAO" ref="shareDAO"/>
+		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
+		<property name="shareDAO" ref="shareDAO"/> -->
 	</bean>
 	<bean id="googleProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>

@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.http.HttpException;
@@ -44,7 +43,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
@@ -57,32 +55,23 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
 
 	private static Stock inflationStock;
+	
 	public static final Stock inflationStock() {
 		if (inflationStock == null) {
 			inflationStock = DataSource.getInstance().loadStockBySymbol("Inflation");
 		}
 		return inflationStock;
 	}
+	
+	protected ProvidersInflation() {
+		super();
+		this.addObserver(new InflationUpdateObserver());
+	}
 
 	public ProvidersInflation(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceInflation(pathToProps, this);
 		this.addObserver(new InflationUpdateObserver());
-	}
-	
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
-	}
-
-	@Override
-	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
-		// Nothing
-	}
-
-	@Override
-	public SortedSet<Indice> getIndices() {
-		return new TreeSet<Indice>();
 	}
 
 	@Override
@@ -135,21 +124,6 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 
 	@Override
 	public void retrieveAndCompleteStockInfo(Stock s, StockList stockList) {
-		throw new UnsupportedOperationException("Please use a share list holder for that.");
-	}
-
-	@Override
-	public void retrieveScreeningInfo(Collection<Stock> shareList) {
-		throw new UnsupportedOperationException("Please use a share list holder for that.");
-	}
-
-	@Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use a share list holder for that.");
-	}
-
-	@Override
-	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
 		throw new UnsupportedOperationException("Please use a share list holder for that.");
 	}
 

@@ -40,8 +40,9 @@ import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
@@ -69,23 +70,23 @@ public abstract class IndicatorsCalculationService {
 		super();
 	}
 
-	protected Collection<Stock> loadAllStocksFromDB() {
-		return DataSource.getInstance().loadStocksForCurrentShareList();
-	}
+//	protected Collection<Stock> loadAllStocksFromDB() {
+//		return DataSource.getInstance().loadStocksForCurrentShareList();
+//	}
 
-	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException {
-		
-		if ((this.symbolsCache == null) || !keepCache) this.symbolsCache = loadAllStocksFromDB();
-		
-		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analysisRes = null;
-		try {
-			analysisRes = analyze(this.symbolsCache, datedeb, datefin, calculationCurrency, analyseName, periodType, keepCache, passNumber, true, passOneCalcMode);
-		} catch (IncompleteDataSetException e) {
-			LOGGER.warn(e);
-		}
-		
-		return analysisRes;
-	}
+//	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException {
+//		
+//		if ((this.symbolsCache == null) || !keepCache) this.symbolsCache = loadAllStocksFromDB();
+//		
+//		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analysisRes = null;
+//		try {
+//			analysisRes = analyze(this.symbolsCache, datedeb, datefin, calculationCurrency, analyseName, periodType, keepCache, passNumber, true, passOneCalcMode);
+//		} catch (IncompleteDataSetException e) {
+//			LOGGER.warn(e);
+//		}
+//		
+//		return analysisRes;
+//	}
 	
 
 	/**
@@ -148,7 +149,8 @@ public abstract class IndicatorsCalculationService {
 		if (shareList.size() > 0) {
 				calcRes = partialAnalyze(shareList, startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, persistEvents, passOneCalcMode, observers);
 		} else {
-				calcRes = fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, passOneCalcMode, observers);
+				//calcRes = fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, passOneCalcMode, observers);
+				throw new NotImplementedException();
 		}
 		
 		return calcRes;

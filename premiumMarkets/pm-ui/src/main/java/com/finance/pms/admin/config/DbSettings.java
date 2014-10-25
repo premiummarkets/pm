@@ -66,7 +66,6 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
 
 /**
  * The Class DbSettings.
@@ -83,15 +82,15 @@ public class DbSettings extends Dialog {
 	private final String[] configTab = { "EMail setting", "Feeds performance and defaults", "Database", "Technical analysis"};
 	private final String[] configTabComment = {
 			"Email setting - Please fill in",
-			"Default quotations provider - Possible values : "+MarketQuotationProviders.YAHOO.getCmdParam()+","+MarketQuotationProviders.INVESTIR.getCmdParam()+","+MarketQuotationProviders.GOOGLE.getCmdParam(),
+//			"Default quotations provider - Possible values : "+MarketQuotationProviders.YAHOO.getCmdParam()+","+MarketQuotationProviders.INVESTIR.getCmdParam()+","+MarketQuotationProviders.GOOGLE.getCmdParam(),
 			"Internal Data Base parameters - You normally don't have to change this.",
 		    "Technical analysis - Indicator calculation tuning"};
 	private final String[][] keys = {
 			{ "mail.from", "mail.to", "mail.host", "mail.username", "mail.password", "mail.log.activated" },
-			{ //"quotes.listfile", "quotes.listprovider", 
-				"quotes.provider", 
-			  //"analyse.mas.enable",	"semaphore.nbthread"
-			},
+//			{ //"quotes.listfile", "quotes.listprovider", 
+//			  //"quotes.provider", 
+//			  //"analyse.mas.enable",	"semaphore.nbthread"
+//			},
 			{ "software", "username", "password", "driver", "database", "dbpath", "db.poolsize" },
 			{ "talib.daysbackwardday" }};
 	private final String[][] keyComments = {
@@ -100,13 +99,13 @@ public class DbSettings extends Dialog {
 					"Smtp server dns name or IP", "Smtp server login name",
 					"Smtp server login password", "Activate email error logging" 
 			},
-			{ 		
-					//"Default file name for a potential supplement of stocks",
-					//"Default web provider where you will retrieve the stocks list from ",
-					"Default quotations provider ",
-					//"Toogle MAS analysis availability in the Events Window",
-					//"Number of concurrent threads running during calculations"
-			},
+//			{ 		
+//					//"Default file name for a potential supplement of stocks",
+//					//"Default web provider where you will retrieve the stocks list from ",
+//					//"Default quotations provider ",
+//					//"Toogle MAS analysis availability in the Events Window",
+//					//"Number of concurrent threads running during calculations"
+//			},
 			{ 
 					"DataBase software name", "Database login user name", "Database login password", 
 					"DataBase software driver full Class name",
@@ -122,11 +121,8 @@ public class DbSettings extends Dialog {
 
 		Display display = Display.getDefault();
 		Shell shell = new Shell(display);
-
-//		MainGui.pOPUP_BG = tintedColor(display, new Color(display, 154, 103, 51), 1/4);
-//		MainGui.pOPUP_GRP = tintedColor(display, MainGui.pOPUP_BG, 1/4);
+		
 		Color brown = new Color(display, 154, 103, 51);
-//		Color green = new Color(display, 58, 101, 49);
 		MainGui.pOPUP_BG = shadedColor(display, brown, 1.10);
 		MainGui.pOPUP_GRP = shadedColor(display, brown, 1.20);
 

@@ -43,13 +43,12 @@ import com.finance.pms.datasources.shares.Stock;
  */
 public class ProvidersYahooFR extends ProvidersYahoo {
 
-	/**
-	 * Instantiates a new providers yahoo fr.
-	 * 
-	 * @param pathToProps the path to props
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
+	
+	protected ProvidersYahooFR() {
+		super();
+	}
+
 	public ProvidersYahooFR(String pathToProps) {
 		super(pathToProps);
 	}

@@ -35,7 +35,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -45,7 +44,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
@@ -55,6 +53,10 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInvestir.class);
 	
+	protected ProvidersInvestir() {
+		super();
+	}
+
 	public ProvidersInvestir(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceInvestir(pathToProps, this);
@@ -132,16 +134,6 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 	}
 
 	@Override
-	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stockList) {
-		 throw new NotImplementedException() ;
-	}
-
-	@Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		throw new NotImplementedException();
-	}
-
-	@Override
 	public String getStockRefName(Stock stock) {
 		 return stock.getSymbol();
 	}
@@ -151,24 +143,4 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		throw new NotImplementedException();
 	}
 
-	@Override
-	public void retrieveScreeningInfo(Collection<Stock> shareListInDB) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
-	}
-
-	@Override
-	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public SortedSet<Indice> getIndices() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

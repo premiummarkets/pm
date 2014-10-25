@@ -42,7 +42,12 @@ import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public class ProvidersASXMarket extends ProvidersMarket {
 	
-	private ProvidersASXMarket(String pathToProps) {
+	
+	protected ProvidersASXMarket() {
+		super();
+	}
+
+	protected ProvidersASXMarket(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceASXMarket(pathToProps, this);
 	}
@@ -80,15 +85,19 @@ public class ProvidersASXMarket extends ProvidersMarket {
 
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
-		// TODO Auto-generated method stub
+		//Nothing
 		
 	}
 
 	@Override
 	public void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock) {
-		//throw new NotImplementedException();
+		//Nothing
 		
 	}
 	
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		return MarketQuotationProviders.DEFAULT;
+	}
 
 }

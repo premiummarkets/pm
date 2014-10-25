@@ -80,12 +80,10 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		
 		LOGGER.debug("Fetching monitored quotations");
 		quotationUpdate.addObservers(engineObservers);
-		
-		//updateQuotations(quotationUpdate, rootParam);
+
 		updateQuotations(quotationUpdate, buildStockListFrom(rootParam));
 	}
 
-	//protected abstract void updateQuotations(QuotationUpdate quotationUpdate, X rootParam) throws StockNotFoundException;
 	private void updateQuotations(QuotationUpdate quotationUpdate, List<Stock> stocks) throws QuotationUpdateException {
 		quotationUpdate.getQuotesFor(stocks);
 	};

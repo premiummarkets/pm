@@ -260,6 +260,7 @@ public class GnuCashTransactionReportParser {
 		return nodeList;
 	}
 
+	//Main for Test
 	public static void main(String... arg) throws IOException, InvalidAlgorithmParameterException {
 		
 		SpringContext springContext = new SpringContext(arg[0]);

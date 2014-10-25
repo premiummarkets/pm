@@ -48,8 +48,8 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.shares.MarketQuotationProviders;
-import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.MarketListProvider;
+import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
@@ -67,8 +67,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * @author Guillaume Thoreton
  */
 public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Collection<ShareListInfo>> {
-	
-	/** The LOGGER. */
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(RefreshAllEventStrategyEngine.class);
 
 	public RefreshAllEventStrategyEngine() {
@@ -79,12 +78,9 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 		LOGGER.debug("Updating list of shares  : "+rootParam);
 		for (Object shareList : rootParam) {
-			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
-			String marketQuotationsProviders = MainPMScmd.getMyPrefs().get("quotes.provider","yahoo");
-			MarketQuotationProviders marketQuotationProvider = MarketQuotationProviders.valueOfCmd(marketQuotationsProviders);
-
+			MarketListProvider provider = ProvidersList.getMarketListInstance(((ShareListInfo) shareList).info());
 			provider.addObservers(engineObservers);
-			provider.updateStockListFromWeb(marketQuotationProvider);
+			((MarketListProvider) provider).updateStockListFromWeb(null);//Null takes the default from the list provider. //TODO store customised provider in DB
 		}
 
 	}
@@ -97,7 +93,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		LOGGER.debug("Fetching all quotations");
 		quotationUpdate.addObservers(engineObservers);
 		for (Object shareList : rootParam) {
-			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+			MarketListProvider provider = ProvidersList.getMarketListInstance(((ShareListInfo) shareList).info());
 			quotationUpdate.getQuotesForSharesListInDB(provider.getSharesListIdEnum().getSharesListCmdParam(), provider.getIndices());
 
 		}
@@ -110,7 +106,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 
 		for (Object shareList : rootParam) {
-			Providers provider = Providers.setupProvider(((ShareListInfo) shareList).info());
+			MarketListProvider provider = ProvidersList.getMarketListInstance(((ShareListInfo) shareList).info());
 			SharesList sharesListForThisListProvider = provider.loadSharesListForThisListProvider();
 
 			//Dates check
@@ -134,7 +130,8 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 				IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 						SpringContext.getSingleton(),
 						analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, engineObservers.toArray(new Observer[0]));
+						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, engineObservers.toArray(new Observer[0])
+				);
 
 				Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 				try {

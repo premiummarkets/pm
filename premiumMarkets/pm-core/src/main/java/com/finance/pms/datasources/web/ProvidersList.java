@@ -29,16 +29,18 @@
  */
 package com.finance.pms.datasources.web;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
@@ -49,16 +51,20 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NullShareFilter;
+import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.ShareListMgr;
 import com.finance.pms.portfolio.SharesList;
@@ -107,15 +113,100 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersList.class);
+	
+	
+	public static MarketListProvider getInstance(String baseSharesCmdName, SortedSet<Indice> indices) {
+		MarketListProvider provider = ProvidersList.getBeanClone(baseSharesCmdName);
+		provider.addIndices(indices, true);
+		return provider;
+	}
+	
+	private static MarketListProvider getBeanClone(String baseSharesCmdName) {
+		String providerBeanName = baseSharesCmdName+"ProviderSource";
+		Providers beanSingleton = (Providers) SpringContext.getSingleton().getBean(providerBeanName);
+		try {
+			Providers newInstance = beanSingleton.getClass().getDeclaredConstructor().newInstance();
+			newInstance.httpSource = beanSingleton.httpSource;
+			newInstance.sharesListId = beanSingleton.sharesListId;
+			return (MarketListProvider) newInstance;
+		} catch (Exception e) {
+			LOGGER.error(e);
+		}
+		return (MarketListProvider) beanSingleton;
+	}
+	
+	public static String[] shareListSplit(String indicedSharesListName) {
+		int indexOfFirstComma = indicedSharesListName.indexOf(",");
+		if (indexOfFirstComma != -1) {
+			String shareListBaseName = indicedSharesListName.substring(0, indexOfFirstComma).trim();
+			String indicesString = indicedSharesListName.substring(indexOfFirstComma+1).trim();
+			return new String[]{shareListBaseName, indicesString};
+		} else {
+			return new String[]{indicedSharesListName, ""};
+		}
+
+	}
+	
+	public static MarketListProvider getMarketListInstance(String indicedSharesListName) {
+		String[] split = ProvidersList.shareListSplit(indicedSharesListName);
+		return ProvidersList.getInstance(split);
+	}
+	
+	public static MarketListProvider getInstance(String[] shareListBaseIndicesSplit) {
+
+		String shareListBaseName = shareListBaseIndicesSplit[0];
+		SharesListId sharesListId = SharesListId.valueOf(shareListBaseName);
+
+		SortedSet<Indice> indices = new TreeSet<Indice>();
+		if (!shareListBaseIndicesSplit[1].isEmpty()) {
+			indices = Indice.parseString(shareListBaseIndicesSplit[1]);
+		}
+		
+		return ProvidersList.getInstance(sharesListId.getSharesListCmdParam(), indices);
+	}
+	
+	public static String providerIndicedShareListName(MarketListProvider provider) {
+		return provider.getSharesListIdEnum().name()+Indice.formatSet(provider.getIndices());
+	}
 
 	
 	protected ProvidersList() {
 		super();
 	}
+	
+	public SharesListId getSharesListIdEnum() {
+		return SharesListId.valueOf(this.sharesListId);
+	}
+	
+	public SharesList loadSharesListForThisListProvider() {
+		return initSharesList(this.getSharesListIdEnum().name(), Indice.formatSet(this.getIndices()));
+	}
 
-	@Override
-	public void getQuotes(Stock ticker, Date start, Date end) throws SQLException {
-		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
+	protected SharesList initSharesList(String sharesListName, String nameExtention) {
+		SharesList shareList = PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(sharesListName+nameExtention);
+		if (shareList == null) shareList = new SharesList(sharesListName+nameExtention);
+		return shareList;
+	}
+	
+	public void retrieveStockListFromBase(StockList stockList) {
+
+		LOGGER.info("From Base : ");
+		int initSize= stockList.size();
+
+		stockList.addAll(DataSource.getInstance().getShareDAO().loadShares(new NullShareFilter()));
+		LOGGER.guiInfo("Number of stocks in the database on the " + new Date() + " : " + (stockList.size() - initSize));
+	}
+	
+	public StockList retreiveStockListFromFile(String pathToList, StockList stockList) throws InputMismatchException {
+		
+		LOGGER.debug("From File : ");
+		StockList fileStockList = new StockList(pathToList);
+		
+		for (Stock stock : fileStockList) {
+			stock.retrieveStock(stockList, this.getSharesListIdEnum().getSharesListCmdParam());
+		}
+
+		return fileStockList;
 	}
 
 	@Override
@@ -151,16 +242,20 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		}
 		
 	}
-
-
+	
 	@Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		throw new UnsupportedOperationException("Please use another provider then a share list holder for that.");
+	public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+
+		StockList existingDBStocks = new StockList();
+		this.retrieveStockListFromBase(existingDBStocks);
+		this.retrieveStockListFromWeb(marketQuotationsProviders, existingDBStocks);
+		
 	}
 
 	@Override
-	//@Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx") => lock time out perf_supp V portfolio ??? + proxy interface error
 	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList dbStocks) throws HttpException {
+		
+		if (marketQuotationsProviders == null) marketQuotationsProviders = defaultMarketQuotationProviders();
 		
 		String shareListDescrTxt = this.getSharesListIdEnum()+" with indices "+this.getIndices();
 		LOGGER.warn("From Web - "+this.getClass().getSimpleName()+" ( "+shareListDescrTxt+") : ", true);
@@ -284,8 +379,8 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				}
 				LOGGER.guiInfo("Number of new tickers added to the list : " + (inDBNewInList.size() + newStockRequestsSet.size()));
 			
-				shareDAO.saveOrUpdateStocks(newStockRequestsSet);
-				shareDAO.saveOrUpdateStockTrendInfo(supplementedStockFromWeb);
+				DataSource.getInstance().getShareDAO().saveOrUpdateStocks(newStockRequestsSet);
+				DataSource.getInstance().getShareDAO().saveOrUpdateStockTrendInfo(supplementedStockFromWeb);
 			}
 		} catch (Exception e) {
 			LOGGER.error("Can't update stock info for "+existingSharesList.getName()+". new supplemented Stocks : "+supplementedStockFromWeb,e);
@@ -327,7 +422,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		
 		//Share list
 		try {
-			portfolioDAO.saveOrUpdatePortfolio(existingSharesList);
+			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(existingSharesList);
 		} catch (Exception e) {
 			LOGGER.error("Can't save share list : "+existingSharesList.getName(), e);
 		}
@@ -403,7 +498,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 			LOGGER.error(shutdownNow,e);
 		}
 		
-		shareDAO.saveOrUpdateStockTrendInfo(listTrendIns);
+		DataSource.getInstance().getShareDAO().saveOrUpdateStockTrendInfo(listTrendIns);
 
 	}
 	

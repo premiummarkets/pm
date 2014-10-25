@@ -51,11 +51,10 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
-import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.web.formaters.DayQuoteBoursoramaFormater;
 import com.finance.pms.datasources.web.formaters.StockComplementBoursoFormater;
 import com.finance.pms.datasources.web.formaters.StockListBoursormaFormater;
@@ -67,9 +66,13 @@ import com.finance.pms.portfolio.SharesList;
  * @author Guillaume Thoreton
  */
 @Deprecated
-public class ProvidersBoursorama extends Providers implements MarketListProvider {
+public class ProvidersBoursorama extends Providers implements MarketListProvider, QuotationProvider {
 		
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersBoursorama.class);
+	
+	protected ProvidersBoursorama() {
+		super();
+	}
 
 	public ProvidersBoursorama(String pathToProps) {
 		super();
@@ -79,11 +82,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 	@Override
 	public SortedSet<Indice> getIndices() {
 		return new TreeSet<Indice>();
-	}
-	
-	@Override
-	public void addIndice(Indice indice) {
-		// Nothing
 	}
 
 	@Override
@@ -296,13 +294,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		return stockList;
 	}
 
-	/**
-	 * Gets the last open date.
-	 * 
-	 * @param refDate the ref date
-	 * 
-	 * @return the last open date
-	 */
 	private Date getLastOpenDate(Date refDate) {
 
 		GregorianCalendar gcal = new GregorianCalendar();
@@ -324,27 +315,9 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 		return refDate;
 	}
 
-
 	@Override
-	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-		LOGGER.info("From Command Line : ");
-
-		StockList cmdStockList = new StockList(
-				new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(quotationsProvider), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), listStocks);
-		LOGGER.guiInfo("Number of stocks retrieved from command line : "+cmdStockList.size());
-		
-		//Merge
-		for (Stock stock : cmdStockList) {
-			stock.retrieveStock(stockList,this.getSharesListIdEnum().getSharesListCmdParam());
-		}
-		
-		return stockList;
-	}
-
-
-	@Override
-	public void retrieveAndCompleteStockInfo(Stock st, StockList stockList) {
-		supplementAndValidateStock(st, stockList);
+	public void retrieveAndCompleteStockInfo(Stock stock, StockList stockList) {
+		supplementAndValidateStock(stock, stockList);
 	}
 	
 	private void supplementAndValidateStock(Stock s, StockList stockList) {
@@ -584,7 +557,60 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 	@Override
 	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Validatable> readPage(Stock stock, MyUrl url, Date startDate) throws HttpException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesListId getSharesListIdEnum() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retrieveStockListFromBase(StockList dbStockList) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Stock supplement(Stock stock) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesList loadSharesListForThisListProvider() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StockList retreiveStockListFromFile(String pathToFileList, StockList dbStockList) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

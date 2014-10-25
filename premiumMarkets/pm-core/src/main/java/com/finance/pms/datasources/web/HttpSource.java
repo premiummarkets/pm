@@ -188,12 +188,12 @@ public abstract class HttpSource {
 			
 		} catch (IOException e) {
 			
+			LOGGER.warn(e);
 			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.FAILURE);
 			
 		} catch (Exception e) {
 			
 			LOGGER.error("ERROR processing url :" + e, e);
-			LOGGER.debug("", e);
 			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.FAILURE);
 			
 		} finally {
@@ -324,7 +324,9 @@ public abstract class HttpSource {
 					dis.close();
 				}
 			}
-
+			
+		} catch (Exception e) {
+			otherExeptions.add(e);
 		} finally {
 			//httpget.releaseConnection();
 			response.close();

@@ -67,8 +67,6 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.TradingMode;
-import com.finance.pms.datasources.web.Indice;
-import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -295,11 +293,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 	
-	public Set<Stock> loadStocksForCurrentShareList() {
-		String currentMarket =  MainPMScmd.getMyPrefs().get("quotes.listprovider", "euronext");
-		Providers provider = Providers.getInstance(currentMarket);
-		return loadStocksList(currentMarket + Indice.formatSet(provider.getIndices()));
-	}
+//	public Set<Stock> loadStocksForCurrentShareList() {
+//		String currentMarket =  MainPMScmd.getMyPrefs().get("quotes.listprovider", "euronext");
+//		Providers provider = Providers.getInstance(currentMarket);
+//		return loadStocksList(currentMarket + Indice.formatSet(provider.getIndices()));
+//	}
 
 	public  Set<Stock> loadStocksList(String shareList) {
 		if (shareList == null) {
