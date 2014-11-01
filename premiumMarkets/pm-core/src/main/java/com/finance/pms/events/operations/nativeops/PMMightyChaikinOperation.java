@@ -74,7 +74,6 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-//			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), fastPeriod, slowPeriod);
 			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(fastPeriod, slowPeriod);
 			
 			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(

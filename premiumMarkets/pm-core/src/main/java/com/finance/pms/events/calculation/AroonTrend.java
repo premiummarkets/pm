@@ -123,15 +123,13 @@ public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 		BigDecimal calculatorClose = qU.getClose();
 		
 		int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, calculatorIndex);
-//		int aroonQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, aroonQuotationStartDateIdx);
-		
+
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
-//			+ this.aroon.getIndicatorQuotationData().get(aroonQuotationIndex).getDate() + "," 
 			+ this.aroon.getOutAroonUp()[aroonIndex] + "," + this.aroon.getOutAroonDown()[aroonIndex];
 		
 		if (bearishEventValue != null) {
-			line = line + ","+calculatorClose+",0,";
+			line = line + ","+calculatorClose+", 0,";
 		} else if (bullishEventValue != null) {
 			line = line + ",0,"+calculatorClose+",";
 		} else {

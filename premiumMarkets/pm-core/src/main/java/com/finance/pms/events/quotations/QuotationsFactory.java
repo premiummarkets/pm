@@ -57,7 +57,7 @@ public interface QuotationsFactory {
 
 	public abstract Calendar incrementDate(Calendar calendar, int amount);
 
-	public abstract Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter) throws NoQuotationsException;
+//	public abstract Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter) throws NoQuotationsException;
 
 	public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter cacheFilter) throws NoQuotationsException;
 

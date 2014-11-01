@@ -66,7 +66,6 @@ public class PMSMAOperation extends PMDataFreeOperation {
 
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-//			SMA sma = new SMA(targetStock.getStock(), period, targetStock.getStartDate(), targetStock.getEndDate(), null);
 			SMA sma = new SMA(period);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
 					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 

@@ -65,6 +65,10 @@ public abstract class EventCompostionCalculator {
 
 	protected abstract int getDaysSpan();
 	
+	//Used for charting when using Static EventDefinition.
+	//Each index in the resulting arrays corresponds to a matching entry in the static description of the EventDefinition 
+	//The exhaustive list includes : String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold
+	//PARAMERIZED Events have a special implementation : see ParameterizedCalculator
 	public abstract SortedMap<Date, double[]> calculationOutput();
 	
 	public abstract EventInfo getEventDefinition();

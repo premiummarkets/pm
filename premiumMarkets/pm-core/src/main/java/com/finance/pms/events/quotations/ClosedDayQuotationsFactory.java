@@ -55,9 +55,9 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
 	
-	public  Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, quotationData, targetCurrency, ValidityFilter.SPLITFREE, validityFilter);
-	}
+//	public  Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
+//		return new Quotations(stock, quotationData, targetCurrency, ValidityFilter.SPLITFREE, validityFilter);
+//	}
 	
 	public  Calendar incrementDate(Calendar calendar, int amount) {
 		calendar.add(Calendar.DAY_OF_YEAR, noGapsAmount(amount));

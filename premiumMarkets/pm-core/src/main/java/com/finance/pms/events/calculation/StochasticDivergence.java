@@ -75,7 +75,6 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, LOW TH, UP TH, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, LOW TH, UP TH, STOCH SLOW K, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	

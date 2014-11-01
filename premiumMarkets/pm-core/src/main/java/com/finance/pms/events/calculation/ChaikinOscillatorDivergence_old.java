@@ -106,7 +106,6 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -121,12 +120,9 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 		BigDecimal calculatorClose = qU.getClose();
 		
 		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, calculatorIndex);
-//		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
 		
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
-//			+ this.chaikinOscillator.getIndicatorQuotationData().get(chaikinQuotationIndex).getDate() + ","
-			+ this.chaikinOscillator.getChaikinOsc()[chaikinIndex];
+			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," + this.chaikinOscillator.getChaikinOsc()[chaikinIndex];
 		
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
@@ -147,8 +143,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, idx);
 		return new double[]
 				{
-				this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex],
-				//this.sma.getSma()[getIndicatorIndexFromCalculatorQuotationIndex(this.sma, calculatorIndex, smaQuotationStartDateIdx)]
+				this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex]
 				};
 	}
 

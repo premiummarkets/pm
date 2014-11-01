@@ -79,7 +79,7 @@ public class Quotations {
 	private Integer firstDatedIndex;
 	private Integer lastDateIndex;
 
-	//Called in indicator calculation and event composition calculations
+	//Called in indicator calculation and event composition calculations via Quotations Factory getQuotationsInstance
 	Quotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) throws NoQuotationsException {
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;

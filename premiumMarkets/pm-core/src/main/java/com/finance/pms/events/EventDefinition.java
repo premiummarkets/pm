@@ -76,24 +76,23 @@ public enum EventDefinition implements Serializable, EventInfo {
 	
 	//PM (mostly Talib) 
 	PMSMAREVERSAL (101,"SMA Reversal", false,  
-			new EventDefDescriptorStatic("Close",null,null,"Sma",null,null, 
+			new EventDefDescriptorStatic("Close", null, null, "Sma", null, null, 
 					"Sma%d is down over a 15 days span and Close < Sma", new String[]{Config.INDICATOR_PARAMS_NAME,"SmaReversalSmaPeriod"}, 
 					"Sma%d is up over a 15 days span and Close > Sma", new String[]{Config.INDICATOR_PARAMS_NAME,"SmaReversalSmaPeriod"}), 37),//
 	PMMACDZEROCROSS (102,"MACD Cross Zero", false, 
-			new  EventDefDescriptorStatic("Macd",null,null,"Signal line","Zero line",null,
+			new  EventDefDescriptorStatic("Macd", null, null, "Signal line", "Zero line", null,
 					"Macd(%d,%d,%d) < Signal and Macd crosses below 0", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}, 
 					"Macd(%d,%d,%d) > Signal and Macd crosses above 0", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}), 18), //
 	PMMACDSIGNALCROSS (103,"MACD Signal Cross", false, 
-			new  EventDefDescriptorStatic("Macd",null,null,"Signal line",null,null,
+			new  EventDefDescriptorStatic("Macd", null, null, "Signal line", null, null,
 					"Macd(%d,%d,%d) > 0  and Macd crosses below Signal",new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}, 
 					"Macd(%d,%d,%d) < 0  and Macd crosses above Signal", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}), 10),//
 	PMAROONTREND (104,"Aroon Oscillator", false,
-			new EventDefDescriptorStatic("Oscillator","Down","Up","Middle line","Lower threshold","Upper threshold",
+			new EventDefDescriptorStatic("Oscillator", "Down", "Up", "Middle line", "Lower threshold", "Upper threshold",
 					//"Aroon down crosses above Aroon up and Aroon down > 90 and Aroon up < 30",null,
 					//"Aroon up crosses above Aroon down and Aroon up > 90 and Aroon down < 30",null), 
 					"Aroon oscillator (Up-Down) is above 90", null,
-					"Aroon oscillator (Up-Down) is below -90", null),
-					4), //
+					"Aroon oscillator (Up-Down) is below -90", null), 4), //
 	
 	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  
 			new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold", 
@@ -126,7 +125,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Price is down and Chaikin makes a higher low over 60 days", null), 10), //
 					
 	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic("Mighty Chaikin",null,null,null,null,null,"Bearish",null, "Bullish", null), 1),
-	
+		
 	//PM not used
 	PMOBVDIVERGENCE (151,"OBV Divergence", false, null, 0),
 	PMACCDISTDIVERGENCE (152,"Acc Dist Divergence", false, null, 0),
@@ -157,11 +156,11 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Logarithmic ROC(%d,%d) crosses below 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}, 
 					"Logarithmic ROC(%d,%d) crosses above 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
 	SECTOR(507,"Sector Ranks Trend", true, 
-			new  EventDefDescriptorStatic("Second Sector output", "Sector output", null, null, null, null,"Second sector is down", null, "Second sector is up", null), 0),
+			new  EventDefDescriptorStatic("Second Sector output", "Sector output", null, null, null, null, "Second sector is down", null, "Second sector is up", null), 0),
 	ROCANDNEURAL (508,"Roc 'n' Neural", false, 
 			new  EventDefDescriptorStatic("First Neural output","Short Logarithmic ROC" , "Long Logarithmic ROC", "Second Neural output", "Short Roc Zero line", "Long Roc Zero line",
-					"First Neural(%d,%d) reverses down and Roc(%d,%d) crosses below 0\nOr Neural is down and Roc < 0",new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"},
-					"First Neural(%d,%d) reverses up and Roc(%d,%d) crosses above 0\nOr Neural is up and Roc > 0",new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
+					"First Neural(%d,%d) reverses down and Roc(%d,%d) crosses below 0\nOr Neural is down and Roc < 0", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"},
+					"First Neural(%d,%d) reverses up and Roc(%d,%d) crosses above 0\nOr Neural is up and Roc > 0", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
 	NEURALRONE (509,"Neural Reverse One", true, 
 			new  EventDefDescriptorStatic("First Neural Smth output","First Neural output", "Row output", null, null, null,
 					"First Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
@@ -171,6 +170,10 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new  EventDefDescriptorStatic("First output", "Second output", null, null, null, null, 
 					"See source code. TODO : dynamic description", null, 
 					"See source code. TODO : dynamic description", null), 0),
+					
+					
+	PMTHRESHOLDTEST (600,"Threshold Test", false, new EventDefDescriptorStatic("Threshold Test", null, null, null, null, null, "Bearish", null, "Bullish", null), 1),
+
 	
 	//Parameterised
 	PARAMETERIZED (900, "Parameterised Events", false, 

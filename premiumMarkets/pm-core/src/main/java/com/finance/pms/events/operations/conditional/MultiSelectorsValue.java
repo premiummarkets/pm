@@ -37,6 +37,7 @@ import java.util.SortedMap;
 
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 
+//Used as a cache for DoubleMapValues to avoid multiple recalculations when several outputs are available (via selectors) for the same operation.
 public class MultiSelectorsValue extends DoubleMapValue {
 	
 	private Map<String, DoubleMapValue> selectorOutputs;

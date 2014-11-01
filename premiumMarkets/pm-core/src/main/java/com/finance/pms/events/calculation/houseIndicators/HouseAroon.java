@@ -41,7 +41,7 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.tictactec.ta.lib.RetCode;
 
-//TODO inherit form Indicator instead of Talib
+//TODO inherit from Indicator instead of Talib
 //XXX
 public class HouseAroon extends TalibIndicator {
 	

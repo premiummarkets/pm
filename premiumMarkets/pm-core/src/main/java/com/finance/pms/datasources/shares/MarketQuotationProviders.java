@@ -95,7 +95,9 @@ public class MarketQuotationProviders {
 		for (MarketQuotationProviders marketQuotationProvider : MarketQuotationProviders.marketQuotationProviders) {
 			if (marketQuotationProvider.name().equals(name)) return marketQuotationProvider;
 		}
-		throw new IllegalArgumentException();
+		//throw new IllegalArgumentException();
+		LOGGER.warn("Unknown quotation provider : "+name);
+		return MarketQuotationProviders.DEFAULT;
 	}
 	
 	public static void addMarketQuotationProvider(MarketQuotationProviders marketListProvider) {

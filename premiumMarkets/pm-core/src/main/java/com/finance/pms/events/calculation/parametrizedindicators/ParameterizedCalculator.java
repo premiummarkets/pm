@@ -149,6 +149,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 		return edata;
 	}
 
+	//Outputs are gathered from the results of the calculation stored into TargetStockInfo.gatheredChartableOutputs
 	@Override
 	public SortedMap<Date, double[]> calculationOutput() {
 		return buildCalculationOutput();

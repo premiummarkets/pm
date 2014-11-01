@@ -43,13 +43,6 @@ public class Chart {
 		return ret;
 	}
 
-	/**
-	   * Trading time line.
-	   * 
-	   * @return the segmented timeline
-	   * 
-	   * @author Guillaume Thoreton
-	   */
 	protected SegmentedTimeline tradingTimeLine() {
 		SegmentedTimeline timeline = new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0);
 		timeline.setStartTime(SegmentedTimeline.firstMondayAfter1900());

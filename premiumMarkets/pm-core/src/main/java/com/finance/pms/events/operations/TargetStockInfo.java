@@ -173,8 +173,7 @@ public class TargetStockInfo {
 			}
 			return;
 		}
-		
-		//this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
+
 		if (output instanceof MultiSelectorsValue) {
 			for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
 				String tamperedFormula = operation.getFormula().replaceAll(":.*\\(", ":"+selector+"(");
@@ -186,7 +185,6 @@ public class TargetStockInfo {
 			this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
 			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), output));
 		}
-		
 
 	}
 	

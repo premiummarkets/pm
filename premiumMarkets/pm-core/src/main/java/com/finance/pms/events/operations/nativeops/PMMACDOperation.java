@@ -75,7 +75,6 @@ public class PMMACDOperation extends PMDataFreeOperation {
 		
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
-//			MACD macd = new MACD(targetStock.getStock(), fastPeriod, slowPeriod, signalPeriod, targetStock.getStartDate(), targetStock.getEndDate(), null);
 			MACD macd = new MACD(fastPeriod, slowPeriod, signalPeriod);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
 					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
