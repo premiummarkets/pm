@@ -32,12 +32,6 @@ package com.finance.pms.datasources.web;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-
-import org.apache.http.HttpException;
-
-import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.datasources.web.formaters.LineFormater;
 
 public class HttpSourceWeather extends HttpSourceYahoo {
 
@@ -60,11 +54,4 @@ public class HttpSourceWeather extends HttpSourceYahoo {
 		return String.format(url,new SimpleDateFormat("yyyy").format(date), new SimpleDateFormat("MM").format(date));
 	
 	}
-
-
-	@Override
-	public List<Validatable> readURL(LineFormater formater) throws HttpException {
-		return super.readURL(formater);
-	}
-
 }

@@ -48,11 +48,9 @@ import com.finance.pms.threads.SourceConnector;
 public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnector {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceGoogleIntraDay.class);
-	private PoolSemaphore threadPool;
 
 	public HttpSourceGoogleIntraDay(String pathToprops, MyBeanFactoryAware beanFActoryAware) {
 		super(pathToprops, beanFActoryAware);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
 	@Override
@@ -84,11 +82,6 @@ public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnec
 		return String.format(
 						"http://www.google.com/finance/getprices?q=%s&x=%s&i=%d&p=%dd&f=d,o,h,l,c,v", 
 						stock.getSymbolRoot(), stock.getMarketValuation().getMarket().getGoogleExtension(), interval, nbPeriods);
-	}
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
 	}
 
 	@Override

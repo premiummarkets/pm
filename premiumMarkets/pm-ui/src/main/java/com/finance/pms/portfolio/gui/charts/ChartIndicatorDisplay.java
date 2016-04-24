@@ -184,7 +184,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			hideAllButSelected(selectedShare);
 			
 			chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
-			chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 1);
+			chartTarget.getMainChartWraper().highLightSerie(idx, 1);
 	
 			if (!chartTarget.getChartedEvtDefsTrends().isEmpty() || !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {//Some thing has to be displayed
 					

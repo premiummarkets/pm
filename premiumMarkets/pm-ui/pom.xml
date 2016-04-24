@@ -7,9 +7,7 @@
 		<groupId>com.finance.pm</groupId>
 		<version>0.0.1-SNAPSHOT</version>
    </parent>
-   <groupId>com.finance.pm</groupId>
    <artifactId>pm-ui</artifactId>
-   <version>0.0.1-SNAPSHOT</version>
    <packaging>jar</packaging>
    <name>pm-ui</name>
   <properties>
@@ -30,12 +28,12 @@
 			<version>4.8.2</version>
 			<scope>test</scope>
 	</dependency>
-	<dependency>
+<!-- 	<dependency>
 		<groupId>swt</groupId>
 		<artifactId>swt-4.4-cocoa-macosx-x86_64</artifactId>
 		<version>4.4</version>
 	</dependency>
-		<dependency>
+	<dependency>
 			<groupId>swt</groupId>
 			<artifactId>swt-4.4-cocoa-macosx</artifactId>
 			<version>4.4</version>
@@ -69,13 +67,14 @@
 			<groupId>swt</groupId>
 			<artifactId>swt-4.4-gtk-linux-x86_64</artifactId>
 			<version>4.4</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>swt</groupId>
 			<artifactId>swt-4.4-gtk-linux-x86</artifactId>
 			<version>4.4</version>
+			<scope>provided</scope>
 		</dependency>
-		<dependency>
+	<!-- 	<dependency>
 			<groupId>swt</groupId>
 			<artifactId>swt-4.4-gtk-solaris-sparc</artifactId>
 			<version>4.4</version>
@@ -94,13 +93,7 @@
 			<groupId>swt</groupId>
 			<artifactId>swt-4.4-win32-win32-x86</artifactId>
 			<version>4.4</version>
-		</dependency>
-	<dependency>
-		<groupId>org.dbunit</groupId>
-		<artifactId>dbunit</artifactId>
-		<version>2.2.3</version>
-		<scope>test</scope>
-	</dependency>
+		</dependency> -->
 	<dependency>
 		<groupId>org.easymock</groupId>
 		<artifactId>easymock</artifactId>
@@ -141,8 +134,8 @@
 			<artifactId>maven-compiler-plugin</artifactId>
 			<version>3.1</version>
 			<configuration>
-				<source>1.7</source>
-				<target>1.7</target>
+				<source>1.8</source>
+				<target>1.8</target>
 			</configuration>
 		</plugin>
 		<plugin>
@@ -174,7 +167,57 @@
 			</executions>
 		</plugin>
 	</plugins>
-	</build>
+    <pluginManagement>
+    	<plugins>
+    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+    		<plugin>
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.keyboardsamurais.maven
+    								</groupId>
+    								<artifactId>
+    									maven-timestamp-plugin
+    								</artifactId>
+    								<versionRange>[1.0,)</versionRange>
+    								<goals>
+    									<goal>create</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									org.apache.maven.plugins
+    								</groupId>
+    								<artifactId>
+    									maven-dependency-plugin
+    								</artifactId>
+    								<versionRange>[2.8,)</versionRange>
+    								<goals>
+    									<goal>sources</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
+   </build>
 		<profiles>
 		<profile>
 			<id>default</id>
@@ -215,6 +258,9 @@
 									<addClasspath>true</addClasspath>
 									<classpathPrefix>lib/</classpathPrefix>
 								</manifest>
+								<manifestEntries>
+					                <Class-Path>lib/swt.jar</Class-Path>
+					            </manifestEntries>
 							</archive>
 						</configuration>
 					</plugin>
@@ -314,6 +360,9 @@
 											<addClasspath>true</addClasspath>
 											<classpathPrefix>lib/</classpathPrefix>
 										</manifest>
+										<manifestEntries>
+							                <Class-Path>lib/swt.jar</Class-Path>
+							            </manifestEntries>
 									</archive>
 								</configuration>
 							</execution>

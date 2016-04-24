@@ -16,8 +16,9 @@
 #cd -
 
 #eclipse
-export GDK_NATIVE_WINDOWS=1
+#export GDK_NATIVE_WINDOWS=1
 #export CLASSPATH=$CLASSPATH:/usr/lib/java/swt-gtk-3.5.1.jar
+#export SWT_GTK3=0
 cd /usr/local/opt/Prgs/eclipse
 ./eclipse &
 cd -

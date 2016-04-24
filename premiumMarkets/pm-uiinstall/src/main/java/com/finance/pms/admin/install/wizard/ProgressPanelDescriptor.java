@@ -439,7 +439,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 				File[] swtFiles = libDir.listFiles(new FilenameFilter() {
 					
 					public boolean accept(File dir, String name) {
-						return name.matches("swt.*\\.jar");
+						return name.matches("swt.+\\.jar");
 					}
 				});
 				List<File> swtFileList = Arrays.asList(swtFiles);
@@ -453,6 +453,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 						if (noMvnVersionLibSwtFileName.equals(jnlpSelectedFileName)) {
 							foundLib = true;
 							System.out.println("Ooops Found this swt lib for the system : "+swtFile.getAbsolutePath()+" Ooops");
+							swtFile.renameTo(new File(swtFile.getParentFile().getAbsolutePath()+File.separatorChar+"swt.jar"));
 						} else {
 							swtFile.delete();
 							System.out.println("deleting lib " +swtFile.getAbsolutePath());

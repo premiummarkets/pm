@@ -37,7 +37,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
@@ -50,12 +49,9 @@ import com.finance.pms.threads.SourceConnector;
 public class HttpSourceNASDAQ extends HttpSource implements SourceConnector {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceNASDAQ.class);
-	private PoolSemaphore threadPool;
 
 	public HttpSourceNASDAQ(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
-		LOGGER.debug("Number of Http Threads :" + this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
 	@Override
@@ -72,11 +68,6 @@ public class HttpSourceNASDAQ extends HttpSource implements SourceConnector {
 	public MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear,
 			String endMonth, String endDay) {
 		throw new RuntimeException("Fecthing stock quotation is not implemented for "+this.getClass().getSimpleName());
-	}
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
 	}
 
 	@Override

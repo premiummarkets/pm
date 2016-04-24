@@ -61,21 +61,26 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
 import com.finance.pms.datasources.web.formaters.StopParseFoundException;
+import com.finance.pms.threads.ApacheHttpClient;
 import com.finance.pms.threads.MyHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
+import com.finance.pms.threads.SourceConnector;
 
 /**
  * The Class HttpSource.
  * 
  * @author Guillaume Thoreton
  */
-public abstract class HttpSource {
+public abstract class HttpSource implements SourceConnector {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSource.class);
 	
-	protected int nbHttpThreads; // = 20;
+	private int nbHttpThreads; // = 20;
+	private PoolSemaphore threadPool;
+	
 	private MyBeanFactoryAware beanFactoryAware;
+
 
 	public static void stopALLThreads() {
 		//TODO stop all instances
@@ -128,15 +133,16 @@ public abstract class HttpSource {
 		
 		//init thread
 		this.nbHttpThreads = (new Integer(MainPMScmd.getMyPrefs().get("http.poolsize", "10"))).intValue();
+		this.threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 		
 		this.beanFactoryAware = beanFActoryAware;
 		
 	}
 
-	public MyHttpClient getConnectionFromPool() throws HttpException {
-		MyHttpClient ret;
+	public MyHttpClient<?,?> getConnectionFromPool() throws HttpException {
+		ApacheHttpClient ret;
 		try {
-			ret = (MyHttpClient) this.getThreadPool().getResource();
+			ret = (ApacheHttpClient) this.getThreadPool().getResource();
 			return ret;
 		} catch (InterruptedException e) {
 			LOGGER.error("Unable to get Connection. Is network available?", e);
@@ -153,7 +159,7 @@ public abstract class HttpSource {
 		this.getThreadPool().releaseResource(conn);
 	}
 
-	public MyHttpClient httpConnect() {
+	public ApacheHttpClient httpConnect() {
 		
 		RequestConfig.Builder requestBuilder = RequestConfig.custom();
 		requestBuilder = requestBuilder.setConnectTimeout(30000);
@@ -165,13 +171,13 @@ public abstract class HttpSource {
 		builder.setDefaultRequestConfig(requestBuilder.build());
 		CloseableHttpClient closeableHttpClient = builder.build();
 		
-		return new MyHttpClient(closeableHttpClient);
+		return new ApacheHttpClient(closeableHttpClient);
 		
 	}
 
 	public List<Validatable> readURL(LineFormater formater) throws HttpException {
 		
-		MyHttpClient httpcx = this.getConnectionFromPool();
+		MyHttpClient<?,?> httpcx = this.getConnectionFromPool();
 		
 		List<Validatable> ret = new ArrayList<Validatable>();
 		try {
@@ -197,7 +203,7 @@ public abstract class HttpSource {
 			getScrapperMetrics().addRecord(formater, e.getMessage(), MetricsResType.FAILURE);
 			
 		} finally {
-			this.realesePoolConnection(httpcx);
+			this.realesePoolConnection((SourceClient) httpcx);
 		}
 	
 		return ret;
@@ -226,12 +232,15 @@ public abstract class HttpSource {
 		return metricType;
 	}
 
-	protected Set<Validatable> readURL(LineFormater formater, MyHttpClient httpcx) throws HttpException, IOException {
+	protected Set<Validatable> readURL(LineFormater formater, MyHttpClient<?,?> httpcx) throws HttpException, IOException {
+		
+		@SuppressWarnings("unchecked")
+		MyHttpClient<HttpUriRequest, CloseableHttpResponse> httpcxCast = (MyHttpClient<HttpUriRequest, CloseableHttpResponse>) httpcx;
 		
 		Set<Validatable> resultSet= new HashSet<Validatable>();
 
 		HttpUriRequest httpget = this.getRequestMethod(formater.getMyUrl());
-		CloseableHttpResponse response = httpcx.execute(httpget);
+		CloseableHttpResponse response = httpcxCast.doCall(httpget);
 		
 		List<Exception> otherExeptions = new ArrayList<Exception>();
 		try {
@@ -249,7 +258,7 @@ public abstract class HttpSource {
 				MyUrl myNewUrl = new MyUrl(locationRedir);
 				myNewUrl.setHttpParams(formater.getMyUrl().getHttpParams());
 				httpget = this.getRequestMethod(myNewUrl);
-				response = httpcx.execute(httpget);
+				response = httpcxCast.doCall(httpget);
 			}
 			
 
@@ -261,15 +270,19 @@ public abstract class HttpSource {
 				InputStream in;
 				Header contentEncodingHeader = response.getFirstHeader("Content-Encoding");
 				Header contentEncodingType = response.getFirstHeader("Content-Type");
-				if (contentEncodingHeader != null && "gzip".contains(contentEncodingHeader.getValue()) ||
-					contentEncodingType != null && "application/x-gzip".equals(contentEncodingType.getValue())) {//gzip
+				if ((contentEncodingHeader != null && "gzip".contains(contentEncodingHeader.getValue())) ||
+					(contentEncodingType != null && "application/x-gzip".equals(contentEncodingType.getValue()))
+				) {//gzip
 					in = new GZIPInputStream(response.getEntity().getContent());
 				}
-				else if (contentEncodingType != null && "application/x-zip-compressed".equals(contentEncodingType.getValue())) {//zip
+				else 
+				if (contentEncodingType != null && ("application/x-zip-compressed".equals(contentEncodingType.getValue()) || "application/zip".equals(contentEncodingType.getValue()))
+				) {//zip
 					in = new ZipInputStream(response.getEntity().getContent());
 					((ZipInputStream) in).getNextEntry();
 				} 
-				else if (contentEncodingType != null && 
+				else 
+				if (contentEncodingType != null && 
 						("application/vnd.ms-excel".equals(contentEncodingType.getValue()) || 
 						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentEncodingType.getValue()))) {//xlsx
 					in = new XlsxInputStream(response.getEntity().getContent());
@@ -278,51 +291,7 @@ public abstract class HttpSource {
 					in = response.getEntity().getContent();
 				}
 
-				BufferedReader dis = new BufferedReader(new InputStreamReader(in,"ISO-8859-15"));
-				String line = "";
-				try {
-					
-					while ((line = dis.readLine()) != null) {
-						if (line.length() > 0) {
-							List<Validatable> validatables;
-							
-							try {
-								
-								validatables = formater.formatLine(line);
-								if (validatables != null) resultSet.addAll(validatables);
-								
-							} catch (StopParseFoundException e) {
-								
-								LOGGER.debug("Symbol : " + ((StopParseFoundException) e).getLastOne() + " Found");
-								resultSet.add((e.getLastOne()));
-								break;
-								
-							} catch (StopParseErrorException e) {
-								
-								LOGGER.warn("Stop Parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage());
-								LOGGER.warn("Reason : " + ((StopParseErrorException) e).getReason());
-								if (LOGGER.isTraceEnabled()) {
-									for (; ((line = dis.readLine()) != null);) {
-										LOGGER.trace(line);
-									}
-								}
-								throw new IOException(
-										"Stop parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage()+"\n"+
-										"Reason : " + ((StopParseErrorException) e).getReason());
-								
-							} catch (Exception e) {
-								
-								LOGGER.debug("Ignoring line :" + line);
-								LOGGER.trace(e);
-								otherExeptions.add(e);
-								
-							}
-						}
-					}
-					
-				} finally {
-					dis.close();
-				}
+				resultSet = parseInputStream(in, formater, otherExeptions);
 			}
 			
 		} catch (Exception e) {
@@ -339,7 +308,61 @@ public abstract class HttpSource {
 		return resultSet;
 	}
 
-	protected abstract HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException;
+	protected Set<Validatable> parseInputStream(InputStream in, LineFormater formater, List<Exception> otherExeptions) throws UnsupportedEncodingException, IOException {
+		
+		Set<Validatable> resultSet= new HashSet<Validatable>();
+		
+		BufferedReader dis = new BufferedReader(new InputStreamReader(in,"ISO-8859-15"));
+		//BufferedReader dis = new BufferedReader(new InputStreamReader(in,"UTF-8"));
+		String line = "";
+		try {
+			
+			while ((line = dis.readLine()) != null) {
+				if (line.length() > 0) {
+					List<Validatable> validatables;
+					
+					try {
+						
+						validatables = formater.formatLine(line);
+						if (validatables != null) resultSet.addAll(validatables);
+						
+					} catch (StopParseFoundException e) {
+						
+						LOGGER.debug("Symbol : " + ((StopParseFoundException) e).getLastOne() + " Found");
+						resultSet.add((e.getLastOne()));
+						break;
+						
+					} catch (StopParseErrorException e) {
+						
+						LOGGER.warn("Stop Parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage());
+						LOGGER.warn("Reason : " + ((StopParseErrorException) e).getReason());
+						if (LOGGER.isTraceEnabled()) {
+							for (; ((line = dis.readLine()) != null);) {
+								LOGGER.trace(line);
+							}
+						}
+						throw new IOException(
+								"Stop parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage()+"\n"+
+								"Reason : " + ((StopParseErrorException) e).getReason());
+						
+					} catch (Exception e) {
+						
+						LOGGER.debug("Ignoring line :" + line);
+						LOGGER.trace(e);
+						otherExeptions.add(e);
+						
+					}
+				}
+			}
+			
+		} finally {
+			dis.close();
+		}
+		
+		return resultSet;
+	}
+
+	protected abstract <T> T getRequestMethod(MyUrl url) throws UnsupportedEncodingException;
 
 	public abstract MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay);
 	
@@ -347,9 +370,13 @@ public abstract class HttpSource {
 
 	public abstract String getCategoryStockListURL(StockCategories category, String...params);
 
-	public abstract PoolSemaphore getThreadPool();
+	public PoolSemaphore getThreadPool() {
+		return this.threadPool;
+	}
 
-	public abstract void stopThreads();
+	public void stopThreads() {
+		this.threadPool.stopThreads();
+	}
 
 	public ScraperMetrics getScrapperMetrics() {
 		return beanFactoryAware.getBeanFactory().getBean(ScraperMetrics.class);

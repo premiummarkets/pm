@@ -39,7 +39,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.MyHttpClient;
+import com.finance.pms.threads.ApacheHttpClient;
 import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
@@ -91,12 +91,7 @@ public class HttpSourceEuroNext extends HttpSource implements SourceConnector {
 	}
 
 	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
-	}
-
-	@Override
-	public MyHttpClient httpConnect() { 
+	public ApacheHttpClient httpConnect() { 
 //		MyHttpClient myHttpClient;
 //		try {
 //			myHttpClient = this.myHttpConnect();

@@ -63,7 +63,7 @@ public class UserDialog extends Dialog {
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHELL_TRIM));
-		this.getParent().setText(MainGui.APP_NAME+" - Warning");
+		this.getParent().setText(MainGui.APP_NAME + " - Warning");
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
@@ -80,8 +80,6 @@ public class UserDialog extends Dialog {
 		
 		try {
 
-			//GridLayout dialogShellLayout = new GridLayout();
-			//this.getParent().setLayout(dialogShellLayout);
 			RowLayout dialogShellLayout = new RowLayout(SWT.VERTICAL);
 			dialogShellLayout.fill = true;
 			dialogShellLayout.wrap = false;
@@ -91,8 +89,6 @@ public class UserDialog extends Dialog {
 			
 			{
 				errorTxt = new Text(getParent(), SWT.WRAP);
-				//GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-				//errorTxt.setLayoutData(layoutData);
 				errorTxt.setFont(MainGui.DEFAULTFONT);
 				errorTxt.setBackground(MainGui.pOPUP_BG);
 				errorTxt.setEditable(false);
@@ -134,8 +130,6 @@ public class UserDialog extends Dialog {
 	private void initButton() {
 		
 		valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
-		//GridData validerbuttonLData = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
-		//valideButton.setLayoutData(validerbuttonLData);
 		validationButtonTxtAndAction();
 		
 	}
@@ -143,7 +137,6 @@ public class UserDialog extends Dialog {
 	private void initAddMsg() {
 		
 		addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
-		//addMsgTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		addMsgTxt.setFont(MainGui.DEFAULTFONT);
 		addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
 		addMsgTxt.setEditable(false);
@@ -206,7 +199,6 @@ public class UserDialog extends Dialog {
 		String cleanMessage = message;
 		if (addCR) {
 			cleanMessage = message.replaceAll("\\. ", ".\n");
-			//cleanMessage = cleanMessage+"\n";
 		}
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");

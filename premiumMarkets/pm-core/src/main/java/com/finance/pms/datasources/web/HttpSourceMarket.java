@@ -36,20 +36,15 @@ import org.apache.http.client.methods.HttpUriRequest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
 public abstract class HttpSourceMarket extends HttpSource implements SourceConnector {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceMarket.class);
-	private PoolSemaphore threadPool;
-	
+	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceMarket.class);	
 	
 	public HttpSourceMarket(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
-		LOGGER.debug("Number of Http Threads :" + this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
 	@Override
@@ -61,11 +56,6 @@ public abstract class HttpSourceMarket extends HttpSource implements SourceConne
 	public MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear,
 			String endMonth, String endDay) {
 		throw new RuntimeException("Fetching stock information is not implemented for market only http source");
-	}
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
 	}
 
 	@Override

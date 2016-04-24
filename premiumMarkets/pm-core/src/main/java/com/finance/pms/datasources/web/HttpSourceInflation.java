@@ -29,9 +29,11 @@
  */
 package com.finance.pms.datasources.web;
 
+import com.finance.pms.datasources.shares.StockCategories;
+import com.finance.pms.mas.RestartServerException;
+import com.finance.pms.threads.SourceClient;
 
-
-public class HttpSourceInflation extends HttpSourceQuotation {
+public class HttpSourceInflation extends HttpSourceAspScrapper {
 	
 	public HttpSourceInflation(String pathToprops, Providers beanFactory) {
 		super(pathToprops, beanFactory);
@@ -40,8 +42,35 @@ public class HttpSourceInflation extends HttpSourceQuotation {
 
 	@Override
 	public MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay) {
-		
-		return new MyUrl("http://inflationdata.com/Inflation/Consumer_Price_Index/HistoricalCPI.aspx");
-	}	
+		return new MyUrl("http://inflationdata.com/Inflation/Consumer_Price_Index/HistoricalCPI.aspx?reloaded=true");
+	}
+
+
+	@Override
+	public SourceClient connect(int connectionId) throws RestartServerException {
+		return null;
+	}
+
+
+	@Override
+	public int crashResart(int connectionId) {
+		return 0;
+	}
+
+
+	@Override
+	public void shutdownSource(SourceClient sourceClient, int connectionId) {
+		//silent
+	}
+
+	@Override
+	public String getStockInfoPageURL(String isin) {
+		throw new RuntimeException("Fecthing complementary stock information is not implemented by default");
+	}
+
+	@Override
+	public String getCategoryStockListURL(StockCategories marche, String ...params) {
+		throw new RuntimeException("Stock list fetching is not implemented for Quotation only http source");
+	}
 
 }

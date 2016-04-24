@@ -30,6 +30,8 @@
 package com.finance.pms.datasources.currency;
 
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.criterion.DetachedCriteria;
@@ -59,7 +61,7 @@ public class CurrencyDAOImpl extends HibernateDaoSupport implements CurrencyDAO 
 		detachedCriteria.add(Restrictions.eq("fromCurrency", fromCurrency));	
 		detachedCriteria.add(Restrictions.eq("toCurrency", toCurrency));	
 		
-		return this.getHibernateTemplate().findByCriteria(detachedCriteria);
+		return new ArrayList<CurrencyRate>((Collection<? extends CurrencyRate>) this.getHibernateTemplate().findByCriteria(detachedCriteria));
 	}
 	
 	

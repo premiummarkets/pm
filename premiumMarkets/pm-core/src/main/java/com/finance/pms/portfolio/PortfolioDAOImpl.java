@@ -31,6 +31,7 @@ package com.finance.pms.portfolio;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
@@ -69,7 +70,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(PortfolioShare.class);
 		detachedCriteria.add(Restrictions.eq("stock", stock));
 		
-		return this.getHibernateTemplate().findByCriteria(detachedCriteria);
+		return new ArrayList<PortfolioShare>((Collection<? extends PortfolioShare>) this.getHibernateTemplate().findByCriteria(detachedCriteria));
 		
 	}
 	
@@ -120,7 +121,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		try {
 			DetachedCriteria detachedCriteriaAutoP = DetachedCriteria.forClass(AutoPortfolio.class);
 			detachedCriteriaAutoP.addOrder(Order.asc("name"));
-			retour = this.getHibernateTemplate().findByCriteria(detachedCriteriaAutoP);
+			retour = new ArrayList<Portfolio>((Collection<? extends Portfolio>) this.getHibernateTemplate().findByCriteria(detachedCriteriaAutoP));
 		} catch (DataAccessException e) {
 			LOGGER.error(e);
 		}
@@ -128,7 +129,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		try {
 			DetachedCriteria detachedCriteriaUserP = DetachedCriteria.forClass(UserPortfolio.class);
 			detachedCriteriaUserP.addOrder(Order.asc("name"));
-			retour.addAll(this.getHibernateTemplate().findByCriteria(detachedCriteriaUserP));
+			retour.addAll(new ArrayList<Portfolio>((Collection<? extends Portfolio>) this.getHibernateTemplate().findByCriteria(detachedCriteriaUserP)));
 		} catch (DataAccessException e) {
 			LOGGER.error(e,e);
 		}
@@ -162,7 +163,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
 	public List<String> loadValidShareListNames() {
-		List<String> dbgShareListes = this.getHibernateTemplate().find("select name from SharesList");
+		List<String> dbgShareListes = new ArrayList<String>((Collection<? extends String>) this.getHibernateTemplate().find("select name from SharesList"));
 		List<String> validShareLists = new ArrayList<>();
 		for (String list : dbgShareListes) {
 			try {
@@ -183,7 +184,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		detachedCriteria.setProjection(Projections.projectionList().add(Projections.property("name")));
 		if (include != null && include.length > 0) detachedCriteria.add(Restrictions.in("name", include));	
 		if (exclude != null && exclude.length > 0) detachedCriteria.add(Restrictions.not(Restrictions.in("name", exclude)));	
-		return this.getHibernateTemplate().findByCriteria(detachedCriteria);
+		return new ArrayList<String>((Collection<? extends String>) this.getHibernateTemplate().findByCriteria(detachedCriteria));
 	}
 	
 	
@@ -191,7 +192,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
 	public List<String> loadUserPortfolioNames() {
-		return this.getHibernateTemplate().find("select name from UserPortfolio");
+		return new ArrayList<String>((Collection<? extends String>) this.getHibernateTemplate().find("select name from UserPortfolio"));
 	}	
 	
 	
@@ -201,13 +202,19 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 
 	
 	public void saveOrUpdateTransactionReports(ArrayList<TransactionElement> reportElements) {
-			this.getHibernateTemplate().saveOrUpdateAll(reportElements);
+			//this.getHibernateTemplate().saveOrUpdateAll(reportElements);
+		for (TransactionElement transactionElement : reportElements) {
+			this.getHibernateTemplate().saveOrUpdate(transactionElement);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
 	public SortedSet<TransactionElement> loadOrphanTransactionReportFor(Stock stock, String externalAccount, Date date) {
-		List<TransactionElement> trans = this.getHibernateTemplate().find("from TransactionElement where symbol = ? and isin = ? and externalAccount = ? and portfolio is null and date <= ? order by date", stock.getSymbol(), stock.getIsin(), externalAccount, date);
+		List<TransactionElement> trans = 
+				new ArrayList<TransactionElement>((Collection<? extends TransactionElement>) this.getHibernateTemplate().find(
+						"from TransactionElement where symbol = ? and isin = ? and externalAccount = ? and portfolio is null and date <= ? order by date", 
+						stock.getSymbol(), stock.getIsin(), externalAccount, date));
 		return new TreeSet<TransactionElement>(trans);
 	}
 

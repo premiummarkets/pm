@@ -37,20 +37,16 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
 
-public abstract class HttpSourceQuotation extends HttpSource implements SourceConnector {
+public abstract class HttpSourceQuotation extends HttpSource {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceQuotation.class);
-	private PoolSemaphore threadPool;
 
 	public HttpSourceQuotation(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops,beanFactory);
-		LOGGER.debug("Number of Http Threads : " + this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
 
@@ -67,11 +63,6 @@ public abstract class HttpSourceQuotation extends HttpSource implements SourceCo
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
 		throw new RuntimeException("Stock list fetching is not implemented for Quotation only http source");
-	}
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
 	}
 
 	@Override

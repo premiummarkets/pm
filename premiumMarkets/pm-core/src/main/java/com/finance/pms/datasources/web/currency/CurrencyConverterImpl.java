@@ -67,7 +67,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	
 	private final MyLogger LOGGER = MyLogger.getLogger(CurrencyConverterImpl.class);
 	
-	private HttpSourceExchange httpSource;
+	HttpSourceExchange httpSource;
 	private CurrencyDAO currencyDao;	
 	private NumberFormat numberFormater = NumberFormat.getNumberInstance();
 	private Map<Currency, Map<Currency, List<CurrencyRate>>> cache;
@@ -142,7 +142,8 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	private Collection<? extends CurrencyRate> bulkCompletion(Currency fromCurrency, Currency toCurrency, Date today, Date lastCurrencyRateDate) {
 		
 		LOGGER.info("Currency bulk completion from "+fromCurrency+" to "+ toCurrency+ " between "+lastCurrencyRateDate+" and "+today);
-		ExchangeRatesFetcher fetcher = new OandaIterativeFetcher(httpSource);
+		//ExchangeRatesFetcher fetcher = new OandaIterativeFetcher(httpSource);
+		ExchangeRatesFetcher fetcher = new EuropeanCentralBankFetcher(httpSource);
 		
 		List<CurrencyRate> webRates = fetch(fetcher, fromCurrency, toCurrency, lastCurrencyRateDate, today);
 		return webRates;

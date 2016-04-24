@@ -65,7 +65,9 @@ public class WeatherDAOImpl extends HibernateDaoSupport implements WeatherDAO {
 
 	
 	public void saveAndUpDate(List<WeatherElement> weatherElements) {
-		this.getHibernateTemplate().saveOrUpdateAll(weatherElements);
-		
+		//this.getHibernateTemplate().saveOrUpdateAll(weatherElements);
+		for (WeatherElement weatherElement : weatherElements) {
+			this.getHibernateTemplate().saveOrUpdate(weatherElement);
+		}
 	}
 }

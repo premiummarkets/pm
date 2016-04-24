@@ -70,7 +70,10 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	
 	@Override
 	public void saveOrUpdateStocks(List<Validatable> shares) {
-		this.getHibernateTemplate().saveOrUpdateAll(shares);
+		//this.getHibernateTemplate().saveOrUpdateAll(shares);
+		for (Validatable share : shares) {
+			this.getHibernateTemplate().saveOrUpdate(share);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -86,7 +89,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		}
 		criteria.add(Restrictions.conjunction());
 	
-		List<Stock> list =  this.getHibernateTemplate().findByCriteria(criteria);
+		List<Stock> list =  new ArrayList<Stock>((Collection<? extends Stock>) this.getHibernateTemplate().findByCriteria(criteria));
 		
 		return list;
 	}
@@ -116,7 +119,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
 	public List<PortfolioShare> loadMonitoredPortfolioShares() {
-			return this.getHibernateTemplate().find("from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> ?", MonitorLevel.NONE);
+			return new ArrayList<PortfolioShare>((Collection<? extends PortfolioShare>) this.getHibernateTemplate().find("from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> ?", MonitorLevel.NONE));
 	}
 	
 	@Transactional(readOnly=true)
@@ -160,8 +163,11 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	}
 
 	
-	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> listTrend) {
-		this.getHibernateTemplate().saveOrUpdateAll(listTrend);
+	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> trends) {
+		//this.getHibernateTemplate().saveOrUpdateAll(listTrend);
+		for (ScreeningSupplementedStock trend : trends) {
+			this.getHibernateTemplate().saveOrUpdate(trend);
+		}
 	}
 	
 	
@@ -188,7 +194,10 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	
 	public void saveOrUpdateStocks(Set<Stock> listStocks) {
-		getHibernateTemplate().saveOrUpdateAll(listStocks);
+		//getHibernateTemplate().saveOrUpdateAll(listStocks);
+		for (Stock stock : listStocks) {
+			getHibernateTemplate().saveOrUpdate(stock);
+		}
 	}
 	
 	@Override
@@ -300,7 +309,10 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	@Override
 	public void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits) {
-		getHibernateTemplate().saveOrUpdateAll(quotationUnits);
+		//getHibernateTemplate().saveOrUpdateAll(quotationUnits);
+		for (QuotationUnit quotationUnit : quotationUnits) {
+			getHibernateTemplate().saveOrUpdate(quotationUnit);
+		}
 	}
 	
 }

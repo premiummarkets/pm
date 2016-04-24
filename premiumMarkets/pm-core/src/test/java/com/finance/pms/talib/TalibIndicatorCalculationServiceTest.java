@@ -29,9 +29,6 @@
  */
 package com.finance.pms.talib;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class TalibIndicatorCalculationServiceTest.
  * 
@@ -39,15 +36,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class TalibIndicatorCalculationServiceTest {
 	
-	/**
-	 * The main method.
-	 * 
-	 * @param args the arguments
-	 * 
-	 * @author Guillaume Thoreton
-	 */
+
 	public static void main(String[] args) {
-		new ClassPathXmlApplicationContext(new String[]{"/connexions.xml","/swtclients.xml"});
+		//new ClassPathXmlApplicationContext(new String[]{"/connexions.xml","/swtclients.xml"});
 	}
 
 }

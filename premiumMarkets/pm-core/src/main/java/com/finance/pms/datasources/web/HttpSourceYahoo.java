@@ -38,7 +38,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
@@ -50,14 +49,10 @@ import com.finance.pms.threads.SourceConnector;
 public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceYahoo.class);
-	
-	private PoolSemaphore threadPool;
 
 	
 	public HttpSourceYahoo(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
-		LOGGER.debug("Number of Http Threads : "+this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
 	@Override
@@ -104,13 +99,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
 		throw new RuntimeException("Fetching stock list is not implemented for yahoo");
 	}
-
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
-	}
-
+	
     @Override
 	public void stopThreads() {
         LOGGER.info("That's all ... Bye");

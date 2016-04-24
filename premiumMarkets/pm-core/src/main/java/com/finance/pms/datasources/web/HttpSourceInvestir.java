@@ -38,19 +38,15 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
 public class HttpSourceInvestir extends HttpSource implements SourceConnector {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceInvestir.class);
-	private PoolSemaphore threadPool;
 	
 	public HttpSourceInvestir(String pathToprops, MyBeanFactoryAware beanFActoryAware) {
 		super(pathToprops, beanFActoryAware);
-		LOGGER.debug("Number of Http Threads : "+this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 
 //	@Override
@@ -100,11 +96,6 @@ public class HttpSourceInvestir extends HttpSource implements SourceConnector {
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String... params) {
 		throw new NotImplementedException();
-	}
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return threadPool;
 	}
 
 	@Override

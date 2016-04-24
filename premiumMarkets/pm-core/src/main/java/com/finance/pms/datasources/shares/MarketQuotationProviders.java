@@ -57,6 +57,7 @@ public class MarketQuotationProviders {
 	public static final MarketQuotationProviders INVESTIR = new MarketQuotationProviders("INVESTIR", ProvidersTypes.INVESTIR, new InvestirSymbolNameResolver(), "investir");
 	public static final MarketQuotationProviders INFLATION = new MarketQuotationProviders("INFLATION", ProvidersTypes.INFLATION, new InvestirSymbolNameResolver(), "inflation");
 	public static final MarketQuotationProviders CURRENCY = new MarketQuotationProviders("CURRENCY", ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency");
+	public static final MarketQuotationProviders DIXHUITDIXHUIT = new MarketQuotationProviders("DIXHUITDIXHUIT", ProvidersTypes.DIXHUITDIXHUIT, new InvestirSymbolNameResolver(), "dixHuitDixHuit");
 	
 	private static List<MarketQuotationProviders> marketQuotationProviders = new ArrayList<MarketQuotationProviders>();
 	static {
@@ -66,6 +67,7 @@ public class MarketQuotationProviders {
 		MarketQuotationProviders.addMarketQuotationProvider(INVESTIR);
 		MarketQuotationProviders.addMarketQuotationProvider(INFLATION);
 		MarketQuotationProviders.addMarketQuotationProvider(CURRENCY);
+		MarketQuotationProviders.addMarketQuotationProvider(DIXHUITDIXHUIT);
 	}
 	
 	private String name;

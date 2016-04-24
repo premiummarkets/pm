@@ -38,7 +38,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.google.MarketList;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.threads.PoolSemaphore;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 import com.google.gson.Gson;
@@ -48,12 +47,8 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceGoogle.class);
 	
-	private PoolSemaphore threadPool;
-	
 	public HttpSourceGoogle(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
-		LOGGER.debug("Number of Http Threads : "+this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 	}
 	
 	@Override
@@ -162,11 +157,6 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 				"http://finance.google.com/finance/historical?q=" +ticker+
 			"&startdate="+ startMonth + "+" + startDay + ",+" + startYear +
 			"&enddate="+ endMonth + "+" + endDay + ",+" + endYear + "&output=csv");
-	}
-
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return this.threadPool;
 	}
 
 	@Override

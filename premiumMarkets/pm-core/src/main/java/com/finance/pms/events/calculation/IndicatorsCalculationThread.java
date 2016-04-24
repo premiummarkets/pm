@@ -59,6 +59,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
@@ -180,7 +181,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 							//Add output to total
 							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
 						
-						} catch (NoQuotationsException e) {
+						} catch (NoQuotationsException | TalibException e) {
 							LOGGER.warn(e);
 							failing.add(evtCalculator.getEventDefinition());
 							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());

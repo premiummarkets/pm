@@ -49,6 +49,7 @@ public enum ProvidersTypes {
 	YAHOOINDICES ("yahooindex","YahooIndex"), 
 	ALLMARKETS ("allmarkets","AllMarkets"), 
 	INVESTIR("investir","Investir"),
+	DIXHUITDIXHUIT("dixHuitDixHuit","dixHuitDixHuit"),
 	INFLATION("inflation","Inflation"),
 	CURRENCY("currency","Currency");
 	

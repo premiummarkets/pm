@@ -63,7 +63,6 @@ import org.eclipse.swt.widgets.Text;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
-import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
 import com.finance.pms.admin.install.logging.MyLogger;
 
@@ -297,20 +296,30 @@ public class DbSettings extends Dialog {
 					public void mouseDown(MouseEvent arg0) {
 						
 						try {
+							
 							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 							
 							FileOutputStream fos = new FileOutputStream(pathToProps);
-							propList.store(fos,"File over written by the settings feature");
+							propList.store(fos, "File over written by the settings feature");
+							
 						} catch (FileNotFoundException e) {
 							LOGGER.error("Can't find file "+pathToProps,e);
 						} catch (IOException e) {
 							LOGGER.error("Can't access file "+pathToProps,e);
 						} finally {
 							
-							SpringContext ctx = new SpringContext(pathToProps);
-							ctx.setMasSource(pathToProps,"false");
-							ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
-							ctx.refresh();
+//							SpringContext oldCtx = SpringContext.getSingleton();
+//							try {
+//								
+//								@SuppressWarnings("resource")
+//								SpringContext ctx = new SpringContext(pathToProps);
+//								ctx.setMasSource(pathToProps,"false");
+//								ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
+//								ctx.refresh();
+//								
+//							} catch (Exception e) {
+//								oldCtx.close();
+//							}
 							
 							DbSettings.this.getParent().getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						}

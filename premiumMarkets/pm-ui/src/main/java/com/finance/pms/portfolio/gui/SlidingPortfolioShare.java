@@ -57,14 +57,14 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 
 	private PortfolioShare underLyingPortfolioShare;
 	
-	Boolean displayOnChart;
-	Color color;
+	private Boolean displayOnChart;
+	private Color color;
 	
-	Boolean slidingEnd;
-	Boolean slidingStart;
+	private Boolean slidingEnd;
+	private Boolean slidingStart;
 	
-	Date start;
-	Date end;
+	private Date start;
+	private Date end;
 
 	private Currency displayedCurrency;
 

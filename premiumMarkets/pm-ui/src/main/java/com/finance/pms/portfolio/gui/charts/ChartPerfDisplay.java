@@ -175,11 +175,13 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							priceToogleGrp.setBackground(MainGui.pOPUP_BG);
 							priceToogleGrp.setLayout(new FillLayout(SWT.VERTICAL));
 							final Button bPrice =  new Button(priceToogleGrp, SWT.RADIO);
+							bPrice.setBackground(MainGui.pOPUP_BG);
 							bPrice.setText("Relative to the average buy price");
 							bPrice.setToolTipText("The result will be displayed relative to the average buy price basis, reflecting the unrealized gain.");
 							bPrice.setFont(MainGui.DEFAULTFONT);
 							bPrice.setSelection(!isIncludeMoneyOutSelected);
 							final Button uPrice =  new Button(priceToogleGrp, SWT.RADIO);
+							uPrice.setBackground(MainGui.pOPUP_BG);
 							uPrice.setText("Relative to the cost per unit");
 							uPrice.setToolTipText("The result will be displayed relative to the final cost per unit at date, taking in account the moneys out.");
 							uPrice.setFont(MainGui.DEFAULTFONT);
@@ -214,6 +216,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
 							final Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
+							zeroBut.setBackground(MainGui.pOPUP_BG);
 							zeroBut.setFont(MainGui.DEFAULTFONT);
 							zeroBut.setText("Start all from 0");
 							zeroBut.setToolTipText("If selected, the resulting ROCS will all be starting from 0 at the start of the period and than be drawn relative to this point.\nIf not the resulting ROCs will naturally oscillate around 0.");

@@ -240,12 +240,12 @@ public class MainPMScmd {
 			try {
 				String prefdbpath = "com.finance.pms"+System.getProperty("installdir").replaceAll("/", ".");
 				prefs = prefRoot().node(prefdbpath);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				LOGGER.warn("prefs node name has been reduced to com.finance.pms because : "+e);
 				try {
 					prefs = prefRoot().node("com.finance.pms");
-				} catch (Exception e1) {
-					LOGGER.error("Can't initialise prefs", e1);
+				} catch (Throwable e1) {
+					LOGGER.warn("Can't initialise prefs : "+ e1);
 				}
 			}
 			

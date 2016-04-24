@@ -37,10 +37,8 @@ import java.util.List;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpUriRequest;
 
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
-import com.finance.pms.threads.MyHttpClient;
-import com.finance.pms.threads.PoolSemaphore;
+import com.finance.pms.threads.ApacheHttpClient;
 import com.finance.pms.threads.SourceClient;
 import com.finance.pms.threads.SourceConnector;
 
@@ -53,14 +51,12 @@ import com.finance.pms.threads.SourceConnector;
 public class HttpSourceBoursorama extends HttpSource implements SourceConnector {
 	
 
-	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceBoursorama.class);
+//	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceBoursorama.class);
 	public static int numThreadGlob = 0;
-	private PoolSemaphore threadPool;
 
 	public HttpSourceBoursorama(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
-		LOGGER.debug("Number of Http Threads :" + this.nbHttpThreads);
-		threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
+
 	}
 
 	@Override
@@ -165,7 +161,7 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 	}
 
 	@Override
-	public MyHttpClient httpConnect() {
+	public ApacheHttpClient httpConnect() {
 //		MyHttpClient myHttpClient;
 //		try {
 //			myHttpClient = this.myHttpConnect();
@@ -263,18 +259,6 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 
 	public void shutdownSource(SourceClient c, int connectionId) {
 		// TODO Auto-generated method stub
-	}
-	
-	@Override
-	public PoolSemaphore getThreadPool() {
-		return threadPool;
-	}
-
-
-	@Override
-	public void stopThreads() {
-		this.threadPool.stopThreads();
-		LOGGER.info("All Http Done ... Bye");
 	}
 
 	static class DOWNLOADTYPE {

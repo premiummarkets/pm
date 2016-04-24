@@ -60,7 +60,7 @@ public class HttpSourceGooglePastIntraDay extends HttpSourceGoogleIntraDay {
 	}
 
 	@Override
-	protected Set<Validatable> readURL(LineFormater formater, MyHttpClient httpcx) throws HttpException, IOException {
+	protected Set<Validatable> readURL(LineFormater formater, MyHttpClient<?,?> httpcx) throws HttpException, IOException {
 		
 		Set<Validatable> resultSet= new HashSet<Validatable>();
 		

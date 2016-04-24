@@ -174,6 +174,7 @@ public class UpdateUrlPanelDescriptor extends WizardPanelDescriptor {
 				}
 				
 			} catch (Exception e) {
+				System.out.println("Can't read update check URL "+jnlpUrl);
 				e.printStackTrace();
 			}
 						

@@ -212,18 +212,4 @@ public class IndicatorCalculationServiceMain {
 		}
 	}
 
-//	/**
-//	 * Gets the date moins n jours.
-//	 * 
-//	 * @param now the now
-//	 * @param days the days
-//	 * 
-//	 * @return the date moins n jours
-//	 */
-//	public static Date getDateMoinsNJours(Date now, Integer days) {
-//		GregorianCalendar gcal = new GregorianCalendar();
-//		gcal.setTime(now);
-//		QuotationsFactories.getFactory().incrementDate(gcal, -days);
-//		return gcal.getTime();
-//	}
 }

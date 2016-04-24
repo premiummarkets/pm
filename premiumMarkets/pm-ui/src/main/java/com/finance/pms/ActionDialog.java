@@ -75,7 +75,6 @@ public class ActionDialog extends UserDialog {
 			}
 		});
 	}
-	
 
 	protected void doAction() {
 		
@@ -99,9 +98,7 @@ public class ActionDialog extends UserDialog {
 								ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
 								ActionDialog.this.errorTxt.setVisible(true);
 								ActionDialog.this.getParent().pack();
-								//ActionDialog.this.getParent().layout();
 								LOGGER.error(e,e);
-								//dispose();
 							}
 						} finally {
 							if (!getParent().isDisposed()) getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -144,6 +141,4 @@ public class ActionDialog extends UserDialog {
 		this.errorHandler = errorHandler;
 	}
 
-	
-	
 }

@@ -36,6 +36,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.http.HttpException;
@@ -45,11 +46,15 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.MarketQuotationProviders;
+import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.shares.YahooMarketExtentions;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
+import com.finance.pms.portfolio.PortfolioMgr;
+import com.finance.pms.portfolio.SharesList;
 
 
 /**
@@ -57,7 +62,7 @@ import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
  * 
  * @author Guillaume Thoreton
  */
-public class ProvidersYahoo extends Providers implements QuotationProvider {
+public class ProvidersYahoo extends Providers implements QuotationProvider, MarketListProvider {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahoo.class);
 
@@ -187,6 +192,73 @@ public class ProvidersYahoo extends Providers implements QuotationProvider {
 				(new Integer(gcEnd.get(Calendar.DAY_OF_MONTH))).toString());
 		
 		return url;
+	}
+
+	@Override
+	public StockList retrieveStockListFromWeb(MarketQuotationProviders marketQuotationsProviders, StockList stocksInDB) throws HttpException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateStockListFromWeb(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public MarketQuotationProviders defaultMarketQuotationProviders() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addIndices(SortedSet<Indice> indices, Boolean replace) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public SortedSet<Indice> getIndices() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesListId getSharesListIdEnum() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retrieveStockListFromBase(StockList dbStockList) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Stock supplement(Stock stock) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SharesList loadSharesListForThisListProvider() {
+		SharesList shareList = PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(SharesListId.UNKNOWN.name());
+		if (shareList == null) shareList = new SharesList(SharesListId.UNKNOWN.name());
+		return shareList;
+	}
+
+	@Override
+	public StockList retreiveStockListFromFile(String pathToFileList, StockList dbStockList) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retrieveScreeningInfo(Collection<Stock> shareListInDB) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -62,6 +62,10 @@ public class HttpSourceExchange extends HttpSourceYahoo {
 		return String.format(url,new SimpleDateFormat("yyyy-MM-dd").format(date));
 	}
 	
+	public String getEuropeanCentralBankUrl() {
+		return "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip";
+	}
+	
 	public String getXRatesHistoryUrl(Date date) {
 		String url="http://www.x-rates.com/historical/?from=USD&amount=1.00&date=%s";
 		return String.format(url,new SimpleDateFormat("yyyy-MM-dd").format(date));

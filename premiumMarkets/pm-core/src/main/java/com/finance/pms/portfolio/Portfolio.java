@@ -555,7 +555,6 @@ public class Portfolio extends AbstractSharesList {
 				
 				if (currentStock == null || !currentStock.equals(te.getStock())) {//init stock
 					currentStock = te.getStock();
-					//pss.add(getShareForStock(currentStock));
 					pss.put(currentStock, new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
 				}
 				
@@ -614,10 +613,10 @@ public class Portfolio extends AbstractSharesList {
 			
 			messagePortCurrency = messagePortCurrency +"\n\n"
 					+ "Totals ("+targetCurrency+" - "+dateFormat.format(cpgPeriodStart)+" -> "+dateFormat.format(cpgPeriodEnd)+" - transaction fee "+transactionFee+" - exchange fee "+ exchangeFee+") in " + getName() + " :\n"
-					+ "stock, on the, average price, quantity, invested (in-out), value, realised capital gain, potential capital gain, currency, last close";
+					+ "stock, on the, average price, quantity, invested (in-out), value, capital gain for period, out for period, potential capital gain, currency, last close";
 			messageNoConvertion = messageNoConvertion +"\n\n"
 					+ "Totals (Original currencies - "+dateFormat.format(cpgPeriodStart)+" -> "+dateFormat.format(cpgPeriodEnd)+" - transaction fee "+transactionFee+") in " + getName() + " :\n"
-					+ "stock, on the, average price, quantity, invested (in-out), value, realised capital gain, potential capital gain, currency, last close, last exchange rate";
+					+ "stock, on the, average price, quantity, invested (in-out), value, capital gain for period, out for period, potential capital gain, currency, last close, last exchange rate";
 			
 			//Totals
 			for (Stock stock : pss.keySet()) {
@@ -633,27 +632,25 @@ public class Portfolio extends AbstractSharesList {
 					BigDecimal quantity = getQuantityFor(ps, startDate, endDate);
 					boolean isQuantityPositiveAtEndPeriod = ps.getQuantity(startDate, cpgPeriodEnd).compareTo(BigDecimal.ZERO) > 0;
 
-					BigDecimal invPortCur = 
-							applyFee(true, applyFee(true, ps.getCashin(startDate, endDate, targetCurrency), transactionFee), exchangeFee)
-							.subtract(
-									applyFee(false, applyFee(false, ps.getCashout(startDate, endDate, targetCurrency), transactionFee), exchangeFee));
+					BigDecimal outPortCur = applyFee(false, applyFee(false, ps.getCashout(startDate, endDate, targetCurrency), transactionFee), exchangeFee);
+					BigDecimal out4PeriodPortCur = applyFee(false, applyFee(false, ps.getCashout(cpgPeriodStart, cpgPeriodEnd, targetCurrency), transactionFee), exchangeFee);
+					BigDecimal invPortCur = applyFee(true, applyFee(true, ps.getCashin(startDate, endDate, targetCurrency), transactionFee), exchangeFee).subtract(outPortCur);
 					BigDecimal valuePortCur = applyFee(false, applyFee(false, ps.getValue(startDate, endDate, targetCurrency), transactionFee), exchangeFee);
 					
 					messagePortCurrency = messagePortCurrency +"\n" +
 							ps.getStock().getFriendlyName() + ", " + dateFormat.format(endDate) + ", " + applyFee(true, applyFee(true, ps.getPriceAvgBuy(startDate, endDate, targetCurrency), transactionFee), exchangeFee) + ", "+
 							quantity + "," + invPortCur + ", " + valuePortCur + ", " + 
-							pss.get(stock)[0] + "," + (isQuantityPositiveAtEndPeriod?valuePortCur.subtract(invPortCur):BigDecimal.ZERO) + ", " +
+							pss.get(stock)[0] + "," + out4PeriodPortCur + "," + (isQuantityPositiveAtEndPeriod?valuePortCur.subtract(invPortCur):BigDecimal.ZERO) + ", " +
 							targetCurrency + ", " + lastConvertedClosePrice;
 					
-					BigDecimal invNoConv = 
-							applyFee(true, ps.getCashin(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee)
-							.subtract(
-									applyFee(false, ps.getCashout(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee));
+					BigDecimal outNoConv = applyFee(false, ps.getCashout(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee);
+					BigDecimal out4PeriodNoConv = applyFee(false, ps.getCashout(cpgPeriodStart, cpgPeriodEnd, stock.getMarketValuation().getCurrency()), transactionFee);
+					BigDecimal invNoConv = applyFee(true, ps.getCashin(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee).subtract(outNoConv);
 					BigDecimal valueNoConv = applyFee(false, ps.getValue(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee);
 					messageNoConvertion = messageNoConvertion + "\n" +
 							ps.getStock().getFriendlyName() + ", " + dateFormat.format(endDate) + ", " + applyFee(true, ps.getPriceAvgBuy(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee) + ", " +
 							quantity + "," + invNoConv + ", " + valueNoConv + ", " + 
-							pss.get(stock)[1] + "," + (isQuantityPositiveAtEndPeriod?valueNoConv.subtract(invNoConv):BigDecimal.ZERO) + ", " +
+							pss.get(stock)[1] + "," + out4PeriodNoConv + "," + (isQuantityPositiveAtEndPeriod?valueNoConv.subtract(invNoConv):BigDecimal.ZERO) + ", " +
 							stock.getMarketValuation().getCurrency() + ", " + lastClosePrice + ", " +
 							lastConvertionRate;
 					

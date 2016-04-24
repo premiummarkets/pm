@@ -180,105 +180,97 @@ public class ChartMain extends Chart {
 
 			SlidingPortfolioShare kthPs = portfolioShares.get(k);
 			
-			final XYItemRenderer renderer = mainPlot.getRenderer();
-			TimeSeries lineSerie;
-			
-			try {
+			if (kthPs.getDisplayOnChart()) {
+				
+				final XYItemRenderer renderer = mainPlot.getRenderer();
+				TimeSeries lineSerie;
+				try {
 
-				final Quotations quotations = getQuotations(stripedCloseFunction, kthPs);
-				lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs);
+					final Quotations quotations = getQuotations(stripedCloseFunction, kthPs);
+					lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs);
 
-				Paint paint = java.awt.Color.BLACK;
-				if (applyColors) {
-					org.eclipse.swt.graphics.Color color = kthPs.getColor();
-					paint = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue());
-				}
-
-				renderer.setSeriesPaint(k, paint);
-				renderer.setSeriesStroke(k, new BasicStroke(1));
-
-				final int kf = k;
-				final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
-				XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-					public String generateToolTip(XYDataset dataset, int series, int item) {
-
-						String y = "NaN";
-						String x = "NaN";
-						QuotationUnit closeForDate;
-						try {
-							Date date = new Date((long) dataset.getXValue(series, item));
-							x = simpleDateFormat.format(date);
-							SlidingPortfolioShare slPShare = portfolioShares.get(kf);
-							
-							try {
-								closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
-							} catch (Exception e) {
-								LOGGER.warn(e);
-								closeForDate = new QuotationUnit(slPShare.getStock(), slPShare.getTransactionCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER);
-							}
-
-							String variationAddInfo = "";
-							if (!stripedCloseFunction.lineToolTip().isEmpty()) {
-								y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
-								variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip()+")";
-							}
-
-							String origin = 
-									(closeForDate.getOrigin().equals(ORIGIN.USER))?
-										ORIGIN.USER.name().toLowerCase():slPShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
-							String trCurrency = slPShare.getTransactionCurrency().name();
-							String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();
-							
-							String string = 
-								"<html>" + 
-								"<font size='2'>" + 
-								"<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>"+ 
-								"</font>" +
-								"<table CELLSPACING=0 CELLPADDING=1>" +
-								"<tr><td><font size='2'>Open</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getOpen()) + "</font></td></tr>" + 
-								"<tr><td><font size='2'>High</font></td><td><font size='2'>" +  NUMBER_FORMAT.format(closeForDate.getHigh()) + "</font></td></tr>" + 
-								"<tr><td><font size='2'>Low</font></td><td><font size='2'>" +  NUMBER_FORMAT.format(closeForDate.getLow()) + "</font></td></tr>" + 
-								"<tr><td><font size='2'>Close</font></td><td><font size='2'>"+  NUMBER_FORMAT.format(closeForDate.getClose()) + "</font></td></tr>" + 
-								"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
-								"</table>" + 
-								"<font size='2'>" +
-									"(Source : " + origin + ", Currency "+stockCurrency+" here in "+ trCurrency +")" +
-									variationAddInfo + 
-								"</font>" +
-								"</html>";
-							return string;
-							
-						} catch (Exception e) {
-							LOGGER.error(e, e);
-						}
-						return "NaN";
-
+					Paint paint = java.awt.Color.BLACK;
+					if (applyColors) {
+						org.eclipse.swt.graphics.Color color = kthPs.getColor();
+						paint = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue());
 					}
-				};
 
-				renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
-				renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
-				
-			} catch (NoQuotationsException e) {
-				
-				LOGGER.warn(kthPs+ " has no quotation available and won't be displayed");
-				lineSerie = new TimeSeries(kthPs.getName());
-				
-			} catch (Exception e ) {
-				
-				LOGGER.warn(kthPs+ " error building line series ", e);
-				lineSerie = new TimeSeries(kthPs.getName());
-				
+					renderer.setSeriesPaint(k, paint);
+					renderer.setSeriesStroke(k, new BasicStroke(1));
+
+					final int kf = k;
+					final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
+					XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+
+						public String generateToolTip(XYDataset dataset, int series, int item) {
+
+							String y = "NaN";
+							String x = "NaN";
+							QuotationUnit closeForDate;
+							try {
+								Date date = new Date((long) dataset.getXValue(series, item));
+								x = simpleDateFormat.format(date);
+								SlidingPortfolioShare slPShare = portfolioShares.get(kf);
+
+								try {
+									closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
+								} catch (Exception e) {
+									LOGGER.warn(e);
+									closeForDate = new QuotationUnit(slPShare.getStock(), slPShare.getTransactionCurrency(), date, BigDecimal.ZERO,
+											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER);
+								}
+
+								String variationAddInfo = "";
+								if (!stripedCloseFunction.lineToolTip().isEmpty()) {
+									y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
+									variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip() + ")";
+								}
+
+								String origin = (closeForDate.getOrigin().equals(ORIGIN.USER)) ? ORIGIN.USER.name().toLowerCase()
+										: slPShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
+								String trCurrency = slPShare.getTransactionCurrency().name();
+								String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();
+
+								String string = "<html>" + "<font size='2'>" + "<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>" + "</font>"
+										+ "<table CELLSPACING=0 CELLPADDING=1>" + "<tr><td><font size='2'>Open</font></td><td><font size='2'>"
+										+ NUMBER_FORMAT.format(closeForDate.getOpen()) + "</font></td></tr>"
+										+ "<tr><td><font size='2'>High</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getHigh())
+										+ "</font></td></tr>" + "<tr><td><font size='2'>Low</font></td><td><font size='2'>"
+										+ NUMBER_FORMAT.format(closeForDate.getLow()) + "</font></td></tr>"
+										+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getClose())
+										+ "</font></td></tr>" + "<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume()
+										+ "</td></tr>" + "</table>" + "<font size='2'>" + "(Source : " + origin + ", Currency " + stockCurrency + " here in "
+										+ trCurrency + ")" + variationAddInfo + "</font>" + "</html>";
+								return string;
+
+							} catch (Exception e) {
+								LOGGER.error(e, e);
+							}
+							return "NaN";
+
+						}
+					};
+
+					renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
+					renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
+
+				} catch (NoQuotationsException e) {
+
+					LOGGER.warn(kthPs + " has no quotation available and won't be displayed");
+					lineSerie = new TimeSeries(kthPs.getName());
+
+				} catch (Exception e) {
+
+					LOGGER.warn(kthPs + " error building line series ", e);
+					lineSerie = new TimeSeries(kthPs.getName());
+
+				}
+				Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : kthPs.getDisplayOnChart();
+				renderer.setSeriesVisible(k, displayOnChart);
+				combinedDataset.addSeries(lineSerie);
 			}
 				
-			Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : kthPs.getDisplayOnChart();
-			renderer.setSeriesVisible(k, displayOnChart);
-
-			combinedDataset.addSeries(lineSerie);
-				
 		}
-
 
 		return combinedDataset;
 	}

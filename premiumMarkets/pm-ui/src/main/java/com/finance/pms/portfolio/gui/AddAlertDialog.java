@@ -53,7 +53,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
-import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnThreshold;
@@ -87,20 +86,6 @@ public class AddAlertDialog extends Dialog {
 	private ActionDialogAction action;
 	
 	protected enum Modtype {QUANTITY,AIN,AOUT};
-	
-	//Test
-	public static void main(String[] args) {
-		try {
-			String dbfile = args[0];
-			SpringContext ctx = new SpringContext(dbfile);
-			ctx.setMasSource(dbfile,"false");
-			ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
-			ctx.refresh();
-			
-		} catch (Exception e) {
-			LOGGER.debug("",e);
-		}
-	}
 	
 	public AddAlertDialog(Shell parent, PortfolioShare portfolioShare, ActionDialogAction action) {
 		super(parent);

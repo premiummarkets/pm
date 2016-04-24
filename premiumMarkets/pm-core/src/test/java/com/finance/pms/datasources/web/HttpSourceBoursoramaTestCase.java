@@ -439,7 +439,7 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 
 			Stock ticker = new Stock("GB00B0CTWC01","OILB.L");
 
-			Date start = new SimpleDateFormat("dd/MM/yyyy").parse("16/09/2011");;
+			Date start = new SimpleDateFormat("dd/MM/yyyy").parse("16/09/2011");
 			Date end = new SimpleDateFormat("dd/MM/yyyy").parse("21/09/2011");
 
 			MyUrl stockQuotationURL = this.httpSource.getStockQuotationURL(ticker.getIsin(), 

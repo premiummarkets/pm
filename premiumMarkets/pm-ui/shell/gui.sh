@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #export PATH="/usr/local/opt/java/bin:"$PATH
-export GDK_NATIVE_WINDOWS=1
+#export GDK_NATIVE_WINDOWS=1
+export SWT_GTK3=0
 export LIBOVERLAY_SCROLLBAR=0
 
 BN=`basename "$0"`

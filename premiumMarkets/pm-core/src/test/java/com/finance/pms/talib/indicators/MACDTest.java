@@ -30,8 +30,6 @@
 package com.finance.pms.talib.indicators;
 
 
-import org.dbunit.IDatabaseTester;
-import org.dbunit.JdbcDatabaseTester;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -45,7 +43,7 @@ public class MACDTest {
 	
 	
 	/** The database tester. */
-	private IDatabaseTester databaseTester;
+//	private IDatabaseTester databaseTester;
 
 	/**
 	 * Sets the up.
@@ -60,7 +58,7 @@ public class MACDTest {
 
 		// Init Hypersonic db => modify hsql schema.script generated to create tables
 		//databaseTester = new JdbcDatabaseTester("org.hsqldb.jdbcDriver", "jdbc:hsqldb:/usr/local/opt/USERDATA/hypersonic/mov_shares", "SA", "");
-		databaseTester = new JdbcDatabaseTester("org.postgresql.Driver", "jdbc:postgresql:localhost:5432/postgres", "postgres", "postgres");
+//		databaseTester = new JdbcDatabaseTester("org.postgresql.Driver", "jdbc:postgresql:localhost:5432/postgres", "postgres", "postgres");
 //		databaseTester.
 //		databaseTester.onSetup();
 		

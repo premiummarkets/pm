@@ -268,7 +268,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				final SimpleDateFormat displayDF = new SimpleDateFormat("yyyy-MM-dd");
 
 				final Text warning = new Text(actForm.getParent(), SWT.WRAP);
-				//warning.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 				warning.setBackground(MainGui.pOPUP_BG);
 				warning.setFont(MainGui.DEFAULTFONT);
 				warning.setText("Fill in your values for " + stock.getFriendlyName()+"\n");
@@ -278,12 +277,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				insertManualGroup.setBackground(MainGui.pOPUP_GRP);
 				//Date
 				Label dateLabel = new Label(insertManualGroup, SWT.NONE);
-				//dateLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
 				dateLabel.setBackground(MainGui.pOPUP_GRP);
 				dateLabel.setFont(MainGui.DEFAULTFONT);
 				dateLabel.setText("Date");
 				final Text dateTxt = new Text(insertManualGroup, SWT.NONE);
-				//dateTxt.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 				dateTxt.setFont(MainGui.CONTENTFONT);
 				dateTxt.setText(displayDF.format(date));
 				dateTxt.addKeyListener(new KeyListener() {
@@ -312,50 +309,39 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				});
 				//Volume
 				Label volumeLabel = new Label(insertManualGroup, SWT.NONE);
-				//volumeLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				volumeLabel.setBackground(MainGui.pOPUP_GRP);
 				volumeLabel.setFont(MainGui.DEFAULTFONT);
 				volumeLabel.setText("Volume");
 				final Text volumeTxt = new Text(insertManualGroup, SWT.NONE);
-				//volumeTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 				volumeTxt.setFont(MainGui.CONTENTFONT);
 
 				//Quotes
 				Label openLabel = new Label(insertManualGroup, SWT.NONE);
-				//openLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				openLabel.setBackground(MainGui.pOPUP_GRP);
 				openLabel.setFont(MainGui.DEFAULTFONT);
 				openLabel.setText("Open");
 				Label highLabel = new Label(insertManualGroup, SWT.NONE);
-				//highLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				highLabel.setBackground(MainGui.pOPUP_GRP);
 				highLabel.setFont(MainGui.DEFAULTFONT);
 				highLabel.setText("High");
 				Label lowLabel = new Label(insertManualGroup, SWT.NONE);
-				//lowLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				lowLabel.setBackground(MainGui.pOPUP_GRP);
 				lowLabel.setFont(MainGui.DEFAULTFONT);
 				lowLabel.setText("Low");
 				Label closeLabel = new Label(insertManualGroup, SWT.NONE);
-				//closeLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				closeLabel.setBackground(MainGui.pOPUP_GRP);
 				closeLabel.setFont(MainGui.DEFAULTFONT);
 				closeLabel.setText("Close");
 				final Text openTxt = new Text(insertManualGroup, SWT.NONE);
-				//openTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				openTxt.setFont(MainGui.CONTENTFONT);
 				final Text highTxt = new Text(insertManualGroup, SWT.NONE);
-				//highTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				highTxt.setFont(MainGui.CONTENTFONT);
 				final Text lowTxt = new Text(insertManualGroup, SWT.NONE);
-				//lowTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				lowTxt.setFont(MainGui.CONTENTFONT);
 				final Text closeTxt = new Text(insertManualGroup, SWT.NONE);
-				//closeTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 				closeTxt.setFont(MainGui.CONTENTFONT);
 				
 				currency = new Text(actForm.getParent(), SWT.NONE);
-				//currency.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 				currency.setBackground(MainGui.pOPUP_BG);
 				currency.setFont(MainGui.DEFAULTFONT);
 				updateConvertionRate(date, cC, stockCurrency, trCurrency);
@@ -704,13 +690,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 	}
 
-	public static void main(String[] args) {
-
-		SpringContext ctx = new SpringContext(args[0]);
-		ctx.loadBeans(new String[] { "/connexions.xml", "/swtclients.xml" });
-		ctx.refresh();		
-	}
-
 	public PortfolioComposite(Composite parent, ChartsComposite chartsComposite, int style, LogComposite logComposite) {
 		super(parent, style);
 		
@@ -788,7 +767,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				portfolioCTabFolder.addSelectionListener(new SelectionListener() {
 
 					public void widgetDefaultSelected(SelectionEvent arg0) {
-							handleTabSelection();
+						handleTabSelection();
 					}
 					
 					public void widgetSelected(SelectionEvent arg0) {
@@ -1802,6 +1781,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							if (selectionIndex != -1) {
 								SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
 								chartsComposite.highLight(selectionIndex, selectedShare.getStock(), true);
+								modelControler.addOrUpdateSlidingShareToTab(selectedPortfolioIdx(), selectedShare);
 							} 
 						} 
 					}
@@ -2277,31 +2257,33 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		ti.setText(Titles.Isin.ordinal(), portfolioShare.getIsin());
 		
 		//
-		BigDecimal todaysPriceClose = portfolioShare.getTodaysPriceClose();
-		BigDecimal todaysValue = portfolioShare.getTodaysValue();
-		BigDecimal todaysPriceAvgBuy = portfolioShare.getTodaysPriceAvgBuy();
-		BigDecimal todaysPriceUnitCost = portfolioShare.getTodaysPriceUnitCost();
-		BigDecimal todaysGainTotalPercent = portfolioShare.getTodaysGainTotalPercent();
-		BigDecimal todaysGainRealPercent = portfolioShare.getTodaysGainRealPercent();
-		BigDecimal todaysGainUnrealPercent = portfolioShare.getTodaysGainUnrealPercent();
-		BigDecimal todaysPriceZeroGainWeighted = portfolioShare.getTodaysPriceZeroGainWeighted();
-		BigDecimal gainTotalWeightedPercent = portfolioShare.getGainTotalWeightedPercent();
+		if (portfolioShare.getDisplayOnChart()) {
+			BigDecimal todaysPriceClose = portfolioShare.getTodaysPriceClose();
+			BigDecimal todaysValue = portfolioShare.getTodaysValue();
+			BigDecimal todaysPriceAvgBuy = portfolioShare.getTodaysPriceAvgBuy();
+			BigDecimal todaysPriceUnitCost = portfolioShare.getTodaysPriceUnitCost();
+			BigDecimal todaysGainTotalPercent = portfolioShare.getTodaysGainTotalPercent();
+			BigDecimal todaysGainRealPercent = portfolioShare.getTodaysGainRealPercent();
+			BigDecimal todaysGainUnrealPercent = portfolioShare.getTodaysGainUnrealPercent();
+			BigDecimal todaysPriceZeroGainWeighted = portfolioShare.getTodaysPriceZeroGainWeighted();
+			BigDecimal gainTotalWeightedPercent = portfolioShare.getGainTotalWeightedPercent();
+			
+			
+			ti.setText(Titles.Close.ordinal(), moneysFormat.format(todaysPriceClose));
+			ti.setText(Titles.Value.ordinal(), moneysFormat.format(todaysValue));
+			ti.setText(Titles.AvgBuyPrc.ordinal(), moneysFormat.format(todaysPriceAvgBuy));
+			ti.setText(Titles.CostPerUnit.ordinal(), moneysFormat.format(todaysPriceUnitCost));
+			
+			ti.setText(Titles.TotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainTotalPercent));
+			ti.setText(Titles.RPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainRealPercent));
+			ti.setText(Titles.UrPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainUnrealPercent));
+			
+			ti.setText(Titles.ZeroWGainPrc.ordinal(), moneysFormat.format(todaysPriceZeroGainWeighted));
 		
-		
-		ti.setText(Titles.Close.ordinal(), moneysFormat.format(todaysPriceClose));
-		ti.setText(Titles.Value.ordinal(), moneysFormat.format(todaysValue));
-		ti.setText(Titles.AvgBuyPrc.ordinal(), moneysFormat.format(todaysPriceAvgBuy));
-		ti.setText(Titles.CostPerUnit.ordinal(), moneysFormat.format(todaysPriceUnitCost));
-		
-		ti.setText(Titles.TotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainTotalPercent));
-		ti.setText(Titles.RPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainRealPercent));
-		ti.setText(Titles.UrPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainUnrealPercent));
-		
-		ti.setText(Titles.ZeroWGainPrc.ordinal(), moneysFormat.format(todaysPriceZeroGainWeighted));
-	
-		ti.setText(Titles.WTotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, gainTotalWeightedPercent));
-		
+			ti.setText(Titles.WTotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, gainTotalWeightedPercent));
+		}
 		//
+		
 		ti.setText(Titles.Monitor.ordinal(), portfolioShare.getMonitorLevel().getMonitorLevel());
 		ti.setText(Titles.DisplayedCurrency.ordinal(), portfolioShare.getDisplayedCurrency().name());
 
@@ -3103,6 +3085,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 		//Currency
 		final Label currencyLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		currencyLabel.setBackground(MainGui.pOPUP_BG);
 		currencyLabel.setText("Target currency");
 		final CCombo currencyListCombo = new CCombo(actionDialog.getParent(), SWT.NONE);
 		currencyListCombo.setEditable(false);
@@ -3125,9 +3108,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		currencyListCombo.select(gbpIdx);
 		
 		//Capital gain period
-		Date slidingEnd = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+		final Date slidingEnd = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
 		final DateFormat dateInstance = new SimpleDateFormat("yyyy-MM-dd");
 		final Label startPeriodLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		startPeriodLabel.setBackground(MainGui.pOPUP_BG);
 		startPeriodLabel.setText("Capital Gain from");
 		final Text startPeriodTxt = new Text(actionDialog.getParent(), SWT.NONE);
 		Calendar sCalendar = Calendar.getInstance();
@@ -3137,6 +3121,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		sCalendar.set(Calendar.DAY_OF_MONTH, 6);
 		startPeriodTxt.setText(dateInstance.format(sCalendar.getTime()));
 		final Label endPeriodLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		endPeriodLabel.setBackground(MainGui.pOPUP_BG);
 		endPeriodLabel.setText("Capital Gain to");
 		final Text endPeriodTxt = new Text(actionDialog.getParent(), SWT.NONE);
 		endPeriodTxt.setText(dateInstance.format(slidingEnd));
@@ -3144,11 +3129,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		final NumberFormat percentInstance = NumberFormat.getPercentInstance();
 		//Transaction Fees
 		final Label transactionFeeLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		transactionFeeLabel.setBackground(MainGui.pOPUP_BG);
 		transactionFeeLabel.setText("Transaction Fee");
 		final Text transactionFeeTxt = new Text(actionDialog.getParent(), SWT.NONE);
 		transactionFeeTxt.setText(percentInstance.format(0.00));
 		//Exchange Fees
 		final Label exchangeFeeLabel = new Label(actionDialog.getParent(), SWT.NONE);
+		exchangeFeeLabel.setBackground(MainGui.pOPUP_BG);
 		exchangeFeeLabel.setText("Exchange Fee");
 		final Text exchangeFeeTxt = new Text(actionDialog.getParent(), SWT.NONE);
 		exchangeFeeTxt.setText(percentInstance.format(0.01));
@@ -3168,7 +3155,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					String dateStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 					String transactionExportName = portfolio.getName()+"_in"+targetCurrency.toString()+"_"+dateStr;
 					final Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
-					final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate(); 
+					final Date endDate = (slidingEnd.after(cpgPeriodEnd))?cpgPeriodEnd:slidingEnd;
 					
 					TransactionExtractor te = new TransactionExtractor() {	
 						@Override
