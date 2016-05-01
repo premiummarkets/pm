@@ -155,7 +155,7 @@ public class OTFTuningFinalizer {
 			
 			BigDecimal closeForDate = (BigDecimal) mapFromQuotationsClose.get(currentIterationDate);
 			if (closeForDate.compareTo(BigDecimal.ZERO) == 0) 
-				LOGGER.error("Close for date is zero for at "+currentIterationDate+" for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calculation res is "+endCalcRes);
+				LOGGER.warn("Close for date is zero for at "+currentIterationDate+" for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calculation res is "+endCalcRes);
 			
 			//Some events may have been skipped (ie WE events) and must be disregarded
 			while (currentEvent != null && currentIterationDateCal.getTime().after(currentEvent.getDate()) && eventsIt.hasNext()) {

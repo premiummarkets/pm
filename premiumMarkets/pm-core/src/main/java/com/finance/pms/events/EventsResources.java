@@ -1136,7 +1136,7 @@ public class EventsResources {
 				  "`DATE` datetime NOT NULL,"+
 				  "`SYMBOL` varchar(20) NOT NULL,"+
 				  "`ISIN` varchar(20) NOT NULL,"+
-				  "`EVENTDEF` varchar(100) DEFAULT NULL,"+
+				  "`EVENTDEF` varchar(100) NOT NULL,"+
 				  "`EVENTTYPE` varchar(1) NOT NULL,"+
 				  "`ACCURACY` smallint(6) DEFAULT NULL,"+
 				  "`EVENTDEFID` smallint(6) NOT NULL,"+
