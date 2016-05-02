@@ -179,11 +179,11 @@ public class ChartMain extends Chart {
 		for (int k = 0; k < portfolioShares.size(); k++) {
 
 			SlidingPortfolioShare kthPs = portfolioShares.get(k);
+			TimeSeries lineSerie;
+			XYItemRenderer renderer = mainPlot.getRenderer();
 			
 			if (kthPs.getDisplayOnChart()) {
-				
-				final XYItemRenderer renderer = mainPlot.getRenderer();
-				TimeSeries lineSerie;
+			
 				try {
 
 					final Quotations quotations = getQuotations(stripedCloseFunction, kthPs);
@@ -198,7 +198,7 @@ public class ChartMain extends Chart {
 					renderer.setSeriesPaint(k, paint);
 					renderer.setSeriesStroke(k, new BasicStroke(1));
 
-					final int kf = k;
+					//final int kf = k;
 					final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
 					XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
@@ -210,7 +210,7 @@ public class ChartMain extends Chart {
 							try {
 								Date date = new Date((long) dataset.getXValue(series, item));
 								x = simpleDateFormat.format(date);
-								SlidingPortfolioShare slPShare = portfolioShares.get(kf);
+								SlidingPortfolioShare slPShare = portfolioShares.get(series);
 
 								try {
 									closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
@@ -264,12 +264,15 @@ public class ChartMain extends Chart {
 					LOGGER.warn(kthPs + " error building line series ", e);
 					lineSerie = new TimeSeries(kthPs.getName());
 
-				}
-				Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : kthPs.getDisplayOnChart();
-				renderer.setSeriesVisible(k, displayOnChart);
-				combinedDataset.addSeries(lineSerie);
+				} 
+			} else {
+				lineSerie = new TimeSeries(kthPs.getName());
 			}
-				
+			
+			Boolean displayOnChart = (lineSerie.getItemCount() == 0) ? false : kthPs.getDisplayOnChart();
+			renderer.setSeriesVisible(k, displayOnChart);
+			combinedDataset.addSeries(lineSerie);
+			
 		}
 
 		return combinedDataset;

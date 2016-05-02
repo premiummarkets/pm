@@ -1188,7 +1188,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		return popusGroup;
 	}
 
-
 	public SlidingPortfolioShare getCurrentLineSelection() {
 		return portfolioComposite.getCurrentShareSelection();
 	}

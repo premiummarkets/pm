@@ -1000,9 +1000,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							TableColumn column = new TableColumn(portfolioInfosTable, SWT.LEFT);
 							column.setText(PortfolioInfosTitles.values()[j].getColumnName());
 							column.setToolTipText(PortfolioInfosTitles.values()[j].getToolTip());
-							column.pack();
+							//column.pack();
 						}
 						new TableItem(portfolioInfosTable, SWT.NONE);
+						
+						packColumns(portfolioInfosTable, PortfolioInfosTitles.values().length, 100);
+						portfolioInfosGroup.layout();
 						
 					}
 				
@@ -2174,69 +2177,113 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					
 	}
 
-	void refreshPortfolioTotalsInfos(Integer currentPortfolioTab) {
-		
-		try {
+	void refreshPortfolioTotalsInfos(final Integer currentPortfolioTab) {
 			
-			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-			
-			if (currentPortfolioTab != -1) {
-			
-				Portfolio currentPortfolio = modelControler.getPortfolio(currentPortfolioTab);
-				Currency portfolioCurrency = currentPortfolio.inferPortfolioCurrency();
-				
-				if (LOGGER.isDebugEnabled()) {
-					try {
-						LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog( (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero(), (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate()));
-					} catch (Throwable e) {
-						e.printStackTrace();
+			Runnable runnable = new Runnable() {
+				public void run() {
+					if (currentPortfolioTab != -1) {
+
+						Portfolio currentPortfolio = modelControler.getPortfolio(currentPortfolioTab);
+						final Currency portfolioCurrency = currentPortfolio.inferPortfolioCurrency();
+
+						if (LOGGER.isDebugEnabled()) {
+							try {
+								LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog(
+										(slidingStartAnchor.getSelection()) ? chartsComposite.getSlidingStartDate() : DateFactory.dateAtZero(),
+										(slidingEndAnchor.getSelection()) ? chartsComposite.getSlidingEndDate() : EventSignalConfig.getNewDate()));
+							} catch (Throwable e) {
+								e.printStackTrace();
+							}
+						}
+
+						final Date currentStartDate = DateFactory.dateAtZero();
+						final Date currentEndDate = EventSignalConfig.getNewDate();
+						;
+						Runnable anchorCheckRunnable = new Runnable() {
+							public void run() {
+								if (slidingStartAnchor.getSelection()) {
+									currentStartDate.setTime(chartsComposite.getSlidingStartDate().getTime());
+								}
+								if (slidingEndAnchor.getSelection()) {
+									currentEndDate.setTime(chartsComposite.getSlidingEndDate().getTime());
+								}
+							}
+						};
+						getDisplay().syncExec(anchorCheckRunnable);
+
+						BigDecimal value;
+						BigDecimal basis;
+						BigDecimal gainTotal;
+						BigDecimal gainTotalPercent;
+						BigDecimal gainUnReal;
+						BigDecimal gainUnRealPercent;
+						BigDecimal totalInAmountEver;
+						BigDecimal totalOutAmountEver;
+						try {
+							Runnable currorOn = new Runnable() {
+								public void run() {
+									getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+									portfolioInfosTable.remove(0);
+									TableItem item = new TableItem(portfolioInfosTable, SWT.NONE);
+									item.setFont(MainGui.CONTENTFONT);
+								}
+							};
+							getDisplay().syncExec(currorOn);
+
+							value = currentPortfolio.getValue(currentStartDate, currentEndDate);
+							basis = currentPortfolio.getBasis(currentStartDate, currentEndDate);
+							gainTotal = currentPortfolio.getGainTotal(currentStartDate, currentEndDate);
+							gainTotalPercent = currentPortfolio.getGainTotalPercent(currentStartDate, currentEndDate);
+							gainUnReal = currentPortfolio.getGainUnReal(currentStartDate, currentEndDate);
+							gainUnRealPercent = currentPortfolio.getGainUnRealPercent(currentStartDate, currentEndDate);
+							totalInAmountEver = currentPortfolio.getTotalInAmountEver(currentStartDate, currentEndDate);
+							totalOutAmountEver = currentPortfolio.getTotalOutAmountEver(currentStartDate, currentEndDate);
+
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						} finally {
+							Runnable cursorOff = new Runnable() {
+								public void run() {
+									getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+								}
+							};
+							getDisplay().syncExec(cursorOff);
+						}
+
+						Runnable runnable = new Runnable() {
+							public void run() {
+
+								if (currentPortfolioTab != getCurrentTabSelection())
+									return;
+
+								TableItem item = portfolioInfosTable.getItem(0);
+
+								item.setText(PortfolioInfosTitles.Value.ordinal(), moneysFormat.format(value) + " " + portfolioCurrency.toString());
+								item.setText(PortfolioInfosTitles.Basis.ordinal(), moneysFormat.format(basis) + " " + portfolioCurrency.toString());
+								item.setText(PortfolioInfosTitles.TotalGain.ordinal(),
+										signumRoundedFormat(moneysFormat, gainTotal) + " " + portfolioCurrency.toString());
+								item.setText(PortfolioInfosTitles.TotalGainPercent.ordinal(), signumRoundedFormat(percentFormat, gainTotalPercent));
+								item.setText(PortfolioInfosTitles.UnrGain.ordinal(),
+										signumRoundedFormat(moneysFormat, gainUnReal) + " " + portfolioCurrency.toString());
+								item.setText(PortfolioInfosTitles.UnrGainPercent.ordinal(), signumRoundedFormat(percentFormat, gainUnRealPercent));
+								item.setText(PortfolioInfosTitles.MoneyIn.ordinal(),
+										moneysFormat.format(totalInAmountEver) + " " + portfolioCurrency.toString());
+								item.setText(PortfolioInfosTitles.MoneyOut.ordinal(),
+										moneysFormat.format(totalOutAmountEver) + " " + portfolioCurrency.toString());
+
+								packColumns(portfolioInfosTable, PortfolioInfosTitles.values().length, 80);
+								portfolioInfosGroup.layout();
+
+							};
+						};
+						getDisplay().asyncExec(runnable);
+
 					}
 				}
-
-				Date currentStartDate;
-				if (slidingStartAnchor.getSelection()) {
-					currentStartDate = chartsComposite.getSlidingStartDate();
-				} else {
-					currentStartDate = DateFactory.dateAtZero();
-				}
-				
-				Date currentEndDate;
-				if (slidingEndAnchor.getSelection()) {
-					currentEndDate = chartsComposite.getSlidingEndDate();
-				} else {
-					currentEndDate = EventSignalConfig.getNewDate();
-				}
-				
-				
-				TableItem item;
-				if (portfolioInfosTable.getItemCount() == 0) {
-					item = new TableItem(portfolioInfosTable, SWT.NONE);
-					item.setFont(MainGui.CONTENTFONT);
-				} else {
-					item = portfolioInfosTable.getItem(0);
-				}
-				
-				item.setText(PortfolioInfosTitles.Value.ordinal(), moneysFormat.format(currentPortfolio.getValue(currentStartDate, currentEndDate)) + " " + portfolioCurrency.toString());
-				item.setText(PortfolioInfosTitles.Basis.ordinal(), moneysFormat.format(currentPortfolio.getBasis(currentStartDate, currentEndDate)) + " " + portfolioCurrency.toString());
-				item.setText(PortfolioInfosTitles.TotalGain.ordinal(), signumRoundedFormat(moneysFormat, currentPortfolio.getGainTotal(currentStartDate, currentEndDate)) + " " + portfolioCurrency.toString());
-				item.setText(PortfolioInfosTitles.TotalGainPercent.ordinal(),signumRoundedFormat(percentFormat, currentPortfolio.getGainTotalPercent(currentStartDate, currentEndDate)));
-				item.setText(PortfolioInfosTitles.UnrGain.ordinal(), signumRoundedFormat(moneysFormat, currentPortfolio.getGainUnReal(currentStartDate, currentEndDate)) + " " + portfolioCurrency.toString());
-				item.setText(PortfolioInfosTitles.UnrGainPercent.ordinal(), signumRoundedFormat(percentFormat, currentPortfolio.getGainUnRealPercent(currentStartDate, currentEndDate)));
-				item.setText(PortfolioInfosTitles.MoneyIn.ordinal(), moneysFormat.format(currentPortfolio.getTotalInAmountEver(currentStartDate, currentEndDate)) + " " + portfolioCurrency.toString());
-				item.setText(PortfolioInfosTitles.MoneyOut.ordinal(), moneysFormat.format(currentPortfolio.getTotalOutAmountEver(currentStartDate, currentEndDate)) + " " + portfolioCurrency.toString());
-				
-						
-			}
+			};
+			Thread thread = new Thread(runnable);
+			thread.start();
 			
-			packColumns(portfolioInfosTable, PortfolioInfosTitles.values().length, 80);
-			portfolioInfosGroup.layout();
-			
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		} finally {
-			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-		}
-		
 	}
 
 	protected String signumRoundedFormat(NumberFormat numberFormat, BigDecimal bigDecimalValue) {
@@ -2404,7 +2451,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 
 
-
 	private ArrayList<SlidingPortfolioShare> tabBuildSlidingPortfolioShareList(Collection<PortfolioShare> portfolioShares) {
 		
 		ArrayList<SlidingPortfolioShare> list = new ArrayList<SlidingPortfolioShare>();
@@ -2416,8 +2462,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 		return list;
 	}
-
-
 
 	private SlidingPortfolioShare tabBuildSlidingPortfolioShare(PortfolioShare portfolioShare) {
 		

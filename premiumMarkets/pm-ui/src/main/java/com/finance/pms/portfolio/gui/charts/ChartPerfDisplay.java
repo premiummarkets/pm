@@ -359,9 +359,9 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					final Set<SlidingPortfolioShare> displayedShares = new HashSet<SlidingPortfolioShare>();
 					final List<SlidingPortfolioShare> currentTabShareList = chartTarget.getCurrentTabShareList();
 					
-					SlidingPortfolioShare selectedPS = chartTarget.getCurrentLineSelection();
+					//SlidingPortfolioShare selectedPS = chartTarget.getCurrentLineSelection();
 					final TreeSet<SlidingPortfolioShare> availShares = new TreeSet<SlidingPortfolioShare>(currentTabShareList);
-					if (selectedPS != null) availShares.remove(selectedPS);
+					//if (selectedPS != null) availShares.remove(selectedPS);
 					
 					if (availShares.size() > 0) {
 		

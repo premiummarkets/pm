@@ -244,18 +244,23 @@ public class MainGui extends SashForm implements RefreshableView {
 						if (fit.find()) {
 							boolean isObsolete = isObsolete(line, fit, currentBuildDate);
 							if (isObsolete) {
-								ActionDialog dialog = new ActionDialog(
-									getShell(), "A new version is available!", "-------------  A new version is available -------------", null, "Click to update. Close this popup otherwise.", 
-									new ActionDialogAction() {
-									
-										@Override
-										public void action(Control targetControl) {
-											//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
-											Program.launch("http://"+siteUrl+"/html/swtui.html#Download");
-											rootShellClosedRequested(null);
-										}
-									});
-								dialog.open();
+								Runnable obsDialog = new Runnable() {
+									public void run() {
+										ActionDialog dialog = new ActionDialog(getShell(), "A new version is available!",
+												"-------------  A new version is available -------------", null, "Click to update. Close this popup otherwise.",
+												new ActionDialogAction() {
+
+													@Override
+													public void action(Control targetControl) {
+														//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
+														Program.launch("http://" + siteUrl + "/html/swtui.html#Download");
+														rootShellClosedRequested(null);
+													}
+												});
+										dialog.open();
+									}
+								};
+								getDisplay().asyncExec(obsDialog);
 							}
 							break;
 						} 
@@ -268,7 +273,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		};
 		
-		getDisplay().asyncExec(runnable);
+		Thread thread = new Thread(runnable);
+		thread.start();
 
 		initContent();
 		this.layout();
