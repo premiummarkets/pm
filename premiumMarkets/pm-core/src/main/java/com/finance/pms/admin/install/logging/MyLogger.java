@@ -43,6 +43,7 @@ import java.util.concurrent.Semaphore;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -177,13 +178,20 @@ public class MyLogger {
 				if (isLocal) {
 
 					MyLogger.mailTo = MainPMScmd.getMyPrefs().get("mail.to", MyLogger.mailFrom);
-					MyLogger.session = Session.getInstance(mailSessionProps);
+					mailSessionProps.put("mail.smtp.localhost", "localhost");
+					MyLogger.session = Session.getInstance(mailSessionProps, null);
+					MyLogger.session.setDebug(true);
 
 				} else {
 
 					//Test the smtp session
-					mailSessionProps.put("mail.smtp.starttls.enable", "true");
+					mailSessionProps.put("mail.smtp.localhost", MainPMScmd.getMyPrefs().get("site.url", "none.com"));
+					mailSessionProps.put("mail.smtp.user", MyLogger.mailUserName);
+					mailSessionProps.put("mail.smtp.password", MyLogger.mailPassword);
+					
 					mailSessionProps.put("mail.smtp.auth", "true");
+					mailSessionProps.put("mail.smtp.starttls.enable", "true");
+					mailSessionProps.put("mail.smtp.port", "587");
 
 					InternetAddress senderAddress;
 					try {
@@ -192,40 +200,43 @@ public class MyLogger {
 						senderAddress = new InternetAddress(MyLogger.mailUserName);
 					}
 
-					MyLogger.session = Session.getInstance(mailSessionProps);
-					Transport transport = MyLogger.session.getTransport();
-					MimeMessage testMsg = new MimeMessage(MyLogger.session);
-					testMsg.setSubject("Smtp connection test msg");
-					testMsg.setText("Smtp connection test msg");
-					testMsg.setFrom(senderAddress);
-					testMsg.setSender(senderAddress);
-					Address[] rTo = {senderAddress};
-					testMsg.setReplyTo(rTo);
-					testMsg.setRecipients(Message.RecipientType.TO, mailTo);
-					testMsg.saveChanges();   
+					buildSession(mailSessionProps);
+					Transport transport = MyLogger.session.getTransport("smtp");
+					MimeMessage testMsg = buildTestMessage(senderAddress);
 					try {
 						transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 						transport.sendMessage(testMsg, testMsg.getAllRecipients());
-						System.out.println("Auth Secure connection is valid");
+						System.out.println("Auth TLS connection is valid");
 					} catch (Exception e) {
-						System.out.println("Auth Secure connection is Invalid");
+						System.out.println("Auth TLS connection is Invalid : "+ e.toString());
+						mailSessionProps.put("mail.smtp.auth", "true");
 						mailSessionProps.put("mail.smtp.starttls.enable", "false");
-						MyLogger.session = Session.getInstance(mailSessionProps);
+						mailSessionProps.put("mail.smtp.port", "465");
+						mailSessionProps.put("mail.smtp.socketFactory.host", MyLogger.mailHost);
+						mailSessionProps.put("mail.smtp.socketFactory.port", "465");
+						mailSessionProps.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
+						buildSession(mailSessionProps);
+						transport = MyLogger.session.getTransport("smtp");
+						testMsg = buildTestMessage(senderAddress);
 						try {
 							transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 							transport.sendMessage(testMsg, testMsg.getAllRecipients());
-							System.out.println("Auth connection is valid");
+							System.out.println("Auth SSL connection is valid");
 						} catch (Exception e1) {
-							System.out.println("Auth connection is Invalid");
+							System.out.println("Auth SSL connection is Invalid : "+ e1.toString());
 							mailSessionProps.put("mail.smtp.auth", "false");
-							MyLogger.session = Session.getInstance(mailSessionProps);
+							mailSessionProps.put("mail.smtp.starttls.enable", "false");
+							mailSessionProps.put("mail.smtp.port", "25");
+							buildSession(mailSessionProps);
+							transport = MyLogger.session.getTransport("smtp");
+							testMsg = buildTestMessage(senderAddress);
 							try {
 								transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 								transport.sendMessage(testMsg, testMsg.getAllRecipients());
 								System.out.println("Non Auth SMTP connection is valid");
 							} catch (Exception e2) {
-								System.out.println("Non Auth SMTP connection is Invalid");
-								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
+								System.out.println("Non Auth SMTP connection is Invalid : "+ e2.toString());
+								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..."); 
 								if (MyLogger.mailActivationType.equals("true")) {
 									MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
 									MainPMScmd.getMyPrefs().flushy();
@@ -246,15 +257,15 @@ public class MyLogger {
 				
 			}
 
-		} catch (Throwable e) {
+		} catch (Throwable t) {
 			
-			System.out.println("Log send failed, exception: " + e); 
-			System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + e); 
+			System.out.println("Log send failed, exception: " + t); 
+			System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..." + t); 
 			if (MyLogger.mailActivationType.equals("true")) {
 				MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
 			}
 			MainPMScmd.getMyPrefs().flushy();
-			e.printStackTrace();
+			t.printStackTrace();
 			
 		}
 		
@@ -268,6 +279,28 @@ public class MyLogger {
 			e1.printStackTrace();
 		}
 		
+	}
+
+	protected static void buildSession(Properties mailSessionProps) {
+		MyLogger.session = Session.getInstance(mailSessionProps, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(MyLogger.mailUserName, MyLogger.mailPassword);
+			}
+		  });
+		MyLogger.session.setDebug(true);
+	}
+
+	protected static MimeMessage buildTestMessage(InternetAddress senderAddress) throws MessagingException {
+		MimeMessage testMsg = new MimeMessage(MyLogger.session);
+		testMsg.setSubject("Smtp connection test msg");
+		testMsg.setText("Smtp connection test msg");
+		testMsg.setFrom(senderAddress);
+		testMsg.setSender(senderAddress);
+		Address[] rTo = {senderAddress};
+		testMsg.setReplyTo(rTo);
+		testMsg.setRecipients(Message.RecipientType.TO, mailTo);
+		testMsg.saveChanges();
+		return testMsg;
 	}
 
 	private Logger delegateLogger;

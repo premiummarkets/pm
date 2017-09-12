@@ -86,6 +86,10 @@
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
+	<bean id="investingProviderSource" class="com.finance.pms.datasources.web.ProvidersInvesting"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="INVESTING" />
+	</bean>
 	
 	<!--  Share lists providers -->
 	<bean id="bseProviderSource" class="com.finance.pms.datasources.web.ProvidersBSEMarket"  parent="provider">

@@ -43,6 +43,8 @@ import junit.framework.TestCase;
 
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 
 // TODO: Auto-generated Javadoc
@@ -81,8 +83,11 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 		st = new Stock();
 		st.setSymbol("AFO.PA");
 		st.setIsin("FR0000044612");
+		MarketValuation market = new MarketValuation(Market.PARIS);
+		st.setMarketValuation(market);
 		
-	//FIXME	formater = new DayQuoteDoublonTest(new MyUrl(),st,"EUR");
+		
+		formater = new DayQuoteInvestingFormater(null, st);
 		
 		
 	}
@@ -103,7 +108,7 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 	        
 	        try {   	
 	 
-	        	f=  new FileInputStream((new File("/home/guil/Developpement/Quotes/pms/tmp/doubleQ.txt")));
+	        	f=  new FileInputStream((new File("/home/guil/tmp/resp_2.html")));
 	            dis = new BufferedReader(new InputStreamReader(f));
 	            int cpt = 0;
 		        for(; ((line = dis.readLine()) != null) && continu;)
@@ -133,19 +138,8 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 	        
 	        queries.addAll(qL);
 
-			try {
-		        //ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
-				//tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-				//DataSource.getInstance().executeLongBatch(queries,DataSource.QUOTATIONS.getINSERT(),tablet2lock);
-				for (Validatable v: queries ) {
-					List<Validatable> tmpl = new ArrayList<Validatable>();
-					tmpl.add(v);
-					System.out.println(v.toDataBase());
-					DataSource.getInstance().executeBlock(tmpl, DataSource.QUOTATIONS.getINSERT());
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			for (Validatable v: queries ) {
+				System.out.println(v.toDataBase());
 			}
 	    
     }
