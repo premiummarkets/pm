@@ -349,7 +349,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 		return indicatorsStr;
 	}
 
-	public static  Set<EventInfo> loadFirstPassPrefEventDefinitions() {
+	public static  SortedSet<EventInfo> loadFirstPassPrefEventDefinitions() {
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 		return eventSignalConfig.getIndicatorsSorted();
 	}

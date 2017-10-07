@@ -46,18 +46,16 @@ public class Normalizer<T> {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(Normalizer.class);
 	
-	private Class<T> genType;
+	private final Class<T> genType;
 	
-	private Date start;
-	private Date end;
-	private double maxNorm;
-	private double minNorm;
+	protected final Date start;
+	protected final Date end;
+	private final double maxNorm;
+	private final double minNorm;
+	private final boolean keepDistanceToZero;
 
-	private double max;
-	private double min;
-	private boolean keepZero;
 	
-	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, boolean keepZero) {
+	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, boolean keepDistanceToZero) {
 		
 		this.genType = genType;
 		
@@ -71,7 +69,7 @@ public class Normalizer<T> {
 		this.minNorm = minNorm;
 		this.maxNorm = maxNorm;
 		
-		this.keepZero = keepZero;
+		this.keepDistanceToZero = keepDistanceToZero;
 	}
 
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm) {
@@ -84,21 +82,24 @@ public class Normalizer<T> {
 		SortedMap<Date, T> ret = new TreeMap<Date, T>();
 		
 		SortedMap<Date, T> subD = data.subMap(start, end);
-		calculateMinMax(subD);
+		double[] calculatedMinMax = calculateMinMax(subD);
+		double min = calculatedMinMax[0];
+		double max = calculatedMinMax[1];
 		
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
-			ret.put(date,  tOf(((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm));
+			double destValueAti = ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm;
+            ret.put(date,  tOf(destValueAti));
 		}
 		
 		return ret;
 		
 	}
 
-	private void calculateMinMax(SortedMap<Date, T> subD) {
+	protected double[] calculateMinMax(SortedMap<Date, T> subD) {
 		
-		max = -Double.MAX_VALUE;
-		min = Double.MAX_VALUE;
+		double max = -Double.MAX_VALUE;
+		double min = Double.MAX_VALUE;
 		
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
@@ -106,23 +107,26 @@ public class Normalizer<T> {
 			if (value <= min) min = value;
 		}
 		
-		if (keepZero) {
+		//Keep a gap to the requested norm for the smallest of abs(min) and abs(max)
+		//This can avoid having the norm stuck to zero if 0 is requested
+		if (keepDistanceToZero) {
 			double biggestAbs = Math.max(Math.abs(max), Math.abs(min));
 			max = (max > 0)? biggestAbs: 0;
 			min = (min < 0)? -biggestAbs : 0;
 		}
 		
-	}
-
-	public double getNormalizedZero() {
-		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
-		return (-min/(max-min)) * (maxNorm - minNorm) + minNorm;
+		return new double[] {min,max};
 	}
 	
-	public double getNormalizedValue(Double value) {
-		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
-		return (value-min/(max-min)) * (maxNorm - minNorm) + minNorm;
-	}
+//	public double getNormalizedZero() {
+//		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
+//		return (-min/(max-min)) * (maxNorm - minNorm) + minNorm;
+//	}
+//	
+//	public double getNormalizedValue(Double value) {
+//		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
+//		return (value-min/(max-min)) * (maxNorm - minNorm) + minNorm;
+//	}
 	
 	@SuppressWarnings("unchecked")
 	private T tOf(Double destValueAti) {

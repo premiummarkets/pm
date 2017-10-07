@@ -40,9 +40,9 @@ import java.util.TreeMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public class InvNormalizer {
+public class FlipNormalizer {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(InvNormalizer.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(FlipNormalizer.class);
 	
 	private Date start;
 	private Date end;
@@ -51,7 +51,7 @@ public class InvNormalizer {
 	
 	
 
-	public InvNormalizer(Date start, Date end, double minNorm, double maxNorm) {
+	public FlipNormalizer(Date start, Date end, double minNorm, double maxNorm) {
 		super();
 		this.start = start;
 		

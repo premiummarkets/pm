@@ -1077,7 +1077,6 @@ public class EventsResources {
 		
 	}
 
-
 	public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
 		
 		for (EventInfo eventInfo : indicators) {

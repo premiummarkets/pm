@@ -802,7 +802,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 	
-	
 	private String eventDefinitionConstraint(Set<EventInfo> eventDefinitions) {
 		if (eventDefinitions != null) return eventDefinitionConstraint(eventDefinitions.toArray(new EventInfo[0]));
 		return "";

@@ -33,6 +33,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.SortedMap;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -41,44 +43,49 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public interface QuotationsFactory {
 
-	public abstract Date getValidQuotationDateBefore(Date date);
+    public abstract Date getValidQuotationDateBefore(Date date);
 
-	public abstract Date getValidQuotationDateAfter(Date date);
+    public abstract Date getValidQuotationDateAfter(Date date);
 
-	public abstract Date shiftToOpeningTime(Calendar calendar);
-	
-	public abstract Date shiftToClosingTime(Calendar calendar);
-	
-	public abstract int largeIncrementGap(Calendar firstDate, Calendar secondDate);
+    public abstract Date shiftToOpeningTime(Calendar calendar);
 
-	public abstract Calendar incrementDateExtraLarge(Calendar calendar, int amount);
+    public abstract Date shiftToClosingTime(Calendar calendar);
 
-	public abstract Calendar incrementDateLarge(Calendar calendar, int amount);
+    public abstract int largeIncrementGap(Calendar firstDate, Calendar secondDate);
 
-	public abstract Calendar incrementDate(Calendar calendar, int amount);
+    public abstract Calendar incrementDateExtraLarge(Calendar calendar, int amount);
 
-//	public abstract Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter) throws NoQuotationsException;
+    public abstract Calendar incrementDateLarge(Calendar calendar, int amount);
 
-	public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter cacheFilter) throws NoQuotationsException;
+    public abstract Calendar incrementDate(Calendar calendar, int amount);
 
-	public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter) throws NoQuotationsException;
+    //public abstract Quotations getQuotationsInstance(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter) throws NoQuotationsException;
 
-	int nbOpenIncrementBetween(Date firstDate, Date secondDate);
+    public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter cacheFilter) throws NoQuotationsException;
 
-	int minutesIncrement();
+    public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter) throws NoQuotationsException;
 
-	public abstract Boolean isInOpenHours(Date lastDate);
+    int nbOpenIncrementBetween(Date firstDate, Date secondDate);
 
-	SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException;
-	
-	SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
-	SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+    int minutesIncrement();
 
-	public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Validatable stock);
+    public abstract Boolean isInOpenHours(Date lastDate);
 
-	SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+    SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException;
 
-	SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+    default SortedMap<Date, double[]> buildExactMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
+        throw new NotImplementedException("TODO");
+    }
 
-		
+    SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
+    SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+
+    public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Validatable stock);
+
+    SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+
+    SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
+
+
+
 }

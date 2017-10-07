@@ -73,7 +73,7 @@ public class StandardEventValue extends EventValue {
 	}
 
 	public StandardEventValue(StandardEventKey eventKey, String message, String eventListName) {
-		super(eventKey.getDate(), (EventDefinition)eventKey.getEventInfo(), (EventType)eventKey.getEventType(), message,eventListName);
+		super(eventKey.getDate(), (EventDefinition)eventKey.getEventInfo(), (EventType)eventKey.getEventType(), message, eventListName);
 	}
 
 }

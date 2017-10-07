@@ -168,6 +168,10 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		throw new NotImplementedException();
 	}
 	
+	/**
+	 * This using the binary search to retrieve quotations will fill in the missing gaps of quotations
+	 * This hence is not the quotations as stored in DB. For the actual stored quotations, use {@link #buildExactSMapFromQuotations(Quotations, QuotationDataType, int, int)}
+	 */
 	@Override
 	public SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
 		
@@ -187,6 +191,24 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		} catch (InvalidAlgorithmParameterException e) {
 			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
 		}
+	}
+	
+	/**
+	 * Will return quotations as stored in the DB although potentially altered by a split fix.
+	 * @param quotations
+	 * @return
+	 * @throws NotEnoughDataException
+	 */
+	@Override
+	public SortedMap<Date, double[]> buildExactMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
+//	    Map<Date, double[]> collect = 
+//	            quotations.getQuotationData().stream().collect(Collectors.toMap(QuotationUnit::getDate, qU -> new double[] {qU.getData(QuotationDataType.CLOSE).doubleValue()}));
+//	    return new TreeMap<Date, double[]>(collect);
+        return quotations.getQuotationData().stream().collect(
+                TreeMap::new,
+                (result, qU) -> result.put(qU.getDate(), new double[] {qU.getData(QuotationDataType.CLOSE).doubleValue()}),
+                TreeMap::putAll);
+	   
 	}
 
 	@Override
