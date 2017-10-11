@@ -235,7 +235,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 
 	private void closeMouseDown() {
 		dialogShell.dispose();
-		action.action(null);
+		action.action();
 	}
 
 	public Boolean getCanceled() {

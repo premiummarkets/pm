@@ -160,7 +160,7 @@ public abstract class ChartDisplayStrategy {
 		if (action == null) {
 			action = new ActionDialogAction() {
 				@Override
-				public void action(Control targetControl) {
+				public void action() {
 				}
 			};
 		}

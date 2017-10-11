@@ -44,7 +44,6 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
@@ -163,7 +162,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					new TransfoInfo("Change to Invested per unit", new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							
 							Boolean isIncludeMoneyOutSelected = true;
 							if (chartTarget.getStripedCloseFunction() instanceof StripedCloseRelativeToInvested) {
@@ -188,7 +187,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							uPrice.setSelection(isIncludeMoneyOutSelected);
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(uPrice.getSelection());
 									chartTarget.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0]));
 									chartTarget.updateCharts(false);
@@ -204,7 +203,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					new TransfoInfo("Change to Period start", new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							chartTarget.setStripedCloseFunction( new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 							chartTarget.updateCharts(false);
 						}
@@ -212,7 +211,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					new TransfoInfo("Change to Previous day (log ROC)", new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
 							final Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
@@ -239,7 +238,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							});
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(zeroBut.getSelection());
 									String text = smthPeriodTxt.getText();
 									Integer pSmth;
@@ -263,7 +262,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					new TransfoInfo("Change to Referee", new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 
 							String refereeRef = MainPMScmd.getMyPrefs().get("charts.referee", NOT_DEFINED+"||-||"+NOT_DEFINED);
 							
@@ -283,7 +282,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 									try {
 										selectNewReferee(previousReferee);
@@ -321,9 +320,9 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					ActionDialogAction actionDialogAction = new ActionDialogAction() {
 						
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							for (TransfoInfo selctTransUnic : selectTransfo) {
-								selctTransUnic.action.action(null);
+								selctTransUnic.action.action();
 							}
 							
 						}
@@ -374,7 +373,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						ActionDialogAction action = new ActionDialogAction() {
 							
 							@Override
-							public void action(Control targetControl) {
+							public void action() {
 								if (!isShutDown) {
 									for (SlidingPortfolioShare slidingPortfolioShare : availShares) {
 										if (displayedShares.contains(slidingPortfolioShare)) {

@@ -74,7 +74,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		
 	}
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException {
+	public void callbackForStockListFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException {
 
 		LOGGER.debug("Updating list of shares  : "+rootParam);
 		for (Object shareList : rootParam) {
@@ -86,7 +86,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	}
 
 	
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
+	public void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
 
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 
@@ -101,7 +101,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 
 	@SuppressWarnings("unchecked")
-	public void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, Collection<? extends Object>...viewStateParams) {
+	public void callbackForAnalysis(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, Collection<? extends Object>...viewStateParams) {
 
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 

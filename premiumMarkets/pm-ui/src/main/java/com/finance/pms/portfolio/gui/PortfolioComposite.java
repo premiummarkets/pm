@@ -350,7 +350,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				ActionDialogAction actionDialogAction = new ActionDialogAction() {
 
 					@Override
-					public void action(Control targetControl) {
+					public void action() {
 						
 						String text = dateTxt.getText();
 						try {
@@ -419,7 +419,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 				ActionDialogAction errorHandler = new ActionDialogAction() {
 					@Override
-					public void action(Control targetControl) {
+					public void action() {
 						warning.setForeground(new Color(getDisplay(), 255, 0, 0));
 						warning.setText(error.toString());
 						actForm.getParent().pack();
@@ -868,7 +868,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								Portfolio portfolio = modelControler.getPortfolio(selectedPortfolioIdx());
 								ActionDialog errorDialog = new ActionDialog(getShell(),"Warning", null, null, "Please, confirm '"+portfolio.getName()+"' portfolio removal", new ActionDialogAction() {	
 									@Override
-									public void action(Control targetControl) {
+									public void action() {
 										removeSelectedPortfolio();
 										refreshChartData();
 										refreshPortfolioTotalsInfos(-1);
@@ -1457,7 +1457,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				
 								ActionDialogAction action = new ActionDialogAction() {
 									@Override
-									public void action(Control targetControl) {
+									public void action() {
 										EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Alerts);
 										tabUpdateTableItem(table.getSelection()[0], selectedShare);
 									}
@@ -1510,7 +1510,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								ActionDialogAction closeAction = new ActionDialogAction() {
 									
 									@Override
-									public void action(Control targetControl) {
+									public void action() {
 										
 										selectedShare.clearAlertOnEvent();
 										if (!selectedEventDefs.isEmpty()) {
@@ -1604,7 +1604,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								ActionDialogAction actionDialogAction = new ActionDialogAction() {
 
 									@Override
-									public void action(Control targetControl) {
+									public void action() {
 										
 										Stock stock = ss.getStock();
 							
@@ -2067,7 +2067,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					ActionDialogAction action = new ActionDialogAction() {
 	
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							try {
 								applyTransaction(tableItem, tabIdx, rowIdx, pstmp, transaction, selectPriceDialog.getOk(), selectPriceDialog.getResetLine());
 							} catch (InvalidQuantityException e) {
@@ -2093,7 +2093,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					ActionDialogAction action = new ActionDialogAction() {
 	
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							try {
 								applyTransaction(tableItem, tabIdx, rowIdx, pstmp, transaction, selectPriceDialog.getOk(), selectPriceDialog.getResetLine());
 							} catch (InvalidQuantityException e) {
@@ -2535,7 +2535,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 		ActionDialogAction actionDialogAction = new ActionDialogAction() {
 			@Override
-			public void action(Control targetControl) {
+			public void action() {
 				actionDialog.values[0] = newPortfolioText.getText();
 				actionDialog.values[1] = Currency.valueOf(curCombo.getText());
 				addPortfolio(new UserPortfolio((String) actionDialog.values[0], (Currency) actionDialog.values[1]));
@@ -3019,7 +3019,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 					ActionDialogAction action = new ActionDialogAction() {
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							EventTaskQueue.getSingleton().invalidateTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
 						}
 					};
@@ -3186,7 +3186,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		
 		ActionDialogAction actionDialogAction = new ActionDialogAction() {
 			@Override
-			public void action(Control targetControl) {
+			public void action() {
 				
 				try {
 					final Currency targetCurrency = Currency.valueOf(currencyListCombo.getItem(currencyListCombo.getSelectionIndex()));

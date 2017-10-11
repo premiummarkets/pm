@@ -117,7 +117,7 @@ public class AddAlertDialog extends Dialog {
 				
 				@Override
 				public void widgetDisposed(DisposeEvent e) {
-					action.action(null);
+					action.action();
 					
 				}
 			});

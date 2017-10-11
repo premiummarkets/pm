@@ -45,7 +45,6 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
@@ -150,7 +149,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 					ActionDialogAction closeAction = new ActionDialogAction() {
 						
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							for (Operation eventInfo : availableOperations) {
 								if (enabledOperations.contains(eventInfo)) {
 									if (eventInfo.getDisabled()) enableFormula(eventInfo.getReference());

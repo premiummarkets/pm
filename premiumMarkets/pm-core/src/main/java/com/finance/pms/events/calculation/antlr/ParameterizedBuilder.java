@@ -168,10 +168,13 @@ public abstract class ParameterizedBuilder extends Observable {
 			
 			runParsing(formulaParser);
 			
+			LOGGER.info("Parsing ok for formula "+identifier);
+			
 			Operation operation = formulaParser.getBuiltOperation();	
 			
 			if (operation != null) {
 				
+			    LOGGER.info("Saving formula operation "+identifier);
 				saveUserOperation(identifier, formula);
 				
 				Operation alreadyExists = getCurrentOperations().get(operation.getReference());
@@ -179,6 +182,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				
 				if (!isNewOp) {
 					try {
+					    LOGGER.info("Updating usage of "+identifier);
 						replaceInUse(operation);
 					} catch (StackOverflowError e) {
 						throw new InstantiationException("Can't solve : "+formulaParser+". The operation is calling its self. Please fix.");
@@ -198,9 +202,13 @@ public abstract class ParameterizedBuilder extends Observable {
 			updateCaches(operation, isNewOp);
 			
 		} catch (Exception e) {
+		    LOGGER.error(e,e);
 			throw new IOException(e);
 		} finally {
-			if (formulaParser != null) formulaParser.shutdown();
+			if (formulaParser != null) {
+			    LOGGER.info("Shutting down the parser for "+identifier);
+			    formulaParser.shutdown();
+			}
 		}
 	
 	}

@@ -88,16 +88,20 @@ public class ActionDialog extends UserDialog {
 					@Override
 					public void run() {
 						try {
-							action.action(valideButton);
-							dispose();
+							action.action();
+							//dispose();
 						} catch (Exception e) {
 							if (errorHandler != null) {
 								LOGGER.warn(e);
-								errorHandler.action(valideButton);
+								errorHandler.action();
 							} else {
-								ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
-								ActionDialog.this.errorTxt.setVisible(true);
-								ActionDialog.this.getParent().pack();
+								try {
+                                    ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
+                                    ActionDialog.this.errorTxt.setVisible(true);
+                                    ActionDialog.this.getParent().pack();
+                                } catch (Exception e1) {
+                                    LOGGER.warn(e,e);
+                                }
 								LOGGER.error(e,e);
 							}
 						} finally {
@@ -107,6 +111,7 @@ public class ActionDialog extends UserDialog {
 				});
 			}
 		}).start();
+		dispose();
 	}
 
 

@@ -92,6 +92,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		return to;
 	}
 	public void setTo(Date to) {
+	    if (from.after(to)) throw new IllegalArgumentException("From : "+from+" must be before or equal To : "+to);
 		this.to = to;
 	}
 	public String getTrend() {

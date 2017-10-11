@@ -43,7 +43,6 @@ public class CurvesHouseDevComparator extends CurvesComparator {
 
 	@Override
 	protected double compareNormalised(Date start, Date end, SortedMap<Date, double[]> normalisedData, SortedMap<Date, double[]> normalisedRefData) {
-		
 		int nbValues = 0;
 		double shiftErr = 0;
 		for (Date date : normalisedData.keySet()) {

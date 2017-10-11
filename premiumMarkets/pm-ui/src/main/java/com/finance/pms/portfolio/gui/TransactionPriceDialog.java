@@ -488,7 +488,7 @@ public class TransactionPriceDialog extends Dialog {
 	}
 	
 	private void newTransactionValidateButtonMouseDown(EventObject evt) {
-		this.action.action(null);
+		this.action.action();
 		getParent().close();
 	}
 

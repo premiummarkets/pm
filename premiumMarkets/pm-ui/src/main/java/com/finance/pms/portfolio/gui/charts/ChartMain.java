@@ -138,7 +138,7 @@ public class ChartMain extends Chart {
 	private XYPlot mainPlot;
 
 	private XYPlot indicPlot;
-	private Integer indicPlotWeight = CHARTS_TOTAL_WEIGHT/4;
+	private Integer indicPlotWeight = CHARTS_TOTAL_WEIGHT/2;
 
 	private Map<Long, XYTextAnnotation> lineAnnotations;
 	private ValueMarker axisMarker;

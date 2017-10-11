@@ -30,6 +30,7 @@
 package com.finance.pms.datasources;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -61,206 +64,233 @@ import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
 public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEngine<X> {
-	
-	protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
-	public void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
-		LOGGER.debug("No list update available for this model.");
-	}
+    protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException {
-		
-		LOGGER.guiInfo("Running task : Updating quotations");
-		QuotationUpdate quotationUpdate = new QuotationUpdate();
-		
-		LOGGER.debug("Fetching monitored quotations");
-		quotationUpdate.addObservers(engineObservers);
+    public void callbackForStockListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
+        LOGGER.debug("No list update available for this model.");
+    }
 
-		updateQuotations(quotationUpdate, buildStockListFrom(rootParam));
-	}
+    public void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException {
 
-	private void updateQuotations(QuotationUpdate quotationUpdate, List<Stock> stocks) throws QuotationUpdateException {
-		quotationUpdate.getQuotesFor(stocks);
-	};
+        List<Stock> buildStockListFrom = buildStockListFrom(rootParam).stream().filter(s -> s.getLastQuote().before(endAnalysisDate)).collect(Collectors.toList());
+        
+        LOGGER.guiInfo("Running task : Updating quotations");
+        QuotationUpdate quotationUpdate = new QuotationUpdate();
 
-	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
+        LOGGER.debug("Fetching monitored quotations");
+        quotationUpdate.addObservers(engineObservers);
 
-		String periodType = MainPMScmd.getMyPrefs().get("events.periodtype", "daily");
-		String[] analysers = new String[analysisList.size()];
-		for (int j = 0; j < analysers.length; j++) {
-			analysers[j] = analysisList.get(j);
-		}
+        updateQuotations(quotationUpdate, buildStockListFrom);
+    }
 
-		Date datefin = DateFactory.midnithDate(endAnalysisDate);
-		Date datedeb = DateFactory.midnithDate(startAnalyseDate);
+    private void updateQuotations(QuotationUpdate quotationUpdate, List<Stock> stocks) throws QuotationUpdateException {
+        quotationUpdate.getQuotesFor(stocks);
+    };
 
-		List<Stock> stockList = buildStockListFrom(rootParam);
+    public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, 
+                                        X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
 
-		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected. Select a stock or a list of stocks to analyse before running this.", new Throwable());
-		
-		for (int i = 0; i < analysers.length; i++) {
+        String periodType = MainPMScmd.getMyPrefs().get("events.periodtype", "daily");
+        String[] analysers = new String[analysisList.size()];
+        for (int j = 0; j < analysers.length; j++) {
+            analysers[j] = analysisList.get(j);
+        }
 
-			LOGGER.guiInfo("Running task : Analysing from "+datedeb+" to "+datefin);
-			
-			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+        Date datefin = DateFactory.midnithDate(endAnalysisDate);
+        Date datedeb = DateFactory.midnithDate(startAnalyseDate);
 
-			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
+        List<Stock> stockList = buildStockListFrom(rootParam);
 
-			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
-					SpringContext.getSingleton(), 
-					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-					stockList, datedeb, datefin, engineObservers.toArray(new Observer[0]));
+        Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
+        if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected. Select a stock or a list of stocks to analyse before running this.", new Throwable());
 
-			Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
+        for (int i = 0; i < analysers.length; i++) {
 
-			//Pass one
-			Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-			try {
-				runPassOne = runPassOne(actionThread, datedeb, datefin);
-			} catch (Exception e) {
-				LOGGER.error(e,e);
-			}
-			if (runPassOne != null) outputRet.putAll(runPassOne);
+            LOGGER.guiInfo("Running task : Analysing from "+datedeb+" to "+datefin);
 
-			//Pass two
-			if (maxPass == 2) {
-				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-				try {
-					runPassTwo = runPassTwo(actionThread, datedeb, datefin);
-				} catch (Exception e) {
-					LOGGER.error(e,e);
-				}
-				if (runPassTwo != null) {
-					for (Stock stock : runPassTwo.keySet()) {
-						Map<EventInfo, EventDefCacheEntry> map4Stock = outputRet.get(stock);
-						if (map4Stock == null) {
-							outputRet.put(stock, runPassTwo.get(stock));
-						} else {
-							map4Stock.putAll(runPassTwo.get(stock));
-						}
-					}
-				}
-			} 
-		}
+            IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
-		postCallBackForAnalysis(outputRet);
-		
-	}
-	
-	protected abstract List<Stock> buildStockListFrom(X rootParam);
+            ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 
-	public void callbackForReco(Set<Observer> engineObservers) {
-		throw new NotImplementedException();
-	}
+            IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
+                    SpringContext.getSingleton(), 
+                    analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
+                    stockList, datedeb, datefin, engineObservers.toArray(new Observer[0]));
 
-	
-	public Date setLastListFetch(Date newLastListFetch, Date oldLastListFetch) {
-		return newLastListFetch;
-	}
+            Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 
-	
-	public Date setLastQuotationFetch(Date newLastQuotationFetch, Date oldLastQuotationFetch) {
-		return newLastQuotationFetch;
-	}
+            Boolean doRunPassOne = true;
+            if (viewStateParams != null && viewStateParams.length == 1) {
+                Stream<? extends Object> filter = viewStateParams[0].stream()
+                        .filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED) && ((Operation) e).isDataFree());
+                if (filter.count() == viewStateParams[0].size()) doRunPassOne = false;
+                LOGGER.info("The requested operations are data free, no pass one will be processed : "+
+                        viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
+                
+            } 
 
-	
-	public Date setLastAnalyse(Date newLastAnalyse, Date oldLastAnalyse) {
-		return newLastAnalyse;
-	}
+            if (doRunPassOne) {
+                //Pass one
+                Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+                try {
+                    runPassOne = runPassOne(actionThread, datedeb, datefin);
+                } catch (Exception e) {
+                    LOGGER.error(e, e);
+                }
+                if (runPassOne != null)
+                    outputRet.putAll(runPassOne);
+            }
 
-	
-	public Date getLastListFetch(Date oldLastListFetch) {
-		return (oldLastListFetch == null)?EventModel.DEFAULT_DATE:oldLastListFetch;
-	}
+            //Pass two
+            if (maxPass == 2) {
+                Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
+                try {
+                    runPassTwo = runPassTwo(actionThread, datedeb, datefin);
+                } catch (Exception e) {
+                    LOGGER.error(e,e);
+                }
+                if (runPassTwo != null) {
+                    for (Stock stock : runPassTwo.keySet()) {
+                        Map<EventInfo, EventDefCacheEntry> map4Stock = outputRet.get(stock);
+                        if (map4Stock == null) {
+                            outputRet.put(stock, runPassTwo.get(stock));
+                        } else {
+                            map4Stock.putAll(runPassTwo.get(stock));
+                        }
+                    }
+                }
+            } 
+        }
 
-	
-	public Date getLastQuotationFetch(Date oldLastQuotationFetch) {
-		return (oldLastQuotationFetch == null)?EventModel.DEFAULT_DATE:oldLastQuotationFetch;
-	}
+        postCallBackForAnalysis(outputRet);
 
-	
-	public Date getLastAnalyse(Date oldLastAnalyse) {
-		return (oldLastAnalyse == null)?EventModel.DEFAULT_DATE:oldLastAnalyse;
-	}
+    }
+
+    protected abstract List<Stock> buildStockListFrom(X rootParam);
+
+    public void callbackForReco(Set<Observer> engineObservers) {
+        throw new NotImplementedException();
+    }
 
 
-	@Override
-	public void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
-		
-		List<Stock> builtStockList = buildStockListFrom(rootParam);
-		for (Observer observer : engineObservers) {
-			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, builtStockList.size()));
-		}
-	
-		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		for (Stock stock : builtStockList) {
-			
-			LOGGER.guiInfo("Running task : Cleaning previous "+((Stock)stock).getFriendlyName()+" sets of events.");
-			
-			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
-			TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
-			
-			for (Observer observer : engineObservers) {
-				observer.update(null, new ObserverMsg((Stock) stock, ObserverMsg.ObsKey.NONE));
-			}
-			
-		}
+    public Date setLastListFetch(Date newLastListFetch, Date oldLastListFetch) {
+        return newLastListFetch;
+    }
 
-		postCallBackForClean(false, builtStockList.toArray(new Stock[0]));
-		
-	}
 
-	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
-		
-		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
-		try {
-			passTwoOutput = actionThread.runIndicatorsCalculationPassTwo(true);
-		} catch (IncompleteDataSetException e1) {
-			passTwoOutput = e1.getCalculatedOutput();
-		}
-	
-		return finalising(actionThread, passTwoOutput, start, end);
-	}
+    public Date setLastQuotationFetch(Date newLastQuotationFetch, Date oldLastQuotationFetch) {
+        return newLastQuotationFetch;
+    }
 
-	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
-		
-		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
-		try {
-			passOneOutput = actionThread.runIndicatorsCalculationPassOne(true , passOneOverwriteMode());
-		} catch (IncompleteDataSetException e1) {
-			passOneOutput = e1.getCalculatedOutput();
-		}
-	
-		return finalising(actionThread, passOneOutput, start, end);
-		
-	}
 
-	protected abstract String passOneOverwriteMode();
-	
-	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end) {
+    public Date setLastAnalyse(Date newLastAnalyse, Date oldLastAnalyse) {
+        return newLastAnalyse;
+    }
 
-		Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		for (Stock stock : passOutput.keySet()) {
-			Map<EventInfo, SortedMap<Date, double[]>> map4Stock = passOutput.get(stock);
-			if (map4Stock != null) {
-				ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
-				for (EventInfo evtDef : map4Stock.keySet()) {
-					SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
-					if (map4EvtDef != null) {
-						ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false)));
-					} else {
-						ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true)));
-					}
-				}
-			}
-		}
-		return ret;
-	}
+
+    public Date getLastListFetch(Date oldLastListFetch) {
+        return (oldLastListFetch == null)?EventModel.DEFAULT_DATE:oldLastListFetch;
+    }
+
+
+    public Date getLastQuotationFetch(Date oldLastQuotationFetch) {
+        return (oldLastQuotationFetch == null)?EventModel.DEFAULT_DATE:oldLastQuotationFetch;
+    }
+
+
+    public Date getLastAnalyse(Date oldLastAnalyse) {
+        return (oldLastAnalyse == null)?EventModel.DEFAULT_DATE:oldLastAnalyse;
+    }
+
+
+    @Override
+    public void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
+
+        List<Stock> builtStockList = buildStockListFrom(rootParam);
+        for (Observer observer : engineObservers) {
+            observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, builtStockList.size()));
+        }
+
+        //EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+        EventInfo[] eventDefsArray = null;
+        if (viewStateParams != null && viewStateParams.length == 1) {
+            eventDefsArray = viewStateParams[0].toArray(new EventInfo[0]);
+        } else {
+            eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+        }
+
+        for (Stock stock : builtStockList) {
+
+            LOGGER.guiInfo("Running task : Cleaning previous "+((Stock)stock).getFriendlyName()+
+                    " with sets of events as dirty : "+
+                    ((viewStateParams != null && viewStateParams.length == 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"?")+
+                    " . Will delete : "+ Arrays.toString(eventDefsArray));
+
+            EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
+            TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
+
+            for (Observer observer : engineObservers) {
+                observer.update(null, new ObserverMsg((Stock) stock, ObserverMsg.ObsKey.NONE));
+            }
+
+        }
+
+        postCallBackForClean(false, builtStockList.toArray(new Stock[0]));
+
+    }
+
+    protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
+
+        Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
+        try {
+            passTwoOutput = actionThread.runIndicatorsCalculationPassTwo(true);
+        } catch (IncompleteDataSetException e1) {
+            passTwoOutput = e1.getCalculatedOutput();
+        }
+
+        return finalising(actionThread, passTwoOutput, start, end);
+    }
+
+    protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
+
+        Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
+        try {
+            passOneOutput = actionThread.runIndicatorsCalculationPassOne(true , passOneOverwriteMode());
+        } catch (IncompleteDataSetException e1) {
+            passOneOutput = e1.getCalculatedOutput();
+        }
+
+        return finalising(actionThread, passOneOutput, start, end);
+
+    }
+
+    protected abstract String passOneOverwriteMode();
+
+    Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end) {
+
+        Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
+        for (Stock stock : passOutput.keySet()) {
+            Map<EventInfo, SortedMap<Date, double[]>> map4Stock = passOutput.get(stock);
+            if (map4Stock != null) {
+                ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
+                for (EventInfo evtDef : map4Stock.keySet()) {
+                    SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
+                    if (map4EvtDef != null) {
+                        ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false)));
+                    } else {
+                        ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true)));
+                    }
+                }
+            }
+        }
+        return ret;
+    }
 
 }

@@ -204,9 +204,12 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		missingReference = child.getText();
 		threadSuspended = true;
         synchronized(this) {
-            while (threadSuspended)
+            while (threadSuspended) {
+                LOGGER.info("Wait on suspended "+this);
                 wait();
+            }
         }
+        LOGGER.info("Wait on suspended released for "+this);
         
         //We try again at resume time
         if (!shutdown) {
@@ -264,21 +267,27 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	}
 
 	public void resume() {
-		
+	    LOGGER.info("Resuming Parser thread.");
 		if (holdingThread == null) {//Not started yet
 			Thread thread = new Thread(this);
 			holdingThread = thread;
 			thread.start();
 		} else {//We resume
+		    LOGGER.info("Synchronising on "+this+" in order to change state to "+!threadSuspended);
 			synchronized (this) {
 				 threadSuspended = !threadSuspended;
-			     if (!threadSuspended) notify();
+			     if (!threadSuspended) {
+			         LOGGER.info("Notifying wait of "+this);
+			         notify();
+			     }
+			     LOGGER.info("End of notification for "+this);
 			}
 		}
 		
 	}
 	
 	public void shutdown() {
+	    LOGGER.info("Shutting down Parser thread.");
 		if (holdingThread != null) {
 			this.shutdown = true;
 			resume();

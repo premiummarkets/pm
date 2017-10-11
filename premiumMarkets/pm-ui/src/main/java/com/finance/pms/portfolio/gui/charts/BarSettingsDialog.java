@@ -136,7 +136,7 @@ public class BarSettingsDialog {
 				public void handleEvent(Event e) {
 					try {
 						barChartSettings.setMaxFill(Integer.valueOf(evtOccSpanTxt.getText()));
-						action.action(null);
+						action.action();
 					} catch (NumberFormatException pe) {
 						UserDialog inst = new UserDialog(shell, pe.getMessage(), null);
 						inst.open();
@@ -171,7 +171,7 @@ public class BarSettingsDialog {
 
 				private void handle() {
 					barChartSettings.setIsReachTop(isReachTop.getSelection());
-					action.action(null);
+					action.action();
 					
 				}
 			});
@@ -200,7 +200,7 @@ public class BarSettingsDialog {
 
 				private void handle() {
 					barChartSettings.setIsZerobased(isZeroBase.getSelection());
-					action.action(null);
+					action.action();
 					
 				}
 			});
@@ -231,7 +231,7 @@ public class BarSettingsDialog {
 
 				private void handle() {
 					barChartSettings.setSideBySide(sideBySide.getSelection());
-					action.action(null);
+					action.action();
 				}
 			});
 			sideBySide.addMouseMoveListener(new MouseMoveListener() {
@@ -269,7 +269,7 @@ public class BarSettingsDialog {
 
 				private void handle() {
 					barChartSettings.setIsGradient(isGradient.getSelection());
-					action.action(null);
+					action.action();
 				}
 			});
 			isGradient.setSelection(barChartSettings.getIsGradiant());
@@ -302,7 +302,7 @@ public class BarSettingsDialog {
 
 				public void handleEvent(Event arg0) {
 					if (!barChartSettings.getAlphaDividend().equals(initialAlphaDividend)) {
-						action.action(null);
+						action.action();
 						initialAlphaDividend = barChartSettings.getAlphaDividend();
 					}
 				}

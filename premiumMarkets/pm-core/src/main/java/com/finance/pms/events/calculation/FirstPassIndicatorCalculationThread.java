@@ -88,7 +88,24 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 	private Integer smaReversalPeriod;
 	
-
+	/**
+	 * 
+	 * @param stock
+	 * @param startDate
+	 * @param endDate
+	 * @param calculationCurrency
+	 * @param eventListName
+	 * @param observers
+	 * @param passOneCalcMode : "auto", "reset" or "force". </br>
+     * "auto" will be incremental base on the last calculation in the configuration (associated with the config file currently used) status, </br>
+     * "reset" will calculate from startDate to endDate updating the configuration status,</br>
+     * "force" (default) will also calculate form startDate to endDate but not updating the configuration status of with these calculation dates.
+	 * @param keepCache
+	 * @param queue
+	 * @param jmsTemplate
+	 * @param persistEvents
+	 * @throws NotEnoughDataException
+	 */
 	public FirstPassIndicatorCalculationThread(
 				Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Set<Observer> observers, 
 				String passOneCalcMode, Boolean keepCache,Queue queue,JmsTemplate jmsTemplate, Boolean persistEvents) throws NotEnoughDataException {

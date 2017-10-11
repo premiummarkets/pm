@@ -59,19 +59,20 @@ public class RefreshChartHighlighted extends UserContentStrategyEngine<Stock> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
+	public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, 
+	                                   Stock rootParam, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
 		
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForlastAnalyse(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam);
+		super.callbackForAnalysis(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam, viewStateParams);
 		 
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void callbackForlastQuotationFetch(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) throws QuotationUpdateException {
+	public void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, Stock rootParam, Collection<? extends Object>... viewStateParams) throws QuotationUpdateException {
 
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForlastQuotationFetch(engineObservers, rootParam);
+		super.callbackForQuotationFetch(engineObservers,startAnalyseDate, endAnalysisDate, rootParam);
 		
 	}
 
@@ -80,7 +81,7 @@ public class RefreshChartHighlighted extends UserContentStrategyEngine<Stock> {
 	public void callbackForAnalysisClean(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) {
 		
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForAnalysisClean(engineObservers, rootParam);
+		super.callbackForAnalysisClean(engineObservers, rootParam, viewStateParams);
 
 	}
 

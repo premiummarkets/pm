@@ -56,7 +56,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
@@ -277,7 +276,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			ActionDialogAction action  = new ActionDialogAction() {
 
 				@Override
-				public void action(Control targetControl) {		
+				public void action() {		
 					ctrller.widgetSelected(null);
 				}
 
@@ -560,7 +559,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					ActionDialogAction  action =  new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 
 							Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 							if (viewStateParams != null) {
@@ -663,7 +662,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			});
 			ActionDialogAction actionDialogAction = new ActionDialogAction() {
 				@Override
-				public void action(Control targetControl) {
+				public void action() {
 					
 					actionDialog.values[0] = exportPngFileName.getText();
 					
@@ -725,7 +724,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		ActionDialogAction disactivateAction = new ActionDialogAction() {
 
 			@Override
-			public void action(Control targetControl) {
+			public void action() {
 
 				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 				if (viewStateParams != null ) {
@@ -770,7 +769,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		ActionDialogAction action = new ActionDialogAction() {
 
 			@Override
-			public void action(Control targetControl) {
+			public void action() {
 
 				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 				if (!chartedEvtDefTmpSet.isEmpty()) {
@@ -843,7 +842,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					ActionDialogAction  disactivateAction =  new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							for (OutputDescr outputDescr : availableOutputs) {
 								if (displayedOutputs.contains(outputDescr)) {
 									outputDescr.setDisplayOnChart(true);

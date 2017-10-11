@@ -165,6 +165,9 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new  EventDefDescriptorStatic("First Neural Smth output","First Neural output", "Row output", null, null, null,
 					"First Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
 					"First Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}), 0),
+	
+	ENCOG(520, "Encog Neural", true, new  EventDefDescriptorStatic("predictions","inversed",null,null,null,null,"Bearish",null, "Bullish", null), 0),
+	
 	//TODO dynamic event descriptor
 	NEURALMIX (550,"Neural Mix", false, 
 			new  EventDefDescriptorStatic("First output", "Second output", null, null, null, null, 

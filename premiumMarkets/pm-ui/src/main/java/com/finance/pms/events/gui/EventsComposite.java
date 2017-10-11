@@ -466,7 +466,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 							ActionDialogAction closeAction = new ActionDialogAction() {
 
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									try {
 										EventsComposite.this.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 										eventFilterChange(selectedEventInfos);
@@ -541,7 +541,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 							ActionDialogAction closeAction = new ActionDialogAction() {
 
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									Collection<Stock> selectedStocks = extractStockSetFrom(selectedPortfolios);
 									portfolioStocksEventModel.setViewParamRoot(selectedStocks);
 									
@@ -596,7 +596,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 							ActionDialogAction closeAction = new ActionDialogAction() {
 
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									
 									allStocksEventModel.setViewParamRoot(selectedShareLists);
 									
@@ -1261,7 +1261,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 					ActionDialogAction action = new ActionDialogAction() {
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							EventTaskQueue.getSingleton().invalidateTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
 						}
 					};

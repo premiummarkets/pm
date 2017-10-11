@@ -249,7 +249,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				valideButton1.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-						ShareListUpdateDialog.this.actionDialogAction.action(valideButton1);
+						ShareListUpdateDialog.this.actionDialogAction.action();
 					}
 				});
 			}
@@ -1011,7 +1011,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 		try {
 			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 			portfolioInsertShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
-			refreshAction.action(null);
+			refreshAction.action();
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
 			UserDialog inst = new UserDialog(getParent().getShell(), "The information typed in is not valid.\nPlease review the 'Insert Manually' form and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
@@ -1048,7 +1048,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 					updateReferencedStock(newStock);
 				}
 				
-				refreshAction.action(null);
+				refreshAction.action();
 				
 				UserDialog inst = new UserDialog(getParent().getShell(), "The following stock were found in the file and updated", stocksInFile.toString());
 				inst.open();

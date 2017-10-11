@@ -251,7 +251,7 @@ public class MainGui extends SashForm implements RefreshableView {
 												new ActionDialogAction() {
 
 													@Override
-													public void action(Control targetControl) {
+													public void action() {
 														//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
 														Program.launch("http://" + siteUrl + "/html/swtui.html#Download");
 														rootShellClosedRequested(null);
@@ -432,7 +432,7 @@ public class MainGui extends SashForm implements RefreshableView {
 							new ActionDialogAction() {
 
 								@Override
-								public void action(Control targetControl) {
+								public void action() {
 									Program.launch("http://"+siteUrl);
 		
 							}
@@ -756,7 +756,7 @@ public class MainGui extends SashForm implements RefreshableView {
 									new ActionDialogAction() {
 
 										@Override
-										public void action(Control targetControl) {
+										public void action() {
 											Program.launch("http://"+siteUrl);
 									}
 							});
@@ -789,7 +789,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					ActionDialogAction actionDialogAction = new ActionDialogAction() {
 						
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							
 							MarketListProvider provider = slDialog.getProvider();
 							if (provider != null) {
@@ -806,7 +806,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					ActionDialogAction refreshAction = new ActionDialogAction() {
 
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							Runnable runnable = new Runnable() {
 								public void run() {
 									((PortfolioComposite) MainGui.this.portfolioSash()).refreshView(new ArrayList<Exception>());
@@ -1453,7 +1453,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					
 					ActionDialogAction action = new ActionDialogAction() {
 						@Override
-						public void action(Control targetControl) {
+						public void action() {
 							EventTaskQueue.getSingleton().invalidateTasksCreationDates(((InvalidEventRefreshTask) exception).getTaskId());
 						}
 					};

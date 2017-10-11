@@ -163,6 +163,10 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		public boolean isInvalid() {
 			return this.outputState.equals(OutStampState.DIRTY) || this.outputState.equals(OutStampState.EMPTY);
 		}
+
+        public OutStampState getOutputState() {
+            return outputState;
+        }
 	}
 
 	public static Date DEFAULT_DATE;
@@ -268,9 +272,9 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	 */
 	//Output can still be available if all events have not been calculated successfully
 	//However bounds date won't be valid and recorded until all events are successfully calculated.
-	//Hence the user will systematically be asked for recalculation if all events are not valid.
+	//Hence the user will systematically be asked for recalculation if not all events are valid.
 	public synchronized void callbackForlastAnalyse(Date startAnalyseDate, Date endAnalysisDate) throws NotEnoughDataException {
-		eventRefreshStrategyEngine.callbackForlastAnalyse(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootViewParam, otherViewParams);
+		eventRefreshStrategyEngine.callbackForAnalysis(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootViewParam, otherViewParams);
 	}
 	
 	public void callbackForAlerts() throws InterruptedException {
@@ -285,7 +289,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	 * @throws HttpException 
 	 */
 	public synchronized void callbackForlastListFetch() throws HttpException {
-		eventRefreshStrategyEngine.callbackForlastListFetch(engineObservers, rootViewParam, otherViewParams);		
+		eventRefreshStrategyEngine.callbackForStockListFetch(engineObservers, rootViewParam, otherViewParams);		
 	}
 	
 	public synchronized void callbackForReco() {
@@ -296,10 +300,12 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	 * Callback forlast quotation fetch.
 	 * 
 	 * @author Guillaume Thoreton
+	 * @param endAnalysisDate 
+	 * @param startAnalyseDate 
 	 * @throws QuotationUpdateException 
 	 */
-	public synchronized void callbackForlastQuotationFetch() throws QuotationUpdateException {
-		eventRefreshStrategyEngine.callbackForlastQuotationFetch(engineObservers, rootViewParam, otherViewParams);
+	public synchronized void callbackForlastQuotationFetch(Date startAnalyseDate, Date endAnalysisDate) throws QuotationUpdateException {
+		eventRefreshStrategyEngine.callbackForQuotationFetch(engineObservers, startAnalyseDate, endAnalysisDate, rootViewParam, otherViewParams);
 	}
 	
 	public void callbackForAnalysisClean() {
@@ -488,7 +494,13 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		for (EventInfo eventInfo : eventInfos) {
 			EventDefCacheEntry cacheEntry = cacheEntry4Stock.get(eventInfo);
 			if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before( cacheEntry.getUpdateStamp().start) || end.after(cacheEntry.getUpdateStamp().end)) {
-				LOGGER.info("Events : "+eventInfo.getEventReadableDef()+" needs update : time stamp is "+((cacheEntry == null || cacheEntry.getOutputMap() == null)?"null": cacheEntry.getUpdateStamp().start+ " to "+ cacheEntry.getUpdateStamp().end)+". and requested is "+start + " to "+end);
+				LOGGER.info(
+				        "Events : "+ eventInfo.getEventReadableDef()+" needs update : time stamp is "+
+				        ( (cacheEntry == null || cacheEntry.getOutputMap() == null)?
+				                "null": 
+				                cacheEntry.getUpdateStamp().start+" to "+ cacheEntry.getUpdateStamp().end+" and is "+cacheEntry.getUpdateStamp().getOutputState()
+				        )+
+				        ". Requested is "+start + " to "+end);
 				notUpToDateEventInfos.add(eventInfo);
 				needsUpdate = true;
 			}

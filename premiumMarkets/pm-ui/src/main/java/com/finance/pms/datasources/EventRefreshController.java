@@ -172,7 +172,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 						tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations, eventModel.rootViewParam , eventModel.otherViewParams) {
 							public void run() {
 								try {
-									eventModel.callbackForlastQuotationFetch();
+									eventModel.callbackForlastQuotationFetch(startAnalyseDate, endAnalysisDate);
 									eventModel.setLastQuotationFetch(currentDate);
 									eventModel.resetLastAnalyse();
 								} catch (Throwable e) {
@@ -288,8 +288,8 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 							});
 							
 							try {
-								AudioPlayer.loadStream("ring", System.getProperty("installdir")+File.separator+"icons/telephone-ring-01_s.wav");
-								AudioPlayer.play("ring", false);
+								boolean loadStream = AudioPlayer.loadClip("ring", System.getProperty("installdir")+File.separator+"icons/telephone-ring-01_s.wav");
+								if (loadStream) AudioPlayer.play("ring", false);
 							} catch (Exception e) {
 								LOGGER.warn(e,e);
 							}

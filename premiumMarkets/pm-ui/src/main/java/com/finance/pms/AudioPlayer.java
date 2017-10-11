@@ -393,6 +393,7 @@ public class AudioPlayer
     {
         try
         {
+            if (soundMap.containsKey(soundName)) return true;
             AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(filename));
             return loadStream(soundName, audioInputStream);
         }
@@ -418,6 +419,7 @@ public class AudioPlayer
     {
         try
         {
+            if (soundMap.containsKey(soundName)) return true;
             AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);
             return loadStream(soundName, audioInputStream);
         }
@@ -431,8 +433,6 @@ public class AudioPlayer
     private static boolean loadStream(String soundName, AudioInputStream audioInputStream)
     {
         boolean retVal = true;
-        
-        if (soundMap.containsKey(soundName)) return retVal;
         
         try
         {

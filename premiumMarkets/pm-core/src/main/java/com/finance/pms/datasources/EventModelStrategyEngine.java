@@ -100,9 +100,9 @@ public abstract class EventModelStrategyEngine<X> {
 	public abstract Date getLastAnalyse(Date oldLastAnalyse);
 
 
-	public abstract void callbackForlastListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException;
-	public abstract void callbackForlastQuotationFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException;
-	public abstract void callbackForlastAnalyse(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
+	public abstract void callbackForStockListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException;
+	public abstract void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException;
+	public abstract void callbackForAnalysis(ArrayList<String> analisysList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException;
 	public abstract void callbackForAlerts(Set<Observer> engineObservers,  X rootParam,  @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws InterruptedException;
 	public abstract void callbackForAnalysisClean(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams);
 	public abstract void callbackForReco(Set<Observer> engineObservers);

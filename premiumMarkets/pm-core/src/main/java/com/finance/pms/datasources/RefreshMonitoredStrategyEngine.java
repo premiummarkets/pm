@@ -74,9 +74,9 @@ public class RefreshMonitoredStrategyEngine extends UserContentStrategyEngine<Co
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void callbackForlastAnalyse(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
+	public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, Collection<Stock> rootParam, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForlastAnalyse(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam, viewStateParams);
+		super.callbackForAnalysis(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam, viewStateParams);
 	}
 
 	@SuppressWarnings("unchecked")

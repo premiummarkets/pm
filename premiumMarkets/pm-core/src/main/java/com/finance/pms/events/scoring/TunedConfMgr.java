@@ -165,7 +165,7 @@ public class TunedConfMgr {
 				if (newEndSpansAfterPreviousCalc) { //End date after previous calc => inc calc
 					pmEvtsCalcEnd = endDate;
 					tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
-				} else { // End date within the previous calc => no re calc needed
+				} else { //End date within the previous calc => no re calc needed
 					calcStatus = CalcStatus.NONE;
 				}
 			}

@@ -243,7 +243,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.clear();
 					}
 					
-					if (selectionAction != null) selectionAction.action(selectAllBut);
+					if (selectionAction != null) selectionAction.action();
 					
 				}
 				
@@ -281,7 +281,7 @@ public class PopupMenu<T extends InfoObject>  {
 						selectionSet.remove(buttonInfo);
 					}
 					
-					if (selectionAction != null ) selectionAction.action(button);
+					if (selectionAction != null ) selectionAction.action();
 			
 				}
 				
@@ -328,7 +328,7 @@ public class PopupMenu<T extends InfoObject>  {
 	private void runCloseAction() {
 		if (closeAction != null && hasChanged) {
 			hasChanged = false;
-			closeAction.action(null);
+			closeAction.action();
 		}
 	}
 	
