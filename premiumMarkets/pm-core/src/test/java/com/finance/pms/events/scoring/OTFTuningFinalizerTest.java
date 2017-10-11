@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,8 +51,6 @@ public class OTFTuningFinalizerTest {
 
     private Observer observer;
 
-    private TreeMap<Date, double[]> calcOutput;
-
     @BeforeClass
     public static void oneTimeSetup() {
         springContext = new SpringContext("/home/guil/Developpement/newEclipse/premiumMarkets/pm-forecast/db.properties");
@@ -78,10 +75,6 @@ public class OTFTuningFinalizerTest {
         quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
         qMap = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
         endQDate =  quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate)).getDate();
-        
-        calcOutput = new TreeMap<>();
-        calcOutput.put(startDate, new double[1]);
-        calcOutput.put(endDate, new double[1]);
 
         observer = new Observer() {
 
@@ -136,7 +129,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next.getTo().equals(endQDate));
         assertTrue(next.getTrend().equals(EventType.BEARISH.name()));
 
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -198,7 +191,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -257,7 +250,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -318,7 +311,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -380,7 +373,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -469,7 +462,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -526,7 +519,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -589,7 +582,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -659,7 +652,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next5.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         
@@ -738,7 +731,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next6.getTrend().equals(EventType.BULLISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", calcOutput, EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
         
         System.out.println(res);
         

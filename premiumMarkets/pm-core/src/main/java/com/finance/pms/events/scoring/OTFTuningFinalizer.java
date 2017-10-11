@@ -30,7 +30,6 @@
 package com.finance.pms.events.scoring;
 
 
-import static com.finance.pms.events.calculation.util.MapUtils.*;
 import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -57,7 +56,6 @@ import java.util.TreeSet;
 import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.springframework.stereotype.Service;
 
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
@@ -81,28 +79,22 @@ import com.finance.pms.events.scoring.functions.ApacheStats;
 import com.finance.pms.events.scoring.functions.SDiscretDerivator;
 import com.finance.pms.events.scoring.functions.SlopeDerivator;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
-import com.finance.pms.threads.ObserverMsg;
 
 @Service("tuningFinalizer")
 public class OTFTuningFinalizer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(OTFTuningFinalizer.class);
 
-	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, SortedMap<Date, double[]> calcOutput, EventInfo evtDef, Observer observer, Boolean isEventsPersisted) throws NotEnoughDataException {
-
-		if (calcOutput == null) calcOutput = new TreeMap<Date,double[]>();
-		if (!calcOutput.isEmpty() && calcOutput.firstKey().before(startDate)) calcOutput = calcOutput.tailMap(startDate);
+	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, Observer observer, Boolean isEventsPersisted) throws NotEnoughDataException {
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
 		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
 		try {
 			
-			Date endPredictionsDate = (calcOutput.size() > 0 && calcOutput.lastKey().after(endDate))? calcOutput.lastKey() : endDate;
-			
 			//Grab calculated events
 			HashSet<EventInfo> eventDefinitions = new HashSet<EventInfo>();
 			eventDefinitions.add(evtDef);
-			SymbolEvents eventsCalculated = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endPredictionsDate, isEventsPersisted, eventDefinitions, analyseName);
+			SymbolEvents eventsCalculated = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endDate, isEventsPersisted, eventDefinitions, analyseName);
 	
 			//Init event def list
 			NavigableSet<EventValue> eventListForEvtDef = new TreeSet<EventValue>(new Comparator<EventValue>() {
@@ -113,12 +105,12 @@ public class OTFTuningFinalizer {
 			});
 			eventListForEvtDef.addAll(eventsCalculated.getDataResultMap().values());
 				
-			return buildTuningRes(stock, startDate, endDate, endPredictionsDate, analyseName, calcOutput, eventListForEvtDef, noResMsg, evtDef.info(), observer);
+			return buildTuningRes(stock, startDate, endDate, analyseName, eventListForEvtDef, noResMsg, evtDef.info(), observer);
 			
 
 		} catch (NoQuotationsException e) {
 			LOGGER.warn(noResMsg, e);
-			throw new NotEnoughDataException(stock, noResMsg + "Calculated output size "+((calcOutput == null)?"null":calcOutput.size()), e);
+			throw new NotEnoughDataException(stock, noResMsg , e);
 		} catch (NotEnoughDataException e) {
 			LOGGER.warn(noResMsg, e);
 			throw e;
@@ -243,7 +235,7 @@ public class OTFTuningFinalizer {
 	 */
 	TuningResDTO buildResOnValidPeriods(
 			List<PeriodRatingDTO> periods, SortedMap<Date, Number> qMap, Quotations quotations,
-			Stock stock, Date startDate, Date endDate, String analyseName, SortedMap<Date, double[]> calcOutput, 
+			Stock stock, Date startDate, Date endDate, String analyseName, 
 			String evtDefInfo, Observer observer) 
 			throws IOException, InvalidAlgorithmParameterException {
 		
@@ -252,61 +244,61 @@ public class OTFTuningFinalizer {
 		
 		Double trendFollowProfit = 1.00;
 		
-		Boolean generateBuySellCsv = MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatecsv", true);
-		Boolean generateSmaCmpOutChart =  MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatepng", true);
+//		Boolean generateBuySellCsv = MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatecsv", true);
+//		Boolean generateSmaCmpOutChart =  MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatepng", true);
 		
-		//Init output file
-		String endDateStamp = "";
-		if (MainPMScmd.getMyPrefs().getBoolean("perceptron.stampoutput", false)) {
-			endDateStamp = new SimpleDateFormat("yyyyMMdd").format(endDate);
-		}
+//		//Init output file
+//		String endDateStamp = "";
+//		if (MainPMScmd.getMyPrefs().getBoolean("perceptron.stampoutput", false)) {
+//			endDateStamp = new SimpleDateFormat("yyyyMMdd").format(endDate);
+//		}
 		
-		BufferedWriter csvWriter = null;
-		String fileName = "noOutputAvailable";
-		if (generateBuySellCsv) {
-			fileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol() + "_"+evtDefInfo+"_BuyAndSellRecords"+endDateStamp+".csv";
-			File file = new File(System.getProperty("installdir") + File.separator + fileName);
-			file.delete();
-			csvWriter = new BufferedWriter(new FileWriter(file));
-			csvWriter.write("Date, Quotations, Bearish, Bullish, Output \n");
-		}
+//		BufferedWriter csvWriter = null;
+//		String fileName = "noOutputAvailable";
+//		if (generateBuySellCsv) {
+//			fileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol() + "_"+evtDefInfo+"_BuyAndSellRecords"+endDateStamp+".csv";
+//			File file = new File(System.getProperty("installdir") + File.separator + fileName);
+//			file.delete();
+//			csvWriter = new BufferedWriter(new FileWriter(file));
+//			csvWriter.write("Date, Quotations, Bearish, Bullish, Output \n");
+//		}
 
 		//Other init
 		BigDecimal lastClose = (BigDecimal) qMap.get(qMap.lastKey());
 
-		Double csvDispFactor = 1.00;
+//		Double csvDispFactor = 1.00;
 
-		SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
-		SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
+//		SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
+//		SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
 		
 		int lastRealisedBullIdx = -1;
-		PeriodRatingDTO previousPeriod = null;
+//		PeriodRatingDTO previousPeriod = null;
 		for (PeriodRatingDTO currentPeriod : periods) {
 			
-			//Exports
-			if (generateBuySellCsv || generateSmaCmpOutChart) {
-				
-				//csv gaps
-				SortedMap<Date, Number> gapQuotationMap;
-				if (generateBuySellCsv && previousPeriod != null && (gapQuotationMap = subMapInclusive(qMap, previousPeriod.getTo(), currentPeriod.getFrom())).size() > 1) {
-					for (Date gapDate : gapQuotationMap.keySet()) {
-						Double closeForGapDate = gapQuotationMap.get(gapDate).doubleValue();
-						double[] output = calcOutput.get(gapDate);
-						exportLine(generateBuySellCsv, false, csvDispFactor, csvWriter, buySerie, sellSerie, gapDate, closeForGapDate, EventType.NONE, output);
-					}
-				}
-				previousPeriod = currentPeriod;
-				
-				//export period
-				SortedMap<Date, Number> periodQuotationMap = subMapInclusive(qMap, currentPeriod.getFrom(), currentPeriod.getTo());
-				EventType periodTrend = EventType.valueOf(currentPeriod.getTrend());
-				for (Date periodInnerDate : periodQuotationMap.keySet()) {
-					Double closeForInnerDate = periodQuotationMap.get(periodInnerDate).doubleValue();
-					double[] output = calcOutput.get(periodInnerDate);
-					exportLine(generateBuySellCsv, generateSmaCmpOutChart, csvDispFactor, csvWriter, buySerie, sellSerie, periodInnerDate, closeForInnerDate, periodTrend, output);
-				}
-				
-			}
+//			//Exports //FIXME separation of concern
+//			if (generateBuySellCsv || generateSmaCmpOutChart) {
+//				
+//				//csv gaps
+//				SortedMap<Date, Number> gapQuotationMap;
+//				if (generateBuySellCsv && previousPeriod != null && (gapQuotationMap = subMapInclusive(qMap, previousPeriod.getTo(), currentPeriod.getFrom())).size() > 1) {
+//					for (Date gapDate : gapQuotationMap.keySet()) {
+//						Double closeForGapDate = gapQuotationMap.get(gapDate).doubleValue();
+//						double[] output = calcOutput.get(gapDate);
+//						exportLine(generateBuySellCsv, false, csvDispFactor, csvWriter, buySerie, sellSerie, gapDate, closeForGapDate, EventType.NONE, output);
+//					}
+//				}
+//				previousPeriod = currentPeriod;
+//				
+//				//export period
+//				SortedMap<Date, Number> periodQuotationMap = subMapInclusive(qMap, currentPeriod.getFrom(), currentPeriod.getTo());
+//				EventType periodTrend = EventType.valueOf(currentPeriod.getTrend());
+//				for (Date periodInnerDate : periodQuotationMap.keySet()) {
+//					Double closeForInnerDate = periodQuotationMap.get(periodInnerDate).doubleValue();
+//					double[] output = calcOutput.get(periodInnerDate);
+//					exportLine(generateBuySellCsv, generateSmaCmpOutChart, csvDispFactor, csvWriter, buySerie, sellSerie, periodInnerDate, closeForInnerDate, periodTrend, output);
+//				}
+//				
+//			}
 			
 			//Calculate profit
 			if (EventType.valueOf(currentPeriod.getTrend()).equals(EventType.BULLISH) && currentPeriod.isRealised()) {
@@ -350,43 +342,45 @@ public class OTFTuningFinalizer {
 			
 		} //End for over periods
 
-		//Finalise Csv file
-		if (generateBuySellCsv) {
-			csvWriter.close();
-			trendFile = fileName;
-		}
+		//FIXME separation of concern
+//		//Finalise Csv file
+//		if (generateBuySellCsv) {
+//			csvWriter.close();
+//			trendFile = fileName;
+//		}
 		
-		//Finalise PNG Chart
-		if (generateSmaCmpOutChart) {
-			
-			try {
-				
-				String chartFileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol()+ "_"+evtDefInfo+ "_OutChart"+endDateStamp+".png";
-				generateOutChart(chartFileName, calcOutput, quotations, buySerie, sellSerie);
-				observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output images generated ..."));
-				chartFile = chartFileName;
-				
-			} catch (NotEnoughDataException e) {
-				LOGGER.warn("Can't generate chart for "+stock,e, true);
-				chartFile = "noChartAvailable";
-			} catch (Exception e) {
-				LOGGER.error("Can't generate chart for "+stock,e);
-				chartFile = "noChartAvailable";
-			}
-			
-		} else {
-			chartFile = "noChartAvailable";
-		}
-		
-		observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
+//		//Finalise PNG Chart
+//		if (generateSmaCmpOutChart) {
+//			
+//			try {
+//				
+//				String chartFileName = "autoPortfolioLogs" + File.separator + analyseName + stock.getSymbol()+ "_"+evtDefInfo+ "_OutChart"+endDateStamp+".png";
+//				generateOutChart(chartFileName, calcOutput, quotations, buySerie, sellSerie);
+//				observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output images generated ..."));
+//				chartFile = chartFileName;
+//				
+//			} catch (NotEnoughDataException e) {
+//				LOGGER.warn("Can't generate chart for "+stock,e, true);
+//				chartFile = "noChartAvailable";
+//			} catch (Exception e) {
+//				LOGGER.error("Can't generate chart for "+stock,e);
+//				chartFile = "noChartAvailable";
+//			}
+//			
+//		} else {
+//			chartFile = "noChartAvailable";
+//		}
+//		
+//		observer.update(null, new ObserverMsg(stock, ObserverMsg.ObsKey.PRGSMSG, "Output file generated ..."));
 
-		//Output boundaries
-		Date outputFirstKey = startDate;
-		Date outputLastKey = endDate;
-		if (!calcOutput.isEmpty()) {
-			outputFirstKey = calcOutput.firstKey();
-			outputLastKey = calcOutput.lastKey();
-		}
+		//XXX impact to be tested
+//		//Output boundaries
+//		Date outputFirstKey = startDate;
+//		Date outputLastKey = endDate;
+//		if (!calcOutput.isEmpty()) {
+//			outputFirstKey = calcOutput.firstKey();
+//			outputLastKey = calcOutput.lastKey();
+//		}
 		
 		//Finalise profits
 		trendFollowProfit = trendFollowProfit - 1;
@@ -412,11 +406,11 @@ public class OTFTuningFinalizer {
 			Double buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10, BigDecimal.ROUND_HALF_EVEN).doubleValue():Double.NaN;
 			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstPeriod.getFrom()+" and last Close "+lastClose+" at "+endDate+" : ("+lastClose+"-"+firstClose+")/"+firstClose+"="+buyAndHoldProfit);
 
-			return new TuningResDTO(periods, trendFile, chartFile, lastPeriod.getTrend(), trendFollowProfit, Double.NaN, buyAndHoldProfit, outputFirstKey, outputLastKey);
+			return new TuningResDTO(periods, trendFile, chartFile, lastPeriod.getTrend(), trendFollowProfit, Double.NaN, buyAndHoldProfit, startDate, endDate);
 		}
 		
 		LOGGER.info("No event detected");
-		return new TuningResDTO(periods, trendFile, chartFile, EventType.NONE.toString(), Double.NaN, Double.NaN, Double.NaN, outputFirstKey, outputLastKey);
+		return new TuningResDTO(periods, trendFile, chartFile, EventType.NONE.toString(), Double.NaN, Double.NaN, Double.NaN, startDate, endDate);
 		
 	}
 
@@ -465,22 +459,23 @@ public class OTFTuningFinalizer {
 	}
 
 	public TuningResDTO buildTuningRes(
-			Stock stock, Date startDate, Date endDate, Date endPredictionsDate, String analyseName,
-			SortedMap<Date, double[]> calcOutput, Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
+			Stock stock, Date startDate, Date endDate, String analyseName,
+			Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
 			throws IOException, NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
 
-		LOGGER.info("Building Tuning res for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate+", end calculation res is "+endPredictionsDate);
+		LOGGER.info("Building Tuning res for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate);
 		
-		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endPredictionsDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 		SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-		LOGGER.info("Quotations map for "+stock.getFriendlyName()+" ranges from "+mapFromQuotationsClose.firstKey()+" to "+mapFromQuotationsClose.lastKey()+" while requested from "+startDate+" to "+endPredictionsDate);
+		LOGGER.info("Quotations map for "+stock.getFriendlyName()+" ranges from "+mapFromQuotationsClose.firstKey()+" to "+mapFromQuotationsClose.lastKey()+" while requested from "+startDate+" to "+endDate);
 		
 		List<PeriodRatingDTO> periods = validPeriods(quotations, stock, startDate, endDate, eventListForEvtDef, noResMsg);
 		
-		return buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, calcOutput, evtDefInfo, observer);
+		return buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, evtDefInfo, observer);
 		
 	}
 
+	//TODO move in its own place (check impact on web UI)
 	private void generateOutChart(
 			String chartFileName, 
 			SortedMap<Date, double[]> calcOutput, Quotations quotations, 
