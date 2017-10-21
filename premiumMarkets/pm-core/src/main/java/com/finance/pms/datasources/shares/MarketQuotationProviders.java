@@ -38,7 +38,6 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.AccessType;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.web.ProvidersTypes;
 
 /**
  * The Enum MarketQuotationProviders.
@@ -51,14 +50,14 @@ public class MarketQuotationProviders {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(MarketQuotationProviders.class);
 	
-	public static final MarketQuotationProviders DEFAULT = new MarketQuotationProviders("DEFAULT", ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo");
-	public static final MarketQuotationProviders YAHOO = new MarketQuotationProviders("YAHOO", ProvidersTypes.YAHOO, new YahooSymbolNameResolver(), "yahoo");
-	public static final MarketQuotationProviders GOOGLE = new MarketQuotationProviders("GOOGLE", ProvidersTypes.GOOGLE, new GoogleSymbolNameResolver(), "google");
-	public static final MarketQuotationProviders INVESTIR = new MarketQuotationProviders("INVESTIR", ProvidersTypes.INVESTIR, new InvestirSymbolNameResolver(), "investir");
-	public static final MarketQuotationProviders INFLATION = new MarketQuotationProviders("INFLATION", ProvidersTypes.INFLATION, new InvestirSymbolNameResolver(), "inflation");
-	public static final MarketQuotationProviders CURRENCY = new MarketQuotationProviders("CURRENCY", ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency");
-	public static final MarketQuotationProviders DIXHUITDIXHUIT = new MarketQuotationProviders("DIXHUITDIXHUIT", ProvidersTypes.DIXHUITDIXHUIT, new InvestirSymbolNameResolver(), "dixHuitDixHuit");
-	public static final MarketQuotationProviders INVESTING = new MarketQuotationProviders("INVESTING", ProvidersTypes.INVESTING, new InvestirSymbolNameResolver(), "investing");
+	public static final MarketQuotationProviders DEFAULT = new MarketQuotationProviders("DEFAULT", new YahooSymbolNameResolver(), "yahoo");
+	public static final MarketQuotationProviders YAHOO = new MarketQuotationProviders("YAHOO",  new YahooSymbolNameResolver(), "yahoo");
+	public static final MarketQuotationProviders GOOGLE = new MarketQuotationProviders("GOOGLE", new GoogleSymbolNameResolver(), "google");
+	public static final MarketQuotationProviders INVESTIR = new MarketQuotationProviders("INVESTIR", new InvestirSymbolNameResolver(), "investir");
+	public static final MarketQuotationProviders INFLATION = new MarketQuotationProviders("INFLATION", new InvestirSymbolNameResolver(), "inflation");
+	public static final MarketQuotationProviders CURRENCY = new MarketQuotationProviders("CURRENCY", new InvestirSymbolNameResolver(), "currency");
+	public static final MarketQuotationProviders DIXHUITDIXHUIT = new MarketQuotationProviders("DIXHUITDIXHUIT", new InvestirSymbolNameResolver(), "dixHuitDixHuit");
+	public static final MarketQuotationProviders INVESTING = new MarketQuotationProviders("INVESTING", new InvestirSymbolNameResolver(), "investing");
 	
 	private static List<MarketQuotationProviders> marketQuotationProviders = new ArrayList<MarketQuotationProviders>();
 	static {
@@ -85,7 +84,7 @@ public class MarketQuotationProviders {
 		super();
 	}
 
-	public MarketQuotationProviders(String name, ProvidersTypes providersType, SymbolNameResolver marketQuotationProviderExtentions, String cmdParam) {
+	public MarketQuotationProviders(String name, SymbolNameResolver marketQuotationProviderExtentions, String cmdParam) {
 		this.name = name;
 		this.symbolNameResolver = marketQuotationProviderExtentions;
 		this.cmdParam = cmdParam;

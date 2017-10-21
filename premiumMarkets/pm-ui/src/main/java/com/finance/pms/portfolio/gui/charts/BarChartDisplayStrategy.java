@@ -34,12 +34,14 @@ import java.util.SortedMap;
 
 import org.jfree.data.time.TimeSeries;
 
+import com.finance.pms.events.scoring.chartUtils.BarChart;
+
 public abstract class BarChartDisplayStrategy {
 
 	public abstract void setBarYAxis();
 
 	public abstract double maxBarValue(TimeSeries lineSerie);
 
-	public abstract TimeSeries buildBarTimeSeries(String serieName, SortedMap<Date, Double> barSerie, TimeSeries lineSerie);
+	public abstract TimeSeries buildBarTimeSeries(String serieName, SortedMap<Date, BarChart> barSerie, TimeSeries lineSerie);
 
 }

@@ -43,62 +43,62 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 @XmlSeeAlso({
-	PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, 
-	FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class
-	})
+    PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, 
+    FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class
+})
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 
-	protected PMIndicatorOperation() {
-		super();
-	}
+    protected PMIndicatorOperation() {
+        super();
+    }
 
-	public PMIndicatorOperation(String reference, String description, ArrayList<Operation> operands) {
-		super(reference, description, operands);
-	}
-	
-	public PMIndicatorOperation(String reference, String description, Operation ... operands) {
-		this(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
-	}
-	
-	protected DoubleMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
-		
-		DoubleMapValue dateDoubleMap = new DoubleMapValue();
-		for (int i = 0; i < talibIndicator.getOutNBElement().value; i++) {
-			Date calculatorDate = quotations.getDate(i + talibIndicator.getOutBegIdx().value);
-			Double output = outputs[i];
-			dateDoubleMap.getValue(targetStock).put(calculatorDate, output);
-		}
-		
-		return dateDoubleMap;
-		
-	}
-	
-	protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, DoubleMapValue input) {
-		
-		SortedMap<Date, double[]> doubleArrayMap = new TreeMap<Date, double[]>();
-		SortedMap<Date, Double> inputValue = input.getValue(targetStock);
-		
-		for (Date date : inputValue.keySet()) {
-			doubleArrayMap.put(date, new double[]{inputValue.get(date)});
-		}
-			
-		return doubleArrayMap;
-	}
+    public PMIndicatorOperation(String reference, String description, ArrayList<Operation> operands) {
+        super(reference, description, operands);
+    }
 
-	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest, int originIdx) {
-		for (Date date : origin.keySet()) {
-			dest.put(date, origin.get(date)[originIdx]);
-		}
-	}	
-	
-	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest) {
-		transOutput(origin, dest, 0);
-	}
-	
-	protected void transInput(SortedMap<Date, Double> origin, SortedMap<Date, double[]> dest) {
-		for (Date date : origin.keySet()) {
-			dest.put(date, new double[]{origin.get(date)});
-		}
-	}	
+    public PMIndicatorOperation(String reference, String description, Operation ... operands) {
+        this(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+    }
+
+    protected DoubleMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
+
+        DoubleMapValue dateDoubleMap = new DoubleMapValue();
+        for (int i = 0; i < talibIndicator.getOutNBElement().value; i++) {
+            Date calculatorDate = quotations.getDate(i + talibIndicator.getOutBegIdx().value);
+            Double output = outputs[i];
+            dateDoubleMap.getValue(targetStock).put(calculatorDate, output);
+        }
+
+        return dateDoubleMap;
+
+    }
+
+    protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, DoubleMapValue input) {
+
+        SortedMap<Date, double[]> doubleArrayMap = new TreeMap<Date, double[]>();
+        SortedMap<Date, Double> inputValue = input.getValue(targetStock);
+
+        for (Date date : inputValue.keySet()) {
+            doubleArrayMap.put(date, new double[]{inputValue.get(date)});
+        }
+
+        return doubleArrayMap;
+    }
+
+    protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest, int originIdx) {
+        for (Date date : origin.keySet()) {
+            dest.put(date, origin.get(date)[originIdx]);
+        }
+    }
+
+    protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest) {
+        transOutput(origin, dest, 0);
+    }
+
+    protected void transInput(SortedMap<Date, Double> origin, SortedMap<Date, double[]> dest) {
+        for (Date date : origin.keySet()) {
+            dest.put(date, new double[]{origin.get(date)});
+        }
+    }
 
 }

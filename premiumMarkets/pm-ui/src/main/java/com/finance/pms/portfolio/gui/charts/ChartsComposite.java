@@ -336,8 +336,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					@Override
 					public void singleClick(final MouseEvent event) {
 
-						Display.getDefault().asyncExec(new Runnable() {
-
+						Display.getDefault().syncExec(new Runnable() {
 							@Override
 							public void run() {
 								Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, event.getPoint().y);
@@ -360,8 +359,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					@Override
 					public void doubleClick(final MouseEvent event) {
 
-						Display.getDefault().asyncExec(new Runnable() {
-
+						Display.getDefault().syncExec(new Runnable() {
 							@Override
 							public void run() {
 								Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, event.getPoint().y);
@@ -376,10 +374,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 										chartDisplayStrategy.removeVLineAt(clickPoint, plotArea);
 										chartDisplayStrategy.removeHLineAt(clickPoint, plotArea);
 									}
-
 								}
 							}
-
 						});
 					}
 					

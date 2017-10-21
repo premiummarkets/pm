@@ -32,9 +32,6 @@ package com.finance.pms.datasources;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import org.apache.http.HttpException;
 import org.easymock.EasyMock;
 import org.eclipse.swt.widgets.Display;
@@ -48,6 +45,9 @@ import com.finance.pms.datasources.web.MarketListProvider;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.gui.EventsComposite;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
 
 /**
  * The Class EventRefreshControllerTest.

@@ -100,6 +100,8 @@ public class EventConditionHolder extends Operation implements EventInfo {
 			}
 		}
 		
+		edata = targetStock.analyseEvents(edata, this.getEventReadableDef());
+		
 		return new EventDataValue(edata);
 	}
 

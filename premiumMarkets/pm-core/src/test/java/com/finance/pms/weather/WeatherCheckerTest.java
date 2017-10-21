@@ -29,13 +29,13 @@
  */
 package com.finance.pms.weather;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import com.finance.pms.SpringContext;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
 
 public class WeatherCheckerTest extends TestCase {
 	

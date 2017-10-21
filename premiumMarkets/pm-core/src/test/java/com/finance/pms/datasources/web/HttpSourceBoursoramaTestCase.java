@@ -38,8 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.NameValuePair;
@@ -49,6 +47,8 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.formaters.DayQuoteBoursoramaFormater;
+
+import junit.framework.TestCase;
 
 /**
  * The Class HttpSourceBoursoramaTestCase.

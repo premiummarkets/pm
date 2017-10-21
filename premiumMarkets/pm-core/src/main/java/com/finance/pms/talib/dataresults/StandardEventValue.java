@@ -54,16 +54,16 @@ public class StandardEventValue extends EventValue {
 	 * 
 	 * @param date the date
 	 * @param eventDef the event def
-	 * @param eventtype the eventtype
+	 * @param eventType the eventtype
 	 * @author Guillaume Thoreton
 	 */
-	public StandardEventValue(Date date, EventInfo eventDef, EventType eventtype, String eventListName){
-		super(date,eventDef,eventtype, eventListName);
+	public StandardEventValue(Date date, EventInfo eventDef, EventType eventType, String eventListName){
+		super(date, eventDef, eventType, eventListName);
 		
 	}
 	
-	public StandardEventValue(Date date, EventType eventtype, EventInfo eventDef, String message, String eventListName){
-		super(date,eventDef,eventtype,message,eventListName);
+	public StandardEventValue(Date date, EventType eventType, EventInfo eventDef, String message, String eventListName){
+		super(date, eventDef, eventType, message, eventListName);
 
 	}
 	

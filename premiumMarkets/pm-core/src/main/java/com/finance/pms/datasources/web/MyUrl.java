@@ -29,6 +29,8 @@
  */
 package com.finance.pms.datasources.web;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,53 +38,75 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.http.NameValuePair;
 
 public class MyUrl {
-	
-	private String url;
-	private List<NameValuePair> httpParams;
-	private Integer nbPages;
-	
-	
-	public MyUrl(String url) {
-		super();
-		this.url = url;
-		this.httpParams = new ArrayList<NameValuePair>();
-	}
-	
-	
-	public MyUrl() {
-		super();
-		this.httpParams = new ArrayList<NameValuePair>();
-	}
+
+    private String url;
+    private List<NameValuePair> httpParams;
+    private Integer nbPages;
+    private ArrayList<String> cookies;
 
 
-	public String getUrl() {
-		return url;
-	}
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	
-	
-	public List<NameValuePair> getHttpParams() {
-		return httpParams;
-	}
-	public void setHttpParams(List<NameValuePair> httpParams) {
-		this.httpParams = httpParams;
-	}
+    public MyUrl(String url) {
+        super();
+        this.url = url;
+        this.httpParams = new ArrayList<NameValuePair>();
+        this.cookies = new ArrayList<String>();
+    }
 
 
-	public Integer getNbPages() {
-		return nbPages;
-	}
+    public MyUrl() {
+        super();
+        this.httpParams = new ArrayList<NameValuePair>();
+    }
 
 
-	public void setNbPages(Integer nbPages) {
-		this.nbPages = nbPages;
-	}
-	
-	public MyUrl getUrlForPage(Integer i) {
-		throw new NotImplementedException();
-	}
-	
-	
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+
+    public List<NameValuePair> getHttpParams() {
+        return httpParams;
+    }
+    public void setHttpParams(List<NameValuePair> httpParams) {
+        this.httpParams = httpParams;
+    }
+
+
+    public Integer getNbPages() {
+        return nbPages;
+    }
+
+
+    public void setNbPages(Integer nbPages) {
+        this.nbPages = nbPages;
+    }
+
+    public MyUrl getUrlForPage(Integer i) {
+        throw new NotImplementedException();
+    }
+
+
+    public void addCookie(String cookie) {
+        this.cookies.add(cookie);
+    }
+
+
+    public String getCookieString() {
+        return cookies.stream()
+                .reduce(
+                  (r, c) -> {
+                      try {
+                          c = URLEncoder.encode(c,"UTF-8");
+                      } catch (UnsupportedEncodingException e) {
+                          throw new RuntimeException(e);
+                      }
+                      r = r + ";" + c;
+                      return r;
+                  }
+               ).get();
+    }
+
 }

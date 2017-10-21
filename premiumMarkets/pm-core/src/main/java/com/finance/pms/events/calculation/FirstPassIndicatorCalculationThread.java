@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.jms.Queue;
 
+import org.apache.log4j.Level;
 import org.springframework.jms.core.JmsTemplate;
 
 import com.finance.pms.admin.config.Config;
@@ -363,6 +364,9 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 					TunedConfMgr.getInstance().updateConf(tunedConf, symbolEventsForStock.getStock(), symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
 				}
 			} else {//Error(s) as occurred. This should invalidate tuned conf
+			    if (LOGGER.isEnabledFor(Level.ERROR)) {
+	                dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
+	            }
 				TunedConfMgr.getInstance().resetConf(tunedConf, stock);
 			}
 			

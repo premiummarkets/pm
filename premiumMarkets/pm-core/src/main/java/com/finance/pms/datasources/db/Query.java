@@ -37,34 +37,34 @@ import java.util.List;
 
 public class Query {
 
-	private  List<Object>  vl;
+	private  List<Object>  valueList;
 	private  String query;
 	
 
 	public Query() {
-	    vl = new ArrayList<Object>();
+	    valueList = new ArrayList<Object>();
 	}
 
 	public Query(String query) {
-	    vl = new ArrayList<Object>();
+	    valueList = new ArrayList<Object>();
 	    this.query= query;
 	    
 	}
 
 	public Query(List<Object> params) {
-	    vl = params;
+	    valueList = params;
 	}
 
 	public void addValuesList(List<Comparable<?>> valeurs) {
-	    vl.addAll(valeurs);
+	    valueList.addAll(valeurs);
 	}
 
 	public void addValue(Object valeur) {
-	    vl.add(valeur);
+	    valueList.add(valeur);
 	}
 
 	public List<Object> getParameterValues() {
-		return vl;
+		return valueList;
 	}
 
     public String getQuery() {
@@ -82,7 +82,7 @@ public class Query {
     @Override
 	public String toString() {
     	StringBuffer retour = new StringBuffer();
-    	Iterator<Object> vlIt = vl.iterator();
+    	Iterator<Object> vlIt = valueList.iterator();
     	while (vlIt.hasNext()) {
     		retour.append(vlIt.next());
     		if (vlIt.hasNext()) {

@@ -34,116 +34,153 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+/**
+ * 
+ * The additional param runAsync means we want the action to be run in parallel of the caller execution
+ * This can be done in two ways :  
+ *  with runInthread it will spawn a new Thread and execute a sync from there {@link org.eclipse.swt.widgets.Display#syncExec}
+ *  without run in Thread the standard SWT aSync will be used {@link org.eclipse.swt.widgets.Display#asyncExec}
+ *
+ */
 public class ActionDialog extends UserDialog {
-	
-	protected ActionDialogAction action;
-	protected ActionDialogAction errorHandler;
-	
-	String actionTxt;
 
-	public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
-		super(parent, title, erreur, addMessage);
-		this.actionTxt = actionTxt;
-		this.action = action;
-		
-	}
-	
-	@Override
-	public void open() {
-		super.open();
-	}
+    protected ActionDialogAction errorHandler;
 
-	@Override
-	protected void validationButtonTxtAndAction() {
+    protected ActionDialogAction action;
+    String actionTxt;
+    private boolean runInThread;
 
-		valideButton.setText(actionTxt);
-		valideButton.setFont(MainGui.DEFAULTFONT);
-		valideButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseDown(MouseEvent evt) {
-				doAction();
-			}
-		});
-		valideButton.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent evt) {
-				if (evt.keyCode == SWT.CR || evt.keyCode == SWT.SPACE) {
-					doAction();
-				}
-			}
-		});
-	}
+    private boolean runASync;
 
-	protected void doAction() {
-		
-		valideButton.setCapture(true);
-		valideButton.forceFocus();
-		
-		getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-		new Thread(new Runnable() {
-			public void run() {
-				ActionDialog.this.getParent().getDisplay().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							action.action();
-							//dispose();
-						} catch (Exception e) {
-							if (errorHandler != null) {
-								LOGGER.warn(e);
-								errorHandler.action();
-							} else {
-								try {
-                                    ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
-                                    ActionDialog.this.errorTxt.setVisible(true);
-                                    ActionDialog.this.getParent().pack();
-                                } catch (Exception e1) {
-                                    LOGGER.warn(e,e);
-                                }
-								LOGGER.error(e,e);
-							}
-						} finally {
-							if (!getParent().isDisposed()) getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-						}
-					}
-				});
-			}
-		}).start();
-		dispose();
-	}
+    public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
+        super(parent, title, erreur, addMessage);
+        this.actionTxt = actionTxt;
+        this.action = action;
+        runInThread = true;
+        runASync = true;
+    }
+
+    public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action, Boolean runASync) {
+        super(parent, title, erreur, addMessage);
+        this.actionTxt = actionTxt;
+        this.action = action;
+        this.runASync = runASync;
+    }
+
+    @Override
+    public void open() {
+        super.open();
+    }
+
+    @Override
+    protected void validationButtonTxtAndAction() {
+
+        valideButton.setText(actionTxt);
+        valideButton.setFont(MainGui.DEFAULTFONT);
+        valideButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseDown(MouseEvent evt) {
+                doAction();
+            }
+        });
+        valideButton.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent evt) {
+                if (evt.keyCode == SWT.CR || evt.keyCode == SWT.SPACE) {
+                    doAction();
+                }
+            }
+        });
+    }
+
+    protected void doAction() {
+
+        valideButton.setCapture(true);
+        valideButton.forceFocus();
+
+        getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+        Runnable uiAsyncRunnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    action.action();
+                    Display.getDefault().wake();
+                } catch (Exception e) {
+                    LOGGER.error(e);
+                    if (errorHandler != null) {
+                        errorHandler.action();
+                    } else {
+                        try {
+                            ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
+                            ActionDialog.this.errorTxt.setVisible(true);
+                            ActionDialog.this.getParent().pack();
+                        } catch (Exception e1) {
+                            LOGGER.warn(e,e);
+                        }
+                    }
+                } finally {
+                    if (!getParent().isDisposed()) getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+                }
+            }
+        };
+
+        if (runASync) {
+            if (runInThread) {
+                new Thread(new Runnable() {
+                    public void run() {
+                        ActionDialog.this.getParent().getDisplay().syncExec(uiAsyncRunnable);
+                        Display.getDefault().wake();
+                    }
+                }).start();
+            } else {
+                ActionDialog.this.getParent().getDisplay().asyncExec(uiAsyncRunnable);
+                Display.getDefault().wake();
+            }
+        } else {
+            uiAsyncRunnable.run();
+        }
+
+        try {
+            dispose();
+        } catch (Exception e) {
+            LOGGER.warn(e,e);
+        }
+
+    }
 
 
-	public void updateDialog(String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
-		
-		super.updateDialog(title, erreur, addMessage);
-		
-		this.actionTxt = actionTxt;
-		this.action = action;
-		valideButton.setText(actionTxt);
-		
-		layout();
-		
-		getParent().setActive();
-		valideButton.setFocus();
-	}
+    public void updateDialog(String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
+
+        super.updateDialog(title, erreur, addMessage);
+
+        this.actionTxt = actionTxt;
+        this.action = action;
+        valideButton.setText(actionTxt);
+
+        layout();
+
+        getParent().setActive();
+        valideButton.setFocus();
+    }
 
 
-	public boolean sameDialog(String erreur, String addMessage, String actionTxt) {
-		
-		if (!super.sameDialog(erreur, addMessage))
-			return false;
-		if (this.actionTxt == null) {
-			if (actionTxt != null)
-				return false;
-		} else if (!this.actionTxt.equals(actionTxt))
-			return false;
-		return true;
-	}
+    public boolean sameDialog(String erreur, String addMessage, String actionTxt) {
 
-	public void setErrorHandler(ActionDialogAction errorHandler) {
-		this.errorHandler = errorHandler;
-	}
+        if (!super.sameDialog(erreur, addMessage))
+            return false;
+        if (this.actionTxt == null) {
+            if (actionTxt != null)
+                return false;
+        } else if (!this.actionTxt.equals(actionTxt))
+            return false;
+        return true;
+    }
+
+    public void setErrorHandler(ActionDialogAction errorHandler) {
+        this.errorHandler = errorHandler;
+    }
 
 }

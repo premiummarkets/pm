@@ -62,6 +62,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.ShareDAO;
+import com.finance.pms.datasources.shares.ShareFilter;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
@@ -292,12 +293,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 		return retour;
 	}
-	
-//	public Set<Stock> loadStocksForCurrentShareList() {
-//		String currentMarket =  MainPMScmd.getMyPrefs().get("quotes.listprovider", "euronext");
-//		Providers provider = Providers.getInstance(currentMarket);
-//		return loadStocksList(currentMarket + Indice.formatSet(provider.getIndices()));
-//	}
 
 	public  Set<Stock> loadStocksList(String shareList) {
 		if (shareList == null) {
@@ -307,6 +302,17 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		SharesList sharesList = portfolioDAO.loadShareList(shareList);
 		return sharesList.toStocksSet();
 		
+	}
+	
+	public List<Stock> loadStocksByQuotationProvider(String quotationProvider) {
+	    List<Stock> result = shareDAO.loadShares(new ShareFilter() {
+            
+            @Override
+            public String getRequestConstraint(String... params) {
+                return " "+SHARES.QUOTATIONPROVIDER+" = '"+quotationProvider+"' ";
+            }
+        });
+	    return result;
 	}
 	
 	public Collection<Stock> loadAllStocks() {
@@ -1137,17 +1143,17 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					
 						//set
 						Query qupdate = new Query();
-						qupdate.addValue(insertParams.get(1));
-						qupdate.addValue(insertParams.get(2));
-						qupdate.addValue(insertParams.get(3));
-						qupdate.addValue(insertParams.get(4));
-						qupdate.addValue(insertParams.get(5));
-						qupdate.addValue(insertParams.get(6));
+						qupdate.addValue(insertParams.get(1)); //Open
+						qupdate.addValue(insertParams.get(2)); //High
+						qupdate.addValue(insertParams.get(3)); //Low
+						qupdate.addValue(insertParams.get(4)); //Close
+						qupdate.addValue(insertParams.get(5)); //Volume
+						qupdate.addValue(insertParams.get(6)); //Currency??
 
 						//where
 						qupdate.addValue(insertParams.get(7));
 						qupdate.addValue(insertParams.get(8));
-						qupdate.addValue(insertParams.get(0));
+						qupdate.addValue(insertParams.get(0)); //Date
 
 						return qupdate;
 						

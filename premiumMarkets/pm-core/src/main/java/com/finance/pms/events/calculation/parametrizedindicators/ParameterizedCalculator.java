@@ -139,7 +139,7 @@ public class ParameterizedCalculator extends EventCompostionCalculator {
 				
 				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
 				eventValue.setEventType(EventType.NONE);
-				returnedEvents.put(noneEventKey,eventValue);
+				returnedEvents.put(noneEventKey, eventValue);
 			}
 			
 			edata.putAll(returnedEvents);

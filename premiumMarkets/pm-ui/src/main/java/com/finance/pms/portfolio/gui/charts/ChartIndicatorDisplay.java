@@ -78,6 +78,7 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartBarUtils;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
@@ -347,7 +348,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						public void run() {
 							try {
 								SymbolEvents ses = (SymbolEvents) arg;
-								SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barsData = 
+								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = 
 										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRess, barChartSettings);
 								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {

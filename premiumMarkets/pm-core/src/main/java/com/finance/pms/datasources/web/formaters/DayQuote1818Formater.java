@@ -68,7 +68,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 0 :
 				Matcher fitDate = datePattern.matcher(line);
 				if (fitDate.find()) {
-					System.out.println("Date : "+line+" at cpt : "+cpt);
+					LOGGER.debug("Date : "+line+" at cpt : "+cpt);
 					date = LocalDate.parse(fitDate.group(1), DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.FRANCE));
 					cpt ++;
 				}
@@ -76,7 +76,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 1 :
 				Matcher fitOpen = quotationPattern.matcher(line);
 				if (fitOpen.find()) {
-					System.out.println("open : "+line+" at cpt : "+cpt);
+				    LOGGER.debug("open : "+line+" at cpt : "+cpt);
 					open = new BigDecimal(numberTransform(fitOpen));
 					cpt ++;
 				}
@@ -84,7 +84,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 2 :
 				Matcher fitHigh = quotationPattern.matcher(line);
 				if (fitHigh.find()) {
-					System.out.println("high : "+line+" at cpt : "+cpt);
+				    LOGGER.debug("high : "+line+" at cpt : "+cpt);
 					high = new BigDecimal(numberTransform(fitHigh));
 					cpt ++;
 				}
@@ -92,7 +92,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 3 :
 				Matcher fitLow = quotationPattern.matcher(line);
 				if (fitLow.find()) {
-					System.out.println("low : "+line+" at cpt : "+cpt);
+				    LOGGER.debug("low : "+line+" at cpt : "+cpt);
 					low = new BigDecimal(numberTransform(fitLow));
 					cpt ++;
 				}
@@ -100,7 +100,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 4 :
 				Matcher fitClose = quotationPattern.matcher(line);
 				if (fitClose.find()) {
-					System.out.println("close : "+line+" at cpt : "+cpt);
+				    LOGGER.debug("close : "+line+" at cpt : "+cpt);
 					close = new BigDecimal(numberTransform(fitClose));
 					cpt ++;
 				}
@@ -108,7 +108,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 5 :
 				Matcher fitVolume = volumePattern.matcher(line);
 				if (fitVolume.find()) {
-					System.out.println("volume : "+line+" at cpt : "+cpt);
+				    LOGGER.debug("volume : "+line+" at cpt : "+cpt);
 					LinkedList<Comparable<?>> mainQuery = new LinkedList<Comparable<?>>();
 					Calendar calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(date.atTime(0, 0).toEpochSecond(ZoneOffset.UTC)*1000);
@@ -124,7 +124,7 @@ public class DayQuote1818Formater extends LineFormater {
 				break;
 			}
 		} catch (Exception e) {
-			System.out.println(line+" at cpt : "+cpt);
+		    LOGGER.debug(line+" at cpt : "+cpt);
 			cpt = 0;
 			e.printStackTrace();
 		}

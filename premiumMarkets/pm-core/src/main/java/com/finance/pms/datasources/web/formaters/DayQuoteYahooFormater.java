@@ -59,11 +59,11 @@ public class DayQuoteYahooFormater extends DayQuoteFormater {
 
 		LinkedList<Comparable<?>> tokenisedLine = new LinkedList<Comparable<?>>();
 		loop :
-			for (int i =1;strt.hasMoreTokens() && i <=	6; i++) {
+			for (int columnNum = 1; strt.hasMoreTokens() && columnNum <= 6; columnNum++) {
 				String field = strt.nextToken();
 				if (field != null) {
 
-					switch (i) {
+					switch (columnNum) {
 					case 1:
 						if (field.equals("Date")) {	break loop; }
 						try {

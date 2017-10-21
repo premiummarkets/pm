@@ -17,7 +17,7 @@ public class HttpSource1818 extends HttpSourceQuotation {
 
 	@Override
 	public MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay) {
-		MyUrl myUrl = new MyUrl(String.format("https://protect.banqueprivee1818.com/phoenix/infosMarcheValeur/detache?page=histo&valeur=%s,399",ticker));
+		MyUrl myUrl = new MyUrl(String.format("https://protect.banqueprivee1818.com/phoenix/infosMarcheValeur/detache?page=histo&valeur=%s,25",ticker));
 		myUrl.getHttpParams().add(new BasicNameValuePair("dateDebut", startDay+"/"+startMonth+"/"+startYear));
 		myUrl.getHttpParams().add(new BasicNameValuePair("dateFin", endDay+"/"+endMonth+"/"+endYear));
 		return myUrl;

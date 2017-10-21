@@ -33,19 +33,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
+
+import junit.framework.TestCase;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -87,7 +85,7 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 		st.setMarketValuation(market);
 		
 		
-		formater = new DayQuoteInvestingFormater(null, st);
+		formater = new DayQuoteYahooFormater(null, st, st.getMarketValuation().getCurrency().toString());
 		
 		
 	}
@@ -108,7 +106,7 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 	        
 	        try {   	
 	 
-	        	f=  new FileInputStream((new File("/home/guil/tmp/resp_2.html")));
+	        	f =  new FileInputStream((new File("/home/guil/Developpement/tmp/GOOG.csv")));
 	            dis = new BufferedReader(new InputStreamReader(f));
 	            int cpt = 0;
 		        for(; ((line = dis.readLine()) != null) && continu;)

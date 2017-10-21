@@ -35,12 +35,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import com.finance.pms.datasources.db.Validatable;
+
+import junit.framework.TestCase;
 
 public class LineFormaterTest extends TestCase {
 	

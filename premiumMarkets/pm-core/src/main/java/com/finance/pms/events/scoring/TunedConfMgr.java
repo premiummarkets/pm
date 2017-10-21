@@ -174,7 +174,7 @@ public class TunedConfMgr {
 				infoMsg +
 				"TunedConf after calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
 				". Requested calculation is from "+startDate+" to "+endDate+". "+
-				"New calc ("+calcStatus+") will be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd);
+				"New calculation status is "+calcStatus+" and will either be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd +" or is not needed if "+CalcStatus.NONE+".");
 
 
 		return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd);

@@ -179,7 +179,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
 							passOneCalcMode, keepCache, eventQueue, jmsTemplate, persistEvents);
 
-				} else {// pass 2
+				} else {//pass 2
 
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
 							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
@@ -208,7 +208,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			}
 		} catch (InterruptedException e) {
 			List<Runnable> shutdownNow = executor.shutdownNow();
-			LOGGER.error(shutdownNow,e);
+			LOGGER.error(shutdownNow, e);
 			isDataSetComplete = false;
 		}
 		
@@ -239,7 +239,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput = ((IncompleteDataSetException) e1.getCause()).getCalculatedOutput();
 					calculatedOutputReturn.putAll(calculatedOutput);
 				} else {
-					LOGGER.error(e1,e1);
+					LOGGER.error(e1, e1);
 				}
 				
 			}

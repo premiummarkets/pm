@@ -82,6 +82,10 @@
 		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
 		<property name="shareDAO" ref="shareDAO"/> -->
 	</bean>
+	<bean id="yahooCrumbProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooCrumb">
+		<constructor-arg type="java.lang.String" value="${dbproperites_file}" />
+		<property name="sharesListId" value="YAHOOCRUMB" />
+	</bean>
 	<bean id="googleProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
@@ -110,7 +114,7 @@
 	</bean>
 
 	<!--  Others -->
-	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo"  parent="provider">
+	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooCrumb"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>

@@ -158,7 +158,7 @@ public abstract class EventModelStrategyEngine<X> {
 					
 					EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
 					if (evtDefRes == null || evtDefRes.getUpdateStamp() == null || evtDefRes.getUpdateStamp().isFailing()) {
-						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' is failing for " + stock.getFriendlyName() + "\n";
+						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' has failed for " + stock.getFriendlyName() + ". No output was found/generated.\n";
 						isAllEventsOkForStock = false;
 					} 
 					

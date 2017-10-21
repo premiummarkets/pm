@@ -36,8 +36,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import junit.framework.TestCase;
-
 import org.easymock.EasyMock;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
@@ -52,6 +50,8 @@ import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.formaters.StockComplementBoursoFormater;
 import com.finance.pms.threads.PoolSemaphore;
+
+import junit.framework.TestCase;
 
 
 // TODO: Auto-generated Javadoc

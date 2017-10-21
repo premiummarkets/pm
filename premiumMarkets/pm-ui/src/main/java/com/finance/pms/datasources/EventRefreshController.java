@@ -29,7 +29,6 @@
  */
 package com.finance.pms.datasources;
 
-import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Display;
 
-import com.finance.pms.AudioPlayer;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -287,12 +285,12 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 								}
 							});
 							
-							try {
-								boolean loadStream = AudioPlayer.loadClip("ring", System.getProperty("installdir")+File.separator+"icons/telephone-ring-01_s.wav");
-								if (loadStream) AudioPlayer.play("ring", false);
-							} catch (Exception e) {
-								LOGGER.warn(e,e);
-							}
+//							try {
+//								boolean loadStream = AudioPlayer.loadClip("ring", System.getProperty("installdir")+File.separator+"icons/telephone-ring-01_s.wav");
+//								if (loadStream) AudioPlayer.play("ring", false);
+//							} catch (Exception e) {
+//								LOGGER.warn(e,e);
+//							}
 							
 						} catch (Exception e) {
 							LOGGER.error(e,e);

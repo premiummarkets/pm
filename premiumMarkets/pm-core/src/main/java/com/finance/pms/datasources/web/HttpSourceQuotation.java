@@ -38,7 +38,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
 import com.finance.pms.threads.SourceClient;
-import com.finance.pms.threads.SourceConnector;
 
 
 public abstract class HttpSourceQuotation extends HttpSource {

@@ -164,10 +164,11 @@ public abstract class ParameterizedBuilder extends Observable {
 		Boolean isNewOp = false;
 		try {
 			
+		    LOGGER.info("Creating parser for formula "+identifier);
 			formulaParser = new FormulaParser(this, identifier, formula);
 			
+			LOGGER.info("Parsing for formula "+identifier);
 			runParsing(formulaParser);
-			
 			LOGGER.info("Parsing ok for formula "+identifier);
 			
 			Operation operation = formulaParser.getBuiltOperation();	

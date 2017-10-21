@@ -38,8 +38,6 @@ import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import junit.framework.TestCase;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,6 +54,8 @@ import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.threads.ConfigThreadLocal;
+
+import junit.framework.TestCase;
 
 public class PortfolioShareOtherTest extends TestCase {
 	

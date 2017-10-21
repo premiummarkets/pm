@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.jms.Queue;
 
+import org.apache.log4j.Level;
 import org.springframework.jms.core.JmsTemplate;
 
 import com.finance.pms.MainPMScmd;
@@ -113,6 +114,9 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		}
 		
 		if (dataSetExceptions.size() > 0) {
+		    if (LOGGER.isEnabledFor(Level.ERROR)) {
+		        dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
+		    }
 			throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set for "+stock.getFriendlyName()+" may invalidate further usage.");
 		}
 		
@@ -186,7 +190,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 							failing.add(evtCalculator.getEventDefinition());
 							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
 						} catch (Exception e) {
-							LOGGER.error(e , e);
+							LOGGER.error(e, e);
 							failing.add(evtCalculator.getEventDefinition());
 							symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
 						}

@@ -275,7 +275,7 @@ public class BarSettingsDialog {
 			isGradient.setSelection(barChartSettings.getIsGradiant());
 		}
 		{
-			final Spinner alphaSpinner = new Spinner(shell, SWT.WRAP|SWT.READ_ONLY);
+			final Spinner alphaSpinner = new Spinner(shell, SWT.WRAP);
 			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,false,false);
 			layoutData.horizontalSpan = 2;
 			alphaSpinner.setLayoutData(layoutData);
@@ -286,6 +286,7 @@ public class BarSettingsDialog {
 			alphaSpinner.setMaximum(EventDefinition.loadMaxPassPrefsEventInfo().size()*10);
 			alphaSpinner.setIncrement(5);
 			alphaSpinner.setSelection((int)(barChartSettings.getAlphaDividend()*Math.pow(10, digits)));
+			alphaSpinner.setEnabled(true);
 			alphaSpinner.setToolTipText(
 					"For a better visibility of the result, You can change the opacity of the charted trend.\n" +
 							"You must select a share in the portfolio to display its analysis\n" +

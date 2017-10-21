@@ -244,6 +244,7 @@ public class OTFTuningFinalizer {
 		
 		Double trendFollowProfit = 1.00;
 		
+		//Exports //FIXME separation of concern
 //		Boolean generateBuySellCsv = MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatecsv", true);
 //		Boolean generateSmaCmpOutChart =  MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatepng", true);
 		

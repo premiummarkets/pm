@@ -266,7 +266,7 @@ public class OperationBuilderComposite extends Composite {
                 @Override
                 public void mouseDown(MouseEvent e) {
                     //if (!savingAttemptStarted)
-                        handleSaveAndSelection();
+                    handleSaveAndSelection();
                 }
 
                 @Override
@@ -685,13 +685,13 @@ public class OperationBuilderComposite extends Composite {
 
         if (!isSaved) {
 
-            //savingAttemptStarted = true;
+            LOGGER.info("Handling saving of "+id+". Is saved :"+isSaved);
 
             if (isValidId(id)) {
                 saveOrUpdateFormula(id, true);
             }
 
-            //savingAttemptStarted = false;
+            LOGGER.info(id+" is saved ? : "+isSaved);
 
         }
     }
@@ -795,7 +795,8 @@ public class OperationBuilderComposite extends Composite {
     }
 
     protected void refreshViews() {
-        EventRefreshController eventRefreshController = new EventRefreshController(EventModel.getInstance(new RefreshFourToutStrategyEngine()), mainGuiParent, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+        EventRefreshController eventRefreshController = 
+                new EventRefreshController(EventModel.getInstance(new RefreshFourToutStrategyEngine()), mainGuiParent, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
             @Override
             public void widgetSelected(SelectionEvent evt) {
                 LOGGER.guiInfo("Refreshing views");
@@ -852,36 +853,46 @@ public class OperationBuilderComposite extends Composite {
 
     private void saveOrUpdateFormula(final String identifier, Boolean checkOverWrite) {
 
+        LOGGER.info("Save or update of "+identifier+". Is saved :"+isSaved);
+
         final String formula = formatedEditorTxt();
         if (formula == null || formula.isEmpty()) {//Is valid?
             UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid formula", null);
             dialog.open();
             isSaved=false;
+            LOGGER.info("Is invalid "+identifier+". Is saved :"+isSaved);
         } else if (!hasChanged(identifier)) {//Has not Changed?
             isSaved=true;
+            LOGGER.info("Has not changed "+identifier+". Is saved :"+isSaved);
         } else {//Is valid and has changed
             Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
             if (existingOp != null && checkOverWrite) {//Already exist?
-
+                LOGGER.info("Already exist, updating "+identifier+". Is saved :"+isSaved);
                 if (existingOp.getDisabled()) {//Is disabled?
+                    LOGGER.info("Is disabled "+identifier+". Is saved :"+isSaved);
                     isSaved=true;
                 } else {
+
+                    LOGGER.info("Launching confirmation dialog "+identifier+". Is saved :"+isSaved);
+                    updateComboAndSelect(identifier, true); //This is an update so this should have no impact?
                     ActionDialogAction action = new ActionDialogAction() {
                         @Override
                         public void action() {
+                            LOGGER.info("Saving warning dialog running "+identifier+". Is saved :"+isSaved);
                             doSaveFormula(identifier, formula);
-                            updateComboAndSelect(identifier, true);
+                            LOGGER.info("Updated and saved "+identifier+". Is saved :"+isSaved);
                         }
                     };
 
-                    ActionDialog dialog = new ActionDialog(getShell(), "Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action);
+                    ActionDialog dialog = new ActionDialog(getShell(), "Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action, false);
                     dialog.open();
-                    //isSaved=false;
                 }
 
             } else {
+                LOGGER.info("Is new "+identifier+". Is saved :"+isSaved);
                 doSaveFormula(identifier, formula);
                 updateComboAndSelect(identifier, true);
+                LOGGER.info("New saved "+identifier+". Is saved :"+isSaved);
             }
         }
 
@@ -889,38 +900,42 @@ public class OperationBuilderComposite extends Composite {
 
     protected void doSaveFormula(final String identifier, String formula) {
 
+        LOGGER.info("Actually persistence of "+identifier+". Is saved :"+isSaved);
+
         // Save formula
         try {
             // Sanity check
             NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
             if (checkNextToken != null) {
+                LOGGER.info("Invalid "+identifier+". Is saved :"+isSaved);
                 UserDialog dialog = new UserDialog(getShell(), "Formula " + formula + " can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
                 dialog.open();
                 isSaved=false;
             } else {
-                // Save
-                LOGGER.info("Saving formula : "+identifier);
+                LOGGER.info("Adding formula to operation list : "+identifier+". Is saved :"+isSaved);
                 parameterizedBuilder.addFormula(identifier, formula);
                 isSaved = true;
             }
 
         } catch (IOException e) {
-            UserDialog dialog = new UserDialog(getShell(), "Formula can't be saved.\n Please fill in a valid formula", e.toString());
+            LOGGER.info("An error occurred "+identifier+". Is saved :"+isSaved);
             LOGGER.warn(e, e);
+            UserDialog dialog = new UserDialog(getShell(), "Formula can't be saved.\n Please fill in a valid formula", e.toString());
             dialog.open();
             isSaved=false;
 
         } catch (Exception e) {
-            UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
+            LOGGER.info("An error occurred "+identifier+". Is saved :"+isSaved);
             LOGGER.warn(e, e);
+            UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
             dialog.open();
             isSaved=false;
         }
 
-        //savingAttemptStarted = false;
-        LOGGER.info("Refresh for : "+identifier);
+        LOGGER.info("Refresh for : "+identifier+". Is saved :"+isSaved);
         previousCalcsAsDirty(identifier);
         refreshViews();
+        LOGGER.info("Refresh done/running : "+identifier+". Is saved :"+isSaved);
 
     }
 

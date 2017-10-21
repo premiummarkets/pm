@@ -165,7 +165,7 @@ public abstract class HttpSource implements SourceConnector {
 		requestBuilder = requestBuilder.setConnectTimeout(30000);
 		requestBuilder = requestBuilder.setSocketTimeout(30000);
 		requestBuilder = requestBuilder.setConnectionRequestTimeout(30000);
-		requestBuilder = requestBuilder.setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY);
+		requestBuilder = requestBuilder.setCookieSpec(CookieSpecs.DEFAULT);
 		
 		HttpClientBuilder builder = HttpClientBuilder.create();     
 		builder.setDefaultRequestConfig(requestBuilder.build());

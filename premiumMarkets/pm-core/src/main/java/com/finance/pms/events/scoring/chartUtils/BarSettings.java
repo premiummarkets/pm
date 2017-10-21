@@ -47,7 +47,7 @@ public class BarSettings {
 	public BarSettings() {
 		super();
 		this.alphaDividend = MainPMScmd.getMyPrefs().getDouble("chart.alphaDividend", 5.0);
-		this.maxFill = MainPMScmd.getMyPrefs().getInt("chart.maxFill", 12);
+		this.maxFill = MainPMScmd.getMyPrefs().getInt("chart.maxFill", 1);
 		this.isZeroBased  = MainPMScmd.getMyPrefs().getBoolean("chart.isZeroBased", false);
 		this.isReachTop =  MainPMScmd.getMyPrefs().getBoolean("chart.isReachTop", false);
 		this.isGradiant = MainPMScmd.getMyPrefs().getBoolean("chart.isGradient", false);

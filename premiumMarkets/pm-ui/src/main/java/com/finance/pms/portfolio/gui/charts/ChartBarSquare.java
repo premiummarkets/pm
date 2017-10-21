@@ -39,6 +39,8 @@ import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesDataItem;
 
+import com.finance.pms.events.scoring.chartUtils.BarChart;
+
 public class ChartBarSquare extends BarChartDisplayStrategy {
 	
 	private NumberAxis mainBarYAxis;
@@ -74,7 +76,7 @@ public class ChartBarSquare extends BarChartDisplayStrategy {
 
 
 	@Override
-	public TimeSeries buildBarTimeSeries(String serieName, SortedMap<Date, Double> barSerie, TimeSeries lineSerie) {
+	public TimeSeries buildBarTimeSeries(String serieName, SortedMap<Date, BarChart> barSerie, TimeSeries lineSerie) {
 
 		TimeSeries timeSerie = new TimeSeries(serieName);
 
@@ -85,7 +87,7 @@ public class ChartBarSquare extends BarChartDisplayStrategy {
 			if (cpt % gap  == 0) {
 				RegularTimePeriod period = new Day(date);
 
-				Number value = barSerie.get(date);
+				Number value = barSerie.get(date).getValue();
 				TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
 				timeSerie.add(item, false);
 			}

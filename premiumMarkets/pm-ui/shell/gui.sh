@@ -28,7 +28,8 @@ echo $PATH
 
 cd "$INSTALLDIR"
 	
-nohup java -splash:"$INSTALLDIR"/icons/squeakyPig.png -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M -Djava.library.path="$INSTALLDIR"/lib -Dinstalldir="$INSTALLDIR" -jar "$INSTALLDIR"/pm.jar "$INSTALLDIR"/db.properties > ~/tmp/pm.out &
+nohup java -splash:"$INSTALLDIR"/icons/squeakyPig.png -Xconcurrentio -Xmx2256M -Xss128k -Dsite.url=premiummarkets.uk -Djava.library.path="$INSTALLDIR"/lib -Dinstalldir="$INSTALLDIR" -jar "$INSTALLDIR"/pm.jar "$INSTALLDIR"/db.properties > ~/tmp/pm.out &
+
 
 sleep 15
 

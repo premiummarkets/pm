@@ -183,7 +183,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			
 		} catch (Exception e) {
 			LOGGER.warn("Operation calculation error "+this, e);
-			throw new ArithmeticException(e.toString());
+			throw new RuntimeException(e);
 		}
 		
 	}

@@ -51,12 +51,12 @@ public class ChartBarUtils {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartBarUtils.class);
 	
-	public static SortedMap<DataSetBarDescr, SortedMap<Date, Double>> buildBarsData(
+	public static SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> buildBarsData(
 			Stock selectedShare, Set<EventInfo> chartedEvtDefsTrends, 
 			Date start, Date end, SymbolEvents eventsForStock, Map<EventInfo, TuningResDTO> tuningRess, 
 			BarSettings barSettings) {
 
-		SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barData = new TreeMap<DataSetBarDescr, SortedMap<Date,Double>>();
+		SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barData = new TreeMap<DataSetBarDescr, SortedMap<Date, BarChart>>();
 		
 		try {
 			
@@ -66,9 +66,9 @@ public class ChartBarUtils {
 
 			for (EventInfo eventInfo : chartedEvtDefsTrends) {
 
-				SortedMap<Date, Double> sellS = new TreeMap<Date,Double>();
-				SortedMap<Date, Double> buyS = new TreeMap<Date,Double>();
-				SortedMap<Date, Double> indeterS = new TreeMap<Date,Double>();
+				SortedMap<Date, BarChart> sellS = new TreeMap<Date, BarChart>();
+				SortedMap<Date, BarChart> buyS = new TreeMap<Date, BarChart>();
+				SortedMap<Date, BarChart> indeterS = new TreeMap<Date, BarChart>();
 				EventValue prevEventValue = null;
 
 				SortedMap<EventKey, EventValue> sortedDataResultMap = eventsForStock.getSortedDataResultMap();
@@ -148,7 +148,10 @@ public class ChartBarUtils {
 	}
 	
 	//nbMaxFill = 0 means no filling limit
-	private static void cheesyFillBarChart(double yValue, SortedMap<Date, Double> sellS, SortedMap<Date, Double> buyS, SortedMap<Date, Double> undeterS, EventValue prevEventValue, Date currEvtDate, int nbMaxFill) {
+	private static void cheesyFillBarChart(
+	        double yValue, 
+	        SortedMap<Date, BarChart> sellS, SortedMap<Date, BarChart> buyS, SortedMap<Date, BarChart> undeterS, 
+	        EventValue prevEventValue, Date currEvtDate, int nbMaxFill) {
 		
 		Calendar prevDateCal = Calendar.getInstance();
 		prevDateCal.setTime(prevEventValue.getDate());
@@ -158,20 +161,20 @@ public class ChartBarUtils {
 	
 		if ( prevEventValue.getEventType().equals(EventType.BULLISH)) {
 			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
-				buyS.put(prevDateCal.getTime(), value);
+				buyS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
 				QuotationsFactories.getFactory().incrementDate(prevDateCal, +1);
 				nbFill++;
 			}
 		}
 		else if (prevEventValue.getEventType().equals(EventType.BEARISH)) {
 			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
-				sellS.put(prevDateCal.getTime(), value);
+				sellS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
 				QuotationsFactories.getFactory().incrementDate(prevDateCal, +1);
 				nbFill++;
 			}
 		}
 		else if (prevEventValue.getEventType().equals(EventType.NONE)) {
-			undeterS.put(prevDateCal.getTime(), value);
+			undeterS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
 //			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
 //				undeterS.put(prevDateCal.getTime(), value);
 //				QuotationsFactories.getFactory().incrementDate(prevDateCal, +1);
