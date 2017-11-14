@@ -65,6 +65,8 @@ import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMe
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.nativeops.PMDataFreeOperation;
+import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -127,14 +129,29 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
             Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 
             Boolean doRunPassOne = true;
-            if (viewStateParams != null && viewStateParams.length == 1) {
+            if (viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null) {
                 Stream<? extends Object> filter = viewStateParams[0].stream()
-                        .filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED) && ((Operation) e).isDataFree());
-                if (filter.count() == viewStateParams[0].size()) doRunPassOne = false;
-                LOGGER.info("The requested operations are data free, no pass one will be processed : "+
-                        viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
-                
-            } 
+                        .filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId()) && ((Operation) e).collectOperationOf(PMWithDataOperation.class).isEmpty());
+                if (filter.count() == viewStateParams[0].size()) {
+                    doRunPassOne = false;
+                    LOGGER.info("The requested operations are data free, no pass one will be processed : "+
+                            viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
+                }
+            }
+
+            if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {
+                Object isDirty = viewStateParams[1].iterator().next();
+                if (isDirty != null && isDirty.equals("setDirty")) {
+                    viewStateParams[0].stream()
+                    .forEach(e -> {
+                        if (((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
+                            List<Operation> collectOperationOf = ((Operation) e).collectOperationOf(PMDataFreeOperation.class);
+                            collectOperationOf.stream().forEach(o -> ((PMDataFreeOperation) o).needsUpdate());
+                        }
+                    });
+                    viewStateParams[1] = null;
+                }
+            }
 
             if (doRunPassOne) {
                 //Pass one
@@ -169,7 +186,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
             } 
         }
 
-        postCallBackForAnalysis(outputRet);
+        postCallBackForAnalysis(outputRet, viewStateParams);
 
     }
 

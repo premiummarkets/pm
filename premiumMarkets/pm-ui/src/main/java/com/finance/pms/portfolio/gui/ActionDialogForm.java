@@ -45,7 +45,7 @@ public class ActionDialogForm extends ActionDialog {
 	public Object[] values;
 	
 	public ActionDialogForm(Shell shell, String buttonText,  String formText, String title) {
-		super(shell, title, formText, null, buttonText, null);
+		super(shell, title, formText, null, buttonText, null, false);
 	}
 	
 	@Override

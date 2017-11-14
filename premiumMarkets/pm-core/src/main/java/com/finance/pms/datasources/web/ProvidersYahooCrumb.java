@@ -35,11 +35,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,6 +106,7 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
         queries.addAll(readPage(stock, url, start));
 
         LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+        LOGGER.debug(queries);
 
         try {
             ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
@@ -195,10 +199,18 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
             String cookie = responseCookies.getValue().split(";")[0];
 
             String crumb = getCrumb(crumbResponse.getEntity().getContent());
+            
+            Calendar calendarStart = Calendar.getInstance();
+            calendarStart.setTime(start);
+            ZonedDateTime zonedStart = ZonedDateTime.of(calendarStart.get(Calendar.YEAR), calendarStart.get(Calendar.MONTH)+1, calendarStart.get(Calendar.DAY_OF_MONTH),0 , 0, 0, 0, TimeZone.getTimeZone("EST").toZoneId());
+
+            Calendar calendarEnd = Calendar.getInstance();
+            calendarEnd.setTime(end);
+            ZonedDateTime zonedEnd = ZonedDateTime.of(calendarEnd.get(Calendar.YEAR), calendarEnd.get(Calendar.MONTH)+1, calendarEnd.get(Calendar.DAY_OF_MONTH),0 , 0, 0, 0, TimeZone.getTimeZone("EST").toZoneId());
 
             //Call
             url =  ((HttpSourceYahooCrumb)this.httpSource)
-                    .getYahooQuoteURL(symbol, DateFactory.midnithDate(start).getTime()/1000, DateFactory.midnithDate(end).getTime()/1000, cookie, crumb);
+                    .getYahooQuoteURL(symbol, zonedStart.toEpochSecond(), zonedEnd.toEpochSecond(), cookie, crumb);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

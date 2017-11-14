@@ -654,9 +654,7 @@ public class ChartMain extends Chart {
                                     renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
                                     serieIdx++;
                                 }
-
                             }
-
                         }
 
                         //Y Axe for group

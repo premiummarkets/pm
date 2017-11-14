@@ -40,14 +40,11 @@ import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.portfolio.PortfolioDAO;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 /**
@@ -57,36 +54,17 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public abstract class IndicatorsCalculationService {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationService.class);
+	//private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationService.class);
 	
 	protected Queue eventQueue;
 	protected JmsTemplate jmsTemplate;
 	
 	protected ShareDAO shareDAO;
 	protected PortfolioDAO portfolioDAO;
-	private Collection<Stock> symbolsCache;
 	
 	public IndicatorsCalculationService() {
 		super();
 	}
-
-//	protected Collection<Stock> loadAllStocksFromDB() {
-//		return DataSource.getInstance().loadStocksForCurrentShareList();
-//	}
-
-//	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> fullAnalyze(Date datedeb, Date datefin, Currency calculationCurrency, String analyseName, String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException {
-//		
-//		if ((this.symbolsCache == null) || !keepCache) this.symbolsCache = loadAllStocksFromDB();
-//		
-//		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analysisRes = null;
-//		try {
-//			analysisRes = analyze(this.symbolsCache, datedeb, datefin, calculationCurrency, analyseName, periodType, keepCache, passNumber, true, passOneCalcMode);
-//		} catch (IncompleteDataSetException e) {
-//			LOGGER.warn(e);
-//		}
-//		
-//		return analysisRes;
-//	}
 	
 
 	/**
@@ -150,7 +128,7 @@ public abstract class IndicatorsCalculationService {
 				calcRes = partialAnalyze(shareList, startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, persistEvents, passOneCalcMode, observers);
 		} else {
 				//calcRes = fullAnalyze(startDate, endDate, calculationCurrency, eventListName, periodType, true, passNumber, passOneCalcMode, observers);
-				throw new NotImplementedException();
+				throw new UnsupportedOperationException();
 		}
 		
 		return calcRes;

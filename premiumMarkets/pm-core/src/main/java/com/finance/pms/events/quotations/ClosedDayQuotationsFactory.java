@@ -61,26 +61,27 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	
 	public  Calendar incrementDate(Calendar calendar, int amount) {
 		calendar.add(Calendar.DAY_OF_YEAR, noGapsAmount(amount));
-		closeNoQuotationEdgeGap(calendar, Math.signum(amount));
+		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 
 	private int noGapsAmount(int amount) {
-		Integer nbGaps = amount / 5;
-		return amount + 2*nbGaps;
+		int nbWeeksBaseOnOpenDays = amount / 5;
+		int addedWeekends = 2*nbWeeksBaseOnOpenDays;
+        return amount + addedWeekends;
 	}
 	
 	
 	public  Calendar incrementDateLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.MONTH, noGapsAmount(amount));
-		closeNoQuotationEdgeGap(calendar, Math.signum(amount));
+		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 	
 	
 	public  Calendar incrementDateExtraLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.YEAR, noGapsAmount(amount));
-		closeNoQuotationEdgeGap(calendar, Math.signum(amount));
+		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 	
@@ -101,7 +102,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return calendar.getTime();
 	}
 
-	private  void closeNoQuotationEdgeGap(Calendar calendar, double amountSign) {
+	private  void fillEdgeGap(Calendar calendar, double amountSign) {
 		
 		if (amountSign > 0) {
 			calendar.setTime(getValidQuotationDateAfter(calendar.getTime()));

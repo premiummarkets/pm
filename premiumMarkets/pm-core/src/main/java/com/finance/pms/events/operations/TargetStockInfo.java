@@ -161,7 +161,7 @@ public class TargetStockInfo {
     }
 
     public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events, String opName) {
-        if (eventAnalyser == null) return events;
+        if (eventAnalyser == null || events.isEmpty()) return events;
         return eventAnalyser.analyse(events, opName);
     }
 

@@ -47,69 +47,69 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 
 public class RefreshChartHighlighted extends UserContentStrategyEngine<Stock> {
 
-	@Override
-	public void callbackForAlerts(Set<Observer> engineObservers, Stock rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
-		throw new NotImplementedException();
-	}
-	
-	@Override
-	protected String passOneOverwriteMode() {
-		return "force";
-	}
+    @Override
+    public void callbackForAlerts(Set<Observer> engineObservers, Stock rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) {
+        throw new NotImplementedException();
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, 
-	                                   Stock rootParam, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
-		
-		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForAnalysis(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam, viewStateParams);
-		 
-	}
+    @Override
+    protected String passOneOverwriteMode() {
+        return "force";
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, Stock rootParam, Collection<? extends Object>... viewStateParams) throws QuotationUpdateException {
+    @SuppressWarnings("unchecked")
+    @Override
+    public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers, 
+            Stock rootParam, Collection<? extends Object>... viewStateParams) throws NotEnoughDataException {
 
-		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForQuotationFetch(engineObservers,startAnalyseDate, endAnalysisDate, rootParam);
-		
-	}
+        tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
+        super.callbackForAnalysis(analysisList, startAnalyseDate, endAnalysisDate, engineObservers, rootParam, viewStateParams);
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void callbackForAnalysisClean(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) {
-		
-		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
-		super.callbackForAnalysisClean(engineObservers, rootParam, viewStateParams);
+    }
 
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, Stock rootParam, Collection<? extends Object>... viewStateParams) throws QuotationUpdateException {
 
-	@Override
-	public int[] otherViewParamPositionsFor(TaskId taskId) {
-		switch (taskId) {
-		case Analysis:
-		case Clean :
-			return new int[]{0};
-		default:
-			return new int[]{};
-		}
-	}
+        tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
+        super.callbackForQuotationFetch(engineObservers,startAnalyseDate, endAnalysisDate, rootParam);
 
-	@Override
-	public boolean allowsTaskReset() {
-		return false;
-	}
+    }
 
-	@Override
-	public int otherViewParamLength() {
-		return 1;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void callbackForAnalysisClean(Set<Observer> engineObservers, Stock rootParam, Collection<? extends Object>... viewStateParams) {
 
-	@Override
-	protected List<Stock> buildStockListFrom(Stock rootParam) {
-		if (rootParam == null) return new ArrayList<Stock>();
-		return Arrays.asList(new Stock[]{rootParam});
-	}
+        tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
+        super.callbackForAnalysisClean(engineObservers, rootParam, viewStateParams);
+
+    }
+
+    @Override
+    public int[] otherViewParamPositionsFor(TaskId taskId) {
+        switch (taskId) {
+        case Analysis:
+        case Clean :
+            return new int[]{0};
+        default:
+            return new int[]{};
+        }
+    }
+
+    @Override
+    public boolean allowsTaskReset() {
+        return false;
+    }
+
+    @Override
+    public int otherViewParamLength() {
+        return 2;
+    }
+
+    @Override
+    protected List<Stock> buildStockListFrom(Stock rootParam) {
+        if (rootParam == null) return new ArrayList<Stock>();
+        return Arrays.asList(new Stock[]{rootParam});
+    }
 
 }

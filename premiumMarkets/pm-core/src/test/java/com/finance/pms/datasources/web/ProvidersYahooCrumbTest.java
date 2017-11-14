@@ -71,14 +71,14 @@ public class ProvidersYahooCrumbTest {
     public void testGetQuotes() throws Exception {
 
         Stock stock = new Stock();
-        stock.setSymbol("GOOG");
-        stock.setIsin("US38259P5089");
-        stock.setName("Google Inc.");
+        stock.setSymbol("IXIC");
+        stock.setIsin("IXIC");
+        stock.setName("NASDAQ COMPOSITE");
         stock.setMarketValuation(new MarketValuation(Market.NASDAQ));
-        stock.setCategory(StockCategories.DEFAULT_CATEGORY);
+        stock.setCategory(StockCategories.INDICES_OTHER);
 
-        Date start = new SimpleDateFormat("dd/MM/yyyy").parse("10/03/2016");
-        Date end =  new SimpleDateFormat("dd/MM/yyyy").parse("15/03/2016");
+        Date start = new SimpleDateFormat("yyyy-MM-dd").parse("2017-10-26");
+        Date end =  new SimpleDateFormat("yyyy-MM-dd").parse("2017-10-27");
 
         providersYahooCrumb.getQuotes(stock, start, end);
 

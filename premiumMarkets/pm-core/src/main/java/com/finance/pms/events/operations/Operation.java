@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.stream.Stream;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -58,7 +57,6 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.PMDataFreeOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
@@ -532,9 +530,21 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 	public abstract int operationStartDateShift();
 	
-	public Boolean isDataFree() {
-	    Stream<Operation> filter = operands.stream().filter(o -> (o instanceof DoubleMapOperation && !(o instanceof PMDataFreeOperation)));
-	    return filter.count() == 0;
+	public List<Operation> collectOperationOf(Class<? extends DoubleMapOperation> operationType) {
+
+	    if (operands.isEmpty()) return new ArrayList<>();
+
+	    ArrayList<Operation> result = new ArrayList<>();
+	    operands.stream().forEach(
+	            o -> {
+	                if (operationType.isAssignableFrom(o.getClass())) {
+	                    result.add(o);
+	                } else {
+	                    result.addAll(o.collectOperationOf(operationType));
+	                }
+	            });
+
+	    return result;
 	}
 	
 }

@@ -131,12 +131,12 @@ public class ActionDialog extends UserDialog {
             if (runInThread) {
                 new Thread(new Runnable() {
                     public void run() {
-                        ActionDialog.this.getParent().getDisplay().syncExec(uiAsyncRunnable);
+                        Display.getDefault().syncExec(uiAsyncRunnable);
                         Display.getDefault().wake();
                     }
                 }).start();
             } else {
-                ActionDialog.this.getParent().getDisplay().asyncExec(uiAsyncRunnable);
+                Display.getDefault().asyncExec(uiAsyncRunnable);
                 Display.getDefault().wake();
             }
         } else {

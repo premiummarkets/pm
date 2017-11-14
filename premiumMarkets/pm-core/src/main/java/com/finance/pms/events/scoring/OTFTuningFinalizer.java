@@ -112,7 +112,7 @@ public class OTFTuningFinalizer {
 			LOGGER.warn(noResMsg, e);
 			throw new NotEnoughDataException(stock, noResMsg , e);
 		} catch (NotEnoughDataException e) {
-			LOGGER.warn(noResMsg, e);
+			LOGGER.warn(noResMsg);
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error(noResMsg, e);
@@ -143,7 +143,10 @@ public class OTFTuningFinalizer {
 	                addFilteredPeriod(periods, period, -1);
 	                period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BULLISH.name());
 	            }
-	            //if (period == null) Nothing as we ignore the first bullish
+	            //First buy is ignored as it may start outside the date range.
+//	            if (period == null) {
+//                    period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseForDate(eventDate).doubleValue(), EventType.BULLISH.name()); 
+//                }
 	           
 	        }
 	        if (eventValue.getEventType().equals(EventType.BEARISH)) {
@@ -182,8 +185,12 @@ public class OTFTuningFinalizer {
             addFilteredPeriod(periods, period, -1);
         }
 
-        
-        if (periods.isEmpty()) throw new NotEnoughDataException(stock, quotations.get(0).getDate(), quotations.get(quotations.getLastDateIdx()).getDate(), noResMsg, new Throwable());
+       // if (periods.isEmpty()) throw new NotEnoughDataException(stock, quotations.get(0).getDate(), quotations.get(quotations.getLastDateIdx()).getDate(), noResMsg, new Throwable());
+	    if (periods.isEmpty()) {
+	        LOGGER.warn(String.format(
+	                "No buy/sell movement was triggered for %s, %s, %s : %s",
+	                        stock, quotations.get(0).getDate(), quotations.get(quotations.getLastDateIdx()).getDate(), noResMsg));
+	    }
 	    
 	    return periods;
 	}
@@ -410,7 +417,7 @@ public class OTFTuningFinalizer {
 			return new TuningResDTO(periods, trendFile, chartFile, lastPeriod.getTrend(), trendFollowProfit, Double.NaN, buyAndHoldProfit, startDate, endDate);
 		}
 		
-		LOGGER.info("No event detected");
+		LOGGER.info("No events detected or no buy sell was realized over the selected date range.");
 		return new TuningResDTO(periods, trendFile, chartFile, EventType.NONE.toString(), Double.NaN, Double.NaN, Double.NaN, startDate, endDate);
 		
 	}
