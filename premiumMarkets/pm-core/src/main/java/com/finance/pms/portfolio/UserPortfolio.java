@@ -113,7 +113,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		
 		String[] fullEventListNames = Arrays.copyOf(eventListName, eventListName.length+1);
 		fullEventListNames[eventListName.length] = this.getName();
-		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, true, null, fullEventListNames);
+		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, null, fullEventListNames);
 	}
 
 	

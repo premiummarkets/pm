@@ -198,7 +198,7 @@ public class IndicatorCalculationServiceMain {
 					
 					IndicatorAnalysisCalculationRunnableMessage indicatorAnalyser = 
 						new IndicatorAnalysisCalculationRunnableMessage(springContext, analyzers[0], COMMAND_LINE_ANALYSIS, periodType, shareList, datedeb, datefin);
-					indicatorAnalyser.runIndicatorsCalculationPassOne(true, "auto");
+					indicatorAnalyser.runIndicatorsCalculationPassOne("auto");
 					
 				} catch (Exception e) {
 					LOGGER.error("", e);

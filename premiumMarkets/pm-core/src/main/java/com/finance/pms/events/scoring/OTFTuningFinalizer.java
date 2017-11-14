@@ -85,7 +85,7 @@ public class OTFTuningFinalizer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(OTFTuningFinalizer.class);
 
-	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, Observer observer, Boolean isEventsPersisted) throws NotEnoughDataException {
+	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, Observer observer) throws NotEnoughDataException {
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
 		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
@@ -94,7 +94,7 @@ public class OTFTuningFinalizer {
 			//Grab calculated events
 			HashSet<EventInfo> eventDefinitions = new HashSet<EventInfo>();
 			eventDefinitions.add(evtDef);
-			SymbolEvents eventsCalculated = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endDate, isEventsPersisted, eventDefinitions, analyseName);
+			SymbolEvents eventsCalculated = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endDate, eventDefinitions, analyseName);
 	
 			//Init event def list
 			NavigableSet<EventValue> eventListForEvtDef = new TreeSet<EventValue>(new Comparator<EventValue>() {

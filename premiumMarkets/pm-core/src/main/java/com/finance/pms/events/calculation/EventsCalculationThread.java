@@ -65,7 +65,6 @@ public abstract class EventsCalculationThread extends Observable implements Call
 	protected Date startDate;
 	protected Date endDate;
 	protected String eventListName;
-	protected Boolean keepCache;
 
 	protected Queue eventQueue;
 	protected JmsTemplate jmsTemplate;
@@ -75,15 +74,14 @@ public abstract class EventsCalculationThread extends Observable implements Call
 
 	protected EventsCalculationThread(
 			Date startDate, Date endDate, String eventListName, Currency calculationCurrency, 
-			Set<Observer> observers, Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate) {
+			Set<Observer> observers, Queue eventQueue, JmsTemplate jmsTemplate) {
 		
 		super();
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.eventListName = eventListName;
 		this.calculationCurrency = calculationCurrency;
-		
-		this.keepCache = keepCache;
+
 		this.eventQueue = eventQueue;
 		this.jmsTemplate = jmsTemplate;
 		
@@ -134,6 +132,6 @@ public abstract class EventsCalculationThread extends Observable implements Call
 		}
 	}
 	
-	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist);
+	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin);
 
 }

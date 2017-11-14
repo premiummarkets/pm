@@ -447,7 +447,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
     public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, Date start, Date end) {
         try {
 
-            TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefinition, tuningResObs, true);
+            TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefinition, tuningResObs);
             if (LOGGER.isDebugEnabled()) {
                 try {
                     tuningFinalizer.exportConfigRating(IndicatorCalculationServiceMain.UI_ANALYSIS, tuningRes, start, end, tuningFinalizer.calculateRating(tuningRes));

@@ -108,7 +108,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
             ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, configs.get(Config.EVENT_SIGNAL_NAME));
             ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, configs.get(Config.INDICATOR_PARAMS_NAME));
 
-            SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), true, chartTarget.getChartedEvtDefsTrends(), IndicatorCalculationServiceMain.UI_ANALYSIS);
+            SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), chartTarget.getChartedEvtDefsTrends(), IndicatorCalculationServiceMain.UI_ANALYSIS);
             setChanged();
             notifyObservers(eventsForStock);
         }

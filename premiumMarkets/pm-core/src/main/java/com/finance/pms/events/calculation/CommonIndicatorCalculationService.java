@@ -93,7 +93,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	@Override
 	protected Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyseSymbolCollection(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
-			String periodType, Boolean keepCache, Integer passNumber, Boolean persistEvents, String passOneCalcMode, Observer...observers) 
+			String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer...observers) 
 					throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		
 		//TODO deal with the periodType
@@ -115,14 +115,14 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		}
 		
 		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
-		return allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, keepCache, passNumber, persistEvents, passOneCalcMode, observers);
+		return allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, passNumber, passOneCalcMode, observers);
 		
 	}
 
 	
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
 				Collection<Stock> stList, Date startDate, Date endDate, 
-				Currency calculationCurrency, String eventListName, Boolean keepCache, int passNumber, Boolean persistEvents, String passOneCalcMode, Observer... observers) 
+				Currency calculationCurrency, String eventListName, int passNumber, String passOneCalcMode, Observer... observers) 
 				throws IncompleteDataSetException {
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
@@ -177,13 +177,13 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 					calculationRunnableTarget = new FirstPassIndicatorCalculationThread(
 							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
-							passOneCalcMode, keepCache, eventQueue, jmsTemplate, persistEvents);
+							passOneCalcMode, eventQueue, jmsTemplate);
 
 				} else {//pass 2
 
 					calculationRunnableTarget = new SecondPassIndicatorCalculationThread(
 							stock, adjustedStartDate, adjustedEndDate, stockCalcCurrency, eventListName, obsSet,
-							availSecondPIndCalculators, keepCache, eventQueue, jmsTemplate, persistEvents, true);
+							availSecondPIndCalculators, eventQueue, jmsTemplate);
 
 				}
 				
@@ -267,7 +267,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				}
 			}
 			
-			EventsResources.getInstance().crudCreateEvents(allEvents, persistEvents, eventListName);
+			EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
 			
 			for (Observer observer : observers) {
 				observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.NONE));

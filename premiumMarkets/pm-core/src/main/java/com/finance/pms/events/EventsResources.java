@@ -338,11 +338,11 @@ public class EventsResources {
 
     }
 
-    public void crudCreateEvents(SymbolEvents symbolEvents, Boolean persist, String analysisName) {
+    public void crudCreateEvents(SymbolEvents symbolEvents, String analysisName) {
 
         List<SymbolEvents> eventList = new ArrayList<SymbolEvents>();
         eventList.add(symbolEvents);
-        crudCreateEvents(eventList, persist, analysisName);
+        crudCreateEvents(eventList, analysisName);
 
     }
 
@@ -416,17 +416,18 @@ public class EventsResources {
 
         String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
         for (String eventListName : eventListNames) {
-            //StockEventsCache stockEventsCache = EVENTS_CACHE.get(eventListName);
-            //if (stockEventsCache == null || !stockEventsCache.isEventsInSoftStockCacheUpToDate(stock)) {
+            StockEventsCache stockEventsCache = EVENTS_CACHE.get(eventListName);
+            if (stockEventsCache == null || !stockEventsCache.isEventsInSoftStockCacheUpToDate(stock)) {
                 SymbolEvents eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, eventDefinitions, eventListName);
                 this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForName}), eventListName, checkMonitor);
-            //}
+            }
         }
 
     }
 
-    public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Boolean isPersisted, Set<EventInfo> eventDefinitions, String... eventListNames) {
+    public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 
+        Boolean isPersisted = true;
         if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 
         if (!isEventCached && !isPersisted) {
@@ -471,8 +472,9 @@ public class EventsResources {
     }
 
 
-    public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Boolean isPersisted, Set<EventInfo> eventDefinitions, String... eventListNames) {
-
+    public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
+        
+        Boolean isPersisted = true;
         if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 
         if (!isEventCached && !isPersisted) {
@@ -605,7 +607,9 @@ public class EventsResources {
     }
 
 
-    public void crudCreateEvents(List<SymbolEvents> events, Boolean isDataPersisted, String eventListName) {
+    public void crudCreateEvents(List<SymbolEvents> events, String eventListName) {
+
+        Boolean isDataPersisted = true;
 
         if (isEventCached) {
             if (isCachePersistent && !isDataPersisted) {
@@ -844,7 +848,7 @@ public class EventsResources {
     public void updateEventsTabsByCriteriaAndDate(Date date, Integer inf, Integer sup, PonderationRule pr, Set<EventInfo> indicators, String eventListNames) throws InvalidAlgorithmParameterException {
 
 
-        List<SymbolEvents> all = (indicators != null)?SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), true, indicators, eventListNames), pr):new ArrayList<SymbolEvents>();
+        List<SymbolEvents> all = (indicators != null)?SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), indicators, eventListNames), pr):new ArrayList<SymbolEvents>();
         int indexSup = 0;
         int indexInf = all.size() - 1;
 
@@ -1062,8 +1066,9 @@ public class EventsResources {
         this.sortedList = sortedList;
     }
 
-    public void crudDeleteEventsForStock(Stock stock, String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
+    public void crudDeleteEventsForStock(Stock stock, String analysisName, Date datedeb, Date datefin, EventInfo... indicators) {
 
+        Boolean isDataPersisted = true;
         for (EventInfo eventInfo : indicators) {
             if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
         }
@@ -1089,8 +1094,9 @@ public class EventsResources {
 
     }
 
-    public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, Boolean isDataPersisted, EventInfo... indicators) {
+    public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, EventInfo... indicators) {
 
+        Boolean isDataPersisted = true;
         for (EventInfo eventInfo : indicators) {
             if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
         }
@@ -1117,9 +1123,11 @@ public class EventsResources {
         }
     }
 
-    public void crudDeleteEventsForAnalysisName(String analysisName, Boolean isDataPersisted) {
+    public void crudDeleteEventsForAnalysisName(String analysisName) {
 
-        //Cash
+        Boolean isDataPersisted = true;
+        
+        //Cache
         if (isEventCached) {
             synchronized (this) {
                 EVENTS_CACHE.remove(analysisName);

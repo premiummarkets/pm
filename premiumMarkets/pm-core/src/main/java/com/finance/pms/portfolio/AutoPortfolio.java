@@ -148,7 +148,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 			fullEventListNames[additionalPortfolioEventListNames.length + i] = otherNames[i];
 		}
 		
-		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, true, eventDefinitions, fullEventListNames);
+		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, eventDefinitions, fullEventListNames);
 	}
 
 	private Date eventLoadStartDate(Date currentDate, Integer backwardDaySpan) {

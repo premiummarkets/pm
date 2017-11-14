@@ -70,18 +70,16 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationThread.class);
 
 	protected Stock stock;
-	protected Boolean persistTrainingEvents;
-	private Boolean persistEvents;
+	//protected Boolean persistTrainingEvents;
+	//private Boolean persistEvents;
 
 	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
-											Set<Observer> observers, Boolean keepCache, Boolean persistEvents, Boolean persistTrainingEvents, 
+											Set<Observer> observers,
 											Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
 		
-		super(startDate, endDate, eventListName, calculationCurrency, observers, keepCache, eventQueue, jmsTemplate);
+		super(startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
 		
 		this.stock = stock;
-		this.persistTrainingEvents = persistTrainingEvents;
-		this.persistEvents = persistEvents;
 	}
 
 	protected abstract void setCalculationParameters();
@@ -140,7 +138,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 		
 		//Run calculators
 		try {
-			calculateEventsForEachDateAndIndicatorComp(eventsCalculators, symbolEventsForStock, startDate, endDate, persistEvents, stock);
+			calculateEventsForEachDateAndIndicatorComp(eventsCalculators, symbolEventsForStock, startDate, endDate, stock);
 		} catch (IncompleteDataSetException e) {
 			dataSetExceptions.add(e);
 		}
@@ -149,10 +147,10 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 	abstract protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) throws IncompleteDataSetException;
 	
-	private void calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, Boolean persist, final Stock stock) throws IncompleteDataSetException { 
+	private void calculateEventsForEachDateAndIndicatorComp(Set<EventCompostionCalculator> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
 
 		try {
-			cleanEventsFor(this.eventListName, datedeb, datefin, persist);
+			cleanEventsFor(this.eventListName, datedeb, datefin);
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}

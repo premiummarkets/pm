@@ -64,7 +64,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Currency calculationCurrency;
 	
 	private Integer passNumber;
-	private Boolean persistEvents;
+	//private Boolean persistEvents;
 	private String passOneRecalculationMode;
 
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
@@ -92,18 +92,17 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.observers = observers;
 	}
 	
-	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
-		return this.runIndicatorsCalculation(1, persistEvents, passOneRecalculationMode);
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
+		return this.runIndicatorsCalculation(1, passOneRecalculationMode);
 	}
 	
-	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassTwo(Boolean persistEvents) throws InterruptedException, IncompleteDataSetException {
-		return this.runIndicatorsCalculation(2, persistEvents, null);
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassTwo() throws InterruptedException, IncompleteDataSetException {
+		return this.runIndicatorsCalculation(2, null);
 	}
 	
-	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, Boolean persistEvents, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
+	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
 		
 		this.passNumber = passNumber;
-		this.persistEvents = persistEvents;
 		this.passOneRecalculationMode = passOneRecalculationMode;
 		
 		this.exception = null;
@@ -128,7 +127,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,getConfigs().get(Config.INDICATOR_PARAMS_NAME));
 
-			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, persistEvents, passOneRecalculationMode, observers);
+			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, passOneRecalculationMode, observers);
 			
 		} catch (IncompleteDataSetException e) {
 			exception = e;

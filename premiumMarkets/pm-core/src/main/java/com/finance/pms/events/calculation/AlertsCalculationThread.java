@@ -63,9 +63,9 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 	
 	protected AlertsCalculationThread(
 			PortfolioShare portfolioShare, Date startDate, Date endDate, String eventListName, 
-			Boolean keepCache, Boolean isUserPortfolio, Queue eventQueue, JmsTemplate jmsTemplate) {
+			Boolean isUserPortfolio, Queue eventQueue, JmsTemplate jmsTemplate) {
 		
-		super(startDate, endDate, eventListName, portfolioShare.getTransactionCurrency(), new HashSet<Observer>(), keepCache, eventQueue, jmsTemplate);
+		super(startDate, endDate, eventListName, portfolioShare.getTransactionCurrency(), new HashSet<Observer>(), eventQueue, jmsTemplate);
 		
 		this.portfolioShare = portfolioShare;
 		this.isUserPortfolio = isUserPortfolio;
@@ -86,7 +86,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
 
 				try {
-					cleanEventsFor(this.eventListName, startDate, endDate, true);
+					cleanEventsFor(this.eventListName, startDate, endDate);
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 				}
@@ -116,7 +116,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 	}
 	
 	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
-		EventsResources.getInstance().crudDeleteEventsForStock(portfolioShare.getStock(), eventListName, datedeb, datefin, true, EventDefinition.alertsOnThresholds());
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {
+		EventsResources.getInstance().crudDeleteEventsForStock(portfolioShare.getStock(), eventListName, datedeb, datefin, EventDefinition.alertsOnThresholds());
 	}
 }

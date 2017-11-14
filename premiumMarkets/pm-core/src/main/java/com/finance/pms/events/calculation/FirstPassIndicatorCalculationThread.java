@@ -109,9 +109,9 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	 */
 	public FirstPassIndicatorCalculationThread(
 				Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Set<Observer> observers, 
-				String passOneCalcMode, Boolean keepCache,Queue queue,JmsTemplate jmsTemplate, Boolean persistEvents) throws NotEnoughDataException {
+				String passOneCalcMode, Queue queue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
 		
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, keepCache, persistEvents, null, queue, jmsTemplate);
+		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, queue, jmsTemplate);
 		this.passOneCalcMode = passOneCalcMode;
 		
 	}
@@ -324,7 +324,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	}
 	
 	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {//We don't clean first pass event also they can be cleaned through the ui using 'Clean all previous calculations'
+	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {//We don't clean first pass event also they can be cleaned through the ui using 'Clean all previous calculations'
 		//EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, EventDefinition.loadFirstPassPrefEventDefinitions().toArray(new EventInfo[0]));
 	}
 

@@ -135,9 +135,9 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 				Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 				try {
-					actionThread.runIndicatorsCalculationPassOne(true, "auto");
+					actionThread.runIndicatorsCalculationPassOne("auto");
 					if (maxPass == 2) {
-						actionThread.runIndicatorsCalculationPassTwo(true);
+						actionThread.runIndicatorsCalculationPassTwo();
 					}
 				} catch (IncompleteDataSetException e) {
 					LOGGER.warn(e,e);
@@ -156,7 +156,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
+		EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), eventDefsArray);
 		TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfs();
 
 		//Delete all

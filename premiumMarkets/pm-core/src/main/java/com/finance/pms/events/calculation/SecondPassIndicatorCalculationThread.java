@@ -57,126 +57,129 @@ import com.finance.pms.threads.ConfigThreadLocal;
 
 //TODO To facilitate error handling : move initialisations from the constructor to calculateEventsFor method
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);
-	private Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators;
-	private List<EventInfo> secondPassWantedCalculations;
 
-	protected SecondPassIndicatorCalculationThread(
-			Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
-			Set<Observer> observers, Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators,
-			Boolean keepCache, Queue eventQueue, JmsTemplate jmsTemplate, Boolean persistEvents, Boolean persistTrainingEvents) throws NotEnoughDataException {
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, keepCache, persistEvents, persistTrainingEvents, eventQueue, jmsTemplate);
-		
-		this.availableSecondPassIndicatorCalculators = availableSecondPassIndicatorCalculators;
-	
-	}
+    private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);
+    private Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators;
+    private List<EventInfo> secondPassWantedCalculations;
 
-	@Override
-	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, final Observer... observers) throws IncompleteDataSetException {
-		
-		final Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
-		
-		Boolean isDataSetComplete = true;
-		String failingCalculators = "";
-		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
-			if (checkWanted(eventDefinition)) {
+    protected SecondPassIndicatorCalculationThread(
+            Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
+            Set<Observer> observers, Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators,
+            Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
+        super(stock, startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
 
-				final Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
+        this.availableSecondPassIndicatorCalculators = availableSecondPassIndicatorCalculators;
 
-				List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
-				for (final EventInfo eventInfo : eventInfos) {
-					try {
-						EventCompostionCalculator instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
-						eventCalculations.add(instanciatedECC);
-					} catch (InvocationTargetException e) {
-						isDataSetComplete = false;
-						failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
-						symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
-					} catch (Throwable e) {
-						isDataSetComplete = false;
-						failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
-						symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
-						LOGGER.warn(e,e);
-					}
-				}
-			}
-		}
-		
-		if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete for "+stock+ ". Are failing : "+failingCalculators);
-		
-		return eventCalculations;
-	}
+    }
+
+    @Override
+    protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, final Observer... observers) throws IncompleteDataSetException {
+
+        final Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
+
+        Boolean isDataSetComplete = true;
+        String failingCalculators = "";
+        for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
+            if (checkWanted(eventDefinition)) {
+
+                final Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
+
+                List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
+                for (final EventInfo eventInfo : eventInfos) {
+                    try {
+                        EventCompostionCalculator instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
+                        eventCalculations.add(instanciatedECC);
+                    } catch (InvocationTargetException e) {
+                        isDataSetComplete = false;
+                        failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
+                        symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
+                    } catch (Throwable e) {
+                        isDataSetComplete = false;
+                        failingCalculators = failingCalculators + eventInfo.getEventDefinitionRef() + ", ";
+                        symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
+                        LOGGER.warn(e,e);
+                    }
+                }
+            }
+        }
+
+        if (!isDataSetComplete) throw new IncompleteDataSetException(stock, eventCalculations, "Second pass data set is incomplete for "+stock+ ". Are failing : "+failingCalculators);
+
+        return eventCalculations;
+    }
 
 
-	private List<EventInfo> subEventInfosForRequested(EventDefinition eventDefinition) {
-		
-		List<EventInfo> ret = new ArrayList<EventInfo>();
-		switch(eventDefinition) {
-		case PARAMETERIZED :
-			ret.addAll(EventDefinition.loadAllParameterized());
-			break;
-		default : 
-			ret.add(eventDefinition);
-		}
-		return ret;
-	}
+    private List<EventInfo> subEventInfosForRequested(EventDefinition eventDefinition) {
 
-	@Override
-	protected void setCalculationParameters() {
-		secondPassWantedCalculations = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepIndicators();
-	}
-	
-	private EventCompostionCalculator instanciateECC(EventInfo eventInfo, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Throwable {
-		
-		try {
-			
-			Constructor<EventCompostionCalculator> constructor = eventCompositionCalculator.getConstructor(EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Boolean.class, Observer[].class);
-			return constructor.newInstance(eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, persistTrainingEvents, observers);
-		
-		} catch (InvocationTargetException e) {
-			if (e.getCause() instanceof WarningException || e.getCause() instanceof NotEnoughDataException) {
-				if (e.getCause() instanceof NotEnoughDataException || (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException) ) {
-					LOGGER.warn("Failed calculation : Not Enough Data " + warnMessage(eventInfo.toString(), startDate, endDate));
-				} else {
-					LOGGER.warn("Failed calculation : " + warnMessage(eventInfo.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
-				}
-				if (e.getCause() != null) throw e.getCause();
-			} else if (e.getCause() instanceof ErrorException) {
-				LOGGER.error(stock + " second pass calculation error ", e);
-				if (e.getCause() != null) throw e.getCause();
-			} else {
-				LOGGER.error(
-						String.format("%s second pass calculation un handled error.\n"
-						+ "Parameters :\n"
-						+ "event def = %s, start date = %s, end date = %s, calc currency = %s, event list name = '%s', is training persisted = %s ", stock, eventInfo, startDate, endDate, calculationCurrency, eventListName, persistTrainingEvents), e);
-				if (e.getCause() != null) throw e.getCause();
-			}
-			if (e.getCause() != null) throw e.getCause(); else throw e;
-		} catch (Exception e) {
-			LOGGER.error(stock+ " second pass calculation error ", e);
-			throw e;
-		}
-	}
+        List<EventInfo> ret = new ArrayList<EventInfo>();
+        switch(eventDefinition) {
+        case PARAMETERIZED :
+            ret.addAll(EventDefinition.loadAllParameterized());
+            break;
+        default : 
+            ret.add(eventDefinition);
+        }
+        return ret;
+    }
 
-	@Override
-	protected List<EventInfo> getWantedEventCalculations() {
-		return secondPassWantedCalculations;
-	}
-	
-	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin, Boolean persist) {
+    @Override
+    protected void setCalculationParameters() {
+        secondPassWantedCalculations = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepIndicators();
+    }
 
-		for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
-			if (checkWanted(eventDefinition)) {
-				
-				LOGGER.info("Cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
-				
-				List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
-				EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, subEventInfosForRequested.toArray(new EventInfo[0]));
-				
-			}
-		}
-	}
-	
+    private EventCompostionCalculator instanciateECC(EventInfo eventInfo, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Throwable {
+
+        try {
+
+            Constructor<EventCompostionCalculator> constructor = 
+                    eventCompositionCalculator.getConstructor(
+                            EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
+            return constructor.newInstance(
+                            eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, observers);
+
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof WarningException || e.getCause() instanceof NotEnoughDataException) {
+                if (e.getCause() instanceof NotEnoughDataException || (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException) ) {
+                    LOGGER.warn("Failed calculation : Not Enough Data " + warnMessage(eventInfo.toString(), startDate, endDate));
+                } else {
+                    LOGGER.warn("Failed calculation : " + warnMessage(eventInfo.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
+                }
+                if (e.getCause() != null) throw e.getCause();
+            } else if (e.getCause() instanceof ErrorException) {
+                LOGGER.error(stock + " second pass calculation error ", e);
+                if (e.getCause() != null) throw e.getCause();
+            } else {
+                LOGGER.error(
+                        String.format("%s second pass calculation un handled error.\n"
+                                + "Parameters :\n"
+                                + "event def = %s, start date = %s, end date = %s, calc currency = %s, event list name = '%s'", stock, eventInfo, startDate, endDate, calculationCurrency, eventListName), e);
+                if (e.getCause() != null) throw e.getCause();
+            }
+            if (e.getCause() != null) throw e.getCause(); else throw e;
+        } catch (Exception e) {
+            LOGGER.error(stock+ " second pass calculation error ", e);
+            throw e;
+        }
+    }
+
+    @Override
+    protected List<EventInfo> getWantedEventCalculations() {
+        return secondPassWantedCalculations;
+    }
+
+    @Override
+    public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {
+
+        for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
+            if (checkWanted(eventDefinition)) {
+
+                LOGGER.info("Cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
+
+                List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
+                EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, subEventInfosForRequested.toArray(new EventInfo[0]));
+
+            }
+        }
+    }
+
 }

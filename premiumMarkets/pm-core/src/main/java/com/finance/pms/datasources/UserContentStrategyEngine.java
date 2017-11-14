@@ -250,7 +250,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
                     ((viewStateParams != null && viewStateParams.length == 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"?")+
                     " . Will delete : "+ Arrays.toString(eventDefsArray));
 
-            EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), true, eventDefsArray);
+            EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), eventDefsArray);
             TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
 
             for (Observer observer : engineObservers) {
@@ -267,7 +267,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
         Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
         try {
-            passTwoOutput = actionThread.runIndicatorsCalculationPassTwo(true);
+            passTwoOutput = actionThread.runIndicatorsCalculationPassTwo();
         } catch (IncompleteDataSetException e1) {
             passTwoOutput = e1.getCalculatedOutput();
         }
@@ -279,7 +279,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
         Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
         try {
-            passOneOutput = actionThread.runIndicatorsCalculationPassOne(true , passOneOverwriteMode());
+            passOneOutput = actionThread.runIndicatorsCalculationPassOne(passOneOverwriteMode());
         } catch (IncompleteDataSetException e1) {
             passOneOutput = e1.getCalculatedOutput();
         }

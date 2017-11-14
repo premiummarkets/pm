@@ -94,7 +94,7 @@ public abstract class Exporter<T> {
 		
 		for (SymbolEvents event : screeningEvents) {
 			sendScreeningEvent(event, eventSource, eventListName);
-			EventsResources.getInstance().crudCreateEvents(event, true, eventListName);
+			EventsResources.getInstance().crudCreateEvents(event, eventListName);
 		} 
 	}
 

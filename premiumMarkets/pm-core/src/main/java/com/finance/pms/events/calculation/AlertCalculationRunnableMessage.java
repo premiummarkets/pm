@@ -73,7 +73,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 
 	}
 
-	protected void analysePortfolioCollection(Date startDate, Date endDate, Collection<Portfolio> portfolios, Boolean keepCache) {
+	protected void analysePortfolioCollection(Date startDate, Date endDate, Collection<Portfolio> portfolios) {
 
 		for (final Portfolio portfolio : portfolios) {
 			
@@ -92,7 +92,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 					final JmsTemplate jmsTemplate = this.jmsTemplate;
 
 					Future<SymbolEvents> submitedRunnable = 
-							(Future<SymbolEvents>) executor.submit(new AlertsCalculationThread(portfolioShare, startDate, endDate, portfolio.getName(), isUserPortfolio, keepCache, eventQueue, jmsTemplate));
+							(Future<SymbolEvents>) executor.submit(new AlertsCalculationThread(portfolioShare, startDate, endDate, portfolio.getName(), isUserPortfolio, eventQueue, jmsTemplate));
 					futures.add(submitedRunnable);
 
 				} catch (Throwable e) {
@@ -117,7 +117,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 				for (Future<SymbolEvents> future : futures) {
 					allEvents.add(future.get());
 				}
-				EventsResources.getInstance().crudCreateEvents(allEvents, true, portfolio.getName());
+				EventsResources.getInstance().crudCreateEvents(allEvents, portfolio.getName());
 				
 			} catch (InterruptedException e) {
 				LOGGER.error(e,e);
@@ -132,7 +132,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	
 		try {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
-			this.analysePortfolioCollection(startDate, endDate, portfolios, true);
+			this.analysePortfolioCollection(startDate, endDate, portfolios);
 			
 		} catch (Exception e) {
 			LOGGER.error("Error in "+this.toString(),e);
