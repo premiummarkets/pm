@@ -55,8 +55,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-//TODO this is not a TalibComposition if we use HouseAroon.
-//Add an extra layer under EventCompositionCalulator to deal with house indicators
+//TODO this is not a TalibComposition if we use HouseAroon. Add an extra layer under EventCompositionCalulator to deal with house indicators
 public class AroonTrend extends TalibIndicatorsCompositionCalculator {
 
 	int upperThreshold = 90;

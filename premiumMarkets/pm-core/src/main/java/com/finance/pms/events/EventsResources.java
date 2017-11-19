@@ -299,7 +299,7 @@ public class EventsResources {
         public Boolean isEventsInSoftStockCacheUpToDate(Stock stock) {
             Integer monitorValue = underLayingSoftMapMonitor.get(stock);
             SoftReference<EventCacheEntryList> softRef = underLayingSoftMap.get(stock);
-            if (softRef == null) return false;
+            if (softRef == null || softRef.get() == null) return false;
             if (softRef.get().hashCode() != monitorValue) return false;
             return true;
         }

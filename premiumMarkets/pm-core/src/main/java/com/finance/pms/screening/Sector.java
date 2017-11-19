@@ -46,7 +46,7 @@ public class Sector {
 
 			
 			public int compare(ScreeningSupplementedStock o1, ScreeningSupplementedStock o2) {
-				if (o1.equals(02)) return 0;
+				if (o1.equals(o2)) return 0;
 				return o1.fullRating().getValue().compareTo(o2.fullRating().getValue());
 			}
 			
