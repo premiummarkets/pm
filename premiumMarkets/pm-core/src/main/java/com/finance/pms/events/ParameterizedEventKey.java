@@ -74,7 +74,6 @@ public class ParameterizedEventKey extends EventKey {
 
 	@Override
 	public String getEventInfoExtra() {
-		//return eventConditionHolder;
 		return this.eventdef.getEventDefinitionRef();
 	}
 

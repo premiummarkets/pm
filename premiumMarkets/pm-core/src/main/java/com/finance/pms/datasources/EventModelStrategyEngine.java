@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.http.HttpException;
 
@@ -50,7 +49,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.operations.conditional.EventConditionHolder;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
@@ -182,27 +180,11 @@ public abstract class EventModelStrategyEngine<X> {
     //Neural needs the first pass indicators as in the db.props and hence these can't be individually tampered
     //TODO In the same way parameterised is filtered, Neural could be.
     protected void tamperEventConfig(Collection<EventInfo> viewStateParams) {
-
         if (viewStateParams == null) {//A null value means all ie no filter : we don't tamper.
             return;
         }
-
         EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
-
-        Set<String> indepIndicators = new HashSet<String>();
-        SortedSet<EventConditionHolder> filteredParameterised = new TreeSet<EventConditionHolder>();
-        for (EventInfo eventInfo : viewStateParams) {
-            if (eventConfig.getIndepIndicators().contains(eventInfo)) {
-                indepIndicators.add(eventInfo.getEventDefinitionRef());
-            }
-            if (eventInfo.getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
-                indepIndicators.add(EventDefinition.PARAMETERIZED.name());
-                filteredParameterised.add((EventConditionHolder) eventInfo);
-            }
-        }
-
-        eventConfig.setIndepIndicators(new ArrayList<String>(indepIndicators));
-        if (!filteredParameterised.isEmpty()) eventConfig.setFilteredParameterised(filteredParameterised);
+        eventConfig.tamperIndepAndParameterizedEventInfoList(viewStateParams);
         ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, eventConfig);
     }
 

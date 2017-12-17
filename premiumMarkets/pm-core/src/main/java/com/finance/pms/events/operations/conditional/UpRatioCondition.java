@@ -35,7 +35,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 
-public class UpRatioCondition extends CrossConstantCondition implements StandAloneCondition {
+public class UpRatioCondition extends CrossConstantCondition implements UnaryCondition {
 	
 	private UpRatioCondition() {
 		super(

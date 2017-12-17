@@ -52,14 +52,27 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositionCalculator {
+public class ZeroCrossMACDEventCalculator extends TalibIndicatorsCompositioner {
 	
 	private MACD macd;
 
 	public ZeroCrossMACDEventCalculator(Integer fastPeriod, Integer slowPeriod, Integer signalPeriod, Observer ... observers) {
 		super(observers);
-		this.macd = new MACD(fastPeriod, slowPeriod, signalPeriod);
+		init(fastPeriod, slowPeriod, signalPeriod);
 	}
+	
+	public ZeroCrossMACDEventCalculator() {
+        //Reflective ops generator
+    }
+
+    protected void init(Integer macdFastPeriod, Integer macdSlowPeriod, Integer macdSignalPeriod) {
+        this.macd = new MACD(macdFastPeriod, macdSlowPeriod, macdSignalPeriod);
+    }
+
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1], constants[2]);
+    }
 	
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer calculatorIndex) throws InvalidAlgorithmParameterException {

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <nativeParametrizedIndicators>
     <calculators>
-        <calculator xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eventConditionHolder">
-            <reference>eventconditionholder</reference>
-            <description>eventconditionholder</description>
+        <calculator xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="eventMapOperation">
+            <reference>operationscompositionner</reference>
+            <description>operationscompositionner</description>
             <operands>
                 <operand xsi:type="condition">
                     <reference>bullishCondition</reference>
@@ -20,6 +20,12 @@
                 <operand xsi:type="condition">
                     <reference>alsoDisplay</reference>
                     <description>alsoDisplay</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>startShiftOverride</reference>
+                    <description>startShiftOverride</description>
                     <operands/>
                     <availableOutputSelectors/>
                 </operand>

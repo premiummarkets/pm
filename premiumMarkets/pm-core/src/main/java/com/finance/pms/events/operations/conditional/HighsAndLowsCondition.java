@@ -69,7 +69,7 @@ import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
-public abstract class HighsAndLowsCondition extends Condition<Comparable> implements StandAloneCondition {
+public abstract class HighsAndLowsCondition extends Condition<Comparable> implements UnaryCondition {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
 

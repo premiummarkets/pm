@@ -40,7 +40,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 
-public class BooleanMultiMapValue extends BooleanMapValue implements  MultiMapValue {
+public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapValue {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 

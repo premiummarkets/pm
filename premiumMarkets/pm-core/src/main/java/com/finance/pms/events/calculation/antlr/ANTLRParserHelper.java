@@ -174,7 +174,7 @@ public abstract class ANTLRParserHelper {
 		}
 	}
 
-	protected LinkedList<Alternative> altPrioListForTokType(Map< AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList, AltType altType, int priority) {
+	protected LinkedList<Alternative> altPrioListForTokType(Map<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList, AltType altType, int priority) {
 		SortedMap<Integer, LinkedList<Alternative>> tokenTypePrioList = priorityList.get(altType);
 		if (tokenTypePrioList == null) {
 			tokenTypePrioList = new TreeMap<Integer, LinkedList<Alternative>>();

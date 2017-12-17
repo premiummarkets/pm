@@ -53,7 +53,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
+public class MFIDivergence_old extends TalibIndicatorsCompositioner {
 	
 	MFI mfi;
 	SMA sma;
@@ -62,8 +62,21 @@ public class MFIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	
 	public MFIDivergence_old(Integer mfiTimePeriod, Integer mfiLowerThres, Integer mfiUpperThres, Observer... observers) {
 		super(observers);
-		this.mfi = new MFI(mfiTimePeriod, mfiLowerThres, mfiUpperThres);
-		this.sma = new SMA(12);
+		init(mfiTimePeriod, mfiLowerThres, mfiUpperThres, 12);
+	}
+	
+	public MFIDivergence_old() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer mfiTimePeriod, Integer mfiLowerThres, Integer mfiUpperThres, Integer signalSmaPeriod) {
+	    this.mfi = new MFI(mfiTimePeriod, mfiLowerThres, mfiUpperThres);
+	    this.sma = new SMA(signalSmaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0], constants[1], constants[2], constants[3]);
 	}
 
 	@Override

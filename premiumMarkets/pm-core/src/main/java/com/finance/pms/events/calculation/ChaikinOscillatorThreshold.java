@@ -51,14 +51,27 @@ import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositionCalculator {
+public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositioner {
 
 	private ChaikinOscillator chaikinOscillator;
 	
 	public ChaikinOscillatorThreshold(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(observers);
-		this.chaikinOscillator = new ChaikinOscillator(chkInfastPeriod, chkInslowPeriod);
+		init(chkInfastPeriod, chkInslowPeriod);
 	}
+	
+	public ChaikinOscillatorThreshold() {
+	    //Reflective ops generator
+	}
+	
+    protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod) {
+        this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
+    }
+    
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1]);
+    }
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{

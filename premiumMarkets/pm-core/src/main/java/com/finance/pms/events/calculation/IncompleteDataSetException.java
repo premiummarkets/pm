@@ -46,16 +46,16 @@ public class IncompleteDataSetException extends Exception {
 	private static final long serialVersionUID = 8415012484395864898L;
 
 	private List<Stock> failingStocks;
-	private Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput;
-	private Set<EventCompostionCalculator> validEventCalculators;
+	private Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputs;
+	private Set<IndicatorsCompositioner> validEventCalculators;
 	private List<SymbolEvents> symbolEvents;
 	
 	public IncompleteDataSetException(Stock failingStock, SymbolEvents symbolEventsForStock, String arg0) {
 		super(arg0);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
-		this.calculatedOutput = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
-		this.calculatedOutput.put(failingStock, symbolEventsForStock.getCalculationOutput());
+		this.calculatedOutputs = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
+		this.calculatedOutputs.put(failingStock, symbolEventsForStock.getCalculationOutputs());
 		this.symbolEvents = new ArrayList<SymbolEvents>();
 		this.symbolEvents.add(symbolEventsForStock);
 	}
@@ -63,11 +63,11 @@ public class IncompleteDataSetException extends Exception {
 	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> symbolEvents, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput, String arg0) {
 		super(arg0);
 		this.failingStocks = failingStocks;
-		this.calculatedOutput = calculatedOutput;
+		this.calculatedOutputs = calculatedOutput;
 		this.symbolEvents = symbolEvents;
 	}
 
-	public IncompleteDataSetException(Stock failingStock, Set<EventCompostionCalculator> validEventCaclulators, String error) {
+	public IncompleteDataSetException(Stock failingStock, Set<IndicatorsCompositioner> validEventCaclulators, String error) {
 		super(error);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
@@ -78,11 +78,11 @@ public class IncompleteDataSetException extends Exception {
 		return failingStocks;
 	}
 
-	public Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> getCalculatedOutput() {
-		return calculatedOutput;
+	public Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> getCalculatedOutputs() {
+		return calculatedOutputs;
 	}
 
-	public Set<EventCompostionCalculator> getValidEventCalculators() {
+	public Set<IndicatorsCompositioner> getValidEventCalculators() {
 		return validEventCalculators;
 	}
 

@@ -50,170 +50,143 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 // Or make first pass event independent of analysis name?
 @Service("tunedConfMgr")
 public class TunedConfMgr {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(TunedConfMgr.class);
-	
-	public enum CalcStatus {NONE,INC,RESET,IGNORE};
-	
-	public class CalculationBounds {
-		
-		CalcStatus calcStatus;
-		Date pmStart;
-		Date pmEnd;
-		
-		public CalculationBounds(CalcStatus calcStatus, Date pmStart, Date pmEnd) {
-			super();
-			this.calcStatus = calcStatus;
-			this.pmStart = pmStart;
-			this.pmEnd = pmEnd;
-		}
 
-		public CalcStatus getCalcStatus() {
-			return calcStatus;
-		}
+    private static MyLogger LOGGER = MyLogger.getLogger(TunedConfMgr.class);
 
-		public Date getPmStart() {
-			return pmStart;
-		}
+    public enum CalcStatus {NONE,INC,RESET,IGNORE};
 
-		public Date getPmEnd() {
-			return pmEnd;
-		}
+    @Autowired
+    TunedConfDAO tunedConfDAO;
 
-		@Override
-		public String toString() {
-			return "CalculationBounds [calcStatus=" + calcStatus + ", pmStart=" + pmStart + ", pmEnd=" + pmEnd + "]";
-		}
+    public static TunedConfMgr getInstance() {
+        //TODO a different bean may have to be used for intraday fixing => factory as per the quotation one
+        return SpringContext.getSingleton().getBean(TunedConfMgr.class);
+    }
 
-	}
-	
-	@Autowired
-	TunedConfDAO tunedConfDAO;
-	
-	public static TunedConfMgr getInstance() {
-		//TODO a different bean may have to be used for intraday fixing => factory as per the quotation one
-		return SpringContext.getSingleton().getBean(TunedConfMgr.class);
-	}
-	
-	public TunedConfMgr() {
-	}
-	
-	public synchronized TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName) {
-		
-		TunedConfId tunedConfId = new TunedConfId(stock, configListFileName);
-		TunedConf stockPrevTunedConf = getTunedConfDAO().loadTunedConf(tunedConfId);
-		if (stockPrevTunedConf == null) { //No prev conf : first calculation for this config file
-			stockPrevTunedConf = new TunedConf(stock, configListFileName);
-			getTunedConfDAO().saveOrUpdateTunedConfs(stockPrevTunedConf);
-		}
-		
-		return stockPrevTunedConf;
-	}
-	
-	public Date endDateConsistencyCheck(TunedConf tunedConf, Stock stock, Date endDate) throws InvalidAlgorithmParameterException {
-		
-		//Inconsistency check
-		if (tunedConf.getLastCalculatedEvent() != null && tunedConf.getLastCalculatedEvent().after(stock.getLastQuote())) {
-			throw new InvalidAlgorithmParameterException("Data inconsistency detected for stock : "+stock+". last quote is : "+stock.getLastQuote()+ " and last event calculated is : "+tunedConf.getLastCalculatedEvent());
-		}
-		//Check end date within quotations
-		boolean newEndWithinQuotations = endDate.before(stock.getLastQuote()) || endDate.compareTo(stock.getLastQuote()) == 0;
-		if (!newEndWithinQuotations) {
-			endDate = stock.getLastQuote();
-		}
-		return endDate;
-		
-	}
-	
-	public CalculationBounds autoCalcAndSetDatesBounds(TunedConf tunedConf, Stock stock, Date startDate, Date endDate) {
-		
-		LOGGER.info(
-				stock.getSymbol() + " TunedConf before calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
-				". Requested calculation is from "+startDate+" to "+endDate+". ");
+    public TunedConfMgr() {
+    }
 
-		//Setting PM events calculation date range
-		//We want the calculation from the start date onward but we don't want to recalculate already calculated PM events
-		//We don't want to update calculation after the last PM event.
-		CalcStatus calcStatus = null;
+    public synchronized TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName) {
 
-		//What is the start date for this calculation
-		Date pmEvtsCalcStart = null;
-		String infoMsg = "";
-		if (!startDate.before(tunedConf.getLastCalculationStart()) && !startDate.after(tunedConf.getLastCalculationEnd())) {//start is included into the last calculation
-			//inc calc, tuned config start stays the same
-			pmEvtsCalcStart = (tunedConf.getLastCalculatedEvent() != null)?tunedConf.getLastCalculatedEvent():startDate;
-			calcStatus = CalcStatus.INC;
-			infoMsg = "New dates for "+stock+" starts within the previous calc : we do INCREMENTAL calc. ";
+        TunedConfId tunedConfId = new TunedConfId(stock, configListFileName);
+        TunedConf stockPrevTunedConf = getTunedConfDAO().loadTunedConf(tunedConfId);
+        if (stockPrevTunedConf == null) { //No prev conf : first calculation for this config file
+            stockPrevTunedConf = new TunedConf(stock, configListFileName);
+            getTunedConfDAO().saveOrUpdateTunedConfs(stockPrevTunedConf);
+        }
 
-		} else {//start outside the last calculation
-			//recalc from new date, reset tuned start
-			pmEvtsCalcStart = startDate;
-			tunedConf.setLastCalculationStart(pmEvtsCalcStart);
-			calcStatus = CalcStatus.RESET;
-			infoMsg = "New dates for "+stock+" DO NOT starts within the previous calc : we RESET the calculation dates. " ;
+        return stockPrevTunedConf;
+    }
 
-		}
+    public Date endDateConsistencyCheck(TunedConf tunedConf, Stock stock, Date endDate) throws InvalidAlgorithmParameterException {
 
-		//What is the end date for this calculation
-		Date pmEvtsCalcEnd = null;
-		boolean newEndSpansAfterPreviousCalc = endDate.after(tunedConf.getLastCalculationEnd());
-		if (calcStatus.equals(CalcStatus.RESET)) {//Start date outside previous calc (ie Reset calc)
-			pmEvtsCalcEnd = endDate;
-			tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
-		} else 
-			if (calcStatus.equals(CalcStatus.INC)) {//Start date within previous calc
-				if (newEndSpansAfterPreviousCalc) { //End date after previous calc => inc calc
-					pmEvtsCalcEnd = endDate;
-					tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
-				} else { //End date within the previous calc => no re calc needed
-					calcStatus = CalcStatus.NONE;
-				}
-			}
+        //Inconsistency check
+        if (tunedConf.getLastCalculatedEvent() != null && tunedConf.getLastCalculatedEvent().after(stock.getLastQuote())) {
+            throw new InvalidAlgorithmParameterException("Data inconsistency detected for stock : "+stock+". last quote is : "+stock.getLastQuote()+ " and last event calculated is : "+tunedConf.getLastCalculatedEvent());
+        }
+        //Check end date within quotations
+        boolean newEndWithinQuotations = endDate.before(stock.getLastQuote()) || endDate.compareTo(stock.getLastQuote()) == 0;
+        if (!newEndWithinQuotations) {
+            endDate = stock.getLastQuote();
+        }
+        return endDate;
 
-		LOGGER.info(
-				infoMsg +
-				"TunedConf after calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
-				". Requested calculation is from "+startDate+" to "+endDate+". "+
-				"New calculation status is "+calcStatus+" and will either be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd +" or is not needed if "+CalcStatus.NONE+".");
+    }
+
+    public CalculationBounds autoCalcAndSetDatesBounds(TunedConf tunedConf, Stock stock, Date startDate, Date endDate) {
+
+        LOGGER.info(
+                stock.getSymbol() + " TunedConf before calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
+                ". Requested calculation is from "+startDate+" to "+endDate+". ");
+
+        //Setting PM events calculation date range
+        //We want the calculation from the start date onward but we don't want to recalculate already calculated PM events
+        //We don't want to update calculation after the last PM event.
+        CalcStatus calcStatus = null;
+
+        //What is the start date for this calculation
+        Date pmEvtsCalcStart = null;
+        String infoMsg = "";
+        if (!startDate.before(tunedConf.getLastCalculationStart()) && !startDate.after(tunedConf.getLastCalculationEnd())) {//start is included into the last calculation
+            //inc calc, tuned config start stays the same
+            pmEvtsCalcStart = (tunedConf.getLastCalculatedEvent() != null)?tunedConf.getLastCalculatedEvent():startDate;
+            calcStatus = CalcStatus.INC;
+            infoMsg = "New dates for "+stock+" starts within the previous calc : we do INCREMENTAL calc. ";
+
+        } else {//start outside the last calculation
+            //recalc from new date, reset tuned start
+            pmEvtsCalcStart = startDate;
+            tunedConf.setLastCalculationStart(pmEvtsCalcStart);
+            calcStatus = CalcStatus.RESET;
+            infoMsg = "New dates for "+stock+" DO NOT starts within the previous calc : we RESET the calculation dates. " ;
+
+        }
+
+        //What is the end date for this calculation
+        Date pmEvtsCalcEnd = null;
+        boolean newEndSpansAfterPreviousCalc = endDate.after(tunedConf.getLastCalculationEnd());
+        if (calcStatus.equals(CalcStatus.RESET)) {//Start date outside previous calc (ie Reset calc)
+            pmEvtsCalcEnd = endDate;
+            tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
+        } else 
+            if (calcStatus.equals(CalcStatus.INC)) {//Start date within previous calc
+                if (newEndSpansAfterPreviousCalc) { //End date after previous calc => inc calc
+                    pmEvtsCalcEnd = endDate;
+                    tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
+                } else { //End date within the previous calc => no re calc needed
+                    calcStatus = CalcStatus.NONE;
+                }
+            }
+
+        LOGGER.info(
+                infoMsg +
+                "TunedConf after calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd()+". Last event "+ tunedConf.getLastCalculatedEvent() +
+                ". Requested calculation is from "+startDate+" to "+endDate+". "+
+                "New calculation status is "+calcStatus+" and will either be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd +" or is not needed if "+CalcStatus.NONE+".");
 
 
-		return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd);
+        return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd);
 
-	}
-	
-	public void updateConf(TunedConf tunedConf, Stock stock, Date lastEventDate) {
-		if (lastEventDate != null) tunedConf.setLastCalculatedEvent(lastEventDate);
-		getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
-	}
-	
-	public void resetConf(TunedConf tunedConf, Stock stock) {
-		tunedConf.reset();
-		getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
-	}
-	
-	//TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
-	public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
-		PeriodSpliter periodSpliter = new PeriodSpliter();
-		return periodSpliter.splitBackward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
-	}
+    }
 
-	public TunedConfDAO getTunedConfDAO() {
-		return tunedConfDAO;
-	}
-	
-	public Date adjustStartDate(Stock stock) {//200 days after first quotation available
-		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
-		Calendar adjustedStartCal = Calendar.getInstance();
-		adjustedStartCal.setTime(firstQuotationDateFromQuotations);
-		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, 200);
-		Date adjustedStartDate = adjustedStartCal.getTime();
-		return adjustedStartDate;
-	}
-	
-	public Date adjustEndDate(Stock stock) {
-		Date lastQuote = stock.getLastQuote();
-		return lastQuote;
-	}
+    public void updateConf(TunedConf tunedConf, Date lastEventDate) {
+        if (lastEventDate != null) tunedConf.setLastCalculatedEvent(lastEventDate);
+        getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
+    }
+
+    public void resetConf(TunedConf tunedConf) {
+        tunedConf.reset();
+        getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
+    }
+
+    public void rollBackConf(TunedConf tunedConf, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
+        tunedConf.rollBack(lastCalculatedEvent, lastCalculationStart, lastCalculationEnd);
+        getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
+    }
+
+    //TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
+    public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
+        PeriodSpliter periodSpliter = new PeriodSpliter();
+        return periodSpliter.splitBackward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
+    }
+
+    public TunedConfDAO getTunedConfDAO() {
+        return tunedConfDAO;
+    }
+
+    public Date minimumStartDate(Stock stock) {//200 days after first quotation available
+        Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
+        Calendar adjustedStartCal = Calendar.getInstance();
+        adjustedStartCal.setTime(firstQuotationDateFromQuotations);
+        QuotationsFactories.getFactory().incrementDate(adjustedStartCal, 200);
+        Date adjustedStartDate = adjustedStartCal.getTime();
+        return adjustedStartDate;
+    }
+
+    public Date maximumEndDate(Stock stock) {
+        Date lastQuote = stock.getLastQuote();
+        return lastQuote;
+    }
 
 }
 

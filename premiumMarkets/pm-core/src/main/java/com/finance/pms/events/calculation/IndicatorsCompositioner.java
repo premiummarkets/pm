@@ -40,17 +40,32 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedCalculator;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsCompositioner;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
-public abstract class EventCompostionCalculator {
+/**
+ * In principle the IndicatorsCompositioner generates events (SortedMap<EventKey, EventValue>).
+ * 
+ * TalibIndicatorsCompositioner is one of IndicatorsCompositioner and therefore can be used by the mean of a new EventDefinition (also originally called second pass operations) for each of its implementations, but is not modifiable.
+ * If we need to parameterise TalibIndicatorsCompositioner and its operands, we need an operation that is not an OperationsCompositioner. Also, as its operand are actually hard coded, this will be a PMDataFreeOperation.
+ * The idea here is hence to integrate the TalibIndicatorsCompositioner into an operation of type DoubleMapOperation (here PMDataFreeOperation) and then make it potentially available to used in an OperationsCompositioner through the UI.
+ * The operation is making it parametrisable and usable as operand of an OperationsCompositioner.
+ * The events output of the calculator (or any other output) can be the input (for event calculation or for display) of the OperationsCompositioner.
+ * This is for instance done that way for IndicatorsCompositioners such as Perceptron and Encog calculators.
+ * 
+ * An other approach is too create an operation for all TalibIndicator used as subjacent indicators of each TalibIndicatorsCompositioner.
+ * Then replicate every TalibIndicatorsCompositioner calculation by creating OperationsCompositioners through the UI.
+ * 
+ * Reviewed terminologie : Indicator(s)/IndicatorsCompositionner (former EventCompositionCalculator) -> Operation(s) -> OperationsCompositionner (former EventConditionHolder)
+ */
+public abstract class IndicatorsCompositioner {
 
     protected Observer[] observers;
 
-    public EventCompostionCalculator(Observer... observers) {
+    public IndicatorsCompositioner(Observer... observers) {
         this.observers = observers;
     }
 
@@ -79,7 +94,7 @@ public abstract class EventCompostionCalculator {
      * Used for charting when using static {@link EventDefinition}.
      * Each index in the returned arrays corresponds to a matching entry in the static description of the EventDefinition associated here via {@link #getEventDefinition()}.
      * The exhaustive supported list includes : String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold.
-     * PARAMERIZED Events have a special implementation : {@link ParameterizedCalculator}
+     * PARAMERIZED Events have a special implementation : {@link ParameterizedIndicatorsCompositioner}
      */
     public abstract SortedMap<Date, double[]> calculationOutput();
 
@@ -90,9 +105,12 @@ public abstract class EventCompostionCalculator {
     public abstract ValidityFilter quotationsValidity();
 
 
-    //If output is NaN this means that the output is not available and should not be displayed at that date on chart.
-    //If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
-    //We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
+    /**
+     * If output is NaN this means that the output is not available and should not be displayed at that date on chart.
+     * If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
+     * We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
+     * @return
+     */
     protected Double translateOutputForCharting(Double ds2) {
         if (ds2 != null) {
             if (!ds2.isNaN()) {

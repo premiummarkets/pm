@@ -39,7 +39,7 @@ import java.io.Serializable;
  */
 public enum EventType implements Serializable {
 	
-	BEARISH("bearich", -1, 's'),
+	BEARISH("bearish", -1, 's'),
 	NONE("neutral", 0, 'n'),
 	BULLISH("bullish", 1, 'b'),
 	INFO("info", 3, 'i');

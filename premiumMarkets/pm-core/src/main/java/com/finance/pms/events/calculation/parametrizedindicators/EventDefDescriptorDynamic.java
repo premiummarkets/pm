@@ -47,7 +47,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorDynamic.class);
 
-	public static Color[][] COLORS = new  Color[][] {{Color.BLACK, Color.RED, new Color(0,128,0)},  {new Color(0,139,139), new Color(220,20,60), new Color(107,142,35)}, {Color.CYAN, Color.MAGENTA, Color.GREEN}, {Color.BLUE, new Color(128,0,0), new Color(128,128,0)}};
+	public static Color[][] COLORS = new  Color[][] {
+	    {Color.BLACK, Color.RED, new Color(0,128,0), new Color(50,178,50)},
+	    {new Color(0,139,139), new Color(220,20,60), new Color(107,142,35), new Color(157,192,85)},
+	    {Color.CYAN, Color.MAGENTA, Color.GREEN, new Color(50, 49, 50)},
+	    {Color.BLUE, new Color(128,0,0), new Color(128,128,0), new Color(178,178,50)}
+	};
 	
 	private String descriptorReference;
 	private String bullishDescription;
@@ -155,9 +160,9 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		case SIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha);
 		case BOTH :
-			return new Color(grpColors[2].getRed(), grpColors[2].getGreen(), grpColors[2].getBlue(), alpha);
+			return new Color(grpColors[2].getRed(), (grpColors[2].getGreen() + outputIdx * 10) % 256, grpColors[2].getBlue(), alpha);
 		case MULTI :
-			return new Color(grpColors[2].getRed(), grpColors[2].getGreen(), grpColors[2].getBlue(), alpha);
+			return new Color(grpColors[3].getRed(), (grpColors[3].getGreen() + outputIdx * 10) % 256, grpColors[3].getBlue(), alpha);
 		case MULTISIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/4);
 		default :

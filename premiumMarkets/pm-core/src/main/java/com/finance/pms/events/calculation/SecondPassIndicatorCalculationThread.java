@@ -59,12 +59,12 @@ import com.finance.pms.threads.ConfigThreadLocal;
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
 
     private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);
-    private Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators;
+    private Map<EventDefinition, Class<IndicatorsCompositioner>> availableSecondPassIndicatorCalculators;
     private List<EventInfo> secondPassWantedCalculations;
 
     protected SecondPassIndicatorCalculationThread(
             Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
-            Set<Observer> observers, Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators,
+            Set<Observer> observers, Map<EventDefinition, Class<IndicatorsCompositioner>> availableSecondPassIndicatorCalculators,
             Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
         super(stock, startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
 
@@ -73,21 +73,21 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
     }
 
     @Override
-    protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, final Observer... observers) throws IncompleteDataSetException {
+    protected Set<IndicatorsCompositioner> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, final Observer... observers) throws IncompleteDataSetException {
 
-        final Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
+        final Set<IndicatorsCompositioner> eventCalculations = new HashSet<IndicatorsCompositioner>();
 
         Boolean isDataSetComplete = true;
         String failingCalculators = "";
         for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
             if (checkWanted(eventDefinition)) {
 
-                final Class<EventCompostionCalculator> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
+                final Class<IndicatorsCompositioner> eventCompositionCalculator = availableSecondPassIndicatorCalculators.get(eventDefinition);
 
                 List<EventInfo> eventInfos = subEventInfosForRequested(eventDefinition);
                 for (final EventInfo eventInfo : eventInfos) {
                     try {
-                        EventCompostionCalculator instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
+                        IndicatorsCompositioner instanciatedECC = instanciateECC(eventInfo, eventCompositionCalculator, observers);
                         eventCalculations.add(instanciatedECC);
                     } catch (InvocationTargetException e) {
                         isDataSetComplete = false;
@@ -127,11 +127,11 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
         secondPassWantedCalculations = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepIndicators();
     }
 
-    private EventCompostionCalculator instanciateECC(EventInfo eventInfo, Class<EventCompostionCalculator> eventCompositionCalculator, Observer[] observers) throws Throwable {
+    private IndicatorsCompositioner instanciateECC(EventInfo eventInfo, Class<IndicatorsCompositioner> eventCompositionCalculator, Observer[] observers) throws Throwable {
 
         try {
 
-            Constructor<EventCompostionCalculator> constructor = 
+            Constructor<IndicatorsCompositioner> constructor = 
                     eventCompositionCalculator.getConstructor(
                             EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
             return constructor.newInstance(

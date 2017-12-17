@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.scoring;
 
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.EmbeddedId;
@@ -39,7 +38,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 
@@ -92,16 +90,11 @@ public class TunedConf {
 	public void setLastCalculatedEvent(Date lastCalculatedEvent) {
 		this.lastCalculatedEvent = lastCalculatedEvent;
 	}
-
-
-	public Date relativeToQuotationStartStampDate(Date currentDate) {
-		Date quotationStart = DataSource.getInstance().getFirstQuotationDateFromQuotations(this.tunedConfId.stock);
-		Calendar quotationStartCal = Calendar.getInstance();
-		quotationStartCal.setTime(quotationStart);
-		int quotationStartDayOfMonth = quotationStartCal.get(Calendar.DAY_OF_MONTH);
-		quotationStartCal.setTime(currentDate);
-		quotationStartCal.set(Calendar.DAY_OF_MONTH, quotationStartDayOfMonth);
-		return quotationStartCal.getTime();
+	
+	public void rollBack(Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
+	    this.lastCalculatedEvent = lastCalculatedEvent;
+        this.lastCalculationStart = lastCalculationStart;
+        this.lastCalculationEnd =  lastCalculationEnd;
 	}
 
 	

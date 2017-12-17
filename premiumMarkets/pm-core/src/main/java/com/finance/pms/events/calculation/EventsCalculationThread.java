@@ -58,80 +58,110 @@ import com.finance.pms.queue.SingleEventMessage;
 import com.finance.pms.queue.SymbolEventsMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
+//FIXME queue and message template should not be passed as parameter but pick from the Spring Container using container awareness.
 public abstract class EventsCalculationThread extends Observable implements Callable<SymbolEvents> {
-	
-	protected static MyLogger LOGGER = MyLogger.getLogger(EventsCalculationThread.class);
-	
-	protected Date startDate;
-	protected Date endDate;
-	protected String eventListName;
 
-	protected Queue eventQueue;
-	protected JmsTemplate jmsTemplate;
-	protected Currency calculationCurrency;
-	protected Map<String,Config> configs;
-	protected Set<Observer> observers;
+    protected static MyLogger LOGGER = MyLogger.getLogger(EventsCalculationThread.class);
 
-	protected EventsCalculationThread(
-			Date startDate, Date endDate, String eventListName, Currency calculationCurrency, 
-			Set<Observer> observers, Queue eventQueue, JmsTemplate jmsTemplate) {
-		
-		super();
-		this.startDate = startDate;
-		this.endDate = endDate;
-		this.eventListName = eventListName;
-		this.calculationCurrency = calculationCurrency;
+    protected Date startDate;
+    protected Date endDate;
+    protected String eventListName;
 
-		this.eventQueue = eventQueue;
-		this.jmsTemplate = jmsTemplate;
-		
-		this.configs = ConfigThreadLocal.getAll();
-		
-		this.observers = observers;
-		for (Observer observer : observers) {
-			this.addObserver(observer);
-		}
-		
-	}
+    protected Queue eventQueue;
+    protected JmsTemplate jmsTemplate;
+    protected Currency calculationCurrency;
+    protected Map<String,Config> configs;
+    protected Set<Observer> observers;
 
-	protected void sendEvent(final Stock stock, final String eventListName, final EventValue event, final EmailFilterEventSource eventSource, final EventInfo eventInfo) {
-	
-		if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
-			jmsTemplate.send(eventQueue, new MessageCreator() {
+    protected EventsCalculationThread(
+            Date startDate, Date endDate, String eventListName, Currency calculationCurrency, 
+            Set<Observer> observers, Queue eventQueue, JmsTemplate jmsTemplate) {
 
-				public Message createMessage(Session session) throws JMSException {
+        super();
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.eventListName = eventListName;
+        this.calculationCurrency = calculationCurrency;
 
-					SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, event, ConfigThreadLocal.getAll());
-					message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
-					message.setObjectProperty(MessageProperties.TREND.getKey(), event.getEventType().name()); //Bearish or Bullish or Other?
-					message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-					if (eventInfo != null) message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), eventInfo.getEventReadableDef());
+        this.eventQueue = eventQueue;
+        this.jmsTemplate = jmsTemplate;
 
-					return message;
-				}
-			});
-		}
-	}
-	
-	protected void sendEvent(final String eventListName, final SymbolEvents symbolEvents, final EmailFilterEventSource eventSource, final EventType lastEventType, final EventInfo eventInfo) {
-		
-		if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
-			jmsTemplate.send(eventQueue, new MessageCreator() {
+        this.configs = ConfigThreadLocal.getAll();
 
-				public Message createMessage(Session session) throws JMSException {
+        this.observers = observers;
+        for (Observer observer : observers) {
+            this.addObserver(observer);
+        }
 
-					SymbolEventsMessage message = new SymbolEventsMessage(eventListName, symbolEvents, ConfigThreadLocal.getAll());
-					message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
-					message.setObjectProperty(MessageProperties.TREND.getKey(), lastEventType.name()); //Bearish or Bullish or Other?
-					message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-					if (eventInfo != null) message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), eventInfo.getEventReadableDef());
+    }
+    
+    protected EventsCalculationThread(
+            Date startDate, Date endDate, String eventListName, Currency calculationCurrency, 
+            Set<Observer> observers) {
 
-					return message;
-				}
-			});
-		}
-	}
-	
-	public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin);
+        super();
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.eventListName = eventListName;
+        this.calculationCurrency = calculationCurrency;
+
+        this.configs = ConfigThreadLocal.getAll();
+
+        this.observers = observers;
+        for (Observer observer : observers) {
+            this.addObserver(observer);
+        }
+
+    }
+
+    protected void sendEvent(final Stock stock, final String eventListName, final EventValue event, final EmailFilterEventSource eventSource, final EventInfo eventInfo) {
+
+        if (eventQueue == null) {
+            LOGGER.info("No queue available. No message required to be sent");
+            return;
+        }
+
+        if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
+            jmsTemplate.send(eventQueue, new MessageCreator() {
+
+                public Message createMessage(Session session) throws JMSException {
+
+                    SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, event, ConfigThreadLocal.getAll());
+                    message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
+                    message.setObjectProperty(MessageProperties.TREND.getKey(), event.getEventType().name()); //Bearish or Bullish or Other?
+                    message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+                    if (eventInfo != null) message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), eventInfo.getEventReadableDef());
+
+                    return message;
+                }
+            });
+        }
+    }
+
+    protected void sendEvent(final String eventListName, final SymbolEvents symbolEvents, final EmailFilterEventSource eventSource, final EventType lastEventType, final EventInfo eventInfo) {
+
+        if (eventQueue == null) {
+            LOGGER.info("No queue available. No message required to be sent");
+            return;
+        }
+
+        if (AnalysisClient.getEmailMsgQeueingFilter().contains(eventSource)) {
+            jmsTemplate.send(eventQueue, new MessageCreator() {
+
+                public Message createMessage(Session session) throws JMSException {
+
+                    SymbolEventsMessage message = new SymbolEventsMessage(eventListName, symbolEvents, ConfigThreadLocal.getAll());
+                    message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
+                    message.setObjectProperty(MessageProperties.TREND.getKey(), lastEventType.name()); //Bearish or Bullish or Other?
+                    message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
+                    if (eventInfo != null) message.setObjectProperty(MessageProperties.EVENT_INFO.getKey(), eventInfo.getEventReadableDef());
+
+                    return message;
+                }
+            });
+        }
+    }
+
+    public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin);
 
 }

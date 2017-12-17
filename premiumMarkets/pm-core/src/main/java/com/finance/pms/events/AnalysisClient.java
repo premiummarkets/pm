@@ -215,7 +215,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				return (SymbolEvents) ((ObjectMessage) message).getObject();
 			}
 		} catch (NoSuchFieldException e) {
-			LOGGER.warn("Unrecognised message : "+message+".\nEvent definition not found in this configuration (db.property, user ops) "+e);
+			LOGGER.warn("Unrecognised message : "+message+".\nEvent definition not found in this configuration (db.property, user calculator) "+e);
 			return null;
 		}
 		

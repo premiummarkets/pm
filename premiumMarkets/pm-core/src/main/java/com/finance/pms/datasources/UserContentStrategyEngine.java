@@ -129,6 +129,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
             Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 
             Boolean doRunPassOne = true;
+            //Check if the calculators are Parameterised and have only data free operands leading to first pass being unnecessary
             if (viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null) {
                 Stream<? extends Object> filter = viewStateParams[0].stream()
                         .filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId()) && ((Operation) e).collectOperationOf(PMWithDataOperation.class).isEmpty());
@@ -138,10 +139,12 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
                             viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
                 }
             }
-
+            //Set Parameterised data free operands as dirty if required
             if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {
                 Object isDirty = viewStateParams[1].iterator().next();
                 if (isDirty != null && isDirty.equals("setDirty")) {
+                    //"setDirty" is set and calculator is a Parameterised => we set the calculator's operation compositioner operands as dirty (needs update).
+                    //"setDirty" is set on forced recalculation.
                     viewStateParams[0].stream()
                     .forEach(e -> {
                         if (((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
@@ -247,7 +250,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
             LOGGER.guiInfo("Running task : Cleaning previous "+((Stock)stock).getFriendlyName()+
                     " with sets of events as dirty : "+
-                    ((viewStateParams != null && viewStateParams.length == 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"?")+
+                    ((viewStateParams != null && viewStateParams.length >= 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected")+
                     " . Will delete : "+ Arrays.toString(eventDefsArray));
 
             EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), eventDefsArray);
@@ -269,7 +272,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
         try {
             passTwoOutput = actionThread.runIndicatorsCalculationPassTwo();
         } catch (IncompleteDataSetException e1) {
-            passTwoOutput = e1.getCalculatedOutput();
+            passTwoOutput = e1.getCalculatedOutputs();
         }
 
         return finalising(actionThread, passTwoOutput, start, end);
@@ -281,7 +284,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
         try {
             passOneOutput = actionThread.runIndicatorsCalculationPassOne(passOneOverwriteMode());
         } catch (IncompleteDataSetException e1) {
-            passOneOutput = e1.getCalculatedOutput();
+            passOneOutput = e1.getCalculatedOutputs();
         }
 
         return finalising(actionThread, passOneOutput, start, end);

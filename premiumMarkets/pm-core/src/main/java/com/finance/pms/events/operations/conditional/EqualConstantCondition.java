@@ -46,7 +46,7 @@ public class EqualConstantCondition extends CmpConstantCondition {
 
 	@Override
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double> ... ops) {
-		return  ops[0].compareTo((Double) ops[1]) == 0;
+		return ops[0].compareTo((Double) ops[1]) == 0;
 	}
 
 }

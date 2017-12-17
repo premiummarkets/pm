@@ -55,7 +55,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
+public class ObvDivergence extends TalibIndicatorsCompositioner {
 	
 	private static final int SMOOTHING = 2;
 	
@@ -68,13 +68,24 @@ public class ObvDivergence extends TalibIndicatorsCompositionCalculator {
 	
 	public ObvDivergence(Observer... observers) {
 		super(observers);
-		
-		this.obv = new OBV();
-		this.chaikinLine = new ChaikinLine();
-		this.sma = new SMA(SMOOTHING);
-		
-		this.obvSma = new SMA(SMOOTHING);
+		init(SMOOTHING, SMOOTHING);
 	}
+	
+    public ObvDivergence() {
+        //Reflective ops generator
+    }
+    
+    protected void init(Integer signalSmaPeriod, Integer smoothSmaPeriod) {
+        this.obv = new OBV();
+        this.chaikinLine = new ChaikinLine();
+        this.sma = new SMA(signalSmaPeriod);
+        this.obvSma = new SMA(smoothSmaPeriod);
+    }
+    
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1]);
+    }
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {

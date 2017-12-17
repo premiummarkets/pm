@@ -147,10 +147,6 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
             return true;
         }
 
-        public Boolean isDirty() {
-            return outputState.equals(OutStampState.DIRTY);
-        }
-
         public Boolean isFailing() {
             return outputState.equals(OutStampState.FAILING);
         }
@@ -474,7 +470,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
             return true;
         }
 
-        Date adjustStartDate = TunedConfMgr.getInstance().adjustStartDate(stock);
+        Date adjustStartDate = TunedConfMgr.getInstance().minimumStartDate(stock);
 
         if (start.before(adjustStartDate)) {
             start = adjustStartDate;
@@ -484,7 +480,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
         Boolean needsUpdate = false;
         for (EventInfo eventInfo : eventInfos) {
             EventDefCacheEntry cacheEntry = cacheEntry4Stock.get(eventInfo);
-            if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before( cacheEntry.getUpdateStamp().start) || end.after(cacheEntry.getUpdateStamp().end)) {
+            if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before(cacheEntry.getUpdateStamp().start) || end.after(cacheEntry.getUpdateStamp().end)) {
                 LOGGER.info(
                         "Events : "+ eventInfo.getEventReadableDef()+" needs update : time stamp is "+
                                 ( (cacheEntry == null || cacheEntry.getOutputMap() == null)?

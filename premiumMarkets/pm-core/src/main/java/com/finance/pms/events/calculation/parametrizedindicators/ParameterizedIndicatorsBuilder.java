@@ -37,17 +37,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.finance.pms.IndicatorCalculationServiceMain;
+import com.finance.pms.admin.config.EventSignalConfig;
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.conditional.OperationsCompositioner;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 //@Service("parameterizedIndicatorsBuilder")
 public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
+    
+    private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsBuilder.class);
 	
 	//@Autowired
 	ParameterizedOperationBuilder parameterizedOperationBuilder;
@@ -86,25 +96,40 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		this.parameterizedOperationBuilder.addObserver(new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
-				
-				if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
-				
-				ObsMsg msg = (ObsMsg) arg;
-				
-				switch(msg.type) { 
-				case DELETE :
-					List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.operation);
-					if (!checkInUse.isEmpty()) throw new InUsedExecption(checkInUse);
-					break;
-				case CHANGE :	
-					actualReplaceInUse(getCurrentOperations().values(), msg.operation);
-					break;
-				case RESET :
-					resetUserOperations();
-					updateEditableOperationLists();
-					break;
-				}
+
+			    if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
+
+			    ObsMsg msg = (ObsMsg) arg;
+
+			    switch(msg.getType()) { 
+			    case OPERATION_CRUD :    //Any ops change or status change
+			        List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
+			        if (!checkInUse.isEmpty()) {
+			            LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
+			            cleanEventFor(checkInUse);
+			            for (Operation opInUse : checkInUse) {
+			                EventModel.dirtyCacheFor((EventInfo) opInUse);
+			            }
+			            EventModel.updateEventInfoStamp();
+			            throw new InUsedExecption(checkInUse);
+			        }
+			        break;
+			    case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
+			        actualReplaceInUse(getCurrentOperations().values(), msg.getOperation());
+			        break;
+			    case RESET_OPS_INMEM_INSTANCES :    //Reset ops list from scratch
+			        resetUserOperations();
+			        updateEditableOperationLists();
+			        break;
+			    }
 			}
+
+            private void cleanEventFor(List<Operation> checkInUse) {
+                OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
+                    .filter(op -> op instanceof OperationsCompositioner)
+                    .collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
+                EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), cHoldersInUse);
+            }
 		});
 
 	}
@@ -164,8 +189,9 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	//Is called when Indicators are changed
 	@Override
-	protected void updateCaches(Operation operation, Boolean isNewOp) {
+	protected List<Operation> updateCaches(Operation operation, Boolean isNewOp) {
 		EventDefinition.refreshMaxPassPrefsEventInfo();
+		return new ArrayList<>();
 	}
 
 	@Override

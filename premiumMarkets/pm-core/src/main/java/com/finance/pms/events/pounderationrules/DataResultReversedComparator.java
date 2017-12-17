@@ -51,7 +51,7 @@ public class DataResultReversedComparator implements Comparator<EventValue> {
 		if (date != 0) {
 			retour = date;
 		} else {
-			int eventdef = (se1.getEventDefId()).compareTo(se2.getEventDefId());
+			int eventdef = (se1.getEventDef()).compareTo(se2.getEventDef());
 			if (eventdef != 0) {
 				retour = eventdef;
 			} else {

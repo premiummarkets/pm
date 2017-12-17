@@ -56,7 +56,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
+public class VarianceCalculator extends TalibIndicatorsCompositioner {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(VarianceCalculator.class);
 
@@ -78,13 +78,26 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 		super(observers);
 		this.stock =stock;
 		this.analysisName = eventListName;
-		this.timePeriod = timePeriod;
-		this.devSpanDiff = devSpanDiff;
-		this.minValid = minValid;
-		this.sma = new SMA(smaPeriod);
+		init(timePeriod, devSpanDiff, minValid, smaPeriod);
 		
-		initExport();
+		if (LOGGER.isTraceEnabled()) initExport();
 	}
+	
+	public VarianceCalculator() {
+        //Reflective ops generator
+    }
+
+    protected void init(Integer timePeriod, Integer devSpanDiff, Integer minValid, Integer smaPeriod) {
+        this.timePeriod = timePeriod;
+        this.devSpanDiff = devSpanDiff;
+        this.minValid = minValid;
+        this.sma = new SMA(smaPeriod);
+    }
+
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1], constants[2], constants[3]);
+    }
 
 	private void initExport() {
 		String fileName = stock.getSymbol()+"_"+ this.analysisName+"_"+ EventDefinition.VARIANCE;
@@ -200,7 +213,7 @@ public class VarianceCalculator extends TalibIndicatorsCompositionCalculator {
 			LOGGER.warn("Variance can't be calculated for "+stock.getSymbol()+" at "+date);
 		}
 		
-		exportLineToFile(date, qU.getClose(), smaData[smaIndQuoteIndex], resType);
+		if (LOGGER.isTraceEnabled()) exportLineToFile(date, qU.getClose(), smaData[smaIndQuoteIndex], resType);
 
 		return res;
 	}

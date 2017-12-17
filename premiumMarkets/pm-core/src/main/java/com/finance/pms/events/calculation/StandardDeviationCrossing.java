@@ -52,14 +52,29 @@ import com.finance.pms.talib.indicators.StandardDeviation;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class StandardDeviationCrossing extends TalibIndicatorsCompositionCalculator {
+public class StandardDeviationCrossing extends TalibIndicatorsCompositioner {
 	
 	private StandardDeviation standardDeviation;
 	private SMA sma;
 
 	public StandardDeviationCrossing(Observer[] observers) {
 		super(observers);
+		init(42);
 	}
+	
+	public StandardDeviationCrossing() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer smaPeriod) {
+	    this.sma = new SMA(smaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0]);
+	}
+
 
 	@Override
 	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{

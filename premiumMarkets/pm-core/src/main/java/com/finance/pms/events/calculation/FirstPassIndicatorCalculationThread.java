@@ -51,10 +51,10 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
+import com.finance.pms.events.scoring.CalculationBounds;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
-import com.finance.pms.events.scoring.TunedConfMgr.CalculationBounds;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationThread {
@@ -149,10 +149,10 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	}
 
 	@Override
-	protected Set<EventCompostionCalculator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) {
+	protected Set<IndicatorsCompositioner> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) {
 		
 		LOGGER.info("First pass wanted events : "+getWantedEventCalculations());
-		Set<EventCompostionCalculator> eventCalculations = new HashSet<EventCompostionCalculator>();
+		Set<IndicatorsCompositioner> eventCalculations = new HashSet<IndicatorsCompositioner>();
 		
 		//Which EventCompositions have been found a wanted in the EventConfig (indicators field)
 		boolean zeroCrossMACDWanted = checkWanted(EventDefinition.PMMACDZEROCROSS);
@@ -335,7 +335,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 		synchronized (tunedConf) {
 			
-			CalculationBounds calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.IGNORE, startDate, endDate);
+			CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate);
 			if (passOneCalcMode.equals("auto")) {
 				endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
 				calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
@@ -344,7 +344,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
 				tunedConf.setLastCalculationStart(startDate);
 				tunedConf.setLastCalculationEnd(endDate);
-				calculationBounds = TunedConfMgr.getInstance().new CalculationBounds(CalcStatus.RESET, startDate, endDate);
+				calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate);
 			}
 			
 			startDate = calculationBounds.getPmStart();
@@ -361,13 +361,13 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 			if (dataSetExceptions.isEmpty()) {
 				//if We inc or reset, tuned conf last event will need update : We add it in the map
 				if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, symbolEventsForStock.getStock(), symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
+					TunedConfMgr.getInstance().updateConf(tunedConf, symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
 				}
 			} else {//Error(s) as occurred. This should invalidate tuned conf
 			    if (LOGGER.isEnabledFor(Level.ERROR)) {
 	                dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
 	            }
-				TunedConfMgr.getInstance().resetConf(tunedConf, stock);
+				TunedConfMgr.getInstance().resetConf(tunedConf);
 			}
 			
 		}

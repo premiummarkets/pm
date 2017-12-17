@@ -58,7 +58,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 'spanning'
  */
 
-@XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class})
+@XmlSeeAlso({CrossUpDoubleMapCondition.class, CrossDownDoubleMapCondition.class})
 public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 	
 

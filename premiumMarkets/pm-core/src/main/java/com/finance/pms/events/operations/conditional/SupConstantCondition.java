@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import com.finance.pms.events.operations.Operation;
 
 public class SupConstantCondition extends CmpConstantCondition {
-	
 
 	private SupConstantCondition() {
 		super("above threshold", "True when a time series value is above the constant.");

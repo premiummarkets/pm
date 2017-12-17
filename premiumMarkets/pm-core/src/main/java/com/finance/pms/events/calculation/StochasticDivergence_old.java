@@ -57,7 +57,7 @@ import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculator {
+public class StochasticDivergence_old extends TalibIndicatorsCompositioner {
 	
 	private StochasticOscillator stochOsc;
 	private SMA sma;
@@ -92,10 +92,22 @@ public class StochasticDivergence_old extends TalibIndicatorsCompositionCalculat
 	
 	public StochasticDivergence_old(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
 		super(observers);
-		this.sma = new SMA(2);
-		this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, 2);
 	}
 
+	public StochasticDivergence_old() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Integer signalSMAPeriod) {
+	    this.sma = new SMA(signalSMAPeriod);
+	    this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0], constants[1], constants[2], constants[3]);
+	}
 
 	@Override
 	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {

@@ -46,6 +46,7 @@ import org.springframework.core.io.ClassPathResource;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerOperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -487,6 +488,7 @@ public class SpringContext extends GenericApplicationContext {
 		optPostInitRunning = true;
 
 		final TalibOperationGenerator talibOperationGenerator = SpringContext.getSingleton().getBean(TalibOperationGenerator.class);
+		final TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator = SpringContext.getSingleton().getBean(TalibIndicatorsCompositionerOperationReflectiveGenerator.class);
 		final ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 		final ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
 		
@@ -499,7 +501,7 @@ public class SpringContext extends GenericApplicationContext {
 					
 					ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
 					try {
-						parameterizedOperationBuilder.init(talibOperationGenerator);
+						parameterizedOperationBuilder.init(talibOperationGenerator, talibIndicatorsCompositionerOperationReflectiveGenerator);
 						parameterizedIndicatorsBuilder.init();
 					} catch (Exception e) {
 						e.printStackTrace();

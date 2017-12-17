@@ -73,7 +73,7 @@ public class SymbolEvents implements Serializable {
 	private Set<EventInfo> sellTriggeringEvents;
 	private Float triggeringFinalWeight;
 	
-	private Map<EventInfo, SortedMap<Date, double[]>> calculationOutput;
+	private Map<EventInfo, SortedMap<Date, double[]>> calculationOutputs;
 
 	public SymbolEvents(Stock stock) {
 		super();
@@ -83,7 +83,7 @@ public class SymbolEvents implements Serializable {
 		this.eventsState = EventState.STATE_TERMINATED;
 	}
 
-	public SymbolEvents(Stock stock, ConcurrentSkipListMap<EventKey, EventValue> dataResultList,Collection<?> eventDefList, EventState state) {	
+	public SymbolEvents(Stock stock, ConcurrentSkipListMap<EventKey, EventValue> dataResultList, Collection<?> eventDefList, EventState state) {	
 		this.stock =stock;
 		this.dataResultMap = dataResultList;
 		this.eventDefList = new HashSet<String>();
@@ -97,7 +97,7 @@ public class SymbolEvents implements Serializable {
 		this.eventsState = state;
 	}
 
-	public SymbolEvents(Stock stock,EventState eState) {
+	public SymbolEvents(Stock stock, EventState eState) {
 		this.stock = stock;
 		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
@@ -417,15 +417,15 @@ public class SymbolEvents implements Serializable {
 	}
 	//End Auto portfolio stuff
 
-	public Map<EventInfo, SortedMap<Date, double[]>> getCalculationOutput() {
-		return calculationOutput;
+	public Map<EventInfo, SortedMap<Date, double[]>> getCalculationOutputs() {
+		return calculationOutputs;
 	}
 
 	public void addCalculationOutput(EventInfo eventInfo, SortedMap<Date, double[]> calculationOutput) {
-		if (this.calculationOutput == null) {
-			this.calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
+		if (this.calculationOutputs == null) {
+			this.calculationOutputs = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 		}
-		this.calculationOutput.put(eventInfo, calculationOutput);
+		this.calculationOutputs.put(eventInfo, calculationOutput);
 		
 	}
 

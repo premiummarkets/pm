@@ -52,12 +52,29 @@ import com.finance.pms.talib.indicators.TalibIndicator;
  * TODO Main indexes sma 10 negative/positive for 15 days in a row
  *
  */
-public class CrashGuard extends TalibIndicatorsCompositionCalculator {
+public class CrashGuard extends TalibIndicatorsCompositioner {
 	
 	private static final int DAYS_SPAN = 10;
 	
 	private SMA sma;
 //	private Integer smaQuotationStartDateIdx;
+	
+	public CrashGuard(Integer signalSmaPeriod) {
+        init(signalSmaPeriod);
+    }
+	
+	public CrashGuard() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer signalSmaPeriod) {
+	    this.sma = new SMA(signalSmaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0]);
+	}
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {

@@ -39,7 +39,7 @@ import com.finance.pms.portfolio.InfoObject;
 
 public class ChartedOutputGroup {
 
-	public enum Type {MAIN, SIGNAL, BOTH, CONSTANT, MULTI, MULTISIGNAL, INVISIBLE};
+	public enum Type {MAIN, SIGNAL, BOTH, CONSTANT, MULTI, MULTISIGNAL, INVISIBLE}; //BOTH is MAIN & SIGNAL
 	
 	public class OutputDescr implements InfoObject, Comparable<OutputDescr>{
 		

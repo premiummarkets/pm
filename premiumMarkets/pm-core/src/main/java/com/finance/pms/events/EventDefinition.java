@@ -295,7 +295,8 @@ public enum EventDefinition implements Serializable, EventInfo {
 		SortedSet<EventInfo> sortedEvtDefs = new  TreeSet<EventInfo>(new Comparator<EventInfo>() {
 			
 			public int compare(EventInfo o1, EventInfo o2) {
-				return o1.getEventDefId().compareTo(o2.getEventDefId());
+				int compareTo = o1.compareTo(o2);
+                return compareTo;
 			}
 		});
 		sortedEvtDefs.addAll(eventDefinitions);
@@ -313,7 +314,8 @@ public enum EventDefinition implements Serializable, EventInfo {
 		SortedSet<EventInfo> eventDefinitions = new  TreeSet<EventInfo>(new Comparator<EventInfo>() {
 			
 			public int compare(EventInfo o1, EventInfo o2) {
-				return o1.getEventDefId().compareTo(o2.getEventDefId());
+				int compareTo = o1.compareTo(o2);
+                return compareTo;
 			}
 		});
 		for (String eventDefinitionsName : eventDefinitionsNames) {

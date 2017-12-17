@@ -48,6 +48,7 @@ import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.FormulaUtils;
 import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
+import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -55,21 +56,25 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.talib.dataresults.StandardEventValue;
-
+/**
+* The OperationsCompositioner is a specific type of operation to generate events to be used in the UI.
+* The OperationsCompositioner can take other operations as operands and will be compiled in a specific IndicatorsCompositioner, called ParameterizedIndicatorsCompositioner, when created through the UI.
+* OperationsCompositioner unlike other operations can't be reused for further composition or parameterised.
+*/
 @XmlRootElement
-public class EventConditionHolder extends Operation implements EventInfo {
+public class OperationsCompositioner extends EventMapOperation implements EventInfo {
 	
 	@XmlTransient
 	private EventDefDescriptorDynamic eventDefDescriptor;
 
-	public EventConditionHolder() {
-		super("eventconditionholder","eventconditionholder", 
+	public OperationsCompositioner() {
+		super("operationscompositionner","operationscompositionner", 
 		new ArrayList<Operation>(
 				Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new NumberOperation("startShiftOverride"), new StringOperation("eventListName")})));
 		eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
-	public EventConditionHolder(ArrayList<Operation> operands, String outputSelector) {
+	public OperationsCompositioner(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		eventDefDescriptor = new EventDefDescriptorDynamic();
@@ -85,7 +90,7 @@ public class EventConditionHolder extends Operation implements EventInfo {
 		StringValue eventListName = ((StringValue) inputs.get(4));
 		
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
-		for (Date date :  bullishMap.getValue(targetStock).keySet()) {
+		for (Date date : bullishMap.getValue(targetStock).keySet()) {
 			if (bullishMap.getValue(targetStock).get(date)) {
 				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BULLISH);
 				EventValue iev = new StandardEventValue(date, this, EventType.BULLISH, eventListName.getValue(targetStock));

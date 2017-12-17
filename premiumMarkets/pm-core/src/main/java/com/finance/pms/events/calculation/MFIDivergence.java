@@ -44,8 +44,21 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 
 	public MFIDivergence(Integer timePeriod, Integer lowerThres, Integer upperThres, Observer... observers) {
 		super(observers);
-		this.mfi = new MFI(timePeriod, lowerThres, upperThres);
+		init(timePeriod, lowerThres, upperThres);
 	}
+	
+    public MFIDivergence() {
+        //Reflective ops generator
+    }
+    
+    protected void init(Integer timePeriod, Integer lowerThres, Integer upperThres) {
+        this.mfi = new MFI(timePeriod, lowerThres, upperThres);
+    }
+    
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1], constants[2]);
+    }
 
 	@Override
 	protected double getOscillatorLowerThreshold() {

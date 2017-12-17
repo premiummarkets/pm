@@ -51,7 +51,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class SmaReversal extends TalibIndicatorsCompositionCalculator {
+public class SmaReversal extends TalibIndicatorsCompositioner {
 	
 	private static final int DAYS_SPAN = 15;
 
@@ -60,7 +60,20 @@ public class SmaReversal extends TalibIndicatorsCompositionCalculator {
 	private EventType previousTrend;
 
 	public SmaReversal(Integer smaPeriod, Observer[] observers) {
-		this.sma = new SMA(smaPeriod);
+		init(smaPeriod);
+	}
+	
+	public SmaReversal() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer smaPeriod) {
+	    this.sma = new SMA(smaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0]);
 	}
 
 

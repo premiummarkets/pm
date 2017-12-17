@@ -47,6 +47,19 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 		super(observers);
 		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
 	}
+	
+    public RSIDivergence() {
+        //Reflective ops generator
+    }
+    
+    protected void init(Integer rsiTimePeriod, Integer rsiUpperThreshold, Integer rsiLowerThreshold) {
+        this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+    }
+    
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1], constants[2]);
+    }
 
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
 		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, index);

@@ -52,6 +52,7 @@
             <availableOutputSelectors>
                 <availableOutputSelector>down</availableOutputSelector>
                 <availableOutputSelector>up</availableOutputSelector>
+                <availableOutputSelector>oscillator</availableOutputSelector>
             </availableOutputSelectors>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmsmaOperation">

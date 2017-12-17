@@ -53,7 +53,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 'spanning'
  * 
  */
-public class ReverseCondition extends Condition<Boolean>  implements StandAloneCondition {
+public class ReverseCondition extends Condition<Boolean>  implements UnaryCondition {
 	
 
 	private ReverseCondition() {

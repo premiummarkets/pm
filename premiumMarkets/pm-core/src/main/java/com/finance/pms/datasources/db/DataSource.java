@@ -722,9 +722,49 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return eventValue;
 	
 	}
+	
+	//ALTER TABLE EVENTS  ADD INDEX `EVENTS_STOCK_ANAME_DATE_DEF` (`ANALYSENAME`,`SYMBOL`,`ISIN`,`DATE`,`EVENTDEF`);
+	public Date getEdgeEventDateFor(String minMax, Stock stock, String analyseName, String eventDef) {
+        String q = new String("Select "+minMax+"(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where " +
+                EVENTS.ANALYSE_NAME + " = ? AND " +
+                EVENTS.SYMBOL_FIELD + " = ? AND "+ EVENTS.ISIN_FIELD + " = ? AND "+
+                EVENTS.EVENTDEF_FIELD + " = ?");
+        Date retour;
+        MyDBConnection scnx = this.getConnection(true);
+        try {
+            ResultSet rs;
+            PreparedStatement pst;
+            pst = scnx.getConn().prepareStatement(q);
+            pst.setString(1, analyseName);
+            pst.setString(2, stock.getSymbol());
+            pst.setString(3, stock.getIsin());
+            pst.setString(4, eventDef);
+            rs = pst.executeQuery();
+            Date d = (rs.next()) ? rs.getDate(1) : null;
+            if (d != null) {
+                retour = d;
+                LOGGER.debug(minMax+" event date in data base : " + d.toString());
+            } else {
+                DateFormat df = new SimpleDateFormat("yyyyMMdd");
+                retour = df.parse("19700101");
+                LOGGER.debug("No events in data base");
+            }
+            rs.close();
+            pst.close();
+        } catch (SQLException e) {
+            LOGGER.error("Query : " + q,e);
+            retour = null;
+        } catch (ParseException e) {
+            LOGGER.error("Date formating ERROR while reading data base :" + e,e);
+            retour = null;
+        } finally {
+            DataSource.realesePoolConnection(scnx);
+        }
+        return retour;
+    }
 
 	public Date getLastEventDateForAnalyse(String analyseName) {
-		String q = new String("Select max(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where "+EVENTS.ANALYSE_NAME + " like ? ");			
+		String q = new String("Select max(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where "+EVENTS.ANALYSE_NAME + " like ? ");
 		Date retour;
 		MyDBConnection scnx = this.getConnection(true);
 		try {

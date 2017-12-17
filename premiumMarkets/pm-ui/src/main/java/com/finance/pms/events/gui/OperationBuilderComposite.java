@@ -94,7 +94,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.RefreshFourToutStrategyEngine;
-import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ANTLRParserHelper;
 import com.finance.pms.events.calculation.antlr.Alternative;
@@ -781,17 +780,9 @@ public class OperationBuilderComposite extends Composite {
     }
 
     protected void previousCalcsAsDirty(String identifier) {
-
         Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
-
-        List<Operation> inUse = parameterizedBuilder.notifyChanged(operation);
-        for (Operation opInUse : inUse) {
-            EventModel.dirtyCacheFor((EventInfo) opInUse);
-        }
-
-        EventModel.updateEventInfoStamp();
-        refreshViews();
-
+        parameterizedBuilder.notifyChanged(operation);
+        //refreshViews();
     }
 
     protected void refreshViews() {
@@ -932,10 +923,12 @@ public class OperationBuilderComposite extends Composite {
             isSaved=false;
         }
 
-        LOGGER.info("Refresh for : "+identifier+". Is saved :"+isSaved);
-        previousCalcsAsDirty(identifier);
-        refreshViews();
-        LOGGER.info("Refresh done/running : "+identifier+". Is saved :"+isSaved);
+        LOGGER.info("Refresh for : "+identifier+", if is saved :"+isSaved);
+        if (isSaved) {
+            previousCalcsAsDirty(identifier);
+            refreshViews();
+            LOGGER.info("Refresh done/running : "+identifier+". Is saved :"+isSaved);
+        }
 
     }
 

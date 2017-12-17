@@ -48,54 +48,57 @@ import com.finance.pms.talib.indicators.TalibException;
 @XmlRootElement
 public class PMAroonOperation extends PMDataFreeOperation {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(PMAroonOperation.class);
-	
-	public PMAroonOperation() {
-		super("aroon_", "Aroon indicator house made", new NumberOperation("number","aroonPeriod","Aroon period", new NumberValue(25.0)));
-		setAvailableOutputSelectors(new ArrayList<String>( Arrays.asList(new String[]{"down","up"})));
-	}
-	
-	public PMAroonOperation(ArrayList<Operation> operands, String outputSelector) {
-		this();
-		this.setOperands(operands);
-		this.setOutputSelector(outputSelector);
-	}
+    protected static MyLogger LOGGER = MyLogger.getLogger(PMAroonOperation.class);
 
-	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
-		//Param check
-		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
+    public PMAroonOperation() {
+        super("aroon_", "Aroon indicator house made", new NumberOperation("number","aroonPeriod","Aroon period", new NumberValue(25.0)));
+        setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"down","up","oscillator"})));
+    }
 
-		DoubleMapValue ret = new DoubleMapValue();
-		try {
-			
-			//HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
-			HouseAroon arron = new HouseAroon(period);
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
-					true, targetStock.getStock().getMarketValuation().getCurrency(), 
-					arron.getStartShift(), arron.quotationValidity());
-			arron.calculateIndicator(quotations);
-			
-			if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("down")) {
-				return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonDown());
-			}
-			else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("up")) {
-				return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonUp());
-			} else {
-				//error
-				return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutputData());
-			}
-			
-		} catch (NoQuotationsException e) {
-			LOGGER.warn(e);
-		} catch (TalibException e) {
-			LOGGER.warn(e);
-		} catch (Exception e) {
-			LOGGER.error(e,e);
-		}
-		return ret;
-	}
+    public PMAroonOperation(ArrayList<Operation> operands, String outputSelector) {
+        this();
+        this.setOperands(operands);
+        this.setOutputSelector(outputSelector);
+    }
+
+    @Override
+    public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
+        //Param check
+        Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
+
+        DoubleMapValue ret = new DoubleMapValue();
+        try {
+
+            //HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
+            HouseAroon arron = new HouseAroon(period);
+            Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+                    targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+                    true, targetStock.getStock().getMarketValuation().getCurrency(), 
+                    arron.getStartShift(), arron.quotationValidity());
+            arron.calculateIndicator(quotations);
+
+            if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("down")) {
+                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonDown());
+            }
+            else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("up")) {
+                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonUp());
+            }
+            else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("oscillator")) {
+                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonOsc());
+            } else {
+                //error
+                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutputData());
+            }
+
+        } catch (NoQuotationsException e) {
+            LOGGER.warn(e);
+        } catch (TalibException e) {
+            LOGGER.warn(e);
+        } catch (Exception e) {
+            LOGGER.error(e,e);
+        }
+        return ret;
+    }
 
 }

@@ -252,9 +252,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
             @Override
             public void widgetSelected(SelectionEvent evt) {
-
                 LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
                 EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
+                //Will clean notUpToDateEI (selected event infos which have no output cached) event infos for this stock
                 this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
                 super.widgetSelected(evt);
             }
@@ -614,6 +614,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
                         chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty"));
                     }
 
+                    //Will clean selected event infos for this stock
                     this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
                     super.widgetSelected(evt);
                 }

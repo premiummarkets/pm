@@ -56,7 +56,7 @@ import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.calculation.antlr.EditorIndsLexerDelegate;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.conditional.EventConditionHolder;
+import com.finance.pms.events.operations.conditional.OperationsCompositioner;
 
 public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
@@ -142,9 +142,9 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				@SuppressWarnings({ "rawtypes", "unchecked" })
 				private void handleEnableDisableFormula() {
 
-					final Set<EventConditionHolder> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
-					final Set<EventConditionHolder> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
-					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("eventconditionholder"));//XXX
+					final Set<OperationsCompositioner> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
+					final Set<OperationsCompositioner> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
+					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("operationscompositionner"));//XXX
 					
 					ActionDialogAction closeAction = new ActionDialogAction() {
 						
@@ -161,7 +161,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 							checkBoxDisabled();
 						}
 					};
-					PopupMenu<EventConditionHolder> popupMenu = new PopupMenu<EventConditionHolder>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, true, true, SWT.CHECK, null, closeAction, false);
+					PopupMenu<OperationsCompositioner> popupMenu = new PopupMenu<OperationsCompositioner>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, false, true, SWT.CHECK, null, closeAction, false);
 					popupMenu.open();
 				}
 
@@ -291,7 +291,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	@Override
 	protected void previousCalcsAsDirty(String identifier) {
 		
-		EventConditionHolder operation = (EventConditionHolder) parameterizedBuilder.getUserCurrentOperations().get(identifier);
+		OperationsCompositioner operation = (OperationsCompositioner) parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		EventModel.dirtyCacheFor(operation);
 		EventModel.updateEventInfoStamp();
 		

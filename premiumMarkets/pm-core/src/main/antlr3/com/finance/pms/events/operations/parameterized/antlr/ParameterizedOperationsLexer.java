@@ -1,20 +1,16 @@
-// $ANTLR 3.5 /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2016-03-19 22:35:04
+// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2017-11-30 20:24:02
  //lexer
     package com.finance.pms.events.operations.parameterized.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+    
+ 
 
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedOperationsLexer extends Lexer {
@@ -94,15 +90,15 @@ public class ParameterizedOperationsLexer extends Lexer {
 	public ParameterizedOperationsLexer(CharStream input, RecognizerSharedState state) {
 		super(input,state);
 	}
-	@Override public String getGrammarFileName() { return "/home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g"; }
+	@Override public String getGrammarFileName() { return "com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g"; }
 
 	// $ANTLR start "T__19"
 	public final void mT__19() throws RecognitionException {
 		try {
 			int _type = T__19;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:58:7: ( '(' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:58:9: '('
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:58:7: ( '(' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:58:9: '('
 			{
 			match('('); 
 			}
@@ -121,8 +117,8 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = T__20;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:59:7: ( ')' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:59:9: ')'
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:59:7: ( ')' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:59:9: ')'
 			{
 			match(')'); 
 			}
@@ -141,8 +137,8 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = T__21;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:60:7: ( ',' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:60:9: ','
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:60:7: ( ',' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:60:9: ','
 			{
 			match(','); 
 			}
@@ -161,13 +157,13 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = HistoricalData;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:6: ({...}? => ( 'close' | 'open' | 'high' | 'low' | 'volume' ) )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:8: {...}? => ( 'close' | 'open' | 'high' | 'low' | 'volume' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:6: ({...}? => ( 'close' | 'open' | 'high' | 'low' | 'volume' ) )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:8: {...}? => ( 'close' | 'open' | 'high' | 'low' | 'volume' )
 			{
 			if ( !((runtimeHistoryOpAhead())) ) {
 				throw new FailedPredicateException(input, "HistoricalData", "runtimeHistoryOpAhead()");
 			}
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:38: ( 'close' | 'open' | 'high' | 'low' | 'volume' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:38: ( 'close' | 'open' | 'high' | 'low' | 'volume' )
 			int alt1=5;
 			switch ( input.LA(1) ) {
 			case 'c':
@@ -202,35 +198,35 @@ public class ParameterizedOperationsLexer extends Lexer {
 			}
 			switch (alt1) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:39: 'close'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:39: 'close'
 					{
 					match("close"); 
 
 					}
 					break;
 				case 2 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:49: 'open'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:49: 'open'
 					{
 					match("open"); 
 
 					}
 					break;
 				case 3 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:58: 'high'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:58: 'high'
 					{
 					match("high"); 
 
 					}
 					break;
 				case 4 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:67: 'low'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:67: 'low'
 					{
 					match("low"); 
 
 					}
 					break;
 				case 5 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:76: 'volume'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:131:76: 'volume'
 					{
 					match("volume"); 
 
@@ -255,13 +251,13 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = MATypeToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:6: ({...}? => ( 'Sma' | 'Ema' | 'Wma' | 'Dema' | 'Tema' | 'Trima' | 'Kama' | 'Mama' | 'T3' ) )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:8: {...}? => ( 'Sma' | 'Ema' | 'Wma' | 'Dema' | 'Tema' | 'Trima' | 'Kama' | 'Mama' | 'T3' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:6: ({...}? => ( 'Sma' | 'Ema' | 'Wma' | 'Dema' | 'Tema' | 'Trima' | 'Kama' | 'Mama' | 'T3' ) )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:8: {...}? => ( 'Sma' | 'Ema' | 'Wma' | 'Dema' | 'Tema' | 'Trima' | 'Kama' | 'Mama' | 'T3' )
 			{
 			if ( !((runtimeMATypeOpAhead())) ) {
 				throw new FailedPredicateException(input, "MATypeToken", "runtimeMATypeOpAhead()");
 			}
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:37: ( 'Sma' | 'Ema' | 'Wma' | 'Dema' | 'Tema' | 'Trima' | 'Kama' | 'Mama' | 'T3' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:37: ( 'Sma' | 'Ema' | 'Wma' | 'Dema' | 'Tema' | 'Trima' | 'Kama' | 'Mama' | 'T3' )
 			int alt2=9;
 			switch ( input.LA(1) ) {
 			case 'S':
@@ -332,63 +328,63 @@ public class ParameterizedOperationsLexer extends Lexer {
 			}
 			switch (alt2) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:38: 'Sma'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:38: 'Sma'
 					{
 					match("Sma"); 
 
 					}
 					break;
 				case 2 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:44: 'Ema'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:44: 'Ema'
 					{
 					match("Ema"); 
 
 					}
 					break;
 				case 3 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:50: 'Wma'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:50: 'Wma'
 					{
 					match("Wma"); 
 
 					}
 					break;
 				case 4 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:56: 'Dema'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:56: 'Dema'
 					{
 					match("Dema"); 
 
 					}
 					break;
 				case 5 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:63: 'Tema'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:63: 'Tema'
 					{
 					match("Tema"); 
 
 					}
 					break;
 				case 6 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:71: 'Trima'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:71: 'Trima'
 					{
 					match("Trima"); 
 
 					}
 					break;
 				case 7 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:80: 'Kama'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:80: 'Kama'
 					{
 					match("Kama"); 
 
 					}
 					break;
 				case 8 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:88: 'Mama'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:88: 'Mama'
 					{
 					match("Mama"); 
 
 					}
 					break;
 				case 9 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:96: 'T3'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:134:96: 'T3'
 					{
 					match("T3"); 
 
@@ -413,8 +409,8 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = Nativeop;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:137:6: ({...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+ )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:137:8: {...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:137:6: ({...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+ )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:137:8: {...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
 			{
 			if ( !((runtimeNativeOpAhead())) ) {
 				throw new FailedPredicateException(input, "Nativeop", "runtimeNativeOpAhead()");
@@ -427,7 +423,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				recover(mse);
 				throw mse;
 			}
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:137:65: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:137:65: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
 			int cnt3=0;
 			loop3:
 			while (true) {
@@ -439,7 +435,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt3) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
 					if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
 						input.consume();
@@ -476,8 +472,8 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = Userop;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:140:6: ({...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+ )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:140:8: {...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:140:6: ({...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+ )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:140:8: {...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
 			{
 			if ( !((runtimeUserOpAhead())) ) {
 				throw new FailedPredicateException(input, "Userop", "runtimeUserOpAhead()");
@@ -490,7 +486,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				recover(mse);
 				throw mse;
 			}
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:140:63: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:140:63: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
 			int cnt4=0;
 			loop4:
 			while (true) {
@@ -502,7 +498,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt4) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
 					if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
 						input.consume();
@@ -539,10 +535,10 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = NumberToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:6: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:8: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )?
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:6: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:8: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )?
 			{
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:8: ( '-' )?
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:8: ( '-' )?
 			int alt5=2;
 			int LA5_0 = input.LA(1);
 			if ( (LA5_0=='-') ) {
@@ -550,7 +546,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 			}
 			switch (alt5) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:9: '-'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:9: '-'
 					{
 					match('-'); 
 					}
@@ -558,7 +554,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 			}
 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:15: ( '0' .. '9' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:15: ( '0' .. '9' )+
 			int cnt6=0;
 			loop6:
 			while (true) {
@@ -570,7 +566,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt6) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
 					if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
 						input.consume();
@@ -591,7 +587,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				cnt6++;
 			}
 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:27: ( '.' ( '0' .. '9' )+ )?
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:27: ( '.' ( '0' .. '9' )+ )?
 			int alt8=2;
 			int LA8_0 = input.LA(1);
 			if ( (LA8_0=='.') ) {
@@ -599,10 +595,10 @@ public class ParameterizedOperationsLexer extends Lexer {
 			}
 			switch (alt8) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:28: '.' ( '0' .. '9' )+
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:28: '.' ( '0' .. '9' )+
 					{
 					match('.'); 
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:32: ( '0' .. '9' )+
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:143:32: ( '0' .. '9' )+
 					int cnt7=0;
 					loop7:
 					while (true) {
@@ -614,7 +610,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 						switch (alt7) {
 						case 1 :
-							// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+							// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 							{
 							if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
 								input.consume();
@@ -656,11 +652,11 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = StringToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"'
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"'
 			{
 			match('\"'); 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+
 			int cnt9=0;
 			loop9:
 			while (true) {
@@ -672,7 +668,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt9) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
 					if ( input.LA(1)=='.'||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
 						input.consume();
@@ -710,11 +706,11 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = OutputSelector;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:6: ( ':' ( 'a' .. 'z' | 'A' .. 'Z' )+ )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:8: ':' ( 'a' .. 'z' | 'A' .. 'Z' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:6: ( ':' ( 'a' .. 'z' | 'A' .. 'Z' )+ )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:8: ':' ( 'a' .. 'z' | 'A' .. 'Z' )+
 			{
 			match(':'); 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:12: ( 'a' .. 'z' | 'A' .. 'Z' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:12: ( 'a' .. 'z' | 'A' .. 'Z' )+
 			int cnt10=0;
 			loop10:
 			while (true) {
@@ -726,7 +722,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt10) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
 					if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
 						input.consume();
@@ -763,8 +759,8 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = WS;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:154:5: ( ( ' ' | '\\r' | '\\t' | '\\u000C' | '\\n' ) )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:154:7: ( ' ' | '\\r' | '\\t' | '\\u000C' | '\\n' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:154:5: ( ( ' ' | '\\r' | '\\t' | '\\u000C' | '\\n' ) )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:154:7: ( ' ' | '\\r' | '\\t' | '\\u000C' | '\\n' )
 			{
 			if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||(input.LA(1) >= '\f' && input.LA(1) <= '\r')||input.LA(1)==' ' ) {
 				input.consume();
@@ -791,12 +787,12 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = COMMENT;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:5: ( '/*' ( . )* '*/' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:7: '/*' ( . )* '*/'
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:5: ( '/*' ( . )* '*/' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:7: '/*' ( . )* '*/'
 			{
 			match("/*"); 
 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:12: ( . )*
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:12: ( . )*
 			loop11:
 			while (true) {
 				int alt11=2;
@@ -817,7 +813,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt11) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:12: .
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:157:12: .
 					{
 					matchAny(); 
 					}
@@ -847,12 +843,12 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = LINE_COMMENT;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' )
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:7: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:7: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
 			{
 			match("//"); 
 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:12: (~ ( '\\n' | '\\r' ) )*
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:12: (~ ( '\\n' | '\\r' ) )*
 			loop12:
 			while (true) {
 				int alt12=2;
@@ -863,7 +859,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 				switch (alt12) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
 					if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '\t')||(input.LA(1) >= '\u000B' && input.LA(1) <= '\f')||(input.LA(1) >= '\u000E' && input.LA(1) <= '\uFFFF') ) {
 						input.consume();
@@ -881,7 +877,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				}
 			}
 
-			// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:26: ( '\\r' )?
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:26: ( '\\r' )?
 			int alt13=2;
 			int LA13_0 = input.LA(1);
 			if ( (LA13_0=='\r') ) {
@@ -889,7 +885,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 			}
 			switch (alt13) {
 				case 1 :
-					// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:26: '\\r'
+					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:160:26: '\\r'
 					{
 					match('\r'); 
 					}
@@ -912,96 +908,96 @@ public class ParameterizedOperationsLexer extends Lexer {
 
 	@Override
 	public void mTokens() throws RecognitionException {
-		// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:8: ( T__19 | T__20 | T__21 | HistoricalData | MATypeToken | Nativeop | Userop | NumberToken | StringToken | OutputSelector | WS | COMMENT | LINE_COMMENT )
+		// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:8: ( T__19 | T__20 | T__21 | HistoricalData | MATypeToken | Nativeop | Userop | NumberToken | StringToken | OutputSelector | WS | COMMENT | LINE_COMMENT )
 		int alt14=13;
 		alt14 = dfa14.predict(input);
 		switch (alt14) {
 			case 1 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:10: T__19
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:10: T__19
 				{
 				mT__19(); 
 
 				}
 				break;
 			case 2 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:16: T__20
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:16: T__20
 				{
 				mT__20(); 
 
 				}
 				break;
 			case 3 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:22: T__21
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:22: T__21
 				{
 				mT__21(); 
 
 				}
 				break;
 			case 4 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:28: HistoricalData
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:28: HistoricalData
 				{
 				mHistoricalData(); 
 
 				}
 				break;
 			case 5 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:43: MATypeToken
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:43: MATypeToken
 				{
 				mMATypeToken(); 
 
 				}
 				break;
 			case 6 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:55: Nativeop
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:55: Nativeop
 				{
 				mNativeop(); 
 
 				}
 				break;
 			case 7 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:64: Userop
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:64: Userop
 				{
 				mUserop(); 
 
 				}
 				break;
 			case 8 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:71: NumberToken
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:71: NumberToken
 				{
 				mNumberToken(); 
 
 				}
 				break;
 			case 9 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:83: StringToken
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:83: StringToken
 				{
 				mStringToken(); 
 
 				}
 				break;
 			case 10 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:95: OutputSelector
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:95: OutputSelector
 				{
 				mOutputSelector(); 
 
 				}
 				break;
 			case 11 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:110: WS
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:110: WS
 				{
 				mWS(); 
 
 				}
 				break;
 			case 12 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:113: COMMENT
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:113: COMMENT
 				{
 				mCOMMENT(); 
 
 				}
 				break;
 			case 13 :
-				// /home/guil/Developpement/git/pmsqueak/premiumMarkets/pm-core/src/main/antlr3/com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:121: LINE_COMMENT
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:1:121: LINE_COMMENT
 				{
 				mLINE_COMMENT(); 
 

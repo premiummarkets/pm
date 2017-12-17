@@ -749,7 +749,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
-							taskIds.add(TaskId.Clean);
+							taskIds.add(TaskId.Clean); //Clean selected event infos
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							super.widgetSelected(evt);
@@ -768,12 +768,12 @@ public class EventsComposite extends Composite implements RefreshableView {
 							Collection<Stock> selectedStocks = extractStockSetFrom(selectedPortfolios); //XXX cf RefreshPortfolioStrategyEngine TODO
 							
 							portfolioStocksEventModel.setViewParamRoot(selectedStocks);
-							portfolioStocksEventModel.setViewParam(1,selectedEventInfos);
+							portfolioStocksEventModel.setViewParam(1, selectedEventInfos);
 							
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
-							taskIds.add(TaskId.Clean);
+							taskIds.add(TaskId.Clean); //Clean selected event infos
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							super.widgetSelected(evt);
@@ -794,7 +794,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 							List<TaskId> taskIds = new ArrayList<TaskId>();
 							if (quotationListBox.getSelection()) taskIds.add(TaskId.FetchLists);
 							if (quotationBox.getSelection()) taskIds.add(TaskId.FetchQuotations);
-							taskIds.add(TaskId.Clean);
+							taskIds.add(TaskId.Clean); //Clean selected event infos
 							taskIds.add(TaskId.Analysis);
 							this.updateEventRefreshModelState(0l, taskIds.toArray(new TaskId[0]));
 							super.widgetSelected(evt);

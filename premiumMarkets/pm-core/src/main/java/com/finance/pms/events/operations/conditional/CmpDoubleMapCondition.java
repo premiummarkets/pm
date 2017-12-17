@@ -57,7 +57,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * not implemented : 'for'
  * does not make sense : 'spanning' . As the condition is a status in time not an event in time.
  */
-@XmlSeeAlso({SupDoubleMapCondition.class, InfDoubleMapCondition.class, EqualConstantCondition.class})
+@XmlSeeAlso({SupDoubleMapCondition.class, InfDoubleMapCondition.class, EqualDoubleMapCondition.class})
 public abstract class CmpDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
 	

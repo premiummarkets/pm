@@ -53,7 +53,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionCalculator {
+public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositioner {
 
 	private ChaikinOscillator chaikinOscillator;
 	private SMA sma;	
@@ -62,9 +62,22 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsCompositionC
 	
 	public ChaikinOscillatorDivergence_old(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(observers);
-		this.chaikinOscillator = new ChaikinOscillator(chkInfastPeriod, chkInslowPeriod);
-		this.sma = new SMA(2);
+		init(chkInfastPeriod, chkInslowPeriod, 2);
 	}
+	
+	public ChaikinOscillatorDivergence_old() {
+	  //Reflective ops generator
+	}
+	
+    protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod, Integer signalSmaPeriod) {
+        this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
+        this.sma = new SMA(signalSmaPeriod);
+    }
+    
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1], constants[2]);
+    }
 
 	@Override
 	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {

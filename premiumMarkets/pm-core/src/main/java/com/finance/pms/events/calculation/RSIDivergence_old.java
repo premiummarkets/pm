@@ -53,7 +53,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
+public class RSIDivergence_old extends TalibIndicatorsCompositioner {
 	
 	SMA sma;
 	RSI rsi;
@@ -89,8 +89,21 @@ public class RSIDivergence_old extends TalibIndicatorsCompositionCalculator {
 	
 	public RSIDivergence_old(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer... observers) {
 		super(observers);
-		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
-		this.sma = new SMA(12);
+		init(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold, 12);
+	}
+	
+	public RSIDivergence_old() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Integer signalSMAPeriod) {
+	    this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+        this.sma = new SMA(signalSMAPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0], constants[1], constants[2], constants[3]);
 	}
 
 

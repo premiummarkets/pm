@@ -39,7 +39,9 @@ tokens {
   LowerHighCondition ;
   LowerLowCondition ;
   
-  EventConditionHolder ;
+  EqualEventMapStringConstantCondition ;
+  
+  OperationsCompositioner ;
   StringOperation ;
   
   OR ='or';
@@ -141,8 +143,8 @@ tokens {
 }
 
 complete_expression :
-   //TODO : common optionnal statement contion for also_display and fixed_start_shift
-   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(EventConditionHolder bullish_condition bearish_condition also_display fixed_start_shift StringOperation) 
+   //TODO : common optional statement condition for also_display and fixed_start_shift
+   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(OperationsCompositioner bullish_condition bearish_condition also_display fixed_start_shift StringOperation) 
    ;
 
 bullish_condition :
@@ -189,6 +191,7 @@ atom :
 booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree]  ->  presetcondition | opcmpcondition[$firstOp.tree]   ->  opcmpcondition| constantcmp[$firstOp.tree]   ->  constantcmp );
 operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) | opName = Operation {checkOperationValidity($opName);} -> Operation;
 constant :  NumberToken -> ^(Number NumberToken) ;
+trendconstant : 'bullish' | 'bearish' ;
 lenient : (WhiteChar LENIENT  -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
 
 opcmpcondition [CommonTree firstOp] : 
@@ -199,7 +202,7 @@ opcmpcondition [CommonTree firstOp] :
     ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(InfDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
   ('equals historical' WhiteChar secondOp=operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
     ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
-  
+
   ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
         ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
           WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS 
@@ -213,6 +216,8 @@ opcmpcondition [CommonTree firstOp] :
 
 constantcmp [CommonTree firstOp] :
  
+  ('equals trend' WhiteChar trendSignal=trendconstant -> ^(EqualEventMapStringConstantCondition ^(String trendconstant) {$firstOp}) ) |
+    
   ('equals threshold' WhiteChar threshold=constant -> ^(EqualConstantCondition constant ^(Number NumberToken["0"])  ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$firstOp}) )? |
     
@@ -264,10 +269,11 @@ Operation
 NumberToken
       :  ('-')? ('0'..'9')+ ('.' ('0'..'9')+)?
       ;
+
 StringToken
      : '"' ('a'..'z' | 'A'..'Z' | '.' | '_')* '"'
      ;
-      
+
 HistoricalData
 			: {runtimeHistoryOpAhead()}? => ( 'open' | 'close' | 'high' | 'low'  | 'volume' )
 			;

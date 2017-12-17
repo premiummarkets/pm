@@ -38,8 +38,8 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({PMIndicatorOperation.class, TalibOperation.class, StockOperation.class})
-public class DoubleMapOperation extends Operation {
+@XmlSeeAlso({PMIndicatorOperation.class, StockOperation.class, TalibOperation.class})
+public class DoubleMapOperation extends Operation implements MapOperation {
 
 	public DoubleMapOperation() {
 		super("historical data", "Time series of real historical data or resulting of calculations");

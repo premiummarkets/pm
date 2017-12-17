@@ -47,7 +47,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.calculation.EventCompostionCalculator;
+import com.finance.pms.events.calculation.IndicatorsCompositioner;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -55,7 +55,7 @@ import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.talib.dataresults.AlertEventValue;
 
 
-public class AlertOnThresholdParser extends EventCompostionCalculator {
+public class AlertOnThresholdParser extends IndicatorsCompositioner {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(AlertOnThresholdParser.class);
 

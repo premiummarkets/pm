@@ -125,16 +125,15 @@ public class TargetStockInfo {
     private String conditionHolderReference;
     private EventsAnalyser<?> eventAnalyser;
 
-
     private List<Output> calculatedOutputsCache;
 
     private List<Output> gatheredChartableOutputs;
     private List<ChartedOutputGroup> chartedOutputGroups;
 
-    public TargetStockInfo(String analysisName, String eventConditionHolderReference, Stock stock, Date startDate, Date endDate) throws WarningException {
+    public TargetStockInfo(String analysisName, String operationsCompositionerReference, Stock stock, Date startDate, Date endDate) throws WarningException {
         super();
         this.analysisName = analysisName;
-        this.conditionHolderReference = eventConditionHolderReference;
+        this.conditionHolderReference = operationsCompositionerReference;
         this.stock = stock;
 
         Date lastQuote = stock.getLastQuote();
@@ -178,6 +177,9 @@ public class TargetStockInfo {
         return calculatedOutputsCache.get(indexOf).outputData ;
     }
 
+    /**
+     * This method also calls setMain for MultiSelectorsValue
+     */
     public void addOutput(Operation operation, Value<?> output) {
 
         Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
@@ -206,9 +208,17 @@ public class TargetStockInfo {
         this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
     }
 
-    public ChartedOutputGroup setMain(Operation operation) {
+    public ChartedOutputGroup setMain(Operation operation, String mainOperationQualifier) {
+        int indexOfOutput = gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, mainOperationQualifier)));
+        return setMain(operation, indexOfOutput);
+    }
 
+    public ChartedOutputGroup setMain(Operation operation) {
         Integer indexOfOutput = getIndexOfChartableOutput(operation);
+        return setMain(operation, indexOfOutput);
+    }
+
+    private ChartedOutputGroup setMain(Operation operation, Integer indexOfOutput) {
         if (indexOfOutput != -1) {
 
             Output output = gatheredChartableOutputs.get(indexOfOutput);
@@ -226,7 +236,6 @@ public class TargetStockInfo {
         } else {
             throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: "+operation.getClass()+" for "+operation);
         }
-
     }
 
     public Integer getIndexOfChartableOutput(Operation operation) {
@@ -272,9 +281,18 @@ public class TargetStockInfo {
         }
     }
 
-    public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
 
+    public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, String outputQualifier) {
+        Integer indexOfMain = getIndexOfChartableOutput(new OutputReference(operand, outputQualifier));
+        addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
+    }
+
+    public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
         Integer indexOfMain = getIndexOfChartableOutput(operand.getOperands().get(((ChartableCondition)operand).mainInputPosition()));
+        addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
+    }
+
+    private void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, Integer indexOfMain) {
         Output output = gatheredChartableOutputs.get(indexOfMain);
         OutputDescr chartedDesrc = output.getChartedDescription();
         if (chartedDesrc != null) {
@@ -286,7 +304,6 @@ public class TargetStockInfo {
         } else {
             throw new RuntimeException("Multi Output Main group not found not found for "+operand);
         }
-
     }
 
     @Override
@@ -329,4 +346,5 @@ public class TargetStockInfo {
     public String getConditionHolderReference() {
         return conditionHolderReference;
     }
+
 }

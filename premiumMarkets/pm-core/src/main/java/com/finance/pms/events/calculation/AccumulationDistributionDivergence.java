@@ -55,162 +55,175 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class AccumulationDistributionDivergence extends TalibIndicatorsCompositionCalculator {
+public class AccumulationDistributionDivergence extends TalibIndicatorsCompositioner {
 
-	ChaikinLine chaikin;
-	
-	SMA priceSma65;
-	SMA priceSma20;
-	SMA chaikinSma65;
-	SMA chaikinSma20;
-	
-	public AccumulationDistributionDivergence(Observer... observers) {
-		super(observers);
-		
-		this.chaikin = new ChaikinLine();
-		this.priceSma20 = new SMA(20);
-		this.priceSma65 = new SMA(65);
-		this.chaikinSma20 = new SMA(20);
-		this.chaikinSma65 = new SMA(65);
-	}
+    ChaikinLine chaikin;
 
-	@Override
-	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
-		
-		FormulatRes res = new FormulatRes(EventDefinition.PMACCDISTDIVERGENCE);
-		res.setCurrentDate(qU.getDate());
-		
-		double close = qU.getClose().doubleValue();
-		
-		int chainkinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, quotationIdx);
-		int chainkinSma20Index = getIndicatorIndexFromQuotationIndex(this.chaikinSma20, quotationIdx);
-		int chainkinSma65Index = getIndicatorIndexFromQuotationIndex(this.chaikinSma65, quotationIdx);
-		
-		int sma20Index = getIndicatorIndexFromQuotationIndex(this.priceSma20, quotationIdx);
-		int sma65Index = getIndicatorIndexFromQuotationIndex(this.priceSma20, quotationIdx);
-		
-		Boolean isPriceBelowSma65 = close < priceSma65.getSma()[sma65Index];
-		Boolean isPriceBelowSma20 = close < priceSma20.getSma()[sma20Index];
-		Boolean isChaikinBelowSma65 = chaikin.getChaikinLine()[chainkinIndex] < chaikinSma65.getSma()[chainkinSma65Index];
-		Boolean isChaikinBelowSma20 = chaikin.getChaikinLine()[chainkinIndex] < chaikinSma20.getSma()[chainkinSma20Index];
-		
-		{
-			res.setBullishCrossOver(isPriceBelowSma65 && isPriceBelowSma20 && !isChaikinBelowSma65 && !isChaikinBelowSma20); 
-			if (res.getBullishCrossOver()) return res;
+    SMA priceSma65;
+    SMA priceSma20;
+    SMA chaikinSma65;
+    SMA chaikinSma20;
 
-		}
-		{
-			res.setBearishCrossBellow(!isPriceBelowSma65 && !isPriceBelowSma20 && isChaikinBelowSma65 && isChaikinBelowSma20);
-			return res;
-			
-		}
-		
-	}
+    public AccumulationDistributionDivergence(Observer... observers) {
+        super(observers);
+        init(20, 65, 20, 65);
+    }
+    
+    public AccumulationDistributionDivergence() {
+      //Reflective ops generator
+    }
 
-	@Override
-	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
-		if (indicator instanceof ChaikinLine) return this.isInDataRange((ChaikinLine)indicator, indicatorIndex);
-		if (indicator instanceof SMA) return this.isInDataRange((SMA) indicator, indicatorIndex);
-		throw new RuntimeException("Booo",new Throwable());
-		
-	}
-	
-	
-	private boolean isInDataRange(SMA sma, Integer index) {
-		return getDaysSpan() <= index && index < sma.getSma().length;
-	}
-	
-	private Boolean isInDataRange(ChaikinLine chaikin, Integer index) {
-		return (getDaysSpan() < index) && (index < chaikin.getChaikinLine().length);
-	}
-
-	@Override
-	protected String getHeader(List<Integer> scoringSmas) {
-//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin DATE, Chainkin, bearish, bullish";
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin, bearish, bullish";
-		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
-	}
-
-	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects){
-		Date calculatorDate = qU.getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMACCDISTDIVERGENCE, EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMACCDISTDIVERGENCE, EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
-		
-		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, calculatorIndex);
-//		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
-		
-		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
-//			+ this.chaikin.getIndicatorQuotationData().get(chaikinQuotationIndex).getDate() + ","
-			+ this.chaikin.getChaikinLine()[chaikinIndex];
-		
-		if (bearishEventValue != null) {
-			line = line + ","+calculatorClose+",0,";
-		} else if (bullishEventValue != null) {
-			line = line + ",0,"+calculatorClose+",";
-		} else {
-			line = line + ",0,0,";
-		}
-		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
-		return line;
-	}
-	
-	@Override
-	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx){
-		
-		return new double[]
-				{
-				this.chaikin.getChaikinLine()[getIndicatorIndexFromQuotationIndex(this.chaikin, idx)]
-				};
-	}
-
-	@Override
-	protected int getDaysSpan() {
-		return 1;
-	}
+    protected void init(Integer fastPriceMAPeriod, Integer slowPriceMAPeriod, Integer fastChainkinMAPeriod, Integer slowChainkinMAPeriod) {
+        this.chaikin = new ChaikinLine();
+        this.priceSma20 = new SMA(fastPriceMAPeriod);
+        this.priceSma65 = new SMA(slowPriceMAPeriod);
+        this.chaikinSma20 = new SMA(fastChainkinMAPeriod);
+        this.chaikinSma65 = new SMA(slowChainkinMAPeriod);
+    }
 
 
-	@Override
-	public EventDefinition getEventDefinition() {
-		return EventDefinition.PMACCDISTDIVERGENCE;
-	}
+    @Override
+    public void genericInit(Integer... periods) {
+        init(periods[0], periods[1], periods[2], periods[3]);
+    }
+
+    @Override
+    protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
+
+        FormulatRes res = new FormulatRes(EventDefinition.PMACCDISTDIVERGENCE);
+        res.setCurrentDate(qU.getDate());
+
+        double close = qU.getClose().doubleValue();
+
+        int chainkinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, quotationIdx);
+        int chainkinSma20Index = getIndicatorIndexFromQuotationIndex(this.chaikinSma20, quotationIdx);
+        int chainkinSma65Index = getIndicatorIndexFromQuotationIndex(this.chaikinSma65, quotationIdx);
+
+        int sma20Index = getIndicatorIndexFromQuotationIndex(this.priceSma20, quotationIdx);
+        int sma65Index = getIndicatorIndexFromQuotationIndex(this.priceSma20, quotationIdx);
+
+        Boolean isPriceBelowSma65 = close < priceSma65.getSma()[sma65Index];
+        Boolean isPriceBelowSma20 = close < priceSma20.getSma()[sma20Index];
+        Boolean isChaikinBelowSma65 = chaikin.getChaikinLine()[chainkinIndex] < chaikinSma65.getSma()[chainkinSma65Index];
+        Boolean isChaikinBelowSma20 = chaikin.getChaikinLine()[chainkinIndex] < chaikinSma20.getSma()[chainkinSma20Index];
+
+        {
+            res.setBullishCrossOver(isPriceBelowSma65 && isPriceBelowSma20 && !isChaikinBelowSma65 && !isChaikinBelowSma20); 
+            if (res.getBullishCrossOver()) return res;
+
+        }
+        {
+            res.setBearishCrossBellow(!isPriceBelowSma65 && !isPriceBelowSma20 && isChaikinBelowSma65 && isChaikinBelowSma20);
+            return res;
+
+        }
+
+    }
+
+    @Override
+    protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
+        if (indicator instanceof ChaikinLine) return this.isInDataRange((ChaikinLine)indicator, indicatorIndex);
+        if (indicator instanceof SMA) return this.isInDataRange((SMA) indicator, indicatorIndex);
+        throw new RuntimeException("Booo",new Throwable());
+
+    }
 
 
-	@Override
-	protected void initIndicators(Quotations quotations) throws TalibException {
-		
-		this.chaikin.calculateIndicator(quotations);
-		
-		this.priceSma65.calculateIndicator(quotations);
-		this.priceSma20.calculateIndicator(quotations);
-		
-		this.chaikinSma65.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
-		this.chaikinSma20.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
-		
-	}
+    private boolean isInDataRange(SMA sma, Integer index) {
+        return getDaysSpan() <= index && index < sma.getSma().length;
+    }
+
+    private Boolean isInDataRange(ChaikinLine chaikin, Integer index) {
+        return (getDaysSpan() < index) && (index < chaikin.getChaikinLine().length);
+    }
+
+    @Override
+    protected String getHeader(List<Integer> scoringSmas) {
+        //		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin DATE, Chainkin, bearish, bullish";
+        String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin, bearish, bullish";
+        head = addScoringHeader(head, scoringSmas);
+        return head+"\n";
+    }
+
+    @Override
+    protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects){
+        Date calculatorDate = qU.getDate();
+        EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMACCDISTDIVERGENCE, EventType.BEARISH));
+        EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMACCDISTDIVERGENCE, EventType.BULLISH));
+        BigDecimal calculatorClose = qU.getClose();
+
+        int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, calculatorIndex);
+        //		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);
+
+        String line =
+                new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
+                //			+ this.chaikin.getIndicatorQuotationData().get(chaikinQuotationIndex).getDate() + ","
+                + this.chaikin.getChaikinLine()[chaikinIndex];
+
+        if (bearishEventValue != null) {
+            line = line + ","+calculatorClose+",0,";
+        } else if (bullishEventValue != null) {
+            line = line + ",0,"+calculatorClose+",";
+        } else {
+            line = line + ",0,0,";
+        }
+
+        line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+
+        return line;
+    }
+
+    @Override
+    protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx){
+
+        return new double[]
+                {
+                        this.chaikin.getChaikinLine()[getIndicatorIndexFromQuotationIndex(this.chaikin, idx)]
+                };
+    }
+
+    @Override
+    protected int getDaysSpan() {
+        return 1;
+    }
 
 
-	@Override
-	public Integer getStartShift() {
-		return chaikinSma65.getStartShift() + chaikin.getStartShift() + getDaysSpan();
-	}
+    @Override
+    public EventDefinition getEventDefinition() {
+        return EventDefinition.PMACCDISTDIVERGENCE;
+    }
 
-	@Override
-	public ValidityFilter quotationsValidity() {
-		return ValidityFilter.OHLCV;
-	}
 
-	@Override
-	public Integer getOutputBeginIdx() {
-		Max max = new Max();
-		double[] ds = new double[]{(double)chaikin.getOutBegIdx().value, (double)priceSma20.getOutBegIdx().value, (double)priceSma65.getOutBegIdx().value, (double)chaikinSma20.getOutBegIdx().value, (double)chaikinSma65.getOutBegIdx().value};
-		double maximum = max.evaluate(ds);
-		return (int) maximum + getDaysSpan();
-	}
+    @Override
+    protected void initIndicators(Quotations quotations) throws TalibException {
+
+        this.chaikin.calculateIndicator(quotations);
+
+        this.priceSma65.calculateIndicator(quotations);
+        this.priceSma20.calculateIndicator(quotations);
+
+        this.chaikinSma65.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
+        this.chaikinSma20.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
+
+    }
+
+
+    @Override
+    public Integer getStartShift() {
+        return chaikinSma65.getStartShift() + chaikin.getStartShift() + getDaysSpan();
+    }
+
+    @Override
+    public ValidityFilter quotationsValidity() {
+        return ValidityFilter.OHLCV;
+    }
+
+    @Override
+    public Integer getOutputBeginIdx() {
+        Max max = new Max();
+        double[] ds = new double[]{(double)chaikin.getOutBegIdx().value, (double)priceSma20.getOutBegIdx().value, (double)priceSma65.getOutBegIdx().value, (double)chaikinSma20.getOutBegIdx().value, (double)chaikinSma65.getOutBegIdx().value};
+        double maximum = max.evaluate(ds);
+        return (int) maximum + getDaysSpan();
+    }
 
 }

@@ -29,6 +29,6 @@
  */
 package com.finance.pms.events.operations.conditional;
 
-public interface StandAloneCondition   extends ChartableCondition {
+public interface UnaryCondition extends ChartableCondition {
 
 }

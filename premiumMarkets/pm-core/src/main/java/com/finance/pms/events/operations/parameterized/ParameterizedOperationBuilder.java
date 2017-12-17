@@ -40,138 +40,148 @@ import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
+import com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerOperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 
 public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedOperationBuilder.class);
 
-	NativesXmlManager nativesXmlManager;
+    private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedOperationBuilder.class);
 
-	public ParameterizedOperationBuilder(NativesXmlManager nativesXmlManager) {
-		super();
-		operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
-		antlrParser = new ANTLROperationsParserHelper();
-		
-		userOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "operations");
-		if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
-		
-		disabledUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "disabledOperations");
-		if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
-		
-		trashUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "trashedOperations");
-		if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
-		
-		this.nativesXmlManager = nativesXmlManager;
+    NativesXmlManager nativesXmlManager;
 
-	}
+    public ParameterizedOperationBuilder(NativesXmlManager nativesXmlManager) {
+        super();
+        operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
+        antlrParser = new ANTLROperationsParserHelper();
 
-	public void  init(TalibOperationGenerator talibOperationGenerator) throws Exception {
-		
-			NativeOperations nativeOperationsContainer = nativesXmlManager.loadNativeOperations();
-			nativeOperations = nativeOperationsContainer.getOperations();
-			currentOperations.putAll(nativeOperations);
+        userOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "operations");
+        if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
 
-			talibOperationGenerator.initSynoData();
-			nativeOperations.putAll(talibOperationGenerator.generate());
+        disabledUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "disabledOperations");
+        if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
 
-			resetUserOperations();
-	}
+        trashUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "trashedOperations");
+        if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
 
-	public void setNativesXmlManager(NativesXmlManager nativesXmlManager) {
-		this.nativesXmlManager = nativesXmlManager;
-	}
+        this.nativesXmlManager = nativesXmlManager;
 
-	@Override
-	public List<Operation> checkInUse(Operation operation) {
-		
-		List<Operation> values = new ArrayList<Operation>(getCurrentOperations().values());
-		values.remove(values.indexOf(operation));
-		
-		List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
-		actualCheckInUse.addAll(notifyChanged(operation));
-		
-		return actualCheckInUse;
-	}
-	
-	@Override
-	public void replaceInUse(Operation replacementOp) throws StackOverflowError {
-		
-		actualReplaceInUse(getCurrentOperations().values(), replacementOp);
-		List<Operation> indicatorsUsing = notifyChanged(replacementOp);
-		actualReplaceInUse(indicatorsUsing, replacementOp);
-		
-	}
-	
+    }
 
-	@Override
-	public List<Operation> notifyChanged(Operation operation) {
-		
-		List<Operation> actualCheckInUse = new ArrayList<Operation>();
-		try {
-			this.setChanged();
-			this.notifyObservers(new ObsMsg(ObsMsgType.DELETE, operation));
-		} catch (InUsedExecption e) {
-			actualCheckInUse.addAll(e.getInUse());
-		}
-		
-		return actualCheckInUse;
-	}
+    public void  init(TalibOperationGenerator talibOperationGenerator, TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator) throws Exception {
+
+        NativeOperations nativeOperationsContainer = nativesXmlManager.loadNativeOperations();
+        nativeOperations = nativeOperationsContainer.getOperations();
+        currentOperations.putAll(nativeOperations);
+
+        talibOperationGenerator.initSynoData();
+        nativeOperations.putAll(talibOperationGenerator.generate());
+
+        nativeOperations.putAll(talibIndicatorsCompositionerOperationReflectiveGenerator.generate());
+
+        resetUserOperations();
+    }
+
+    public void setNativesXmlManager(NativesXmlManager nativesXmlManager) {
+        this.nativesXmlManager = nativesXmlManager;
+    }
+
+    @Override
+    public List<Operation> checkInUse(Operation operation) {
+
+        List<Operation> values = new ArrayList<Operation>(getCurrentOperations().values());
+        values.remove(values.indexOf(operation));
+
+        List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
+        actualCheckInUse.addAll(notifyChanged(operation));
+
+        return actualCheckInUse;
+    }
+
+    @Override
+    public void replaceInUse(Operation replacementOp) throws StackOverflowError {
+
+        List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
+        LOGGER.info("Using operations for "+replacementOp.getReference()+" : "+usingOperations);
+        List<Operation> usingIndicators = notifyChanged(replacementOp);
+        LOGGER.info("Using indicators for "+replacementOp.getReference()+" : "+usingIndicators);
+        actualReplaceInUse(usingIndicators, replacementOp);
+
+    }
 
 
-	@Override
-	protected void updateCaches(Operation operation, Boolean isNewOp) {
-		
-		if (!isNewOp) {
-			updateEditableOperationLists();
-			
-			this.setChanged();
-			this.notifyObservers(new ObsMsg(ObsMsgType.CHANGE, operation));
-		}
-		
-	}
-	
-	
-	private List<String> resetUserOperations() {
+    @Override
+    public List<Operation> notifyChanged(Operation operation) {
 
-		List<String> crippled = new ArrayList<String>(); 
+        List<Operation> actualCheckInUse = new ArrayList<Operation>();
+        try {
+            this.setChanged();
+            this.notifyObservers(new ObsMsg(ObsMsgType.OPERATION_CRUD, operation));
+        } catch (InUsedExecption e) {
+            actualCheckInUse.addAll(e.getInUse());
+        }
 
-		try {
-			reloadUserOperations(userOperationsDir, false);
-		} catch (Exception e) {
-			LOGGER.error(e,e);
-		}
-		
-		return crippled;
-	}
-	
-	@Override
-	public void resetCaches() {
-		
-		List<String> crippled = resetUserOperations();
-		if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : "+crippled);
-		
-		//TODO Remove update here and in observer as they are done in combo update?
-		updateEditableOperationLists();
-		this.setChanged();
-		this.notifyObservers(new ObsMsg(ObsMsgType.RESET, null));
-		
-	}
-	
-	@Override
-	protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
-		
-		String destFormula = sourceFormula;
-		for (String sourceOpRef : duplOperands.keySet()) {
-			destFormula = destFormula.replaceAll("(\\(|,)"+sourceOpRef+"\\(\\)", "$1"+duplOperands.get(sourceOpRef).getReference()+"()");
-		}
-		
-		return destFormula;
-	}
+        return actualCheckInUse;
+    }
 
-	@Override
-	protected ParameterizedBuilder subjacentDuplicator() {
-		return this;
-	}
+
+    @Override
+    protected List<Operation> updateCaches(Operation operation, Boolean isNewOp) {
+
+        List<Operation> actualCheckInUse = new ArrayList<Operation>();
+        if (!isNewOp) {
+            updateEditableOperationLists();
+
+            try {
+                this.setChanged();
+                this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation));
+            } catch (InUsedExecption e) {
+                actualCheckInUse.addAll(e.getInUse());
+            }
+        }
+        return actualCheckInUse;
+    }
+
+
+    private List<String> resetUserOperations() {
+
+        List<String> crippled = new ArrayList<String>(); 
+
+        try {
+            reloadUserOperations(userOperationsDir, false);
+        } catch (Exception e) {
+            LOGGER.error(e,e);
+        }
+
+        return crippled;
+    }
+
+    @Override
+    public void resetCaches() {
+
+        List<String> crippled = resetUserOperations();
+        if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : "+crippled);
+
+        //TODO Remove update here and in observer as they are done in combo update?
+        updateEditableOperationLists();
+        this.setChanged();
+        this.notifyObservers(new ObsMsg(ObsMsgType.RESET_OPS_INMEM_INSTANCES, null));
+
+    }
+
+    @Override
+    protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
+
+        String destFormula = sourceFormula;
+        for (String sourceOpRef : duplOperands.keySet()) {
+            destFormula = destFormula.replaceAll("(\\(|,)"+sourceOpRef+"\\(\\)", "$1"+duplOperands.get(sourceOpRef).getReference()+"()");
+        }
+
+        return destFormula;
+    }
+
+    @Override
+    protected ParameterizedBuilder subjacentDuplicator() {
+        return this;
+    }
 
 }

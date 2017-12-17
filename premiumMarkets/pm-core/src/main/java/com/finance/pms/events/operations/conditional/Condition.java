@@ -57,7 +57,15 @@ import com.finance.pms.events.operations.Value;
  */
 
 @XmlRootElement
-@XmlSeeAlso({ NullCondition.class, BooleanDoubleMapCondition.class, CmpDoubleMapCondition.class, CrossConstantCondition.class, CrossDoubleMapCondition.class, HighsAndLowsCondition.class})
+@XmlSeeAlso({
+    BooleanDoubleMapCondition.class, 
+    EqualConstantCondition.class, // within CmpConstantCondition.class, 
+    CmpDoubleMapCondition.class, 
+    CrossConstantCondition.class, 
+    CrossDoubleMapCondition.class, 
+    EqualEventMapStringConstantCondition.class, //with in EqualStringConstantCondition<T extends SortedMap<X,Y>, X, Y>
+    HighsAndLowsCondition.class, 
+    NullCondition.class})
 public class Condition<T> extends Operation {	
 	
 	protected Condition() {

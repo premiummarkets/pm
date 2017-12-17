@@ -56,137 +56,155 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 //TODO this is not a TalibComposition if we use HouseAroon. Add an extra layer under EventCompositionCalulator to deal with house indicators
-public class AroonTrend extends TalibIndicatorsCompositionCalculator {
+public class AroonTrend extends TalibIndicatorsCompositioner {
 
-	int upperThreshold = 90;
-	int lowerThreshold = -90;
-	int middleThreshold = 0;
+    private int lowerThreshold;
+    private int upperThreshold;
+    private int middleThreshold;
 
-	private HouseAroon aroon;
+    private HouseAroon aroon;
 
-	public AroonTrend(Observer...observers) {
-		this.aroon = new HouseAroon(getDaysSpan());
-	}
+    public AroonTrend(Observer...observers) {
+        super(observers);
+        init(getDaysSpan(), -90, 90, 0);
+    }
 
-	@Override
-	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
-		
-		FormulatRes res = new FormulatRes(EventDefinition.PMAROONTREND);
-		res.setCurrentDate(qU.getDate());
-		
-		int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, quotationIdx);
-		
-		{
-			Boolean isArronOsccrossingUpLower = upperThreshold <= aroon.getOutAroonOsc()[aroonIndex];
-			res.setBullishCrossOver(isArronOsccrossingUpLower); 
-			if (res.getBullishCrossOver()) return res;
-			
-		}
-		{
-			Boolean isArronOscCrossingDownUpper =  lowerThreshold >= aroon.getOutAroonOsc()[aroonIndex];
-			res.setBearishCrossBellow(isArronOscCrossingDownUpper); 
-			return res;
-			
-		}
-	}
+    public AroonTrend() {
+        //Reflective ops generator
+    }
 
-	@Override
-	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
-		if (indicator instanceof HouseAroon) return this.isInDataRange((HouseAroon)indicator, indicatorIndex);
-		if (indicator instanceof SMA) return this.isInDataRange((SMA) indicator, indicatorIndex);
-		throw new RuntimeException("Booo",new Throwable());
-		
-	}
-	
-	private boolean isInDataRange(SMA sma, Integer index) {
-		return getDaysSpan() <= index && index < sma.getSma().length;
-	}
-	
-	private Boolean isInDataRange(HouseAroon aroon, Integer index) {
-		return (getDaysSpan() < index) && (index < aroon.getOutAroonUp().length);
-	}
+    //TODO distinguish thresholds from periods if ever the thresholds can be output in the charts (using the target stock?)
+    protected void init(Integer aroonPeriod, Integer lowerThreshold, Integer upperThreshold, Integer middleThreshold) {
+        this.lowerThreshold = lowerThreshold;
+        this.upperThreshold = upperThreshold;
+        this.middleThreshold = middleThreshold;
+        this.aroon = new HouseAroon(aroonPeriod);
+    }
 
-	@Override
-	protected String getHeader(List<Integer> scoringSmas) {
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Aroon DATE, Aroon Up, Aroon Down, bearish, bullish";
-		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
-	}
-	
-	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
-		
-		Date calculatorDate = qU.getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
-		
-		int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, calculatorIndex);
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1], constants[2], constants[3]);
+    }
 
-		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
-			+ this.aroon.getOutAroonUp()[aroonIndex] + "," + this.aroon.getOutAroonDown()[aroonIndex];
-		
-		if (bearishEventValue != null) {
-			line = line + ","+calculatorClose+", 0,";
-		} else if (bullishEventValue != null) {
-			line = line + ",0,"+calculatorClose+",";
-		} else {
-			line = line + ",0,0,";
-		}
-		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
-		return line;
-	}
-	
-	@Override
-	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
-		
-		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.aroon, idx);
-		return new double[]
-				{
-					this.aroon.getOutAroonOsc()[indicatorIndexFromCalculatorQuotationIndex],
-					2*this.aroon.getOutAroonDown()[indicatorIndexFromCalculatorQuotationIndex]-100,
-					2*this.aroon.getOutAroonUp()[indicatorIndexFromCalculatorQuotationIndex]-100,
-					middleThreshold, lowerThreshold, upperThreshold
-				};
-		
-	}
-	
+    @Override
+    protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 
-	@Override
-	protected int getDaysSpan() {
-		return 21;
-	}
+        FormulatRes res = new FormulatRes(EventDefinition.PMAROONTREND);
+        res.setCurrentDate(qU.getDate());
 
-	@Override
-	public EventDefinition getEventDefinition() {
-		return EventDefinition.PMAROONTREND;
-	}
+        int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, quotationIdx);
 
-	@Override
-	protected void initIndicators(Quotations quotations) throws TalibException {
-		try {
-			this.aroon.calculateIndicator(quotations);
-		} catch (Exception e) {
-			throw new TalibException(e.toString(), e);
-		}
-	}
+        {
+            Boolean isArronOsccrossingUpLower = upperThreshold <= aroon.getOutAroonOsc()[aroonIndex];
+            res.setBullishCrossOver(isArronOsccrossingUpLower); 
+            if (res.getBullishCrossOver()) return res;
 
-	@Override
-	public Integer getStartShift() {
-		return aroon.getStartShift() + getDaysSpan();
-	}
+        }
+        {
+            Boolean isArronOscCrossingDownUpper =  lowerThreshold >= aroon.getOutAroonOsc()[aroonIndex];
+            res.setBearishCrossBellow(isArronOscCrossingDownUpper); 
+            return res;
 
-	@Override
-	public ValidityFilter quotationsValidity() {
-		return aroon.quotationValidity();
-	}
+        }
+    }
 
-	@Override
-	public Integer getOutputBeginIdx() {
-		return aroon.getOutBegIdx().value + getDaysSpan();
-	}
+    @Override
+    protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
+        if (indicator instanceof HouseAroon) return this.isInDataRange((HouseAroon)indicator, indicatorIndex);
+        if (indicator instanceof SMA) return this.isInDataRange((SMA) indicator, indicatorIndex);
+        throw new RuntimeException("Booo",new Throwable());
+
+    }
+
+    private boolean isInDataRange(SMA sma, Integer index) {
+        return getDaysSpan() <= index && index < sma.getSma().length;
+    }
+
+    private Boolean isInDataRange(HouseAroon aroon, Integer index) {
+        return (getDaysSpan() < index) && (index < aroon.getOutAroonUp().length);
+    }
+
+    @Override
+    protected String getHeader(List<Integer> scoringSmas) {
+        String head = "CALCULATOR DATE, CALCULATOR QUOTE, Aroon DATE, Aroon Up, Aroon Down, bearish, bullish";
+        head = addScoringHeader(head, scoringSmas);
+        return head+"\n";	
+    }
+
+    @Override
+    protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+
+        Date calculatorDate = qU.getDate();
+        EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BEARISH));
+        EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BULLISH));
+        BigDecimal calculatorClose = qU.getClose();
+
+        int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, calculatorIndex);
+
+        String line =
+                new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
+                        + this.aroon.getOutAroonUp()[aroonIndex] + "," + this.aroon.getOutAroonDown()[aroonIndex];
+
+        if (bearishEventValue != null) {
+            line = line + ","+calculatorClose+", 0,";
+        } else if (bullishEventValue != null) {
+            line = line + ",0,"+calculatorClose+",";
+        } else {
+            line = line + ",0,0,";
+        }
+
+        line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+
+        return line;
+    }
+
+    @Override
+    protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
+
+        Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.aroon, idx);
+        return new double[]
+                {
+                        this.aroon.getOutAroonOsc()[indicatorIndexFromCalculatorQuotationIndex],
+                        2*this.aroon.getOutAroonDown()[indicatorIndexFromCalculatorQuotationIndex]-100,
+                        2*this.aroon.getOutAroonUp()[indicatorIndexFromCalculatorQuotationIndex]-100,
+                        middleThreshold, lowerThreshold, upperThreshold
+                };
+
+    }
+
+
+    @Override
+    protected int getDaysSpan() {
+        return 21;
+    }
+
+    @Override
+    public EventDefinition getEventDefinition() {
+        return EventDefinition.PMAROONTREND;
+    }
+
+    @Override
+    protected void initIndicators(Quotations quotations) throws TalibException {
+        try {
+            this.aroon.calculateIndicator(quotations);
+        } catch (Exception e) {
+            throw new TalibException(e.toString(), e);
+        }
+    }
+
+    @Override
+    public Integer getStartShift() {
+        return aroon.getStartShift() + getDaysSpan();
+    }
+
+    @Override
+    public ValidityFilter quotationsValidity() {
+        return aroon.quotationValidity();
+    }
+
+    @Override
+    public Integer getOutputBeginIdx() {
+        return aroon.getOutBegIdx().value + getDaysSpan();
+    }
 
 }

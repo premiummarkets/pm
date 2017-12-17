@@ -69,7 +69,7 @@ public class ChaikinOscillator extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams) {
-		RetCode rc = TalibCoreService.getCore().adOsc(startIdx, endIdx, inData[2], inData[1], inData[0], inData[fastPeriod], fastPeriod, slowPeriod, outBegIdx, outNBElement, chaikinOsc);
+		RetCode rc = TalibCoreService.getCore().adOsc(startIdx, endIdx, inData[2], inData[1], inData[0], inData[3], fastPeriod, slowPeriod, outBegIdx, outNBElement, chaikinOsc);
 		return rc;
 	}
 

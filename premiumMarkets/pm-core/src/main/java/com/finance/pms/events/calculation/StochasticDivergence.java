@@ -49,7 +49,20 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	
 	public StochasticDivergence(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
 		super(observers);
-		this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+	}
+	
+	public StochasticDivergence() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
+	    this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0], constants[1], constants[2]);
 	}
 
 	@Override

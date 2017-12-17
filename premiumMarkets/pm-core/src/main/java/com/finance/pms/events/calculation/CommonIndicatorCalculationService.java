@@ -76,13 +76,13 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(CommonIndicatorCalculationService.class);
 	
-	private Map<EventDefinition, Class<EventCompostionCalculator>> availSecondPIndCalculators;
+	private Map<EventDefinition, Class<IndicatorsCompositioner>> availSecondPIndCalculators;
 	
 	/**
 	 * Instantiates a new talib indicator calculation service.
 	 * Initialized in spring context
 	 */
-	public CommonIndicatorCalculationService(Map<EventDefinition, Class<EventCompostionCalculator>> availableSecondPassIndicatorCalculators, JmsTemplate jmsTemplate, Queue eventQueue) {
+	public CommonIndicatorCalculationService(Map<EventDefinition, Class<IndicatorsCompositioner>> availableSecondPassIndicatorCalculators, JmsTemplate jmsTemplate, Queue eventQueue) {
 		this.eventQueue = eventQueue;
 		this.jmsTemplate = jmsTemplate;
 		this.availSecondPIndCalculators = availableSecondPassIndicatorCalculators;
@@ -120,7 +120,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	}
 
 	
-	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
+	private Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
 				Collection<Stock> stList, Date startDate, Date endDate, 
 				Currency calculationCurrency, String eventListName, int passNumber, String passOneCalcMode, Observer... observers) 
 				throws IncompleteDataSetException {
@@ -150,7 +150,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				Currency stockCalcCurrency = (calculationCurrency == null)? stock.getMarketValuation().getCurrency() : calculationCurrency;
 				
 				//Adjust calculation date to available quotes
-				Date adjustedStartDate = TunedConfMgr.getInstance().adjustStartDate(stock);
+				Date adjustedStartDate = TunedConfMgr.getInstance().minimumStartDate(stock);
 				if (adjustedStartDate.before(startDate) || adjustedStartDate.equals(startDate)) {
 					adjustedStartDate = startDate;
 				} else {
@@ -160,7 +160,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
 					continue;
 				}
-				Date adjustedEndDate = TunedConfMgr.getInstance().adjustEndDate(stock);
+				Date adjustedEndDate = TunedConfMgr.getInstance().maximumEndDate(stock);
 				if (adjustedEndDate.after(endDate) || adjustedEndDate.equals(endDate)) {
 					adjustedEndDate = endDate;
 				} else {
@@ -224,7 +224,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				allEvents.add(se);
 				
 				//Output
-				Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutput();
+				Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutputs();
 				if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 				calculatedOutputReturn.put(se.getStock(), calculationOutput);
 
@@ -236,7 +236,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					LOGGER.warn(e1,e1);
 					failingStocks.addAll(((IncompleteDataSetException) e1.getCause()).getFailingStocks());
 					allEvents.addAll(((IncompleteDataSetException) e1.getCause()).getSymbolEvents());
-					Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput = ((IncompleteDataSetException) e1.getCause()).getCalculatedOutput();
+					Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput = ((IncompleteDataSetException) e1.getCause()).getCalculatedOutputs();
 					calculatedOutputReturn.putAll(calculatedOutput);
 				} else {
 					LOGGER.error(e1, e1);

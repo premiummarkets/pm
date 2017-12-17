@@ -55,7 +55,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 'spanning'
  */
 
-@XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class,  DownRatioCondition.class, UpRatioCondition.class})
+@XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class, DownRatioCondition.class, UpRatioCondition.class})
 public abstract class CrossConstantCondition extends Condition<Double> {
 	
 	@SuppressWarnings("unused")

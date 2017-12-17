@@ -70,7 +70,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					Arrays.asList(
 					"reverses up" ,"reverses down" ,
 					"goes up more than" ,"goes down more than" ,
-					"crosses up threshold" ,"crosses down threshold", "equals threshold", "is above threshold", "is below threshold",
+					"crosses up threshold" ,"crosses down threshold", "equals trend", "equals threshold", "is above threshold", "is below threshold",
 					"makes a higher high spanning", "makes a higher low spanning","makes a lower high spanning", "makes a lower low spanning",
 					"crosses up historical" , "crosses down historical", "equals historical", "is above historical" ,"is below historical"
 					));

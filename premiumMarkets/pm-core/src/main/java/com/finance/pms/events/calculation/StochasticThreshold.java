@@ -55,13 +55,26 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 
-public class StochasticThreshold extends TalibIndicatorsCompositionCalculator {
+public class StochasticThreshold extends TalibIndicatorsCompositioner {
 	
 	private StochasticOscillator stochasticOscillator;
 
 	public StochasticThreshold(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
 		super(observers);
-		this.stochasticOscillator = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+	}
+
+	public StochasticThreshold() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
+	    this.stochasticOscillator = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0], constants[1], constants[2]);
 	}
 
 	@Override

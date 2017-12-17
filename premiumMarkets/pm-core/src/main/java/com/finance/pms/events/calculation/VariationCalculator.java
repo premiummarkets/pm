@@ -49,7 +49,7 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.indicators.TalibException;
 
-public class VariationCalculator extends EventCompostionCalculator {
+public class VariationCalculator extends IndicatorsCompositioner {
 
 	private int timePeriod;
 	private Integer devSpanDiff;

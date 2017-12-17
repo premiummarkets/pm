@@ -52,14 +52,27 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class RSIThreshold extends TalibIndicatorsCompositionCalculator {
+public class RSIThreshold extends TalibIndicatorsCompositioner {
 	
 
 	RSI rsi;
 
 	public RSIThreshold(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer[] observers) {
 		super(observers);
-		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+		init(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+	}
+
+	public RSIThreshold() {
+	    //Reflective ops generator
+	}
+
+	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold) {
+	    this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+	    init(constants[0], constants[1], constants[2]);
 	}
 
 	@Override

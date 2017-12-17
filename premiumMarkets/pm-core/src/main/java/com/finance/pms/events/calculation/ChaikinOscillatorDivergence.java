@@ -46,8 +46,21 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	
 	public ChaikinOscillatorDivergence(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(observers);
-		this.chaikinOscillator = new ChaikinOscillator(chkInfastPeriod, chkInslowPeriod);
+		init(chkInfastPeriod, chkInslowPeriod);
 	}
+	
+    public ChaikinOscillatorDivergence() {
+        //Reflective ops generator
+    }
+    
+    protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod) {
+        this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
+    }
+    
+    @Override
+    public void genericInit(Integer... constants) {
+        init(constants[0], constants[1]);
+    }
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
