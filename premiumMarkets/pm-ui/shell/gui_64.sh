@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#export PATH="/usr/local/opt/java/bin:"$PATH
-#export GDK_NATIVE_WINDOWS=1
 export SWT_GTK3=0
 export LIBOVERLAY_SCROLLBAR=0
 
@@ -29,7 +27,7 @@ java -version
 
 cd "$INSTALLDIR"
 	
-nohup java -splash:"$INSTALLDIR"/icons/squeakyPig.png -Xmx2256M -Xss128k -Dsite.url=premiummarkets.uk -Djava.library.path="$INSTALLDIR"/lib -Dinstalldir="$INSTALLDIR" -jar "$INSTALLDIR"/pm.jar "$INSTALLDIR"/db.properties > ~/tmp/pm.out &
+nohup java -splash:"$INSTALLDIR"/icons/squeakyPig.png -Xmx4G -Xss228k -Dsite.url=premiummarkets.uk -Djava.library.path="$INSTALLDIR"/lib -Dinstalldir="$INSTALLDIR" -jar "$INSTALLDIR"/pm.jar "$INSTALLDIR"/db.properties > ~/tmp/pm.out &
 
 
 sleep 15

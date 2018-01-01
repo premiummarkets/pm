@@ -169,7 +169,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
                         if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
                             //Add events to total
-                            symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, EventDefinition.loadMaxPassPrefsEventInfo());
+                            symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
 
                             //Add events to composer and send
                             SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);

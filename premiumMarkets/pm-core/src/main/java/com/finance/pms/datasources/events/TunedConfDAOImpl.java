@@ -30,10 +30,11 @@
 package com.finance.pms.datasources.events;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,56 +44,109 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfId;
 
 @Repository("TunedConfDAO")
 @Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDAO {
-	
-	@Override
-	@Transactional(readOnly=true)
-	public TunedConf loadTunedConf(TunedConfId tunedConfId) {
-		return this.getHibernateTemplate().get(TunedConf.class, tunedConfId);
-	}
 
-	@Override
-	public void saveOrUpdateTunedConfs(TunedConf tunedConf) {
-		this.getHibernateTemplate().saveOrUpdate(tunedConf);
-	}
-	
-	@Override
-	@Transactional(readOnly=true)
-	public List<TunedConf> loadAllTunedConfs() {
-		return this.getHibernateTemplate().loadAll(TunedConf.class);
-	}
+    private static MyLogger LOGGER = MyLogger.getLogger(TunedConfDAOImpl.class);
 
-	@Override
-	public void resetTunedConfs() {
-		List<TunedConf> loadAll = this.getHibernateTemplate().loadAll(TunedConf.class);
-		this.getHibernateTemplate().deleteAll(loadAll);
-	}
-	
-	//TODO cfgfile should be passed as it is in the key
-	@Override
-	public void resetTunedConfsFor(final Stock stock) {
-		this.getHibernateTemplate().execute(new HibernateCallback<Integer>() {
+    @Override
+    @Transactional(readOnly=true)
+    public TunedConf loadTunedConf(TunedConfId tunedConfId) {
+        return this.getHibernateTemplate().get(TunedConf.class, tunedConfId);
+    }
 
-			@Override
-			public Integer doInHibernate(Session session) throws HibernateException, SQLException {
-				Query createQuery = session.createQuery("delete from TunedConf where symbol = :symbol and isin = :isin");
-				createQuery.setString("symbol", stock.getSymbol());
-				createQuery.setString("isin", stock.getIsin());
-				return createQuery.executeUpdate();
-				
-			}
-		});
-	}
+    @Override
+    public void saveOrUpdateTunedConfs(TunedConf tunedConf) {
+        this.getHibernateTemplate().saveOrUpdate(tunedConf);
+    }
 
-	
-	@Autowired
-	public void init(SessionFactory factory) {
-	    setSessionFactory(factory);
-	}
+    @Override
+    @Transactional(readOnly=true)
+    public List<TunedConf> loadAllTunedConfs() {
+        return this.getHibernateTemplate().loadAll(TunedConf.class);
+    }
+
+    @Autowired
+    public void init(SessionFactory factory) {
+        setSessionFactory(factory);
+    }
+
+    @Override
+    public void deleteTunedConfFor(String analysisName, EventInfo... indicators) {
+        if (indicators == null || indicators.length == 0) {
+            LOGGER.info("deleteTunedConfFor : "+analysisName);
+            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
+
+                @Override
+                public Void doInHibernate(Session session) throws HibernateException, SQLException {
+                    int nbDeleted = session.createQuery("delete from TunedConf where configFile=:configFile")
+                            .setString("configFile", analysisName)
+                            .executeUpdate();
+                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+analysisName);
+                    return null;
+                }
+
+            });
+        } else {
+            List<String> eventInfoDefs = Arrays.stream(indicators).map(ei -> ei.getEventDefinitionRef()).collect(Collectors.toList());
+            LOGGER.info("deleteTunedConfFor : "+analysisName+" and "+eventInfoDefs);
+            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
+
+                @Override
+                public Void doInHibernate(Session session) throws HibernateException, SQLException {
+                    int nbDeleted = session.createQuery("delete from TunedConf where configFile=:configFile and eventDefinition in (:eventDefinitions)")
+                            .setString("configFile", analysisName)
+                            .setParameterList("eventDefinitions", eventInfoDefs)
+                            .executeUpdate();
+                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+analysisName+" and "+eventInfoDefs);
+                    return null;
+                }
+
+            });
+        }
+    }
+
+    @Override
+    public void deleteTunedConfFor(Stock stock, String analysisName, EventInfo... indicators) {
+        if (indicators == null || indicators.length == 0) {
+            LOGGER.info("deleteTunedConfFor : "+stock+" and "+analysisName);
+            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
+
+                @Override
+                public Void doInHibernate(Session session) throws HibernateException, SQLException {
+                    int nbDeleted = session.createQuery("delete from TunedConf as tc where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile")
+                            .setParameter("stock", stock)
+                            .setString("configFile", analysisName)
+                            .executeUpdate();
+                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName);
+                    return null;
+                }
+
+            });
+        } else {
+            List<String> eventInfoDefs = Arrays.stream(indicators).map(ei -> ei.getEventDefinitionRef()).collect(Collectors.toList());
+            LOGGER.info("deleteTunedConfFor : "+stock+" and "+analysisName+" and "+eventInfoDefs);
+            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
+
+                @Override
+                public Void doInHibernate(Session session) throws HibernateException, SQLException {
+                    int nbDeleted = session.createQuery("delete from TunedConf as tc where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile and tc.tunedConfId.eventDefinition in (:eventDefinitions)")
+                            .setParameter("stock", stock)
+                            .setString("configFile", analysisName)
+                            .setParameterList("eventDefinitions", eventInfoDefs)
+                            .executeUpdate();
+                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName+" and "+eventInfoDefs);
+                    return null;
+                }
+
+            });
+        }
+    }
 }

@@ -139,7 +139,7 @@ public class IndicatorCalculationServiceMain {
 			
 			////default dates (An offset will be added specific for each analyze in the analyze methods)
 			final Date datefin = new Date();
-			final Date datedeb = DataSource.getInstance().getLastEventDateForAnalyse(AUTOPORTFOLIO);
+			final Date datedeb = DataSource.getInstance().getLastEventDateForAnalysis(AUTOPORTFOLIO);
 			LOGGER.info("Events calculation date range based on last event calculated : from "+datedeb+" to "+datefin);
 
 			if (defaultCal) {//default dates and full

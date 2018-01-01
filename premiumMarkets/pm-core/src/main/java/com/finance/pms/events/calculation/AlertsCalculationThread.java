@@ -117,6 +117,6 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 	
 	@Override
 	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {
-		EventsResources.getInstance().crudDeleteEventsForStock(portfolioShare.getStock(), eventListName, datedeb, datefin, EventDefinition.alertsOnThresholds());
+		EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(portfolioShare.getStock(), eventListName, datedeb, datefin, EventDefinition.alertsOnThresholds());
 	}
 }

@@ -50,79 +50,87 @@ public class SelectedIndicatorsCalculationService {
     public SelectedIndicatorsCalculationService() {
     }
 
-    //TODO use ForkJoinPool ???
     public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculate(
             Date startDate, Date endDate, String eventListName, Map<Stock, List<EventInfo>> stocksEventInfos, Observer... observers) throws IncompleteDataSetException {
 
+        //TODO use a Fork Join Pool or parallel stream for executor
         Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
-
         ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
-        Map<Stock, List<Future<?>>> futuresMap = new HashMap<>();
-        Map<Stock, SymbolEvents> symbolEventsMap = new HashMap<>();
+        try {
 
-        int obsSize = stocksEventInfos.values().stream().map(v -> v.size()).reduce(0, (a, e) -> a + e);
-        Arrays.stream(observers).forEach(o -> o.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize)));
+            Map<Stock, List<Future<?>>> futuresMap = new HashMap<>();
+            Map<Stock, SymbolEvents> symbolEventsMap = new HashMap<>();
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
-        Boolean isDataSetComplete = true;
-        for(Stock stock: stocksEventInfos.keySet()) {
+            int obsSize = stocksEventInfos.values().stream().map(v -> v.size()).reduce(0, (a, e) -> a + e);
+            Arrays.stream(observers).forEach(o -> o.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize)));
 
-            LOGGER.guiInfo("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
-            QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
-            LOGGER.info("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate())+" and "+dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
+            Boolean isDataSetComplete = true;
+            for(Stock stock: stocksEventInfos.keySet()) {
 
-            List<Future<?>> eventInfosFutures = new ArrayList<>();
-            SymbolEvents symbolEvents = new SymbolEvents(stock);
-            symbolEventsMap.put(stock, symbolEvents);
-            for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
-                Runnable calculationRunnable = new SelectedIndicatorsCalculationThread(symbolEvents, startDate, endDate, eventInfo, eventListName, observers);
-                Future<?> submitedRunnable = executor.submit(calculationRunnable);
-                eventInfosFutures.add(submitedRunnable);
+                LOGGER.guiInfo("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+                QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
+                LOGGER.info("Calculation adjusted : events for stock "+stock.toString()+ " between "+dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate())+" and "+dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
+
+                List<Future<?>> eventInfosFutures = new ArrayList<>();
+                SymbolEvents symbolEvents = new SymbolEvents(stock);
+                symbolEventsMap.put(stock, symbolEvents);
+                for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
+                    Runnable calculationRunnable = 
+                            new SelectedIndicatorsCalculationThread(symbolEvents, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
+                    Future<?> submitedRunnable = executor.submit(calculationRunnable);
+                    eventInfosFutures.add(submitedRunnable);
+                }
+
+                futuresMap.put(stock, eventInfosFutures);
+
             }
 
-            futuresMap.put(stock, eventInfosFutures);
+            List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
+            List<Stock> failingStocks = new ArrayList<Stock>();
+            for (Stock stock : futuresMap.keySet()) {
 
-        }
+                for(Future<?> stockEventInfoFuture : futuresMap.get(stock)) {
+                    try {
+                        stockEventInfoFuture.get();
+                    } catch (Exception e) {
+                        LOGGER.error("Failed : events for stock "+stock.toString()+" between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate), e);
+                        isDataSetComplete = false;
+                        failingStocks.add(stock);
+                    }
+                }
 
-        List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
-        List<Stock> failingStocks = new ArrayList<Stock>();
-        for (Stock stock : futuresMap.keySet()) {
+                //Events
+                allEvents.add(symbolEventsMap.get(stock));
 
-            for(Future<?> stockEventInfoFuture : futuresMap.get(stock)) {
-                try {
-                    stockEventInfoFuture.get();
-                } catch (Exception e) {
-                    LOGGER.error("Failed : events for stock "+stock.toString()+" between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate), e);
-                    isDataSetComplete = false;
-                    failingStocks.add(stock);
+                //Output (not used for first pass events ..)
+                Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = symbolEventsMap.get(stock).getCalculationOutputs();
+                if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
+                calculatedOutputReturn.put(stock, calculationOutput);
+
+            }
+
+            try {
+                LOGGER.guiInfo("Storing "+allEvents.size()+".");
+                EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
+                LOGGER.guiInfo(allEvents.size()+" stored.");
+            } catch (Exception e) { 
+                isDataSetComplete = false;
+                if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+                    LOGGER.warn("Intercepted : " + e + " -> IncompleteDataset");
+                } else {
+                    LOGGER.error(e,e);
                 }
             }
 
-            //Events
-            allEvents.add(symbolEventsMap.get(stock));
-
-            //Output
-            Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = symbolEventsMap.get(stock).getCalculationOutputs();
-            if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
-            calculatedOutputReturn.put(stock, calculationOutput);
-
-        }
-
-        try {
-            LOGGER.guiInfo("Storing "+allEvents.size()+".");
-            EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
-            LOGGER.guiInfo(allEvents.size()+" stored.");
-        } catch (Exception e) { 
-            isDataSetComplete = false;
-            if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
-                LOGGER.warn("Intercepted : " + e + " -> IncompleteDataset");
-            } else {
-                LOGGER.error(e,e);
+            if (!isDataSetComplete) {
+                throw new IncompleteDataSetException(null, null, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
             }
-        }
 
-        if (!isDataSetComplete) {
-            throw new IncompleteDataSetException(null, null, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
+        } catch (Throwable e) {
+            LOGGER.error(e);
+        } finally {
+            executor.shutdownNow();
         }
 
         return calculatedOutputReturn;

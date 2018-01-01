@@ -61,9 +61,9 @@ public class TunedConf {
 		// Hib
 	}
 
-	public TunedConf(Stock stock, String configFile) {
+	public TunedConf(Stock stock, String configFile, String eventDefinition) {
 		super();
-		this.tunedConfId = new TunedConfId(stock, configFile);
+		this.tunedConfId = new TunedConfId(stock, configFile, eventDefinition);
 		reset();
 	}
 
@@ -91,7 +91,7 @@ public class TunedConf {
 		this.lastCalculatedEvent = lastCalculatedEvent;
 	}
 	
-	public void rollBack(Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
+	public void update(Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
 	    this.lastCalculatedEvent = lastCalculatedEvent;
         this.lastCalculationStart = lastCalculationStart;
         this.lastCalculationEnd =  lastCalculationEnd;

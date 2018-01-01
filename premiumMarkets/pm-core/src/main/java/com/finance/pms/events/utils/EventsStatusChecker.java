@@ -4,10 +4,12 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.scoring.CalculationBounds;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
 
 public class EventsStatusChecker {
@@ -16,80 +18,75 @@ public class EventsStatusChecker {
 
     private Stock stock;
 
-    private Date lastCalculatedEvent;
-    private Date firstCalculatedEvent;
+    private Date currentTunedConfEnd;
+    private Date currentTunedConfStart;
 
 
     public EventsStatusChecker(Stock stock, String analysisName, EventInfo eventDef) {
         super();
         this.stock = stock;
-        this.lastCalculatedEvent = DataSource.getInstance().getEdgeEventDateFor("max", stock, analysisName, eventDef.getEventDefinitionRef());
-        this.firstCalculatedEvent = DataSource.getInstance().getEdgeEventDateFor("min", stock, analysisName, eventDef.getEventDefinitionRef());
+        TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, analysisName, eventDef.getEventDefinitionRef());
+        this.currentTunedConfStart = tunedConf.getLastCalculationStart();
+        this.currentTunedConfEnd = tunedConf.getLastCalculationEnd();
 
     }
 
-    public void endDateToLastEventConsistencyCheck(Date endDate) throws InvalidAlgorithmParameterException {
-
-        //Inconsistency check
-        if ( lastCalculatedEvent != null && lastCalculatedEvent.after(stock.getLastQuote()) ) {
-            throw new InvalidAlgorithmParameterException("Data inconsistency detected for stock : "+stock+". last quote is : "+stock.getLastQuote()+ " and last event calculated is : "+lastCalculatedEvent);
+    private void endDateToLastEventConsistencyCheck(Date endDate) throws InvalidAlgorithmParameterException {
+        if ( currentTunedConfEnd.after(stock.getLastQuote()) ) {
+            throw new InvalidAlgorithmParameterException("Data inconsistency detected for stock : "+stock+". last quote is : "+stock.getLastQuote()+ " and last event calculated is : "+currentTunedConfEnd);
         }
-
     }
 
-    public CalculationBounds autoCalcAndSetDatesBounds(Date startDate, Date endDate) {
+    public CalculationBounds autoCalcAndSetDatesBounds(Date startDate, Date endDate) throws InvalidAlgorithmParameterException {
         
-        if (lastCalculatedEvent == null) {
+        endDateToLastEventConsistencyCheck(endDate);
+
+        if (currentTunedConfEnd.equals(DateFactory.dateAtZero())) {//No previous calculation
             LOGGER.info(
-                    "New dates for "+stock+" : No previous event was found for this calculation => RESET to avoid blank gaps. Requested calculation is from "+startDate+" to "+endDate+". "+
-                            ". Previous calculation is from "+firstCalculatedEvent+" to "+lastCalculatedEvent+
+                    "New dates for "+stock+" : No previous event was found for this calculation => IGNORE first calculation. Requested calculation is from "+startDate+" to "+endDate+". "+
+                            ". Previous calculation is from "+currentTunedConfStart+" to "+currentTunedConfEnd+
                             ". New calculation will be from "+startDate+" to "+endDate);
-            new CalculationBounds(CalcStatus.IGNORE, startDate, endDate);
+            return new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, startDate, endDate);
         }
 
-        if (startDate.compareTo(lastCalculatedEvent) > 0 || firstCalculatedEvent.compareTo(endDate) < 0) {//New calculation is fully outside previous => RESET to avoid blank gaps
+        //New calculation is fully outside previous => RESET to avoid blank gaps
+        if (startDate.compareTo(currentTunedConfEnd) > 0 || endDate.compareTo(currentTunedConfStart) < 0 || (startDate.compareTo(currentTunedConfStart) < 0 && currentTunedConfEnd.compareTo(endDate) < 0) ) {
             LOGGER.info(
                     "New dates for "+stock+" : New calculation is fully outside previous => RESET to avoid blank gaps. Requested calculation is from "+startDate+" to "+endDate+
-                            ". Previous calculation is from "+firstCalculatedEvent+" to "+lastCalculatedEvent+
-                            ". New calculation will be from "+startDate+" to "+endDate);
-            return new CalculationBounds(CalcStatus.RESET, startDate, endDate);
+                    ". Previous calculation is from "+currentTunedConfStart+" to "+currentTunedConfEnd+
+                    ". New calculation will be from "+startDate+" to "+endDate);
+            return new CalculationBounds(CalcStatus.RESET, startDate, endDate, startDate, endDate);
         }
 
-        if (startDate.compareTo(firstCalculatedEvent) < 0 && endDate.compareTo(firstCalculatedEvent) >= 0 && endDate.compareTo(lastCalculatedEvent) <= 0) { //New calculation ends within previous => INC
+        //New calculation ends within previous => INC
+        if (startDate.compareTo(currentTunedConfStart) < 0 && endDate.compareTo(currentTunedConfStart) >= 0 && endDate.compareTo(currentTunedConfEnd) <= 0) {
             LOGGER.info(
                     "New dates for "+stock+" : New calculation ends within previous => INC. Requested calculation is from "+startDate+" to "+endDate+". "+
-                            ". Previous calculation is from "+firstCalculatedEvent+" to "+lastCalculatedEvent+
-                            ". New calculation will be from "+startDate+" to "+firstCalculatedEvent);
-            return new CalculationBounds(CalcStatus.INC, startDate, firstCalculatedEvent);
+                            ". Previous calculation is from "+currentTunedConfStart+" to "+currentTunedConfEnd+
+                            ". New calculation will be from "+startDate+" to "+currentTunedConfStart);
+            return new CalculationBounds(CalcStatus.INC, startDate, currentTunedConfStart, startDate, currentTunedConfEnd);
         }
 
-        if (startDate.compareTo(firstCalculatedEvent) >= 0 && startDate.compareTo(lastCalculatedEvent) <= 0 && endDate.compareTo(lastCalculatedEvent) > 0) { //New calculation starts within previous => INC
+        //New calculation starts within previous => INC
+        if (startDate.compareTo(currentTunedConfStart) >= 0 && startDate.compareTo(currentTunedConfEnd) <= 0 && endDate.compareTo(currentTunedConfEnd) > 0) {
             LOGGER.info(
                     "New dates for "+stock+" : New calculation starts within previous => INC. Requested calculation is from "+startDate+" to "+endDate+
-                            ". Previous calculation is from "+firstCalculatedEvent+" to "+lastCalculatedEvent+
-                            ". New calculation will be from "+lastCalculatedEvent+" to "+endDate);
-            return new CalculationBounds(CalcStatus.INC, lastCalculatedEvent, endDate);
+                    ". Previous calculation is from "+currentTunedConfStart+" to "+currentTunedConfEnd+
+                    ". New calculation will be from "+currentTunedConfEnd+" to "+endDate);
+            return new CalculationBounds(CalcStatus.INC, currentTunedConfEnd, endDate, currentTunedConfStart, endDate);
         }
 
-        if (startDate.compareTo(firstCalculatedEvent) >= 0 && endDate.compareTo(lastCalculatedEvent) <= 0) { //New calculation fully within previous => NONE
+        //New calculation fully within previous => NONE
+        if (startDate.compareTo(currentTunedConfStart) >= 0 && endDate.compareTo(currentTunedConfEnd) <= 0) {
             LOGGER.info(
                     "New dates for "+stock+" : New calculation fully within previous => NONE. Requested calculation is from "+startDate+" to "+endDate+
-                            ". Previous calculation is from "+firstCalculatedEvent+" to "+lastCalculatedEvent+
-                            ". New calculation is not necessary");
-            return new CalculationBounds(CalcStatus.NONE, null, null);
+                    ". Previous calculation is from "+currentTunedConfStart+" to "+currentTunedConfEnd+
+                    ". New calculation is not necessary");
+            return new CalculationBounds(CalcStatus.NONE, null, null, currentTunedConfStart, currentTunedConfEnd);
         }
 
-        throw new RuntimeException(String.format("Case not handled start %s, end %s, first event %s, last event %s", startDate, endDate, firstCalculatedEvent, lastCalculatedEvent));
+        throw new RuntimeException(String.format("Case not handled start %s, end %s, first event %s, last event %s", startDate, endDate, currentTunedConfStart, currentTunedConfEnd));
 
     }
-
-    public Date getLastCalculatedEvent() {
-        return lastCalculatedEvent;
-    }
-
-    public Date getFirstCalculatedEvent() {
-        return firstCalculatedEvent;
-    }
-
 
 }

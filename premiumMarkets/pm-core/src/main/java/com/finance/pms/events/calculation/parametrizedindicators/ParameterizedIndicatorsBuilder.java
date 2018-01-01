@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.EventDefinition;
@@ -128,7 +127,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
                 OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
                     .filter(op -> op instanceof OperationsCompositioner)
                     .collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
-                EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), cHoldersInUse);
+                EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
             }
 		});
 

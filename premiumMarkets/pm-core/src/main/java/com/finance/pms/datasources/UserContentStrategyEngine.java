@@ -48,7 +48,6 @@ import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel.EventDefCacheEntry;
@@ -67,7 +66,6 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.PMDataFreeOperation;
 import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
-import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -253,8 +251,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
                     ((viewStateParams != null && viewStateParams.length >= 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected")+
                     " . Will delete : "+ Arrays.toString(eventDefsArray));
 
-            EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, EventModel.DEFAULT_DATE, EventSignalConfig.getNewDate(), eventDefsArray);
-            TunedConfMgr.getInstance().getTunedConfDAO().resetTunedConfsFor((Stock) stock);
+            EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefsArray);
 
             for (Observer observer : engineObservers) {
                 observer.update(null, new ObserverMsg((Stock) stock, ObserverMsg.ObsKey.NONE));

@@ -46,12 +46,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -61,6 +64,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
@@ -69,6 +73,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.portfolio.PortfolioMgr;
 
 /**
@@ -85,9 +90,10 @@ public class EventsResources {
 
     private static EventsResources singleton;
 
-    private ConcurrentHashMap<String, StockEventsCache> EVENTS_CACHE = new ConcurrentHashMap<String, StockEventsCache>();
+    private ConcurrentHashMap<String, EventsForAnalisysNameCacheHolder> EVENTS_CACHE = new ConcurrentHashMap<String, EventsForAnalisysNameCacheHolder>();
     private Boolean isEventCached;
     private Boolean isCachePersistent;
+    private Boolean isEventPersisted;
 
     public List<SymbolEvents> sortedList;
     public List<SymbolEvents> midleList;
@@ -194,129 +200,111 @@ public class EventsResources {
     class EventCacheEntryList extends ConcurrentSkipListSet<EventCacheEntry> {
 
         private static final long serialVersionUID = 2661601346495228458L;
+        private final UUID uuid = UUID.randomUUID();
 
         public EventCacheEntryList(Comparator<? super EventCacheEntry> comparator) {
             super(comparator);
         }
 
+        public UUID getUuid() {
+            return uuid;
+        }
+
     }
 
-    private class StockEventsCache  {
+    private class EventsForAnalisysNameCacheHolder {
 
-        ConcurrentHashMap<Stock, SoftReference<EventCacheEntryList>> underLayingSoftMap;
-        ConcurrentHashMap<Stock, Integer> underLayingSoftMapMonitor;
+        private ConcurrentHashMap<Stock, Map<EventInfo, SoftReference<EventCacheEntryList>>> underLayingSoftMap;
 
-        public StockEventsCache() {
+        private EventsForAnalisysNameCacheHolder() {
             super();
-            underLayingSoftMap = new ConcurrentHashMap<Stock, SoftReference<EventCacheEntryList>>();
-            underLayingSoftMapMonitor = new ConcurrentHashMap<Stock, Integer>();
+            underLayingSoftMap = new ConcurrentHashMap<Stock, Map<EventInfo, SoftReference<EventCacheEntryList>>>();
         }
 
-        public Set<Stock> keySet() {
+        private Set<Stock> keySet() {
             return underLayingSoftMap.keySet();
         }
-
-
-        public void createEventsInStockCache(List<SymbolEvents> events, boolean checkMonitor) {
-            addEventsInStockSoftCache(events, checkMonitor);
+        
+        private Map<EventInfo, SoftReference<EventCacheEntryList>> get(Stock stock) {
+            return underLayingSoftMap.get(stock);
         }
+        private EventCacheEntryList readEventsFromStockCache(Stock stock, EventInfo eventDef) {
 
-        public EventCacheEntryList readEventsInStockCache(Stock stock, boolean checkMonitor) {
-
-            SoftReference<EventCacheEntryList> softRef = underLayingSoftMap.get(stock);
-            if (softRef == null) {
-                if (checkMonitor && !isCachePersistent && underLayingSoftMapMonitor.contains(stock)) {
-                    throw new IllegalStateException(
-                            "You are using no persistence (isCachePersistent is "+isCachePersistent+" and isEventPersited is "+!checkMonitor+" as per checkMonitor)." +
-                                    " And stock "+stock.getFriendlyName()+ " had once events in the cache but they have been garbage collected." +
-                            " You may either increase memory or use persistence");
-                }
+            Map<EventInfo, SoftReference<EventCacheEntryList>> map = underLayingSoftMap.get(stock);
+            if (map == null) return null; //No cache for this stock
+            SoftReference<EventCacheEntryList> softRef = map.get(eventDef);
+            if (softRef == null) {//No cache for this eventDef
                 return null;
             } else {
                 return softRef.get();
             }
         }
 
-        public void deleteEventsInStockCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {	
-            deleteEventsInStockSoftCache(stock, startDate, endDate, indicatorsList);
+        private void deleteEventsFromStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
+
+            indicatorsList.stream().forEach(ei -> {
+                SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsFromStockCache(stock, ei);
+                if (eventsForStockAndAnalysis != null && !eventsForStockAndAnalysis.isEmpty()) {
+                    SortedSet<EventCacheEntry> subSetToRemove = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
+                    eventsForStockAndAnalysis.removeAll(subSetToRemove);
+                }
+            });
         }
 
-        private void deleteEventsInStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
+        private void addEventsToStockSoftCache(List<SymbolEvents> symbolEventsList, EventInfo eventInfo) {
 
-            SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsInStockCache(stock, false);
-            if (eventsForStockAndAnalysis != null && !eventsForStockAndAnalysis.isEmpty()) {
-                SortedSet<EventCacheEntry> dateSubSet = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
-                SortedSet<EventCacheEntry> subSetToRemove = new TreeSet<EventCacheEntry>(new EventCacheEntryComparator());
-                for (EventCacheEntry eventCacheEntry : dateSubSet) {
-                    EventInfo eventDef =  eventCacheEntry.getEventValue().getEventDef();
-                    if (indicatorsList.contains(eventDef)) {
-                        subSetToRemove.add(eventCacheEntry);
-                    }
-                }
-                eventsForStockAndAnalysis.removeAll(subSetToRemove);
-            }
-        }
+            for (SymbolEvents symbolEvents : symbolEventsList) {
 
-        private void addEventsInStockSoftCache(List<SymbolEvents> events, boolean checkMonitor) {
-
-            for (SymbolEvents symbolEvents : events) {
-                EventCacheEntryList sortedEventsForStock = this.readEventsInStockCache(symbolEvents.getStock(), checkMonitor);
-                if (sortedEventsForStock == null) {
-                    sortedEventsForStock = new EventCacheEntryList(new EventCacheEntryComparator());
-                    this.createEventsInSoftStockCache(symbolEvents.getStock(), sortedEventsForStock);
+                EventCacheEntryList sortedEventsForStockNEventInfo = this.readEventsFromStockCache(symbolEvents.getStock(), eventInfo);
+                if (sortedEventsForStockNEventInfo == null) {
+                    sortedEventsForStockNEventInfo = this.createEventsEntryInSoftStockCache(symbolEvents.getStock(), eventInfo);
                 }
 
-                Collection<EventCacheEntry> builtCacheEntriesFromSymbolEvents = buildCacheEntriesFromSymbolEvents(symbolEvents);
-                try {
-                    sortedEventsForStock.addAll(builtCacheEntriesFromSymbolEvents);
-                } catch (RuntimeException e) {
-                    String currentCache = "Current cache entries :\n";
-                    for (EventCacheEntry cacheEntry : sortedEventsForStock) {
-                        currentCache = currentCache + cacheEntry + "\n";
-                    }
-                    LOGGER.error(currentCache);
-                    String addedToCache = "Added cache entries :\n";
-                    for (EventCacheEntry cacheEntry : builtCacheEntriesFromSymbolEvents) {
-                        addedToCache = addedToCache + cacheEntry + "\n";
-                    }
-                    LOGGER.error(addedToCache);
-                    throw e;
-                }
+                Collection<EventCacheEntry> builtCacheEntriesFromSymbolEvents = buildCacheEntriesFromSymbolEvents(symbolEvents, eventInfo);
+                sortedEventsForStockNEventInfo.addAll(builtCacheEntriesFromSymbolEvents);
 
             }
         }
 
-        private void createEventsInSoftStockCache(Stock stock, EventCacheEntryList cacheEntries) {
+        private EventCacheEntryList createEventsEntryInSoftStockCache(Stock stock, EventInfo eventInfo) {
 
+            EventCacheEntryList cacheEntries = new EventCacheEntryList(new EventCacheEntryComparator());
             SoftReference<EventCacheEntryList> value = new SoftReference<EventCacheEntryList>(cacheEntries);
-            SoftReference<EventCacheEntryList> oldValue = underLayingSoftMap.put(stock, value);
+
+            Map<EventInfo, SoftReference<EventCacheEntryList>> map = underLayingSoftMap.get(stock);
+            if (map == null) {//New stock entry
+                map = new ConcurrentHashMap<>();
+                underLayingSoftMap.put(stock, map);
+            }
+
+            SoftReference<EventCacheEntryList> oldValue = map.put(eventInfo, value);//New EventDef entry
             if (oldValue != null) {
                 oldValue.clear();
             }
-            underLayingSoftMapMonitor.put(stock, value.hashCode());
+
+            return cacheEntries;
+
         }
 
-        public Boolean isEventsInSoftStockCacheUpToDate(Stock stock) {
-            Integer monitorValue = underLayingSoftMapMonitor.get(stock);
-            SoftReference<EventCacheEntryList> softRef = underLayingSoftMap.get(stock);
-            if (softRef == null || softRef.get() == null) return false;
-            if (softRef.get().hashCode() != monitorValue) return false;
-            return true;
-        }
     }
 
 
-    protected EventsResources() {
+    private EventsResources() {
         super();
 
-        resetSortLists();
         String eventCacheProp = MainPMScmd.getMyPrefs().get("event.cache","true");
         LOGGER.info("Event cache is set to "+eventCacheProp);
 
         isEventCached = new Boolean(eventCacheProp);
+
+        //FIXME At the moment, we can either use cache persistence or effectively persist in EVENTS table but not both together.
+        //TODO use an of shelf cache system.
         isCachePersistent = false;
+        isEventPersisted = true;
 
         locks = new ConcurrentHashMap<Stock, Lock>();
+
+        resetSortLists();
 
         singleton = this;
 
@@ -346,80 +334,78 @@ public class EventsResources {
 
     }
 
-    private void addEventsToCache(List<SymbolEvents> events, String eventListName, boolean checkMonitor) {
+    private void addEventsToSoftCache(List<SymbolEvents> symbolEventsList, String eventListName, EventInfo eventInfo) {
 
         if (isEventCached) {
 
             synchronized (this) {
-                StockEventsCache eventsForName = EVENTS_CACHE.get(eventListName);
-                if (eventsForName == null) {
-                    eventsForName = new StockEventsCache();
-                    EVENTS_CACHE.put(eventListName, eventsForName);
+                //No Cache holder for this eventListName is present, we add it.
+                EventsForAnalisysNameCacheHolder eventsForEventListName = EVENTS_CACHE.get(eventListName);
+                if (eventsForEventListName == null) {
+                    eventsForEventListName = new EventsForAnalisysNameCacheHolder();
+                    EVENTS_CACHE.put(eventListName, eventsForEventListName);
                 }
-                eventsForName.createEventsInStockCache(events, checkMonitor);
+                //
+                eventsForEventListName.addEventsToStockSoftCache(symbolEventsList, eventInfo);
             }
         }
 
     }
 
-    private void addEventsToSoftCache(List<SymbolEvents> events, String eventListName, boolean checkMonitor) {
+    private Collection<EventCacheEntry> buildCacheEntriesFromSymbolEvents(SymbolEvents symbolEvents, EventInfo eventInfo) {
 
-        if (isEventCached) {
-
-            synchronized (this) {
-                StockEventsCache eventsForName = EVENTS_CACHE.get(eventListName);
-                if (eventsForName == null) {
-                    eventsForName = new StockEventsCache();
-                    EVENTS_CACHE.put(eventListName, eventsForName);
-                }
-                eventsForName.addEventsInStockSoftCache(events, checkMonitor);
-            }
-        }
-
-    }
-
-
-    private Collection<EventCacheEntry> buildCacheEntriesFromSymbolEvents(SymbolEvents symbolEvents) {
-
-        List<EventCacheEntry> ret = new ArrayList<EventsResources.EventCacheEntry>();
-        for (EventKey eventKey : symbolEvents.getDataResultMap().keySet()) {
-            EventValue eventValue = symbolEvents.getDataResultMap().get(eventKey);
-            ret.add(new EventCacheEntry(eventKey, eventValue));
-        }
+        SortedMap<EventKey, EventValue> sortedDataResultMap = symbolEvents.getSortedDataResultMap();
+        //We filter out the eventDef
+        List<EventCacheEntry> ret = sortedDataResultMap.keySet().stream()
+                .filter(ek -> ek.getEventInfo().equals(eventInfo))
+                .map(ek -> new EventCacheEntry(ek, sortedDataResultMap.get(ek)))
+                .collect(Collectors.toList());
         return ret;
+
     }
 
     private SymbolEvents buildSymbolEventsFromCacheEntries(Stock stock, SortedSet<EventCacheEntry> eventSubSet, Set<EventInfo> eventDefinitions) {
-        SymbolEvents subSymbolEvents = new SymbolEvents(stock, EventState.STATE_TERMINATED);
+        SymbolEvents subDateRangeSymbolEvents = new SymbolEvents(stock, EventState.STATE_TERMINATED);
         if (eventSubSet.size() > 0) {
             for (EventCacheEntry eventCacheEntry : eventSubSet) {
                 if (eventDefinitions == null || eventDefinitions.contains(eventCacheEntry.getEventValue().getEventDef())) {
-                    subSymbolEvents.addEventResultElement(eventCacheEntry.getEventKey(), eventCacheEntry.getEventValue(), eventCacheEntry.getEventValue().getEventDef().getEventDefinitionRef());
+                    subDateRangeSymbolEvents.addEventResultElement(eventCacheEntry.getEventKey(), eventCacheEntry.getEventValue(), eventCacheEntry.getEventValue().getEventDef().getEventDefinitionRef());
                 }
             }
         }
-        return subSymbolEvents;
+        return subDateRangeSymbolEvents;
     }
 
-    private void updateEventsCache(Date startDate, Date endDate,Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache, boolean checkMonitor) {
+    private void updateEventsCache(Date startDate, Date endDate, Set<EventInfo> eventDefinitions, Set<String> eventListNames, String eventsTableName) {
 
-        String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
         for (String eventListName : eventListNames) {
             //TODO : check if cache is up to date
-            List<SymbolEvents> eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, startDate, endDate, eventDefinitions, eventListName);
-            this.addEventsToSoftCache(eventsForName, eventListName, checkMonitor);
+            List<SymbolEvents> eventsForEventListName = DataSource.getInstance().loadEventsByDate(eventsTableName, startDate, endDate, eventDefinitions, eventListName);
+            eventDefinitions.stream().forEach(eventInfo -> this.addEventsToSoftCache(eventsForEventListName, eventListName, eventInfo));
         }
 
     }
 
-    private void updateEventsCache(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, Set<String> eventListNames, Boolean isFromHardCache, boolean checkMonitor) {
+    private void updateEventsCache(Stock stock, Set<EventInfo> eventDefinitions, Set<String> eventListNames, String eventsTableName) {
 
-        String eventsTableName = (isFromHardCache)?EVENTSCACHETABLE:EVENTSTABLE;
+        //We load up the full date range and this is to simplify the cache consistency management.
+        Date startDate = EventModel.DEFAULT_DATE;
+        Date endDate = EventSignalConfig.getNewDate();
+
+        //
         for (String eventListName : eventListNames) {
-            StockEventsCache stockEventsCache = EVENTS_CACHE.get(eventListName);
-            if (stockEventsCache == null || !stockEventsCache.isEventsInSoftStockCacheUpToDate(stock)) {
-                SymbolEvents eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, eventDefinitions, eventListName);
-                this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForName}), eventListName, checkMonitor);
+            EventsForAnalisysNameCacheHolder eventListNameEventsCache = EVENTS_CACHE.get(eventListName);
+            if (eventListNameEventsCache == null || eventListNameEventsCache.get(stock) == null) { //New analyses entry or stock entry for this analyses
+                LOGGER.info("Events not found in cache for : "+eventListName+ " and incidentally, "+stock + " from "+startDate+" to "+endDate);
+                SymbolEvents eventsForEventListNameNStockNEventDefs = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, eventDefinitions, eventListName);
+                eventDefinitions.stream().forEach(eventInfo -> this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForEventListNameNStockNEventDefs}), eventListName, eventInfo));
+            } else { //Existing analyses and stock
+                Set<EventInfo> newEvDefsEntries = eventDefinitions.stream()
+                        .filter(eventInfo -> eventListNameEventsCache.get(stock).get(eventInfo) == null) //New EventDef entry
+                        .collect(Collectors.toSet());
+                if (newEvDefsEntries.isEmpty()) return;
+                SymbolEvents eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, newEvDefsEntries, eventListName);
+                newEvDefsEntries.stream().forEach(eventInfo -> this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForName}), eventListName, eventInfo));
             }
         }
 
@@ -427,10 +413,10 @@ public class EventsResources {
 
     public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 
-        Boolean isPersisted = true;
+        //Consistency checks
         if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 
-        if (!isEventCached && !isPersisted) {
+        if (!isEventCached && !isEventPersisted) {
             String message = "Inconsistency : Events are neither persisted or cached.";
             LOGGER.error(message, new Exception());
             throw new InvalidParameterException(message);
@@ -438,33 +424,34 @@ public class EventsResources {
 
         Set<String> eventListNamesSet = disctinctNames(eventListNames);
 
+        //Result building
         SymbolEvents retVal =  new SymbolEvents(stock, EventState.STATE_TERMINATED);
         if (isEventCached) {
 
-            if (isPersisted) {
-                this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, false, !isPersisted);
+            //Updating soft cache (if not present for eventlistName, stock and eventDefinition)
+            if (isEventPersisted) {
+                this.updateEventsCache(stock, eventDefinitions, eventListNamesSet, EVENTSTABLE);
+            }
+            else if (isCachePersistent) {
+                this.updateEventsCache(stock, eventDefinitions, eventListNamesSet, EVENTSCACHETABLE);
             }
 
-            if (isCachePersistent) {
-                this.updateEventsCache(stock, startDate, endDate, eventDefinitions, eventListNamesSet, true, !isPersisted);
-            }
-
+            //Reading soft cache and building results
             for (String eventListName : eventListNamesSet) {
 
-                StockEventsCache eventsForName = EVENTS_CACHE.get(eventListName);
-                if (eventsForName == null) {
+                EventsForAnalisysNameCacheHolder eventsForEventListName = EVENTS_CACHE.get(eventListName);
+                if (eventsForEventListName == null) {
                     LOGGER.info("No events cached for " + eventListName+ " and "+stock + " from "+startDate+" to "+endDate);
                 } else {
                     try {
-                        retVal = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions, !isPersisted);
+                        retVal = readDateRangeSubSoftCachedEvents(stock, startDate, endDate, eventsForEventListName, eventListName, eventDefinitions);
                     } catch (Exception e) {
                         LOGGER.error("Stock "+stock+" event retrieval pb : "+e, e);
                     }
                 }
             }
 
-        } else {
-
+        } else {//No cache
             retVal = DataSource.getInstance().loadEventsByDate(EVENTSTABLE, stock, startDate, endDate, eventDefinitions, eventListNamesSet.toArray(new String[eventListNamesSet.size()]));
         }
 
@@ -473,44 +460,43 @@ public class EventsResources {
 
 
     public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
-        
-        Boolean isPersisted = true;
+
         if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 
-        if (!isEventCached && !isPersisted) {
+        if (!isEventCached && !isEventPersisted) {
             String message = "Inconsistency : Events are neither persisted or cached.";
             LOGGER.error(message, new Exception());
             throw new InvalidParameterException(message);
         }
 
-        List<SymbolEvents> retVal = new ArrayList<SymbolEvents>();
         Set<String> eventListNamesSet = disctinctNames(eventListNames);
 
+        List<SymbolEvents> retVal = new ArrayList<SymbolEvents>();
         if (isEventCached) {
 
-            if (isPersisted) {
-                this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, false, !isPersisted);
+            if (isEventPersisted) { //Update the soft cache from events table
+                this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, EVENTSTABLE);
+            }
+            else if (isCachePersistent) { //Update the soft cache from the hard cache
+                this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, EVENTSCACHETABLE);
             }
 
-            if (isCachePersistent) {
-                this.updateEventsCache(startDate, endDate, eventDefinitions, eventListNamesSet, true, !isPersisted);
-            }
-
+            //Build response from soft cache
             for (String eventListName : eventListNamesSet) {
 
-                StockEventsCache eventsForName = EVENTS_CACHE.get(eventListName);
-                if (eventsForName == null) {
+                EventsForAnalisysNameCacheHolder eventsForEventListName = EVENTS_CACHE.get(eventListName);
+                if (eventsForEventListName == null) {
                     LOGGER.info("No events cached for " + eventListName);
                 } else {
-                    for (Stock stock : eventsForName.keySet()) {
-                        SymbolEvents subCachedEvents;
+                    for (Stock stock : eventsForEventListName.keySet()) {//We assume all stocks have been uploaded for this eventListName <- size issue ??
+                        SymbolEvents subDateRangeCachedEvents;
                         try {
-                            subCachedEvents = subSoftCachedEvents(stock, startDate, endDate, eventsForName, eventListName, eventDefinitions, !isPersisted);
-                            if (subCachedEvents != null) {
-                                if (retVal.contains(subCachedEvents)) {
-                                    retVal.get(retVal.indexOf(subCachedEvents)).addEventResultElement(subCachedEvents);
+                            subDateRangeCachedEvents = readDateRangeSubSoftCachedEvents(stock, startDate, endDate, eventsForEventListName, eventListName, eventDefinitions);
+                            if (subDateRangeCachedEvents != null) {
+                                if (retVal.contains(subDateRangeCachedEvents)) {
+                                    retVal.get(retVal.indexOf(subDateRangeCachedEvents)).addEventResultElement(subDateRangeCachedEvents);
                                 } else {
-                                    retVal.add(subCachedEvents);
+                                    retVal.add(subDateRangeCachedEvents);
                                 }
                             }
                         } catch (Exception e) {
@@ -534,22 +520,22 @@ public class EventsResources {
         return eventListNamesSet;
     }
 
-    private SymbolEvents subSoftCachedEvents(Stock stock, Date startDate, Date endDate, StockEventsCache eventsForName, String eventListName, Set<EventInfo> eventDefinitions, boolean checkMonitor) {
+    private SymbolEvents readDateRangeSubSoftCachedEvents(Stock stock, Date startDate, Date endDate, EventsForAnalisysNameCacheHolder eventsForName, String eventListName, Set<EventInfo> eventDefinitions) {
 
-        SymbolEvents subSymbolEvents = new SymbolEvents(stock, EventState.STATE_TERMINATED);
         EventCacheEntry startInfEvent = smallestCacheEntry(startDate);
         EventCacheEntry endSupEvent = bigestCacheEntry(endDate);
 
-        SortedSet<EventCacheEntry> eventsForStockAndName = eventsForName.readEventsInStockCache(stock, checkMonitor);
+        EventCacheEntryList eventsForStockAndName = new EventCacheEntryList(new EventCacheEntryComparator());
+        eventsForStockAndName.addAll(eventDefinitions.stream().flatMap(ei -> eventsForName.readEventsFromStockCache(stock, ei).stream()).collect(Collectors.toSet()));
         if (eventsForStockAndName != null && !eventsForStockAndName.isEmpty()) {
             try {
-                SortedSet<EventCacheEntry> eventSubSet = eventsForStockAndName.subSet(startInfEvent, endSupEvent);
-                subSymbolEvents = buildSymbolEventsFromCacheEntries(stock, eventSubSet, eventDefinitions);
+                SortedSet<EventCacheEntry> eventsDateRangeSubSet = eventsForStockAndName.subSet(startInfEvent, endSupEvent);
+                return buildSymbolEventsFromCacheEntries(stock, eventsDateRangeSubSet, eventDefinitions);
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("No events in cache for "+stock+" and "+eventListName+" from "+startDate+" to "+endDate+". Available first, last events : "+eventsForStockAndName.first()+" to "+eventsForStockAndName.last(), e);
             } 
         } 
-        return subSymbolEvents;
+        return new SymbolEvents(stock, EventState.STATE_TERMINATED);
     }
 
     private EventCacheEntry bigestCacheEntry(final Date date) {
@@ -607,22 +593,41 @@ public class EventsResources {
     }
 
 
-    public void crudCreateEvents(List<SymbolEvents> events, String eventListName) {
-
-        Boolean isDataPersisted = true;
+    public void crudCreateEvents(List<SymbolEvents> symbolEventsList, String eventListName) {
 
         if (isEventCached) {
-            if (isCachePersistent && !isDataPersisted) {
-                persitEvents(events, eventListName, EVENTSCACHETABLE);
+
+            String eventsTableName = EVENTSTABLE;
+            if (isCachePersistent && !isEventPersisted) {
+                persitEvents(symbolEventsList, eventListName, EVENTSCACHETABLE);
+                eventsTableName = EVENTSCACHETABLE;
             }
 
-            addEventsToCache(events, eventListName, !isDataPersisted);
+            final String fEventsTableName = eventsTableName;
+            //We first need to update the soft cache with existing persisted (potentially wiped off or not loaded yet) events in order to keep consistency
+            symbolEventsList.stream().forEach(se -> {
+                Set<EventInfo> eventDefList = se.getEventDefList().stream().map(eis -> {
+                    try {
+                        EventInfo valueOfEventInfo = EventDefinition.valueOfEventInfo(eis);
+                        return valueOfEventInfo;
+                    } catch (NoSuchFieldException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).collect(Collectors.toSet());
+                Set<String> eventListNameSet = new HashSet<String>();
+                eventListNameSet.add(eventListName);
+                updateEventsCache(se.getStock(), eventDefList, eventListNameSet, fEventsTableName);
+
+                //adding new events to soft cache
+                eventDefList.stream().forEach(ei -> addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{se}), eventListName, ei));
+            });
+
         }
 
-        if (isDataPersisted || !isEventCached) {
+        if (isEventPersisted || !isEventCached) {
 
-            LOGGER.info("Storing Events in db cached is "+isEventCached+", persist is "+isDataPersisted+", other params "+eventListName);
-            persitEvents(events, eventListName, EVENTSTABLE);
+            LOGGER.info("Storing Events in db cached is "+isEventCached+", persist is "+isEventPersisted+", other params "+eventListName);
+            persitEvents(symbolEventsList, eventListName, EVENTSTABLE);
 
         } 
     }
@@ -750,6 +755,28 @@ public class EventsResources {
 
         }
 
+        //        //Updating tuned confs ...
+        //        lockIds.stream().forEach(s -> {
+        //            Set<EventInfo> eventInfos = events.stream()
+        //                .filter(es -> es.getStock().equals(s))
+        //                .map(es -> es.getDataResultMap().keySet())
+        //                .flatMap(rmks -> rmks.stream().map(k -> k.getEventInfo()))
+        //                .distinct()
+        //                .collect(Collectors.toSet());
+        //            eventInfos.stream().forEach(ei -> {
+        //                Optional<Date> reduce = events.stream()
+        //                .filter(es -> es.getStock().equals(s))
+        //                .map(es -> es.getDataResultMap().keySet())
+        //                .flatMap(rmks -> rmks.stream().filter(k -> k.getEventInfo().equals(ei)))
+        //                .map(ek -> ek.getDate())
+        //                .reduce( (rd, ed) -> rd = (rd.compareTo(ed) < 0)?ed:rd);
+        //                TunedConf retuneConfig = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(s, eventListName, ei.getEventDefinitionRef());
+        //                //TODO update start and end consistently to existing cacls (considering it is a consistent block) and throw errors if not consistent?
+        //                retuneConfig.setLastCalculationStart(lastCalculationStart);
+        //                retuneConfig.setLastCalculationEnd(lastCalculationEnd);
+        //                TunedConfMgr.getInstance().updateConf(retuneConfig, reduce.orElseThrow(() -> new RuntimeException()));
+        //            });
+        //        });
     }
 
 
@@ -1066,83 +1093,108 @@ public class EventsResources {
         this.sortedList = sortedList;
     }
 
-    public void crudDeleteEventsForStock(Stock stock, String analysisName, Date datedeb, Date datefin, EventInfo... indicators) {
+    /**
+     * It is assume that if no start and end dates are supplied, this means all events are deleted from the first date to today's date.
+     * To bypass TunedConf see {@link #crudDeleteEventsForStockNoTunedConfHandling(Stock, String, Date, Date, EventInfo...) 
+     * @param stock
+     * @param analysisName
+     * @param indicators
+     */
+    public void crudDeleteEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
+        Date datedeb = EventModel.DEFAULT_DATE;
+        Date datefin = EventSignalConfig.getNewDate();
+        this.crudDeleteEventsForStockNoTunedConfHandling(stock, analysisName, datedeb, datefin, indicators);
+        TunedConfMgr.getInstance().deleteTunedConfFor(stock, analysisName, indicators);
+    }
 
-        Boolean isDataPersisted = true;
+    /**
+     * Deleting specifying dates should only apply as a safe guard as TunedConfig information ought to prevail.
+     * This won't update the TunedConf, see {@link #crudDeleteEventsForStock(Stock, String, EventInfo...)}
+     * @param stock
+     * @param analysisName
+     * @param datedeb
+     * @param datefin
+     * @param indicators
+     */
+    public void crudDeleteEventsForStockNoTunedConfHandling(Stock stock, String analysisName, Date datedeb, Date datefin, EventInfo... indicators) {
+
         for (EventInfo eventInfo : indicators) {
             if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
         }
 
-        //Cash
+        //Cache
         if (isEventCached) {
             synchronized (this) {
-                StockEventsCache eventsForAnalysis = EVENTS_CACHE.get(analysisName);
+                EventsForAnalisysNameCacheHolder eventsForAnalysis = EVENTS_CACHE.get(analysisName);
                 if (eventsForAnalysis != null) {
                     removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, datedeb, datefin, indicators);
                 }
             }
-            if (isCachePersistent && !isDataPersisted) {
-                DataSource.getInstance().cleanEventsForAnalysisNameAndStock(EVENTSCACHETABLE, stock, analysisName, datedeb, datefin, indicators);
+            if (isCachePersistent && !isEventPersisted) {
+                DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSCACHETABLE, stock, analysisName, datedeb, datefin, indicators);
             }
         }
 
         //DB
-        if (isDataPersisted || !isEventCached) {
-            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",", indicators));
-            DataSource.getInstance().cleanEventsForAnalysisNameAndStock(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
+        if (isEventPersisted || !isEventCached) {
+            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",", indicators));
+            DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
         }
 
     }
 
-    public void crudDeleteEventsForIndicators(String analysisName, Date datedeb, Date datefin, EventInfo... indicators) {
+    public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
 
-        Boolean isDataPersisted = true;
+        Date datedeb = EventModel.DEFAULT_DATE;
+        Date datefin = EventSignalConfig.getNewDate();
+
         for (EventInfo eventInfo : indicators) {
             if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
         }
 
-        //Cash
+        //Cache
         if (isEventCached) {
             synchronized (this) {
-                StockEventsCache eventsForAnalysis = EVENTS_CACHE.get(analysisName);
+                EventsForAnalisysNameCacheHolder eventsForAnalysis = EVENTS_CACHE.get(analysisName);
                 if (eventsForAnalysis != null) {
                     for (Stock stock : eventsForAnalysis.keySet()) {
                         removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, datedeb, datefin, indicators);
                     }
                 }
             }
-            if (isCachePersistent && !isDataPersisted) {
-                DataSource.getInstance().cleanEventsForIndicators(EVENTSCACHETABLE, analysisName, datedeb, datefin, indicators);
+            if (isCachePersistent && !isEventPersisted) {
+                DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSCACHETABLE, analysisName, datedeb, datefin, indicators);
             }
         }
 
         //DB
-        if (isDataPersisted || !isEventCached) {
-            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",",indicators));
-            DataSource.getInstance().cleanEventsForIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
+        if (isEventPersisted || !isEventCached) {
+            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",",indicators));
+            DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
         }
+
+        TunedConfMgr.getInstance().deleteTunedConfFor(analysisName, indicators);
     }
 
     public void crudDeleteEventsForAnalysisName(String analysisName) {
 
-        Boolean isDataPersisted = true;
-        
         //Cache
         if (isEventCached) {
             synchronized (this) {
                 EVENTS_CACHE.remove(analysisName);
             }
-
-            if (isCachePersistent && !isDataPersisted) {
+            if (isCachePersistent && !isEventPersisted) {
                 DataSource.getInstance().cleanEventsForAnalysisName(EVENTSCACHETABLE, analysisName);
             }
         }
 
         //DB
-        if (isDataPersisted || !isEventCached) {
-            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isDataPersisted);
+        if (isEventPersisted || !isEventCached) {
+            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isEventPersisted);
             DataSource.getInstance().cleanEventsForAnalysisName(EVENTSTABLE, analysisName);
         }
+
+        TunedConfMgr.getInstance().deleteTunedConfFor(analysisName);
     }
 
     public void cleanPersistedEventsCache() throws SQLException {
@@ -1175,11 +1227,11 @@ public class EventsResources {
 
     }
 
-    private void removeEventsFromEventsSoftCacheFor(Stock stock, StockEventsCache eventsForAnalysis, Date startDate, Date endDate, EventInfo... indicators) {
+    private void removeEventsFromEventsSoftCacheFor(Stock stock, EventsForAnalisysNameCacheHolder eventsForAnalysis, Date startDate, Date endDate, EventInfo... indicators) {
 
         List<EventInfo> indicatorsList = Arrays.asList(indicators);
         if (eventsForAnalysis != null) {
-            eventsForAnalysis.deleteEventsInStockCache(stock, startDate, endDate, indicatorsList);
+            eventsForAnalysis.deleteEventsFromStockSoftCache(stock, startDate, endDate, indicatorsList);
         }
     }
 

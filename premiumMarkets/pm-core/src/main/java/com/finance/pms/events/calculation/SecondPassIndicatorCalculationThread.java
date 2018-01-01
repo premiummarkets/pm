@@ -176,7 +176,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
                 LOGGER.info("Cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
 
                 List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
-                EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, subEventInfosForRequested.toArray(new EventInfo[0]));
+                EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(stock, eventListName, datedeb, datefin, subEventInfosForRequested.toArray(new EventInfo[0]));
 
             }
         }

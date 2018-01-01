@@ -43,6 +43,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.events.OnTheFlyRevesreCalcPeriod;
 import com.finance.pms.datasources.events.TunedConfDAO;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 //TODO 
@@ -66,12 +67,12 @@ public class TunedConfMgr {
     public TunedConfMgr() {
     }
 
-    public synchronized TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName) {
+    public synchronized TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition) {
 
-        TunedConfId tunedConfId = new TunedConfId(stock, configListFileName);
+        TunedConfId tunedConfId = new TunedConfId(stock, configListFileName, eventDefinition);
         TunedConf stockPrevTunedConf = getTunedConfDAO().loadTunedConf(tunedConfId);
         if (stockPrevTunedConf == null) { //No prev conf : first calculation for this config file
-            stockPrevTunedConf = new TunedConf(stock, configListFileName);
+            stockPrevTunedConf = new TunedConf(stock, configListFileName, eventDefinition);
             getTunedConfDAO().saveOrUpdateTunedConfs(stockPrevTunedConf);
         }
 
@@ -144,8 +145,7 @@ public class TunedConfMgr {
                 ". Requested calculation is from "+startDate+" to "+endDate+". "+
                 "New calculation status is "+calcStatus+" and will either be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd +" or is not needed if "+CalcStatus.NONE+".");
 
-
-        return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd);
+        return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd, null, null);
 
     }
 
@@ -159,8 +159,8 @@ public class TunedConfMgr {
         getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
     }
 
-    public void rollBackConf(TunedConf tunedConf, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
-        tunedConf.rollBack(lastCalculatedEvent, lastCalculationStart, lastCalculationEnd);
+    public void updateConf(TunedConf tunedConf, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
+        tunedConf.update(lastCalculatedEvent, lastCalculationStart, lastCalculationEnd);
         getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
     }
 
@@ -188,6 +188,12 @@ public class TunedConfMgr {
         return lastQuote;
     }
 
+    public void deleteTunedConfFor(String analysisName, EventInfo... indicators) {
+        getTunedConfDAO().deleteTunedConfFor(analysisName, indicators); 
+    }
+
+    public void deleteTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
+        getTunedConfDAO().deleteTunedConfFor(stock, analysisName, indicators);
+    }
+
 }
-
-

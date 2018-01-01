@@ -41,81 +41,95 @@ import com.finance.pms.datasources.shares.Stock;
 @Embeddable
 public class TunedConfId implements Serializable {
 
-	private static final long serialVersionUID = 4744300587549030997L;
+    private static final long serialVersionUID = 4744300587549030997L;
 
 
-	Stock stock;
-	String configFile;
-	
-	@SuppressWarnings("unused")
-	private TunedConfId() {
-		super();
-		// Hib
-	}
+    Stock stock;
+    String configFile;
+    String eventDefinition;
 
-	public TunedConfId(Stock stock, String configFile) {
-		super();
-		this.stock = stock;
-		this.configFile = configFile;
-	}
+    @SuppressWarnings("unused")
+    private TunedConfId() {
+        super();
+        // Hib
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((configFile == null) ? 0 : configFile.hashCode());
-		result = prime * result + ((stock == null) ? 0 : stock.hashCode());
-		return result;
-	}
+    public TunedConfId(Stock stock, String configFile, String eventDefinition) {
+        super();
+        this.stock = stock;
+        this.configFile = configFile;
+        this.eventDefinition = eventDefinition;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TunedConfId other = (TunedConfId) obj;
-		if (configFile == null) {
-			if (other.configFile != null)
-				return false;
-		} else if (!configFile.equals(other.configFile))
-			return false;
-		if (stock == null) {
-			if (other.stock != null)
-				return false;
-		} else if (!stock.equals(other.stock))
-			return false;
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((configFile == null) ? 0 : configFile.hashCode());
+        result = prime * result + ((eventDefinition == null) ? 0 : eventDefinition.hashCode());
+        result = prime * result + ((stock == null) ? 0 : stock.hashCode());
+        return result;
+    }
 
-	@Override
-	public String toString() {
-		return "TunedConfId [stock=" + stock + ", configFile=" + configFile + "]";
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TunedConfId other = (TunedConfId) obj;
+        if (configFile == null) {
+            if (other.configFile != null)
+                return false;
+        } else if (!configFile.equals(other.configFile))
+            return false;
+        if (eventDefinition == null) {
+            if (other.eventDefinition != null)
+                return false;
+        } else if (!eventDefinition.equals(other.eventDefinition))
+            return false;
+        if (stock == null) {
+            if (other.stock != null)
+                return false;
+        } else if (!stock.equals(other.stock))
+            return false;
+        return true;
+    }
 
-	@ManyToOne
-	@JoinColumns( { 
-		@JoinColumn(name = "isin", referencedColumnName = "isin", insertable = false, updatable = false, nullable = false),
-		@JoinColumn(name = "symbol", referencedColumnName = "symbol", insertable = false, updatable = false, nullable = false) 
-	})
-	public Stock getStock() {
-		return stock;
-	}
+    @Override
+    public String toString() {
+        return "TunedConfId [stock=" + stock + ", configFile=" + configFile + ", eventDefinition=" + eventDefinition + "]";
+    }
 
-	public void setStock(Stock stock) {
-		this.stock = stock;
-	}
+    @ManyToOne
+    @JoinColumns( { 
+        @JoinColumn(name = "isin", referencedColumnName = "isin", insertable = false, updatable = false, nullable = false),
+        @JoinColumn(name = "symbol", referencedColumnName = "symbol", insertable = false, updatable = false, nullable = false) 
+    })
+    public Stock getStock() {
+        return stock;
+    }
 
-	public String getConfigFile() {
-		return configFile;
-	}
+    public void setStock(Stock stock) {
+        this.stock = stock;
+    }
 
-	public void setConfigFile(String configFile) {
-		this.configFile = configFile;
-	}
+    public String getConfigFile() {
+        return configFile;
+    }
 
-	
-	
+    public void setConfigFile(String configFile) {
+        this.configFile = configFile;
+    }
+
+    public String getEventDefinition() {
+        return eventDefinition;
+    }
+
+    public void setEventDefinition(String eventDefinition) {
+        this.eventDefinition = eventDefinition;
+    }
+
 }

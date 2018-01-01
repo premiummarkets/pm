@@ -365,7 +365,7 @@ public class Install {
 		System.out.println(sysn);
 		String sysv = System.getProperty("os.version");
 		System.out.println(sysv);
-		Install.systemType = SystemTypes.getType(sysn);
+		Install.systemType = SystemTypes.getType(sysn, sysa);
 	}
 
 

@@ -331,11 +331,11 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	@Override
 	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
 		
-		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName());
+		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName(), "All");
 
 		synchronized (tunedConf) {
 			
-			CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate);
+			CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null);
 			if (passOneCalcMode.equals("auto")) {
 				endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
 				calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
@@ -344,7 +344,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
 				tunedConf.setLastCalculationStart(startDate);
 				tunedConf.setLastCalculationEnd(endDate);
-				calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate);
+				calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate, null, null);
 			}
 			
 			startDate = calculationBounds.getPmStart();

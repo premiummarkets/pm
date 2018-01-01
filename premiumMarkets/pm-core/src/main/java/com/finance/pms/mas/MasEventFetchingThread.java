@@ -219,7 +219,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					List<EventValue> l = event.getSortedDataResultList();
 					EventValue e = l.get(l.size() - 1);
 					message.setObjectProperty("Trend", e.getEventType().name());
-					
+					//FIXME!!!
 					EventsResources.getInstance().crudCreateEvents(event, "");
 					return message;
 				}

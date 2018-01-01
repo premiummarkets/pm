@@ -114,6 +114,7 @@ public class SymbolEvents implements Serializable {
 		this.stock = eventMessageObject.getStock();
 		this.dataResultMap = map;
 		this.eventDefList = new HashSet<String>();
+		this.eventDefList.add(eventValue.getEventDef().getEventDefinitionRef());
 		this.eventsState= EventState.STATE_TERMINATED;
 		
 	}
@@ -144,7 +145,7 @@ public class SymbolEvents implements Serializable {
 	public ArrayList<EventValue> getSortedDataResultList(Comparator<EventValue> comparator) {
 		
 		ArrayList<EventValue> sortedList = new ArrayList<EventValue>(dataResultMap.values());
-		Collections.sort(sortedList,comparator);
+		Collections.sort(sortedList, comparator);
 		return sortedList;
 	}
 

@@ -7,12 +7,16 @@ public class CalculationBounds {
     TunedConfMgr.CalcStatus calcStatus;
     Date pmStart;
     Date pmEnd;
+    Date newTunedConfStart;
+    Date newTunedConfEnd;
 
-    public CalculationBounds(TunedConfMgr.CalcStatus calcStatus, Date pmStart, Date pmEnd) {
+    public CalculationBounds(TunedConfMgr.CalcStatus calcStatus, Date pmStart, Date pmEnd, Date newTunedConfStart, Date newTunedConfEnd) {
         super();
         this.calcStatus = calcStatus;
         this.pmStart = pmStart;
         this.pmEnd = pmEnd;
+        this.newTunedConfStart = newTunedConfStart;
+        this.newTunedConfEnd = newTunedConfEnd;
     }
 
     public TunedConfMgr.CalcStatus getCalcStatus() {
@@ -25,6 +29,14 @@ public class CalculationBounds {
 
     public Date getPmEnd() {
         return pmEnd;
+    }
+
+    public Date getNewTunedConfStart() {
+        return newTunedConfStart;
+    }
+
+    public Date getNewTunedConfEnd() {
+        return newTunedConfEnd;
     }
 
     @Override

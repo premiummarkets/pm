@@ -33,6 +33,7 @@ package com.finance.pms.admin.install;
 public enum SystemTypes {
 	
 	LINUX ("Linux",".sh",".png", "script file"),
+	LINUX_64 ("Linux","_64.sh",".png", "script file"),
 	MAC	("Mac",".command",".png", "command file"),
 	WINDOWS ("Windows",".bat",".ico", "Windows batch file");
 
@@ -50,13 +51,17 @@ public enum SystemTypes {
 		
 	}
 
-	public static SystemTypes getType(String name) {
+	public static SystemTypes getType(String name, String arch) {
 		
 		if (name != null && (name.toLowerCase().contains(SystemTypes.WINDOWS.getLowerSys()) || name.toLowerCase().contains("win32") || name.toLowerCase().contains("wce")) ) 
 			return SystemTypes.WINDOWS;
 		
-		if (name != null && (name.toLowerCase().contains(SystemTypes.LINUX.getLowerSys()) || name.toLowerCase().contains("sun") || name.toLowerCase().contains("solaris")) ) 
+		if (name != null && (name.toLowerCase().contains(SystemTypes.LINUX.getLowerSys()) || name.toLowerCase().contains("sun") || name.toLowerCase().contains("solaris")) ) {
+		    if (arch.toLowerCase().contains("64")) {
+		        return SystemTypes.LINUX_64;
+		    }
 			return SystemTypes.LINUX;
+		}
 		
 		if (name != null && name.toLowerCase().contains(SystemTypes.MAC.getLowerSys())) 
 			return SystemTypes.MAC;

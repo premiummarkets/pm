@@ -25,6 +25,8 @@ import com.finance.pms.events.operations.conditional.OperationsCompositioner;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.CalculationBounds;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
 import com.finance.pms.events.utils.EventsStatusChecker;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -91,6 +93,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
     }
 
+    //TODO move Tuned conf mgt into EventREsources.
     protected void calculate(SymbolEvents symbolEvents, Date start, Date end) throws Exception {
 
         Stock stock = symbolEvents.getStock();
@@ -98,7 +101,6 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
         synchronized (eventInfo) {
 
             EventsStatusChecker checker = new EventsStatusChecker(stock, eventListName, eventInfo);
-            checker.endDateToLastEventConsistencyCheck(end);
             CalculationBounds calculationBounds = checker.autoCalcAndSetDatesBounds(start, end);
 
             Date adjustedStart = calculationBounds.getPmStart();
@@ -106,14 +108,10 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
             try {
 
-                if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
+                //
+                if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {//Calculation needed
 
-                    if (calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
-                        cleanEventsFor(eventInfo, eventListName, checker.getFirstCalculatedEvent(), checker.getLastCalculatedEvent());
-                    }
-
-                    SortedMap<EventKey, EventValue> calculatedEventsForCalculator;
-
+                    //Calculator preparation
                     Currency currency = stock.getMarketValuation().getCurrency();
                     IndicatorsCompositioner calculator;
                     if (eventInfo instanceof OperationsCompositioner) {
@@ -122,42 +120,62 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
                         calculator = legacyEventDefinitionHandling(stock);
                     }
 
+                    //If RESET we clean
+                    if (calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
+                        EventsResources.getInstance().crudDeleteEventsForStock(symbolEvents.getStock(), eventListName, eventInfo);
+                    }
+
+                    //Calculation
+                    SortedMap<EventKey, EventValue> calculatedEventsForCalculator;
+
                     Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
                     calculatedEventsForCalculator = calculator.calculateEventsFor(quotations, eventListName);
 
-                    if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
-                        //TunedConfMgr.getInstance().updateConf(tunedConf, calculatedEventsForCalculator.lastKey().getDate());
-                        symbolEvents.addCalculationOutput(calculator.getEventDefinition(), calculator.calculationOutput());
-                        symbolEvents.addEventResultElement(calculatedEventsForCalculator, calculator.getEventDefinition());
-                    } else {
-                        LOGGER.warn("Failed (empty) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+ "and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
+                    if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {//There are results
+
+                        TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+                        TunedConfMgr.getInstance().updateConf(tunedConf, calculatedEventsForCalculator.lastKey().getDate(), calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
+
+                        symbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
+                        symbolEvents.addEventResultElement(calculatedEventsForCalculator, eventInfo);
+
+                    } else {//No results
+
+                        LOGGER.warn("Failed (empty) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
+
+                        //Not needed as not modified.
+                        //TunedConf tunedConf = checker.getTunedConf();
                         //TunedConfMgr.getInstance().rollBackConf(tunedConf, oldLastCalculatedEvent, oldLastCalculationStart, oldLastCalculationEnd);
-                        cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd); 
-                        symbolEvents.addCalculationOutput(calculator.getEventDefinition(), new TreeMap<>());
-                        symbolEvents.addEventResultElement(new TreeMap<>(), calculator.getEventDefinition());
+                        cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd);
+
+                        symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
+                        symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
                     }
 
-                } else {
+                } else {//No calculation needed
+
                     LOGGER.info(
                             "Recalculation requested for "+stock+" using analysis "+eventListName+ "and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd+". "+
                                     "No recalculation needed calculation bound is "+ calculationBounds.toString());
+                    symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
+                    symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
                 }
-
 
             } catch (Throwable t) { //Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
                 LOGGER.error("Failed (empty) calculation for "+stock+" using analysis "+eventListName+ "and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd, t);
+                //Not needed as not modified??
+                //TunedConf tunedConf = checker.getTunedConf();
                 //TunedConfMgr.getInstance().rollBackConf(tunedConf, oldLastCalculatedEvent, oldLastCalculationStart, oldLastCalculationEnd);
                 cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd);
-                //throw t;
             }
 
         }
 
     }
-    
+
     public void cleanEventsFor(EventInfo eventInfo, String eventListName, Date start, Date end) {
         LOGGER.info("Cleaning " + eventInfo + " events for " + eventListName + " and "+ symbolEvents.getStock().getFriendlyName() + " from " + start + " to " + end);
-        EventsResources.getInstance().crudDeleteEventsForStock(symbolEvents.getStock(), eventListName, start, end, eventInfo);
+        EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(symbolEvents.getStock(), eventListName, start, end, eventInfo);
     }
 
     private IndicatorsCompositioner legacyEventDefinitionHandling(Stock stock) {
@@ -168,6 +186,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
             IndicatorsCompositioner calculator = instanciateECC(stock, eventInfo, nativeCalcsMap.get(eventInfo.getEventDefinitionRef()), observers);
             return calculator;
         } catch (Throwable e) {
+            LOGGER.warn("Event definition not supported : "+eventInfo, e);
             throw new RuntimeException(e);
         }
     }

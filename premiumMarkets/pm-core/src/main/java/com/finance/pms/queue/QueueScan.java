@@ -101,7 +101,7 @@ public class QueueScan extends Thread {
 				}
 				
 				try {
-					Thread.sleep(50);
+					Thread.sleep(5000);
 				} catch (InterruptedException ignored) {
 					LOGGER.debug("Interrupted Thread while Queue sleep : " + ignored);
 					toBeStoped = true;
