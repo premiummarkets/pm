@@ -40,7 +40,7 @@ public abstract class PMWithDataOperation extends PMIndicatorOperation {
 		super();
 	}
 
-	public PMWithDataOperation(String reference, String description, ArrayList<Operation> operands) {
+	public PMWithDataOperation(String reference, String description, ArrayList<? extends Operation> operands) {
 		super(reference, description, operands);
 	}
 	

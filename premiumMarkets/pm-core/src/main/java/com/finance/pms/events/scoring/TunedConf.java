@@ -88,13 +88,7 @@ public class TunedConf {
 	}
 
 	public void setLastCalculatedEvent(Date lastCalculatedEvent) {
-		this.lastCalculatedEvent = lastCalculatedEvent;
-	}
-	
-	public void update(Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
 	    this.lastCalculatedEvent = lastCalculatedEvent;
-        this.lastCalculationStart = lastCalculationStart;
-        this.lastCalculationEnd =  lastCalculationEnd;
 	}
 
 	

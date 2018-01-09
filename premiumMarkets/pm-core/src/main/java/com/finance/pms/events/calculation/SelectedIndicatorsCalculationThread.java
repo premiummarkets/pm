@@ -98,9 +98,10 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
         Stock stock = symbolEvents.getStock();
 
-        synchronized (eventInfo) {
+        TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+        synchronized (tunedConf) {
 
-            EventsStatusChecker checker = new EventsStatusChecker(stock, eventListName, eventInfo);
+            EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
             CalculationBounds calculationBounds = checker.autoCalcAndSetDatesBounds(start, end);
 
             Date adjustedStart = calculationBounds.getPmStart();
@@ -131,17 +132,18 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
                     Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
                     calculatedEventsForCalculator = calculator.calculateEventsFor(quotations, eventListName);
 
-                    if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {//There are results
+                    if (calculatedEventsForCalculator != null) {//There are results or empty
 
-                        TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
-                        TunedConfMgr.getInstance().updateConf(tunedConf, calculatedEventsForCalculator.lastKey().getDate(), calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
-
+                        //TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+                        Date lastEventDate = (calculatedEventsForCalculator.isEmpty())?null:calculatedEventsForCalculator.lastKey().getDate();
+                        TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
+                       
                         symbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
                         symbolEvents.addEventResultElement(calculatedEventsForCalculator, eventInfo);
 
                     } else {//No results
 
-                        LOGGER.warn("Failed (empty) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
+                        LOGGER.warn("Failed (null returned) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
 
                         //Not needed as not modified.
                         //TunedConf tunedConf = checker.getTunedConf();

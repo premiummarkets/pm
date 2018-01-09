@@ -495,7 +495,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 		List<Alternative> alternatives = new ArrayList<Alternative>();
 		if ((currentOp.getParams().size() > commaPosition || currentOp.undeterministicParamCount())) {
 			
-			Param param = (currentOp.undeterministicParamCount())?currentOp.getParams().get(0):currentOp.getParams().get(commaPosition);
+			Param param = (currentOp.undeterministicParamCount())?currentOp.getCurrentParamOrVarArg(commaPosition):currentOp.getParams().get(commaPosition);
 			String parsedParam =  currentOp.getParsedParma(commaPosition);
 	
 			parsedParam = (currentTyping != null && !currentTyping.isEmpty())?currentTyping:parsedParam;

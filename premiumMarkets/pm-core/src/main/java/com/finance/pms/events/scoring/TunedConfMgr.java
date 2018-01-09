@@ -160,7 +160,9 @@ public class TunedConfMgr {
     }
 
     public void updateConf(TunedConf tunedConf, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
-        tunedConf.update(lastCalculatedEvent, lastCalculationStart, lastCalculationEnd);
+        if (lastCalculatedEvent != null) tunedConf.setLastCalculatedEvent(lastCalculatedEvent);
+        tunedConf.setLastCalculationStart(lastCalculationStart);
+        tunedConf.setLastCalculationEnd(lastCalculationEnd);
         getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
     }
 

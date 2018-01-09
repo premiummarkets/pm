@@ -135,7 +135,7 @@ public abstract class ANTLRParserHelper {
 			List<Operation> operands = operation.getOperands();
 			if (operands.size() == 0) {//undeterministic nb of operands
 				//TODO infer type operand from the empty list
-				editorOpDescr.addParam(editorOpDescr.new Param("undeterministic", DoubleMapOperation.class, "undeterministic", "undeterministic" ,null));
+				editorOpDescr.addParam(editorOpDescr.new Param("undeterministic", DoubleMapOperation.class, "undeterministic", "undeterministic" , null, false));
 			} else {
 				for (Operation operand : operands) {
 					if (operand.getParameter() != null && !(operand instanceof LeafOperation)) {
@@ -145,7 +145,7 @@ public abstract class ANTLRParserHelper {
 					}
 					if (operand.getParameter() == null) {
 						String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValueAsString():null;
-						editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString));
+						editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString, operand.getIsVarArgs()));
 					}
 				}
 			}

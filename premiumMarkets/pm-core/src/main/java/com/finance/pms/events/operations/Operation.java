@@ -65,7 +65,7 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
  * Parameters : preset operands already resolved.
  **/
 @XmlRootElement
-@XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formula", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector"} )
+@XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formula", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
     ArithmeticOperation.class, ArithmeticUnaryOperation.class, //with in DoubleMapOperation
     Condition.class, DoubleMapOperation.class, EventMapOperation.class, NumberOperation.class, StringOperation.class})
@@ -87,11 +87,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     //Default value hint for this
     private Value<?> defaultValue;
 
-    //this name as operand of the parent
+    //This name as operand of the parent
     private String referenceAsOperand;
 
-    //this reference as native operation (should not be changed)//TODO use this reference to sort out reentrant and invalid ops instead of the overridden reference.
+    //This reference as native operation (should not be changed)//TODO use this reference to sort out reentrant and invalid ops instead of the overridden reference.
     private String operationReference;
+
+    private Boolean isVarArgs = false;
 
     @XmlElementWrapper(name = "availableOutputSelectors")
     @XmlElement(name = "availableOutputSelector")
@@ -245,6 +247,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     public abstract Value<?> calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 
 
+    /**
+     * Operation reference as in User Operations list.
+     */
     public String getReference() {
         return reference;
     }
@@ -259,6 +264,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getIsVarArgs() {
+        return isVarArgs;
+    }
+
+    public void setIsVarArgs(Boolean isVarArgs) {
+        this.isVarArgs = isVarArgs;
     }
 
     public List<Operation> getOperands() {
@@ -302,7 +315,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
             for (int i = 0; i < this.operands.size(); i++) {
                 if (this.operands.get(i).getParameter() == null) {//no param is pre set => we pop an operand in place
                     Operation nextOverridingOperand = overridingOperandsIt.next();
-                    nextOverridingOperand.setReferenceAsOperand(this.operands.get(i).getReference()); //we set the overriding operand reference name within this operation
+                    nextOverridingOperand.setIsVarArgs(this.operands.get(i).getIsVarArgs());
+                    nextOverridingOperand.setReferenceAsOperand(this.operands.get(i).getReference());//we set the overriding operand reference name within this operation
                     this.operands.set(i, nextOverridingOperand);
                 } 
                 //else we skip the operand
@@ -311,7 +325,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
             throw new IllegalArgumentException(this + " rejected " + overridingOperands+" are no enough operands. Expected : "+operands+", Parameterised : "+parameter);
         }
         //Too many operands
-        if (overridingOperandsIt.hasNext()) throw new IllegalArgumentException(this + " rejected " + overridingOperands+" are too many operands. Expected : "+operands+", Parameterised : "+parameter);
+        if (overridingOperandsIt.hasNext()) {
+            if (this.operands.get(this.operands.size()-1).getIsVarArgs()) {//var args
+                while(overridingOperandsIt.hasNext()) {
+                    Operation nextOverridingOperand = overridingOperandsIt.next();
+                    nextOverridingOperand.setIsVarArgs(true);
+                    this.operands.add(nextOverridingOperand);
+                }
+            } else {//error
+                throw new IllegalArgumentException(this + " rejected " + overridingOperands+" are too many operands. Expected : "+operands+", Parameterised : "+parameter);
+            }
+        }
 
     }
 
@@ -435,7 +459,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     public Boolean isNative() {
         return formula == null;
     }
-
+    
+    /**
+     * Name given to this operation as a parameter of higher order operation.
+     */
     public String getReferenceAsOperand() {
         return referenceAsOperand;
     }
@@ -516,6 +543,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
         this.availableOutputSelectors = availableOutputSelectors;
     }
 
+    /**
+     * Underlying calculated operation name
+     */
     public String getOperationReference() {
         return operationReference;
     }

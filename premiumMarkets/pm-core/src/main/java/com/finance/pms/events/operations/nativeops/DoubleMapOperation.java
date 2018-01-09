@@ -44,8 +44,8 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 	public DoubleMapOperation() {
 		super("historical data", "Time series of real historical data or resulting of calculations");
 	}
-	
-	public DoubleMapOperation(String reference) {
+
+    public DoubleMapOperation(String reference) {
 		super(reference, reference);
 	}
 
@@ -55,6 +55,10 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 
 	public DoubleMapOperation(String reference, String description, ArrayList<? extends Operation> operands) {
 		super(reference, description, operands);
+	}
+	
+	public DoubleMapOperation(String reference, String referenceAsOperand, String description, Value<?> defaultValue) {
+	    super(reference, referenceAsOperand, description, defaultValue);
 	}
 
 	@Override

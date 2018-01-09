@@ -65,7 +65,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(previousStart, previousEnd);
@@ -91,7 +91,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-21");
@@ -121,7 +121,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-20");
@@ -150,7 +150,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-21");
@@ -179,7 +179,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-20");
@@ -208,7 +208,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         Date startRequested = simpleDateFormat.parse("2000-12-20");
@@ -237,7 +237,7 @@ public class EventsStatusCheckerTest {
         
         PowerMock.replayAll();
         
-        checker = new EventsStatusChecker(stock, analysisName, eventDef);
+        checker = new EventsStatusChecker(tunedConf);
         
         //when
         Date startRequested = simpleDateFormat.parse("2017-12-21");

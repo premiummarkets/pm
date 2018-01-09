@@ -149,7 +149,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 
 
 
-			} else if (token instanceof CommonTree) {// No parsing error occured (we still have to check the param types)
+			} else if (token instanceof CommonTree) {// No parsing error occurred (we still have to check the param types)
 
 				CommonTree cTree = ((CommonTree)token);
 				String paramTxt = cTree.getText();
@@ -157,7 +157,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 
 			}
 
-			Param expectedParam = (currentOp.undeterministicParamCount())?currentOp.getParams().get(0):currentOp.getParams().get(currentParamPos);
+			Param expectedParam = (currentOp.undeterministicParamCount())?currentOp.getCurrentParamOrVarArg(currentParamPos):currentOp.getParams().get(currentParamPos);
 			if (!expectedParam.getParamType().equals(paramType)) {
 
 				String msg = "Wrong parameter type '"+paramType.getTypeDescr()+"' for "+currentOp.getName()+". Expected : "+currentOp.getShortSynoptic();
@@ -184,11 +184,11 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			throw new ParamsCountException(input, currentOp, msg, true, Qualifier.NOTENOUGHARGS, paramsStr, position);
 		} 
 		//Too many params
-		else if (params.size() > currentOp.getParams().size() && !currentOp.undeterministicParamCount() ) {
+		else if ( params.size() > currentOp.getParams().size() && !currentOp.undeterministicParamCount() ) {
 			String paramsStr = getTheSonOf(params.toArray(new Object[]{}));
 			String msg = "Too many arguments '"+paramsStr+"' for "+currentOp.getName()+". Expected : "+currentOp.getShortSynoptic();
-			System.out.println(msg+ " "+params);
-			currentOp.setLastParamParsed(currentOp.getParams().size()-1, paramsStr);
+			System.out.println(msg + " " + currentOp.getParams());
+			//currentOp.setLastParamParsed(currentOp.getParams().size()-1, paramsStr);
 			throw new ParamsCountException(input, currentOp, msg, true, Qualifier.TOOMANYARGS, paramsStr, whereIsThatSonOf(params.get(0)));
 		}	
 		else if (params.size() == currentOp.getParams().size() || (params.size() >= 1 && currentOp.undeterministicParamCount())) {

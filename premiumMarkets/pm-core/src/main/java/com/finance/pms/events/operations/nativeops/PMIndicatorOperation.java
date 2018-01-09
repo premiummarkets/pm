@@ -52,7 +52,7 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
         super();
     }
 
-    public PMIndicatorOperation(String reference, String description, ArrayList<Operation> operands) {
+    public PMIndicatorOperation(String reference, String description, ArrayList<? extends Operation> operands) {
         super(reference, description, operands);
     }
 

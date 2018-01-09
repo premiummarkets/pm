@@ -59,7 +59,7 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  * An other approach is too create an operation for all TalibIndicator used as subjacent indicators of each TalibIndicatorsCompositioner.
  * Then replicate every TalibIndicatorsCompositioner calculation by creating OperationsCompositioners through the UI.
  * 
- * Reviewed terminologie : Indicator(s)/IndicatorsCompositionner (former EventCompositionCalculator) -> Operation(s) -> OperationsCompositionner (former EventConditionHolder)
+ * Reviewed terminology : Indicator(s)/IndicatorsCompositionner (former EventCompositionCalculator) -> Operation(s) -> OperationsCompositionner (former EventConditionHolder)
  */
 public abstract class IndicatorsCompositioner {
 

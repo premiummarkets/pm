@@ -100,15 +100,17 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 		private String paramDescription;
 		private String paramSynoptic;
 		private String paramDefault;
+		private Boolean isVarArgs;
 	
 		
-		public Param(String refAsOperand, Class<? extends Operation> operandClass, String paramSynoptic, String paramDescription, String defaultAsString) {
+		public Param(String refAsOperand, Class<? extends Operation> operandClass, String paramSynoptic, String paramDescription, String defaultAsString, Boolean isVarArgs) {
 			super();
 			this.paramType = ParamType.valueOf(operandClass);
 			this.paramName = refAsOperand;
 			this.paramDescription = paramDescription;
 			this.paramSynoptic = paramSynoptic;
 			this.paramDefault = defaultAsString;
+			this.isVarArgs = isVarArgs;
 		}
 
 		public ParamType getParamType() {
@@ -172,10 +174,46 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 	}
 	
 	public Boolean undeterministicParamCount() {
-		if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
-			return true;
-		}
-		return false;
+	    //Operation with an empty list operands
+	    if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
+            return true;
+        }
+	    //Operation with trailing "varargs" operand
+	    else if (params != null) {
+	        for(int i = 0; i < params.size(); i++) {
+	            if (params.get(i).paramName != null && params.get(i).isVarArgs) {
+	                return true;
+	            }
+	        }
+	    }
+	    return false;
+	}
+	
+	/**
+	 * Only last param can be a varArgs?
+	 * @param currentParamPos
+	 * @return
+	 */
+	public Param getCurrentParamOrVarArg(Integer currentParamPos) {
+	    //Empty list operands
+	    if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
+	        return params.get(0);
+	    }
+	    //Trailing "varargs" operand
+	    else if (params != null) {
+	        int i = 0;
+	        for(; i < params.size(); i++) {
+                if (params.get(i).paramName != null && params.get(i).isVarArgs) {
+                    break; //varArg position
+                }
+            }
+	        if (currentParamPos < i) {//current position is not the varArg yet
+	            return params.get(currentParamPos);
+	        } else {//We passed the first varArg
+	            return params.get(i);
+	        }
+	    }
+	    return null; //No varArg (should not be here ...) throw Exception?
 	}
 
 	@Override
@@ -236,7 +274,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 
 	public void setLastParamParsed(int i, String parsedParam) {
 		if (this.undeterministicParamCount() && this.parsedParam.size() <= i) {
-			for (int j = this.parsedParam.size(); j <=i; j++ ) {
+			for (int j = this.parsedParam.size(); j <= i; j++ ) {
 				this.parsedParam.add(null);
 			}
 		}

@@ -5,11 +5,9 @@ import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.scoring.CalculationBounds;
 import com.finance.pms.events.scoring.TunedConf;
-import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
 
 public class EventsStatusChecker {
@@ -22,10 +20,9 @@ public class EventsStatusChecker {
     private Date currentTunedConfStart;
 
 
-    public EventsStatusChecker(Stock stock, String analysisName, EventInfo eventDef) {
+    public EventsStatusChecker(TunedConf tunedConf) {
         super();
-        this.stock = stock;
-        TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, analysisName, eventDef.getEventDefinitionRef());
+        this.stock = tunedConf.getTunedConfId().getStock();
         this.currentTunedConfStart = tunedConf.getLastCalculationStart();
         this.currentTunedConfEnd = tunedConf.getLastCalculationEnd();
 
