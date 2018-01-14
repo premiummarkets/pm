@@ -65,7 +65,7 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
 public class OperationsCompositioner extends EventMapOperation implements EventInfo {
 	
 	@XmlTransient
-	private EventDefDescriptorDynamic eventDefDescriptor;
+	private final EventDefDescriptorDynamic eventDefDescriptor;
 
 	public OperationsCompositioner() {
 		super("operationscompositionner","operationscompositionner", 
@@ -77,7 +77,6 @@ public class OperationsCompositioner extends EventMapOperation implements EventI
 	public OperationsCompositioner(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
-		eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
 	@Override

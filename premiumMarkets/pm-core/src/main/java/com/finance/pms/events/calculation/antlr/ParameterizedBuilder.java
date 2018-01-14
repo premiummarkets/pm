@@ -297,6 +297,8 @@ public abstract class ParameterizedBuilder extends Observable {
 
     protected List<Operation> actualCheckInUse(Collection<Operation> operations, Operation operationToCheck) {
 
+        if (operationToCheck == null) return new ArrayList<>();
+
         List<Operation> operationUsing = new ArrayList<Operation>();
         for (Operation operation : operations) {
             try {
@@ -324,6 +326,8 @@ public abstract class ParameterizedBuilder extends Observable {
     }
 
     protected List<Operation> actualReplaceInUse(Collection<Operation> operations, Operation replacemetOp) {
+
+        if (replacemetOp == null) return new ArrayList<>();
 
         List<Operation> operationUsing = new ArrayList<Operation>();
         for (Operation operation : operations) {

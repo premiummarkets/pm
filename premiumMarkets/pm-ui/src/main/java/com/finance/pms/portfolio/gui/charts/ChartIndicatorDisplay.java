@@ -33,7 +33,6 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -611,7 +610,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
                     if (allSelectedEventInfos != null && !allSelectedEventInfos.isEmpty() && chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
                         chartTarget.getHightlitedEventModel().setViewParam(0, allSelectedEventInfos);
-                        chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty"));
+                        //chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty")); //The dirty state has to be checked on the TunedConf status of the EventInfo
                     }
 
                     //Will clean selected event infos for this stock

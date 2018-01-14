@@ -93,35 +93,41 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		
 		//Is called when operations are deleted, changed or added
 		this.parameterizedOperationBuilder.addObserver(new Observer() {
-			@Override
-			public void update(Observable o, Object arg) {
+		    @Override
+		    public void update(Observable o, Object arg) {
 
-			    if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
+		        if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
 
-			    ObsMsg msg = (ObsMsg) arg;
+		        ObsMsg msg = (ObsMsg) arg;
 
-			    switch(msg.getType()) { 
-			    case OPERATION_CRUD :    //Any ops change or status change
-			        List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
-			        if (!checkInUse.isEmpty()) {
-			            LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
-			            cleanEventFor(checkInUse);
-			            for (Operation opInUse : checkInUse) {
-			                EventModel.dirtyCacheFor((EventInfo) opInUse);
-			            }
-			            EventModel.updateEventInfoStamp();
-			            throw new InUsedExecption(checkInUse);
-			        }
-			        break;
-			    case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
-			        actualReplaceInUse(getCurrentOperations().values(), msg.getOperation());
-			        break;
-			    case RESET_OPS_INMEM_INSTANCES :    //Reset ops list from scratch
-			        resetUserOperations();
-			        updateEditableOperationLists();
-			        break;
-			    }
-			}
+		        switch(msg.getType()) { 
+		        case OPERATION_CRUD :    //Any ops change or status change
+		            if (msg.getOperation() != null) {
+		                List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
+		                if (!checkInUse.isEmpty()) {
+		                    LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
+		                    cleanEventFor(checkInUse);
+		                    for (Operation opInUse : checkInUse) {
+		                        if (opInUse instanceof EventInfo) {
+                                    EventModel.dirtyCacheFor((EventInfo) opInUse);
+                                } else {
+                                    LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
+                                }
+		                    }
+		                    EventModel.updateEventInfoStamp();
+		                    throw new InUsedExecption(checkInUse);
+		                }
+		            }
+		            break;
+		        case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
+		            if (msg.getOperation() != null) actualReplaceInUse(getCurrentOperations().values(), msg.getOperation());
+		            break;
+		        case RESET_OPS_INMEM_INSTANCES :    //Reset ops list from scratch
+		            resetUserOperations();
+		            updateEditableOperationLists();
+		            break;
+		        }
+		    }
 
             private void cleanEventFor(List<Operation> checkInUse) {
                 OperationsCompositioner[] cHoldersInUse = checkInUse.stream()

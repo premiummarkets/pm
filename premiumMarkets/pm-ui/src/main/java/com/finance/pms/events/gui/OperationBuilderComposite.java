@@ -782,8 +782,8 @@ public class OperationBuilderComposite extends Composite {
 
     protected void previousCalcsAsDirty(String identifier) {
         Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
-        parameterizedBuilder.notifyChanged(operation);
-        //refreshViews();
+        if (operation == null) LOGGER.warn("No operation was found in User Current Operations for identifier :"+identifier);
+        else parameterizedBuilder.notifyChanged(operation);
     }
 
     protected void refreshViews() {

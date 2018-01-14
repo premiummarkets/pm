@@ -61,6 +61,7 @@ import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 /**
+ * !!Operations must be state less across calculations as reused!! 
  * Operands : resolved at runtime.
  * Parameters : preset operands already resolved.
  **/

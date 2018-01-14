@@ -224,7 +224,7 @@ public class EventsResources {
         private Set<Stock> keySet() {
             return underLayingSoftMap.keySet();
         }
-        
+
         private Map<EventInfo, SoftReference<EventCacheEntryList>> get(Stock stock) {
             return underLayingSoftMap.get(stock);
         }
@@ -380,6 +380,7 @@ public class EventsResources {
 
         for (String eventListName : eventListNames) {
             //TODO : check if cache is up to date
+            LOGGER.info("Updating soft cache from " + startDate + " to " + endDate + " for "+ eventDefinitions.stream().map(e-> e.getEventDefinitionRef()).reduce((r,e) -> r +", "+ e) + " and " + eventListName + " from "+ eventsTableName);
             List<SymbolEvents> eventsForEventListName = DataSource.getInstance().loadEventsByDate(eventsTableName, startDate, endDate, eventDefinitions, eventListName);
             eventDefinitions.stream().forEach(eventInfo -> this.addEventsToSoftCache(eventsForEventListName, eventListName, eventInfo));
         }
@@ -396,14 +397,19 @@ public class EventsResources {
         for (String eventListName : eventListNames) {
             EventsForAnalisysNameCacheHolder eventListNameEventsCache = EVENTS_CACHE.get(eventListName);
             if (eventListNameEventsCache == null || eventListNameEventsCache.get(stock) == null) { //New analyses entry or stock entry for this analyses
-                LOGGER.info("Events not found in cache for : "+eventListName+ " and incidentally, "+stock + " from "+startDate+" to "+endDate);
+                LOGGER.debug("Events not found in cache for : "+eventListName+ " and incidentally, "+stock + " from "+startDate+" to "+endDate);
                 SymbolEvents eventsForEventListNameNStockNEventDefs = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, eventDefinitions, eventListName);
                 eventDefinitions.stream().forEach(eventInfo -> this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForEventListNameNStockNEventDefs}), eventListName, eventInfo));
             } else { //Existing analyses and stock
+                LOGGER.debug(eventListName + " has had been cached but needs check for potential clearance.");
                 Set<EventInfo> newEvDefsEntries = eventDefinitions.stream()
-                        .filter(eventInfo -> eventListNameEventsCache.get(stock).get(eventInfo) == null) //New EventDef entry
+                        .filter(eventInfo -> eventListNameEventsCache.readEventsFromStockCache(stock, eventInfo) == null) //New EventDef entry
                         .collect(Collectors.toSet());
-                if (newEvDefsEntries.isEmpty()) return;
+                if (newEvDefsEntries.isEmpty()) {
+                    LOGGER.debug("All events are up to date in cache for : "+eventListName+ " and "+ eventDefinitions.stream().map(e-> e.getEventDefinitionRef()).reduce((r,e) -> r +", "+ e) + " and " + stock + " and incidentally from "+startDate+" to "+endDate);
+                    return;
+                }
+                LOGGER.info("Events not found in cache for : " + eventListName + " and "+ newEvDefsEntries.stream().map(e-> e.getEventDefinitionRef()).reduce((r,e) -> r +", "+ e) + " and "+stock + ", incidentally from "+startDate+" to "+endDate);
                 SymbolEvents eventsForName = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, newEvDefsEntries, eventListName);
                 newEvDefsEntries.stream().forEach(eventInfo -> this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForName}), eventListName, eventInfo));
             }
@@ -633,6 +639,8 @@ public class EventsResources {
     }
 
     private void persitEvents(List<SymbolEvents> events, String eventListName, String eventTableName) {
+
+        LOGGER.info("INSERT/UPDATE "+events.stream().map(e -> e.getDataResultMap().size()).reduce((r,e) -> r+e)+" events for "+eventListName+" into " + eventTableName);
 
         SortedSet<Stock> lockIds = new TreeSet<Stock>();
         for (SymbolEvents se : events) {

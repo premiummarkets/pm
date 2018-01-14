@@ -1,0 +1,429 @@
+delete from EVENTS where EVENTDEFID = 900;
+delete from TUNEDCONF;
+
+--gxChaikinOscThresh, gxMightyChaikin, gxMacdZeroCross, gxStochThresh, gxSmaReversal, gxMfiThresh, gxRSIThresh, gxAroon, gxMacdSignalCross
+--Basics 			,IXIC,GSPC
+--Agro-food		,CA, ADP, PEP
+--Basic Materials		,NOV, BHI
+--Biotechnology		,GILD, AMGN
+--Chemicals		,PG,SIAL
+--Construction		,FAST
+--Consumer Goods		,MNST, GMCR
+--Distribution		,COST, AMZN
+--Equipment		,HON,UTX
+--Finance			,BK, BAC
+--
+--Health			,CVS,UNH
+--Industrial Goods	,DE
+--Investment Companies	,GE
+--IT			,AAPL
+--Leisure			,TRV, MCD
+--Media			,TWX
+--Oil and Natural Gas	,CVX, APC
+--Services		,SIRI
+--Technology		,EA
+--Telecommunications	,VOD,CSCO, RIMM
+--Textile and Leather	,CTAS
+--Transports		,RYAAY, FDX
+--Vehicles and Equipment	,BA, F
+
+
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('F','F','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('BA','BA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('FDX','US31428X1063','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('RYAAY','US7835131043','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('CTAS','US1729081059','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('RIMM','CA7609751028','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('CSCO','CSCO','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('VOD','VOD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('EA','EA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('SIRI','SIRI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('APC','APC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('CVX','CVX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('TWX','TWX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('MCD','MCD','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('TRV','US89417E1091','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('AAPL','AAPL','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('GE','GE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('DE','DE','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('UNH','US91324P1021','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('CVS','CVS','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('BAC','BAC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('BK','BK','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('UTX','UTX','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('HON','HON','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('AMZN','AMZN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('COST','US22160K1051','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('GMRC','GMRC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('MNST','MNST','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('FAST','US3119001044','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('SIAL','US8265521018','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('PG','PG','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('AMGN','AMGN','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('GILD','US3755581036','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('BHI','BHI','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('NOV','NOV','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('PEP','PEP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('ADP','ADP','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('CA','CA','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('GSPC','GSPC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');
+--
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxChaikinOscThresh');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMightyChaikin');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdZeroCross');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxStochThresh');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxSmaReversal');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMfiThresh');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxRSIThresh');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxAroon');
+--insert into TUNEDCONF values ('IXIC','IXIC','UiAnalysis','1970-01-01','1970-01-02','1970-01-01','gxMacdSignalCross');

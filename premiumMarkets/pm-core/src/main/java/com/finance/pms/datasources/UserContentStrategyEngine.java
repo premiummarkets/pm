@@ -64,7 +64,6 @@ import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMe
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.PMDataFreeOperation;
 import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -122,7 +121,8 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
             IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
                     SpringContext.getSingleton(), 
                     analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-                    stockList, datedeb, datefin, engineObservers.toArray(new Observer[0]));
+                    stockList, datedeb, datefin,
+                    engineObservers.toArray(new Observer[0]));
 
             Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
 
@@ -135,22 +135,6 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
                     doRunPassOne = false;
                     LOGGER.info("The requested operations are data free, no pass one will be processed : "+
                             viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
-                }
-            }
-            //Set Parameterised data free operands as dirty if required
-            if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {
-                Object isDirty = viewStateParams[1].iterator().next();
-                if (isDirty != null && isDirty.equals("setDirty")) {
-                    //"setDirty" is set and calculator is a Parameterised => we set the calculator's operation compositioner operands as dirty (needs update).
-                    //"setDirty" is set on forced recalculation.
-                    viewStateParams[0].stream()
-                    .forEach(e -> {
-                        if (((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
-                            List<Operation> collectOperationOf = ((Operation) e).collectOperationOf(PMDataFreeOperation.class);
-                            collectOperationOf.stream().forEach(o -> ((PMDataFreeOperation) o).needsUpdate());
-                        }
-                    });
-                    viewStateParams[1] = null;
                 }
             }
 

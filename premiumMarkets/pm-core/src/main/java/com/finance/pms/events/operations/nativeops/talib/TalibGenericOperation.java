@@ -56,9 +56,9 @@ import com.tictactec.ta.lib.RetCode;
 
 public class TalibGenericOperation extends TalibOperation {
 	
-	private List<String> inConstantsNames;
-	private List<String> inDataNames;
-	private List<String> outDataNames;
+	private final List<String> inConstantsNames;
+	private final List<String> inDataNames;
+	private final List<String> outDataNames;
 
 	private Method method;
 

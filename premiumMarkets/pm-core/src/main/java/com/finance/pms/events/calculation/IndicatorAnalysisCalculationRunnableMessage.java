@@ -64,7 +64,6 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Currency calculationCurrency;
 	
 	private Integer passNumber;
-	//private Boolean persistEvents;
 	private String passOneRecalculationMode;
 
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
@@ -79,7 +78,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.datefin = datefin;
 		this.datedeb = datedeb;
 		this.shareList = shareList;
-		//calculationCurrency is null the stock currency will be used
+		//calculationCurrency is null : the stock currency will be used
 		this.observers = observers;
 		
 	}
@@ -87,9 +86,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
 													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
 													Stock oneStock, Date datedeb, Date datefin, Currency calculationCurrency, Observer... observers) {
-		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin);
+		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, observers);
 		this.calculationCurrency = calculationCurrency;
-		this.observers = observers;
 	}
 	
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {

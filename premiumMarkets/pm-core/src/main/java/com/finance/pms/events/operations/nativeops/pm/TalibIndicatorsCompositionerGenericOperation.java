@@ -37,9 +37,13 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.calculation.EventDefDescriptorStatic;
 import com.finance.pms.events.calculation.TalibIndicatorsCompositioner;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.EventMapOperation;
@@ -58,16 +62,14 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
     private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionerGenericOperation.class);
 
-    private TalibIndicatorsCompositioner calculator;
-    private LinkedHashMap<String, Type> outputQualifiers;
+    private final Class<? extends TalibIndicatorsCompositioner> calculatorClass;
 
     public TalibIndicatorsCompositionerGenericOperation(
             String reference, String description, 
-            TalibIndicatorsCompositioner calculator, List<String> inConstantsNames, LinkedHashMap<String, Type> outputQualifiersMap) throws Exception {
+            Class<? extends TalibIndicatorsCompositioner> calculatorClass, List<String> inConstantsNames) throws Exception {
         super(reference, description);
 
-        this.calculator = calculator;
-        this.outputQualifiers = outputQualifiersMap;
+        this.calculatorClass = calculatorClass;
 
         ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
         for (String inConstantName : inConstantsNames) {
@@ -87,6 +89,8 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
         EventDataValue buySellEvents = new EventDataValue();
         try {
 
+            TalibIndicatorsCompositioner calculator = calculatorClass.getConstructor().newInstance();
+
             List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
             calculator.genericInit(inputConstants.toArray(new Integer[0]));
 
@@ -98,8 +102,15 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
             //Events is the only functional output for this operation => boolean
             SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(quotations, "inMem"+this.getClass().getSimpleName()+"Operation");
             buySellEvents = new EventDataValue(eventsFor);
-            
+
             //Adding indicator outputs for charting
+            EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();
+            EventDefDescriptorStatic eventDefDescriptor = eventDefinition.getEventDefDescriptor();
+            if (eventDefDescriptor == null) {
+                throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
+            }
+            LinkedHashMap<String, Type> outputQualifiers = eventDefDescriptor.descriptionMap();
+
             SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
             int i = 0;
             for (String outputName : outputQualifiers.keySet()) {
@@ -112,7 +123,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
                 i++;
             }
 
-            buildChartable(targetStock);
+            buildChartable(targetStock, outputQualifiers);
 
         } 
         catch (TalibException e) {
@@ -125,7 +136,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
         return buySellEvents;
     }
 
-    private  void buildChartable(TargetStockInfo targetStock) {
+    private void buildChartable(TargetStockInfo targetStock, LinkedHashMap<String, Type> outputQualifiers) {
 
         //createChartedOutputGroups(targetStock, operandsOutputs)
         String mainOutputQualifier = outputQualifiers.keySet().stream().findFirst().get(); //first element ..

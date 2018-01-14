@@ -3,7 +3,6 @@ package com.finance.pms.events.operations.nativeops.pm;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,10 +13,7 @@ import org.reflections.Reflections;
 import org.springframework.stereotype.Service;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.calculation.EventDefDescriptorStatic;
 import com.finance.pms.events.calculation.TalibIndicatorsCompositioner;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 
 @Service("talibIndicatorsCompositionerOperationReflectiveGenerator")
 public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
@@ -33,14 +29,6 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
 
                     try {
 
-                        TalibIndicatorsCompositioner calculator = calculatorClass.getConstructor().newInstance();
-                        EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();
-                        EventDefDescriptorStatic eventDefDescriptor = eventDefinition.getEventDefDescriptor();
-                        if (eventDefDescriptor == null) {
-                            throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner won't be reflected. Please implement.");
-                        }
-                        LinkedHashMap<String, Type> outputSelectorArray = eventDefDescriptor.descriptionMap();
-
                         List<String> inConstantsNames = Arrays.stream(calculatorClass.getDeclaredMethods())
                                 .filter(m -> m.getName().equals("init"))
                                 .flatMap(m -> Arrays.stream(m.getParameters()).map( p -> p.getName()))
@@ -48,10 +36,8 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
 
                         LOGGER.info("Initialising TalibIndicatorsCompositionerGenericOperation : "+calculatorClass.getSimpleName());
                         return new TalibIndicatorsCompositionerGenericOperation(
-                                "gx_"+calculatorClass.getSimpleName(), 
-                                "gx_ "+calculatorClass.getSimpleName()+", "+eventDefinition.getEventReadableDef(), 
-                                calculator,
-                                inConstantsNames, outputSelectorArray);
+                                "gx_"+calculatorClass.getSimpleName(), "gx_ "+calculatorClass.getSimpleName(), 
+                                calculatorClass, inConstantsNames);
 
                     } catch (NotImplementedException e) {
                         LOGGER.warn(e.getMessage());

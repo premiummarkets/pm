@@ -53,9 +53,5 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 	public int operationStartDateShift() {//The shift must be done ad'hoc and internally in the operation implementer
 		return 0;
 	}
-	
-	public void needsUpdate() {
-	    //No special initialisation by default
-	}
 
 }

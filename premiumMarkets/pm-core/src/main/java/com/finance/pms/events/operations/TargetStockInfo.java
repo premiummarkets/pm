@@ -122,7 +122,7 @@ public class TargetStockInfo {
     private Date startDate;
     private Date endDate;
     private String analysisName;
-    private String conditionHolderReference;
+    private String operationsCompositionerReference;
     private EventsAnalyser<?> eventAnalyser;
 
     private List<Output> calculatedOutputsCache;
@@ -133,7 +133,7 @@ public class TargetStockInfo {
     public TargetStockInfo(String analysisName, String operationsCompositionerReference, Stock stock, Date startDate, Date endDate) throws WarningException {
         super();
         this.analysisName = analysisName;
-        this.conditionHolderReference = operationsCompositionerReference;
+        this.operationsCompositionerReference = operationsCompositionerReference;
         this.stock = stock;
 
         Date lastQuote = stock.getLastQuote();
@@ -343,8 +343,8 @@ public class TargetStockInfo {
 
     }
 
-    public String getConditionHolderReference() {
-        return conditionHolderReference;
+    public String getOperationsCompositionerReference() {
+        return operationsCompositionerReference;
     }
 
 }
