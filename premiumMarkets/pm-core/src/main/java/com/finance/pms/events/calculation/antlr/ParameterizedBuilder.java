@@ -46,16 +46,18 @@ import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
-import com.finance.pms.SpringContext;
+import com.finance.pms.PostInitMonitor;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
 public abstract class ParameterizedBuilder extends Observable {
 
+    public static final String userParameterizedPath = System.getProperty("installdir") + File.separator + "userParameterized";
     public enum ObsMsgType {OPERATION_CRUD,UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES};
 
     protected class ObsMsg {
@@ -122,7 +124,7 @@ public abstract class ParameterizedBuilder extends Observable {
     }
 
     public Map<String, Operation> getCurrentOperations(boolean waitForSync) {
-        if (waitForSync) SpringContext.getSingleton().syncOnOptPostInit();
+        if (waitForSync) PostInitMonitor.waitForOptPostInitEnd();
         return currentOperations;
     }
 
@@ -426,7 +428,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
     protected void reloadUserOperations(File operationsDir, Boolean disabled)  {
 
-        File[] list = operationsDir.listFiles();
+        File[] list = Arrays.stream(operationsDir.listFiles()).filter(f -> !f.getName().equals("empty.txt")).collect(Collectors.toList()).toArray(new File[0]);
         for (File formulaFile : list) {
             String opName = formulaFile.getName().replace(".txt","");
 

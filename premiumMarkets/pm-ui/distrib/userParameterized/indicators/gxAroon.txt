@@ -1,0 +1,2 @@
+is bullish when gxAroon equals trend bullish;
+is bearish if not bullish;

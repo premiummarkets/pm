@@ -38,7 +38,7 @@ public class EventsStatusCheckerTest {
     
     private Stock stock = AnalysisClient.ANY_STOCK;
     private String analysisName = "analisys";
-    private EventInfo eventDef = EventDefinition.NEURAL;
+    private EventInfo eventDef = EventDefinition.NEURALNEUROPH;
     private EventsStatusChecker checker;
 
 

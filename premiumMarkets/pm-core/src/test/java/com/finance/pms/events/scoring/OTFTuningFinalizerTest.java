@@ -109,9 +109,9 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtBul1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtBul1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtBul1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtBear1 = sdf.parse("20060505");
-        eventListForEvtDef.add(new EventValue(evtBear1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtBear1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -129,7 +129,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next.getTo().equals(endQDate));
         assertTrue(next.getTrend().equals(EventType.BEARISH.name()));
 
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -159,11 +159,11 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20060505");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -191,7 +191,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -216,13 +216,13 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20060505");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -250,7 +250,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -275,14 +275,14 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20060505");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -311,7 +311,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -338,14 +338,14 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20050507");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -373,7 +373,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -398,12 +398,12 @@ public class OTFTuningFinalizerTest {
         Collection<EventValue> eventListForEvtDef = new ArrayList<>();
         String noResMsg = "Ooops";
 
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050405"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050505"), EventDefinition.NEURAL, EventType.BULLISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURAL, EventType.BULLISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050405"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050505"), EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050506"), EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20060506"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -430,11 +430,11 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20141231");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -462,7 +462,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -488,11 +488,11 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050101");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20060101");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -519,7 +519,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -546,14 +546,14 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURAL, EventType.BEARISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20050505"), EventDefinition.NEURAL, EventType.NONE, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050406"), EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20050505"), EventDefinition.NEURALNEUROPH, EventType.NONE, "toto"));
         Date evtB1 = sdf.parse("20050506");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
-        eventListForEvtDef.add(new EventValue(sdf.parse("20060508"), EventDefinition.NEURAL, EventType.NONE, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(sdf.parse("20060508"), EventDefinition.NEURALNEUROPH, EventType.NONE, "toto"));
         Date evtb2 = sdf.parse("20060510");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate, eventListForEvtDef, noResMsg);
@@ -582,7 +582,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next3.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -608,15 +608,15 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20050605");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB2 = sdf.parse("20050705");
-        eventListForEvtDef.add(new EventValue(evtB2, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB2, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb3 = sdf.parse("20050805");
-        eventListForEvtDef.add(new EventValue(evtb3, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb3, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -652,7 +652,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next5.getTrend().equals(EventType.BEARISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         
@@ -681,17 +681,17 @@ public class OTFTuningFinalizerTest {
         String noResMsg = "Ooops";
 
         Date evtb1 = sdf.parse("20050405");
-        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb1, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB1 = sdf.parse("20050505");
-        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB1, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb2 = sdf.parse("20050605");
-        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb2, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB2 = sdf.parse("20050705");
-        eventListForEvtDef.add(new EventValue(evtB2, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB2, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
         Date evtb3 = sdf.parse("20050805");
-        eventListForEvtDef.add(new EventValue(evtb3, EventDefinition.NEURAL, EventType.BEARISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtb3, EventDefinition.NEURALNEUROPH, EventType.BEARISH, "toto"));
         Date evtB3 = sdf.parse("20050905");
-        eventListForEvtDef.add(new EventValue(evtB3, EventDefinition.NEURAL, EventType.BULLISH, "toto"));
+        eventListForEvtDef.add(new EventValue(evtB3, EventDefinition.NEURALNEUROPH, EventType.BULLISH, "toto"));
 
         //When
         List<PeriodRatingDTO> validPeriods = finalizer.validPeriods(quotations, stock, startDate, endDate,  eventListForEvtDef, noResMsg);
@@ -731,7 +731,7 @@ public class OTFTuningFinalizerTest {
         assertTrue(next6.getTrend().equals(EventType.BULLISH.name()));
         
         //When
-        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURAL.toString(), observer);
+        TuningResDTO res = finalizer.buildResOnValidPeriods(validPeriods, qMap, quotations, stock, startDate, endDate, "toto", EventDefinition.NEURALNEUROPH.toString(), observer);
         
         System.out.println(res);
         

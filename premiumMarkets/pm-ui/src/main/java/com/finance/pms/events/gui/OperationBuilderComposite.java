@@ -440,7 +440,7 @@ public class OperationBuilderComposite extends Composite {
                                             }
                                         }
                                     }
-                                    );
+                             );
                     errorDialog.open();
 
                 }

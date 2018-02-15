@@ -137,7 +137,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
     			runSynchTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
     			
     			
-    		} else if (message instanceof AbstractAnalysisClientRunnableMessage) {//Is it still used as messages?? //Runnable Messages : screener, indicator, all stocks summaries and alerts on threshold
+    		} else if (message instanceof AbstractAnalysisClientRunnableMessage) {//Runnable Messages : screener, indicator (gwt), all stocks summaries and alerts on threshold
     			
     			AbstractAnalysisClientRunnableMessage runnableMessage = (AbstractAnalysisClientRunnableMessage) message;
     			LOGGER.info("New runnable message received : "+runnableMessage.getAnalysisName()+" for "+runnableMessage.getClass().getName());

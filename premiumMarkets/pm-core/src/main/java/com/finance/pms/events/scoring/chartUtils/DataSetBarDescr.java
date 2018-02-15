@@ -39,11 +39,11 @@ import com.finance.pms.events.scoring.dto.TuningResDTO;
 
 public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 	
-	Integer id;
-	String serieName;
-	Color serieColor;
-	float serieStrokeSize;
-	String stockDescr;
+	private Integer id;
+	private String serieName;
+	private Color serieColor;
+	private float serieStrokeSize;
+	private String stockDescr;
 	private TuningResDTO tuningRes;
 	
 	private boolean labeled;

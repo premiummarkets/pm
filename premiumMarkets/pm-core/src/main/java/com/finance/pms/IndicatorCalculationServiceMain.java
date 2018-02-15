@@ -65,6 +65,7 @@ public class IndicatorCalculationServiceMain {
 	public static final String COMMAND_LINE_ANALYSIS = "cmdLineAnalysis";
 	public static final String AUTOPORTFOLIO = "AutoPortfolio";
 	public static final String UI_ANALYSIS = "UiAnalysis";
+	public static final String WEB_ANALYSIS = "WebAnalysis";
 	
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(IndicatorCalculationServiceMain.class);

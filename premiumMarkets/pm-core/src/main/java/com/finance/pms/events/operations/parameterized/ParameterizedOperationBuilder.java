@@ -54,13 +54,13 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
         operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
         antlrParser = new ANTLROperationsParserHelper();
 
-        userOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "operations");
+        userOperationsDir = new File(userParameterizedPath + File.separator + "operations");
         if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
 
-        disabledUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "disabledOperations");
+        disabledUserOperationsDir = new File(userParameterizedPath + File.separator + "disabledOperations");
         if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
 
-        trashUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "trashedOperations");
+        trashUserOperationsDir = new File(userParameterizedPath + File.separator + "trashedOperations");
         if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
 
         this.nativesXmlManager = nativesXmlManager;

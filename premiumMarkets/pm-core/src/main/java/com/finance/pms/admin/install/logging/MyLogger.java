@@ -180,7 +180,7 @@ public class MyLogger {
 					MyLogger.mailTo = MainPMScmd.getMyPrefs().get("mail.to", MyLogger.mailFrom);
 					mailSessionProps.put("mail.smtp.localhost", "localhost");
 					MyLogger.session = Session.getInstance(mailSessionProps, null);
-					MyLogger.session.setDebug(true);
+					//MyLogger.session.setDebug(true);
 
 				} else {
 
@@ -287,7 +287,7 @@ public class MyLogger {
 				return new PasswordAuthentication(MyLogger.mailUserName, MyLogger.mailPassword);
 			}
 		  });
-		MyLogger.session.setDebug(true);
+		//MyLogger.session.setDebug(true);
 	}
 
 	protected static MimeMessage buildTestMessage(InternetAddress senderAddress) throws MessagingException {

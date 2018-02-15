@@ -150,12 +150,16 @@ public class TunedConfMgr {
     }
 
     public void updateConf(TunedConf tunedConf, Date lastEventDate) {
-        if (lastEventDate != null) tunedConf.setLastCalculatedEvent(lastEventDate);
-        getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
+        this.updateConf(tunedConf, lastEventDate, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
     }
 
     public void resetConf(TunedConf tunedConf) {
         tunedConf.reset();
+        getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
+    }
+    
+    public void setDirty(TunedConf tunedConf) {
+        tunedConf.setDirty(true);
         getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
     }
 
@@ -163,6 +167,7 @@ public class TunedConfMgr {
         if (lastCalculatedEvent != null) tunedConf.setLastCalculatedEvent(lastCalculatedEvent);
         tunedConf.setLastCalculationStart(lastCalculationStart);
         tunedConf.setLastCalculationEnd(lastCalculationEnd);
+        tunedConf.setDirty(false);
         getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
     }
 

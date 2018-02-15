@@ -1,0 +1,1 @@
+gx_StochasticThreshold(28,6,6)

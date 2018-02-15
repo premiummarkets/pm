@@ -42,11 +42,12 @@ import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnThresholdParser;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -86,7 +87,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
 
 				try {
-					cleanEventsFor(this.eventListName, startDate, endDate);
+					cleanEventsFor(this.portfolioShare.getStock(), EventDefinition.ALERTTHRESHOLD, this.eventListName);
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 				}
@@ -116,7 +117,8 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 	}
 	
 	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {
-		EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(portfolioShare.getStock(), eventListName, datedeb, datefin, EventDefinition.alertsOnThresholds());
+	public void cleanEventsFor(Stock stock, EventInfo eventDef, String eventListName) {
+	    //FIXME?
+		//EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(portfolioShare.getStock(), eventListName, datedeb, datefin, EventDefinition.alertsOnThresholds());
 	}
 }

@@ -78,7 +78,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((formula == null) ? 0 : formula.hashCode());
+		result = prime * result + ((formula == null) ? 0 : formula.replaceAll("\\s+","").hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
 		return result;
@@ -95,21 +95,28 @@ public class OutputReference implements Comparable<OutputReference> {
 		if (getClass() != obj.getClass())
 			return false;
 		OutputReference other = (OutputReference) obj;
+		
 		if (formula == null) {
 			if (other.formula != null)
 				return false;
-		} else if (!formula.equals(other.formula))
+		}
+		else if (other.formula == null) 
+		        return false;
+		else if (!formula.replaceAll("\\s+","").equals(other.formula.replaceAll("\\s+","")))
 			return false;
+		
 		if (outputSelector == null) {
 			if (other.outputSelector != null)
 				return false;
 		} else if (!outputSelector.equals(other.outputSelector))
 			return false;
+		
 		if (operationReference == null) {
 			if (other.operationReference != null)
 				return false;
 		} else if (!operationReference.equals(other.operationReference))
 			return false;
+		
 		return true;
 	}
 	
@@ -142,7 +149,7 @@ public class OutputReference implements Comparable<OutputReference> {
 				compareTo = -1;
 			}
 			else {
-				compareTo = this.formula.compareTo(o.formula);
+				compareTo = this.formula.replaceAll("\\s+","").compareTo(o.formula.replaceAll("\\s+",""));
 			}
 		}
 		if (compareTo == 0 && isLeaf) {
@@ -158,7 +165,7 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	@Override
 	public String toString() {
-		return "OutputReference [hash=" + hashCode() + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", outputSelector="+ outputSelector + ", formula=" + formula + "]";
+		return "OutputReference [hash=" + hashCode() + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", operationReference=" + operationReference + ", outputSelector="+ outputSelector + ", formula=" + formula + "]";
 	}
 
 	public String getOperationReference() {

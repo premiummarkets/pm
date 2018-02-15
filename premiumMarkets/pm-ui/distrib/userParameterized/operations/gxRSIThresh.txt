@@ -1,0 +1,1 @@
+gx_RSIThreshold(14,70,30)

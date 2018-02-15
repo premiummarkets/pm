@@ -48,6 +48,7 @@ import java.util.TreeSet;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.PostInitMonitor;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
@@ -116,7 +117,7 @@ public class EventSignalConfig extends Config implements Cloneable {
     private SortedSet<OperationsCompositioner> filteredParameterised = null;
 
 
-    private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getMyPrefs().get("event.buytrigger", "3"));
+    private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getMyPrefs().get("event.buytrigger", "1"));
     private Integer sellEventTriggerThreshold = new Integer(MainPMScmd.getMyPrefs().get("event.selltrigger", "-1"));
     private List<String> sellIndicators = Arrays.asList(MainPMScmd.getMyPrefs().get("event.sellindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
     private List<String> buyIndicators =   Arrays.asList(MainPMScmd.getMyPrefs().get("event.buyindicators", EventDefinition.getPMEventDefinitionsString()).split(","));
@@ -145,7 +146,7 @@ public class EventSignalConfig extends Config implements Cloneable {
     @Deprecated
     public EventSignalConfig(
             String analyse,
-            String buyEventTriggerThreshold,String sellEventTriggerThreshold,
+            String buyEventTriggerThreshold, String sellEventTriggerThreshold,
             String stopLossRate, String sellAlertRate, String maxLoss,
             String indicators, String buyIndicators, String sellIndicators) {
         this();
@@ -164,7 +165,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
     }
 
-    protected EventSignalConfig(
+    public EventSignalConfig(
             String analyse, 
             String buyPonderationRule, String sellPonderationRule, String backDaysSpan, 
             String buyThreshold, String sellThreshold, String indicators, String configListFileName) {
@@ -211,10 +212,17 @@ public class EventSignalConfig extends Config implements Cloneable {
     public List<EventInfo> getIndepIndicators() {
         return EventDefinition.indicatorsStringToEventDefs(this.indepIndicators);
     }
+    
+    public List<EventInfo> getIndepsAndParameterised() {
+        List<EventInfo> indepIndicators = getIndepIndicators();
+        if (indepIndicators.contains(EventDefinition.PARAMETERIZED)) {
+            indepIndicators.remove(EventDefinition.PARAMETERIZED);
+            indepIndicators.addAll(getAllParameterized());
+        }
+        return indepIndicators;
+    }
 
     public void tamperIndepAndParameterizedEventInfoList(Collection<EventInfo> overridingEventInfos) {
-
-        //EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
 
         Set<String> indepIndicators = new HashSet<String>();
         SortedSet<OperationsCompositioner> filteredParameterised = new TreeSet<OperationsCompositioner>();
@@ -231,14 +239,12 @@ public class EventSignalConfig extends Config implements Cloneable {
         this.setIndepIndicators(new ArrayList<String>(indepIndicators));
         if (!filteredParameterised.isEmpty()) this.setFilteredParameterised(filteredParameterised);
 
-        //ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, eventConfig);
-
     }
 
     @SuppressWarnings("unchecked")
     public SortedSet<EventInfo> getAllTechIndicatorsSorted(Boolean refreshCache) {
 
-        SpringContext.getSingleton().syncOnOptPostInit();
+        PostInitMonitor.waitForOptPostInitEnd();
 
         if (allTechIndicatorsSortedCache == null || refreshCache) {
 

@@ -82,6 +82,7 @@ public class TuningResDTO implements Serializable {
 		this.followProfit = followProfit;
 		this.stopLossProfit = stopLossProfit;
 		this.stockPriceChange = stockPriceChange;
+		this.footNote = toString();
 	}
 	
 	public Double getStockPriceChange() {

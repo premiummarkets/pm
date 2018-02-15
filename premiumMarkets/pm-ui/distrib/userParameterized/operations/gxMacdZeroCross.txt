@@ -1,0 +1,1 @@
+gx_ZeroCrossMACDEventCalculator(24,52,18)

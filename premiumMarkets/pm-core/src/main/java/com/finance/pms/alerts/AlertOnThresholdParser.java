@@ -60,12 +60,7 @@ public class AlertOnThresholdParser extends IndicatorsCompositioner {
 	private static MyLogger LOGGER = MyLogger.getLogger(AlertOnThresholdParser.class);
 
 	private PortfolioShare portfolioShare;
-	
-//	public AlertOnThresholdParser(PortfolioShare portfolioShare, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-//		super(portfolioShare.getStock(),startDate, endDate, calculationCurrency, ValidityFilter.CLOSE);	
-//		this.portfolioShare = portfolioShare;
-//		
-//	}
+
 	public AlertOnThresholdParser(PortfolioShare portfolioShare, Observer...observers) {
 		super(observers);
 		this.portfolioShare = portfolioShare;
@@ -213,5 +208,5 @@ public class AlertOnThresholdParser extends IndicatorsCompositioner {
 	public ValidityFilter quotationsValidity() {
 		return ValidityFilter.CLOSE;
 	}
-	
+
 }

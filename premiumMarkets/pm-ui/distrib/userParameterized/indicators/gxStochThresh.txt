@@ -1,0 +1,2 @@
+is bullish when gxStochThresh equals trend bullish;
+is bearish if not bullish;

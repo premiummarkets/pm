@@ -65,6 +65,8 @@ import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -130,11 +132,26 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
             //Check if the calculators are Parameterised and have only data free operands leading to first pass being unnecessary
             if (viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null) {
                 Stream<? extends Object> filter = viewStateParams[0].stream()
-                        .filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId()) && ((Operation) e).collectOperationOf(PMWithDataOperation.class).isEmpty());
+                        .filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId()) && ((Operation) e).collectOperandsOfType(PMWithDataOperation.class).isEmpty());
                 if (filter.count() == viewStateParams[0].size()) {
                     doRunPassOne = false;
                     LOGGER.info("The requested operations are data free, no pass one will be processed : "+
                             viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
+                }
+            }
+            
+            //Set calculators as dirty if required (This can be handled at the calculator level for further update
+            if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {
+                Object isDirty = viewStateParams[1].iterator().next();
+                if (isDirty != null && isDirty.equals("setDirty")) {
+                    //"setDirty" is set on forced recalculation.
+                    stockList.stream()
+                        .forEach(stock -> viewStateParams[0].stream()
+                                .forEach(e -> {
+                                    TunedConf tuneConfig = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, ((EventInfo) e).getEventDefinitionRef());
+                                    TunedConfMgr.getInstance().setDirty(tuneConfig);
+                                }));
+                    viewStateParams[1] = null;
                 }
             }
 

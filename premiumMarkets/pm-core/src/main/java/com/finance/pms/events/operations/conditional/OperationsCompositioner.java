@@ -60,6 +60,7 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
 * The OperationsCompositioner is a specific type of operation to generate events to be used in the UI.
 * The OperationsCompositioner can take other operations as operands and will be compiled in a specific IndicatorsCompositioner, called ParameterizedIndicatorsCompositioner, when created through the UI.
 * OperationsCompositioner unlike other operations can't be reused for further composition or parameterised.
+* Every indicator created in the ./userparametrized/indicator will instantiate an OperationsCompositioner run within a ParameterizedIndicatorsCompositioner at run time.
 */
 @XmlRootElement
 public class OperationsCompositioner extends EventMapOperation implements EventInfo {
@@ -188,5 +189,5 @@ public class OperationsCompositioner extends EventMapOperation implements EventI
 	public Integer getEventOccWeight() {
 		return 1;
 	}
-	
+
 }

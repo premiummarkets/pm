@@ -1,0 +1,1 @@
+gx_ChaikinOscillatorThreshold(24,80)

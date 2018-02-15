@@ -40,7 +40,7 @@ public class ExclusiveTrendNeuralSignal extends DefaultSignal {
 	private Integer nbBearish;
 
 	public ExclusiveTrendNeuralSignal() {
-		super(getFilteredEventDefs(EventDefinition.NEURAL));
+		super(getFilteredEventDefs(EventDefinition.NEURALNEUROPH));
 		this.nbBullish = 0;
 		this.nbBearish = 0;
 	}

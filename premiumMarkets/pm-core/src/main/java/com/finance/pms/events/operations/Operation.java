@@ -370,6 +370,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     public String getFormula() {
         return formula;
     }
+    
+    public String getFormulaTrimmed() {
+        return formula.replaceAll("\\s+","");
+    }
 
     public void setFormula(String formula) {
         this.formula = formula;
@@ -563,7 +567,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
     public abstract int operationStartDateShift();
 
-    public List<Operation> collectOperationOf(Class<? extends DoubleMapOperation> operationType) {
+    public List<Operation> collectOperandsOfType(Class<? extends DoubleMapOperation> operationType) {
 
         if (operands.isEmpty()) return new ArrayList<>();
 
@@ -573,11 +577,18 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
                     if (operationType.isAssignableFrom(o.getClass())) {
                         result.add(o);
                     } else {
-                        result.addAll(o.collectOperationOf(operationType));
+                        result.addAll(o.collectOperandsOfType(operationType));
                     }
                 });
 
         return result;
+    }
+    
+    //Children of this operation not idempotent would make this operation not idempotent. This can be overridden by making this operation itself not idempotent
+    //Non idempotent operation will invalidate any previous calculation.
+    public Boolean isIdemPotent() {
+         if (operands.isEmpty()) return true;
+         return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
     }
 
 }

@@ -121,7 +121,7 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 		JsonReader rdr = Json.createReader(content);
 		JsonObject obj = rdr.readObject();
 		JsonArray jsonArray = obj.getJsonArray("All");
-		Stream<JsonValue> filter = jsonArray.stream().filter(s -> s.asJsonObject().getString("symbol").equals(symbolRoot));
+		Stream<JsonValue> filter = jsonArray.stream().filter(s -> ((JsonObject)s).getString("symbol").equals(symbolRoot));
 		ArrayList<JsonValue> collected = filter.collect(Collectors.toCollection(ArrayList::new));
 		
 		int count = collected.size();
@@ -129,15 +129,15 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 			case 0 : 
 				throw new StopParseErrorException(stock, "not found", "not found");
 			case 1 :
-				pair_ID = collected.stream().findFirst().get().asJsonObject().getInt("pair_ID");
+				pair_ID = ((JsonObject)collected.stream().findFirst().get()).getInt("pair_ID");
 			default :
 				Stream<JsonValue> mFilter = collected.stream().filter(s -> {
-					String extString = s.asJsonObject().getString("aql_link").split(":")[0];
+					String extString = ((JsonObject)s).getString("aql_link").split(":")[0];
 					LOGGER.info("Extension string test for : " + stock + " : " + extString + " to compare with " + stock.getMarket().getYahooExtension() + " and " + stock.getMarket().getYahooExtension().getSpecificMarketExtension());
 					return extString.equals(stock.getMarket().getYahooExtension().name()) || extString.equals(stock.getMarket().getYahooExtension().getSpecificMarketExtension());
 				}
 				);
-				pair_ID = mFilter.findFirst().get().asJsonObject().getInt("pair_ID");
+				pair_ID = ((JsonObject)mFilter.findFirst().get()).getInt("pair_ID");
 		};
 		
 		return pair_ID;

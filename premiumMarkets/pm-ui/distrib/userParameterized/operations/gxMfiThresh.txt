@@ -1,0 +1,1 @@
+gx_MFIThreshold(14,20,80)

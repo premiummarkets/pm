@@ -53,7 +53,7 @@ public abstract class EventKey implements Serializable, Comparable<EventKey> {
 		if (cmp == 0) {
 			cmp = getEventInfo().compareTo(o.getEventInfo());
 			if (cmp == 0) {
-				cmp = getEventInfoExtra().toString().compareTo(o.getEventInfoExtra().toString());
+				cmp = getEventInfoExtra().compareTo(o.getEventInfoExtra());
 				if (cmp == 0) {
 					cmp = getEventType().compareTo((EventType) o.getEventType());
 				}

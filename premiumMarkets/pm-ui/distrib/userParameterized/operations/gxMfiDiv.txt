@@ -1,0 +1,1 @@
+gx_MFIDivergence(14,20,80)

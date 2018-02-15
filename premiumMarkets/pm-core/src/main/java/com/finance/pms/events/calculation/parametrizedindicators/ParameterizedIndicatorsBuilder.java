@@ -71,14 +71,14 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		super();
 		operationPackages = new String[] {"com.finance.pms.events.operations.conditional.", "com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLRIndicatorsParserHelper();
-		
-		userOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "indicators");
+
+        userOperationsDir = new File(userParameterizedPath + File.separator + "indicators");
 		if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
 		
-		disabledUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "disabledIndicators");
+		disabledUserOperationsDir = new File(userParameterizedPath + File.separator + "disabledIndicators");
 		if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
 		
-		trashUserOperationsDir = new File(System.getProperty("installdir") + File.separator + "userParameterized" + File.separator + "trashedIndicators");
+		trashUserOperationsDir = new File(userParameterizedPath + File.separator + "trashedIndicators");
 		if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
 		
 		NativeParametrizedIndicators nativeIndicatorsContainer = NativeParametrizedIndicators.loadNativeIndicators();

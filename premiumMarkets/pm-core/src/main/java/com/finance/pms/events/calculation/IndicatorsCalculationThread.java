@@ -57,9 +57,14 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.CalculationBounds;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
+import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -70,12 +75,15 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
     private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationThread.class);
 
     protected Stock stock;
+    private String passOneCalcMode;
 
     protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
             Set<Observer> observers,
+            String passOneCalcMode,
             Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
         super(startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
         this.stock = stock;
+        this.passOneCalcMode = passOneCalcMode;
     }
 
     protected abstract void setCalculationParameters();
@@ -145,54 +153,105 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
     private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsCompositioner> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
 
-        try {
-            cleanEventsFor(this.eventListName, datedeb, datefin);
-        } catch (Exception e) {
-            LOGGER.error(e,e);
-        }
-
         Boolean incomplete = false;
         ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
         final List<EventInfo> failing = new ArrayList<EventInfo>();
+
         for (final IndicatorsCompositioner evtCalculator: evtCalculators ) {
+
+            try {
+                if (!evtCalculator.isIdemPotent()) cleanEventsFor(this.stock, evtCalculator.getEventDefinition(), this.eventListName);
+            } catch (Exception e) {
+                LOGGER.error(e,e);
+            }
 
             Runnable runnable = new Runnable() {
                 public void run() {
 
+                    ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, IndicatorsCalculationThread.this.configs.get(Config.EVENT_SIGNAL_NAME));
+                    ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
+
+                    //FIXME FALSE => TunedConf will always be reset for 2nd pass events with the cleanEventsFor above <= FALSE as the delete may not handle tuneConf
+                    TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
                     try {
 
-                        ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, IndicatorsCalculationThread.this.configs.get(Config.EVENT_SIGNAL_NAME));
-                        ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
+                        synchronized (tunedConf) {
 
-                        Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, datedeb, datefin, true, stock.getMarketValuation().getCurrency(), evtCalculator.getStartShift(), evtCalculator.quotationsValidity());
-                        SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(quotations, IndicatorsCalculationThread.this.eventListName);
+                            CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null);
+                            if (passOneCalcMode.equals("auto")) {
+                                endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+                                calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
+                            }
+                            if (passOneCalcMode.equals("reset")) {
+                                endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+                                tunedConf.setLastCalculationStart(startDate);
+                                tunedConf.setLastCalculationEnd(endDate);
+                                calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate, null, null);
+                            }
 
-                        if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
-                            //Add events to total
-                            symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+                            startDate = calculationBounds.getPmStart();
+                            endDate = calculationBounds.getPmEnd();
 
-                            //Add events to composer and send
-                            SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
-                            symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
-                            sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
-                        }
-                        //Add output to total
-                        symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
+                            if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
 
-                    } catch (NoQuotationsException | TalibException e) {
-                        LOGGER.warn(e);
-                        failing.add(evtCalculator.getEventDefinition());
-                        symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
-                    } catch (Exception e) {
-                        LOGGER.error(e, e);
-                        failing.add(evtCalculator.getEventDefinition());
-                        symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+                                try {
+
+                                    Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, datedeb, datefin, true, stock.getMarketValuation().getCurrency(), evtCalculator.getStartShift(), evtCalculator.quotationsValidity());
+                                    SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(quotations, IndicatorsCalculationThread.this.eventListName);
+
+                                    if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
+                                        //Add events to total
+                                        symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+
+                                        //Add events to composer and send
+                                        SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
+                                        symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+                                        sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
+                                    }
+                                    //Add output to total
+                                    symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
+
+                                } catch (NoQuotationsException | TalibException e) {
+                                    LOGGER.warn(e);
+                                    failing.add(evtCalculator.getEventDefinition());
+                                    symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+                                } catch (Exception e) {
+                                    LOGGER.error(e, e);
+                                    failing.add(evtCalculator.getEventDefinition());
+                                    symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+                                }
+
+                            } else {
+                                LOGGER.info(
+                                        "Events recalculation requested for "+stock.getSymbol()+" and "+evtCalculator.getEventDefinition().getEventDefinitionRef()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
+                                                "No recalculation needed calculation bound is "+ calculationBounds.toString());
+                            }
+
+                            if (failing.isEmpty()) {
+                                //if We inc or reset, tuned conf last event will need update : We add it in the map
+                                if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
+                                    TunedConfMgr.getInstance().updateConf(tunedConf, symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
+                                }
+                            } else {//Error(s) as occurred. This should invalidate tuned conf
+                                if (LOGGER.isEnabledFor(Level.ERROR)) {
+                                    failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
+                                }
+                                //TODO delete failed events generated??
+                                TunedConfMgr.getInstance().resetConf(tunedConf);
+                            }
+
+                        }//End synchronised
+
+                    } catch (InvalidAlgorithmParameterException e) {
+                        LOGGER.error(e);
                     }
+
                 }
             };
+
             executor.execute(runnable);
 
-        }
+        }//End For calculators
 
         executor.shutdown();
 

@@ -192,7 +192,8 @@ public class TargetStockInfo {
 
         if (output instanceof MultiSelectorsValue) {
             for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
-                String tamperedFormula = operation.getFormula().replaceAll(":.*\\(", ":"+selector+"(");
+                //encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
+                String tamperedFormula = operation.getFormula().replaceAll(":[^\\(]*\\(", ":"+selector+"(");
                 OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), (operation instanceof LeafOperation), operation.getOperationReference());
                 this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) output).getValue(selector)));
             }

@@ -8,9 +8,9 @@
 	<includeBaseDirectory>false</includeBaseDirectory>	
 		<fileSets>
 			<fileSet>
-				<directory>userParameterized</directory>
+				<directory>distrib/userParameterized</directory>
 				<includes>
-					<include>**/sample*</include>
+					<include>**/*</include>
 				</includes>
 				<outputDirectory>userParameterized</outputDirectory>
 			</fileSet>

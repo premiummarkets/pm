@@ -162,6 +162,6 @@ public abstract class EventsCalculationThread extends Observable implements Call
         }
     }
 
-    public abstract void cleanEventsFor(String eventListName, Date datedeb, Date datefin);
+    public abstract void cleanEventsFor(Stock stock, EventInfo eventInfo, String eventListName);
 
 }

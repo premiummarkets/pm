@@ -50,6 +50,7 @@ public class TunedConf {
 
 	private TunedConfId tunedConfId;
 	
+	private Boolean dirty;
 	private Date lastCalculationStart;
 	private Date lastCalculatedEvent;
 	private Date lastCalculationEnd;
@@ -68,6 +69,7 @@ public class TunedConf {
 	}
 
 	public void reset() {
+	    this.dirty = false;
 		this.lastCalculatedEvent = DateFactory.dateAtZero();
 		this.lastCalculationStart = DateFactory.dateAtZero();
 		this.lastCalculationEnd =  DateFactory.dateAtZero();
@@ -103,7 +105,7 @@ public class TunedConf {
 
 	@Override
 	public String toString() {
-		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + lastCalculationStart + ", lastCalculatedEvent=" + lastCalculatedEvent + ", lastCalculationEnd=" + lastCalculationEnd + "]";
+		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + lastCalculationStart + ", lastCalculatedEvent=" + lastCalculatedEvent + ", lastCalculationEnd=" + lastCalculationEnd + ", dirty=" + dirty + "]";
 	}
 
 	@EmbeddedId
@@ -114,5 +116,13 @@ public class TunedConf {
 	public void setTunedConfId(TunedConfId tunedConfId) {
 		this.tunedConfId = tunedConfId;
 	}
+
+    public Boolean getDirty() {
+        return dirty;
+    }
+
+    public void setDirty(Boolean dirty) {
+        this.dirty = dirty;
+    }
 	
 }

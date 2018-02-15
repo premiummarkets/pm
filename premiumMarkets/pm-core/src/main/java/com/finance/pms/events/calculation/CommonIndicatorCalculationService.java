@@ -30,6 +30,7 @@
 package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.sql.BatchUpdateException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -276,7 +277,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		} catch (Exception e) {	
 			isDataSetComplete = false;
 			
-			if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+			if (e.getCause() != null && (e.getCause() instanceof SQLIntegrityConstraintViolationException || e.getCause() instanceof BatchUpdateException)) {
 				LOGGER.warn("Intercepted : "+e+" -> IncompleteDataset");
 			} else {
 				LOGGER.error(e,e);

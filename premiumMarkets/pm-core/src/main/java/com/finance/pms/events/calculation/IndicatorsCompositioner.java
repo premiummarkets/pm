@@ -69,7 +69,6 @@ public abstract class IndicatorsCompositioner {
         this.observers = observers;
     }
 
-
     /**
      * Number of days of input (quotation) needed before for the first output calculation
      * It usually as to be relative to the moving average smoothing period when the data is lagged fixed.
@@ -104,7 +103,6 @@ public abstract class IndicatorsCompositioner {
 
     public abstract ValidityFilter quotationsValidity();
 
-
     /**
      * If output is NaN this means that the output is not available and should not be displayed at that date on chart.
      * If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
@@ -121,6 +119,11 @@ public abstract class IndicatorsCompositioner {
         } else {
             return Double.NaN;
         }
+    }
+
+    //FIXME temporary fix before getting rid of First and Second pass
+    public Boolean isIdemPotent() {
+        return true;
     }
 
 }

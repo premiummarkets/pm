@@ -33,6 +33,7 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -206,18 +207,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
                     if (needsUpdate) {
                         eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), notUpToDateEventInfos, minDate);	
-                    } 
-
-                    if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-                        updateChartIndicator(selectedShare, recalculationGranted, needsUpdate);
                     } else {
-                        if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
-                            chartSettingsPopup.getSelectionShell().dispose();
+                        if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+                            updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
+                        } else {
+                            if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
+                                chartSettingsPopup.getSelectionShell().dispose();
+                            }
                         }
-                    }
 
-                    if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {		
-                        updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, needsUpdate);
+                        if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {		
+                            updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, recalculationGranted);
+                        }
                     }
 
                 } catch (Exception e) {
@@ -246,7 +247,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
     private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate, Date slidingEndDate, final HashSet<EventInfo> notUpToDateEI, Calendar minDate) {
 
-        final RefreshableView parentView = (RefreshableView) chartTarget.getParent().getParent();
+        //final RefreshableView parentView = (RefreshableView) chartTarget.getParent().getParent();
+        RefreshableView parentView = chartTarget;
         final EventRefreshController ctrller = new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 
             @Override
@@ -281,6 +283,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
                 @Override
                 public void action() {		
                     ctrller.widgetSelected(null);
+                    if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+                        updateChartIndicator(selectedShare, false, true);
+                    } else {
+                        if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
+                            chartSettingsPopup.getSelectionShell().dispose();
+                        }
+                    }
+
+                    if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {     
+                        updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), false, true);
+                    }
                 }
 
             };
@@ -597,7 +610,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
             Button recalc =  new Button(popusGroup, SWT.PUSH);
             recalc.setFont(MainGui.DEFAULTFONT);
             recalc.setText("Force&&Update Calculations");
-            recalc.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), (RefreshableView)chartTarget.getParent().getParent(), ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+            RefreshableView parentView = chartTarget;
+            recalc.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 
                 @Override
                 public void widgetSelected(SelectionEvent evt) {
@@ -610,7 +624,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
                     if (allSelectedEventInfos != null && !allSelectedEventInfos.isEmpty() && chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
                         chartTarget.getHightlitedEventModel().setViewParam(0, allSelectedEventInfos);
-                        //chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty")); //The dirty state has to be checked on the TunedConf status of the EventInfo
+                        chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty")); //The dirty state has to be checked on the TunedConf status of the EventInfo
                     }
 
                     //Will clean selected event infos for this stock
@@ -723,7 +737,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
         if (evtDefTrendPopupMenu!= null && !evtDefTrendPopupMenu.getSelectionShell().isDisposed()) {
             initEvtDefTrendPopup(false);
-        }		
+        }
     }
 
     private void initEvtDefTrendPopup(Boolean activate) {
@@ -840,7 +854,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
                     availableOutputs.addAll(chartTarget.getChartedEvtDef().getEventDefDescriptor().allOutputs());
                     displayedOutputs.addAll(chartTarget.getChartedEvtDef().getEventDefDescriptor().displayedOutputs());
                 } catch (NoSuchElementException e) {
-                    //errorMessage = e.toString() + "\n\n" +errorMessage;
                     isClearInProgress = true;
                     LOGGER.warn(e);
                 } 
@@ -900,10 +913,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
     @Override
     public void shutDownDisplay() {
-
-        //		for (SlidingPortfolioShare slidingPortfolioShare : chartTarget.getCurrentTabShareList()) {
-        //			slidingPortfolioShare.setDisplayOnChart(true);
-        //		}
 
         if (evtDefChartingPopupMenu != null) evtDefChartingPopupMenu.getSelectionShell().dispose();
         if (evtDefTrendPopupMenu != null) evtDefTrendPopupMenu.getSelectionShell().dispose();

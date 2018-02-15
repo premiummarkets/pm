@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -38,10 +37,8 @@ import java.util.Set;
 
 import javax.jms.Queue;
 
-import org.apache.log4j.Level;
 import org.springframework.jms.core.JmsTemplate;
 
-import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -50,11 +47,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
-import com.finance.pms.events.scoring.CalculationBounds;
-import com.finance.pms.events.scoring.TunedConf;
-import com.finance.pms.events.scoring.TunedConfMgr;
-import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationThread {
@@ -85,8 +77,6 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 
 	private List<EventInfo> firstPassWantedCalculations;
 
-	private String passOneCalcMode;
-
 	private Integer smaReversalPeriod;
 	
 	/**
@@ -111,8 +101,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 				Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Set<Observer> observers, 
 				String passOneCalcMode, Queue queue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
 		
-		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, queue, jmsTemplate);
-		this.passOneCalcMode = passOneCalcMode;
+		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, passOneCalcMode, queue, jmsTemplate);
 		
 	}
 
@@ -324,54 +313,8 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	}
 	
 	@Override
-	public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {//We don't clean first pass event also they can be cleaned through the ui using 'Clean all previous calculations'
+	public void cleanEventsFor(Stock stock, EventInfo eventInfo, String eventListName) {//We don't clean first pass event (idempotent) also they can be cleaned through the ui using 'Clean all previous calculations'
 		//EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, EventDefinition.loadFirstPassPrefEventDefinitions().toArray(new EventInfo[0]));
-	}
-
-	@Override
-	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
-		
-		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getConfigListFileName(), "All");
-
-		synchronized (tunedConf) {
-			
-			CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null);
-			if (passOneCalcMode.equals("auto")) {
-				endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-				calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
-			}
-			if (passOneCalcMode.equals("reset")) {
-				endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-				tunedConf.setLastCalculationStart(startDate);
-				tunedConf.setLastCalculationEnd(endDate);
-				calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate, null, null);
-			}
-			
-			startDate = calculationBounds.getPmStart();
-			endDate = calculationBounds.getPmEnd();
-
-			if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
-				super.calculate(symbolEventsForStock, dataSetExceptions);
-			} else {
-				LOGGER.info(
-						"Pass 1 events recalculation requested for "+stock.getSymbol()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
-						"No recalculation needed calculation bound is "+ calculationBounds.toString());
-			}
-
-			if (dataSetExceptions.isEmpty()) {
-				//if We inc or reset, tuned conf last event will need update : We add it in the map
-				if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
-				}
-			} else {//Error(s) as occurred. This should invalidate tuned conf
-			    if (LOGGER.isEnabledFor(Level.ERROR)) {
-	                dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
-	            }
-				TunedConfMgr.getInstance().resetConf(tunedConf);
-			}
-			
-		}
-
 	}
 
 }

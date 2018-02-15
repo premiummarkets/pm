@@ -66,7 +66,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
             Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, 
             Set<Observer> observers, Map<EventDefinition, Class<IndicatorsCompositioner>> availableSecondPassIndicatorCalculators,
             Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
-        super(stock, startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
+        super(stock, startDate, endDate, eventListName, calculationCurrency, observers, "reset", eventQueue, jmsTemplate);
 
         this.availableSecondPassIndicatorCalculators = availableSecondPassIndicatorCalculators;
 
@@ -134,8 +134,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
             Constructor<IndicatorsCompositioner> constructor = 
                     eventCompositionCalculator.getConstructor(
                             EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
-            return constructor.newInstance(
-                            eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, observers);
+            return constructor.newInstance(eventInfo, stock, startDate, endDate, calculationCurrency, eventListName, observers);
 
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof WarningException || e.getCause() instanceof NotEnoughDataException) {
@@ -168,18 +167,19 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
     }
 
     @Override
-    public void cleanEventsFor(String eventListName, Date datedeb, Date datefin) {
+    public void cleanEventsFor(Stock stock, EventInfo eventInfo, String eventListName) {
 
-        for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
-            if (checkWanted(eventDefinition)) {
-
-                LOGGER.info("Cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName() +" from "+datedeb + " to "+datefin);
-
-                List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
-                EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(stock, eventListName, datedeb, datefin, subEventInfosForRequested.toArray(new EventInfo[0]));
-
-            }
-        }
+//        for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
+//            if (checkWanted(eventDefinition)) {
+//
+//                LOGGER.info("Cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName());
+//
+//                List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
+//                EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, subEventInfosForRequested.toArray(new EventInfo[0]));
+//
+//            }
+//        }
+        EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
     }
 
 }

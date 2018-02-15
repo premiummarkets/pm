@@ -93,7 +93,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
     }
 
-    //TODO move Tuned conf mgt into EventREsources.
+    //TODO Only handle OperationsCompositioner and get rid of First and Second pass
     protected void calculate(SymbolEvents symbolEvents, Date start, Date end) throws Exception {
 
         Stock stock = symbolEvents.getStock();
@@ -101,9 +101,13 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
         TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
         synchronized (tunedConf) {
 
-            EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
-            CalculationBounds calculationBounds = checker.autoCalcAndSetDatesBounds(start, end);
-
+            CalculationBounds calculationBounds;
+            if (eventInfo instanceof OperationsCompositioner && !((OperationsCompositioner) eventInfo).isIdemPotent()) {
+                calculationBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
+            } else {
+                EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
+                calculationBounds = checker.autoCalcAndSetDatesBounds(start, end);
+            }
             Date adjustedStart = calculationBounds.getPmStart();
             Date adjustedEnd = calculationBounds.getPmEnd();
 
@@ -121,7 +125,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
                         calculator = legacyEventDefinitionHandling(stock);
                     }
 
-                    //If RESET we clean
+                    //If RESET or not idemPotent we clean
                     if (calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
                         EventsResources.getInstance().crudDeleteEventsForStock(symbolEvents.getStock(), eventListName, eventInfo);
                     }
@@ -137,7 +141,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
                         //TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
                         Date lastEventDate = (calculatedEventsForCalculator.isEmpty())?null:calculatedEventsForCalculator.lastKey().getDate();
                         TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
-                       
+
                         symbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
                         symbolEvents.addEventResultElement(calculatedEventsForCalculator, eventInfo);
 
@@ -145,10 +149,10 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
                         LOGGER.warn("Failed (null returned) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
 
-                        //Not needed as not modified.
+                        //Not needed as not modified or stored
                         //TunedConf tunedConf = checker.getTunedConf();
                         //TunedConfMgr.getInstance().rollBackConf(tunedConf, oldLastCalculatedEvent, oldLastCalculationStart, oldLastCalculationEnd);
-                        cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd);
+                        //cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd);
 
                         symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
                         symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
@@ -165,19 +169,16 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
             } catch (Throwable t) { //Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
                 LOGGER.error("Failed (empty) calculation for "+stock+" using analysis "+eventListName+ "and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd, t);
-                //Not needed as not modified??
+                //Not needed as not modified or stored??
                 //TunedConf tunedConf = checker.getTunedConf();
                 //TunedConfMgr.getInstance().rollBackConf(tunedConf, oldLastCalculatedEvent, oldLastCalculationStart, oldLastCalculationEnd);
-                cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd);
+                //cleanEventsFor(eventInfo, eventListName, adjustedStart, adjustedEnd);
+                symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
+                symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
             }
 
         }
 
-    }
-
-    public void cleanEventsFor(EventInfo eventInfo, String eventListName, Date start, Date end) {
-        LOGGER.info("Cleaning " + eventInfo + " events for " + eventListName + " and "+ symbolEvents.getStock().getFriendlyName() + " from " + start + " to " + end);
-        EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(symbolEvents.getStock(), eventListName, start, end, eventInfo);
     }
 
     private IndicatorsCompositioner legacyEventDefinitionHandling(Stock stock) {

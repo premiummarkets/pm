@@ -180,18 +180,17 @@ public class EventsResources {
 
         public int compare(EventCacheEntry se1, EventCacheEntry se2) {
 
-            EventInfo se1EventInfo = se1.getEventKey().getEventInfo();
-            EventInfo se2EventInfo = se2.getEventKey().getEventInfo();
-
             int cmp = (se1.getEventKey().getDate()).compareTo(se2.getEventKey().getDate());
             if (cmp == 0) {
-                cmp = (se1.getEventValue().getEventDef()).compareTo(se2.getEventValue().getEventDef());
-                if (cmp != 0 && (se1EventInfo.equals(EventDefinition.INFINITE) || se2EventInfo.equals(EventDefinition.ZERO)) ) cmp = -1;
-                if (cmp != 0 && (se1EventInfo.equals(EventDefinition.ZERO) || se2EventInfo.equals(EventDefinition.INFINITE)) ) cmp = +1;
+                cmp = (se1.getEventKey().getEventInfo().getEventDefId()).compareTo(se2.getEventKey().getEventInfo().getEventDefId());
                 if (cmp == 0) {
-                    cmp = (se1.getEventKey().getEventInfoExtra().toString()).compareTo(se2.getEventKey().getEventInfoExtra().toString());
+                    cmp = (se1.getEventKey().getEventInfoExtra()).compareTo(se2.getEventKey().getEventInfoExtra());
+                    if (cmp == 0) {
+                        cmp = (se1.getEventKey().getEventType()).compareTo(se2.getEventKey().getEventType());
+                    }
                 }
             }
+
             return cmp;
         }
 
@@ -532,10 +531,11 @@ public class EventsResources {
         EventCacheEntry endSupEvent = bigestCacheEntry(endDate);
 
         EventCacheEntryList eventsForStockAndName = new EventCacheEntryList(new EventCacheEntryComparator());
+        //FIXME too slow ... Cache should be stored in date order and cummulated using sub lists
         eventsForStockAndName.addAll(eventDefinitions.stream().flatMap(ei -> eventsForName.readEventsFromStockCache(stock, ei).stream()).collect(Collectors.toSet()));
         if (eventsForStockAndName != null && !eventsForStockAndName.isEmpty()) {
             try {
-                SortedSet<EventCacheEntry> eventsDateRangeSubSet = eventsForStockAndName.subSet(startInfEvent, endSupEvent);
+                SortedSet<EventCacheEntry> eventsDateRangeSubSet = eventsForStockAndName.subSet(startInfEvent, true, endSupEvent, true);
                 return buildSymbolEventsFromCacheEntries(stock, eventsDateRangeSubSet, eventDefinitions);
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("No events in cache for "+stock+" and "+eventListName+" from "+startDate+" to "+endDate+". Available first, last events : "+eventsForStockAndName.first()+" to "+eventsForStockAndName.last(), e);
@@ -546,12 +546,15 @@ public class EventsResources {
 
     private EventCacheEntry bigestCacheEntry(final Date date) {
 
+        Date midnithDate = DateFactory.midnithDate(date);
+        EventDefinition infinite = EventDefinition.INFINITE;
+        EventType none = EventType.NONE;
         return new EventCacheEntry(new EventKey() {
 
-            private static final long serialVersionUID = -5684675854556973652L;
+            private static final long serialVersionUID = 1087077818535168128L;
 
             public EventInfo getEventInfo() {
-                return EventDefinition.ZERO;
+                return infinite;
             }
 
             public String getEventInfoExtra() {
@@ -559,43 +562,42 @@ public class EventsResources {
             }
 
             public EventType getEventType() {
-                return EventType.NONE;
+                return none;
             }
 
             public Date getDate() {
-                return DateFactory.midnithDate(date);
+                return midnithDate;
             }
 
-        }, new EventValue(DateFactory.midnithDate(date), EventDefinition.ZERO, EventType.NONE, ""));
+        }, new EventValue(midnithDate, infinite, none, ""));
     }
 
     private EventCacheEntry smallestCacheEntry(final Date date) {
 
+        Date midnithDate = DateFactory.midnithDate(date);
+        EventDefinition zero = EventDefinition.ZERO;
+        EventType none = EventType.NONE;
         return new EventCacheEntry(new EventKey() {
 
-            private static final long serialVersionUID = -5684675854556973652L;
+            private static final long serialVersionUID = 4155656864927650654L;
 
             public EventInfo getEventInfo() {
-                return EventDefinition.INFINITE;
+                return zero;
             }
-
 
             public String getEventInfoExtra() {
                 return "A";
             }
 
-
             public EventType getEventType() {
-                return EventType.NONE;
+                return none;
             }
-
 
             public Date getDate() {
-                return DateFactory.midnithDate(date);
+                return midnithDate;
             }
 
-        }, 
-                new EventValue(DateFactory.midnithDate(date), EventDefinition.INFINITE, EventType.NONE,""));
+        }, new EventValue(midnithDate, zero, none, ""));
     }
 
 
@@ -1109,26 +1111,15 @@ public class EventsResources {
      * @param indicators
      */
     public void crudDeleteEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
-        Date datedeb = EventModel.DEFAULT_DATE;
-        Date datefin = EventSignalConfig.getNewDate();
-        this.crudDeleteEventsForStockNoTunedConfHandling(stock, analysisName, datedeb, datefin, indicators);
-        TunedConfMgr.getInstance().deleteTunedConfFor(stock, analysisName, indicators);
-    }
-
-    /**
-     * Deleting specifying dates should only apply as a safe guard as TunedConfig information ought to prevail.
-     * This won't update the TunedConf, see {@link #crudDeleteEventsForStock(Stock, String, EventInfo...)}
-     * @param stock
-     * @param analysisName
-     * @param datedeb
-     * @param datefin
-     * @param indicators
-     */
-    public void crudDeleteEventsForStockNoTunedConfHandling(Stock stock, String analysisName, Date datedeb, Date datefin, EventInfo... indicators) {
+        
+        LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r+","+e)+" for "+analysisName + " and "+stock.getFriendlyName());
 
         for (EventInfo eventInfo : indicators) {
             if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
         }
+
+        Date datedeb = EventModel.DEFAULT_DATE;
+        Date datefin = EventSignalConfig.getNewDate();
 
         //Cache
         if (isEventCached) {
@@ -1145,13 +1136,17 @@ public class EventsResources {
 
         //DB
         if (isEventPersisted || !isEventCached) {
-            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",", indicators));
+            LOGGER.info("Cleaning Events in db, cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",", indicators));
             DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
         }
 
+        //Tuned config
+        TunedConfMgr.getInstance().deleteTunedConfFor(stock, analysisName, indicators);
     }
 
     public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
+        
+        LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r+","+e)+" for "+analysisName);
 
         Date datedeb = EventModel.DEFAULT_DATE;
         Date datefin = EventSignalConfig.getNewDate();
@@ -1177,7 +1172,7 @@ public class EventsResources {
 
         //DB
         if (isEventPersisted || !isEventCached) {
-            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",",indicators));
+            LOGGER.info("Cleaning Events in db, cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",",indicators));
             DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
         }
 
@@ -1185,6 +1180,8 @@ public class EventsResources {
     }
 
     public void crudDeleteEventsForAnalysisName(String analysisName) {
+        
+        LOGGER.info("DELETE events for "+analysisName);
 
         //Cache
         if (isEventCached) {
@@ -1198,7 +1195,7 @@ public class EventsResources {
 
         //DB
         if (isEventPersisted || !isEventCached) {
-            LOGGER.info("Cleaning Events in db cached is "+isEventCached+", persist is "+isEventPersisted);
+            LOGGER.info("Cleaning Events in db, cached is "+isEventCached+", persist is "+isEventPersisted);
             DataSource.getInstance().cleanEventsForAnalysisName(EVENTSTABLE, analysisName);
         }
 

@@ -123,17 +123,18 @@ public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositione
 
             SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
 
-            Date currentKeyDate = null;
             EventKey previousKey = null;
             SortedSet<EventKey> toRemove = new TreeSet<EventKey>();
             for (EventKey currentKey : returnedEvents.keySet()) {
-                if (currentKeyDate != null && currentKeyDate.compareTo(currentKey.getDate()) == 0) {
+                
+                Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
+                Date currentKeyDate = currentKey.getDate();
+                
+                if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
                     toRemove.add(currentKey);
                     toRemove.add(previousKey);
                 }
-                if (currentKeyDate == null || currentKeyDate.compareTo(currentKey.getDate()) != 0) {
-                    currentKeyDate = currentKey.getDate();
-                }
+
                 previousKey = currentKey;
             }
 
@@ -262,6 +263,11 @@ public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositione
     @Override
     public ValidityFilter quotationsValidity() {
         return ValidityFilter.CLOSE;
+    }
+
+    @Override
+    public Boolean isIdemPotent() {
+        return operationsCompositionerHolder.isIdemPotent();
     }
 
 }

@@ -1,0 +1,1 @@
+gx_ChaikinOscillatorDivergence(24,80)

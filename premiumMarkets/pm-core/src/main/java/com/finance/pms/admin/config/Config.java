@@ -31,15 +31,24 @@ package com.finance.pms.admin.config;
 
 
 public abstract class Config {
-	
-	public static final String EVENT_SIGNAL_NAME = "eventSignal";
-	public static final String INDICATOR_PARAMS_NAME = "indicatorParams";
 
-	abstract String getName();
+    public static final String EVENT_SIGNAL_NAME = "eventSignal";
+    public static final String INDICATOR_PARAMS_NAME = "indicatorParams";
 
-	@Override
-	public String toString() {
-		return "Config [getName()=" + getName() + "]";
-	}
-	
+    abstract String getName();
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            return this;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Config [getName()=" + getName() + "]";
+    }
+
 }
