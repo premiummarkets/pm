@@ -237,7 +237,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
                                     failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
                                 }
                                 //TODO delete failed events generated??
-                                TunedConfMgr.getInstance().resetConf(tunedConf);
+                                TunedConfMgr.getInstance().resetTunedConf(tunedConf, tunedConf.getDirty());
                             }
 
                         }//End synchronised

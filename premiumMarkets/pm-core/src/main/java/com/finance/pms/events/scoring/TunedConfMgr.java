@@ -153,8 +153,8 @@ public class TunedConfMgr {
         this.updateConf(tunedConf, lastEventDate, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
     }
 
-    public void resetConf(TunedConf tunedConf) {
-        tunedConf.reset();
+    public void resetTunedConf(TunedConf tunedConf, Boolean dirty) {
+        tunedConf.reset(dirty);
         getTunedConfDAO().saveOrUpdateTunedConfs(tunedConf);
     }
     
@@ -195,12 +195,12 @@ public class TunedConfMgr {
         return lastQuote;
     }
 
-    public void deleteTunedConfFor(String analysisName, EventInfo... indicators) {
-        getTunedConfDAO().deleteTunedConfFor(analysisName, indicators); 
+    public void resetTunedConfFor(String analysisName, EventInfo... indicators) {
+        getTunedConfDAO().resetTunedConfFor(analysisName, indicators); 
     }
 
-    public void deleteTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
-        getTunedConfDAO().deleteTunedConfFor(stock, analysisName, indicators);
+    public void resetTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
+        getTunedConfDAO().resetTunedConfFor(stock, analysisName, indicators);
     }
 
 }

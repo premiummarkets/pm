@@ -44,9 +44,9 @@ public interface TunedConfDAO {
 
 	public abstract TunedConf loadTunedConf(TunedConfId tunedConfId);
 
-    public abstract void deleteTunedConfFor(String analysisName, EventInfo... indicators);
+    public abstract void resetTunedConfFor(String analysisName, EventInfo... indicators);
 
-    public abstract void deleteTunedConfFor(Stock stock, String analysisName, EventInfo... indicators);
+    public abstract void resetTunedConfFor(Stock stock, String analysisName, EventInfo... indicators);
 
     
 }

@@ -1141,7 +1141,7 @@ public class EventsResources {
         }
 
         //Tuned config
-        TunedConfMgr.getInstance().deleteTunedConfFor(stock, analysisName, indicators);
+        TunedConfMgr.getInstance().resetTunedConfFor(stock, analysisName, indicators);
     }
 
     public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
@@ -1176,7 +1176,7 @@ public class EventsResources {
             DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
         }
 
-        TunedConfMgr.getInstance().deleteTunedConfFor(analysisName, indicators);
+        TunedConfMgr.getInstance().resetTunedConfFor(analysisName, indicators);
     }
 
     public void crudDeleteEventsForAnalysisName(String analysisName) {
@@ -1199,7 +1199,7 @@ public class EventsResources {
             DataSource.getInstance().cleanEventsForAnalysisName(EVENTSTABLE, analysisName);
         }
 
-        TunedConfMgr.getInstance().deleteTunedConfFor(analysisName);
+        TunedConfMgr.getInstance().resetTunedConfFor(analysisName);
     }
 
     public void cleanPersistedEventsCache() throws SQLException {

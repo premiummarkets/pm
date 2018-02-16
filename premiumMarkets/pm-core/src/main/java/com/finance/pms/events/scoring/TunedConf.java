@@ -65,11 +65,11 @@ public class TunedConf {
 	public TunedConf(Stock stock, String configFile, String eventDefinition) {
 		super();
 		this.tunedConfId = new TunedConfId(stock, configFile, eventDefinition);
-		reset();
+		reset(false);
 	}
 
-	public void reset() {
-	    this.dirty = false;
+	public void reset(Boolean dirty) {
+	    this.dirty = dirty;
 		this.lastCalculatedEvent = DateFactory.dateAtZero();
 		this.lastCalculationStart = DateFactory.dateAtZero();
 		this.lastCalculationEnd =  DateFactory.dateAtZero();

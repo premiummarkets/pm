@@ -31,6 +31,7 @@ package com.finance.pms.datasources.events;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfId;
 
@@ -79,33 +81,41 @@ public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDA
     }
 
     @Override
-    public void deleteTunedConfFor(String analysisName, EventInfo... indicators) {
+    public void resetTunedConfFor(String analysisName, EventInfo... indicators) {
         if (indicators == null || indicators.length == 0) {
-            LOGGER.info("deleteTunedConfFor : "+analysisName);
+            LOGGER.info("resetTunedConfFor : "+analysisName);
             this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
 
                 @Override
                 public Void doInHibernate(Session session) throws HibernateException, SQLException {
-                    int nbDeleted = session.createQuery("delete from TunedConf where configFile=:configFile")
+                    Date dateZero = DateFactory.dateAtZero();
+                    int nbDeleted = session.createQuery("update TunedConf set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where configFile=:configFile")
+                            .setDate("lastCalculatedEvent", dateZero)
+                            .setDate("lastCalculationStart", dateZero)
+                            .setDate("lastCalculationEnd", dateZero)
                             .setString("configFile", analysisName)
                             .executeUpdate();
-                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+analysisName);
+                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+analysisName);
                     return null;
                 }
 
             });
         } else {
             List<String> eventInfoDefs = Arrays.stream(indicators).map(ei -> ei.getEventDefinitionRef()).collect(Collectors.toList());
-            LOGGER.info("deleteTunedConfFor : "+analysisName+" and "+eventInfoDefs);
+            LOGGER.info("resetTunedConfFor : "+analysisName+" and "+eventInfoDefs);
             this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
 
                 @Override
                 public Void doInHibernate(Session session) throws HibernateException, SQLException {
-                    int nbDeleted = session.createQuery("delete from TunedConf where configFile=:configFile and eventDefinition in (:eventDefinitions)")
+                    Date dateZero = DateFactory.dateAtZero();
+                    int nbDeleted = session.createQuery("update TunedConf set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where configFile=:configFile and eventDefinition in (:eventDefinitions)")
+                            .setDate("lastCalculatedEvent", dateZero)
+                            .setDate("lastCalculationStart", dateZero)
+                            .setDate("lastCalculationEnd", dateZero)
                             .setString("configFile", analysisName)
                             .setParameterList("eventDefinitions", eventInfoDefs)
                             .executeUpdate();
-                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+analysisName+" and "+eventInfoDefs);
+                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+analysisName+" and "+eventInfoDefs);
                     return null;
                 }
 
@@ -114,35 +124,43 @@ public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDA
     }
 
     @Override
-    public void deleteTunedConfFor(Stock stock, String analysisName, EventInfo... indicators) {
+    public void resetTunedConfFor(Stock stock, String analysisName, EventInfo... indicators) {
         if (indicators == null || indicators.length == 0) {
-            LOGGER.info("deleteTunedConfFor : "+stock+" and "+analysisName);
+            LOGGER.info("resetTunedConfFor : "+stock+" and "+analysisName);
             this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
 
                 @Override
                 public Void doInHibernate(Session session) throws HibernateException, SQLException {
-                    int nbDeleted = session.createQuery("delete from TunedConf as tc where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile")
+                    Date dateZero = DateFactory.dateAtZero();
+                    int nbDeleted = session.createQuery("update TunedConf as tc set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile")
+                            .setDate("lastCalculatedEvent", dateZero)
+                            .setDate("lastCalculationStart", dateZero)
+                            .setDate("lastCalculationEnd", dateZero)
                             .setParameter("stock", stock)
                             .setString("configFile", analysisName)
                             .executeUpdate();
-                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName);
+                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName);
                     return null;
                 }
 
             });
         } else {
             List<String> eventInfoDefs = Arrays.stream(indicators).map(ei -> ei.getEventDefinitionRef()).collect(Collectors.toList());
-            LOGGER.info("deleteTunedConfFor : "+stock+" and "+analysisName+" and "+eventInfoDefs);
+            LOGGER.info("resetTunedConfFor : "+stock+" and "+analysisName+" and "+eventInfoDefs);
             this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
 
                 @Override
                 public Void doInHibernate(Session session) throws HibernateException, SQLException {
-                    int nbDeleted = session.createQuery("delete from TunedConf as tc where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile and tc.tunedConfId.eventDefinition in (:eventDefinitions)")
+                    Date dateZero = DateFactory.dateAtZero();
+                    int nbDeleted = session.createQuery("update TunedConf as tc set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile and tc.tunedConfId.eventDefinition in (:eventDefinitions)")
+                            .setDate("lastCalculatedEvent", dateZero)
+                            .setDate("lastCalculationStart", dateZero)
+                            .setDate("lastCalculationEnd", dateZero)
                             .setParameter("stock", stock)
                             .setString("configFile", analysisName)
                             .setParameterList("eventDefinitions", eventInfoDefs)
                             .executeUpdate();
-                    LOGGER.info("deleteTunedConfFor : deleted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName+" and "+eventInfoDefs);
+                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName+" and "+eventInfoDefs);
                     return null;
                 }
 
