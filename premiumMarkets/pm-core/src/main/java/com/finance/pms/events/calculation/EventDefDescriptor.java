@@ -62,5 +62,7 @@ public interface EventDefDescriptor {
 	public abstract Set<OutputDescr> allOutputs();
 
 	boolean isDisplayed(int outputIdx);
+	
+	String getExportBaseFileName();
 
 }

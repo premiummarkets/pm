@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -63,9 +64,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	private String[] descripitonArrays;
 	private List<OutputDescr> descripitonList;
 	private int groupsCount = 0;
+
+    private Optional<String> exportBaseFileName;
 	
 	public EventDefDescriptorDynamic() {
 		super();
+		exportBaseFileName = Optional.empty();
 	}
 
 	@Override
@@ -298,5 +302,14 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	public void setAlsoDisplayDescription(String alsoDisplayDescription) {
 		this.alsoDisplayDescription = alsoDisplayDescription;
 	}
+
+    @Override
+    public String getExportBaseFileName() {
+        return exportBaseFileName.orElse("");
+    }
+    
+    public void setExportBaseFileName(String exportBaseFileName) {
+        this.exportBaseFileName = Optional.of(exportBaseFileName);
+    }
 
 }

@@ -31,6 +31,7 @@ package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -123,12 +124,13 @@ public class TargetStockInfo {
     private Date endDate;
     private String analysisName;
     private String operationsCompositionerReference;
-    private EventsAnalyser<?> eventAnalyser;
 
     private List<Output> calculatedOutputsCache;
 
     private List<Output> gatheredChartableOutputs;
     private List<ChartedOutputGroup> chartedOutputGroups;
+   
+    private Map<OutputReference, EventsAnalyser> outputAnalysers;
 
     public TargetStockInfo(String analysisName, String operationsCompositionerReference, Stock stock, Date startDate, Date endDate) throws WarningException {
         super();
@@ -144,6 +146,7 @@ public class TargetStockInfo {
         this.calculatedOutputsCache = new ArrayList<TargetStockInfo.Output>();
         this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
         this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
+        this.outputAnalysers = new HashMap<>();
     }
 
     public Stock getStock() {
@@ -159,13 +162,16 @@ public class TargetStockInfo {
         return analysisName;
     }
 
-    public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events, String opName) {
-        if (eventAnalyser == null || events.isEmpty()) return events;
-        return eventAnalyser.analyse(events, opName);
+    public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events) {
+        SortedMap<EventKey, EventValue> analyzedEvents = events;
+        for (OutputReference key : outputAnalysers.keySet()) {
+            analyzedEvents = outputAnalysers.get(key).analyse(analyzedEvents);
+        }
+        return analyzedEvents;
     }
 
-    public void setEventAnalyser(EventsAnalyser<?> eventAnalyser) {
-        this.eventAnalyser = eventAnalyser;
+    public void addEventAnalyser(Operation operation, EventsAnalyser eventAnalyser) {
+        outputAnalysers.put(new OutputReference(operation), eventAnalyser);
     }
 
     public Value<?> checkAlreadyCalculated(Operation operation) {
@@ -346,6 +352,10 @@ public class TargetStockInfo {
 
     public String getOperationsCompositionerReference() {
         return operationsCompositionerReference;
+    }
+
+    public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {
+        return outputAnalysers;
     }
 
 }

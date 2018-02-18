@@ -395,6 +395,7 @@ public class SpringContext extends GenericApplicationContext {
             putInPrefs("perceptron.foldsize",props);
             putInPrefs("nbMonthCalculation.SECTOR",props);
             putInPrefs("nbMonthCalculation.NEURAL",props);
+            putInPrefs("nbMonthCalculation.gxWebNeural",props);
 
             //Q fact
             putInPrefs("bean.quotationFactory", props);

@@ -47,19 +47,23 @@ import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
 /**
- * In principle the IndicatorsCompositioner generates events (SortedMap<EventKey, EventValue>).
+ * Calculators or IndicatorsCompositioners are actually operators or functions taking operations as arguments.
+ * In particular, the IndicatorsCompositioner generates events (SortedMap<EventKey, EventValue>).
  * 
- * TalibIndicatorsCompositioner is one of IndicatorsCompositioner and therefore can be used by the mean of a new EventDefinition (also originally called second pass operations) for each of its implementations, but is not modifiable.
+ * For instance, TalibIndicatorsCompositioner is one of IndicatorsCompositioner and therefore can be used by the mean of a new EventDefinition (also originally called second pass operations) for each of its implementations, but is not modifiable.
  * If we need to parameterise TalibIndicatorsCompositioner and its operands, we need an operation that is not an OperationsCompositioner. Also, as its operand are actually hard coded, this will be a PMDataFreeOperation.
  * The idea here is hence to integrate the TalibIndicatorsCompositioner into an operation of type DoubleMapOperation (here PMDataFreeOperation) and then make it potentially available to used in an OperationsCompositioner through the UI.
- * The operation is making it parametrisable and usable as operand of an OperationsCompositioner.
+ * This operation is making it parametrisable and usable as operand of an OperationsCompositioner.
  * The events output of the calculator (or any other output) can be the input (for event calculation or for display) of the OperationsCompositioner.
  * This is for instance done that way for IndicatorsCompositioners such as Perceptron and Encog calculators.
  * 
  * An other approach is too create an operation for all TalibIndicator used as subjacent indicators of each TalibIndicatorsCompositioner.
  * Then replicate every TalibIndicatorsCompositioner calculation by creating OperationsCompositioners through the UI.
  * 
- * Reviewed terminology : Indicator(s)/IndicatorsCompositionner (former EventCompositionCalculator) -> Operation(s) -> OperationsCompositionner (former EventConditionHolder)
+ * Reviewed terminology : 
+ *  Indicator(s)/Calculator(s)/IndicatorsCompositionner(former EventCompositionCalculator and could be renamed IndicatorOperator, xxxOperator) 
+ *  --takes-> Operation(s) 
+ *  --which can be or can take-> OperationsCompositionner (former EventConditionHolder and could be renamed IndicatorEventMapOperation or EventInfoEventMapOperation) as operands
  */
 public abstract class IndicatorsCompositioner {
 

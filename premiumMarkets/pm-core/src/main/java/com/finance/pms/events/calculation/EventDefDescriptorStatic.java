@@ -264,6 +264,12 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     @Override
     public boolean isDisplayed(int outputIdx) {
         return true;
+    }
+
+
+    @Override
+    public String getExportBaseFileName() {
+        return "static";
     }	
 
 }

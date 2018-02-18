@@ -186,7 +186,6 @@ public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositione
                 }
             }
 
-
             //Add Constants
             List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
             for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
