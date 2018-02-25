@@ -83,7 +83,6 @@ public interface QuotationsFactory {
     public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Validatable stock);
 
     SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
-
     SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 
 

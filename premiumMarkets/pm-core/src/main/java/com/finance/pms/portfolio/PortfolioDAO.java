@@ -64,5 +64,8 @@ public interface PortfolioDAO {
 	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
 	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock);
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
+
+	public IndepShareList loadIndepShareList(String shareListName);
+	public List<String> loadIndepShareListNames();
 	
 }

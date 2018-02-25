@@ -53,7 +53,7 @@ public class ShareListMgrTest {
 
 	@Test
 	public void testUpdateShareList() throws Exception {
-		shareListMgr.updateShareLists();
+		shareListMgr.updateShareListsContent();
 	}
 
 }

@@ -80,6 +80,7 @@
 				<value>com.finance.pms.portfolio.UserPortfolio</value>
 				<value>com.finance.pms.portfolio.AutoPortfolio</value>
 				<value>com.finance.pms.portfolio.SharesList</value>
+				<value>com.finance.pms.portfolio.IndepShareList</value>
 				<value>com.finance.pms.alerts.AlertOnThreshold</value>
 				<value>com.finance.pms.alerts.AlertOnEvent</value>
 				<value>com.finance.pms.screening.ScreeningSupplementedStock</value>

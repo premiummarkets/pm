@@ -43,41 +43,42 @@ public class ShareListDefaultMgr extends ShareListMgr {
 	PortfolioDAO portfolioDAO;
 	
 	@Override
-	protected void removeForeignKeysUpdate(PortfolioShare toRemovePortfolioShare) {
-			
+	protected boolean removeForeignKeysUpdate(PortfolioShare toRemovePortfolioShare) {
+
+		//Adding to the 'Unknown List' if not removing from there.
 		SharesList unknownShareList = portfolioDAO.loadShareList(SharesListId.UNKNOWN.name());
-		
-		if (!toRemovePortfolioShare.getPortfolio().equals(unknownShareList)) {
+		AbstractSharesList portfolioWeRemoveFrom = toRemovePortfolioShare.getPortfolio();
+		if (!portfolioWeRemoveFrom.equals(unknownShareList)) {
 			Stock stock = toRemovePortfolioShare.getStock();
 			PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
 			if (unknownCounterpartPortfolioShare == null) {
 				unknownShareList.addShare(stock);
 				unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
+				portfolioDAO.saveOrUpdatePortfolioShare(unknownCounterpartPortfolioShare);
 			}
-			portfolioDAO.saveOrUpdatePortfolioShare(unknownCounterpartPortfolioShare);
+			return true;
 		}
+		return false;
 	
 	}
 	
 	@Override
-	protected void addForeignKeysUpdate(PortfolioShare newPortfolioShare) {
+	protected boolean addForeignKeysUpdate(PortfolioShare toAddPortfolioShare) {
 		
+		//Removing from 'Unknown List' if we are not adding there
 		SharesList unknownShareList = portfolioDAO.loadShareList(SharesListId.UNKNOWN.name());
-		
-		AbstractSharesList newShareList = newPortfolioShare.getPortfolio();
-		if (!newShareList.equals(unknownShareList)) {
-			Stock stock = newPortfolioShare.getStock();
+		AbstractSharesList portfolioWeAddTo = toAddPortfolioShare.getPortfolio();
+		if (!portfolioWeAddTo.equals(unknownShareList)) {
+			Stock stock = toAddPortfolioShare.getStock();
 			PortfolioShare unknownCounterpartPortfolioShare = unknownShareList.getListShares().get(stock);
 			if (unknownCounterpartPortfolioShare != null) {
-				
-				//This is may be new new
-				//portfolioDAO.saveOrUpdatePortfolioShare(newPortfolioShare);
-				portfolioDAO.saveOrUpdatePortfolio(newShareList);
-				
+				//This is may be a new 'Share list' ?
+				portfolioDAO.saveOrUpdatePortfolio(portfolioWeAddTo);
 				unknownShareList.removeShare(unknownCounterpartPortfolioShare);
 			}
+			return true;
 		}
-		
+		return false;
 	}
 
 	@Override

@@ -68,6 +68,11 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
             LOGGER.debug("",e);
         }
 
+        //Sat, 20 Jan 2018 21:07:49 GMT
+        //Tue, 20 Feb 2018 21:07:49 GMT
+        //String url = "https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516482469&period2=1519160869&interval=1d&events=history"+"&crumb="+crumb;
+        //              https://query1.finance.yahoo.com/v7/finance/download/%5EAAPL?period1=1516424400&period2=1519102800&interval=1d&events=history&crumb=GEcazs7lpjM
+        //              https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516490318&period2=1519168718&interval=1d&events=history&crumb=9Gm6dOkKT.K
         String url = "https://query1.finance.yahoo.com/v7/finance/download/" + symbol + "?"+
                 "period1="+startDate+"&period2="+endDate +
                 "&interval=1d&events=history"+

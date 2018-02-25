@@ -61,7 +61,7 @@ public abstract class TalibIndicatorsCompositioner extends IndicatorsComposition
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositioner.class);
 
-	SortedMap<Date, double[]>  calculationOutput;
+	SortedMap<Date, double[]> calculationOutput;
 
 	public TalibIndicatorsCompositioner(Observer... observers) {
 		super(observers);

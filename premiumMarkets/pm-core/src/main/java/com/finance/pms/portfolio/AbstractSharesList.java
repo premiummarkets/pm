@@ -30,10 +30,12 @@
 package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 import java.util.Observable;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.CascadeType;
@@ -79,7 +81,7 @@ public abstract class AbstractSharesList extends Observable {
 	protected String name;
 	private Map<Stock, PortfolioShare> listShares;
 
-	
+
 	protected AbstractSharesList() {
 		super();
 		this.listShares = new ConcurrentHashMap<Stock, PortfolioShare>();
@@ -92,17 +94,17 @@ public abstract class AbstractSharesList extends Observable {
 
 	public AbstractSharesList(AbstractSharesList portfolio) {
 		this();
-		
+
 		this.name = portfolio.name;		
 		for (PortfolioShare portfolioShare: portfolio.getListShares().values()) {
 			this.listShares.put(portfolioShare.getStock(), new PortfolioShare(portfolioShare));
 		}
 	}
-	
+
 	protected void removeShareFromList(PortfolioShare portfolioShare) {
 		listShares.remove(portfolioShare.getStock());
 	}
-	
+
 	protected void addShareToList(PortfolioShare portfolioShare) {
 		listShares.put(portfolioShare.getStock(), portfolioShare);
 	}
@@ -141,12 +143,12 @@ public abstract class AbstractSharesList extends Observable {
 	public Map<Stock, PortfolioShare> getListShares() {
 		return listShares;
 	}
-	
+
 	@Transient
 	public PortfolioShare getShareForSymbolAndIsin(String symbol, String isin) {
 		return this.getShareForStock(new Stock(symbol,isin));
 	}
-	
+
 	@Transient
 	public PortfolioShare getShareForLienientSymbol(String symbol) {
 		for (PortfolioShare portfolioShare : this.listShares.values()) {
@@ -156,7 +158,7 @@ public abstract class AbstractSharesList extends Observable {
 		}
 		return null;
 	}
-	
+
 	@Transient
 	public PortfolioShare getShareForLienientRefs(String... refs) {
 		for (PortfolioShare portfolioShare : this.listShares.values()) {
@@ -198,19 +200,33 @@ public abstract class AbstractSharesList extends Observable {
 	protected void setName(String name) {
 		this.name = name;
 	}
-	 
-	 @Transient
-	 public CurrencyConverter getCurrencyConverter() {
-		 return PortfolioMgr.getInstance().getCurrencyConverter();
-	 }
-	 
-	 public abstract Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
-	 public abstract SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
-	 public abstract BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	 public abstract BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	 public abstract BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
-	 public abstract BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	 public abstract BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	 public abstract InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency);
+
+	@Transient
+	public CurrencyConverter getCurrencyConverter() {
+		return PortfolioMgr.getInstance().getCurrencyConverter();
+	}
+
+	public SortedSet<Stock> toSortedStocksSet() {
+		SortedSet<Stock> retSet = new TreeSet<Stock>(new Comparator<Stock>() {
+			public int compare(Stock o1, Stock o2) {
+				return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+			}
+		});
+
+		for (PortfolioShare portfolioShare : this.getListShares().values()) {
+			retSet.add(portfolioShare.getStock());
+		}
+
+		return retSet;
+	}
+
+	public abstract Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
+	public abstract SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
+	public abstract BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	public abstract BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	public abstract BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
+	public abstract BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	public abstract BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
+	public abstract InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency);
 }
 

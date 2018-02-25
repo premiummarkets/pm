@@ -64,7 +64,7 @@ public abstract class ShareListMgr {
 		return (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
 	}
 	
-	public synchronized void updateShareLists() throws Exception {
+	public synchronized void updateShareListsContent() throws Exception {
 		
 		try {
 			List<String> shareListNames = portfolioDAO.loadShareListNames(null, new String[]{SharesListId.UNKNOWN.getSharesListCmdParam().toUpperCase()});
@@ -73,7 +73,7 @@ public abstract class ShareListMgr {
 				Set<Indice> indices = Indice.parseString(shareListName);
 				if (indices.size() == 1 || indices.size() == 0) { //No composite yahoo share lists or other share lists
 					SharesList sharesList = PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(shareListName);
-					updateShareList(sharesList);
+					updateShareListContent(sharesList);
 				} 
 			}
 		} catch (Exception e) {
@@ -82,7 +82,7 @@ public abstract class ShareListMgr {
 		}
 	}
 
-	private StockList updateShareList(SharesList sharesList) {
+	private StockList updateShareListContent(SharesList sharesList) {
 		
 		MarketListProvider provider = null;
 		String[] shareListNameSplit = sharesList.getName().split(",");
@@ -108,9 +108,9 @@ public abstract class ShareListMgr {
 		 
 	}
 
-	protected abstract void removeForeignKeysUpdate(PortfolioShare removedShare);
+	protected abstract boolean removeForeignKeysUpdate(PortfolioShare removedShare);
 
-	protected abstract void addForeignKeysUpdate(PortfolioShare newPortfolioShare);
+	protected abstract boolean addForeignKeysUpdate(PortfolioShare newPortfolioShare);
 	
 	//XXX this should be merge with the config loader in a separate bean  + creation of a factory factory for EventConfg and TuningConfg
 	public abstract EventSignalConfig initPkgDependentConfig();

@@ -95,17 +95,27 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
 
         if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for "+stock.toString());
 
-        MyUrl url;
-        try {
-            url = resolveUrlFor(stock, start, end);
-        } catch (InvalidAlgorithmParameterException e) {
-            return;
+        List<Validatable> readPage = null;
+        int retries = 0;
+        Calendar cStrat = Calendar.getInstance();
+        cStrat.setTime(start);
+        while (readPage == null && retries < 2) {
+            try {
+                readPage = readCrumedPage(stock, cStrat.getTime(), end);
+            } catch (InvalidAlgorithmParameterException e1) {
+                return;
+            } catch (HttpException he) {
+                cStrat.add(Calendar.DAY_OF_MONTH, -1);
+            } finally {
+                retries++;
+            }
         }
+        if (readPage == null) throw new HttpException();
 
         TreeSet<Validatable> queries = initValidatableSet();
-        queries.addAll(readPage(stock, url, start));
+        queries.addAll(readPage);
 
-        LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+        LOGGER.guiInfo("Getting last quotes: Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
         LOGGER.debug(queries);
 
         try {
@@ -113,11 +123,16 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
             tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
             DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
         } catch (SQLException e) {
-
-            LOGGER.error("Yahoo quotations sql error trying : "+url.getUrl(), e);
+            LOGGER.error("Yahoo quotations SQL error trying: "+stock+" between "+start+" and "+end, e);
             throw e;
         }
 
+    }
+
+    private List<Validatable> readCrumedPage(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException, HttpException {
+        MyUrl url = resolveUrlFor(stock, start, end);
+        List<Validatable> readPage = readPage(stock, url, start);
+        return readPage;
     }
 
     public List<Validatable> readPage(Stock stock, MyUrl url, Date  start) throws HttpException {
@@ -199,13 +214,19 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
             String cookie = responseCookies.getValue().split(";")[0];
 
             String crumb = getCrumb(crumbResponse.getEntity().getContent());
-            
+
             Calendar calendarStart = Calendar.getInstance();
-            calendarStart.setTime(start);
-            ZonedDateTime zonedStart = ZonedDateTime.of(calendarStart.get(Calendar.YEAR), calendarStart.get(Calendar.MONTH)+1, calendarStart.get(Calendar.DAY_OF_MONTH),0 , 0, 0, 0, TimeZone.getTimeZone("EST").toZoneId());
+            calendarStart.setTime(DateFactory.midnithDate(start));
+            if (calendarStart.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) calendarStart.add(Calendar.DAY_OF_MONTH, -1);
+            if (calendarStart.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) calendarStart.add(Calendar.DAY_OF_MONTH, -2);
 
             Calendar calendarEnd = Calendar.getInstance();
-            calendarEnd.setTime(end);
+            calendarEnd.setTime(DateFactory.midnithDate(end));
+            calendarEnd.add(Calendar.DAY_OF_MONTH, +1);
+            if (calendarEnd.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) calendarEnd.add(Calendar.DAY_OF_MONTH, +2);
+            if (calendarEnd.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) calendarEnd.add(Calendar.DAY_OF_MONTH, +1);
+
+            ZonedDateTime zonedStart = ZonedDateTime.of(calendarStart.get(Calendar.YEAR), calendarStart.get(Calendar.MONTH)+1, calendarStart.get(Calendar.DAY_OF_MONTH),0 , 0, 0, 0, TimeZone.getTimeZone("EST").toZoneId());
             ZonedDateTime zonedEnd = ZonedDateTime.of(calendarEnd.get(Calendar.YEAR), calendarEnd.get(Calendar.MONTH)+1, calendarEnd.get(Calendar.DAY_OF_MONTH),0 , 0, 0, 0, TimeZone.getTimeZone("EST").toZoneId());
 
             //Call

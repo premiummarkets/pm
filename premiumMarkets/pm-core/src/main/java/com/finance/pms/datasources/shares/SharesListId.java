@@ -173,7 +173,7 @@ public class SharesListId  {
 		return comment;
 	}
 	
-	//TODO : several share lists ie use the share lists with customised quotation providers and indices in DB instead of props.
+	//TODO : several share lists ie use the share lists with customized quotation providers and indices in DB instead of props.
 //	public static void updatePrefs(String shareListName, String indices) {
 ////		MainPMScmd.getMyPrefs().put("quotes.listprovider", shareListName);
 ////		MainPMScmd.getMyPrefs().put("quotes.listproviderindices", indices);

@@ -44,14 +44,14 @@ public class ProvidersYahooCrumbTest {
     public void testResolveURL() throws Exception {
 
         Stock stock = new Stock();
-        stock.setSymbol("GOOG");
-        stock.setIsin("US38259P5089");
-        stock.setName("Google Inc.");
+        stock.setSymbol("AAPL");
+        stock.setIsin("AAPL");
+        stock.setName("AAPL");
         stock.setMarketValuation(new MarketValuation(Market.NASDAQ));
         stock.setCategory(StockCategories.DEFAULT_CATEGORY);
 
-        Date start = new SimpleDateFormat("dd/MM/yyyy").parse("10/03/2016");
-        Date end =  new SimpleDateFormat("dd/MM/yyyy").parse("15/03/2016");
+        Date start = new SimpleDateFormat("dd/MM/yyyy").parse("20/01/2018");
+        Date end =  new SimpleDateFormat("dd/MM/yyyy").parse("20/02/2018");
 
         MyUrl resolveUrlFor = providersYahooCrumb.resolveUrlFor(stock, start, end);
 
@@ -69,23 +69,29 @@ public class ProvidersYahooCrumbTest {
     
     @Test
     public void testGetQuotes() throws Exception {
+        
+        //https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516477681&period2=1519156081&interval=1d&events=history&crumb=9Gm6dOkKT.K
+        //https://query1.finance.yahoo.com/v7/finance/download/%5EAAPL?period1=1518757200&period2=1519102800&interval=1d&events=history&crumb=tSIXJGSdD6I
+        
+        //https://query1.finance.yahoo.com/v7/finance/download/BA?period1=1518843600&period2=1519102800&interval=1d&events=history&crumb=7LSj45xhvuf
+        //https://query1.finance.yahoo.com/v7/finance/download/BA?period1=1516478803&period2=1519157203&interval=1d&events=history&crumb=9Gm6dOkKT.K
 
         Stock stock = new Stock();
-        stock.setSymbol("IXIC");
-        stock.setIsin("IXIC");
-        stock.setName("NASDAQ COMPOSITE");
+        stock.setSymbol("AAPL");
+        stock.setIsin("AAPL");
+        stock.setName("AAPL");
         stock.setMarketValuation(new MarketValuation(Market.NASDAQ));
-        stock.setCategory(StockCategories.INDICES_OTHER);
+        stock.setCategory(StockCategories.DEFAULT_CATEGORY);
 
-        Date start = new SimpleDateFormat("yyyy-MM-dd").parse("2017-10-26");
-        Date end =  new SimpleDateFormat("yyyy-MM-dd").parse("2017-10-27");
+        Date start = new SimpleDateFormat("dd/MM/yyyy").parse("17/02/2018");
+        Date end =  new SimpleDateFormat("dd/MM/yyyy").parse("20/02/2018");
 
         providersYahooCrumb.getQuotes(stock, start, end);
 
     }
     
     
-    @Test
+    //@Test
     public void testCrumb() throws Exception {
 
         File ctest = new File("/home/guil/Developpement/tmp/ctest.html");
@@ -95,7 +101,7 @@ public class ProvidersYahooCrumbTest {
 
     }
     
-    @Test
+    //@Test
     public void testUnicod() throws UnsupportedEncodingException {
         //\u002Fbgn01cWy9b => %5Cu002Fbgn01cWy9b
         //String unicoded = "Exr3SkLUf\u002Fm";

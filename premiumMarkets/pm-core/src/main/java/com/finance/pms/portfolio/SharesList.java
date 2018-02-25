@@ -31,7 +31,6 @@ package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,14 +45,16 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 
 /**
+ * Used for market share list storage. Every stock should only be in one of these at a time.
+ * The 'UNKNOW' SharesList being used to store shares not in a known market.
+ * 
  * @author Guillaume Thoreton
- * Used for market share list storage
  *
  */
 @Entity
 @DiscriminatorValue("ShareList")
 public class SharesList extends AbstractSharesList {
-	
+
 	@SuppressWarnings("unused")
 	private SharesList() {
 		super();
@@ -62,49 +63,35 @@ public class SharesList extends AbstractSharesList {
 	public SharesList(String name) {
 		super(name);
 	}
-	
+
 	public void addShares(Collection<Stock> pssToAdd) {
 		for (Stock stock : pssToAdd) {
 			addShare(stock);
 		}
 	}
-	
+
 	public void addShare(Stock stock) {
 		PortfolioShare newPortfolioShare = new PortfolioShare(this, stock, MonitorLevel.NONE, stock.getMarketValuation().getCurrency());
 		addShareToList(newPortfolioShare);
 		ShareListMgr.getInstance().addForeignKeysUpdate(newPortfolioShare);
 	}
-	
+
 	public void removeShare(PortfolioShare portfolioShare) {
 		ShareListMgr.getInstance().removeForeignKeysUpdate(portfolioShare);
 		removeShareFromList(portfolioShare);
 	}
-	
+
 	public void removeShares(Set<PortfolioShare> pssToRemove) {
 		for (PortfolioShare ps : pssToRemove) {
 			removeShare(ps);
 		}
 	}
-	
+
 	public Set<Stock> toStocksSet() {
 		Set<Stock> retSet = new HashSet<Stock>();
 		for (PortfolioShare portfolioShare : this.getListShares().values()) {
 			retSet.add(portfolioShare.getStock());
 		}
-		return retSet;
-	}
-	
-	public SortedSet<Stock> toSortedStocksSet() {
-		SortedSet<Stock> retSet = new TreeSet<Stock>(new Comparator<Stock>() {
-			public int compare(Stock o1, Stock o2) {
-				return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
-			}
-		});
-		
-		for (PortfolioShare portfolioShare : this.getListShares().values()) {
-			retSet.add(portfolioShare.getStock());
-		}
-		
 		return retSet;
 	}
 
