@@ -30,7 +30,6 @@
 package com.finance.pms.portfolio.gui;
 
 
-import java.awt.Desktop;
 import java.awt.Paint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -3245,7 +3244,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			
 			try {
 				LOGGER.info("Trying default desktop spreadsheet");
-				Desktop.getDesktop().open(reportFile);
+				//Desktop.getDesktop().open(reportFile);
 			} catch (Exception e) {
 				String[] commands = new String[]{"/usr/bin/gnumeric","/usr/bin/soffice"};
 				try {

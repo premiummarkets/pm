@@ -218,7 +218,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		Boolean monitored = false;
 		for (AbstractSharesList portfolio : this.portfolios) {
 			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
-				if (portfolioShare.getStock().lenientEquals(stock)) {
+				if (portfolioShare.getStock().lenientSymbolEquals(stock)) {
 					if (!portfolioShare.getMonitorLevel().equals(MonitorLevel.NONE)) {//Found monitored in portofolio
 						if (monitoredEvents == null) {//no need for alertOnEvent filter
 							return true;

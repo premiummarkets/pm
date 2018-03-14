@@ -39,6 +39,7 @@ import javax.jms.JMSException;
 
 import com.finance.pms.admin.config.Config;
 
+@Deprecated
 public class BuySellSignalCalculatorMessage extends IdentifiedObjecMessage implements Serializable {
 	
 	private static final long serialVersionUID = -4542088662852292807L;

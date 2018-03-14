@@ -86,7 +86,6 @@ public class EventSignalConfig extends Config implements Cloneable {
 
     public static Date getNewDate() {
         if (EventSignalConfig.ENDDATE != null) {
-            //return DateFactory.midnithDate(new Date(EventSignalConfig.ENDDATE.getTime()));
             return new Date(EventSignalConfig.ENDDATE.getTime());
         } else {
             return DateFactory.midnithDate(new Date());

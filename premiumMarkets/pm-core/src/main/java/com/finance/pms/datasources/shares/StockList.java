@@ -166,11 +166,7 @@ public class StockList extends ArrayList<Stock> {
 
 	public Stock findLenientRefs(String ... refs) {
 		for (Stock stock : this) {
-			for (String ref : refs ) {
-				if (ref != null && (stock.getSymbol().equals(ref) || stock.getIsin().equals(ref))) {
-					return stock;
-				}
-			}
+			if (stock.lenientEquals(refs)) return stock;
 		}
 		return null;
 	}

@@ -317,7 +317,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
     @Override
     public void aboutToHidePanel() {
         getWizard().setNextFinishButtonEnabled(true);
-    }    
+    }
 
     class Task extends SwingWorker<Void, Void> {
 
@@ -549,7 +549,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
                 destination = fileOutputStream.getChannel();
 
                 long count = 0;
-                long size = source.size();              
+                long size = source.size();
                 while((count += destination.transferFrom(source, count, size-count))<size);
 
             } finally {
@@ -731,7 +731,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
             while (zipEnum.hasMoreElements()) {
                 ZipEntry item = zipEnum.nextElement();
 
-                if (item.isDirectory()) { //Directory
+                if (item.isDirectory()) {//Directory
 
                     File newdir = new File(installFolder.getAbsolutePath() + File.separator + item.getName());
                     System.out.print("Creating directory " + newdir + " ... ");

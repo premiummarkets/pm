@@ -37,6 +37,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -47,6 +48,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 
 @Entity
+@Table(name="CURRENCYRATE")
 @IdClass(CurrencyRateId.class)
 public class CurrencyRate extends Validatable {
 	

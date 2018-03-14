@@ -33,7 +33,7 @@ import java.util.Map;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
 
@@ -43,12 +43,12 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 	private static MyLogger LOGGER = MyLogger.getLogger(ValidatedLatestEventsPonderationRule.class);
 	
 	private Map<Stock, Validity> tuningValidityList;
-	private EventDefinition filteredEventDef;
+	private EventInfo filteredEventDef;
 
-	public ValidatedLatestEventsPonderationRule(Integer sellThreshold, Integer buyThreshold, Map<Stock, Validity> tuningValidityList, EventDefinition filteredEventDef) {
+	public ValidatedLatestEventsPonderationRule(Integer sellThreshold, Integer buyThreshold, Map<Stock, Validity> tuningValidityList, EventInfo evtDef) {
 		super(sellThreshold, buyThreshold);
 		this.tuningValidityList = tuningValidityList;
-		this.filteredEventDef = filteredEventDef;
+		this.filteredEventDef = evtDef;
 	}
 	
 	@Override
@@ -71,7 +71,7 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 		if (validity != null) {
 			isValid = validity.equals(Validity.SUCCESS);
 		} else {
-			LOGGER.debug("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+ ". Neural trend was not calculated for that stock.");
+			LOGGER.warn("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+ ". Neural trend was not calculated for that stock.");
 		}
 		
 		if (isValid) {

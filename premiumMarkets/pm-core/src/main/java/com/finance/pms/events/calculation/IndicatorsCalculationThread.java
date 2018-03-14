@@ -173,6 +173,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
                     //FIXME FALSE => TunedConf will always be reset for 2nd pass events with the cleanEventsFor above <= FALSE as the delete may not handle tuneConf
                     TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
+                    Date lastEventDate = DateFactory.dateAtZero();
                     try {
 
                         synchronized (tunedConf) {
@@ -230,22 +231,26 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
                             if (failing.isEmpty()) {
                                 //if We inc or reset, tuned conf last event will need update : We add it in the map
                                 if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
-                                    TunedConfMgr.getInstance().updateConf(tunedConf, symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate());
+                                	lastEventDate =  symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate();
+                                } else {
+                                	lastEventDate = tunedConf.getLastCalculatedEvent();
                                 }
                             } else {//Error(s) as occurred. This should invalidate tuned conf
                                 if (LOGGER.isEnabledFor(Level.ERROR)) {
                                     failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
                                 }
-                                //TODO delete failed events generated??
-                                TunedConfMgr.getInstance().resetTunedConf(tunedConf, tunedConf.getDirty());
+                                //We make the tunedConf clean assuming a subsequent calculation will also fail. However the last event is here reset to zero.
+                                lastEventDate = DateFactory.dateAtZero();
                             }
 
-                        }//End synchronised
+                        }//End synchronized
 
                     } catch (InvalidAlgorithmParameterException e) {
+                    	lastEventDate = DateFactory.dateAtZero();
                         LOGGER.error(e);
+                    } finally {
+                    	TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate);
                     }
-
                 }
             };
 

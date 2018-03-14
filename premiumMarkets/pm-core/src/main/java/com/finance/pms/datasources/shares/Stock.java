@@ -287,13 +287,12 @@ public class Stock extends Validatable {
 			if (this.getMarketValuation() != null) {
 				currency = this.getMarketValuation().getCurrency();
 			}
-			String lastDateQ = "None";
+			String lastDateStr = "None";
 			if (this.lastQuote != null) {
-				SimpleDateFormat dateFormat =new SimpleDateFormat("yyyy-MM-dd");
-				lastDateQ = dateFormat.format(this.lastQuote);
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+				lastDateStr = dateFormat.format(this.lastQuote);
 			}
-			//str = "Symbol :"+this.getSymbol()+"; Isin :"+this.getIsin()+"; Name :"+this.getName()+"; Currency :"+currency+"; Last date Q :"+lastDateQ;
-			str = getFriendlyName() + " last quote in " +currency+" on the "+lastDateQ;
+			str = getFriendlyName().replace(")", " / ") + lastDateStr +" / "+currency + ")";
 			
 		} catch (RuntimeException e) {
 			LOGGER.error("Can't print stock : "+this.symbol+";"+this.isin+";"+this.name+";"+lastQuote, e);
@@ -437,15 +436,30 @@ public class Stock extends Validatable {
 		this.capitalisation = capitalisation;
 	}
 
-	public boolean lenientEquals(Stock stock) {
+	public boolean lenientSymbolEquals(Stock stock) {
 		String thisSimplifiedSymbol = this.getSymbol().split("\\.")[0];
 		String stockSimplifiedSymbol = stock.getSymbol().split("\\.")[0];
 		return stockSimplifiedSymbol.equals(thisSimplifiedSymbol);
 	}
+	
+	public boolean lenientEquals(String... refs) {
+		for (String ref : refs) {
+			if (ref != null &&
+					(
+							this.getSymbol().equals(ref) || 
+							this.getIsin().equals(ref) || 
+							this.getName().replaceAll("['. \\s()]", "").equalsIgnoreCase(ref.replaceAll("['. \\s()]", ""))
+					)
+				) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	@Transient
 	public String getFriendlyName() {
-		return this.getName().replaceAll("[,;/]"," ")+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+		return this.getName().replaceAll("([,;/])"," ")+" ("+this.getSymbol()+" / "+this.getIsin()+")";
 	}
 	
 }

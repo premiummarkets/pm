@@ -32,15 +32,15 @@ package com.finance.pms.events.calculation;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.Queue;
 import javax.jms.Session;
 
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.AnalysisClient;
@@ -53,79 +53,87 @@ import com.finance.pms.portfolio.AutoPortfolioWays;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.TransactionHistory;
 import com.finance.pms.portfolio.TransactionRecord;
-import com.finance.pms.queue.BuySellSignalCalculatorMessage;
+import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.queue.SingleEventMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class BuySellSignalCalculatorMessageRunnable implements Runnable {
-	
-	protected static MyLogger LOGGER = MyLogger.getLogger(BuySellSignalCalculatorMessageRunnable.class);
-	
-	private BuySellSignalCalculatorMessage message;
-	private JmsTemplate jmsTemplate;
-	private Queue eventQueue;
+public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClientRunnableMessage {
 
-	public BuySellSignalCalculatorMessageRunnable(Message message, JmsTemplate jmsTemplate, Queue eventQueue) {
-		super();
-		this.message = (BuySellSignalCalculatorMessage) message;
-		this.jmsTemplate = jmsTemplate;
-		this.eventQueue = eventQueue;
+	private static final long serialVersionUID = 7866255237284058407L;
+	private static MyLogger LOGGER = MyLogger.getLogger(BuySellSignalCalculatorMessageRunnable.class);
+
+	private String messageTxt;
+	private Date startDate;
+	private Date endDate;
+	private String signalProcessingName;
+	private String[] additionalEventListNames;
+
+	public BuySellSignalCalculatorMessageRunnable(String messageTxt, Date startDate, Date endDate, String signalProcessingName, String... eventListName) {
+		super(5000, SpringContext.getSingleton(), signalProcessingName);
+		this.messageTxt = messageTxt;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.signalProcessingName = signalProcessingName;
+		this.additionalEventListNames = eventListName;
+	}
+
+	public void runBuyNSellCalculation() throws InterruptedException {
+		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
+		synchronized (syncObject) {
+			syncObject.wait();
+		}
 	}
 
 	public void run() {
 
 		try {
-			LOGGER.debug("Processing " + message.getSignalProcessingName());
+			LOGGER.debug("Processing " + getSignalProcessingName());
 
-			for (String configName : message.getPassedThroughConfigs().keySet()) {
-				ConfigThreadLocal.set(configName, message.getPassedThroughConfigs().get(configName));
+			for (String configName : getPassedThroughConfigs().keySet()) {
+				ConfigThreadLocal.set(configName, getPassedThroughConfigs().get(configName));
 			}
 
-			LOGGER.info("Processing signals " +message.getMessageTxt()+", " + message.getSignalProcessingName() + " on the " + message.getStartDate() + " with " + message.getAdditionalEventListNames());
+			LOGGER.info("Processing signals " +getMessageTxt()+", " + getSignalProcessingName() + " on the " + getStartDate() + " with " + getAdditionalEventListNames());
 
-			AutoPortfolioWays portfolio = (AutoPortfolioWays) PortfolioMgr.getInstance().getPortfolio(message.getSignalProcessingName());
-			
+			AutoPortfolioWays portfolio = (AutoPortfolioWays) PortfolioMgr.getInstance().getPortfolio(getSignalProcessingName());
+
 			Calendar currentDate = Calendar.getInstance();
-			currentDate.setTime(message.getStartDate());
-			while (currentDate.getTime().before(message.getEndDate()) || currentDate.getTime().compareTo(message.getEndDate()) == 0) {
-				
-				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), message.getAdditionalEventListNames());
+			currentDate.setTime(getStartDate());
+			while (currentDate.getTime().before(getEndDate()) || currentDate.getTime().compareTo(getEndDate()) == 0) {
+
+				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), getAdditionalEventListNames());
 				sendTransactionHistory(calculationTransactions);
-				
+
 				//QuotationsFactories.getFactory().incrementDate(currentDate, 1);
 				currentDate.add(Calendar.DAY_OF_YEAR, 1);
-				
+
 			}
-			
+
 			AutoPortfolioAnalyser logAnalyser = new AutoPortfolioAnalyser(portfolio);
 			String logAnalysisMsg = logAnalyser.message();
 			if (!logAnalysisMsg.isEmpty()) sendTransactionSummary(portfolio, logAnalysisMsg);
-			
-			LOGGER.info("Processor message completed : " +message.getMessageTxt()+", " +message.getSignalProcessingName()+" on the " + message.getStartDate()+ " with "+ Arrays.toString(message.getAdditionalEventListNames()));
+
+			LOGGER.info("Processor message completed : " +getMessageTxt()+", " +getSignalProcessingName()+" on the " + getStartDate()+ " with "+ Arrays.toString(getAdditionalEventListNames()));
+		
 		} catch (Exception e) {
-			
 			LOGGER.error("Error in "+this.toString(),e);
-			
 		} finally {
-			
-			 synchronized (message) {
-				 message.setProcessed(true);
-				 message.notifyAll();
+			synchronized (syncObject) {
+				syncObject.notify();
 			}
-			
 		}
 
 	}
 
 	private void sendTransactionSummary(final AutoPortfolioWays portfolio, final String logAnalysisMsg) {
-		
+
 		if (AnalysisClient.getEmailMsgQeueingFilter().contains(EmailFilterEventSource.Metrics)) {
 			jmsTemplate.send(eventQueue, new MessageCreator() {
 
 				public Message createMessage(Session session) throws JMSException {
 
-					EventValue eventValue = new EventValue(message.getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
-					SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), message.getEndDate(), AnalysisClient.ANY_STOCK, eventValue, ConfigThreadLocal.getAll());
+					EventValue eventValue = new EventValue(getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
+					SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), getEndDate(), AnalysisClient.ANY_STOCK, eventValue, ConfigThreadLocal.getAll());
 					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), EmailFilterEventSource.Summary); //Source (event calculator)
 					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
@@ -135,11 +143,11 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 			});
 		}
 	}
-	
+
 	private void sendTransactionHistory(TransactionHistory transactionHistory) {
-		
+
 		for (final TransactionRecord record : transactionHistory) {
-			
+
 			if (AnalysisClient.getEmailMsgQeueingFilter().contains(record.getSource())) {
 				jmsTemplate.send(eventQueue, new MessageCreator() {
 
@@ -161,25 +169,45 @@ public class BuySellSignalCalculatorMessageRunnable implements Runnable {
 						infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
 
 						return infoMessage;
-						
+
 					}
 				});
 			}
 		}
-		
+
 	}
 
 
 	@Override
 	public String toString() {
-		return this.getClass().getName()+" processing "+this.message.getSignalProcessingName() + " at "+ message.getStartDate();
+		return this.getClass().getName()+" processing "+this.getSignalProcessingName() + " at "+ getStartDate();
 	}
-	
+
 	public static String messageLinks(String analysisName, Stock stock) {
 		return 
 				"Generated files :\n"+
 				"file:// "+System.getProperty("installdir") + File.separator + "autoPortfolioLogs"+ File.separator +analysisName+stock.getSymbol()+ "_*_BuyAndSellRecords*.csv\n" +
 				"file:// "+System.getProperty("installdir") + File.separator + "tmp" + File.separator + "nr_"+stock.getSymbol()+"_cf"+analysisName+"*.csv\n";
+	}
+
+	private String getMessageTxt() {
+		return messageTxt;
+	}
+
+	private Date getStartDate() {
+		return startDate;
+	}
+
+	private Date getEndDate() {
+		return endDate;
+	}
+
+	private String getSignalProcessingName() {
+		return signalProcessingName;
+	}
+
+	private String[] getAdditionalEventListNames() {
+		return additionalEventListNames;
 	}
 
 }

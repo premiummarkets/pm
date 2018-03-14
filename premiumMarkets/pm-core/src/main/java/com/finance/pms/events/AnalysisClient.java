@@ -45,7 +45,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -58,11 +57,9 @@ import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.ScraperMetrics;
-import com.finance.pms.events.calculation.BuySellSignalCalculatorMessageRunnable;
 import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
-import com.finance.pms.queue.BuySellSignalCalculatorMessage;
 import com.finance.pms.queue.EmailMessage;
 import com.finance.pms.queue.ExportAutoPortfolioMessage;
 import com.finance.pms.queue.IdentifiedObjecMessage;
@@ -113,24 +110,23 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
     	try {
     		
-    		
     		if (message instanceof IdentifiedObjecMessage) {
     			ConfigThreadLocal.setAll(((IdentifiedObjecMessage) message).getPassedThroughConfigs());
     		} else {
     			throw new IllegalArgumentException("The message is not an IdentifiedObjecMessage : "+message.getClass().getSimpleName());
     		}
-    		
 
-    		if (message instanceof BuySellSignalCalculatorMessage) { //Retrieve events from DB and process Auto portfolios. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
-    			
-    			BuySellSignalCalculatorMessage processorMessage = (BuySellSignalCalculatorMessage)((BuySellSignalCalculatorMessage) message).getObject();
-    			LOGGER.debug("New processor message received : " + processorMessage.getMessageTxt());
-    			runSynchTask(
-    					processorMessage.getSignalProcessingName(),
-    					new BuySellSignalCalculatorMessageRunnable(processorMessage, (JmsTemplate) applicationContext.getBean("jmsTemplate"), (InnerQueue) applicationContext.getBean("eventqueue")));
-
- 
-    		} else if (message instanceof ExportAutoPortfolioMessage) { //Not used??  //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
+//    		if (message instanceof BuySellSignalCalculatorMessage) { //Retrieve events from DB and process Auto portfolios. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
+//    			
+//    			BuySellSignalCalculatorMessage processorMessage = (BuySellSignalCalculatorMessage)((BuySellSignalCalculatorMessage) message).getObject();
+//    			LOGGER.debug("New processor message received : " + processorMessage.getMessageTxt());
+//    			runSynchTask(
+//    					processorMessage.getSignalProcessingName(),
+//    					new BuySellSignalCalculatorMessageRunnable(processorMessage, (JmsTemplate) applicationContext.getBean("jmsTemplate"), (InnerQueue) applicationContext.getBean("eventqueue")));
+//
+// 
+//    		} else 
+    		if (message instanceof ExportAutoPortfolioMessage) { //Not used??  //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
     			
     			ExportAutoPortfolioMessage m = (ExportAutoPortfolioMessage) message;
     			LOGGER.info("New export message received : " + m.getAnalyseName());

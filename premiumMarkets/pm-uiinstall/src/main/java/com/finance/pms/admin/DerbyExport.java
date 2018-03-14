@@ -60,10 +60,37 @@ public class DerbyExport {
 		DerbyExport de=new DerbyExport();
 		de.exportDB();
 	}
+	
+	/*
+	APP                 |ALERTONEVENT                  |                    
+	APP                 |ALERTS                        |                    
+	APP                 |CURRENCYRATE                  |                    
+	APP                 |EVENTS                        |                    
+	APP                 |PERF_SUPPLEMENT               |                    
+	APP                 |PORTFOLIO                     |                    
+	APP                 |PORTFOLIO_NAME                |                    
+	APP                 |QUOTATIONS                    |                    
+	APP                 |QUOT_MAX_TMP                  |                    
+	APP                 |SHARES                        |                    
+	APP                 |TRANSACTIONS                  |                    
+	APP                 |TREND_SUPPLEMENT              |                    
+	APP                 |TUNEDCONF                     |                    
+	APP                 |USERS                         |                    
+	APP                 |WEATHER   
+	*/
 
 	public void exportDB() {
 		
 		try {
+			
+			PreparedStatement psAlertsOnEvents=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
+			psAlertsOnEvents.setString(1,null);
+			psAlertsOnEvents.setString(2,"ALERTONEVENT");
+			psAlertsOnEvents.setString(3,datDirName+"/ALERTONEVENT.dat");
+			psAlertsOnEvents.setString(4,";");
+			psAlertsOnEvents.setString(5,null);
+			psAlertsOnEvents.setString(6,null);
+			psAlertsOnEvents.execute();
 			
 			PreparedStatement psAlertsAlerts=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
 			psAlertsAlerts.setString(1,null);
@@ -92,6 +119,15 @@ public class DerbyExport {
 			psEvents.setString(6,null);
 			psEvents.execute();
 			
+			PreparedStatement psPerfSup=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
+			psPerfSup.setString(1,null);
+			psPerfSup.setString(2,"PERF_SUPPLEMENT");
+			psPerfSup.setString(3,datDirName+"/PERF_SUPPLEMENT.dat");
+			psPerfSup.setString(4,";");
+			psPerfSup.setString(5,null);
+			psPerfSup.setString(6,null);
+			psPerfSup.execute();
+			
 			PreparedStatement psPort=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
 			psPort.setString(1,null);
 			psPort.setString(2,"PORTFOLIO");
@@ -110,6 +146,15 @@ public class DerbyExport {
 			psPortName.setString(6,null);
 			psPortName.execute();
 			
+//			PreparedStatement psQuotation=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
+//			psQuotation.setString(1,null);
+//			psQuotation.setString(2,"QUOTATIONS");
+//			psQuotation.setString(3,datDirName+"/QUOTATIONS.dat");
+//			psQuotation.setString(4,";");
+//			psQuotation.setString(5,null);
+//			psQuotation.setString(6,null);
+//			psQuotation.execute();
+			
 			PreparedStatement psShares=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
 			psShares.setString(1,null);
 			psShares.setString(2,"SHARES");
@@ -119,15 +164,14 @@ public class DerbyExport {
 			psShares.setString(6,null);
 			psShares.execute();
 			
-			
-			PreparedStatement psQuotation=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
-			psQuotation.setString(1,null);
-			psQuotation.setString(2,"QUOTATIONS");
-			psQuotation.setString(3,datDirName+"/QUOTATIONS.dat");
-			psQuotation.setString(4,";");
-			psQuotation.setString(5,null);
-			psQuotation.setString(6,null);
-			psQuotation.execute();
+			PreparedStatement psTransactions=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
+			psTransactions.setString(1,null);
+			psTransactions.setString(2,"TRANSACTIONS");
+			psTransactions.setString(3,datDirName+"/TRANSACTIONS.dat");
+			psTransactions.setString(4,";");
+			psTransactions.setString(5,null);
+			psTransactions.setString(6,null);
+			psTransactions.execute();
 			
 			PreparedStatement psTrend=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
 			psTrend.setString(1,null);
@@ -137,6 +181,15 @@ public class DerbyExport {
 			psTrend.setString(5,null);
 			psTrend.setString(6,null);
 			psTrend.execute();
+			
+			PreparedStatement psWeather=this.connect(true).prepareStatement("CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
+			psWeather.setString(1,null);
+			psWeather.setString(2,"WEATHER");
+			psWeather.setString(3,datDirName+"/WEATHER.dat");
+			psWeather.setString(4,";");
+			psWeather.setString(5,null);
+			psWeather.setString(6,null);
+			psWeather.execute();
 
 
 			
@@ -159,8 +212,9 @@ public class DerbyExport {
 				}
 				// Set up the connection
 				connectionURL = "jdbc:" +  "derby";
+				connectionURL = connectionURL + ":" + "/home/guil/Documents/Comptes/Gestion/PMS/";
 				//connectionURL = connectionURL + ":" + "/opt/USERDATA/derby/";
-				connectionURL = connectionURL + ":" + "/home/guil/Developpement/Quotes/";
+				//connectionURL = connectionURL + ":" + "/home/guil/Developpement/Quotes/";
 				//connectionURL = connectionURL + ":" + "/home/guil/Developpement/newEclipse/premiumMarkets/pm-uiinstall/distrib/derby/";
 				connectionURL = connectionURL + dbName;
 				conn = DriverManager.getConnection(connectionURL);

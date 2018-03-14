@@ -29,15 +29,15 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 
 public class ValidatedLatestEventsSignal extends LatestEventsSignal {
 
-	private EventDefinition filteredEventDef;
+	private EventInfo filteredEventDef;
 
-	public ValidatedLatestEventsSignal(EventDefinition filteredEventDef) {
+	public ValidatedLatestEventsSignal(EventInfo filteredEventDef) {
 		super(false, true);
 		this.filteredEventDef = filteredEventDef;
 	}

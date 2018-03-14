@@ -78,7 +78,7 @@ public class StopParseErrorException extends StopParseException {
 	 * @author Guillaume Thoreton
 	 */
 	public StopParseErrorException(List<Validatable> lastList, String message, String reason) {
-		super(lastList.get(lastList.size()));
+		super((lastList.size() > 0)?lastList.get(lastList.size()-1):null);
 		this.message = message;
 		this.reason = reason;
 	}

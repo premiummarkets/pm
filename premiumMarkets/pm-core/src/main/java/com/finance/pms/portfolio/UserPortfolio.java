@@ -64,9 +64,8 @@ import com.finance.pms.threads.ObserverMsg;
 public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserPortfolio.class);
-	
+
 	private UserPortfolioDelegate userPortfolioDelegate;
-	
 
 	@SuppressWarnings("unused")
 	private UserPortfolio() {

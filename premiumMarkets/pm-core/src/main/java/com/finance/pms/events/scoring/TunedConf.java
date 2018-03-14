@@ -45,11 +45,11 @@ import com.finance.pms.events.calculation.DateFactory;
 @Entity
 @Table(name="TUNEDCONF")
 public class TunedConf {
-	
+
 	static MyLogger LOGGER = MyLogger.getLogger(TunedConf.class);
 
 	private TunedConfId tunedConfId;
-	
+
 	private Boolean dirty;
 	private Date lastCalculationStart;
 	private Date lastCalculatedEvent;
@@ -65,11 +65,7 @@ public class TunedConf {
 	public TunedConf(Stock stock, String configFile, String eventDefinition) {
 		super();
 		this.tunedConfId = new TunedConfId(stock, configFile, eventDefinition);
-		reset(false);
-	}
-
-	public void reset(Boolean dirty) {
-	    this.dirty = dirty;
+		this.dirty = true;
 		this.lastCalculatedEvent = DateFactory.dateAtZero();
 		this.lastCalculationStart = DateFactory.dateAtZero();
 		this.lastCalculationEnd =  DateFactory.dateAtZero();
@@ -83,17 +79,16 @@ public class TunedConf {
 	public void setLastCalculationStart(Date lastCalculationStart) {
 		this.lastCalculationStart = lastCalculationStart;
 	}
-	
+
 	@Temporal(TemporalType.DATE)
 	public Date getLastCalculatedEvent() {
 		return lastCalculatedEvent;
 	}
 
 	public void setLastCalculatedEvent(Date lastCalculatedEvent) {
-	    this.lastCalculatedEvent = lastCalculatedEvent;
+		this.lastCalculatedEvent = lastCalculatedEvent;
 	}
 
-	
 	@Temporal(TemporalType.DATE)
 	public Date getLastCalculationEnd() {
 		return lastCalculationEnd;
@@ -117,12 +112,13 @@ public class TunedConf {
 		this.tunedConfId = tunedConfId;
 	}
 
-    public Boolean getDirty() {
-        return dirty;
-    }
-
-    public void setDirty(Boolean dirty) {
-        this.dirty = dirty;
-    }
+	public Boolean getDirty() {
+		return dirty;
+	}
 	
+	//Hib
+	public void setDirty(Boolean dirty) {
+		this.dirty = dirty;
+	}
+
 }

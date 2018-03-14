@@ -76,7 +76,7 @@
 		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
 		<property name="shareDAO" ref="shareDAO"/> -->
 	</bean>
-	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahoo">
+	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooCrumb">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOO" />
 		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
@@ -107,6 +107,10 @@
     <bean id="yahooIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices" parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOOINDICES" />
+	</bean>
+	<bean id="reutersIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersReutersIndices" parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="REUTERSINDICES" />
 	</bean>
 	<bean id="allMarketsProviderSource" class="com.finance.pms.datasources.web.ProvidersListStaticList" parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>

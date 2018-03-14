@@ -33,12 +33,15 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.MarketValuation;
 
 import junit.framework.TestCase;
 
@@ -66,7 +69,8 @@ public class LineFormaterTest extends TestCase {
 		
 		//formater = new MyFormater();
 		//formater = new StockListBSEFormater("",StockCategories.DEFAULT_CATEGORY,MarketQuotationProviders.DEFAULT);
-		//formater = new StockListYahooScratchIndexFormater("http://uk.finance.yahoo.com/q/cp?s="+ URLEncoder.encode("^FTLC","UTF-8"));
+		//formater = new StockListYahooIncideHtmlScrapFormater("http://uk.finance.yahoo.com/q/cp?s="+ URLEncoder.encode("^FTLC","UTF-8"), new MarketValuation(Market.EURONEXT));
+		formater = new StockListReutersIndicesHtmlScrapFormater("https://www.reuters.com/finance/markets/index/."+ URLEncoder.encode("FTMC","UTF-8"), new MarketValuation(Market.LSE));
 		//FIXME //formater = new StockListYahooIndexFormater("",Market.LSE);
 	}
 
@@ -78,11 +82,15 @@ public class LineFormaterTest extends TestCase {
 					//new FileReader("/home/guil/Developpement/Quotes/pms/tmp/ASXListedCompanies.csv"));
 					//new FileReader("/home/guil/Developpement/Quotes/pms/tmp/EQ230109.CSV"));
 					//new FileReader("/home/guil/Developpement/Quotes/pms/tmp/cp.html"));
-					new  FileReader("/home/guillaumet/Desktop/quotes.csv"));
+					//new  FileReader("/home/guillaumet/Desktop/quotes.csv"));
+					//new  FileReader("/home/guil/tmp/ReutersFTSE.html"));
+					//new  FileReader("/home/guil/tmp/ReutersDAX.html"));
+					//new  FileReader("/home/guil/tmp/ReutersFCHI.html"));
+					new FileReader("/home/guil/tmp/Reutersdji.html"));
 			String line;
 			for (;(line=reader.readLine()) != null; ) {
 				List<Validatable> stock = formater.formatLine(line);
-				System.out.println(stock);
+				if (stock.size() > 0) System.out.println(stock);
 				//System.out.println(stock.size());
 			}
 			reader.close();
@@ -96,7 +104,6 @@ public class LineFormaterTest extends TestCase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
+
 	}
 }

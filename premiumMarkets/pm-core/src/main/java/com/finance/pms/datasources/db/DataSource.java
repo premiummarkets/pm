@@ -501,6 +501,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
         }
         eventListConstraint += "' ) ";
 
+        //FIXME this should be a join
         String queryString = "SELECT "
                 + eventsTableName + ".*," 
                 + SHARES.TABLE_NAME+ ".*" 
@@ -581,7 +582,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
                 + EVENTS.SYMBOL_FIELD + " = ? AND "
                 + EVENTS.ISIN_FIELD+" = ?";
         
-        LOGGER.info(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate, stock.getSymbol(), stock.getIsin()));
+        LOGGER.debug(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate, stock.getSymbol(), stock.getIsin()));
         
         Query select = new Query(queryString) {
 

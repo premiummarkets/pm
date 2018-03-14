@@ -43,10 +43,9 @@ public class TunedConfId implements Serializable {
 
     private static final long serialVersionUID = 4744300587549030997L;
 
-
-    Stock stock;
-    String configFile;
-    String eventDefinition;
+    private Stock stock;
+    private String configFile;
+    private String eventDefinition;
 
     @SuppressWarnings("unused")
     private TunedConfId() {

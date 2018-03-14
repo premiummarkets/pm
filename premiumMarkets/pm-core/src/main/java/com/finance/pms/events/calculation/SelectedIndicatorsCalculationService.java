@@ -20,6 +20,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -68,21 +69,31 @@ public class SelectedIndicatorsCalculationService {
             Boolean isDataSetComplete = true;
             for(Stock stock: stocksEventInfos.keySet()) {
 
-                LOGGER.guiInfo("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
-                QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
-                LOGGER.info("Calculation adjusted : events for stock "+stock.toString()+ " between "+dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate())+" and "+dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
+                try {
 
-                List<Future<?>> eventInfosFutures = new ArrayList<>();
-                SymbolEvents symbolEvents = new SymbolEvents(stock);
-                symbolEventsMap.put(stock, symbolEvents);
-                for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
-                    Runnable calculationRunnable = 
-                            new SelectedIndicatorsCalculationThread(symbolEvents, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
-                    Future<?> submitedRunnable = executor.submit(calculationRunnable);
-                    eventInfosFutures.add(submitedRunnable);
-                }
+					LOGGER.guiInfo("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+					QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
+					LOGGER.info("Calculation adjusted : events for stock "+stock.toString()+ " between "+dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate())+" and "+dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
 
-                futuresMap.put(stock, eventInfosFutures);
+					List<Future<?>> eventInfosFutures = new ArrayList<>();
+					SymbolEvents symbolEvents = new SymbolEvents(stock);
+					symbolEventsMap.put(stock, symbolEvents);
+					for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
+					    Runnable calculationRunnable = 
+					            new SelectedIndicatorsCalculationThread(symbolEvents, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
+					    Future<?> submitedRunnable = executor.submit(calculationRunnable);
+					    eventInfosFutures.add(submitedRunnable);
+					}
+					futuresMap.put(stock, eventInfosFutures);
+
+				} catch (Exception e1) {
+					LOGGER.error("Could not proceed with initialisation of calculation for "+stock, e1);
+					//We clean the tunedConfs assuming subsequent calculations will fail as well.
+					stocksEventInfos.get(stock).stream().forEach( ei -> {
+						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
+						TunedConfMgr.getInstance().updateConf(tunedConf, DateFactory.dateAtZero());
+					});
+				}
 
             }
 
@@ -103,7 +114,7 @@ public class SelectedIndicatorsCalculationService {
                 //Events
                 allEvents.add(symbolEventsMap.get(stock));
 
-                //Output (not used for first pass events ..)
+                //Output
                 Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = symbolEventsMap.get(stock).getCalculationOutputs();
                 if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
                 calculatedOutputReturn.put(stock, calculationOutput);

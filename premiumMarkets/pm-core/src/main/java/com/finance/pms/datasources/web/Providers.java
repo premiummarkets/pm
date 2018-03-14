@@ -91,6 +91,15 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 				"You can specify several indices comma separated and build you own composite list.\n" +
 				"If left blank, it will aggregate all the pre-existing YAHOO indices available in your database.\n", 
 				"YAHOO INDICES components aggregation", true, true, SharesListId.sharesListIdOptionsForYahooIndices()));
+		shareListIds.put("REUTERSINDICES", new SharesListId(
+				"REUTERSINDICES", "reutersIndices", ProvidersTypes.REUTERSINDICES, "Your custom index format is <INDICE ID>:<MARKET ID>.\n " +
+				"Where INDICE ID like NDX, FTLC, SBF250 ...\n" +
+				"(these are yahoo indices like the one you can find at http://finance.yahoo.com/indices for instance.)\n " +
+				"and MARKET ID is like : "+ Arrays.asList(Market.values()) + ".\n" +
+				"(for instance : NDX:NASDAQ,NY:NYSE,FTLC:LSE,SBF250:EURONEXT... standing for nasdaq-100, nyse comp index, ftse 350 ...)\n" +
+				"You can specify several indices comma separated and build you own composite list.\n" +
+				"If left blank, it will aggregate all the pre-existing REUTERS indices available in your database.\n", 
+				"REUTERS INDICES components aggregation", true, true, SharesListId.sharesListIdOptionsForYahooIndices()));
 		shareListIds.put("NSEINDIAINDICES", new SharesListId(
 				"NSEINDIAINDICES", "nseIndices", ProvidersTypes.NSEINDIAINDICES, "Your custom index format is <INDICE ID>:<MARKET ID>.\n " +
 				"Where INDICE ID known so far are NIFTY, JRNIFTYLISR, CNX100, CNX200, CNX500, NIFTYMIDCAP50, CNXMIDCAP, CNXSMALLCAP\n" +

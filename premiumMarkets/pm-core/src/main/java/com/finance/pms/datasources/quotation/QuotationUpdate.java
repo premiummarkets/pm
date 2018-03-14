@@ -260,10 +260,14 @@ public class QuotationUpdate {
 			LOGGER.error(shutdownNow, e);
 		}
 		
-		QuotationUpdateException exceptions = new QuotationUpdateException("Unable to update quotations");
+		QuotationUpdateException exceptions = new QuotationUpdateException("Unable to update these quotations");
+		int success = 0;
 		for (Future<GetQuotationResult> getQuotationRes : getQuoteRess) {
 			try {
 				GetQuotationResult getQuotationResult = getQuotationRes.get();
+				if (getQuotationResult.isSuccessfulUpdate != null && getQuotationResult.isSuccessfulUpdate) {
+					success++;
+				}
 				if (!getQuotationResult.hasNewQuotations) {
 					exceptions.noNewQuotations.add(getQuotationResult.stock);
 				}
@@ -279,6 +283,7 @@ public class QuotationUpdate {
 				LOGGER.error(e,e);
 			}
 		}
+		LOGGER.info("Successfuly updated "+success+" stocks.");
 
 		if (!exceptions.stockNotFound.isEmpty()) {
 			throw exceptions;
@@ -312,23 +317,23 @@ public class QuotationUpdate {
 		public String toString() {
 			String ret = "";
 			if (!noNewQuotations.isEmpty()) {
-				ret = ret + "\nNo new quotations found for : ";
+				ret = ret + "\nNo newer quotations found for "+ noNewQuotations.size() + " stocks :\n";
 				for (Stock stock : noNewQuotations) {
 					ret = ret + stock.getFriendlyName() + "\n";
 				}
 			}
 			if (!updateFailed.isEmpty()) {
-				ret = ret + "\nCan't update : ";
+				ret = ret + "\nCan't update " + updateFailed.size() + " stocks :\n";
 				for (Stock stock : updateFailed.keySet()) {
 					Exception exception = updateFailed.get(stock);
-					ret = ret + stock.getFriendlyName() + ((exception != null)?((exception.getMessage() != null)?" because \n\t"+ exception.getMessage():" because \n]t"+ exception.toString()):"") +"\n";
+					ret = ret + stock.getFriendlyName() + ((exception != null)?((exception.getMessage() != null)?" cause: \t"+ exception.getMessage():", cause: \t"+ exception.toString()):"") +"\n";
 				}
 			}
 			if (!stockNotFound.isEmpty()) {
-				ret = ret + "\nNo historical quotations available for : ";
+				ret = ret + "\nNo historical quotations available at all for "+ stockNotFound.size() + " stocks :\n";
 				for (Stock stock : stockNotFound.keySet()) {
 					Exception exception = stockNotFound.get(stock);
-					ret = ret + stock.getFriendlyName() + ((exception != null)?((exception.getMessage() != null)?" because \n\t"+exception.getMessage():" because \n\t"+exception.toString()):"") +"\n";
+					ret = ret + stock.getFriendlyName() + ((exception != null)?((exception.getMessage() != null)?" cause: \t"+exception.getMessage():", cause: \t"+exception.toString()):"") +"\n";
 				}
 			}
 			return ret;

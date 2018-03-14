@@ -143,7 +143,7 @@ public ProgressPanel(String waitForProgressTxt, String siteUrl, String whileWeWa
         progressBar.setValue(i);
     }
 
-    private JPanel getContentPanel() {            
+    private JPanel getContentPanel() {
         
         JPanel contentPanel1 = new JPanel();
         contentPanel1.setBorder(new EmptyBorder(new Insets(0, 0, 0, 0)));

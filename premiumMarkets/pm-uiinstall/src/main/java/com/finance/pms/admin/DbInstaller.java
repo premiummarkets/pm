@@ -68,7 +68,7 @@ import org.apache.tools.tar.TarInputStream;
  * @author Guillaume Thoreton
  */
 public class DbInstaller extends Observable {
-	
+
 	private static final String oldtestUpgradeNum_0 = "-1";
 	private static final String oldestUpgradeDate_0000 = "0000";
 
@@ -81,10 +81,10 @@ public class DbInstaller extends Observable {
 	}
 
 	public void extractDB(String targetDbName, String remoteDb, String dbZipFileName, File folderTo) throws NoPreparedDbException {
-		
+
 		//extract db
 		System.out.println("Extract db : "+ dbZipFileName +" to "+ folderTo + " and alternatively from "+ remoteDb);
-	
+
 		packagedDbStream = this.getClass().getClassLoader().getResourceAsStream(dbZipFileName);
 
 		if (null == packagedDbStream) {
@@ -99,16 +99,17 @@ public class DbInstaller extends Observable {
 		} else {
 			System.out.println("Data base found in package.");
 		}
-		
+
 		uncompressBzip2(packagedDbStream, folderTo);
 		System.out.println("Extract db. Done!");
-		
+
 		String defaultDbName = "premiummarkets";
 		if (!targetDbName.equals(defaultDbName)) {
-			new File(folderTo.getAbsolutePath()+File.separator+"derby"+File.separator+defaultDbName).renameTo(new File(folderTo.getAbsolutePath()+File.separator+"derby"+File.separator+targetDbName));
-			System.out.println("Renaming from  "+defaultDbName+" to "+targetDbName+". Done!");
+			new File(folderTo.getAbsolutePath() + File.separator + "derby" + File.separator + defaultDbName)
+			.renameTo(new File(folderTo.getAbsolutePath() + File.separator + "derby" + File.separator + targetDbName));
+			System.out.println("Renaming from " + defaultDbName + " to " + targetDbName + ". Done!");
 		}
-		
+
 	}
 
 	protected void uncompressBzip2(InputStream bzip2FileIS, File folderTo) {
@@ -124,7 +125,7 @@ public class DbInstaller extends Observable {
 				File destPath = new File(folderTo.getAbsolutePath() + File.separator + tarEntry.getName());
 				System.out.println("Extracting " + destPath.getAbsoluteFile());
 				if (destPath.exists()) { //Upgrade
-					if (tarEntry.getName().startsWith("derby")) {
+					if (tarEntry.getName().startsWith("derby") || tarEntry.getName().endsWith(".dat") || tarEntry.getName().endsWith(".dat.bz2")) {
 						System.out.println("Upgrade, skipping extraction of " + tarEntry.getName());
 						tarEntry = tis.getNextEntry();
 						continue;
@@ -164,8 +165,8 @@ public class DbInstaller extends Observable {
 		}
 
 	}
-	
-	
+
+
 	private InputStream downloadDb(URL urlFrom, String dbZipFileName) throws NoPreparedDbException {
 		ZipInputStream zI = null;
 		try {
@@ -186,45 +187,45 @@ public class DbInstaller extends Observable {
 	}
 
 	public void importDB(File installFolder, String extractDirName, Connection connection) throws OtherException {
-		
+
 		System.out.println("Doing : Import db");
-		
+
 		//drop constraints
 		dropConstraints(installFolder, extractDirName, connection);
-		 
+
 		//insert data and create indexes
 		importDerby(installFolder, extractDirName, connection);
-		
+
 		//create keys and indexes 
 		createIndexesAndKeys(installFolder, extractDirName, connection);
-		
+
 		//init status file
 		try {
-			
+
 			String installPath = installFolder.getAbsolutePath() + File.separator;
 			File scriptsStatusFile = new File(installPath + extractDirName + File.separator + "upgrade" + File.separator + "upgradeStatus.txt");
 			System.out.println("Creating initial status script file : "+scriptsStatusFile.getAbsolutePath());
 			scriptsStatusFile.createNewFile();
 			SortedSet<File> sortedUpgrades = sortedUpgradeScriptFilesSet(oldestUpgradeDate_0000, oldtestUpgradeNum_0, extractDirName, installPath);
 			runUpgradeScripts(scriptsStatusFile, sortedUpgrades, connection, true);
-			
+
 		} catch (IOException e) {
 			System.out.println("Could not init status file for future upgrades!");
 			e.printStackTrace();
 		}
-		
+
 		System.out.println("Import db. Done!");
-		
+
 	}
-	
+
 	//Expected name format is : yyyyMMdd_num_ ..... .sql
 	public void upgradeExisting(File installFolder, String extractDirName, Connection connection) throws IOException, OtherException {
-		
+
 		try {
-			
+
 			System.out.println("Doing : Upgrade existing data base.");
 			String installPath = installFolder.getAbsolutePath() + File.separator;
-			
+
 			//Checking already ran //TODO what shall we do if the script was NOK?
 			String lastStampRan = oldestUpgradeDate_0000;
 			String lastNumRan= oldtestUpgradeNum_0;
@@ -245,22 +246,22 @@ public class DbInstaller extends Observable {
 				System.out.println("No status script file found : "+scriptsStatusFile.getAbsolutePath());
 				scriptsStatusFile.createNewFile();
 			}
-			
+
 			//Loading scripts
 			SortedSet<File> sortedUpgrades = sortedUpgradeScriptFilesSet(lastStampRan, lastNumRan, extractDirName, installPath);
-			
+
 			SortedSet<File> sortedAndReplacedUpgrades = replaceInstallPath(installPath, sortedUpgrades);
-			
+
 			//Running valid scripts
 			runUpgradeScripts(scriptsStatusFile, sortedAndReplacedUpgrades, connection, false);
-			
+
 		} finally {
-			
+
 			this.setChanged();
 			this.notifyObservers("Running upgrade scripts");
-			
+
 		}
-	
+
 	}
 
 	protected SortedSet<File> replaceInstallPath(String installPath, SortedSet<File> sortedUpgrades) throws FileNotFoundException, IOException {
@@ -282,7 +283,7 @@ public class DbInstaller extends Observable {
 	}
 
 	protected void runUpgradeScripts(File scriptsStatusFile, SortedSet<File> sortedUpgrades, Connection connection, Boolean smoke) throws IOException, OtherException {
-		
+
 		BufferedWriter statusWriter = new BufferedWriter(new FileWriter(scriptsStatusFile, true));
 		for (File sqlScript : sortedUpgrades) {
 			try {
@@ -307,7 +308,7 @@ public class DbInstaller extends Observable {
 					statusWriter.newLine();
 					statusWriter.flush();
 				}
-				
+
 			} catch (FileNotFoundException e) {
 				System.out.println("Can't find upgrade script file : "+sqlScript.getAbsolutePath());
 				statusWriter.close();
@@ -321,13 +322,13 @@ public class DbInstaller extends Observable {
 			System.out.println(sqlScript.getAbsolutePath() + " Done!");
 		}
 		statusWriter.close();
-		
+
 	}
 
 	protected SortedSet<File> sortedUpgradeScriptFilesSet(String lastStampRan, String lastNumRan, String extractDirName, String installPath) {
-		
+
 		File[] listFiles = upgradeScriptFilesList(extractDirName, installPath);
-		
+
 		SortedSet<File> sortedUpgrades = new TreeSet<File>(new Comparator<File>() {
 
 			@Override
@@ -343,7 +344,7 @@ public class DbInstaller extends Observable {
 				}
 			}
 		});
-		
+
 		//Order and filter
 		for (File file : listFiles) {
 			String[] sqlScriptStampsArray = extractSqlScriptTimeStamp(file.getName());
@@ -374,7 +375,7 @@ public class DbInstaller extends Observable {
 		});
 		return listFiles;
 	}
-	
+
 	private String[] extractSqlScriptTimeStamp(String fileName) {
 		try {
 			int first_ = fileName.indexOf("_");
@@ -386,7 +387,7 @@ public class DbInstaller extends Observable {
 			return new String[]{oldestUpgradeDate_0000, oldtestUpgradeNum_0};
 		}
 	}
-	
+
 	private boolean isValidSqlScriptFile(String[] split) {
 		if (split.length != 2) return false;
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
@@ -408,11 +409,11 @@ public class DbInstaller extends Observable {
 	}
 
 	private void importDerby(File installFolter, String extractDirName, Connection connection) throws OtherException {
-		
+
 		String installPath = installFolter.getAbsolutePath()+File.separator;
-		
+
 		File datDir = new File(installPath+extractDirName);
-		
+
 		//Potential compressed
 		File [] bzip2Files = datDir.listFiles(new FileFilter() {
 
@@ -420,7 +421,7 @@ public class DbInstaller extends Observable {
 				String fname = pathname.getName();
 				return fname.endsWith(".bz2");
 			}
-			
+
 		});
 		for (File bz2File : bzip2Files) {
 			try {
@@ -431,7 +432,7 @@ public class DbInstaller extends Observable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		//Import .dat s
 		File [] datFiles = datDir.listFiles(new FileFilter() {
 
@@ -439,18 +440,18 @@ public class DbInstaller extends Observable {
 				String fname = pathname.getName();
 				return fname.endsWith(".dat");
 			}
-			
+
 		});
-		
+
 		for (int i = 0; i < datFiles.length; i++) {
-			
+
 			try {
-				
+
 				String name = datFiles[i].getName();
 				String fnNoExt = name.substring(0,name.length()-4);
-				
+
 				System.out.println(new Date() + " : Processing "+datFiles[i].getAbsolutePath());
-				
+
 				PreparedStatement psQuotation = connection.prepareStatement("CALL SYSCS_UTIL.SYSCS_IMPORT_TABLE (?,?,?,?,?,?,?)");
 				psQuotation.setString(1, null);
 				psQuotation.setString(2, fnNoExt.toUpperCase());
@@ -459,22 +460,22 @@ public class DbInstaller extends Observable {
 				psQuotation.setString(5, null);
 				psQuotation.setString(6, null);
 				psQuotation.setString(7, "1");
-				
+
 				psQuotation.execute();
 				System.out.println(new Date() + " : "+datFiles[i].getAbsolutePath() +". Done!");
-				
+
 				this.setChanged();
 				this.notifyObservers("setting Quotations data");
-				
+
 			} catch (Exception e) {
 				System.out.println("Error importing "+datFiles[i].getAbsolutePath());
 				e.printStackTrace();
 			}
 		}
-		
-		
+
+
 	}
-	
+
 	private void dropConstraints(File installFolder, String extractDirName, Connection connection) throws OtherException {
 		String installPath = installFolder.getAbsolutePath() + File.separator;
 		try {
@@ -493,7 +494,7 @@ public class DbInstaller extends Observable {
 		}
 		this.setChanged();
 		this.notifyObservers("Dropping constraints");
-		
+
 	}
 
 	private void createIndexesAndKeys(File installFolder, String extractDirName, Connection connection) throws OtherException {
@@ -517,7 +518,7 @@ public class DbInstaller extends Observable {
 
 		this.setChanged();
 		this.notifyObservers("Setting keys");
-		
+
 		try {
 
 			File indexesFile = new File(installPath + extractDirName + File.separator + "INDEXES.sql");
@@ -542,7 +543,7 @@ public class DbInstaller extends Observable {
 
 	//TODO roll back on error?
 	private void runSqlScript(Connection connection, File sqlScript, Boolean atomic) throws FileNotFoundException, IOException, SQLException {
-		
+
 		BufferedReader fr = new BufferedReader(new FileReader(sqlScript));
 		String statement;
 		while ((statement = fr.readLine()) != null) {
@@ -564,7 +565,7 @@ public class DbInstaller extends Observable {
 			}
 		}
 		fr.close();
-		
+
 	}
 
 	public InputStream getPackagedDbStream() {

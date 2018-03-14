@@ -65,73 +65,73 @@ import com.finance.pms.admin.install.FolderSelect;
  * @author Guillaume Thoreton
  */
 public class InstallFolderPanel extends JPanel {
- 
+
 	private static final long serialVersionUID = 3412318352164432070L;
 
-    private JPanel contentPanel;
-    private JLabel iconLabel;
-    private JSeparator separator;
-    private JLabel textLabel;
-    private JPanel titlePanel;
-    
-    static private File installFolderPath;
+	private JPanel contentPanel;
+	private JLabel iconLabel;
+	private JSeparator separator;
+	private JLabel textLabel;
+	private JPanel titlePanel;
+
+	static private File installFolderPath;
 	private JTextField jt;
 
 	private MyWizard myWizard;
-        
 
-    public InstallFolderPanel(MyWizard myWizard) {
-        
-        super();
-        
-        this.myWizard = myWizard;
-        
-        contentPanel = getContentPanel();
-        ImageIcon icon = getImageIcon();
-        
-        titlePanel = new javax.swing.JPanel();
-        textLabel = new javax.swing.JLabel();
-        iconLabel = new javax.swing.JLabel();
-        separator = new javax.swing.JSeparator();
 
-        setLayout(new java.awt.BorderLayout());
+	public InstallFolderPanel(MyWizard myWizard) {
 
-        titlePanel.setLayout(new java.awt.BorderLayout());
-        titlePanel.setBackground(Color.gray);
-        
-        textLabel.setBackground(Color.gray);
-        textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
-        textLabel.setText("Choose an installation folder ...");
-        textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
-        textLabel.setOpaque(true);
+		super();
 
-        iconLabel.setBackground(Color.gray);
-        if (icon != null) iconLabel.setIcon(icon);
-        
-        titlePanel.add(textLabel, BorderLayout.CENTER);
-        titlePanel.add(iconLabel, BorderLayout.EAST);
-        titlePanel.add(separator, BorderLayout.SOUTH);
+		this.myWizard = myWizard;
 
-        add(titlePanel, BorderLayout.NORTH);
-        JPanel secondaryPanel = new JPanel();
-        secondaryPanel.add(contentPanel, BorderLayout.NORTH);
-        add(secondaryPanel, BorderLayout.WEST);
-        
-    }  
-    
-    
-    private JPanel getContentPanel() {            
-    	
-    	JPanel contentPanel = new JPanel();
-    	contentPanel.setLayout(new BorderLayout());
-    	
-        JPanel contentPanel1 = new JPanel();
-   
-        contentPanel1.setLayout(new FlowLayout());
-        
-        
-        jt = new JTextField(initDefaultInstallFolder().getAbsolutePath(), 40);
-        jt.addKeyListener(new KeyAdapter() {
+		contentPanel = getContentPanel();
+		ImageIcon icon = getImageIcon();
+
+		titlePanel = new javax.swing.JPanel();
+		textLabel = new javax.swing.JLabel();
+		iconLabel = new javax.swing.JLabel();
+		separator = new javax.swing.JSeparator();
+
+		setLayout(new java.awt.BorderLayout());
+
+		titlePanel.setLayout(new java.awt.BorderLayout());
+		titlePanel.setBackground(Color.gray);
+
+		textLabel.setBackground(Color.gray);
+		textLabel.setFont(new Font("MS Sans Serif", Font.BOLD, 16));
+		textLabel.setText("Choose an installation folder ...");
+		textLabel.setBorder(new EmptyBorder(new Insets(10, 10, 10, 10)));
+		textLabel.setOpaque(true);
+
+		iconLabel.setBackground(Color.gray);
+		if (icon != null) iconLabel.setIcon(icon);
+
+		titlePanel.add(textLabel, BorderLayout.CENTER);
+		titlePanel.add(iconLabel, BorderLayout.EAST);
+		titlePanel.add(separator, BorderLayout.SOUTH);
+
+		add(titlePanel, BorderLayout.NORTH);
+		JPanel secondaryPanel = new JPanel();
+		secondaryPanel.add(contentPanel, BorderLayout.NORTH);
+		add(secondaryPanel, BorderLayout.WEST);
+
+	}  
+
+
+	private JPanel getContentPanel() {
+
+		JPanel contentPanel = new JPanel();
+		contentPanel.setLayout(new BorderLayout());
+
+		JPanel contentPanel1 = new JPanel();
+
+		contentPanel1.setLayout(new FlowLayout());
+
+
+		jt = new JTextField(initDefaultInstallFolder().getAbsolutePath(), 40);
+		jt.addKeyListener(new KeyAdapter() {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -143,8 +143,8 @@ public class InstallFolderPanel extends JPanel {
 			}
 		});
 
-        contentPanel1.add(jt);
-        
+		contentPanel1.add(jt);
+
 		JButton jb = new JButton("Browse ...");
 		jb.addActionListener(new ActionListener() {
 
@@ -162,45 +162,45 @@ public class InstallFolderPanel extends JPanel {
 					}
 				}
 			}
-			
+
 		});		
-		
+
 		contentPanel1.add(jb);   
-		
-		
+
+
 		JPanel contentPanel2 = new JPanel();
 		contentPanel2.add(new JLabel("As it stores historical data, the software will need around 1 GO bytes of disk."));
-        
-		
+
+
 		contentPanel.add(contentPanel1,BorderLayout.WEST);
 		contentPanel.add(contentPanel2,BorderLayout.SOUTH);
-		
-        return contentPanel;
-    }
+
+		return contentPanel;
+	}
 
 	protected File initDefaultInstallFolder() {
-		
+
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
-        File path = null;
+		File path = null;
 		try {
 			path = new File(StringEscapeUtils.unescapeJava(prefs.get("pm.default.install.folder", System.getProperty("user.dir"))));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-        if (path != null && path.exists()) {
+		if (path != null && path.exists()) {
 			System.out.println("Prefs install folder name is valid : "+ path.getAbsolutePath());
 		} else {
 			System.out.println("Prefs install folder name is invalid : "+ path+ ". Setting back to "+System.getProperty("user.dir"));
 			path = new File(System.getProperty("user.dir"));
 		}
-		
+
 		return path;
-		
+
 	}
-    
+
 	protected Boolean checkInstallPath(String instFolderName) {
-		
+
 		File file = new File(instFolderName);
 		try {
 			file.getCanonicalPath();
@@ -226,12 +226,12 @@ public class InstallFolderPanel extends JPanel {
 			}
 			file.delete();
 		}
-		
+
 		return true;
 	}
 
 	protected void errorPathDialog(String instFolderName) {
-		
+
 		JDialog errorPopup = new JDialog(myWizard.getDialog(), "Invalid path", true);
 		errorPopup.setLocation(MouseInfo.getPointerInfo().getLocation());
 		JPanel contentPane = new JPanel();
@@ -240,17 +240,17 @@ public class InstallFolderPanel extends JPanel {
 		errorPopup.pack();
 		errorPopup.setVisible(true);
 		errorPopup.toFront();
-		
+
 	}
 
-    private ImageIcon getImageIcon() {        
-        return null;
-    }
+	private ImageIcon getImageIcon() {
+		return null;
+	}
 
 	public void addTextFieldReturn(KeyListener installFolderPanelDescriptor) {
 		jt.addKeyListener(installFolderPanelDescriptor);
 	}
-	
+
 	protected static File setPmFolder(String updatedName) {
 		installFolderPath = new File(updatedName + File.separator + Install.APP_SYS_NAME);
 		Preferences prefs = Preferences.userRoot().node("com.finance.pms.admin.install");
@@ -270,5 +270,5 @@ public class InstallFolderPanel extends JPanel {
 	public JTextField getJt() {
 		return jt;
 	}
-    
+
 }

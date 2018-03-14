@@ -92,10 +92,11 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 	//TODO Factorisation with IndicatorsCalculationService to create a specific service.
 	//Analyse name : the name of the auto portfolio.
 	//Event list name : event list to process. It will be added to an event list with the portfolio name at processing time
+	@Deprecated
 	public BuySellSignalCalculatorMessage sendAutoPortfolioSignalProcessingEvent(String signalProcessingPortfolioName, Date startDate, Date endDate, String... additionalEventListName)  throws InterruptedException{
 
 		final BuySellSignalCalculatorMessage message = 
-				new BuySellSignalCalculatorMessage(
+				new BuySellSignalCalculatorMessage (
 						"Run Auto portfolios Calculation from " + startDate + " to "+endDate, 
 						startDate, endDate, signalProcessingPortfolioName, ConfigThreadLocal.getAll(), additionalEventListName);
 		
