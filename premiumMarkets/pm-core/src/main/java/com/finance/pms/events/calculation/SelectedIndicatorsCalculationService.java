@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
-import java.util.SortedMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,151 +26,151 @@ import com.finance.pms.threads.ObserverMsg;
 
 public class SelectedIndicatorsCalculationService {
 
-    private static MyLogger LOGGER = MyLogger.getLogger(SelectedIndicatorsCalculationService.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(SelectedIndicatorsCalculationService.class);
 
-    public class QuotesBounds {
+	public class QuotesBounds {
 
-        private Date adjustedStartDate;
-        private Date adjustedEndDate;
+		private Date adjustedStartDate;
+		private Date adjustedEndDate;
 
-        public QuotesBounds(Date adjustedStartDate, Date adjustedEndDate) {
-            this.adjustedStartDate = adjustedStartDate;
-            this.adjustedEndDate = adjustedEndDate;
-        }
+		public QuotesBounds(Date adjustedStartDate, Date adjustedEndDate) {
+			this.adjustedStartDate = adjustedStartDate;
+			this.adjustedEndDate = adjustedEndDate;
+		}
 
-        public Date getAdjustedStartDate() {
-            return adjustedStartDate;
-        }
+		public Date getAdjustedStartDate() {
+			return adjustedStartDate;
+		}
 
-        public Date getAdjustedEndDate() {
-            return adjustedEndDate;
-        }
+		public Date getAdjustedEndDate() {
+			return adjustedEndDate;
+		}
 
-    }
+	}
 
-    public SelectedIndicatorsCalculationService() {
-    }
+	public SelectedIndicatorsCalculationService() {
+	}
 
-    public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculate(
-            Date startDate, Date endDate, String eventListName, Map<Stock, List<EventInfo>> stocksEventInfos, Observer... observers) throws IncompleteDataSetException {
+	public List<SymbolEvents> calculate(
+			Date startDate, Date endDate, String eventListName, Map<Stock, List<EventInfo>> stocksEventInfos, Observer... observers) throws IncompleteDataSetException {
 
-        //TODO use a Fork Join Pool or parallel stream for executor
-        Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
-        ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
-        try {
+		Boolean isDataSetComplete = true;
+		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
+		List<Stock> failingStocks = new ArrayList<Stock>();
 
-            Map<Stock, List<Future<?>>> futuresMap = new HashMap<>();
-            Map<Stock, SymbolEvents> symbolEventsMap = new HashMap<>();
+		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
+		try {
 
-            int obsSize = stocksEventInfos.values().stream().map(v -> v.size()).reduce(0, (a, e) -> a + e);
-            Arrays.stream(observers).forEach(o -> o.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize)));
+			Map<Stock, List<Future<SymbolEvents>>> futuresMap = new HashMap<>();
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
-            Boolean isDataSetComplete = true;
-            for(Stock stock: stocksEventInfos.keySet()) {
+			int obsSize = stocksEventInfos.values().stream().map(v -> v.size()).reduce(0, (a, e) -> a + e);
+			Arrays.stream(observers).forEach(o -> o.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize)));
 
-                try {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
+			for(Stock stock: stocksEventInfos.keySet()) {
+
+				try {
 
 					LOGGER.guiInfo("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
 					QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
 					LOGGER.info("Calculation adjusted : events for stock "+stock.toString()+ " between "+dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate())+" and "+dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
 
-					List<Future<?>> eventInfosFutures = new ArrayList<>();
-					SymbolEvents symbolEvents = new SymbolEvents(stock);
-					symbolEventsMap.put(stock, symbolEvents);
+					List<Future<SymbolEvents>> eventInfosFutures = new ArrayList<>();
 					for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
-					    Runnable calculationRunnable = 
-					            new SelectedIndicatorsCalculationThread(symbolEvents, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
-					    Future<?> submitedRunnable = executor.submit(calculationRunnable);
-					    eventInfosFutures.add(submitedRunnable);
+						Callable<SymbolEvents> calculationRunnable = 
+								new SelectedIndicatorsCalculationThread(stock, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
+						Future<SymbolEvents> submitedRunnable = executor.submit(calculationRunnable);
+						eventInfosFutures.add(submitedRunnable);
 					}
 					futuresMap.put(stock, eventInfosFutures);
 
 				} catch (Exception e1) {
-					LOGGER.error("Could not proceed with initialisation of calculation for "+stock, e1);
+					LOGGER.warn("Could not proceed with initialisation of calculation for "+stock +": "+e1.getMessage());
 					//We clean the tunedConfs assuming subsequent calculations will fail as well.
 					stocksEventInfos.get(stock).stream().forEach( ei -> {
 						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
 						TunedConfMgr.getInstance().updateConf(tunedConf, DateFactory.dateAtZero());
 					});
+					isDataSetComplete = false;
+					failingStocks.add(stock);
 				}
 
-            }
+			}
 
-            List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
-            List<Stock> failingStocks = new ArrayList<Stock>();
-            for (Stock stock : futuresMap.keySet()) {
+			for (Stock stock : futuresMap.keySet()) {
 
-                for(Future<?> stockEventInfoFuture : futuresMap.get(stock)) {
-                    try {
-                        stockEventInfoFuture.get();
-                    } catch (Exception e) {
-                        LOGGER.error("Failed : events for stock "+stock.toString()+" between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate), e);
-                        isDataSetComplete = false;
-                        failingStocks.add(stock);
-                    }
-                }
+				SymbolEvents stockAllSymbolEvents = new SymbolEvents(stock);
+				allEvents.add(stockAllSymbolEvents);
+				for(Future<SymbolEvents> stockEventInfoFuture : futuresMap.get(stock)) {
+					
+					try {
+						SymbolEvents symbolEvents = stockEventInfoFuture.get();
+						stockAllSymbolEvents.addEventResultElement(symbolEvents);
+					} catch (Exception e) {
+						LOGGER.error("Failed : events for stock "+stock.toString()+" between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate), e);
+						isDataSetComplete = false;
+						failingStocks.add(stock);
+					}
+				}
 
-                //Events
-                allEvents.add(symbolEventsMap.get(stock));
+				//Output
+				//Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = symbolEventsMap.get(stock).getCalculationOutputs();
+				//if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
+				//calculatedOutputReturn.put(stock, calculationOutput);
 
-                //Output
-                Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = symbolEventsMap.get(stock).getCalculationOutputs();
-                if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
-                calculatedOutputReturn.put(stock, calculationOutput);
+			}
 
-            }
+			try {
+				Integer nbEvents = allEvents.stream().map(se -> se.getDataResultMap().size()).reduce( 0, (r, mapSize) -> r + mapSize);
+				LOGGER.guiInfo("Storing "+nbEvents+" events for "+allEvents.size()+" stocks.");
+				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
+				LOGGER.guiInfo("Stored "+nbEvents+" events for "+allEvents.size()+" stocks.");
+			} catch (Exception e) { 
+				isDataSetComplete = false;
+				if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+					LOGGER.warn("Intercepted : " + e + " -> IncompleteDataset");
+				} else {
+					LOGGER.error(e,e);
+				}
+			}
 
-            try {
-                LOGGER.guiInfo("Storing "+allEvents.size()+".");
-                EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
-                LOGGER.guiInfo(allEvents.size()+" stored.");
-            } catch (Exception e) { 
-                isDataSetComplete = false;
-                if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
-                    LOGGER.warn("Intercepted : " + e + " -> IncompleteDataset");
-                } else {
-                    LOGGER.error(e,e);
-                }
-            }
+		} catch (Throwable e) {
+			LOGGER.error(e);
+		} finally {
+			executor.shutdownNow();
+		}
 
-            if (!isDataSetComplete) {
-                throw new IncompleteDataSetException(null, null, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
-            }
+		if (!isDataSetComplete) {
+			throw new IncompleteDataSetException(failingStocks, allEvents, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : " + failingStocks);
+		}
 
-        } catch (Throwable e) {
-            LOGGER.error(e);
-        } finally {
-            executor.shutdownNow();
-        }
+		return allEvents;
+	}
 
-        return calculatedOutputReturn;
-    }
+	private QuotesBounds adjustCalculationDatesToQuotations(Stock stock, Date startDate, Date endDate) {
 
-    private QuotesBounds adjustCalculationDatesToQuotations(Stock stock, Date startDate, Date endDate) {
+		//Adjust calculation date to available quotes
+		Date minimumStartDate = TunedConfMgr.getInstance().minimumStartDate(stock);
+		if (minimumStartDate.before(startDate) || minimumStartDate.equals(startDate)) {
+			minimumStartDate = startDate;
+		} else {
+			LOGGER.info("Start date calculation adjusted : for stock "+stock.toString()+ " is now starting on "+minimumStartDate);
+		}
+		if (minimumStartDate.after(endDate) || minimumStartDate.equals(endDate)) {
+			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock "+stock.toString()+ " between "+minimumStartDate+" and "+endDate);
+		}
+		Date maximumEndDate = TunedConfMgr.getInstance().maximumEndDate(stock);
+		if (maximumEndDate.after(endDate) || maximumEndDate.equals(endDate)) {
+			maximumEndDate = endDate;
+		} else {
+			LOGGER.info("End Date calculation adjusted : events for stock "+stock.toString()+ " is now ending on  "+maximumEndDate);
+		}
+		if (maximumEndDate.before(minimumStartDate) || maximumEndDate.equals(minimumStartDate)) {
+			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock "+stock.toString()+ " between "+minimumStartDate+" and "+maximumEndDate);
+		}
 
-        //Adjust calculation date to available quotes
-        Date minimumStartDate = TunedConfMgr.getInstance().minimumStartDate(stock);
-        if (minimumStartDate.before(startDate) || minimumStartDate.equals(startDate)) {
-            minimumStartDate = startDate;
-        } else {
-            LOGGER.info("Start date calculation adjusted : for stock "+stock.toString()+ " is now starting on "+minimumStartDate);
-        }
-        if (minimumStartDate.after(endDate) || minimumStartDate.equals(endDate)) {
-            throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock "+stock.toString()+ " between "+minimumStartDate+" and "+endDate);
-        }
-        Date maximumEndDate = TunedConfMgr.getInstance().maximumEndDate(stock);
-        if (maximumEndDate.after(endDate) || maximumEndDate.equals(endDate)) {
-            maximumEndDate = endDate;
-        } else {
-            LOGGER.info("End Date calculation adjusted : events for stock "+stock.toString()+ " is now ending on  "+maximumEndDate);
-        }
-        if (maximumEndDate.before(minimumStartDate) || maximumEndDate.equals(minimumStartDate)) {
-            throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock "+stock.toString()+ " between "+minimumStartDate+" and "+maximumEndDate);
-        }
+		return new QuotesBounds(minimumStartDate, maximumEndDate);
 
-        return new QuotesBounds(minimumStartDate, maximumEndDate);
-
-    }
+	}
 
 }

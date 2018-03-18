@@ -540,7 +540,8 @@ public class EventsResources {
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("No events in cache for "+stock+" and "+eventListName+" from "+startDate+" to "+endDate+". Available first, last events : "+eventsForStockAndName.first()+" to "+eventsForStockAndName.last(), e);
             } 
-        } 
+        }
+
         return new SymbolEvents(stock, EventState.STATE_TERMINATED);
     }
 
@@ -1140,8 +1141,8 @@ public class EventsResources {
             DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
         }
 
-        //Tuned config
-        TunedConfMgr.getInstance().resetTunedConfFor(stock, analysisName, indicators);
+        //For safe consistency
+        TunedConfMgr.getInstance().cleanTunedConfFor(stock, analysisName, indicators);
     }
 
     public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
@@ -1176,7 +1177,8 @@ public class EventsResources {
             DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
         }
 
-        TunedConfMgr.getInstance().resetTunedConfFor(analysisName, indicators);
+      //For safe consistency
+        TunedConfMgr.getInstance().cleanTunedConfFor(analysisName, indicators);
     }
 
     public void crudDeleteEventsForAnalysisName(String analysisName) {
@@ -1199,7 +1201,8 @@ public class EventsResources {
             DataSource.getInstance().cleanEventsForAnalysisName(EVENTSTABLE, analysisName);
         }
 
-        TunedConfMgr.getInstance().resetTunedConfFor(analysisName);
+        //For safe consistency
+        TunedConfMgr.getInstance().cleanTunedConfFor(analysisName);
     }
 
     public void cleanPersistedEventsCache() throws SQLException {

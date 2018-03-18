@@ -39,6 +39,7 @@ import java.util.TreeMap;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
@@ -47,6 +48,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.FormulaUtils;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.EventsAnalyser;
@@ -62,141 +64,160 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  * The OperationsCompositioner is a specific type of operation to generate events to be used in the UI.
  * The OperationsCompositioner can take other operations as operands and will be compiled in a specific IndicatorsCompositioner, called ParameterizedIndicatorsCompositioner, when created through the UI.
  * OperationsCompositioner unlike other operations can't be reused for further composition or parameterised.
- * Every indicator created in the ./userparametrized/indicator will instantiate an OperationsCompositioner run within a ParameterizedIndicatorsCompositioner at run time.
+ * Every indicator created in the ./userparametrised/indicator will instantiate an OperationsCompositioner run within a ParameterizedIndicatorsCompositioner at run time.
  */
 @XmlRootElement
 public class OperationsCompositioner extends EventMapOperation implements EventInfo {
 
-    @XmlTransient
-    private final EventDefDescriptorDynamic eventDefDescriptor;
+	private static MyLogger LOGGER = MyLogger.getLogger(OperationsCompositioner.class);
 
-    public OperationsCompositioner() {
-        super("operationscompositionner","operationscompositionner", 
-                new ArrayList<Operation>(
-                        Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new NumberOperation("startShiftOverride"), new StringOperation("eventListName")})));
-        eventDefDescriptor = new EventDefDescriptorDynamic();
-    }
+	@XmlTransient
+	private final EventDefDescriptorDynamic eventDefDescriptor;
 
-    public OperationsCompositioner(ArrayList<Operation> operands, String outputSelector) {
-        this();
-        this.setOperands(operands);
-    }
+	public OperationsCompositioner() {
+		super("operationscompositionner","operationscompositionner", 
+				new ArrayList<Operation>(
+						Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new NumberOperation("startShiftOverride"), new StringOperation("eventListName")})));
+		eventDefDescriptor = new EventDefDescriptorDynamic();
+	}
 
-    @Override
-    public EventDataValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public OperationsCompositioner(ArrayList<Operation> operands, String outputSelector) {
+		this();
+		this.setOperands(operands);
+	}
 
-        BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
-        BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
-        //BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2));
-        //NumberValue startShiftOverride = ((NumberValue)inputs.get(3));
-        StringValue eventListName = ((StringValue) inputs.get(4));
+	@Override
+	public EventDataValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-        SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
-        for (Date date : bullishMap.getValue(targetStock).keySet()) {
-            if (bullishMap.getValue(targetStock).get(date)) {
-                ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BULLISH);
-                EventValue iev = new StandardEventValue(date, this, EventType.BULLISH, eventListName.getValue(targetStock));
-                edata.put(iek, iev);
-            }
-        }
-        for (Date date : bearishMap.getValue(targetStock).keySet()) {
-            if (bearishMap.getValue(targetStock).get(date)) {
-                ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BEARISH);
-                EventValue iev = new StandardEventValue(date, this, EventType.BEARISH, eventListName.getValue(targetStock));
-                edata.put(iek, iev);
-            }
-        }
+		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
+		BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
+		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2));
+		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));
+		StringValue eventListName = ((StringValue) inputs.get(4));
 
-        ///Finalising this IndicatorOperator using its operands calculations
-        //Analysis of above event in light of previously calculated ops
-        edata = targetStock.analyseEvents(edata);
-        
-        //Retrieve exportBaseFileName of the main operation
-        EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(targetStock.getChartedOutputGroups().get(0).getThisReference());
-        if (eventsAnalyser != null) this.eventDefDescriptor.setExportBaseFileName(eventsAnalyser.getEgFileBaseName());
-        ///
+		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
+		for (Date date : bullishMap.getValue(targetStock).keySet()) {
+			if (bullishMap.getValue(targetStock).get(date)) {
+				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BULLISH);
+				EventValue iev = new StandardEventValue(date, this, EventType.BULLISH, eventListName.getValue(targetStock));
+				edata.put(iek, iev);
+			}
+		}
+		for (Date date : bearishMap.getValue(targetStock).keySet()) {
+			if (bearishMap.getValue(targetStock).get(date)) {
+				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BEARISH);
+				EventValue iev = new StandardEventValue(date, this, EventType.BEARISH, eventListName.getValue(targetStock));
+				edata.put(iek, iev);
+			}
+		}
 
-        return new EventDataValue(edata);
-    }
+		///Finalizing this IndicatorOperator using its operands calculations
+		try {
+			//Analysis of above event in light of previously calculated ops
+			if (edata.isEmpty()) {
+				LOGGER.warn("Event data found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
+			} else {
+				edata = targetStock.analyseEvents(edata);
+			}
 
-    @Override
-    public String info() {
-        return getEventReadableDef();
-    }
+			//Retrieve exportBaseFileName of the main operation
+			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
+			if (chartedOutputGroups.isEmpty()) {
+				LOGGER.warn("No charted group found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
+			} else {
+				EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(chartedOutputGroups.get(0).getThisReference());
+				if (eventsAnalyser != null) this.eventDefDescriptor.setExportBaseFileName(eventsAnalyser.getEgFileBaseName());
+			}
+		} catch (Exception e) {
+			LOGGER.warn(e, e);
+		}
 
-    // TODO 
-    public Boolean getIsContinous() {
-        return EventDefinition.PARAMETERIZED.getIsContinous();
-    }
+		return new EventDataValue(edata);
+	}
 
-    public EventDefDescriptor getEventDefDescriptor() {
-        return eventDefDescriptor;
-    }
+	@Override
+	public String info() {
+		return getEventReadableDef();
+	}
 
-    @Override
-    public String getEventReadableDef() {
-        return getReference();
-    }
+	// TODO 
+	public Boolean getIsContinous() {
+		return EventDefinition.PARAMETERIZED.getIsContinous();
+	}
 
-    @Override
-    public Integer getEventDefId() {
-        return EventDefinition.PARAMETERIZED.getEventDefId();
-    }
+	public EventDefDescriptor getEventDefDescriptor() {
+		return eventDefDescriptor;
+	}
 
-    @Override
-    public String getEventDefinitionRef() {
-        return getReference();
-    }
+	@Override
+	public String getEventReadableDef() {
+		return getReference();
+	}
 
-    @Override
-    public boolean equals(EventInfo obj) {
-        return this.getEventDefinitionRef().equals(obj.getEventDefinitionRef());
-    }
+	@Override
+	public Integer getEventDefId() {
+		return EventDefinition.PARAMETERIZED.getEventDefId();
+	}
 
-    public int hashCode() {
-        return getEventDefinitionRef().hashCode();
-    }
+	@Override
+	public String getEventDefinitionRef() {
+		return getReference();
+	}
 
-    public int compareTo(EventInfo o) {
-        return this.getEventDefinitionRef().compareTo(o.getEventDefinitionRef());
-    }
+	@Override
+	public boolean equals(EventInfo obj) {
+		return this.getEventDefinitionRef().equals(obj.getEventDefinitionRef());
+	}
 
-    @Override
-    public void setReference(String reference) {
-        super.setReference(reference);
-        this.eventDefDescriptor.setDescriptorReference(reference);
-        if (this.getFormula() != null) {
-            String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormula(), 0)[1];
-            this.eventDefDescriptor.setBullishDescription(FormulaUtils.bullishClause(indentedFormula));
-            this.eventDefDescriptor.setBearishDescription(FormulaUtils.bearishClause(indentedFormula));
-            this.eventDefDescriptor.setAlsoDisplayDescription(FormulaUtils.alsoDisplayClause(indentedFormula));
-        } else {
-            this.eventDefDescriptor.setBullishDescription("No description available");
-            this.eventDefDescriptor.setBearishDescription("No description available");
-            this.eventDefDescriptor.setAlsoDisplayDescription("No description available");
-        }
-    } 
+	public int hashCode() {
+		return getEventDefinitionRef().hashCode();
+	}
 
-    @Override
-    public String tootTip() {
-        if (eventDefDescriptor != null) {
-            return getEventReadableDef()+" :\n\n" +
-                    eventDefDescriptor.getBullishDescription()+"\n\n"+
-                    eventDefDescriptor.getBearishDescription()+"\n\n"+
-                    eventDefDescriptor.getAlsoDisplayDescription();
-        } else {
-            return getEventReadableDef();
-        }
-    }
+	public int compareTo(EventInfo o) {
+		return this.getEventDefinitionRef().compareTo(o.getEventDefinitionRef());
+	}
 
-    @Override
-    public int operationStartDateShift() {
-        return Math.max(getOperands().get(0).operationStartDateShift(), getOperands().get(1).operationStartDateShift());
-    }
+	@Override
+	public void setReference(String reference) {
+		super.setReference(reference);
+		this.eventDefDescriptor.setDescriptorReference(reference);
+		if (this.getFormula() != null) {
+			String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormula(), 0)[1];
+			this.eventDefDescriptor.setBullishDescription(FormulaUtils.bullishClause(indentedFormula));
+			this.eventDefDescriptor.setBearishDescription(FormulaUtils.bearishClause(indentedFormula));
+			this.eventDefDescriptor.setAlsoDisplayDescription(FormulaUtils.alsoDisplayClause(indentedFormula));
+		} else {
+			this.eventDefDescriptor.setBullishDescription("No description available");
+			this.eventDefDescriptor.setBearishDescription("No description available");
+			this.eventDefDescriptor.setAlsoDisplayDescription("No description available");
+		}
+	} 
 
-    @Override
-    public Integer getEventOccWeight() {
-        return 1;
-    }
+	@Override
+	public String tootTip() {
+		if (eventDefDescriptor != null) {
+			return getEventReadableDef()+" :\n\n" +
+					eventDefDescriptor.getBullishDescription()+"\n\n"+
+					eventDefDescriptor.getBearishDescription()+"\n\n"+
+					eventDefDescriptor.getAlsoDisplayDescription();
+		} else {
+			return getEventReadableDef();
+		}
+	}
+
+	@Override
+	public int operationStartDateShift() {
+		//return Math.max(getOperands().get(0).operationStartDateShift(), getOperands().get(1).operationStartDateShift());
+		int maxDateShift = 0;
+		for (Operation operand : getOperands()) {
+			maxDateShift = Math.max(maxDateShift, operand.operationStartDateShift());
+		}
+		return maxDateShift;
+	}
+
+	@Override
+	public Integer getEventOccWeight() {
+		return 1;
+	}
 
 }

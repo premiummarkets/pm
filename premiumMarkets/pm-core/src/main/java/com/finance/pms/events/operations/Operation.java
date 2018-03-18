@@ -247,7 +247,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
     public abstract Value<?> calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 
-
     /**
      * Operation reference as in User Operations list.
      */

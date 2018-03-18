@@ -10,6 +10,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
@@ -35,14 +36,14 @@ import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
 
-public class SelectedIndicatorsCalculationThread extends Observable implements Runnable {
+public class SelectedIndicatorsCalculationThread extends Observable implements Callable<SymbolEvents> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(SelectedIndicatorsCalculationThread.class);
 
 	protected Map<String,Config> configs;
 	private Observer[] observers;
 
-	private final SymbolEvents symbolEvents;
+	private final Stock stock;
 	private final Date startDate;
 	private final Date endDate;
 
@@ -51,7 +52,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
 	//FIXME ?? some calculator may not support in parallel calculation and will need synchronisation
 	protected SelectedIndicatorsCalculationThread(
-			SymbolEvents symbolEvents, Date startDate, Date endDate,
+			Stock stock, Date startDate, Date endDate,
 			EventInfo eventInfo, String eventListName,
 			Observer... observers) {
 
@@ -61,7 +62,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 			this.addObserver(observer);
 		}
 
-		this.symbolEvents = symbolEvents;
+		this.stock = stock;
 		this.startDate = startDate;
 		this.endDate = endDate;
 
@@ -70,23 +71,21 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
 	}
 
-	public void run() {
+	public SymbolEvents call() {
 
-		Stock stock = symbolEvents.getStock();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
 		try {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
 			LOGGER.guiInfo("Calculating "+eventInfo.getEventReadableDef()+" for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
-
-			//SymbolEvents eventsMap = 
-			calculate(symbolEvents, startDate, endDate);
-
+			SymbolEvents symbolEvents = calculate(startDate, endDate);
 			LOGGER.guiInfo("Finishing "+eventInfo.getEventReadableDef()+" for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+			return symbolEvents;
 
 		} catch (Exception e) {
 			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef());
+			return new SymbolEvents(stock);
 		} finally {
 			this.setChanged();
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
@@ -95,15 +94,22 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 	}
 
 	//TODO Only handle OperationsCompositioner and get rid of First and Second pass
-	protected void calculate(SymbolEvents symbolEvents, Date start, Date end) {
-
-		Stock stock = symbolEvents.getStock();
+	protected SymbolEvents calculate(Date start, Date end) {
+		
+		SymbolEvents symbolEvents = new SymbolEvents(stock);
 
 		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
 		synchronized (tunedConf) {
-
+			
+			//FIXME delete needs the calculator..
+//			try {
+//				//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
+//				if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
+//			} catch (Exception e) {
+//				LOGGER.error(e,e);
+//			}
+			
 			CalculationBounds calculationBounds;
-
 			try {
 				if (eventInfo instanceof OperationsCompositioner && !((OperationsCompositioner) eventInfo).isIdemPotent()) {
 					calculationBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
@@ -137,7 +143,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
 					//If RESET or not idemPotent we clean
 					if (calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
-						EventsResources.getInstance().crudDeleteEventsForStock(symbolEvents.getStock(), eventListName, eventInfo);
+						EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
 					}
 
 					//Calculation
@@ -165,8 +171,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 
 				} else {//No calculation needed
 					LOGGER.info(
-							"Recalculation requested for "+stock+" using analysis "+eventListName+ "and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd+". "+
-									"No recalculation needed calculation bound is "+ calculationBounds.toString());
+							"Recalculation requested for "+stock+" using analysis "+eventListName+ " and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd+". "+
+							"No recalculation needed calculation bound is "+ calculationBounds.toString());
 					lastEventDate = tunedConf.getLastCalculatedEvent();
 					dirty = false;
 					symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
@@ -199,6 +205,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements R
 			}
 
 		}
+		
+		return symbolEvents;
 
 	}
 

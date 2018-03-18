@@ -54,8 +54,10 @@ public class IncompleteDataSetException extends Exception {
 		super(arg0);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
+
 		this.calculatedOutputs = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
 		this.calculatedOutputs.put(failingStock, symbolEventsForStock.getCalculationOutputs());
+
 		this.symbolEvents = new ArrayList<SymbolEvents>();
 		this.symbolEvents.add(symbolEventsForStock);
 	}

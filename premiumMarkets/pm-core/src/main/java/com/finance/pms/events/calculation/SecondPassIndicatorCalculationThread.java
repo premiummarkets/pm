@@ -55,7 +55,7 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-//TODO To facilitate error handling : move initialisations from the constructor to calculateEventsFor method
+//TODO To facilitate error handling : move initializations from the constructor to calculateEventsFor method
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
 
     private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);
@@ -168,17 +168,6 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 
     @Override
     public void cleanEventsFor(Stock stock, EventInfo eventInfo, String eventListName) {
-
-//        for (EventDefinition eventDefinition : availableSecondPassIndicatorCalculators.keySet()) {
-//            if (checkWanted(eventDefinition)) {
-//
-//                LOGGER.info("Cleaning "+eventDefinition+" events BEFORE STORING NEW RESULTS for "+eventListName+" and "+ stock.getFriendlyName());
-//
-//                List<EventInfo> subEventInfosForRequested = subEventInfosForRequested(eventDefinition);
-//                EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, subEventInfosForRequested.toArray(new EventInfo[0]));
-//
-//            }
-//        }
         EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
     }
 

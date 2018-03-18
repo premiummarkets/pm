@@ -46,12 +46,12 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.conditional.OperationsCompositioner;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
+import com.finance.pms.events.scoring.TunedConfMgr;
 
 //@Service("parameterizedIndicatorsBuilder")
 public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
@@ -133,7 +133,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
                 OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
                     .filter(op -> op instanceof OperationsCompositioner)
                     .collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
-                EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
+                TunedConfMgr.getInstance().resetEventsAndConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
             }
 		});
 

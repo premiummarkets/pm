@@ -47,6 +47,7 @@ import com.finance.pms.datasources.events.OnTheFlyRevesreCalcPeriod;
 import com.finance.pms.datasources.events.TunedConfDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -153,8 +154,12 @@ public class TunedConfMgr {
 
 	}
 
-	public void setDirty(TunedConf tunedConf) {
+	private void setDirty(TunedConf tunedConf) {
 		updateConf(tunedConf, true, DateFactory.dateAtZero(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
+	}
+
+	private void setClean(TunedConf tunedConf) {
+		updateConf(tunedConf, false, DateFactory.dateAtZero(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
 	}
 
 	public void updateConf(TunedConf tunedConf, Date lastEventDate) {
@@ -189,19 +194,64 @@ public class TunedConfMgr {
 		return lastQuote;
 	}
 
-	public void resetTunedConfFor(String analysisName, EventInfo... indicators) {
+	/**
+	 * Reset calculation dates without changing the dirty state.
+	 * For use after delete events.
+	 * @param analysisName
+	 * @param indicators
+	 */
+	public void cleanTunedConfFor(String analysisName, EventInfo... indicators) { 
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		loadAllTunedConfs.stream()
 		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
-		.forEach(tc -> setDirty(tc));
+		.forEach(tc -> setClean(tc));
 	}
 
-	public void resetTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
+	/**
+	 * Reset calculation dates without changing the dirty state.
+	 * For use after delete events.
+	 * @param stock
+	 * @param analysisName
+	 * @param indicators
+	 */
+	public void cleanTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
+		for(EventInfo ei: indicators) {
+			TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
+			setClean(tc);
+		}
+	}
+
+	/**
+	 * Deletes Events, Reset calculation dates AND sets Dirty.
+	 * @param analysisName
+	 * @param indicators
+	 */
+	public void resetEventsAndConfs(String analysisName, EventInfo... indicators) {
+
+		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
+		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
+		loadAllTunedConfs.stream()
+			.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
+			.forEach(tc -> setDirty(tc));
+
+		EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, indicators);
+
+	}
+
+	/**
+	 * Deletes Events, Reset calculation dates AND sets Dirty.
+	 * @param stock
+	 * @param analysisName
+	 * @param indicators
+	 */
+	public void resetEventsAndConfs(Stock stock, String analysisName, EventInfo[] indicators) {
 		for(EventInfo ei: indicators) {
 			TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
 			setDirty(tc);
 		}
+
+		EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
 	}
 
 }

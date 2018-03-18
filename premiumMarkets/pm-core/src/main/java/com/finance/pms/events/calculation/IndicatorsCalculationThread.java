@@ -72,221 +72,221 @@ import com.finance.pms.threads.ObserverMsg.ObsKey;
 
 public abstract class IndicatorsCalculationThread extends EventsCalculationThread {
 
-    private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationThread.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationThread.class);
 
-    protected Stock stock;
-    private String passOneCalcMode;
+	protected Stock stock;
+	private String passOneCalcMode;
 
-    protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
-            Set<Observer> observers,
-            String passOneCalcMode,
-            Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
-        super(startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
-        this.stock = stock;
-        this.passOneCalcMode = passOneCalcMode;
-    }
+	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
+			Set<Observer> observers,
+			String passOneCalcMode,
+			Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
+		super(startDate, endDate, eventListName, calculationCurrency, observers, eventQueue, jmsTemplate);
+		this.stock = stock;
+		this.passOneCalcMode = passOneCalcMode;
+	}
 
-    protected abstract void setCalculationParameters();
+	protected abstract void setCalculationParameters();
 
-    //TODO FIXME : no future but just runnable ....
-    public SymbolEvents call() throws IncompleteDataSetException {
 
-        SymbolEvents symbolEventsForStock = new SymbolEvents(stock);
-        List<IncompleteDataSetException> dataSetExceptions = new ArrayList<IncompleteDataSetException>();
+	public SymbolEvents call() throws IncompleteDataSetException {
 
-        try {
+		SymbolEvents symbolEventsForStock = new SymbolEvents(stock);
+		List<IncompleteDataSetException> dataSetExceptions = new ArrayList<IncompleteDataSetException>();
 
-            ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
-            ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
+		try {
 
-            LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
+			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-            setCalculationParameters();
-            calculate(symbolEventsForStock, dataSetExceptions);
+			LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
 
-            LOGGER.debug("End analyse "+stock+" from "+startDate+" to "+endDate);
+			setCalculationParameters();
+			calculate(symbolEventsForStock, dataSetExceptions);
 
-        } catch (Exception e) {
-            LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and dates "+startDate+" to "+endDate, e);
-            throw new IncompleteDataSetException(stock, symbolEventsForStock, "UnHandled error : " + e.getMessage());
+			LOGGER.debug("End analyse "+stock+" from "+startDate+" to "+endDate);
 
-        } finally {
-            this.setChanged();
-            this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
-        }
+		} catch (Exception e) {
+			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and dates "+startDate+" to "+endDate, e);
+			throw new IncompleteDataSetException(stock, symbolEventsForStock, "UnHandled error : " + e.getMessage());
 
-        if (dataSetExceptions.size() > 0) {
-            if (LOGGER.isEnabledFor(Level.ERROR)) {
-                dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
-            }
-            throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set for "+stock.getFriendlyName()+" may invalidate further usage.");
-        }
+		} finally {
+			this.setChanged();
+			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
+		}
 
-        return symbolEventsForStock;
+		if (dataSetExceptions.size() > 0) {
+			if (LOGGER.isEnabledFor(Level.ERROR)) {
+				dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
+			}
+			throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set for "+stock.getFriendlyName()+" may invalidate further usage.");
+		}
 
-    }
+		return symbolEventsForStock;
 
-    protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
+	}
 
-        Set<IndicatorsCompositioner> eventsCalculators;
+	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
 
-        LOGGER.info("Effective recalculation (potentially incremental) for "+stock+" will occur from "+startDate+" to "+endDate);
+		Set<IndicatorsCompositioner> eventsCalculators;
 
-        //Init calculators
-        try {
-            eventsCalculators = initIndicatorsAndCalculators(symbolEventsForStock, observers.toArray(new Observer[]{}));
-        } catch (IncompleteDataSetException e) {
-            dataSetExceptions.add(e);
-            eventsCalculators = e.getValidEventCalculators();
-        }
+		LOGGER.info("Effective recalculation (potentially incremental) for "+stock+" will occur from "+startDate+" to "+endDate);
 
-        //Run calculators
-        try {
-            calculateEventsForEachDateAndIndicatorComp(eventsCalculators, symbolEventsForStock, startDate, endDate, stock);
-        } catch (IncompleteDataSetException e) {
-            dataSetExceptions.add(e);
-        }
+		//Init calculators
+		try {
+			eventsCalculators = initIndicatorsAndCalculators(symbolEventsForStock, observers.toArray(new Observer[]{}));
+		} catch (IncompleteDataSetException e) {
+			dataSetExceptions.add(e);
+			eventsCalculators = e.getValidEventCalculators();
+		}
 
-    }
+		//Run calculators
+		try {
+			calculateEventsForEachDateAndIndicatorComp(eventsCalculators, symbolEventsForStock, startDate, endDate, stock);
+		} catch (IncompleteDataSetException e) {
+			dataSetExceptions.add(e);
+		}
 
-    abstract protected Set<IndicatorsCompositioner> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) throws IncompleteDataSetException;
+	}
 
-    private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsCompositioner> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
+	abstract protected Set<IndicatorsCompositioner> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) throws IncompleteDataSetException;
 
-        Boolean incomplete = false;
-        ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
-        final List<EventInfo> failing = new ArrayList<EventInfo>();
+	private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsCompositioner> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
 
-        for (final IndicatorsCompositioner evtCalculator: evtCalculators ) {
+		Boolean incomplete = false;
+		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
+		final List<EventInfo> failing = new ArrayList<EventInfo>();
 
-            try {
-                if (!evtCalculator.isIdemPotent()) cleanEventsFor(this.stock, evtCalculator.getEventDefinition(), this.eventListName);
-            } catch (Exception e) {
-                LOGGER.error(e,e);
-            }
+		for (final IndicatorsCompositioner evtCalculator: evtCalculators ) {
 
-            Runnable runnable = new Runnable() {
-                public void run() {
+			Runnable runnable = new Runnable() {
+				public void run() {
 
-                    ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, IndicatorsCalculationThread.this.configs.get(Config.EVENT_SIGNAL_NAME));
-                    ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
+					ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, IndicatorsCalculationThread.this.configs.get(Config.EVENT_SIGNAL_NAME));
+					ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-                    //FIXME FALSE => TunedConf will always be reset for 2nd pass events with the cleanEventsFor above <= FALSE as the delete may not handle tuneConf
-                    TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
-                    Date lastEventDate = DateFactory.dateAtZero();
-                    try {
+					TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
+					Date lastEventDate = DateFactory.dateAtZero();
+					try {
+						//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
+						if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
+					} catch (Exception e) {
+						LOGGER.error(e,e);
+					}
 
-                        synchronized (tunedConf) {
+					try {
 
-                            CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null);
-                            if (passOneCalcMode.equals("auto")) {
-                                endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-                                calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
-                            }
-                            if (passOneCalcMode.equals("reset")) {
-                                endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-                                tunedConf.setLastCalculationStart(startDate);
-                                tunedConf.setLastCalculationEnd(endDate);
-                                calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate, null, null);
-                            }
+						synchronized (tunedConf) {
 
-                            startDate = calculationBounds.getPmStart();
-                            endDate = calculationBounds.getPmEnd();
+							CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null);
+							if (passOneCalcMode.equals("auto")) {
+								endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+								calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
+							}
+							if (passOneCalcMode.equals("reset")) {
+								endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
+								tunedConf.setLastCalculationStart(startDate);
+								tunedConf.setLastCalculationEnd(endDate);
+								calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate, null, null);
+							}
 
-                            if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
+							startDate = calculationBounds.getPmStart();
+							endDate = calculationBounds.getPmEnd();
 
-                                try {
+							if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
 
-                                    Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, datedeb, datefin, true, stock.getMarketValuation().getCurrency(), evtCalculator.getStartShift(), evtCalculator.quotationsValidity());
-                                    SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(quotations, IndicatorsCalculationThread.this.eventListName);
+								try {
 
-                                    if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
-                                        //Add events to total
-                                        symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+									Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, datedeb, datefin, true, stock.getMarketValuation().getCurrency(), evtCalculator.getStartShift(), evtCalculator.quotationsValidity());
+									SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(quotations, IndicatorsCalculationThread.this.eventListName);
 
-                                        //Add events to composer and send
-                                        SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
-                                        symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
-                                        sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
-                                    }
-                                    //Add output to total
-                                    symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
+									if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
+										//Add events to total
+										symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
 
-                                } catch (NoQuotationsException | TalibException e) {
-                                    LOGGER.warn(e);
-                                    failing.add(evtCalculator.getEventDefinition());
-                                    symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
-                                } catch (Exception e) {
-                                    LOGGER.error(e, e);
-                                    failing.add(evtCalculator.getEventDefinition());
-                                    symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
-                                }
+										//Add events to composer and send
+										SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
+										symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+										sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
+									}
+									//Add output to total
+									symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
 
-                            } else {
-                                LOGGER.info(
-                                        "Events recalculation requested for "+stock.getSymbol()+" and "+evtCalculator.getEventDefinition().getEventDefinitionRef()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
-                                                "No recalculation needed calculation bound is "+ calculationBounds.toString());
-                            }
+								} catch (NoQuotationsException | TalibException e) {
+									LOGGER.warn(e);
+									failing.add(evtCalculator.getEventDefinition());
+									symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+								} catch (Exception e) {
+									LOGGER.error(e, e);
+									failing.add(evtCalculator.getEventDefinition());
+									symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+								}
 
-                            if (failing.isEmpty()) {
-                                //if We inc or reset, tuned conf last event will need update : We add it in the map
-                                if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
-                                	lastEventDate =  symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate();
-                                } else {
-                                	lastEventDate = tunedConf.getLastCalculatedEvent();
-                                }
-                            } else {//Error(s) as occurred. This should invalidate tuned conf
-                                if (LOGGER.isEnabledFor(Level.ERROR)) {
-                                    failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
-                                }
-                                //We make the tunedConf clean assuming a subsequent calculation will also fail. However the last event is here reset to zero.
-                                lastEventDate = DateFactory.dateAtZero();
-                            }
+							} else {
+								LOGGER.info(
+										"Events recalculation requested for "+stock.getSymbol()+" and "+evtCalculator.getEventDefinition().getEventDefinitionRef()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
+												"No recalculation needed calculation bound is "+ calculationBounds.toString());
+							}
 
-                        }//End synchronized
+							if (failing.isEmpty()) {
+								//if We inc or reset, tuned conf last event will need update : We add it in the map
+								if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
+									lastEventDate =  symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate();
+								} else {
+									lastEventDate = tunedConf.getLastCalculatedEvent();
+								}
+							} else {//Error(s) as occurred. This should invalidate tuned conf
+								if (LOGGER.isEnabledFor(Level.ERROR)) {
+									failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
+								}
+								//We make the tunedConf clean assuming a subsequent calculation will also fail. However the last event is here reset to zero.
+								lastEventDate = DateFactory.dateAtZero();
+							}
 
-                    } catch (InvalidAlgorithmParameterException e) {
-                    	lastEventDate = DateFactory.dateAtZero();
-                        LOGGER.error(e);
-                    } finally {
-                    	TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate);
-                    }
-                }
-            };
+						}//End synchronized
 
-            executor.execute(runnable);
+					} catch (InvalidAlgorithmParameterException e) {
+						lastEventDate = DateFactory.dateAtZero();
+						LOGGER.error(e);
+					} finally {
+						TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate);
+					}
+				}
+			};
 
-        }//End For calculators
+			executor.execute(runnable);
 
-        executor.shutdown();
+		}//End For calculators
 
-        try {
-            boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
-            if (!awaitTermination) {
-                List<Runnable> shutdownNow = executor.shutdownNow();
-                LOGGER.error(shutdownNow, new Exception());
-                incomplete = true;
-            }
-        } catch (InterruptedException e) {
-            List<Runnable> shutdownNow = executor.shutdownNow();
-            LOGGER.error(shutdownNow, e);
-            incomplete = true;
-        }
+		executor.shutdown();
 
-        if (incomplete || !failing.isEmpty()) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Some calculations have failed! Are failing : "+failing);
+		try {
+			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			if (!awaitTermination) {
+				List<Runnable> shutdownNow = executor.shutdownNow();
+				LOGGER.error(shutdownNow, new Exception());
+				incomplete = true;
+			}
+		} catch (InterruptedException e) {
+			List<Runnable> shutdownNow = executor.shutdownNow();
+			LOGGER.error(shutdownNow, e);
+			incomplete = true;
+		}
 
-    }
+		if (incomplete || !failing.isEmpty()) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Some calculations have failed! Are failing : "+failing);
 
-    protected String warnMessage(String calculatorName, Date startDate, Date endDate) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return String.format("%s can't be calculated for %s between %s and %s", calculatorName, stock.getName(), simpleDateFormat.format(startDate), simpleDateFormat.format(endDate));
-    }
+	}
 
-    protected boolean checkWanted(EventDefinition eventDefinition) {
-        List<EventInfo> wantedEventCalculators = getWantedEventCalculations();
-        return (wantedEventCalculators != null && wantedEventCalculators.contains(eventDefinition));
-    }
+	protected String warnMessage(String calculatorName, Date startDate, Date endDate) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return String.format("%s can't be calculated for %s between %s and %s", calculatorName, stock.getName(), simpleDateFormat.format(startDate), simpleDateFormat.format(endDate));
+	}
 
-    protected abstract List<EventInfo> getWantedEventCalculations();
+	protected boolean checkWanted(EventDefinition eventDefinition) {
+		List<EventInfo> wantedEventCalculators = getWantedEventCalculations();
+		return (wantedEventCalculators != null && wantedEventCalculators.contains(eventDefinition));
+	}
+
+	protected abstract List<EventInfo> getWantedEventCalculations();
 
 }

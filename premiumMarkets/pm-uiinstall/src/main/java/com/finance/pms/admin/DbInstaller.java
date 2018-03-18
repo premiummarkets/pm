@@ -232,7 +232,7 @@ public class DbInstaller extends Observable {
 			File scriptsStatusFile = new File(installPath + extractDirName + File.separator + "upgrade" + File.separator + "upgradeStatus.txt");
 			if (scriptsStatusFile.exists()) {
 				BufferedReader statusReader = new BufferedReader(new FileReader(scriptsStatusFile));
-				String  alreadyRanStatus = null;
+				String alreadyRanStatus = null;
 				while ( (alreadyRanStatus = statusReader.readLine()) != null ) {
 					String alreadyRanScript = alreadyRanStatus.substring(0, alreadyRanStatus.indexOf(","));
 					String[] arSqlScriptTimeStamp = extractSqlScriptTimeStamp(alreadyRanScript);
@@ -240,7 +240,7 @@ public class DbInstaller extends Observable {
 					lastStampRan = arSqlScriptTimeStamp[0];
 					lastNumRan = arSqlScriptTimeStamp[1];
 				}
-				System.out.println("Last Script found in status : "+ alreadyRanStatus + ". Time stamp : "+lastStampRan+"_"+lastNumRan);
+				System.out.println("Last script found time stamp : "+lastStampRan+"_"+lastNumRan);
 				statusReader.close();
 			} else {
 				System.out.println("No status script file found : "+scriptsStatusFile.getAbsolutePath());
@@ -347,9 +347,17 @@ public class DbInstaller extends Observable {
 
 		//Order and filter
 		for (File file : listFiles) {
-			String[] sqlScriptStampsArray = extractSqlScriptTimeStamp(file.getName());
-			boolean validSqlScriptFile = isValidSqlScriptFile(sqlScriptStampsArray);
-			boolean isNewerScript = isNewerScript(lastStampRan, lastNumRan, sqlScriptStampsArray);
+			System.out.println("Checking file validity:"+file.getName());
+			String[] sqlScriptStampsArray = new String[0];
+			boolean validSqlScriptFile = false;
+			boolean isNewerScript = false;
+			try {
+				sqlScriptStampsArray = extractSqlScriptTimeStamp(file.getName());
+				validSqlScriptFile = isValidSqlScriptFile(sqlScriptStampsArray);
+				isNewerScript = isNewerScript(lastStampRan, lastNumRan, sqlScriptStampsArray);
+			} catch (Exception e) {
+				System.out.println(file.getName() + ": " + e.getMessage());
+			}
 			if (validSqlScriptFile && isNewerScript) {
 				System.out.println("Will potentially run upgrade script : "+file.getAbsolutePath() + ". Time stamp : "+Arrays.toString(sqlScriptStampsArray) + ". Validity : "+validSqlScriptFile +". Against last time stamp : "+lastStampRan+"_"+lastNumRan);
 				sortedUpgrades.add(file);
@@ -384,6 +392,7 @@ public class DbInstaller extends Observable {
 			String[] split = stampString.split("_");
 			return split;
 		} catch (Exception e) {
+			System.out.println("Invalid file name: "+fileName);
 			return new String[]{oldestUpgradeDate_0000, oldtestUpgradeNum_0};
 		}
 	}
@@ -394,15 +403,15 @@ public class DbInstaller extends Observable {
 		try {
 			dateFormat.parse(split[0]);
 		} catch (ParseException e) {
-			System.out.println("Invalid sql script file name split : "+split);
-			e.printStackTrace();
+			System.out.println("Invalid sql script file name split : "+Arrays.toString(split)+": "+e.getMessage());
+			//e.printStackTrace();
 			return false;
 		}
 		try {
 			Integer.valueOf(split[1]);
 		} catch (NumberFormatException e) {
-			System.out.println("Invalid sql script file name split : "+split);
-			e.printStackTrace();
+			System.out.println("Invalid sql script file name split : "+split+": "+e.getMessage());
+			//e.printStackTrace();
 			return false;
 		}
 		return true;

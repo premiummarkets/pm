@@ -65,7 +65,6 @@ import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
-import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -145,13 +144,14 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
                 Object isDirty = viewStateParams[1].iterator().next();
                 if (isDirty != null && isDirty.equals("setDirty")) {
                     //"setDirty" is set on forced recalculation.
-                    stockList.stream()
-                        .forEach(stock -> viewStateParams[0].stream()
-                                .forEach(e -> {
-                                    TunedConf tuneConfig = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, ((EventInfo) e).getEventDefinitionRef());
-                                    TunedConfMgr.getInstance().setDirty(tuneConfig);
-                                }));
-                    viewStateParams[1] = null;
+                	stockList.stream()
+                	.forEach(stock -> {
+                		EventInfo[] eiArray = viewStateParams[0].stream()
+                				.map(e -> ((EventInfo) e))
+                				.toArray(EventInfo[]::new);
+                		TunedConfMgr.getInstance().resetEventsAndConfs(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
+                	});
+                	viewStateParams[1] = null;
                 }
             }
 
