@@ -54,12 +54,12 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 
 public abstract class ANTLRParserHelper {
-	
+
 	static MyLogger LOGGER = MyLogger.getLogger(ANTLRParserHelper.class);
-	
+
 
 	public enum AltType {SUGGESTION, DELETE};
-	
+
 	public static int translatePositionToCaret(String formula, int lineNum, int lineOffset) {
 		String[] editorTextLines = formula.split("\n", -1);
 		int caretPos = 0;
@@ -108,15 +108,15 @@ public abstract class ANTLRParserHelper {
 	protected SortedSet<EditorOpDescr> nativeOpEditorDescrs;
 
 	public abstract CommonTree buildTree(InputStream inputStream)  throws Exception;
-	
+
 	public abstract NextToken checkNextToken(InputStream inputStream) throws IllegalArgumentException ;
 
 	public void updateEditableOperationLists(Map<String, Operation> nativeOperations, Map<String, Operation> userCurrentOperations) {
-		
+
 		this.nativeOpEditorDescrs = new TreeSet<EditorOpDescr>();
 		updateNativeOperationList(nativeOperations, this.nativeOpEditorDescrs);
 		LOGGER.info("available native ops : "+this.nativeOpEditorDescrs);
-		
+
 		this.userCurrentOpEditorDescrs = new TreeSet<EditorOpDescr>();
 		updateUserOperationList(userCurrentOperations, this.userCurrentOpEditorDescrs);
 		LOGGER.info("available user ops : "+this.userCurrentOpEditorDescrs);
@@ -124,13 +124,13 @@ public abstract class ANTLRParserHelper {
 
 	//XXX Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either
 	private void updateNativeOperationList(Map<String, Operation> userCurrentOperations, Set<EditorOpDescr> userCurrentOperationList) {
-		
+
 		for (String operationRef : userCurrentOperations.keySet()) {
-			
+
 			//Op
 			Operation operation = userCurrentOperations.get(operationRef);
 			EditorOpDescr editorOpDescr = new EditorOpDescr(operation.name(), operation.getDescription(), operation.synoptic(), operation.shortSynoptic());
-			
+
 			//Params
 			List<Operation> operands = operation.getOperands();
 			if (operands.size() == 0) {//undeterministic nb of operands
@@ -149,27 +149,27 @@ public abstract class ANTLRParserHelper {
 					}
 				}
 			}
-			
+
 			//Output selector
 			editorOpDescr.setOutputSelectors(operation.getAvailableOutputSelectors());
-			
+
 			userCurrentOperationList.add(editorOpDescr);
 		}
 	}
-	
+
 	//XXX User operation can't have empty parameters : we don't add any param editable by the user.
 	private void updateUserOperationList(Map<String, Operation> userCurrentOperations, Set<EditorOpDescr> userCurrentOperationList) {
-		
+
 		for (String operationRef : userCurrentOperations.keySet()) {
-			
+
 			Operation operation = userCurrentOperations.get(operationRef);
 			EditorOpDescr editorOpDescr = new EditorOpDescr(operation.name(), "Your operation.", operation.name()+"\nFormula : "+ operation.getFormula(), operation.name());
-			
-			//1rts level Operands sanity check
-			for (Operation operand : operation.getOperands()) {
-				if (operand.getParameter() == null) LOGGER.warn("Operands should be parameterised for user operation : "+operation);
-			}
-			
+
+			//			//1rts level Operands sanity check
+			//			for (Operation operand : operation.getOperands()) {
+			//				if (operand.getParameter() == null) LOGGER.warn("Operands should be parameterised for user operation : operand " + operand + " as no parameter for "+operation);
+			//			}
+
 			userCurrentOperationList.add(editorOpDescr);
 		}
 	}
@@ -215,7 +215,7 @@ public abstract class ANTLRParserHelper {
 	protected Boolean addSuggsAsAlts(List<Alternative> alternatives, String parsedText, int[] highLighPosition, String descreptionPrefix,  String...tokens) {
 		return addSuggsAsAlts(alternatives, parsedText, highLighPosition, Arrays.asList(tokens), descreptionPrefix);
 	}
-	
+
 	protected Boolean addSuggsAsAlts(List<Alternative> alternatives, String parsedText, int[] highLighPosition, Collection<String> tokens, String descreptionPrefix) {
 		boolean foundMatch = false;
 		for (String htoken : tokens) {

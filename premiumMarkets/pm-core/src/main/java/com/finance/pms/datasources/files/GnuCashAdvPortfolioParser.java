@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.security.InvalidAlgorithmParameterException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -266,7 +265,7 @@ public class GnuCashAdvPortfolioParser {
 			throw new NoResultException(e.getMessage()+". For Name : "+name);
 		} catch (NoResultException e) {
 			throw e;
-		} catch (InvalidAlgorithmParameterException e) {
+		} catch (Exception e) {
 			String message = e.getMessage()+". For Name : "+name;
 			LOGGER.warn(message,e);
 			throw new NoResultException(message);
@@ -278,7 +277,7 @@ public class GnuCashAdvPortfolioParser {
 		return titlesPositions.get(expectedTitles[columnRefIdx]);
 	}
 
-	private PortfolioShare addPortfolioShare(UserPortfolio portfolio, String newPortfolioName, NodeList portfolioNodes, Stock stock, String account, SortedSet<TransactionElement> transactionsForStock) throws ParseException, InvalidAlgorithmParameterException {
+	private PortfolioShare addPortfolioShare(UserPortfolio portfolio, String newPortfolioName, NodeList portfolioNodes, Stock stock, String account, SortedSet<TransactionElement> transactionsForStock) throws ParseException {
 		
 		Currency reportQuotationCurrency = gnuCashParserHelper.extractCurrency(((Element) portfolioNodes.item(columnPositionFor(PRICE_COLUMN))).getTextContent());
 		Currency portfolioReportCurrency = gnuCashParserHelper.extractCurrency(((Element) portfolioNodes.item(columnPositionFor(BASIS_COLUMN))).getTextContent());

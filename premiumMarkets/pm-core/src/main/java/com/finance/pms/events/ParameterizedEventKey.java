@@ -34,6 +34,11 @@ package com.finance.pms.events;
 
 import java.util.Date;
 
+/**
+ * Events from parameterized indicators (Indicators compositionners)
+ * @author guil
+ *
+ */
 public class ParameterizedEventKey extends EventKey {
 
 	private static final long serialVersionUID = 1806331274610032030L;

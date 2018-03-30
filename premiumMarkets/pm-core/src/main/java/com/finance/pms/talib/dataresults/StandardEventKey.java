@@ -38,7 +38,7 @@ import com.finance.pms.events.EventType;
 
 
 /**
- * The Class IndicatorEventKey.
+ * Events from native indicators.
  * 
  * @author Guillaume Thoreton
  */

@@ -159,13 +159,12 @@ public abstract class EventModelStrategyEngine<X> {
 
                 Boolean isAllEventsOkForStock = true;
                 for (EventInfo eventDefinition : indicators) {
-
+                	if (EventDefinition.ZERO.equals(eventDefinition)) continue;
                     EventDefCacheEntry evtDefRes = callbackForlastAnalyseOutput.get(stock).get(eventDefinition);
                     if (evtDefRes == null || evtDefRes.getUpdateStamp() == null || evtDefRes.getUpdateStamp().isFailing()) {
                         msg = msg + "'" + eventDefinition.getEventReadableDef() + "' has failed for " + stock.getFriendlyName() + ". No output was found/generated.\n";
                         isAllEventsOkForStock = false;
                     } 
-
                 }
                 isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
             }

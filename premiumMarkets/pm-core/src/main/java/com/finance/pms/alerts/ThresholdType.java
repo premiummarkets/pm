@@ -32,7 +32,7 @@ package com.finance.pms.alerts;
 public enum ThresholdType {
 	UP ("Above "),
 	DOWN ("Below ");
-	
+
 	String msgHint;
 
 	private ThresholdType(String msgHint) {
@@ -42,6 +42,5 @@ public enum ThresholdType {
 	public String getMsgHint() {
 		return msgHint;
 	}
-	
-	
+
 }

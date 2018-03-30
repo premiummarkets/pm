@@ -178,7 +178,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
         this.sliderSelection = false;
 
-        this.stripedCloseFunction = new StripedCloseRelativeToStart(slidingStartDate, slidingEndDate);
+        //this.stripedCloseFunction = new StripedCloseRelativeToStart(slidingStartDate, slidingEndDate);
+        this.stripedCloseFunction = new StripedCloseRelativeToInvested(true, slidingStartDate, slidingEndDate);
         this.initGUI();
         chartDisplayStrategy = new ChartPerfDisplay(this);
 
@@ -1145,7 +1146,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
     void setStripedCloseFunction(ChartDisplayStrategy chartDisplayStrategy, StripedCloseFunction stripedCloseFunction) {
-
         this.stripedCloseFunction = stripedCloseFunction;
         updateButtonsToolTips(chartDisplayStrategy);
     }
@@ -1158,7 +1158,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
     private void updateButtonsToolTips(ChartDisplayStrategy chartDisplayStrategy) {
-        chartDisplayStrategy.updateButtonsToolTips();		
+        chartDisplayStrategy.updateButtonsToolTips();
     }
 
     //TODO Use a map and reuse the strategy instead of new so that u keep the state

@@ -148,8 +148,8 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsCompositi
     @Override
     protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects){
         Date calculatorDate = qU.getDate();
-        EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMACCDISTDIVERGENCE, EventType.BEARISH));
-        EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMACCDISTDIVERGENCE, EventType.BULLISH));
+        EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate, EventDefinition.PMACCDISTDIVERGENCE, EventType.BEARISH));
+        EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate, EventDefinition.PMACCDISTDIVERGENCE, EventType.BULLISH));
         BigDecimal calculatorClose = qU.getClose();
 
         int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, calculatorIndex);

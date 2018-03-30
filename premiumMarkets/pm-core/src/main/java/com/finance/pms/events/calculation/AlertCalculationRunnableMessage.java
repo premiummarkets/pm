@@ -31,6 +31,7 @@ package com.finance.pms.events.calculation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -68,7 +69,10 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	public AlertCalculationRunnableMessage(SpringContext springContext, String analysisName, Date endDate, Portfolio... portfolios ) {
 		super(1000, springContext, analysisName);
 		this.endDate = endDate;
-		this.startDate = endDate;
+		Calendar instance = Calendar.getInstance();
+		instance.setTime(endDate);
+		instance.add(Calendar.DAY_OF_MONTH, -1);
+		this.startDate = instance.getTime();
 		this.portfolios = Arrays.asList(portfolios);
 
 	}
@@ -76,16 +80,16 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	protected void analysePortfolioCollection(Date startDate, Date endDate, Collection<Portfolio> portfolios) {
 
 		for (final Portfolio portfolio : portfolios) {
-			
+
 			ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("alertcalculator.semaphore.nbthread","5")));
 			List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
-			
+
 			boolean isUserPortfolio = portfolio instanceof UserPortfolio; 
-			
+
 			for (PortfolioShare portfolioShare : portfolio.getListShares().values() ) {
 
 				try {
-					
+
 					LOGGER.guiInfo("Processing alerts events for portfolio "+portfolio.getName());
 
 					final Queue eventQueue = this.eventQueue;
@@ -99,7 +103,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 					LOGGER.debug(e,e);
 				}
 			}
-		
+
 			executor.shutdown();
 			try {
 				boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
@@ -111,29 +115,29 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 				List<Runnable> shutdownNow = executor.shutdownNow();
 				LOGGER.error(shutdownNow,e);
 			}
-			
+
 			try {
 				List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 				for (Future<SymbolEvents> future : futures) {
 					allEvents.add(future.get());
 				}
 				EventsResources.getInstance().crudCreateEvents(allEvents, portfolio.getName());
-				
+
 			} catch (InterruptedException e) {
 				LOGGER.error(e,e);
 			} catch (ExecutionException e) {
 				LOGGER.error(e,e);
 			}
-			
+
 		}
 	}
 
 	public void run() {
-	
+
 		try {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			this.analysePortfolioCollection(startDate, endDate, portfolios);
-			
+
 		} catch (Exception e) {
 			LOGGER.error("Error in "+this.toString(),e);
 		} finally {
@@ -142,9 +146,9 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 			}
 		}
 	}
-	
+
 	public void runAlertsOnThresholdCalculation() throws InterruptedException {
-		
+
 		this.sendRunnableStartProcessingEvent(this.getAnalysisName(), this);
 		synchronized (this.syncObject) {
 			this.syncObject.wait();
@@ -155,7 +159,5 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	public String toString() {
 		return "AlertCalculationRunnableMessage [endDate=" + endDate + ", portfolios=" + portfolios + ", startDate=" + startDate + ", toString()=" + super.toString() + "]";
 	}
-	
-	
 
 }

@@ -41,8 +41,10 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
@@ -58,8 +60,8 @@ import com.finance.pms.threads.ConfigThreadLocal;
 
 public class GnucashGetPriceHelper {
 	
-	public List<StockWraper> getCmdShareList(List<String> symbols) {
-		List<StockWraper> ret = new ArrayList<StockWraper>();
+	public Set<StockWraper> getCmdShareList(List<String> symbols) {
+		Set<StockWraper> ret = new HashSet<StockWraper>();
 		
 		for (final String symbol : symbols) {
 			
@@ -84,13 +86,13 @@ public class GnucashGetPriceHelper {
 		return ret;
 	}
 	
-	public List<StockWraper> getMonitoredShareList() {
-		List<StockWraper> ret = new ArrayList<StockWraper>();
+	public Set<StockWraper> getMonitoredShareList() {
+		Set<StockWraper> ret = new HashSet<StockWraper>();
 		
 		List<UserPortfolio> visiblePortfolios = PortfolioMgr.getInstance().getUserPortfolios();
 		for (Portfolio portfolio : visiblePortfolios) {
 			for (final PortfolioShare pShares : portfolio.getListShares().values()) {
-				if (PortfolioMgr.getInstance().isMonitored(pShares.getStock(), null))
+				if (PortfolioMgr.getInstance().isMonitoredForAlerts(pShares.getStock(), portfolio.getName(), null))
 				ret.add(new StockWraper() {
 
 					public String getReference() {
@@ -105,7 +107,7 @@ public class GnucashGetPriceHelper {
 					public String toString() {
 						return this.getReference();
 					}
-					
+
 				});
 			}
 		}
@@ -113,8 +115,8 @@ public class GnucashGetPriceHelper {
 		return ret;
 	}
 	
-	public List<StockWraper> getGnucashExportsShareList(List<String> filePaths) throws IOException {
-		List<StockWraper> ret = new ArrayList<StockWraper>();
+	public Set<StockWraper> getGnucashExportsShareList(List<String> filePaths) throws IOException {
+		Set<StockWraper> ret = new HashSet<StockWraper>();
 		
 		GnuCashAdvPortfolioParser gnuCashAdvPortfolioParser = new GnuCashAdvPortfolioParser(DataSource.getInstance().getShareDAO(), PortfolioMgr.getInstance().getCurrencyConverter());
 		
@@ -182,7 +184,7 @@ public class GnucashGetPriceHelper {
 		return null;
 	}
 	
-	public Map<StockWraper,Map<String,String>> checkPriceProvider(List<String> providers,List<StockWraper> stocks) throws IOException, InterruptedException {
+	public Map<StockWraper,Map<String,String>> checkPriceProvider(List<String> providers, Set<StockWraper> stocks) throws IOException, InterruptedException {
 		
 		Map<StockWraper,Map<String,String>> ret = new HashMap<StockWraper, Map<String,String>>();
 
@@ -300,7 +302,7 @@ public class GnucashGetPriceHelper {
 
 			GnucashGetPriceHelper getPriceHelper = new GnucashGetPriceHelper();
 
-			List<StockWraper> stocks;
+			Set<StockWraper> stocks;
 			if (gnucashExportsList.size() > 0) {
 				stocks = getPriceHelper.getGnucashExportsShareList(gnucashExportsList);
 			} else if (symbolsList.size() > 0) {

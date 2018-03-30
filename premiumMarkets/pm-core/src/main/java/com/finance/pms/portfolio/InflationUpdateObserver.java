@@ -50,7 +50,10 @@ public class InflationUpdateObserver implements Observer {
 				Set<AlertOnThreshold> alertsOnThreshold = new HashSet<AlertOnThreshold>(ps.getAlertsOnThreshold());
 				for (AlertOnThreshold alertOnThr : alertsOnThreshold) {
 					if (alertOnThr.getAlertType().equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) {
-						ps.addWeightedZeroProfitAlertGuardSetter(ps.getPriceUnitCost(EventSignalConfig.getNewDate(), ps.getTransactionCurrency()), EventSignalConfig.getNewDate());
+						new AlertsMgrDelegate(ps)
+							.addWeightedZeroProfitAlertGuardSetter(
+									ps.getPriceUnitCost(EventSignalConfig.getNewDate(), 
+									ps.getTransactionCurrency()), EventSignalConfig.getNewDate());
 					}
 				}
 			}

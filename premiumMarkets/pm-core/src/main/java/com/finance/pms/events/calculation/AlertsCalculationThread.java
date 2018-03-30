@@ -56,69 +56,72 @@ import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class AlertsCalculationThread extends EventsCalculationThread {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(AlertsCalculationThread.class);
-	
+
 	private PortfolioShare portfolioShare;
 	private Boolean isUserPortfolio;
-	
+
 	protected AlertsCalculationThread(
 			PortfolioShare portfolioShare, Date startDate, Date endDate, String eventListName, 
 			Boolean isUserPortfolio, Queue eventQueue, JmsTemplate jmsTemplate) {
-		
+
 		super(startDate, endDate, eventListName, portfolioShare.getTransactionCurrency(), new HashSet<Observer>(), eventQueue, jmsTemplate);
-		
+
 		this.portfolioShare = portfolioShare;
 		this.isUserPortfolio = isUserPortfolio;
-		
+
 	}
 
 
 	public SymbolEvents call() {
-		
+
 		SymbolEvents ret = new SymbolEvents(portfolioShare.getStock());
-		
+
 		EventSignalConfig config = (EventSignalConfig) this.configs.get(Config.EVENT_SIGNAL_NAME);
 		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
-		
+
 		try {
-				LOGGER.debug("Analysing events for portfolio share "+portfolioShare+", starting at "+startDate);
-				
-				AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
+			LOGGER.debug("Analysing events for portfolio share "+portfolioShare+", starting at "+startDate);
 
-				try {
-					cleanEventsFor(this.portfolioShare.getStock(), EventDefinition.ALERTTHRESHOLD, this.eventListName);
-				} catch (Exception e) {
-					LOGGER.error(e,e);
-				}
+			AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
 
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 1, ValidityFilter.CLOSE);
-				SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(quotations, this.eventListName);
+			try {
+				cleanEventsFor(this.portfolioShare.getStock(), EventDefinition.ALERTTHRESHOLD, this.eventListName);
+			} catch (Exception e) {
+				LOGGER.error(e,e);
+			}
 
-				for (EventValue eventValue : calculatedEventsForCalculator.values()) {
-					
-					//Here eventListName must be = to portfolio name for alerts
-					EmailFilterEventSource msalert = (isUserPortfolio)? EmailFilterEventSource.PMUserAlert : EmailFilterEventSource.PMAutoAlert;
-					this.sendEvent(portfolioShare.getStock(), eventListName, eventValue, msalert, EventDefinition.ALERTTHRESHOLD);
-					
-				}
-
-				ret.addEventResultElement(calculatedEventsForCalculator, EventDefinition.ALERTTHRESHOLD);
-				LOGGER.debug("end analyse " + portfolioShare + " from " + startDate + " to " + endDate);
-				
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 1, ValidityFilter.CLOSE);
+			LOGGER.info(
+					"Alerts on threshold calculation span for "+portfolioShare.getStock()+": start "+startDate+", end "+endDate+"\n"+
+					"Quotations idx : from "+quotations.getFirstDateShiftedIdx()+" to "+quotations.getLastDateIdx()+ " with size "+quotations.size() + "\n"+
+					"quotations: from "+((quotations.size() > 0)?quotations.get(0):"NaN")+" to "+((quotations.size() > 0)?(quotations.get(quotations.size()-1)):"NaN"));
 			
-				
+			SortedMap<EventKey, EventValue> calculatedEventsForCalculator = thresholdAlertIndicator.calculateEventsFor(quotations, this.eventListName);
+
+			for (EventKey eventKey : calculatedEventsForCalculator.keySet()) {
+
+				//Here eventListName must be = to portfolio name for alerts
+				EmailFilterEventSource msalert = (isUserPortfolio)? EmailFilterEventSource.PMUserAlert : EmailFilterEventSource.PMAutoAlert;
+				this.sendEvent(portfolioShare.getStock(), eventListName, eventKey, calculatedEventsForCalculator.get(eventKey), msalert, EventDefinition.ALERTTHRESHOLD);
+
+			}
+
+			ret.addEventResultElement(calculatedEventsForCalculator, EventDefinition.ALERTTHRESHOLD);
+			LOGGER.debug("end analyse " + portfolioShare + " from " + startDate + " to " + endDate);
+
 		} catch (Exception e) {
 			// Oops
 			LOGGER.error("ERROR : While calculating Alerts for " + portfolioShare, e);
 		}
-		
+
 		return ret;
 	}
-	
+
 	@Override
 	public void cleanEventsFor(Stock stock, EventInfo eventDef, String eventListName) {
-	    //FIXME?
+		//FIXME?
 		//EventsResources.getInstance().crudDeleteEventsForStockNoTunedConfHandling(portfolioShare.getStock(), eventListName, datedeb, datefin, EventDefinition.alertsOnThresholds());
 	}
 }

@@ -216,7 +216,7 @@ public abstract class AbstractSharesList extends Observable {
 		return retSet;
 	}
 
-	public abstract Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
+	public abstract Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
 	public abstract SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
 	public abstract BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
 	public abstract BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);

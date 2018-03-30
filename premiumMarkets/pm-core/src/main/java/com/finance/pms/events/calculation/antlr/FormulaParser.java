@@ -43,15 +43,15 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.Value;
 
 public class FormulaParser implements Runnable, Comparable<FormulaParser> , Cloneable {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(FormulaParser.class);
 
 	private ParameterizedBuilder parameterizedBuilder;
-	
+
 	private Thread holdingThread;
 	private Boolean threadSuspended;
 	private Boolean shutdown;
-	
+
 	private String operationName;
 	private String formula;
 
@@ -64,33 +64,33 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		this.parameterizedBuilder = parameterizedBuilder;
 		this.formula = formula;
 		this.operationName = operationName;
-		
+
 		this.missingReference = operationName;
 		this.threadSuspended = false;
 		this.shutdown = false;
-		
+
 	}
 
 	@Override
 	public void run() {
-		
+
 		try {
-			
+
 			builtOperation = parseFormula(operationName, formula);
-			
+
 		} catch (ExitParsingException e) {
 			interrupt();
 			LOGGER.warn(this + "." + e.toString());
 			parameterizedBuilder.moveToDisabled(operationName);
 		} catch (InterruptedException e) {
 			interrupt();
-			LOGGER.info(this + " has been shutdown.");
+			LOGGER.debug(this + " has been shutdown.");
 		} catch (Exception e) {
 			interrupt();
 			LOGGER.warn(this + "." + e.toString(), e);
 			parameterizedBuilder.moveToDisabled(operationName);
 		}
-		
+
 	}
 
 	private void interrupt() {
@@ -117,50 +117,50 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		if (builtOperation != null) builtOperation.setFormula(formula);
 		return builtOperation;
 	}
-	
+
 	private Operation buildOperation(CommonTree commonTree) throws Exception {
-		
+
 		Operation operation = null;
 		if (commonTree != null ) {
-	
+
 			ArrayList<Operation> operands = new ArrayList<Operation>();
 			String outputSelector = null;
 			for ( int i = 0; i < commonTree.getChildCount(); i++ ) {
-				
+
 				CommonTree child = (CommonTree) commonTree.getChild(i);
 				Operation builtOperation = null;
 				if ((child.getChildCount() == 1 && child.getChild(0).getChildCount() == 0)) {
-					
+
 					if (child.getToken().getText().equals("OperationOutput")) {
 						//Output selector
-						 outputSelector = child.getChild(0).getText().replaceFirst(":", "");
+						outputSelector = child.getChild(0).getText().replaceFirst(":", "");
 					} else {
 						//Value
 						builtOperation = buildLeafOperation(child);
 					}
-					
+
 				} else {
 					//Sub op
 					builtOperation = buildOperation(child);
 				}
-				
+
 				if (builtOperation != null) {
 					operands.add(builtOperation);
 				} 
 			}
-	
+
 			//Node
 			operation = instanciateOperation(commonTree, operands, outputSelector);
-	
+
 		}
-		
+
 		return operation;
-		
+
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private Operation instanciateOperation(CommonTree child, ArrayList<Operation> operands, String outputSelector) throws Exception {
-		
+
 		//If there is a pre parameterised operation, we use it
 		Operation nativeOperations = fetchNativeOperation(child.getText());
 		if (nativeOperations != null) {
@@ -171,16 +171,16 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			clone.setOutputSelector(outputSelector);
 			return clone;
 		}
-		
+
 		Operation userOperation = fetchUserOperation(child.getText());
-		
+
 		//No native. If there is a user operation, we use it
 		if (userOperation != null) {
 			LOGGER.debug("Using user op : "+userOperation);
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
 			return userOperation;
 		}
- 
+
 		//Else we instantiate a new one (in that case all the operands must be present)
 		for (String opPackage : parameterizedBuilder.operationPackages) {
 
@@ -200,58 +200,58 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		}
 
 		//All above as failed : snd pass marker (for user defined operations)
-		LOGGER.warn(this.operationName+ " is missing reference : "+child +"; Parent object "+child.getAncestor(0)+ "; operands : "+operands+". Error instantiating. Will be parked for now.");
+		LOGGER.debug(this.operationName+ " is missing reference : "+child +"; Parent object "+child.getAncestor(0)+ "; operands : "+operands+". Could not instanciate. Will be parked for now.");
 		missingReference = child.getText();
 		threadSuspended = true;
-        synchronized(this) {
-            while (threadSuspended) {
-                LOGGER.info("Wait on suspended "+this);
-                wait();
-            }
-        }
-        LOGGER.info("Wait on suspended released for "+this);
-        
-        //We try again at resume time
-        if (!shutdown) {
-        	return instanciateOperation(child, operands, outputSelector);
-        } else {
-        	throw new InterruptedException();
-        }
-        
+		synchronized(this) {
+			while (threadSuspended) {
+				LOGGER.debug("Wait on suspended "+this);
+				wait();
+			}
+		}
+		LOGGER.debug("Wait on suspended released for "+this);
+
+		//We try again at resume time
+		if (!shutdown) {
+			return instanciateOperation(child, operands, outputSelector);
+		} else {
+			throw new InterruptedException();
+		}
+
 	}
-	
+
 	private Operation fetchNativeOperation(String opRef) {
 		return parameterizedBuilder.fetchAsyncNativeOperation(opRef);
 	}
-	
+
 	private Operation fetchUserOperation(String opRef) {
 		return parameterizedBuilder.fetchAsyncUserOperation(opRef);
 	}
 
-	
+
 	@SuppressWarnings("unchecked")
 	private Operation buildLeafOperation(CommonTree child) throws Exception {
-		
+
 		String childTxt = child.getToken().getText();
 		String value = child.getChild(0).getText();
 		String valueClassName = "unknown";
 		String opClassName = "unknown";
 		try {
-			
+
 			valueClassName = "com.finance.pms.events.operations.nativeops."+childTxt + "Value";
 			opClassName = "com.finance.pms.events.operations.nativeops."+childTxt + "Operation";
 
 			Class<Value<?>> valueClass = (Class<Value<?>>) Class.forName(valueClassName);
 			Constructor<Value<?>> valueConstructor = valueClass.getConstructor(String.class);
 			Value<?> valueInstance = valueConstructor.newInstance(value);
-			
+
 			Class<Operation> opClass = (Class<Operation>) Class.forName(opClassName);
 			Constructor<Operation> opConstructor = opClass.getConstructor();
 			Operation opInstance = opConstructor.newInstance();
-			
+
 			opInstance.setParameter(valueInstance);
 			return opInstance;
-			
+
 		} catch (InvocationTargetException e) {
 			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName+", Const value : "+value, e);
 			throw e;
@@ -260,34 +260,34 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			throw e;
 		}
 	}
-	
-	
+
+
 	public Operation getBuiltOperation() {
 		return builtOperation;
 	}
 
 	public void resume() {
-	    LOGGER.info("Resuming Parser thread.");
+		LOGGER.debug("Resuming Parser thread.");
 		if (holdingThread == null) {//Not started yet
 			Thread thread = new Thread(this);
 			holdingThread = thread;
 			thread.start();
 		} else {//We resume
-		    LOGGER.info("Synchronising on "+this+" in order to change state to "+!threadSuspended);
+			LOGGER.debug("Synchronising on "+this+" in order to change state to "+!threadSuspended);
 			synchronized (this) {
-				 threadSuspended = !threadSuspended;
-			     if (!threadSuspended) {
-			         LOGGER.info("Notifying wait of "+this);
-			         notify();
-			     }
-			     LOGGER.info("End of notification for "+this);
+				threadSuspended = !threadSuspended;
+				if (!threadSuspended) {
+					LOGGER.debug("Notifying wait of "+this);
+					notify();
+				}
+				LOGGER.debug("End of notification for "+this);
 			}
 		}
-		
+
 	}
-	
+
 	public void shutdown() {
-	    LOGGER.info("Shutting down Parser thread.");
+		LOGGER.debug("Shutting down Parser thread.");
 		if (holdingThread != null) {
 			this.shutdown = true;
 			resume();
@@ -355,17 +355,17 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 	@Override
 	protected FormulaParser clone() {
-		
+
 		FormulaParser clone = null;
 		try {
 			clone = (FormulaParser) super.clone();
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(e,e);
 		}
-		
+
 		return clone;
 	}
-	
+
 	protected boolean isThreadRunning() {
 		return (this.holdingThread == null && !this.shutdown) || (this.holdingThread != null && this.holdingThread.isAlive() && !this.threadSuspended);
 	}

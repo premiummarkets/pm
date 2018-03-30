@@ -96,7 +96,7 @@ public class SharesList extends AbstractSharesList {
 	}
 
 	@Override
-	public Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+	public Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		return new Date(0);
 	}
 

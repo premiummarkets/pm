@@ -48,7 +48,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.talib.dataresults.StandardEventKey;
 
 
 /**
@@ -108,8 +107,9 @@ public class SymbolEvents implements Serializable {
 		
 		ConcurrentSkipListMap<EventKey, EventValue> map= new ConcurrentSkipListMap<EventKey, EventValue>();
 		EventValue eventValue = eventMessageObject.getEventValue();
-		StandardEventKey key = new StandardEventKey(eventValue.getDate(), eventValue.getEventDef().getEventDefinitionRef(), eventValue.getEventType().getEventTypeChar().toString());
-		map.put(key, eventValue);
+		//StandardEventKey key = new StandardEventKey(eventValue.getDate(), eventValue.getEventDef().getEventDefinitionRef(), eventValue.getEventType().getEventTypeChar().toString());
+		EventKey eventKey = eventMessageObject.getEventKey();
+		map.put(eventKey, eventValue);
 		
 		this.stock = eventMessageObject.getStock();
 		this.dataResultMap = map;

@@ -46,6 +46,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.portfolio.AutoPortfolioAnalyser;
@@ -55,6 +56,7 @@ import com.finance.pms.portfolio.TransactionHistory;
 import com.finance.pms.portfolio.TransactionRecord;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.queue.SingleEventMessage;
+import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClientRunnableMessage {
@@ -132,8 +134,9 @@ public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClie
 
 				public Message createMessage(Session session) throws JMSException {
 
+					EventKey eventKey = new StandardEventKey(getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO);
 					EventValue eventValue = new EventValue(getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
-					SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), getEndDate(), AnalysisClient.ANY_STOCK, eventValue, ConfigThreadLocal.getAll());
+					SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), getEndDate(), AnalysisClient.ANY_STOCK, eventKey, eventValue, ConfigThreadLocal.getAll());
 					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), EmailFilterEventSource.Summary); //Source (event calculator)
 					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
@@ -162,8 +165,9 @@ public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClie
 						}
 
 						String message = record.toString()+"\n\n"+ BuySellSignalCalculatorMessageRunnable.messageLinks("*", record.getStock());
+						EventKey eventKey = new StandardEventKey(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, eventType);
 						EventValue eventValue = new EventValue(record.getEventList().getLastDate(), EventDefinition.UNKNOWN99, eventType, message, record.getPortfolioName());
-						SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventValue, ConfigThreadLocal.getAll());			
+						SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventKey, eventValue, ConfigThreadLocal.getAll());
 						infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
 						infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 						infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);

@@ -51,12 +51,13 @@ import com.finance.pms.events.calculation.IndicatorsCompositioner;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.portfolio.AlertsMgrDelegate;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.talib.dataresults.AlertEventValue;
 
 
 public class AlertOnThresholdParser extends IndicatorsCompositioner {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(AlertOnThresholdParser.class);
 
 	private PortfolioShare portfolioShare;
@@ -68,17 +69,17 @@ public class AlertOnThresholdParser extends IndicatorsCompositioner {
 
 	@Override
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
-		
+
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		if (quotations.size() == 0) return edata;
-		
+
 		for (int quotationIndex = quotations.getFirstDateShiftedIdx(); quotationIndex <= quotations.getLastDateIdx() && quotationIndex < quotations.size(); quotationIndex++) {
 
 			LOGGER.debug("Calculate alerts for : " + portfolioShare);
 
 			BigDecimal quantity = portfolioShare.getQuantity(EventSignalConfig.getNewDate());
 			QuotationUnit quotation = quotations.get(quotationIndex);
-			
+
 			if (quantity.compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(quotation.getDate())) {
 
 				checkAlertCrossingUp(quotation, edata);
@@ -86,8 +87,9 @@ public class AlertOnThresholdParser extends IndicatorsCompositioner {
 
 				if (!edata.isEmpty()) {
 					LOGGER.info(
-							"Alerts on Threshold crossing for share "+portfolioShare.getName() + " : " + portfolioShare.getAlertsOnThreshold() +
-							" quotation " + quotation.getClose() +" and resulting events : "+edata);
+							"Alerts on Threshold crossing for share " + portfolioShare.getStock() + " in " + eventListName + " :" +
+							"\nRegistered thresholds : " + portfolioShare.getAlertsOnThreshold() +
+							"\nResulting events : "+edata);
 				}
 			} else {
 				LOGGER.debug("Can't parse alert on the " + quotation.getDate() +
@@ -101,63 +103,64 @@ public class AlertOnThresholdParser extends IndicatorsCompositioner {
 	}
 
 	private void checkAlertCrossingDown(QuotationUnit quotation, Map<EventKey, EventValue> edata) {
-		
-		if (portfolioShare.getAlertsOnThresholdDown() != null) {
-			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(portfolioShare.getAlertsOnThresholdDown());
+
+		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown() != null) {
+			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown());
 			BigDecimal todaysQuotation = quotation.getClose();
 			for (AlertOnThreshold alert : alertsSetDown) {
-				
+
 				if (alert.getValue().compareTo(todaysQuotation) > 0) {
-					portfolioShare.resetCrossDown(alert, todaysQuotation);
-					
+					new AlertsMgrDelegate(portfolioShare).resetCrossDown(alert, todaysQuotation);
+
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
 					String message = "Below "+ alert + " at " + todaysQuotation;
 					message = message + additionnalMessage(todaysQuotation);
-					
+
 					//TODO improved rules
 					EventType eventType = EventType.INFO; //default alert
 					if (
-						(AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) && portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0) || 
-						AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())
-						) 
+							(AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) &&
+									portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0) || 
+							AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())
+							) 
 					{ //price above buy price and going down or price below weighted profit guard => SELL
 						eventType = EventType.BEARISH;
 					}
-				
+
 					alertDetected(edata, quotation.getDate(), eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
-					
+
 				}
-				
+
 			}
 		}
 	}
 
 	private void checkAlertCrossingUp(QuotationUnit quotation, Map<EventKey, EventValue> edata) {
-		
-		if (portfolioShare.getAlertsOnThresholdUp() != null) {
-			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(portfolioShare.getAlertsOnThresholdUp());
+
+		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp() != null) {
+			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp());
 			BigDecimal todaysQuotation = quotation.getClose();
 			for (AlertOnThreshold alert : alertsSetUp) {
 
 				if (alert.getValue().compareTo(todaysQuotation) < 0) {
-					
-					portfolioShare.resetCrossUp(alert, todaysQuotation);
-					
+
+					new AlertsMgrDelegate(portfolioShare).resetCrossUp(alert, todaysQuotation);
+
 					//TODO improved rules	
 					if (AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())) {
 						//Here we just need to set the alert guard down (done in resetUpCross) so no message needs to be sent
 						return;
 					}
-					
+
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
 					String message = "Above "+alert+ " at " + todaysQuotation;
 					message = message + additionnalMessage(todaysQuotation);
-					
+
 					EventType eventType = EventType.INFO; //default alert
 					if (AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.equals(alert.getAlertType())) { //above profit limit reach
 						//An info event is raised.
 					}
-					
+
 					alertDetected(edata, quotation.getDate(), eventDefinition, eventType, message, portfolioShare.getPortfolio().getName(), alert.getAlertType());
 				}
 			}
@@ -165,7 +168,7 @@ public class AlertOnThresholdParser extends IndicatorsCompositioner {
 	}
 
 	private String additionnalMessage(BigDecimal todaysQuotation) {
-		
+
 		BigDecimal avgPriceDist = BigDecimal.ZERO;
 		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency());
 		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {

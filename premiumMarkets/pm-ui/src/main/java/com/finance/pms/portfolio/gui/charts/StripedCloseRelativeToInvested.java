@@ -55,8 +55,9 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	Boolean includeMoneyOut;
 	
 
-	public StripedCloseRelativeToInvested(Boolean includeMoneyOut) {	
-		super();
+	public StripedCloseRelativeToInvested(Boolean includeMoneyOut, Date stratDate, Date endDate) {	
+		super(endDate);
+		this.arbitraryStartDate = stratDate;
 		this.includeMoneyOut = includeMoneyOut;
 	}
 

@@ -39,7 +39,7 @@ public abstract class IdentifiedObjecMessage implements ObjectMessage {
 
 	protected Integer messageKey;
 	private Map<String,Config> passedThroughConfigs;
-	
+
 	protected IdentifiedObjecMessage(Integer messageKey, Map<String,Config> passedThroughConfigs) {
 		super();
 		this.messageKey = messageKey;
@@ -57,8 +57,8 @@ public abstract class IdentifiedObjecMessage implements ObjectMessage {
 	public Map<String, Config> getPassedThroughConfigs() {
 		return passedThroughConfigs;
 	}
-	
-	
-	
-	
+
+
+
+
 }

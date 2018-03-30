@@ -31,7 +31,6 @@ package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
@@ -39,8 +38,6 @@ import org.eclipse.swt.graphics.Color;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.alerts.AlertOnThreshold;
-import com.finance.pms.alerts.AlertOnThresholdType;
-import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
@@ -181,36 +178,6 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
-	public void addBuyAlerts(BigDecimal transcationPrice, Date currentDate) {
-		underLyingPortfolioShare.addBuyAlerts(transcationPrice, currentDate);
-		super.addBuyAlerts(transcationPrice, currentDate);
-	}
-
-	@Override
-	public void removeAlertOnThreshold(AlertOnThreshold alert) {
-		underLyingPortfolioShare.removeAlertOnThreshold(alert);
-		super.removeAlertOnThreshold(alert);
-	}
-
-	@Override
-	public void addSimpleAlertOnThreshold(ThresholdType threshold, BigDecimal value, String message) {
-		underLyingPortfolioShare.addSimpleAlertOnThreshold(threshold, value, message);
-		super.addSimpleAlertOnThreshold(threshold, value, message);
-	}
-
-	@Override
-	public void addAboveTakeProfitAlert(BigDecimal price, String message) {
-		underLyingPortfolioShare.addAboveTakeProfitAlert(price, message);
-		super.addAboveTakeProfitAlert(price, message);
-	}
-
-	@Override
-	public void addWeightedZeroProfitAlertGuardSetter(BigDecimal price, String message) {
-		underLyingPortfolioShare.addWeightedZeroProfitAlertGuardSetter(price, message);
-		super.addWeightedZeroProfitAlertGuard(price, message);
-	}
-
-	@Override
 	public String info() {
 		return this.getStock().getFriendlyName();
 	}
@@ -227,16 +194,6 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return underLyingPortfolioShare.getStock().getFriendlyName();
 	}
 
-	@Override
-	public void addAlertOnEvent(String eventInfoReference, MonitorLevel monitorLevel, String optionalMessage) {
-		underLyingPortfolioShare.addAlertOnEvent(eventInfoReference, monitorLevel, optionalMessage);
-	}
-
-	@Override
-	public void clearAlertOnEvent() {
-		underLyingPortfolioShare.clearAlertOnEvent();
-	}
-
 	public PortfolioShare getUnderLyingPortfolioShare() {
 		return underLyingPortfolioShare;
 	}
@@ -251,36 +208,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return "";
 	}
 
-	public void addWeightedZeroProfitAlertGuard(BigDecimal price, String message) {
-		underLyingPortfolioShare.addWeightedZeroProfitAlertGuard(price, message);
-	}
-
-	public PortfolioShare resetCrossDown(AlertOnThreshold alert, BigDecimal crossingPrice) {
-		return underLyingPortfolioShare.resetCrossDown(alert, crossingPrice);
-	}
-
-	public PortfolioShare resetCrossUp(AlertOnThreshold alert, BigDecimal crossingPrice) {
-		return underLyingPortfolioShare.resetCrossUp(alert, crossingPrice);
-	}
-
-	public void addAlertOnThreshold(ThresholdType threshold, BigDecimal value, AlertOnThresholdType alertType, String message) {
-		underLyingPortfolioShare.addAlertOnThreshold(threshold, value, alertType, message);
-	}
-
-	public HashSet<AlertOnThreshold> getAlertsOnThresholdFor(AlertOnThresholdType alertType) {
-		return underLyingPortfolioShare.getAlertsOnThresholdFor(alertType);
-	}
-
 	public Set<AlertOnThreshold> getAlertsOnThreshold() {
 		return underLyingPortfolioShare.getAlertsOnThreshold();
-	}
-
-	public Set<AlertOnThreshold> getAlertsOnThresholdUp() {
-		return underLyingPortfolioShare.getAlertsOnThresholdUp();
-	}
-
-	public Set<AlertOnThreshold> getAlertsOnThresholdDown() {
-		return underLyingPortfolioShare.getAlertsOnThresholdDown();
 	}
 
 	public Set<AlertOnEvent> getAlertsOnEvent() {

@@ -32,8 +32,8 @@ package com.finance.pms.portfolio;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
@@ -49,10 +49,10 @@ import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.currency.CurrencyConverter;
 import com.finance.pms.datasources.web.currency.CurrencyConverterImpl;
-import com.finance.pms.events.EventDefinition;
-import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.SilentPonderationRule;
@@ -65,29 +65,29 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * @author Guillaume Thoreton
  */
 public class PortfolioMgr implements ApplicationContextAware {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(PortfolioMgr.class);
 
 	ApplicationContext applicationContext;
- 	private static PortfolioMgr singleton;
- 	
- 	private List<Portfolio> portfolios;
- 	private List<Portfolio> oldPortfolios;
+	private static PortfolioMgr singleton;
+
+	private List<Portfolio> portfolios;
+	private List<Portfolio> oldPortfolios;
 
 	private PortfolioDAO portfolioDAO;
 	private CurrencyConverterImpl currencyConverter;
 
-	
+
 	public PortfolioMgr(PortfolioDAO portfolioDAO, CurrencyConverterImpl currencyConverter) {
-		
+
 		this.portfolioDAO = portfolioDAO;
 		this.portfolios = portfolioDAO.loadVisiblePortfolios();
 		this.currencyConverter=currencyConverter;
 		resetOldPortfolioList();
-		
+
 		singleton = this;
 	}
-	
+
 	//For Test ...
 	public static void setInit(PortfolioMgr singleton) {
 		PortfolioMgr.singleton = singleton;
@@ -96,49 +96,49 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 
 	private void resetOldPortfolioList() {
-		
+
 		this.oldPortfolios = new ArrayList<Portfolio>();
 		for (Portfolio portfolio: portfolios) {
 			copyPortfolioToList(portfolio, oldPortfolios);
 		}
 	}
-	
+
 	public AutoPortfolio getOrCreateAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
-		
+
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
-		
+
 		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, eventSignalConfig);
 		int index = this.portfolios.indexOf(autoPortfolio);
 		if (index == -1) {	
-			
+
 			this.portfolios.add(autoPortfolio);
 			portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
 			return autoPortfolio;
-			
+
 		} else {
-			
+
 			AutoPortfolio existingAutoPortfolio = (AutoPortfolio) this.portfolios.get(index);
 			existingAutoPortfolio.setSellPonderationRule(sellPonderationRule);
 			existingAutoPortfolio.setBuyPonderationRule(buyPonderationRule);
 			existingAutoPortfolio.setEventSignalConfig(eventSignalConfig);
 			return existingAutoPortfolio;
-			
+
 		}
 	}
 
 
 	public AbstractSharesList getPortfolio(String portfolioName) {
-		
+
 		int index = this.portfolios.indexOf(new Portfolio(portfolioName,new SilentPonderationRule(),new SilentPonderationRule(),null));
-		
+
 		if (index == -1) {		
 			throw new IllegalArgumentException("Portfolio "+portfolioName+" doesn't exist");
 		} else {
 			return (AbstractSharesList) this.portfolios.get(index);
 		}
-		
+
 	}
-	
+
 
 	public static PortfolioMgr getInstance() {
 		if (singleton != null) {
@@ -147,14 +147,14 @@ public class PortfolioMgr implements ApplicationContextAware {
 			throw new NotImplementedException("Portfolio manager should have bean injected by constructor");
 		}
 	}
-	
+
 	public  void addPortfolio(Portfolio portfolio) throws InvalidAlgorithmParameterException {
 		if (portfolios.contains(portfolio)) {
 			throw new InvalidAlgorithmParameterException("Portfolio "+portfolio.getName()+" already exists. Please delete");
 		}
 		this.portfolios.add(portfolio);
 	}
-	
+
 
 	public void removePortfolio(AbstractSharesList portfolioToRm) {
 		this.portfolios.remove(portfolioToRm);
@@ -162,7 +162,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 
 	public void hibStorePortfolio() {
-		
+
 		for (AbstractSharesList portfolio: this.portfolios) {
 			LOGGER.debug("saving : "+portfolio.getName());
 			try {			
@@ -171,19 +171,19 @@ public class PortfolioMgr implements ApplicationContextAware {
 				LOGGER.error("Portfolio : "+portfolio,e);
 			}
 		}
-		
+
 		resetOldPortfolioList();
 	}
-	
+
 	public List<Portfolio> getVisiblePortfolios() {
-		
+
 		List<Portfolio> visiblePortfolios = new ArrayList<Portfolio>();
 		for (Portfolio portfolio : portfolios) {
 			if (!(portfolio instanceof Hidden)) {
 				visiblePortfolios.add(portfolio);
 			}
 		}
-				
+
 		return visiblePortfolios;
 	}
 
@@ -195,9 +195,9 @@ public class PortfolioMgr implements ApplicationContextAware {
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext=applicationContext;
 	}
-	
+
 	private PortfolioShare getPortfolioShareForSymbolInPortfolio(String stockSymbol,String portfolioName) {
-		
+
 		for (AbstractSharesList portfolio : this.portfolios) {
 			if (portfolio.getName().equals(portfolioName)) {
 				for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
@@ -205,40 +205,19 @@ public class PortfolioMgr implements ApplicationContextAware {
 					if (portfolioShare.getStock().getSymbol().equals(stockSymbol)) {
 						LOGGER.debug("Share matching : "+stockSymbol+" with "+portfolioShare.getStock().getName());
 						return portfolioShare;
-					}					
+					}
 				}
 			}
 		}
 		return null;
-		
-	}
-	
-	public Boolean isMonitored(Stock stock, Set<AlertOnEvent> monitoredEvents) {
 
-		Boolean monitored = false;
-		for (AbstractSharesList portfolio : this.portfolios) {
-			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
-				if (portfolioShare.getStock().lenientSymbolEquals(stock)) {
-					if (!portfolioShare.getMonitorLevel().equals(MonitorLevel.NONE)) {//Found monitored in portofolio
-						if (monitoredEvents == null) {//no need for alertOnEvent filter
-							return true;
-						} else {//we need the alertOnEvent details
-							monitored = true;
-							monitoredEvents.addAll(portfolioShare.getAlertsOnEvent());
-						}
-					}
-					break; //check next portofolio
-				}					
-			}
-		}
-		return monitored;
 	}
-	
+
 	public List<PortfolioShare> getRecordedPortfolioShareForStockInAllPortfolios(Stock stock) {
 
 		List<PortfolioShare> portfolioShareList = new ArrayList<PortfolioShare>();
 		for (AbstractSharesList portfolio : this.portfolios) {
-			
+
 			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
 				if (portfolioShare.getStock().equals(stock)) {
 					portfolioShareList.add(portfolioShare);
@@ -247,7 +226,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		}
 		return portfolioShareList;
 	}
-	
+
 	public List<PortfolioShare> getRecordedPortfolioShareForStockInPortfolio(Stock stock, String portfolioName) {
 		List<PortfolioShare> portfolioShareList = new ArrayList<PortfolioShare>();
 		PortfolioShare portfolioShare = this.getPortfolioShareForSymbolInPortfolio(stock.getSymbol(), portfolioName);
@@ -275,8 +254,8 @@ public class PortfolioMgr implements ApplicationContextAware {
 			throw new InstantiationError();
 		}
 	}
-	
-	
+
+
 	public CurrencyConverter getCurrencyConverter() {
 		return currencyConverter;
 	}
@@ -293,41 +272,11 @@ public class PortfolioMgr implements ApplicationContextAware {
 			}
 		}
 		return retVal;
- 		
+
 	}
 
 	public List<String> getUserPortfolioNames() {
 		return portfolioDAO.loadUserPortfolioNames();
-	}
-
-	public boolean isMonitoredForPortofolio(Stock stock, String eventListName) {
-		try {
-			AbstractSharesList portfolio = this.getPortfolio(eventListName);
-			PortfolioShare shareForStock = portfolio.getShareForStock(stock);
-			return (shareForStock != null) && !shareForStock.getMonitorLevel().equals(MonitorLevel.NONE);
-		} catch (IllegalArgumentException e) {
-			return false;
-		}
-	}
-	
-	public boolean isSellMonitoredForPortofolio(Stock stock, String eventListName) {
-		try {
-			AbstractSharesList portfolio = this.getPortfolio(eventListName);
-			PortfolioShare shareForStock = portfolio.getShareForStock(stock);
-			return (shareForStock != null) && (shareForStock.getMonitorLevel().equals(MonitorLevel.BEARISH) || shareForStock.getMonitorLevel().equals(MonitorLevel.ANY));
-		} catch (IllegalArgumentException e) {
-			return false;
-		}
-	}
-	
-	public boolean isBuyMonitoredForPortofolio(Stock stock, String eventListName) {
-		try {
-			AbstractSharesList portfolio = this.getPortfolio(eventListName);
-			PortfolioShare shareForStock = portfolio.getShareForStock(stock);
-			return (shareForStock != null) && (shareForStock.getMonitorLevel().equals(MonitorLevel.BULLISH) || shareForStock.getMonitorLevel().equals(MonitorLevel.ANY));
-		} catch (IllegalArgumentException e) {
-			return false;
-		}
 	}
 
 	public List<UserPortfolio> getUserPortfolios() {
@@ -364,36 +313,84 @@ public class PortfolioMgr implements ApplicationContextAware {
 		return stocks;
 	}
 
-	public Boolean isMonitoredForEvent(SymbolEvents symbolEvents) {
+	public Boolean isMonitoredFor(SymbolEvents symbolEvents, String eventListName) {
 
 		SortedMap<EventKey, EventValue> sortedDataResultMap = symbolEvents.getSortedDataResultMap();
 		if (sortedDataResultMap == null || sortedDataResultMap.isEmpty()) return false;
-		
-		//Alerts //We consider an alert on threshold comes alone
-		if (sortedDataResultMap.size() == 1 && sortedDataResultMap.firstKey().getEventInfo().equals(EventDefinition.ALERTTHRESHOLD)) {
-			return isMonitored(symbolEvents.getStock(), null);
-		}
-		
-		//Other //We consider symbolEvents containing only one EventDef
-		HashSet<AlertOnEvent> monitoredEvents = new HashSet<AlertOnEvent>();
-		Boolean monitored = isMonitored(symbolEvents.getStock(), monitoredEvents);
-		if (!monitored) {
-			return false;
-		}
-		else if (monitoredEvents.isEmpty()) {//Default all Events Pass Through
-			return true;
-		}
-		else {
-			EventInfo firstEventInfo = sortedDataResultMap.firstKey().getEventInfo();
-			for (AlertOnEvent alertOnEvent : monitoredEvents) {
-				if (alertOnEvent.getEventInfoReference().equals(firstEventInfo.getEventDefinitionRef())) {
-					return true;
+
+		//Alerts on Threshold. eventListName == portfolioName.
+		Boolean isMonitoredForAlertsOnThreshold = sortedDataResultMap.keySet().stream()
+				.filter(k -> k instanceof AlertEventKey)
+				.map(k -> isMonitoredForAlerts(symbolEvents.getStock(), eventListName, (AlertEventKey) k))
+				.reduce(false, (r,e)-> r || e);
+		LOGGER.info("SymbolEvents is "+symbolEvents+" is monitored for alerts: "+isMonitoredForAlertsOnThreshold);
+		if (isMonitoredForAlertsOnThreshold) return true;
+
+		//Alerts on Events. The portfolioName is here not passed but the real eventListName hence not relevant
+		Boolean isMonitoredForAlertsOnEvents = sortedDataResultMap.keySet().stream()
+				.filter(k -> k instanceof ParameterizedEventKey)
+				.map(k -> isMonitoredForEvents(symbolEvents.getStock(), (ParameterizedEventKey) k))
+				.reduce(false, (r,e)-> r || e);
+		LOGGER.info("SymbolEvents "+symbolEvents+" is monitored for events: "+isMonitoredForAlertsOnThreshold);
+		if (isMonitoredForAlertsOnEvents) return true;
+
+		//Other ..
+
+		return false;
+
+	}
+	
+	public Boolean isMonitoredForEvents(Stock stock, ParameterizedEventKey alertKey) {
+		for (AbstractSharesList portfolio : this.portfolios) {
+			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
+				if (portfolioShare.getStock().lenientSymbolEquals(stock)) {
+					if (!portfolioShare.getMonitorLevel().equals(MonitorLevel.NONE)) {//Found monitored in Portfolio
+							Optional<AlertOnEvent> findFirst = portfolioShare.getAlertsOnEvent().stream()
+							.filter(aoe -> aoe.getEventInfoReference().equals(alertKey.getEventInfo().getEventDefinitionRef()))
+							.findFirst();
+							return findFirst.isPresent();
+						}
+					}
 				}
 			}
-			return false;
-		}
-		
+		return false;
 	}
 
-	
+	public Boolean isMonitoredForAlerts(Stock stock, String portfolioName, AlertEventKey alertKey) {
+
+		LOGGER.info("Checking monitor on: "+stock+" in "+portfolioName+" for "+alertKey);
+
+		AbstractSharesList portfolio = getPortfolio(portfolioName);
+		for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
+			if (portfolioShare.getStock().equals(stock)) {
+
+				LOGGER.info("Checking "+portfolioShare+" against "+stock+" in "+portfolioName+" for "+alertKey);
+				MonitorLevel monitorLevel = portfolioShare.getMonitorLevel();
+
+				if (monitorLevel.equals(MonitorLevel.ANY)) return true;
+				if (monitorLevel.equals(MonitorLevel.NONE)) return false;
+
+				if (alertKey == null) return true; //Any alerts on threshold
+
+				//MonitorLevel == BEARISH || BULLISH
+				switch(alertKey.getAlertType()) {
+				case ABOVE_PRICE_CHANNEL:
+				case AVG_BUY_PRICE:
+				case BELOW_PRICE_CHANNEL:
+				case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:
+				case MANUALDOWN:
+				case MANUALUP:
+					return true;
+				case ABOVE_TAKE_PROFIT_LIMIT:
+					return monitorLevel.equals(MonitorLevel.BEARISH);
+				}
+
+			}
+		}
+		LOGGER.info("No stock found against "+stock+" in "+portfolioName+" for "+alertKey);
+		return false;
+
+	}
+
+
 }

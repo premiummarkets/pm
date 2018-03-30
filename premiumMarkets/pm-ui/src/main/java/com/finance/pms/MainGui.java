@@ -30,7 +30,6 @@
 package com.finance.pms;
 
 
-import java.awt.Desktop;
 import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.File;
@@ -146,19 +145,19 @@ public class MainGui extends SashForm implements RefreshableView {
 	protected Menu eventsSubMenu;
 	public static MenuItem viewEventsMenuItem;
 	private OperationBuilderDialog builderDialog;
-	
+
 	private  MenuItem portfolioMenuItem;
 	public   Menu portfolioSubMenu;
 	private MenuItem viewPortfolioMenuItem;
-	
+
 	public Menu chartSubMenu;
-	
+
 	private MenuItem fileMenuItem;
 	protected Menu fileSubMenu;
 	private MenuItem exitMenuItem;
 
 	private String dbfile;
-	
+
 	public static Font DEFAULTFONT;
 	public static Font CONTENTFONT;
 	public static String ICONNAME = "icon.image";
@@ -167,7 +166,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	private SashForm sashes;
 	private  Composite[] winTable = new Composite[3];
 	private LogComposite logComposite;
-	
+
 
 	private EventModel<RefreshAllEventStrategyEngine, Collection<ShareListInfo>> allStocksEventModel;
 	private EventModel<RefreshMonitoredStrategyEngine, Collection<Stock>> monitoredStocksEventModel;
@@ -188,42 +187,42 @@ public class MainGui extends SashForm implements RefreshableView {
 	public static String APP_NAME;
 
 	public MainGui(Composite parent, String dbFilePath) {
-		
+
 		super(parent, SWT.VERTICAL);
 		this.setLayout(new FillLayout()); 
-		
+
 		dbfile = dbFilePath;
 		springContextInit(dbfile);
-		
+
 		setupAppName();
 		setupAppDefaultFont(getDisplay(), getShell());
 		setupAppDefaultColors(getDisplay());
-		
+
 		ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
 		ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
-		
+
 		siteUrl = MainPMScmd.getMyPrefs().get("site.url", "none.com");
-		
+
 		AnalysisClient.setEmailMsgQeueingFilter(EmailFilterEventSource.uiSet());
-		
+
 		sashes = new SashForm(this, SWT.HORIZONTAL);
 		logComposite = new LogComposite(this);
-				
+
 		allStocksEventModel = EventModel.getInstance(new RefreshAllEventStrategyEngine(), logComposite);
 		monitoredStocksEventModel = EventModel.getInstance(new RefreshMonitoredStrategyEngine(), logComposite);
 		portfolioStocksEventModel = EventModel.getInstance(new RefreshPortfolioStrategyEngine(), logComposite);
 		fourToutStrategyEventModel = EventModel.getInstance(new RefreshFourToutStrategyEngine(), logComposite);
-		
+
 		initShellAndMenus();
-		
+
 		Runnable runnable = new Runnable() {
-			
+
 			@Override
 			public void run() {
-				
+
 				try {
-					
+
 					DateFormat buildDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
 					Properties pbuild = new Properties();
 					pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
@@ -232,9 +231,9 @@ public class MainGui extends SashForm implements RefreshableView {
 
 					String jnlpUrl = setupJnlpUrl();
 					URL sourceforge = new URL(jnlpUrl);
-				    URLConnection yc = sourceforge.openConnection();
-				    yc.setReadTimeout(15000);
-				    BufferedReader br = new BufferedReader(new InputStreamReader(yc.getInputStream()));
+					URLConnection yc = sourceforge.openConnection();
+					yc.setReadTimeout(15000);
+					BufferedReader br = new BufferedReader(new InputStreamReader(yc.getInputStream()));
 
 					String line;
 					Pattern pattern = Pattern.compile("This version : ([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [A-Z]*)");
@@ -250,13 +249,13 @@ public class MainGui extends SashForm implements RefreshableView {
 												"-------------  A new version is available -------------", null, "Click to update. Close this popup otherwise.",
 												new ActionDialogAction() {
 
-													@Override
-													public void action() {
-														//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
-														Program.launch("http://" + siteUrl + "/html/swtui.html#Download");
-														rootShellClosedRequested(null);
-													}
-												});
+											@Override
+											public void action() {
+												//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
+												Program.launch("http://" + siteUrl + "/html/swtui.html#Download");
+												rootShellClosedRequested(null);
+											}
+										});
 										dialog.open();
 									}
 								};
@@ -265,22 +264,22 @@ public class MainGui extends SashForm implements RefreshableView {
 							break;
 						} 
 					}
-					
+
 				} catch (Exception e) {
 					LOGGER.warn(e,e);
 				}
-				
+
 			}
 		};
-		
+
 		Thread thread = new Thread(runnable);
 		thread.start();
 
 		initContent();
 		this.layout();
-		
+
 	}
-	
+
 	protected String setupJnlpUrl() {
 		return "http://sourceforge.net/projects/pmsqueak/files/PremiumMarkets.jnlp";
 	}
@@ -288,11 +287,11 @@ public class MainGui extends SashForm implements RefreshableView {
 	protected void setupAppName() {
 		APP_NAME="Premium Markets";
 	}
-	
+
 	private boolean isObsolete(String line, Matcher fit, Date currentBuildDate) throws ParseException {
-		
-		 DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
-		 
+
+		DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
+
 		LOGGER.info("Found pattern in : "+line);
 		String versionNumber = fit.group(1).replaceAll("[ /:]", ".");
 		Date lastReleaseDate = jnlpDateFormat.parse(fit.group(1));
@@ -301,7 +300,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		lastReleaseCal.set(Calendar.MILLISECOND, 0);
 		lastReleaseCal.set(Calendar.SECOND, 0);
 		lastReleaseCal.add(Calendar.MINUTE, -10); //Fix pom timestamp recreated issue
-		
+
 		Calendar currentBuildCal= Calendar.getInstance();
 		currentBuildCal.setTime(currentBuildDate);
 		currentBuildCal.set(Calendar.MILLISECOND, 0);
@@ -310,13 +309,13 @@ public class MainGui extends SashForm implements RefreshableView {
 		LOGGER.info("Latest version is : "+versionNumber+" released on "+jnlpDateFormat.format(lastReleaseDate)+" +- 10 minutes.");
 		LOGGER.info("Your version was released on the "+jnlpDateFormat.format(currentBuildDate));
 		return  (lastReleaseCal.getTime().after(currentBuildCal.getTime()));
-		
+
 	}
-	
+
 
 	private void initShellAndMenus() {
 		try {
-			
+
 			try {
 				FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons"+File.separator+MainGui.ICONNAME));
 				getShell().setImage(new Image(getDisplay(),iconImg));
@@ -346,7 +345,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				menuQuotations();
 				menuCharts();
 				menuEvents();
-				
+
 				{
 					settingsSubMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 					settingsSubMenuItem.setText("Settings");
@@ -377,7 +376,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						settingsSubMenuItem.setMenu(settingsSubMenu);
 					}
 				}
-				
+
 			}
 
 			this.layout();
@@ -426,16 +425,16 @@ public class MainGui extends SashForm implements RefreshableView {
 				public void widgetSelected(SelectionEvent evt) {
 					ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
 							"Running a neural network forecast on technical analysis is not available in this version.\n"+
-							"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n", 
-							null,
-							"Click here for more information and a workable demo",
-							new ActionDialogAction() {
+									"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n", 
+									null,
+									"Click here for more information and a workable demo",
+									new ActionDialogAction() {
 
-								@Override
-								public void action() {
-									Program.launch("http://"+siteUrl);
-		
-							}
+						@Override
+						public void action() {
+							Program.launch("http://"+siteUrl);
+
+						}
 					});
 					actionDialog.open();
 				}
@@ -469,7 +468,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						builderDialog.getShell().setFocus();
 					}
 				}
-				
+
 			});
 		}
 	}
@@ -518,19 +517,19 @@ public class MainGui extends SashForm implements RefreshableView {
 			final MenuItem refreshInflation = new MenuItem(quotationMenu, SWT.CASCADE);
 			refreshInflation.setText("Update Inflation data download (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics)");
 			refreshInflation.addSelectionListener(new EventRefreshController(fourToutStrategyEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent evt) {										
 					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-					
+
 					fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
 					//Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
 					Stock inflationStock = ProvidersInflation.inflationStock();
 					fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
-					
+
 					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 					super.widgetSelected(evt);
-				
+
 				}
 			});
 		}
@@ -580,7 +579,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	protected void menuPortfolioInit() {
-		
+
 		portfolioMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 		portfolioMenuItem.setText("Portfolios");
 		try {
@@ -606,7 +605,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			});
 			viewPortfolioMenuItem.setSelection(true);
 		}
-		
+
 	}
 
 	protected void menuPortfolioTransposeTransactions() {
@@ -686,10 +685,10 @@ public class MainGui extends SashForm implements RefreshableView {
 			loadPortofolioFromGnuCash.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
-					
+
 					final Config evtConfig = ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 					Runnable runnable = new Runnable() {
-						
+
 						public void run() {
 							try {
 								ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, evtConfig);
@@ -744,7 +743,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			refreshRecommendationsMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
-					
+
 					refreshRecommendationsMenuItem.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
@@ -753,14 +752,14 @@ public class MainGui extends SashForm implements RefreshableView {
 											"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n",
 											null,
 											"Click here for more information and a workable demo",
-									new ActionDialogAction() {
+											new ActionDialogAction() {
 
-										@Override
-										public void action() {
-											Program.launch("http://"+siteUrl);
-									}
+								@Override
+								public void action() {
+									Program.launch("http://"+siteUrl);
+								}
 							});
-						  actionDialog.open();
+							actionDialog.open();
 						}
 					});
 				}
@@ -771,29 +770,29 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	protected void menuStocksAndMarketsItemRefreshLists(Menu stockSubMenu) {
 		{
-			
+
 			refreshStockListMenuItem = new MenuItem(stockSubMenu, SWT.CASCADE);
 			refreshStockListMenuItem.setText("Add or Update stocks ...");
 			refreshStockListMenuItem.addSelectionListener(new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-				
+
 				private void superwidgetSelected() {
 					super.widgetSelected(null);
 				}
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
-					
+
 					final ShareListUpdateDialog slDialog = new ShareListUpdateDialog(getShell(), logComposite);
 					this.view = slDialog;
-					
+
 					ActionDialogAction actionDialogAction = new ActionDialogAction() {
-						
+
 						@Override
 						public void action() {
-							
+
 							MarketListProvider provider = slDialog.getProvider();
 							if (provider != null) {
-								
+
 								allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(ProvidersList.providerIndicedShareListName(provider))}));
 								LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 								allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
@@ -814,26 +813,26 @@ public class MainGui extends SashForm implements RefreshableView {
 							};
 							getDisplay().asyncExec(runnable);
 						}
-						
+
 					};
-					
+
 					slDialog.setAction(actionDialogAction);
 					slDialog.setRefreshAction(refreshAction);
 					slDialog.open();
-			
+
 				}
 			});
 		}
 	}
 
 	protected void menuFile() throws FileNotFoundException {
-			menuFileInit();
-			menuFileItemMainSite();
-			menuFileItemDoc();
-			new MenuItem(fileSubMenu, SWT.SEPARATOR);
-			menuFileItemAbout();
-			new MenuItem(fileSubMenu, SWT.SEPARATOR);
-			menuFileItemExit();
+		menuFileInit();
+		menuFileItemMainSite();
+		menuFileItemDoc();
+		new MenuItem(fileSubMenu, SWT.SEPARATOR);
+		menuFileItemAbout();
+		new MenuItem(fileSubMenu, SWT.SEPARATOR);
+		menuFileItemExit();
 	}
 
 	protected void menuFileInit() {
@@ -874,11 +873,11 @@ public class MainGui extends SashForm implements RefreshableView {
 						Properties pbuild = new Properties();
 						pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
 						UserDialog dialog = new UserDialog(getShell(),MainGui.APP_NAME+" is an automated stock market analysis system.\n"+
-						"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
-						"See the new "+MainGui.APP_NAME+" FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
-						"\n"+MainGui.APP_NAME+"\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
+								"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
+								"See the new "+MainGui.APP_NAME+" FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
+								"\n"+MainGui.APP_NAME+"\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
 						dialog.open();				
-						
+
 					} catch (IOException e) {
 						LOGGER.debug(e);
 					}
@@ -914,58 +913,58 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	public EventRefreshController clearPreviousCalculationsControler() {
-		
+
 		return new EventRefreshController(allStocksEventModel, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent evt) {
-				
+
 				LOGGER.guiInfo("I am clearing the analysis history. Thanks for waiting ...");
 				allStocksEventModel.setViewParamRoot(null); //null means reset the param. All will be processed
 				allStocksEventModel.setViewParam(0, null);
 				this.updateEventRefreshModelState( 0l, TaskId.Clean);
 				super.widgetSelected(evt);
-				
+
 			}
 		};
-		
+
 	}
 
 	public static void main(String[] args) {
-		
+
 		Display.setAppName("Premium Markets");
 
 		unCaughErrorHandling();
-		
+
 		crossPlateformLookAndFeel();
-		
+
 		try {
-			
+
 			prefsSetting();
-			
+
 			String dbfile = parseArgs(args);
-			
+
 			Display display = Display.getDefault();
 			Shell shell = new Shell(display);
 			shell.setLayout(new FillLayout());
-			
+
 			MainGui inst = new MainGui(shell, dbfile);
-			
+
 			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING));
-			
+
 			shell.layout();
-            shell.pack();            	
+			shell.pack();            	
 			shell.open();
-			
-            sashesSizes(shell, inst);
-            
-            shell.layout();
-            shell.pack();   
-			
+
+			sashesSizes(shell, inst);
+
+			shell.layout();
+			shell.pack();   
+
 			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-			
+
 			postInstanceInit(inst);
-			
+
 			//Event loop
 			System.out.println("IHM RUNNING"); //Keep this as this is used by the installer
 			while (!shell.isDisposed()) {
@@ -982,22 +981,22 @@ public class MainGui extends SashForm implements RefreshableView {
 					}
 				}
 			}
-			
+
 		} catch (IllegalArgumentException | IllegalStateException e2) {
-			
-	
+
+
 		} catch (Throwable e) {
-			
+
 			System.out.println("Unhandled error running the ui : "+e);
 			e.printStackTrace();
 			genericSuddenDeathMsg(e);
-			
+
 		} finally {
-			
+
 			Runtime.getRuntime().exit(1);
-			
+
 		}
-		
+
 	}
 
 	protected static void prefsSetting() {
@@ -1005,7 +1004,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	protected static void postInstanceInit(final MainGui inst) {
-		
+
 		//Post inits
 		//first time update
 		Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
@@ -1016,7 +1015,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		} else {
 			LOGGER.info("This is not the First run : no quotes update");
 		}
-		
+
 		Runnable runnable = new Runnable() {
 			public void run() {
 				//load portfolios
@@ -1038,7 +1037,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		};
 		inst.getDisplay().asyncExec(runnable);
-		
+
 	}
 
 	protected static void sashesSizes(Shell shell, final MainGui inst) {
@@ -1052,11 +1051,11 @@ public class MainGui extends SashForm implements RefreshableView {
 			Rectangle shellBounds = shell.computeTrim(0, 0, width, height); 
 			shell.setSize(shellBounds.width, shellBounds.height); 
 		}
-		
+
 		//Log
 		{
 			Rectangle mainBounds = shell.getClientArea();
-			
+
 			Point logPrefSize = inst.logComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
 			Point logCompositeSize = inst.logComposite.computeSize(mainBounds.width, Math.max(10,logPrefSize.y));
 			inst.logComposite.setSize(logCompositeSize);
@@ -1067,27 +1066,27 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 			inst.setWeights(new int[]{100-xLog, xLog});
 		}
-		
+
 		//Portfolio Composite
 		{
 			Rectangle portfolioShashBounds = ((PortfolioComposite)inst.winTable[2]).getClientArea();
-			
+
 			Point port1PrefSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
 			Point port1CompositeSize = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.computeSize(port1PrefSize.x, Math.max(50, port1PrefSize.y));
 			((PortfolioComposite) inst.winTable[2]).portfolioInfosGroup.setSize(port1CompositeSize);
 			Rectangle infoBounds = ((PortfolioComposite)inst.winTable[2]).portfolioInfosGroup.getBounds();
-			
+
 			int x1Port = 100*infoBounds.height/portfolioShashBounds.height + 2;
 			if ((100 -x1Port) < 20) {
 				x1Port=30;
 			}
 			((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-x1Port, x1Port});
 		}
-		
+
 		//Chart
 		{
 			Rectangle chartShashBounds = ((ChartsComposite)inst.winTable[1]).getClientArea();
-			
+
 			Point chartPrefSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
 			Point chartCompositeSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
 			((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.setSize(chartCompositeSize);
@@ -1102,11 +1101,11 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	protected static String parseArgs(String[] args) {
 		switch (args.length) {
-			case 1 :
-				return args[0];
-		   default :
-		   		LOGGER.info("Usage : MainGui <path>/db.properties");
-		   		throw new IllegalArgumentException();
+		case 1 :
+			return args[0];
+		default :
+			LOGGER.info("Usage : MainGui <path>/db.properties");
+			throw new IllegalArgumentException();
 		}
 	}
 
@@ -1122,10 +1121,10 @@ public class MainGui extends SashForm implements RefreshableView {
 			Frame frame = new JFrame();
 			String report = 
 					"It may be that "+MainGui.APP_NAME+" is already running on this computer. You can run only one instance at a time.\n" +
-					"Make sure to close all other instances before starting a new one.\n" +
-					"If the process is running in the back ground and is not showing in a window, you will have to kill it. \n" +
-					"Use the tools and commands provided by your OS to do so.\n" +
-					"In case you don't know these, I am sorry to say that you will have to either ask someone that does or reboot.";
+							"Make sure to close all other instances before starting a new one.\n" +
+							"If the process is running in the back ground and is not showing in a window, you will have to kill it. \n" +
+							"Use the tools and commands provided by your OS to do so.\n" +
+							"In case you don't know these, I am sorry to say that you will have to either ask someone that does or reboot.";
 			CustomDialog customDialog = new CustomDialog(frame, report, e1.getMostSpecificCause().toString(), "Error Report", false);
 			customDialog.pack();
 			customDialog.setVisible(true);
@@ -1169,11 +1168,11 @@ public class MainGui extends SashForm implements RefreshableView {
 		Frame frame = new JFrame();
 		String report = 
 				"An unexpected error occurred while running the application.\n" +
-				"Make sure to close all other instances before starting this one.\n" +
-				"Double check that the installation has run successfully.\n" +
-				"Check your OS file system attributes and anti viruses as these may prevent the application to fully install.\n" +
-				"If you need to reinstall, it is recommended to install in a new folder fresh and free of any older version.\n" +
-				"Type "+MainGui.APP_NAME+" FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
+						"Make sure to close all other instances before starting this one.\n" +
+						"Double check that the installation has run successfully.\n" +
+						"Check your OS file system attributes and anti viruses as these may prevent the application to fully install.\n" +
+						"If you need to reinstall, it is recommended to install in a new folder fresh and free of any older version.\n" +
+						"Type "+MainGui.APP_NAME+" FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
 		CustomDialog customDialog = new CustomDialog(frame, report, e.getMessage(), "Error Report", false);
 		customDialog.pack();
 		customDialog.setVisible(true);
@@ -1182,25 +1181,25 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	protected void setupAppDefaultColors(Display display) {
-		
+
 		eVENTS_LIGHT = new Color(display, 229,205,177);
 		eVENTS_DARKER =  new Color(display, 0, 0, 0);
-		
+
 		cHART_LIGHT = new Color(display, 229,205,177);
 		cHART_DARKER = new Color(display, 0, 0, 0);
-		
+
 		pORTFOLIO_LIGHT = new Color(display, 229,205,177);
 		pORTFOLIO_DARKER = new Color(display, 0, 0, 0);
-		
+
 		pOPUP_BG = new Color(display, 239, 183,103);
 		pOPUP_GRP = new Color(display, 239, 203, 152);
-		
+
 		tAB_SELECTION = new Color(display, 239, 183,103);
-		
+
 	}
 
 	protected void setupAppDefaultFont(Display display, Shell shell) {
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			System.out.println("Available fonts :");
 			FontData[] fd = shell.getDisplay().getFontList(null, true);
@@ -1209,10 +1208,10 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 			System.out.println("System default font : " + shell.getDisplay().getSystemFont().getFontData()[0].getName());
 		}
-		
+
 		String myDefFontName = shell.getDisplay().getSystemFont().getFontData()[0].getName();
 		String myContentFontName = shell.getDisplay().getSystemFont().getFontData()[0].getName();
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			FontData[] myDefFont = shell.getDisplay().getFontList(myDefFontName, true);
 			if (myDefFont != null && myDefFont.length > 0) {
@@ -1220,7 +1219,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			} else {
 				System.out.println(myDefFontName+" not available.");
 			}
-			
+
 			FontData[] myContentDefFont = shell.getDisplay().getFontList(myContentFontName, true);
 			if (myContentFontName != null && myContentDefFont.length > 0) {
 				System.out.println(myContentFontName+" is available.");
@@ -1228,64 +1227,64 @@ public class MainGui extends SashForm implements RefreshableView {
 				System.out.println(myContentFontName+" not available.");
 			}
 		}
-		
+
 		MainGui.DEFAULTFONT = new Font(display, myDefFontName, 8, SWT.NORMAL);
 		MainGui.CONTENTFONT = new Font(display, myContentFontName, 8, SWT.NORMAL);
 	}
-	
+
 	private void initContent() {
 
 		EventsComposite eventC = new EventsComposite(sashes, SWT.NONE|SWT.BORDER, logComposite);
 		this.winTable[0] = eventC;
-		
+
 		ChartsComposite charts = new ChartsComposite(sashes, SWT.NONE|SWT.BORDER, logComposite);
 		this.winTable[1] = charts;
-		
+
 		PortfolioComposite portfolio = new PortfolioComposite(sashes, charts, SWT.NONE|SWT.BORDER, logComposite);
 		this.winTable[2] = portfolio;
-		
+
 		MainGui.viewEventsMenuItem.setSelection(false);
 		this.viewPortfolioMenuItem.setSelection(true);
 		this.setMainDisplay();
-		
+
 		LOGGER.debug("Finished initialising MainGui Data.");
 	}
 
 	private void openSettings() throws FileNotFoundException {
-		
+
 		if (dbSettings == null || dbSettings.getParent().isDisposed()) {
 			dbSettings = new DbSettings(this.getShell(), dbfile);
 		} else {
 			dbSettings.getParent().forceFocus();
 		}
 	}
-	
+
 	protected void setMainDisplay() {
-		
+
 		//0 Event, 1 Chart, 2 Portfolio
-		
+
 		if (viewEventsMenuItem.getSelection() && !viewPortfolioMenuItem.getSelection()) {
 			eventsSash().setVisible(true);
 			chartsSash().setVisible(false);
 			portfolioSash().setVisible(false);
 			sashes.setWeights(new int[]{100,0,0});
-			
+
 			if ( this.isVisible() ) ((RefreshableView) eventsSash()).refreshView(new ArrayList<Exception>());
 		}
-		
+
 		if (!viewEventsMenuItem.getSelection() && !viewPortfolioMenuItem.getSelection()) {
 			for (int j = 0; j < winTable.length; j++) {
 				winTable[j].setVisible(false);
 			}
-			
+
 		}
-		
+
 		if (viewEventsMenuItem.getSelection() && viewPortfolioMenuItem.getSelection()) {
 			eventsSash().setVisible(true);
 			chartsSash().setVisible(false);
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{50,0,50});
-			
+
 			if ( this.isVisible() ) ((RefreshableView)eventsSash()).refreshView(new ArrayList<Exception>());
 			if ( this.isVisible() ) ((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
 		}
@@ -1294,7 +1293,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			chartsSash().setVisible(true);
 			portfolioSash().setVisible(true);
 			sashes.setWeights(new int[]{0,50,50});
-			
+
 			if ( this.isVisible() ) ((RefreshableView)chartsSash()).refreshView(new ArrayList<Exception>());
 			if ( this.isVisible() ) ((RefreshableView)portfolioSash()).refreshView(new ArrayList<Exception>());
 		}
@@ -1318,32 +1317,33 @@ public class MainGui extends SashForm implements RefreshableView {
 	}
 
 	private void closeMain() {
-		
+
 		try {
-			
+
 			portfolioSash().setVisible(false);
 			this.getShell().setVisible(false);
 			this.winTable[0].dispose();
 			this.winTable[1].dispose();
 			this.winTable[2].dispose();
 			this.getShell().dispose();
-			
+
 			Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
 			this.emailHint(hintNumber);
-			
+
 			SpringContext.getSingleton().close();
-			
+
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-	
+
 	protected void emailHint(Integer hintNumber) {
-		Desktop desktop;
-		if (Desktop.isDesktopSupported() && hintNumber == 0) {
-			
-			desktop = Desktop.getDesktop();
+
+		if (hintNumber == 0) {
+
+			LOGGER.info("Mail hint triggered. App termination number "+hintNumber+".");
+
 			String email = setupContactEmail();
 			String messageHead = email+"?SUBJECT=You have just been running "+MainGui.APP_NAME+" UI from http://"+siteUrl;
 			String messageBody = "";
@@ -1354,41 +1354,42 @@ public class MainGui extends SashForm implements RefreshableView {
 				pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
 				release = pbuild.getProperty("application.buildtime");
 			} catch (IOException e1) {
-				LOGGER.debug("No release",e1);
+				LOGGER.warn("No release",e1);
 			}
-
 
 			messageBody +=
 					"&BODY=" +
-							MainGui.APP_NAME+" is an open source and a non profitable development work.\n" +
-							"It is also a work in progress that you and others can benefit from for free.\n"+
-							"Hence any suggestions or questions are welcome.\n" +
+							"Dear sir or Madam,\n\n" +
+							MainGui.APP_NAME+" is an open source and non profitable development work.\n" +
+							"It is a Work In Progress that you and others can benefit from for free.\n"+
+							"Hence any suggestions or questions are welcome.\n\n" +
 							"Thank you for your time using "+MainGui.APP_NAME+".\n" +
-							"See the new "+MainGui.APP_NAME+" FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n"+
-							"Regards,\nGuillaume.\n\n\n\n" +
-							"Release reference : "+release+" ... "+hintNumber ; 
+							"More Info and Automated Markets Trends Forecast engine at http://"+siteUrl+".\n\n\n"+
+							"Kind Regards,\nGheeyom.\n" +
+							"The "+release+"."+hintNumber ; 
 
 			try {
-				URI uriMailTo = new URI("mailto",messageHead+messageBody, null);
-				desktop.mail(uriMailTo);
+				URI uriMailTo = new URI("mailto", messageHead+messageBody, null);
+				Program.launch(uriMailTo.toString());
 			} catch (URISyntaxException e) {
 				LOGGER.error("Can't send email : "+e.getMessage(),e);
-			} catch (IOException e) {
+			} 
+			catch (Exception e) {
 				LOGGER.error("Can't send email : "+e.getMessage(),e);
 			}
 
-
 			MainPMScmd.getMyPrefs().put("email.hint",(++hintNumber).toString());
+			MainPMScmd.getMyPrefs().flushy();
 
-		}   else {
-			LOGGER.info("Desktop mail support is "+Desktop.isDesktopSupported()+" for the "+hintNumber+" time.");
-		}    
+		} else {
+			LOGGER.info("Mail hint already triggered. App termination number "+hintNumber+".");
+		}
 	}
 
 	protected String setupContactEmail() {
 		return "piggymarketsqueak@gmail.com";
 	}
-	
+
 	private void rootShellClosedRequested(ShellEvent evt) {
 		setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		closeMain();
@@ -1396,9 +1397,9 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	@Override
 	public void setCursor(Cursor cursor) {
-		
+
 		synchronized (mainMenu) {
-			
+
 			if (cursor != null && (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {
 				cursorCpt++;
 			} else {
@@ -1429,15 +1430,15 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	@Override
 	public void initRefreshAction() {
-		
+
 		setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		logComposite.initRefresh(this);	
-		
+
 	}
 
 	@Override
 	public void refreshView(List<Exception> exceptions) {
-		
+
 		for (Composite composite : winTable) {
 			if (composite instanceof RefreshableView) {
 				if (composite.isVisible()) {
@@ -1446,11 +1447,11 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 		}
 		if (isVisible() && !exceptions.isEmpty()) {
-			
+
 			for (final Exception exception : exceptions) {
-				
+
 				if (exception instanceof InvalidEventRefreshTask) {
-					
+
 					ActionDialogAction action = new ActionDialogAction() {
 						@Override
 						public void action() {
@@ -1466,7 +1467,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					break;
 				}
 			}
-			
+
 			if (!exceptions.isEmpty()) {
 				UserDialog dialog = new UserDialog(getShell(), 
 						"A slight problem occurred while running your last request. "+
@@ -1474,14 +1475,14 @@ public class MainGui extends SashForm implements RefreshableView {
 				dialog.open();
 			}
 		}
-		
+
 		if (isVisible()) {
 			Shell[] childrenShells = this.getShell().getShells();
 			for (Shell child : childrenShells) {
 				if (child.getText().contains("Warning")) child.forceActive();
 			}
 		}
-		
+
 	}
 
 	public Date getAnalysisStartDate() {
@@ -1492,5 +1493,5 @@ public class MainGui extends SashForm implements RefreshableView {
 	public Date getAnalysisEndDate() {
 		return ((RefreshableView)chartsSash()).getAnalysisEndDate();
 	}
-	
+
 }

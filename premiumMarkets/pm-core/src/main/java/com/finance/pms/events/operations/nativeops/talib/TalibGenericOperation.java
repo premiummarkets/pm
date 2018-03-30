@@ -62,7 +62,7 @@ public class TalibGenericOperation extends TalibOperation {
 
 	private Method method;
 
-	public TalibGenericOperation(String reference, String description,  Method method, List<String> inConstantsNames, List<String> inDataNames, ArrayList<String> outDataNames) {
+	public TalibGenericOperation(String reference, String description, Method method, List<String> inConstantsNames, List<String> inDataNames, ArrayList<String> outDataNames) {
 		super(reference, description);
 		this.inConstantsNames = inConstantsNames;
 		this.inDataNames = inDataNames;

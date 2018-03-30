@@ -32,12 +32,9 @@ package com.finance.pms.datasources.shares;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeSet;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -54,9 +51,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.finance.pms.datasources.db.Validatable;
-import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventType;
-import com.finance.pms.events.EventValue;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.Portfolio;
@@ -115,13 +109,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 		});
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Transactional(readOnly=true)
-	public List<PortfolioShare> loadMonitoredPortfolioShares() {
-			return new ArrayList<PortfolioShare>((Collection<? extends PortfolioShare>) this.getHibernateTemplate().find("from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> ?", MonitorLevel.NONE));
-	}
-	
+
 	@Transactional(readOnly=true)
 	public Stock loadStockBy(final String symbol,final String isin) {
 		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
@@ -247,58 +235,6 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		crit.addOrder(Property.forName("symbol").asc()).addOrder(Property.forName("name").asc()).addOrder(Property.forName("isin").asc());
 		
 		return crit.list();
-		
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	@Transactional(readOnly=true)
-	public List<PortfolioShare> loadMonitoredWithAOE(Stock stock, SortedMap<EventKey, EventValue> sortedDataResultMap) {
-		
-		List<PortfolioShare> ret = new ArrayList<PortfolioShare>();
-		
-		Query query = 
-				getHibernateTemplate().getSessionFactory().getCurrentSession().createQuery(
-						"from PortfolioShare as P join P.alertsOnEvent as A " +
-						"where P.stock = :stock and A.eventInfoReference = :eventInfoReference and ( A.monitorLevel = :eventTypeM or A.monitorLevel = :anyMLevel ) and ( P.monitorLevel = :eventTypeM or P.monitorLevel = :anyMLevel ) ");
-		
-		Set<EventKey> eventKeyTally = new TreeSet<EventKey>(new Comparator<EventKey>() {
-
-			@Override
-			public int compare(EventKey o1, EventKey o2) {
-				int compareTo = o1.getEventInfo().compareTo(o2.getEventInfo());
-				if (compareTo == 0) compareTo = o1.getEventInfoExtra().compareTo(o2.getEventInfoExtra());
-				return compareTo;
-			}
-			
-		});
-		
-		for (EventKey eventKey : sortedDataResultMap.keySet()) {
-
-			if (!eventKeyTally.contains(eventKey)) {
-				query.setParameter("stock", stock);
-				EventType eventType = (EventType) eventKey.getEventType();
-				MonitorLevel eventTypeM;
-				switch(eventType) {
-				case BEARISH : 
-					eventTypeM = MonitorLevel.BEARISH;
-					break;
-				case BULLISH :
-					eventTypeM = MonitorLevel.BULLISH;
-					break;
-				default :
-					eventTypeM = MonitorLevel.NONE;
-				};
-				query.setParameter("eventTypeM", eventTypeM);
-				query.setParameter("anyMLevel", MonitorLevel.ANY);
-				query.setParameter("eventInfoReference", eventKey.getEventInfoExtra());
-				ret.addAll(query.list());
-
-				eventKeyTally.add(eventKey);
-			}
-		}
-	
-		return ret;
 		
 	}
 	

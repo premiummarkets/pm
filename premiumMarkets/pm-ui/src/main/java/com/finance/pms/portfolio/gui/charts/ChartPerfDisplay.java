@@ -65,17 +65,17 @@ import com.finance.pms.portfolio.gui.ActionDialogForm;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
 public class ChartPerfDisplay extends ChartDisplayStrategy {
-	
+
 	private static final String NOT_DEFINED = "Not Defined";
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartPerfDisplay.class);
-	
+
 	private Quotations refereeQuotations;
 	private Boolean isShutDown;
 
 	private Button closeFunctionBut;
 	private String cmpModeToolTipRoot;
-	
+
 
 	public ChartPerfDisplay(ChartsComposite chartTarget) {
 		super();
@@ -83,12 +83,13 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
 		this.chartTarget.getMainChartWraper().initMainPlot(ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
-	
-		//TODO keep object and state
-		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRelativeToStart(this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
-			
+
+		//TODO keep object and state <= done?
+		//this.chartTarget.setStripedCloseFunction(this, new StripedCloseRelativeToStart(this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
+		StripedCloseFunction stripedCloseFunction = this.chartTarget.getStripedCloseFunction();
+		this.chartTarget.setStripedCloseFunction(this, (stripedCloseFunction != null)?stripedCloseFunction:new StripedCloseRelativeToInvested(true, this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
 		resetChart(true);
-		
+
 	}
 
 	@Override
@@ -147,41 +148,41 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void populatePopups(final Composite popupButtonsGroup) {
-		
+
 		cleanPopupButtonsGroup(popupButtonsGroup);
-		
+
 		cmpModeToolTipRoot = "This is to set the comparison mode between several stocks.\nUse the 'Hide / Show stock' button to display several stock on the chart.\n";
-		
+
 		{
 			closeFunctionBut = new Button(popupButtonsGroup, SWT.PUSH);
 			closeFunctionBut.setFont(MainGui.DEFAULTFONT);
 			closeFunctionBut.setText("Comparison mode ...");
-			
+
 			final Set<TransfoInfo> transfos = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
-					
+
 					new TransfoInfo("Change to Invested per unit", new ActionDialogAction() {
 
 						@Override
 						public void action() {
-							
+
 							Boolean isIncludeMoneyOutSelected = true;
 							if (chartTarget.getStripedCloseFunction() instanceof StripedCloseRelativeToInvested) {
 								isIncludeMoneyOutSelected = ((StripedCloseRelativeToInvested) chartTarget.getStripedCloseFunction()).getIncludeMoneyOut();
 							}
-									
+
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
 							Group priceToogleGrp = new Group(actionDialogForm.getParent(), SWT.NONE);
 							priceToogleGrp.setBackground(MainGui.pOPUP_BG);
 							priceToogleGrp.setLayout(new FillLayout(SWT.VERTICAL));
 							final Button bPrice =  new Button(priceToogleGrp, SWT.RADIO);
 							bPrice.setBackground(MainGui.pOPUP_BG);
-							bPrice.setText("Relative to the average buy price");
+							bPrice.setText("Relative to average buy price");
 							bPrice.setToolTipText("The result will be displayed relative to the average buy price basis, reflecting the unrealized gain.");
 							bPrice.setFont(MainGui.DEFAULTFONT);
 							bPrice.setSelection(!isIncludeMoneyOutSelected);
 							final Button uPrice =  new Button(priceToogleGrp, SWT.RADIO);
 							uPrice.setBackground(MainGui.pOPUP_BG);
-							uPrice.setText("Relative to the cost per unit");
+							uPrice.setText("Relative to cost per unit");
 							uPrice.setToolTipText("The result will be displayed relative to the final cost per unit at date, taking in account the moneys out.");
 							uPrice.setFont(MainGui.DEFAULTFONT);
 							uPrice.setSelection(isIncludeMoneyOutSelected);
@@ -189,7 +190,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								@Override
 								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(uPrice.getSelection());
-									chartTarget.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0]));
+									chartTarget.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0], chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 									chartTarget.updateCharts(false);
 								}
 							};
@@ -197,7 +198,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							actionDialogForm.setControl(bPrice, uPrice);
 							actionDialogForm.setAction(actionDialogAction);
 							actionDialogForm.open();
-							
+
 						}
 					}),
 					new TransfoInfo("Change to Period start", new ActionDialogAction() {
@@ -226,11 +227,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							smthPeriodTxt.setText(pString);
 							smthPeriodTxt.setToolTipText("In order to reflect some trend, the ROC must be calculated after smoothing the quotations.\nEnter here the smoothing period number.\nDefault will be "+StripedCloseLogRoc.DEFAULTLOGROCSMTH+" days.");
 							smthPeriodTxt.addFocusListener(new FocusListener() {
-								
+
 								@Override
 								public void focusLost(FocusEvent e) {
 								}
-								
+
 								@Override
 								public void focusGained(FocusEvent e) {
 									if (smthPeriodTxt.getText().equals(pString)) smthPeriodTxt.setText("");
@@ -256,7 +257,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							actionDialogForm.setControl(zeroBut, smthPeriodTxt);
 							actionDialogForm.setAction(actionDialogAction);
 							actionDialogForm.open();
-							
+
 						}
 					}),
 					new TransfoInfo("Change to Referee", new ActionDialogAction() {
@@ -265,7 +266,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						public void action() {
 
 							String refereeRef = MainPMScmd.getMyPrefs().get("charts.referee", NOT_DEFINED+"||-||"+NOT_DEFINED);
-							
+
 							String symbolSplit = NOT_DEFINED;
 							String isinSplit = NOT_DEFINED;
 							try {
@@ -274,12 +275,12 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							} catch (Exception e) {
 								LOGGER.warn("Invalid previous referee : "+refereeRef);
 							}
-							
+
 							final String previousSymbol = symbolSplit;
 							final String previousIsin = isinSplit;
 							final Stock previousReferee = relativeToRefereeSetting(previousSymbol, previousIsin);
 							if (previousReferee != null) chartTarget.updateCharts(false);
-							
+
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action() {
@@ -291,7 +292,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 									}
 								}
 							};
-							
+
 							ActionDialog actionDialogForm = new ActionDialog(
 									chartTarget.getShell(), 
 									"Select a new referee ...", null, "Current referee : "+((previousReferee!=null)?previousReferee.getFriendlyName():NOT_DEFINED), "Select a new referee ...", actionDialogAction);
@@ -309,27 +310,27 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				}
 
 				private void selectComparisonMode(final Button closeFunctionBut, final Set<TransfoInfo> transfos) {
-					
+
 					final Set<TransfoInfo> selectTransfo = new HashSet<TransfoInfo>();
 					for (TransfoInfo transfoInfo : transfos) {
 						if (chartTarget.getStripedCloseFunction().lineToolTip().toLowerCase().contains(transfoInfo.info().toLowerCase())) {
 							selectTransfo.add(transfoInfo);
 						}
 					}
-					
+
 					ActionDialogAction actionDialogAction = new ActionDialogAction() {
-						
+
 						@Override
 						public void action() {
 							for (TransfoInfo selctTransUnic : selectTransfo) {
 								selctTransUnic.action.action();
 							}
-							
+
 						}
 					};
 					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, true, false, SWT.RADIO, actionDialogAction);
 					popupMenu.open();
-						
+
 				}
 
 				@Override
@@ -345,7 +346,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			hideStock.setFont(MainGui.DEFAULTFONT);
 			hideStock.setText("Hide / Show stock ...");
 			hideStock.setToolTipText("This will hide and show stocks on the chart for comparison purpose.\nNote that the selected line in the portfolio can't be hidden");
-			
+
 			hideStock.addSelectionListener(new SelectionListener() {
 
 				@Override
@@ -354,24 +355,24 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				}
 
 				private void hideShowShares(final Button hideStock) {
-					
+
 					final Set<SlidingPortfolioShare> displayedShares = new HashSet<SlidingPortfolioShare>();
 					final List<SlidingPortfolioShare> currentTabShareList = chartTarget.getCurrentTabShareList();
-					
+
 					//SlidingPortfolioShare selectedPS = chartTarget.getCurrentLineSelection();
 					final TreeSet<SlidingPortfolioShare> availShares = new TreeSet<SlidingPortfolioShare>(currentTabShareList);
 					//if (selectedPS != null) availShares.remove(selectedPS);
-					
+
 					if (availShares.size() > 0) {
-		
+
 						for (SlidingPortfolioShare slidingPortfolioShare : availShares) {
 							if (slidingPortfolioShare.getDisplayOnChart()) {
 								displayedShares.add(slidingPortfolioShare);
 							} 
 						}
-						
+
 						ActionDialogAction action = new ActionDialogAction() {
-							
+
 							@Override
 							public void action() {
 								if (!isShutDown) {
@@ -388,7 +389,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						};
 						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, availShares , displayedShares, true, true, SWT.CHECK, action);
 						popupMenu.open();
-						
+
 					}
 
 				}
@@ -400,11 +401,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			});
 
 		}
-		
+
 		popupButtonsGroup.layout();
-		
+
 	}
-	
+
 	Stock relativeToRefereeSetting(String previousSymbol, String previousIsin) {
 
 		if (previousSymbol != null && !NOT_DEFINED.equals(previousSymbol)) {//already set
@@ -418,7 +419,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				}
 
 			} else {//Set but not initialised
-				
+
 				try {
 					Stock stock = DataSource.getInstance().getShareDAO().loadStockBy(previousSymbol, previousIsin);
 					loadRefereeQuotations(stock);
@@ -428,12 +429,12 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				}
 			}
 
-		} 
+		}
 
 		return  (refereeQuotations != null)?refereeQuotations.getStock():null;
 
-	}	
-	
+	}
+
 	void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
@@ -443,16 +444,16 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 
 	private void selectNewReferee(Stock previousReferee) {
 		//Open selection window
 		NewRefereeDialog.showUI(chartTarget.getShell(), chartTarget, this);
 	}
-	
+
 	@Override
 	public void resetChart(Boolean resetDisplayedList) {
-		
+
 		if (resetDisplayedList) {
 			for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 				sShare.setDisplayOnChart(true);
@@ -462,7 +463,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
 		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
-		
+
 	}
 
 	@Override
@@ -478,29 +479,29 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	@Override
 	public void refreshView(List<Exception> exceptions) {
 		// Nothing
-		
+
 	}
 
 	@Override
 	public void shutDownDisplay() {
-		
+
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
-		
+
 		isShutDown = true;
-		
+
 	}
 
 	@Override
 	public void updateButtonsToolTips() {
-		
+
 		if (!isShutDown) {
 			closeFunctionBut.setText("Comparison mode ...");
 			closeFunctionBut.setToolTipText(cmpModeToolTipRoot +"The current comparison mode is '"+chartTarget.getStripedCloseFunction().lineToolTip()+"'");
 			chartTarget.chartBoutonsGroup.setSize(chartTarget.chartBoutonsGroup.getBounds().width, chartTarget.chartBoutonsGroup.getBounds().height);
 			chartTarget.chartBoutonsGroup.layout();
 		}
-		
+
 	}
 
 

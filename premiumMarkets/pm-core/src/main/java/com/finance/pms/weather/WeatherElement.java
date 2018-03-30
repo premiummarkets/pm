@@ -43,7 +43,7 @@ import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
 
 @Entity
-@Table(name="Weather")
+@Table(name="WEATHER")
 public class WeatherElement extends Validatable {
 	
 	private static final long serialVersionUID = 1073659764360998307L;

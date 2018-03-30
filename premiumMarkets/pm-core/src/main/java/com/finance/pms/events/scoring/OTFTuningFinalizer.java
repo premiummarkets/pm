@@ -299,9 +299,33 @@ public class OTFTuningFinalizer {
 
         List<PeriodRatingDTO> periods = validPeriods(quotations, stock, startDate, endDate, eventListForEvtDef, noResMsg);
 
+        LOGGER.info(export(periods));
+
         return buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, evtDefInfo, observer);
 
     }
+
+	private String export(List<PeriodRatingDTO> periods) {
+		String print = "\nbuy date, buy price, sell date, sell price, price Rate Of Change\n";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        for (PeriodRatingDTO period : periods) {
+			if (period.getTrend().equals("BULLISH")) {
+				print = print + dateFormat.format(period.getFrom()) + "," + period.getPriceAtFrom() + ",";
+				if (period.isRealised()) {
+					print = print + dateFormat.format(period.getTo())+ "," + period.getPriceAtTo() + ",";
+				}
+				print = print + period.getPriceRateOfChange() + "\n";
+			}
+		}
+        if (!periods.isEmpty()) {
+			PeriodRatingDTO firstP = periods.get(0);
+			PeriodRatingDTO lastP = periods.get(periods.size() - 1);
+			print = print + "\nb&h:\n" +
+					dateFormat.format(firstP.getFrom()) + "," + firstP.getPriceAtFrom() + "," + 
+					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + ",";
+		}
+		return print;
+	}
 
     /**
      * 

@@ -467,29 +467,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	public MonitorLevel getSymbolMonitorLevel(String symbol) {
-		Query select = new Query(
-				"SELECT " + PORTFOLIO.TABLE_NAME + "." + PORTFOLIO.MONITOR_FIELD 
-				+ " FROM "+ PORTFOLIO.TABLE_NAME 
-				+ " WHERE " + PORTFOLIO.TABLE_NAME + "." + PORTFOLIO.SYMBOL_FIELD	+ "= ?") {
-			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
-				retour.add(rs.getInt(PORTFOLIO.MONITOR_FIELD));
-			}
-		};
-		select.addValue(symbol);
-		Integer ret = 0;
-		List<? extends Object> l = exectuteSelect(Object.class,select);
-		List<Integer> li = (List<Integer>) l;
-		for (Integer i : li) {
-			ret = Math.max(i, ret);
-		}
-		return MonitorLevel.values()[ret];
-
-	}
-
 	@SuppressWarnings("unchecked")
 	public List<SymbolEvents> loadEventsByDate(String eventsTableName, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 

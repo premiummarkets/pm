@@ -40,6 +40,7 @@ import javax.jms.JMSException;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventMessageObject;
 import com.finance.pms.events.EventValue;
 
@@ -66,10 +67,11 @@ public class SingleEventMessage extends EmailMessage {
 	 * 
 	 * @author Guillaume Thoreton
 	 * @param ptc 
+	 * @param eventKeyInMess 
 	 */
-	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventValue eventInMess, Map<String, Config> ptc) {
+	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventKey eventKeyInMess, EventValue eventInMess, Map<String, Config> ptc) {
 		super(analyseName.hashCode()+stock.hashCode()+eventInMess.hashCode(), ptc);
-		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventInMess, stock);
+		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventKeyInMess, eventInMess, stock);
 	}
 	
 

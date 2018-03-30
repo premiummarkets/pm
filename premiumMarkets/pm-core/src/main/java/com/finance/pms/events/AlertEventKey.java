@@ -33,6 +33,11 @@ import java.util.Date;
 
 import com.finance.pms.alerts.AlertOnThresholdType;
 
+/**
+ * Events from Alert on threshold
+ * @author guil
+ *
+ */
 public class AlertEventKey extends EventKey {
 	
 	private static final long serialVersionUID = -2973299473993380525L;
@@ -79,7 +84,8 @@ public class AlertEventKey extends EventKey {
 
 	
 	public String toString() {
-		return "AlertEventKey [date=" + date + ", eventdef=" + eventdef + ", eventType=" + eventType + ", alertType=" + alertType + "]";
+		return "AlertEventKey [date=" + date + 
+				", eventdef=" + eventdef + ", eventType=" + eventType + ", alertType=" + alertType + "]";
 	}
 
 	@Override

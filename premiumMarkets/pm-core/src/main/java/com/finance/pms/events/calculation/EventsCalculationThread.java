@@ -51,6 +51,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
@@ -114,7 +115,7 @@ public abstract class EventsCalculationThread extends Observable implements Call
 
     }
 
-    protected void sendEvent(final Stock stock, final String eventListName, final EventValue event, final EmailFilterEventSource eventSource, final EventInfo eventInfo) {
+    protected void sendEvent(final Stock stock, final String eventListName, final EventKey eventKey, final EventValue event, final EmailFilterEventSource eventSource, final EventInfo eventInfo) {
 
         if (eventQueue == null) {
             LOGGER.info("No queue available. No message required to be sent");
@@ -126,7 +127,7 @@ public abstract class EventsCalculationThread extends Observable implements Call
 
                 public Message createMessage(Session session) throws JMSException {
 
-                    SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, event, ConfigThreadLocal.getAll());
+                    SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, eventKey, event, ConfigThreadLocal.getAll());
                     message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
                     message.setObjectProperty(MessageProperties.TREND.getKey(), event.getEventType().name()); //Bearish or Bullish or Other?
                     message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);

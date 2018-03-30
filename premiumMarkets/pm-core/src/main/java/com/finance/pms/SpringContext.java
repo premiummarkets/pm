@@ -33,8 +33,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -46,6 +48,7 @@ import org.springframework.core.io.ClassPathResource;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.nativeops.OperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerOperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
@@ -489,8 +492,11 @@ public class SpringContext extends GenericApplicationContext {
 
 		PostInitMonitor.startOptPostInit();
 
+		//ops reflective generators
 		final TalibOperationGenerator talibOperationGenerator = SpringContext.getSingleton().getBean(TalibOperationGenerator.class);
 		final TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator = SpringContext.getSingleton().getBean(TalibIndicatorsCompositionerOperationReflectiveGenerator.class);
+
+		//ops instances handlers
 		final ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 		final ParameterizedIndicatorsBuilder parameterizedIndicatorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
 
@@ -501,7 +507,20 @@ public class SpringContext extends GenericApplicationContext {
 
 				ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
 				try {
-					parameterizedOperationBuilder.init(talibOperationGenerator, talibIndicatorsCompositionerOperationReflectiveGenerator);
+
+					//Other ops reflective generators
+					List<OperationReflectiveGenerator> operationReflectiveGenerators = new ArrayList<>();
+					try {
+						OperationReflectiveGenerator operationReflectiveGenerator = (OperationReflectiveGenerator) SpringContext.getSingleton().getBean("desiredGenericOperationReflectiveGenerator");
+						operationReflectiveGenerators.add(operationReflectiveGenerator);
+					} catch (BeansException e) {
+						System.out.println(e);
+					}
+
+					parameterizedOperationBuilder.init(
+							talibOperationGenerator, talibIndicatorsCompositionerOperationReflectiveGenerator,
+							operationReflectiveGenerators.toArray(new OperationReflectiveGenerator[0])
+							);
 					parameterizedIndicatorsBuilder.init();
 				} catch (Exception e) {
 					e.printStackTrace();

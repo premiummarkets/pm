@@ -55,86 +55,86 @@ import com.finance.pms.events.scoring.TunedConfMgr;
 
 //@Service("parameterizedIndicatorsBuilder")
 public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
-    
-    private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsBuilder.class);
-	
+
+	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsBuilder.class);
+
 	//@Autowired
 	ParameterizedOperationBuilder parameterizedOperationBuilder;
-	
+
 	public ParameterizedIndicatorsBuilder(ParameterizedOperationBuilder parameterizedOperationBuilder) {
 		this();
 		this.parameterizedOperationBuilder = parameterizedOperationBuilder;
 	}
-	
+
 	public ParameterizedIndicatorsBuilder() {
-		
+
 		super();
 		operationPackages = new String[] {"com.finance.pms.events.operations.conditional.", "com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLRIndicatorsParserHelper();
 
-        userOperationsDir = new File(userParameterizedPath + File.separator + "indicators");
+		userOperationsDir = new File(userParameterizedPath + File.separator + "indicators");
 		if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
-		
+
 		disabledUserOperationsDir = new File(userParameterizedPath + File.separator + "disabledIndicators");
 		if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
-		
+
 		trashUserOperationsDir = new File(userParameterizedPath + File.separator + "trashedIndicators");
 		if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
-		
+
 		NativeParametrizedIndicators nativeIndicatorsContainer = NativeParametrizedIndicators.loadNativeIndicators();
 		nativeOperations = nativeIndicatorsContainer.getCalculators();
 		getCurrentOperations().putAll(nativeOperations);
 	}
 
-//	@PostConstruct
+	//	@PostConstruct
 	public void init() {
-		
+
 		resetUserOperations();
-		
+
 		//Is called when operations are deleted, changed or added
 		this.parameterizedOperationBuilder.addObserver(new Observer() {
-		    @Override
-		    public void update(Observable o, Object arg) {
+			@Override
+			public void update(Observable o, Object arg) {
 
-		        if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
+				if (arg == null || !(arg instanceof ObsMsg)) throw new InvalidParameterException();
 
-		        ObsMsg msg = (ObsMsg) arg;
+				ObsMsg msg = (ObsMsg) arg;
 
-		        switch(msg.getType()) { 
-		        case OPERATION_CRUD :    //Any ops change or status change
-		            if (msg.getOperation() != null) {
-		                List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
-		                if (!checkInUse.isEmpty()) {
-		                    LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
-		                    cleanEventFor(checkInUse);
-		                    for (Operation opInUse : checkInUse) {
-		                        if (opInUse instanceof EventInfo) {
-                                    EventModel.dirtyCacheFor((EventInfo) opInUse);
-                                } else {
-                                    LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
-                                }
-		                    }
-		                    EventModel.updateEventInfoStamp();
-		                    throw new InUsedExecption(checkInUse);
-		                }
-		            }
-		            break;
-		        case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
-		            if (msg.getOperation() != null) actualReplaceInUse(getCurrentOperations().values(), msg.getOperation());
-		            break;
-		        case RESET_OPS_INMEM_INSTANCES :    //Reset ops list from scratch
-		            resetUserOperations();
-		            updateEditableOperationLists();
-		            break;
-		        }
-		    }
+				switch(msg.getType()) { 
+				case OPERATION_CRUD :    //Any ops change or status change
+					if (msg.getOperation() != null) {
+						List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
+						if (!checkInUse.isEmpty()) {
+							LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
+							cleanEventFor(checkInUse);
+							for (Operation opInUse : checkInUse) {
+								if (opInUse instanceof EventInfo) {
+									EventModel.dirtyCacheFor((EventInfo) opInUse);
+								} else {
+									LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
+								}
+							}
+							EventModel.updateEventInfoStamp();
+							throw new InUsedExecption(checkInUse);
+						}
+					}
+					break;
+				case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
+					if (msg.getOperation() != null) actualReplaceInUse(getCurrentOperations().values(), msg.getOperation());
+					break;
+				case RESET_OPS_INMEM_INSTANCES :    //Reset ops list from scratch
+					resetUserOperations();
+					updateEditableOperationLists();
+					break;
+				}
+			}
 
-            private void cleanEventFor(List<Operation> checkInUse) {
-                OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
-                    .filter(op -> op instanceof OperationsCompositioner)
-                    .collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
-                TunedConfMgr.getInstance().resetEventsAndConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
-            }
+			private void cleanEventFor(List<Operation> checkInUse) {
+				OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
+						.filter(op -> op instanceof OperationsCompositioner)
+						.collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
+				TunedConfMgr.getInstance().resetEventsAndConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
+			}
 		});
 
 	}
@@ -148,12 +148,12 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	protected Operation fetchNativeOperation(String opRef) {
 		return parameterizedOperationBuilder.getCurrentOperations().get(opRef);
 	}
-	
+
 	@Override
 	protected Operation fetchUserOperation(String opRef) {
 		return parameterizedOperationBuilder.getUserCurrentOperations().get(opRef);
 	}
-	
+
 	@Override
 	protected Operation fetchAsyncNativeOperation(String opRef) {
 		return parameterizedOperationBuilder.getCurrentOperations(false).get(opRef);
@@ -185,7 +185,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	public void replaceInUse(Operation operation) {
 		//We don't check root indicator operations as they can't be reused
 	}
-	
+
 	@Override
 	public List<Operation> notifyChanged(Operation operation) {
 		//Nothing
@@ -206,12 +206,12 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	@Override
 	protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
-		
+
 		String destFormula = sourceFormula;
 		for (String sourceOpRef : duplOperands.keySet()) {
 			destFormula = destFormula.replaceAll(" "+sourceOpRef+"( |;)", " "+duplOperands.get(sourceOpRef).getReference()+"$1");
 		}
-		
+
 		return destFormula;
 	}
 
@@ -219,5 +219,5 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	protected ParameterizedBuilder subjacentDuplicator() {
 		return this.parameterizedOperationBuilder;
 	}
-	
+
 }

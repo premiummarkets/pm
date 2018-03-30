@@ -182,7 +182,6 @@ public class AutoPortfolioDelegate {
 
 	private TransactionRecord buyShare(SymbolEvents symbolEvents,Date currentDate) throws IgnoredEventDateException {
 		return checkBuyability(symbolEvents, currentDate, null);
-		
 	}
 
 	private TransactionRecord checkBuyability(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {

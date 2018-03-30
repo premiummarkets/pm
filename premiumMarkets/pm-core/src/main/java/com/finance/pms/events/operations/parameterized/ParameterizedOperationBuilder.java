@@ -31,6 +31,7 @@ package com.finance.pms.events.operations.parameterized;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
+import com.finance.pms.events.operations.nativeops.OperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerOperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 
@@ -67,16 +69,25 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 
     }
 
-    public void  init(TalibOperationGenerator talibOperationGenerator, TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator) throws Exception {
+    public void init(
+    		TalibOperationGenerator talibOperationGenerator, 
+    		TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator,
+    		OperationReflectiveGenerator... otherOperationReflectiveGenerator) throws Exception {
 
+    	//Xml operations based on NativesXmlManager impl
         NativeOperations nativeOperationsContainer = nativesXmlManager.loadNativeOperations();
         nativeOperations = nativeOperationsContainer.getOperations();
         currentOperations.putAll(nativeOperations);
 
+        //Talib based operations (DoubleMapOperation)
         talibOperationGenerator.initSynoData();
         nativeOperations.putAll(talibOperationGenerator.generate());
 
+        //Talib indicators based EventDefinition operations (EventMapOperation)
         nativeOperations.putAll(talibIndicatorsCompositionerOperationReflectiveGenerator.generate());
+
+        //Other operations generator
+        Arrays.stream(otherOperationReflectiveGenerator).forEach(opsGen -> nativeOperations.putAll(opsGen.generate()));
 
         resetUserOperations();
     }

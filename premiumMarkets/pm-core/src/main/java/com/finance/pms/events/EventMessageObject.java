@@ -37,52 +37,45 @@ import com.finance.pms.datasources.shares.Stock;
 public class EventMessageObject implements Serializable {
 
 	private static final long serialVersionUID = 805246012496439241L;
-	
+
 	private Stock stock;
+
+	private EventKey eventKey;
 	private EventValue eventValue;
-	
+
 	private String eventListName;
 	private Date calculationDate;
-	
-	
-	public EventMessageObject(String eventListName, Date calculationDate, EventValue eventValue, Stock stock) {
+
+
+
+	public EventMessageObject(String eventListName, Date calculationDate, EventKey eventKey, EventValue eventValue, Stock stock) {
 		super();
 		this.eventListName = eventListName;
 		this.calculationDate = calculationDate;
+		this.eventKey = eventKey;
 		this.eventValue = eventValue;
 		this.stock = stock;
 	}
-	
-	
-
 
 	public Stock getStock() {
 		return stock;
 	}
-
-
-
+	
+	public EventKey getEventKey() {
+		return eventKey;
+	}
 
 	public EventValue getEventValue() {
 		return eventValue;
 	}
 
-
-
-
 	public String getEventListName() {
 		return eventListName;
 	}
 
-
-
-
 	public Date getCalculationDate() {
 		return calculationDate;
 	}
-
-
-
 
 	@Override
 	public int hashCode() {
@@ -93,7 +86,6 @@ public class EventMessageObject implements Serializable {
 		result = prime * result + ((stock == null) ? 0 : stock.hashCode());
 		return result;
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -122,10 +114,9 @@ public class EventMessageObject implements Serializable {
 		return true;
 	}
 
-
 	@Override
 	public String toString() {
 		return "EventMessageObject [stock=" + stock + ", eventValue=" + eventValue + ", eventListName=" + eventListName + ", calculationDate="+ calculationDate + "]";
 	}
-	
+
 }

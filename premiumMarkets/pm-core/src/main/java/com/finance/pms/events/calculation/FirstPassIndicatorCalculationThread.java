@@ -143,7 +143,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		LOGGER.info("First pass wanted events : "+getWantedEventCalculations());
 		Set<IndicatorsCompositioner> eventCalculations = new HashSet<IndicatorsCompositioner>();
 		
-		//Which EventCompositions have been found a wanted in the EventConfig (indicators field)
+		//Which EventCompositions have been found and wanted in the EventConfig (indicators field)
 		boolean zeroCrossMACDWanted = checkWanted(EventDefinition.PMMACDZEROCROSS);
 		boolean signalCrossMACDWanted = checkWanted(EventDefinition.PMMACDSIGNALCROSS);
 		boolean smaReversalWanted = checkWanted(EventDefinition.PMSMAREVERSAL);

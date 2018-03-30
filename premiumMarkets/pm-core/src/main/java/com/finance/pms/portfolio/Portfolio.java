@@ -34,11 +34,13 @@ package com.finance.pms.portfolio;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -92,6 +94,7 @@ public class Portfolio extends AbstractSharesList {
 	private SortedSet<TransactionElement> transactions;
 	
 	private Boolean uiDirty = true;
+	private Boolean latestTransactionsOnly = true;
 
 	protected Portfolio() {
 		super();
@@ -121,11 +124,11 @@ public class Portfolio extends AbstractSharesList {
 		
 		PortfolioShare oldPortfolioShare;
 		if (sourcePortfolio != null && (oldPortfolioShare = sourcePortfolio.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin())) != null) {
-			for (AlertOnThreshold alert: oldPortfolioShare.getAlertsOnThresholdFor(AlertOnThresholdType.MANUALUP)) {
-				portfolioShare.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
+			for (AlertOnThreshold alert: new AlertsMgrDelegate(oldPortfolioShare).getAlertsOnThresholdFor(AlertOnThresholdType.MANUALUP)) {
+				new AlertsMgrDelegate(portfolioShare).addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
 			}
-			for (AlertOnThreshold alert: oldPortfolioShare.getAlertsOnThresholdFor(AlertOnThresholdType.MANUALDOWN)) {
-				portfolioShare.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
+			for (AlertOnThreshold alert: new AlertsMgrDelegate(oldPortfolioShare).getAlertsOnThresholdFor(AlertOnThresholdType.MANUALDOWN)) {
+				new AlertsMgrDelegate(portfolioShare).addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
 			}
 		}
 		
@@ -137,7 +140,7 @@ public class Portfolio extends AbstractSharesList {
 		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {
 			shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
 		}
-		portfolioShare.addBuyAlerts(buyPrice, currentDate);
+		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(buyPrice, currentDate);
 		
 		return portfolioShare;
 
@@ -152,8 +155,7 @@ public class Portfolio extends AbstractSharesList {
 
 		TransactionElement transactionElement = recipientPS.createTransactionElement(transaction);
 		this.transactions.add(transactionElement);
-		
-		//if (recipientPS.getQuantity(buyDate).compareTo(BigDecimal.ZERO) > 0) recipientPS.addBuyAlerts(lastQuotation, buyDate);
+
 	}
 
 	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
@@ -182,11 +184,10 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 
-	public PortfolioShare addOrUpdateShareWithoutTransaction(Stock stock, String account, Currency transactionCurrency, Date currentDate) 
-			throws InvalidAlgorithmParameterException {
+	public PortfolioShare addOrUpdateShareWithoutTransaction(Stock stock, String account, Currency transactionCurrency, Date currentDate) {
 		
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, MonitorLevel.BEARISH, transactionCurrency);
-		portfolioShare.addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
+		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account); 
 
 		return portfolioShare;
@@ -194,7 +195,7 @@ public class Portfolio extends AbstractSharesList {
 
 	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
 		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
-		portfolioShare.addBuyAlerts(trPrice, currentDate);
+		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(trPrice, currentDate);
 	}
 
 	@Lob
@@ -252,7 +253,7 @@ public class Portfolio extends AbstractSharesList {
 		this.portfolioCurrency = portfolioCurrency;
 	}
 	
-	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, MonitorLevel mLevel, Currency transactionCurrency) throws InvalidAlgorithmParameterException {
+	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, MonitorLevel mLevel, Currency transactionCurrency) {
 		
 		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());
 		if (portfolioShare == null) {
@@ -352,8 +353,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Transient
-	public Date getLastTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
-		//return transactions.last().getDate();
+	public Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		Date ret = new Date(0);
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.getStock().equals(portfolioShare.getStock())) {
@@ -487,17 +487,51 @@ public class Portfolio extends AbstractSharesList {
 		}
 		
 	}
-
-	//The marker has the last time stamp (milli since 1970) and hence is the last transaction for any days
+	
 	public SortedSet<TransactionElement> headTransactionsTo(Date currentStartDate, Date currentEndDate) {
+		if (isLatestTransactionsOnly()) {
+			return headTransactionsTo(latestTransactions(), currentStartDate, currentEndDate);
+		}
+		return headTransactionsTo(transactions, currentStartDate, currentEndDate);
+	}
+
+	public SortedSet<TransactionElement> headTransactionsTo(SortedSet<TransactionElement> inputTransactions, Date currentStartDate, Date currentEndDate) {
 		if (currentStartDate == null || currentStartDate.equals(DateFactory.dateAtZero())) {
-			return transactions.headSet(new TransactionElement(null,null, null, currentEndDate, null, null, null)); 
+			return inputTransactions.headSet(new TransactionElement(null,null, null, currentEndDate, null, null, null)); 
 		} else {
 			Calendar currentDateCal = Calendar.getInstance();
 			currentDateCal.setTime(currentStartDate);
 			currentDateCal.add(Calendar.DAY_OF_YEAR, -1);
-			return transactions.subSet(new TransactionElement(null,null, null, currentDateCal.getTime(), null, null, null), new TransactionElement(null,null, null, currentEndDate, null, null, null));
+			//The id (marker) has the last time stamp (milli since 1970) and hence is the last transaction for any days (it being start or end date)
+			return inputTransactions.subSet(new TransactionElement(null,null, null, currentDateCal.getTime(), null, null, null), new TransactionElement(null,null, null, currentEndDate, null, null, null));
 		}
+	}
+	
+	public SortedSet<TransactionElement> latestTransactions( ) {
+		Map<Stock, List<TransactionElement>> stocksTransactions = new HashMap<>();
+		Map<Stock, BigDecimal> stocksQuantity = new HashMap<>();
+		for(TransactionElement transaction: transactions) {
+			Stock stock = transaction.getStock();
+			List<TransactionElement> stockTransactions = stocksTransactions.get(stock);
+			if (stockTransactions == null) {
+				stocksTransactions.put(stock, new ArrayList<>());
+				stocksQuantity.put(stock, BigDecimal.ZERO);
+			}
+			BigDecimal quantity = stocksQuantity.get(stock).add(transaction.getQuantity());
+			stocksQuantity.put(stock, quantity);
+			stocksTransactions.get(stock).add(transaction);
+			if (quantity.compareTo(BigDecimal.ZERO) == 0) stocksTransactions.get(stock).clear();
+		}
+		return stocksTransactions.values().stream().reduce(
+				new TreeSet<TransactionElement>(),
+				(r, e) -> {
+					r.addAll(e);
+					return r;
+				},
+				(u, t) -> {
+					u.addAll(t);
+					return u;
+				});
 	}
 
 	@Override
@@ -701,8 +735,14 @@ public class Portfolio extends AbstractSharesList {
 	public void setIsUiDirty(Boolean hasChanged) {
 		this.uiDirty = hasChanged;
 	}
+	
+	@Transient
+	public Boolean isLatestTransactionsOnly() {
+		return latestTransactionsOnly;
+	}
 
-
-
+	public void setLatestTransactionsOnly(Boolean latestTransactionsOnly) {
+		this.latestTransactionsOnly = latestTransactionsOnly;
+	}
 
 }
