@@ -1113,7 +1113,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		//Spring Context init		
 		SpringContext ctx = new SpringContext(dbfile);
 		ctx.setMasSource(dbfile,"false");
-		ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","talibanalysisservices.xml"});
+		ctx.loadBeans(new String[] {"/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml"});
 		try {
 			ctx.refresh();
 		} catch (BeanCreationException e1) {

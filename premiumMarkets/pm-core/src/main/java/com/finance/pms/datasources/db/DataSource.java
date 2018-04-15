@@ -82,7 +82,6 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.mas.RestartServerException;
-import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.PortfolioDAO;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.talib.dataresults.AlertEventValue;

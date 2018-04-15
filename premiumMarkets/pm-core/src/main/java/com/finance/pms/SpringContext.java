@@ -32,7 +32,6 @@ package com.finance.pms;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -168,9 +167,9 @@ public class SpringContext extends GenericApplicationContext {
 
 	}
 
-	public void standardInit(String[] args) {
-		ArrayList<String> springconf = new ArrayList<String>(Arrays.asList(new String[] { "/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml"}));
-		loadBeans(springconf.toArray(new String[0]));
+	public void standardInit(String... args) {
+		System.out.println("args is ignored (legacy?) :"+args);
+		loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		refresh();
 	}
 
