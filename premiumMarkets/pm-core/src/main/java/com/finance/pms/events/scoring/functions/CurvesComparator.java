@@ -51,7 +51,7 @@ public abstract class CurvesComparator {
 
 	protected int maxShift;
 	private Date start;
-	private Date end;	
+	private Date end;
 	protected Date cmpStart;
 	protected Date cmpEnd;
 	
@@ -85,7 +85,7 @@ public abstract class CurvesComparator {
 
 	public CurveErr compare(SortedMap<Date, double[]> data, SortedMap<Date, double[]> refData) {
 		
-		int slotSize = 21;
+		int foldSize = 21;
 		double realErr = Double.MAX_VALUE;
 		SortedSet<ErrShift> sortedBestShifts = new TreeSet<ErrShift>();
 
@@ -94,15 +94,15 @@ public abstract class CurvesComparator {
 		for (int shift = -maxShift; shift <= maxShift; shift++) {
 			
 			double shiftErr = 0;
-			for (int i = maxShift; i < datakeySet.size() - maxShift - slotSize; i = i + slotSize) {
+			for (int i = maxShift; i < datakeySet.size() - maxShift - foldSize; i = i + foldSize) {
 				
 				SortedMap<Date, double[]> shiftedData = new TreeMap<Date, double[]>();
-				for (int j = i; j < i+ slotSize; j++) {
+				for (int j = i; j < i+ foldSize; j++) {
 					shiftedData.put(datakeySet.get(j), data.get(datakeySet.get(j+shift)));
 				}
 				
 				Date refSlotStart = datakeySet.get(i);
-				Date refSlotEnd = datakeySet.get(i + slotSize);
+				Date refSlotEnd = datakeySet.get(i + foldSize);
 				
 				SortedMap<Date, double[]> subData = shiftedData.subMap(refSlotStart, refSlotEnd);
 				SortedMap<Date, double[]> subRefData = refData.subMap(refSlotStart, refSlotEnd);
@@ -123,7 +123,6 @@ public abstract class CurvesComparator {
 				shiftErr = shiftErr + compareNormalised(refSlotStart, refSlotEnd, normalisedData, normalisedRefData);
 				
 			}
-			
 
 			if (shift == 0) {
 				realErr = shiftErr;
@@ -167,10 +166,10 @@ public abstract class CurvesComparator {
 	
 	public class CurveErr {
 		
-		SortedSet<ErrShift> sortedBestShifts;
-		int bestShift;
-		double bestErr;
-		double realErr;
+		private SortedSet<ErrShift> sortedBestShifts;
+		private int bestShift;
+		private double bestErr;
+		private double realErr;
 		
 		public CurveErr(int bestShift, double bestErr, double realErr, SortedSet<ErrShift> sortedBestShifts) {
 			super();

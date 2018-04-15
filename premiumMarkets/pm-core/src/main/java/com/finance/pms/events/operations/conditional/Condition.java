@@ -44,11 +44,11 @@ import com.finance.pms.events.operations.Value;
  * 
  * @author Guillaume Thoreton
  * Some conditions can (when it makes sense) be followed by key words changing the result :
- * 'over n days' : means that the condition happened once over the past n days. It could as well not be fulfilled a the date
+ * 'over n days' : means that the condition happened once over the past n days. It could as well not be fulfilled a the date //FIXME Does the available impl uses data in the future??
  * 'for n days' : means that the condition was true for n days in a row.
  * 'spanning n days' : will be used for condition involving events happening over time like when comparing two status of the data at two point in time t and t-n. 
- * 	For instance 'close crosses up 10 spanning 3 days' means that close was below 10 three days ago and close is now above 10 
- * These two can be combined like for instance :
+ * For instance 'close crosses up 10 spanning 3 days' means that close was below 10 three days ago and close is now above 10. So basically we ignore what happened in between.
+ * These can be combined like for instance :
  *  	close is above 10 over 30 days for 2 days
  *   	close is above 10 over 10 days for 10 days
  *   	goes up for 10 days spanning 2 days

@@ -53,7 +53,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 
  * @author Guillaume Thoreton
  * Additional constraints :
- * not implemented : 'over'
+ * 'over'
  * does not make sense : 'for'. As the condition is an event in time not a status in time.
  * 'spanning'
  */

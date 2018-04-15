@@ -53,8 +53,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 
  * @author Guillaume Thoreton
  * Additional constraints :
- * not implemented : 'over'
- * not implemented : 'for'
+ * 'over'
+ * 'for'
  * does not make sense : 'spanning' . As the condition is a status in time not an event in time.
  */
 @XmlSeeAlso({SupDoubleMapCondition.class, InfDoubleMapCondition.class, EqualDoubleMapCondition.class})

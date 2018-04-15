@@ -50,8 +50,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * @author Guillaume Thoreton
  * Additional constraints :
  * 'over'
- * not implemented : 'for'
- * does not make sense : 'spanning' . As the condition is a status in time not an event in time.
+ * 'for'
+ * does not make sense : 'spanning'. As the condition is a status in time not an event in time.
  */
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {
 	
