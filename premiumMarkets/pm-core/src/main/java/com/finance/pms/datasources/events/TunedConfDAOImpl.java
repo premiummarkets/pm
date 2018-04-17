@@ -33,11 +33,13 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfId;
 
@@ -45,7 +47,7 @@ import com.finance.pms.events.scoring.TunedConfId;
 @Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDAO {
 
-//    private static MyLogger LOGGER = MyLogger.getLogger(TunedConfDAOImpl.class);
+    private static MyLogger LOGGER = MyLogger.getLogger(TunedConfDAOImpl.class);
 
     @Override
     @Transactional(readOnly=true)
@@ -55,7 +57,11 @@ public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDA
 
     @Override
     public void saveOrUpdateTunedConfs(TunedConf tunedConf) {
-        this.getHibernateTemplate().saveOrUpdate(tunedConf);
+        try {
+			this.getHibernateTemplate().saveOrUpdate(tunedConf);
+		} catch (DataIntegrityViolationException e) {
+			LOGGER.warn("Is "+tunedConf.getTunedConfId().getStock()+" a real SHARE? : "+e.getMessage());
+		}
     }
 
     @Override
@@ -68,92 +74,4 @@ public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDA
     public void init(SessionFactory factory) {
         setSessionFactory(factory);
     }
-
-//    @Override
-//    public void resetTunedConfFor(String analysisName, EventInfo... indicators) {
-//        if (indicators == null || indicators.length == 0) {
-//            LOGGER.info("resetTunedConfFor : "+analysisName);
-//            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
-//
-//                @Override
-//                public Void doInHibernate(Session session) throws HibernateException, SQLException {
-//                    Date dateZero = DateFactory.dateAtZero();
-//                    int nbDeleted = session.createQuery("update TunedConf set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where configFile=:configFile")
-//                            .setDate("lastCalculatedEvent", dateZero)
-//                            .setDate("lastCalculationStart", dateZero)
-//                            .setDate("lastCalculationEnd", dateZero)
-//                            .setString("configFile", analysisName)
-//                            .executeUpdate();
-//                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+analysisName);
-//                    return null;
-//                }
-//
-//            });
-//        } else {
-//            List<String> eventInfoDefs = Arrays.stream(indicators).map(ei -> ei.getEventDefinitionRef()).collect(Collectors.toList());
-//            LOGGER.info("resetTunedConfFor : "+analysisName+" and "+eventInfoDefs);
-//            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
-//
-//                @Override
-//                public Void doInHibernate(Session session) throws HibernateException, SQLException {
-//                    Date dateZero = DateFactory.dateAtZero();
-//                    int nbDeleted = session.createQuery("update TunedConf set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where configFile=:configFile and eventDefinition in (:eventDefinitions)")
-//                            .setDate("lastCalculatedEvent", dateZero)
-//                            .setDate("lastCalculationStart", dateZero)
-//                            .setDate("lastCalculationEnd", dateZero)
-//                            .setString("configFile", analysisName)
-//                            .setParameterList("eventDefinitions", eventInfoDefs)
-//                            .executeUpdate();
-//                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+analysisName+" and "+eventInfoDefs);
-//                    return null;
-//                }
-//
-//            });
-//        }
-//    }
-//
-//    @Override
-//    public void resetTunedConfFor(Stock stock, String analysisName, EventInfo... indicators) {
-//        if (indicators == null || indicators.length == 0) {
-//            LOGGER.info("resetTunedConfFor : "+stock+" and "+analysisName);
-//            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
-//
-//                @Override
-//                public Void doInHibernate(Session session) throws HibernateException, SQLException {
-//                    Date dateZero = DateFactory.dateAtZero();
-//                    int nbDeleted = session.createQuery("update TunedConf as tc set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile")
-//                            .setDate("lastCalculatedEvent", dateZero)
-//                            .setDate("lastCalculationStart", dateZero)
-//                            .setDate("lastCalculationEnd", dateZero)
-//                            .setParameter("stock", stock)
-//                            .setString("configFile", analysisName)
-//                            .executeUpdate();
-//                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName);
-//                    return null;
-//                }
-//
-//            });
-//        } else {
-//            List<String> eventInfoDefs = Arrays.stream(indicators).map(ei -> ei.getEventDefinitionRef()).collect(Collectors.toList());
-//            LOGGER.info("resetTunedConfFor : "+stock+" and "+analysisName+" and "+eventInfoDefs);
-//            this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
-//
-//                @Override
-//                public Void doInHibernate(Session session) throws HibernateException, SQLException {
-//                    Date dateZero = DateFactory.dateAtZero();
-//                    int nbDeleted = session.createQuery("update TunedConf as tc set lastCalculatedEvent=:lastCalculatedEvent, lastCalculationStart=:lastCalculationStart, lastCalculationEnd=:lastCalculationEnd where tc.tunedConfId.stock=:stock and tc.tunedConfId.configFile=:configFile and tc.tunedConfId.eventDefinition in (:eventDefinitions)")
-//                            .setDate("lastCalculatedEvent", dateZero)
-//                            .setDate("lastCalculationStart", dateZero)
-//                            .setDate("lastCalculationEnd", dateZero)
-//                            .setParameter("stock", stock)
-//                            .setString("configFile", analysisName)
-//                            .setParameterList("eventDefinitions", eventInfoDefs)
-//                            .executeUpdate();
-//                    LOGGER.info("resetTunedConfFor : reseted "+nbDeleted+" TunedConfs with "+stock+" and "+analysisName+" and "+eventInfoDefs);
-//                    return null;
-//                }
-//
-//            });
-//        }
-//    }
 }

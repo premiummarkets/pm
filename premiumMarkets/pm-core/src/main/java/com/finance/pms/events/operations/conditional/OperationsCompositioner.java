@@ -66,6 +66,7 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  * OperationsCompositioner unlike other operations can't be reused for further composition or parameterised.
  * Every indicator created in the ./userparametrised/indicator will instantiate an OperationsCompositioner run within a ParameterizedIndicatorsCompositioner at run time.
  */
+//FIXME rename BullBearSwitchOperation
 @XmlRootElement
 public class OperationsCompositioner extends EventMapOperation implements EventInfo {
 

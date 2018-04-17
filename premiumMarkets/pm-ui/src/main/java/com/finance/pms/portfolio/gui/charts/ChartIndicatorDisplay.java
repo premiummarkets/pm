@@ -164,6 +164,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 
+		LOGGER.info("highLight(Integer "+idx+", Stock "+selectedShare+", Boolean "+recalculationGranted+", PopupType... "+popupTypes);
+
 		try {
 
 			this.chartTarget.getShell().setEnabled(false);
@@ -215,8 +217,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							chartTarget.getMainChartWraper().resetIndicChart();
 							updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
 						} else {
-							//Disposing of the graph settings popup
+							//Disposing of the graph settings popup as nothing evt def is selected for charting
 							if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
+								chartSettingsPopup.inhibate();
 								chartSettingsPopup.getSelectionShell().dispose();
 							}
 						}
@@ -446,9 +449,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				showPopupDialog(errMsg, "Ok", addMsg, null);
 			}
 
-			//Thats all good, we display	
 		} else {
 
+			//Thats all good, we display
 			SortedMap<Date, double[]> subMap = new TreeMap<Date, double[]>();
 			if (!outputCache.isEmpty()) {
 
@@ -528,15 +531,15 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {	
-					handle();
+					handleIndicSettingsSelection();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {	
-					handle();
+					handleIndicSettingsSelection();
 				}
 
-				private void handle() {
+				private void handleIndicSettingsSelection() {
 					initChartSettingsPopup(true);
 				}
 
@@ -577,15 +580,15 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {	
-					handle();
+					handleIndicSettingsSelection();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {	
-					handle();
+					handleIndicSettingsSelection();
 				}
 
-				private void handle() {
+				private void handleIndicSettingsSelection() {
 
 					ActionDialogAction action = new ActionDialogAction() {
 
@@ -762,6 +765,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 				if (viewStateParams != null ) {
+					LOGGER.info("Calling highLight from initEvtDefTrendPopup (Dialog Action).");
 					highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND);
 				} else {
 					if (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
@@ -811,7 +815,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					chartTarget.setChartedEvtDef(chartedEvtDefTmpSet.iterator().next());
 					//if stock selected, we update
 					boolean stockSelected = viewStateParams != null;
-					if (stockSelected) { 
+					if (stockSelected) {
+						LOGGER.info("Calling highLight from initEvtChartingPopup (Dialog Action).");
 						highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
 					} else {
 						//warning only if evtdef selected and no stock
@@ -872,7 +877,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				if (!availableOutputs.isEmpty()) {
 
-					ActionDialogAction  disactivateAction =  new ActionDialogAction() {
+					ActionDialogAction disactivateAction =  new ActionDialogAction() {
 
 						@Override
 						public void action() {
@@ -884,8 +889,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 								}
 							}
 							Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
+							LOGGER.info("Calling highLight from initChartSettingsPopup (Dialog Action).");
 							highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
 						}
+
 					};
 
 					if (chartSettingsPopup == null || chartSettingsPopup.getSelectionShell().isDisposed()) {

@@ -56,19 +56,19 @@ public class PopupMenu<T extends InfoObject>  {
 	private Control controlParent;
 	private int style;
 	private Shell selectionShell;
-	
-	
+
+
 	private Set<T> availableOptSet;
 	private Set<T> selectionSet;
-	
+
 	private Boolean unableSelectAll;
-	
+
 	private ActionDialogAction selectionAction;
 	private ActionDialogAction closeAction;
-	
+
 	private boolean disposeOnDeactivate;
 	private Boolean actionateOnDeactivate;
-	
+
 	private String title;
 	private Boolean hasChanged;
 
@@ -78,13 +78,13 @@ public class PopupMenu<T extends InfoObject>  {
 			Set<T> availableOptSet, Set<T> selectionList, 
 			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
 			ActionDialogAction selectAction) {
-		
+
 		super();
 		this.rootParent = rootParent;
 		this.controlParent = controlParent;
-	
+
 		this.style = style;
-		
+
 		this.availableOptSet = new TreeSet<T>(new Comparator<T>() {
 			@Override
 			public int compare(T o1, T o2) {
@@ -93,34 +93,34 @@ public class PopupMenu<T extends InfoObject>  {
 		});
 		this.availableOptSet.addAll(availableOptSet);
 		this.selectionSet = selectionList;
-		
+
 		this.unableSelectAll = unableSelectAll;
-		
+
 		this.selectionAction = selectAction;
 		this.disposeOnDeactivate = disposeOnDeactivate;
-		
+
 		this.title = "";
 		if (controlParent instanceof Button) {
 			title = ((Button) controlParent).getText();
 		} else {
 			title = controlParent.getShell().getText();
 		}
-		
+
 		hasChanged = false;
-		
+
 	}
-	
+
 	public PopupMenu(
 			Composite rootParent, Control controlParent, 
 			Set<T> availableOptSet, Set<T> selectionList, 
 			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
 			ActionDialogAction selectAction, ActionDialogAction closeAction, Boolean actionateOnDeactivate) {
-		
+
 		this(rootParent, controlParent, availableOptSet, selectionList, disposeOnDeactivate, unableSelectAll, style, selectAction);
-		
+
 		this.closeAction = closeAction;
 		this.actionateOnDeactivate = actionateOnDeactivate;
-		
+
 		if (closeAction == null && actionateOnDeactivate != null && actionateOnDeactivate) throw new RuntimeException();
 		if (closeAction == null && selectAction == null) throw new RuntimeException();
 
@@ -129,9 +129,9 @@ public class PopupMenu<T extends InfoObject>  {
 	public void open() {
 		this.open(null,null);
 	}
-	
+
 	public void open(Point location, Boolean addWidth) {
-		
+
 		selectionShell = new Shell(rootParent.getShell(), SWT.SHELL_TRIM);
 
 		RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
@@ -139,7 +139,7 @@ public class PopupMenu<T extends InfoObject>  {
 		selectionShell.setLayout(rowLayout);
 		selectionShell.setFont(MainGui.CONTENTFONT);
 		selectionShell.setText(title);
-		
+
 		Listener deactivateListener = new Listener() {
 
 			@Override
@@ -149,7 +149,7 @@ public class PopupMenu<T extends InfoObject>  {
 				for (Control child : selectionShell.getChildren()) {
 					if (control == child) return;
 				}
-				
+
 				deactivate();
 			}
 
@@ -160,25 +160,25 @@ public class PopupMenu<T extends InfoObject>  {
 					runCloseAction();
 				}
 			}
-			
+
 		};
 		selectionShell.addListener(SWT.MouseExit, deactivateListener);
 		selectionShell.addListener(SWT.Deactivate, deactivateListener);
-		
+
 		selectionShell.addDisposeListener(new DisposeListener() {
-			
+
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
 				runCloseAction();
 			}
-			
+
 		});
-		
+
 		initPopup();
-		
+
 		//Location
 		if (location == null) {
-			
+
 			Rectangle parentShellBounds = rootParent.getShell().getBounds();
 			Rectangle parentBounds = controlParent.getParent().getBounds();
 			Rectangle pparentBounds = controlParent.getParent().getParent().getBounds();
@@ -186,30 +186,36 @@ public class PopupMenu<T extends InfoObject>  {
 			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, parentShellBounds.y + pparentBounds.y +parentBounds.y + controlParent.getBounds().y));
 			//selectionShell.setBounds(x, y, selectionShell.getBounds().width, selectionShell.getBounds().height);
 			selectionShell.setLocation(x, y);
-			
+
 		} else {
-			
+
 			if (addWidth != null && addWidth) {
 				location.x = location.x + selectionShell.getSize().x;
 			}
 			int x = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, location.x));
 			int y =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, location.y));
 			selectionShell.setLocation(x, y);
-			
+
 		}
-		
+
 		//Size
 		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, selectionShell.getParent().getSize().y - 20), true);
 		selectionShell.setSize(computeSize.x,computeSize.y);
-				
+
 		selectionShell.open();
-				
+
+	}
+	
+	public void inhibate() {
+		this.hasChanged = false;
+		this.closeAction = null;
+//		this.selectionAction = null;
 	}
 
 	protected void initPopup() {
-		
+
 		if (unableSelectAll) {
-			
+
 			final Button selectAllBut = new Button(selectionShell, style);
 			selectAllBut.setText("Select/Deselect all");
 			selectAllBut.setFont(MainGui.DEFAULTFONT);
@@ -217,18 +223,18 @@ public class PopupMenu<T extends InfoObject>  {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handle();
+					handleSelectAllTicks();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
+					handleSelectAllTicks();
 				}
-				
-				private void handle() {
-					
+
+				private void handleSelectAllTicks() {
+
 					hasChanged=true;
-					
+
 					if (selectAllBut.getSelection()) {
 						for (Control button : selectionShell.getChildren()) {
 							((Button)button).setSelection(true);
@@ -242,55 +248,54 @@ public class PopupMenu<T extends InfoObject>  {
 						}
 						selectionSet.clear();
 					}
-					
+
 					if (selectionAction != null) selectionAction.action();
-					
+
 				}
-				
+
 			});
-			
+
 		}
 
 		for (final T buttonInfo : availableOptSet) {
-			
+
 			final Button button = new Button(selectionShell, style);
 			button.setText(buttonInfo.info());
 			button.setData(buttonInfo);
 			button.setFont(MainGui.DEFAULTFONT);
 			button.setToolTipText(buttonInfo.tootTip());
 			button.addSelectionListener(new SelectionListener() {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handleSelection(buttonInfo, button);
+					handleButtonSelection(buttonInfo, button);
 				}
-				
+
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleSelection(buttonInfo, button);
-					
+					handleButtonSelection(buttonInfo, button);
 				}
-				
-				private void handleSelection(T buttonInfo, final Button button) {
-					
+
+				private void handleButtonSelection(T buttonInfo, final Button button) {
+
 					hasChanged=true;
-					
+
 					if (button.getSelection()) {
 						selectionSet.add(buttonInfo);
 					} else {
 						selectionSet.remove(buttonInfo);
 					}
-					
+
 					if (selectionAction != null ) selectionAction.action();
-			
+
 				}
-				
+
 			});
-			
+
 			if (selectionSet.contains(buttonInfo)) button.setSelection(true);
 			button.setVisible(true);
 		}
-		
+
 		selectionShell.layout();
 		selectionShell.pack();
 	}
@@ -304,7 +309,7 @@ public class PopupMenu<T extends InfoObject>  {
 		this.closeAction = closeAction;
 		this.actionateOnDeactivate = actionOnDeactivate;
 		updatePopup(availEventDefs, selectionSet);
-		
+
 	}
 
 	private void updatePopup(Set<T> availEventDefs, Set<T> selectionSet) {
@@ -312,14 +317,14 @@ public class PopupMenu<T extends InfoObject>  {
 		this.availableOptSet.addAll(availEventDefs);
 		this.selectionSet = selectionSet;
 		this.hasChanged=true;
-		
+
 		Control[] children = selectionShell.getChildren();
 		for (Control control : children) {
 			control.dispose();
 		}
-		
+
 		initPopup();
-		
+
 		//Size
 		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y - 20), true);
 		selectionShell.setSize(computeSize.x,computeSize.y);
@@ -331,5 +336,5 @@ public class PopupMenu<T extends InfoObject>  {
 			closeAction.action();
 		}
 	}
-	
+
 }
