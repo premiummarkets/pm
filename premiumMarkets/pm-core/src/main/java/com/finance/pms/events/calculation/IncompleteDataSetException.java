@@ -50,23 +50,23 @@ public class IncompleteDataSetException extends Exception {
 	private Set<IndicatorsCompositioner> validEventCalculators;
 	private List<SymbolEvents> symbolEvents;
 	
-	public IncompleteDataSetException(Stock failingStock, SymbolEvents symbolEventsForStock, String arg0) {
+	public IncompleteDataSetException(Stock failingStock, SymbolEvents validSymbolEventsForStock, String arg0) {
 		super(arg0);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
 
 		this.calculatedOutputs = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
-		this.calculatedOutputs.put(failingStock, symbolEventsForStock.getCalculationOutputs());
+		this.calculatedOutputs.put(failingStock, validSymbolEventsForStock.getCalculationOutputs());
 
 		this.symbolEvents = new ArrayList<SymbolEvents>();
-		this.symbolEvents.add(symbolEventsForStock);
+		this.symbolEvents.add(validSymbolEventsForStock);
 	}
 
-	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> symbolEvents, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutput, String arg0) {
+	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> validSymbolEvents, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> validCalculatedOutput, String arg0) {
 		super(arg0);
 		this.failingStocks = failingStocks;
-		this.calculatedOutputs = calculatedOutput;
-		this.symbolEvents = symbolEvents;
+		this.calculatedOutputs = validCalculatedOutput;
+		this.symbolEvents = validSymbolEvents;
 	}
 
 	public IncompleteDataSetException(Stock failingStock, Set<IndicatorsCompositioner> validEventCaclulators, String error) {

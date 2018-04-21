@@ -60,13 +60,14 @@ import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
- * This could be call IndicatorEventMapOperation (or EventInfoEventMapOperation)
- * The OperationsCompositioner is a specific type of operation to generate events to be used in the UI.
- * The OperationsCompositioner can take other operations as operands and will be compiled in a specific IndicatorsCompositioner, called ParameterizedIndicatorsCompositioner, when created through the UI.
- * OperationsCompositioner unlike other operations can't be reused for further composition or parameterised.
- * Every indicator created in the ./userparametrised/indicator will instantiate an OperationsCompositioner run within a ParameterizedIndicatorsCompositioner at run time.
+ * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
+ * The OperationsCompositioner is a specific type of operation that generates bullish and bearish events to be used in the UI.
+ * As an operation, the OperationsCompositioner takes other operations as operands and is calculated using a specific IndicatorsCompositionner calculator, the ParameterizedIndicatorsCompositioner.
+ * An OperationsCompositioner is defined through the UI via formula files.
+ * OperationsCompositioner unlike other operations can't be reused for further composition or parameterization.
+ * Hence, every indicator created in the ./userparametrised/indicator folder will instantiate an OperationsCompositioner which will be calculated (run) by the ParameterizedIndicatorsCompositioner.
  */
-//FIXME rename BullBearSwitchOperation
+//FIXME rename IndicatorsBullBearSwitchOperation
 @XmlRootElement
 public class OperationsCompositioner extends EventMapOperation implements EventInfo {
 
@@ -116,7 +117,7 @@ public class OperationsCompositioner extends EventMapOperation implements EventI
 		try {
 			//Analysis of above event in light of previously calculated ops
 			if (edata.isEmpty()) {
-				LOGGER.warn("Event data found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
+				LOGGER.warn("No event data found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
 			} else {
 				edata = targetStock.analyseEvents(edata);
 			}

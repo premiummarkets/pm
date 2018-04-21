@@ -58,6 +58,13 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.indicators.TalibException;
 
+/**
+ * A like the OperationsCompositioner, the TalibIndicatorsCompositionerGenericOperation is a specific type of operation that generates bullish and bearish events to be used in the UI.
+ * The difference is that instead of relying on a formula defined by the user, it finds its calculation definition within classes descendant from the TalibIndicatorsCompositioner calculator.
+ * However, as an implementation convenience, it need to be wrapped within a formula and hence an OperationCompositionner in order to be processed eventually using the ParameterizedIndicatorsCompositioner.
+ * @author guil
+ */
+//FIXME rename TalibIndicatorsCompositionerBullBearSwitchOperation
 public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperation {
 
     private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionerGenericOperation.class);
@@ -125,10 +132,10 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
             buildChartable(targetStock, outputQualifiers);
 
-        } 
+        }
         catch (TalibException e) {
             LOGGER.warn(e);
-        } 
+        }
         catch (Exception e) {
             LOGGER.error(e,e);
         }

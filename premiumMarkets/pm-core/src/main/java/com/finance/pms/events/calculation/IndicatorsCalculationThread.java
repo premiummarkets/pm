@@ -153,7 +153,6 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 	private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsCompositioner> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
 
-		Boolean incomplete = false;
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
 		final List<EventInfo> failing = new ArrayList<EventInfo>();
 
@@ -249,6 +248,8 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 						lastEventDate = DateFactory.dateAtZero();
 						LOGGER.error(e);
 					} finally {
+						//We update the tunedConfs
+						tunedConf.setDirty(false);
 						TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate);
 					}
 				}
@@ -260,20 +261,21 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 		executor.shutdown();
 
+		Boolean shutdownFailed = false;
 		try {
 			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
 				LOGGER.error(shutdownNow, new Exception());
-				incomplete = true;
+				shutdownFailed = true;
 			}
 		} catch (InterruptedException e) {
 			List<Runnable> shutdownNow = executor.shutdownNow();
 			LOGGER.error(shutdownNow, e);
-			incomplete = true;
+			shutdownFailed = true;
 		}
 
-		if (incomplete || !failing.isEmpty()) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Some calculations have failed! Are failing : "+failing);
+		if (shutdownFailed || !failing.isEmpty()) throw new IncompleteDataSetException(stock, symbolEventsForStock, "Some calculations have failed! Are failing : "+failing);
 
 	}
 

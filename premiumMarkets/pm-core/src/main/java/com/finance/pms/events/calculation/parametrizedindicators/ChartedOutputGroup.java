@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.portfolio.InfoObject;
@@ -81,9 +82,9 @@ public class ChartedOutputGroup {
 		public String fullQualifiedName() {
 			String discriminentReference = outputReference.getReference();
 			if (outputReference.getIsLeaf()) {
-				discriminentReference = value.getValueAsString();
+				discriminentReference = ((StringableValue) value).getValueAsString();
 			}
-			
+
 			String famillyName = outputReference.getOperationReference()+ ((outputReference.getOutputSelector() != null)?":"+outputReference.getOutputSelector():"");
 			return discriminentReference + " (" + famillyName + ") displayed as " + outputReference.getReferenceAsOperand();
 		}

@@ -6,12 +6,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 
+import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
-public abstract class EqualStringConstantCondition<T extends SortedMap<X,Y>, X, Y> extends Condition<String> {
+public abstract class EqualStringConstantCondition<X, Y> extends Condition<String> {
 
     @SuppressWarnings("unused")
     private EqualStringConstantCondition() {
@@ -26,8 +27,8 @@ public abstract class EqualStringConstantCondition<T extends SortedMap<X,Y>, X, 
     public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         String constant = ((StringValue) inputs.get(0)).getValue(targetStock);
-        @SuppressWarnings("unchecked")
-        T data = (T) inputs.get(1).getValue(targetStock);
+        @SuppressWarnings("unchecked") MapValue<X, Y> value = (MapValue<X, Y>) inputs.get(1);
+        SortedMap<X,Y> data = (SortedMap<X,Y>) value.getValue(targetStock);
 
         BooleanMapValue outputs = new  BooleanMapValue();
 

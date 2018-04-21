@@ -37,11 +37,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
-public class EventDataValue extends Value<SortedMap<EventKey, EventValue>> implements Cloneable  {
+public class EventDataValue extends Value<SortedMap<EventKey, EventValue>> implements MapValue<EventKey, EventValue>, Cloneable  {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventDataValue.class);
 	

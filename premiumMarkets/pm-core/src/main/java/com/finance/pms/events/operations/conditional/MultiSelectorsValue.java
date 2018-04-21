@@ -54,7 +54,7 @@ public class MultiSelectorsValue extends DoubleMapValue {
 		this.selectorOutputs = selectorOutputs;
 		this.calculationSelector = calculationSelector;
 	}
-	
+
 	public DoubleMapValue getValue(String selector) {
 		return selectorOutputs.get(selector);
 	}

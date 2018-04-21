@@ -46,24 +46,21 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
+//FIXME rename/replace the terms Compositionner and Calculator with Operator
 /**
  * Calculators or IndicatorsCompositioners are actually operators or functions taking operations as arguments.
- * In particular, the IndicatorsCompositioner generates events (SortedMap<EventKey, EventValue>).
+ * In particular, the IndicatorsCompositioner generates events (SortedMap<EventKey, EventValue>) and hence can be used as operator for an EventDefinition.
+ * It can be used for the mean of defining a new EventDefinition (also originally called second pass operations) through its implementation, but is then not modifiable/parameterizable.
+ * For instance, TalibIndicatorsCompositioner is one specific IndicatorsCompositioner combining Talib operations.
+ * For the TalibIndicatorsCompositioner to be available as EventInfo, we needed an operation that is NOT an OperationsCompositioner. 
+ * As its operand are actually hard coded, this first is a PMDataFreeOperation.
+ * The approach was to create an operation (TalibIndicatorsCompositionerGenericOperation) with each TalibIndicatorsCompositioner as its operator.
+ * It then needs to be wrapped within an OperationsCompositioners through a UI defined formulae. {@link com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerGenericOperation}.
  * 
- * For instance, TalibIndicatorsCompositioner is one of IndicatorsCompositioner and therefore can be used by the mean of a new EventDefinition (also originally called second pass operations) for each of its implementations, but is not modifiable.
- * If we need to parameterise TalibIndicatorsCompositioner and its operands, we need an operation that is not an OperationsCompositioner. Also, as its operand are actually hard coded, this will be a PMDataFreeOperation.
- * The idea here is hence to integrate the TalibIndicatorsCompositioner into an operation of type DoubleMapOperation (here PMDataFreeOperation) and then make it potentially available to used in an OperationsCompositioner through the UI.
- * This operation is making it parametrisable and usable as operand of an OperationsCompositioner.
- * The events output of the calculator (or any other output) can be the input (for event calculation or for display) of the OperationsCompositioner.
- * This is for instance done that way for IndicatorsCompositioners such as Perceptron and Encog calculators.
- * 
- * An other approach is too create an operation for all TalibIndicator used as subjacent indicators of each TalibIndicatorsCompositioner.
- * Then replicate every TalibIndicatorsCompositioner calculation by creating OperationsCompositioners through the UI.
- * 
- * Reviewed terminology : 
- *  Indicator(s)/Calculator(s)/IndicatorsCompositionner(former EventCompositionCalculator and could be renamed IndicatorOperator, xxxOperator) 
- *  --takes-> Operation(s) 
- *  --which can be or can take-> OperationsCompositionner (former EventConditionHolder and could be renamed IndicatorEventMapOperation or EventInfoEventMapOperation) as operands
+ * Reviewed terminology :
+ * 	OperationsCompositionner (former EventConditionHolder) => which should be renamed to IndicatorsBullBearSwitchOperation or EventInfoBullBearSwitchOperation
+ *	-- takes operands -> Operation(s)
+ *  -- takes an operator -> Indicator(s)/Calculator(s)/IndicatorsCompositionner (former EventCompositionCalculator) => which should be renamed to IndicatorOperator, xxxOperator
  */
 public abstract class IndicatorsCompositioner {
 

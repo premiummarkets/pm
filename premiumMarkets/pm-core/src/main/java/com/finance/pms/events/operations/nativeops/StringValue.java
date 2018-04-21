@@ -33,11 +33,12 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
-public class StringValue extends Value<String> implements Cloneable  {
+public class StringValue extends Value<String> implements StringableValue, Cloneable  {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(StringValue.class);
 	

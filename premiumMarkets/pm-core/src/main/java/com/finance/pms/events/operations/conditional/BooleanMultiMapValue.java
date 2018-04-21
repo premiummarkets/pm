@@ -33,11 +33,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 
 public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapValue {
@@ -58,12 +56,6 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 		super(keySet, initValue);
 		additionalOutputs = new HashMap<String, DoubleMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
-	}
-
-
-	@Override
-	public SortedMap<Date, Boolean> getValue(TargetStockInfo targetStock) {
-		return map;
 	}
 
 	@Override

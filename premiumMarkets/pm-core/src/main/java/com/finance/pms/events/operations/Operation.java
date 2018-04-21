@@ -85,7 +85,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
     //Pre set value for this
     private Value<?> parameter;
-    //Default value hint for this
+    //Default value hint for this : it is a StringableValue
     private Value<?> defaultValue;
 
     //This name as operand of the parent
@@ -136,12 +136,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     }
 
 
-    public Operation(String reference, String referenceAsOperand, String description, Value<?> defaultValue) {
+    public Operation(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
         super();
         this.reference = reference;
         this.referenceAsOperand = referenceAsOperand;
         this.description = description;
-        this.defaultValue = defaultValue;
+        this.defaultValue = (Value<?>) defaultValue;
         this.operands = new ArrayList<Operation>();
         this.availableOutputSelectors = new ArrayList<String>();
 
@@ -463,7 +463,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     public Boolean isNative() {
         return formula == null;
     }
-    
+
     /**
      * Name given to this operation as a parameter of higher order operation.
      */
@@ -480,7 +480,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
     }
 
     public void setDefaultValue(Value<?> defaultValue) {
-        this.defaultValue = defaultValue;
+        this.defaultValue = (Value<?>) defaultValue;
     }
 
     public String synoptic() {
@@ -498,8 +498,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
             sep = ", ";
         }
 
-        String referenceSyno = ParameterizedOperationBuilder.readableCamelCase(((this.referenceAsOperand !=null)?this.referenceAsOperand:this.reference));
-        String defaultSyno = (defaultValue == null)?"":" (defaults to "+defaultValue.getValue(null)+")"; //XXX default values can't be stock dependent (hence the getValue(null)) ... this is bug prone (TODO use a special type or interface for the default value?)
+        String referenceSyno = ParameterizedOperationBuilder.readableCamelCase(((this.referenceAsOperand != null)?this.referenceAsOperand:this.reference));
+        String defaultSyno = (defaultValue == null)?"":" (defaults to "+((StringableValue) defaultValue).getValueAsString()+")";
         String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":"\nOutput selectors : "+outputSelectorSynoptic;
         String paramsSyno = (operandsSynoptic.isEmpty())?"":"\nOperands : "+operandsSynoptic;
         return referenceSyno + defaultSyno + outSelectorSyno + paramsSyno;
@@ -522,7 +522,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
             sep = " or ";
         }
         String referenceSyno = (this.referenceAsOperand !=null)?this.referenceAsOperand:this.reference;
-        String defaultSyno = (defaultValue == null)?"":" (defaults to "+defaultValue.getValue(null)+")";
+        String defaultSyno = (defaultValue == null)?"":" (defaults to "+((StringableValue) defaultValue).getValueAsString()+")";
         String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":":"+outputSelectorSynoptic;
         String paramsSyno = (operandsSynoptic.isEmpty())?"": "("+operandsSynoptic+")";
         return referenceSyno + outSelectorSyno + paramsSyno + defaultSyno;

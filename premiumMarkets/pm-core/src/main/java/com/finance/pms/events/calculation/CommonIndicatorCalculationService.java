@@ -73,12 +73,12 @@ import com.finance.pms.threads.ObserverMsg;
  * @author Guillaume Thoreton
  */
 public class CommonIndicatorCalculationService extends IndicatorsCalculationService {
-	
+
 	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(CommonIndicatorCalculationService.class);
-	
+
 	private Map<EventDefinition, Class<IndicatorsCompositioner>> availSecondPIndCalculators;
-	
+
 	/**
 	 * Instantiates a new talib indicator calculation service.
 	 * Initialized in spring context
@@ -96,40 +96,40 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer...observers) 
 					throws InvalidAlgorithmParameterException, IncompleteDataSetException {
-		
+
 		//TODO deal with the periodType
 		if (!periodType.equals("daily")) throw new UnsupportedOperationException("Period != daily. Fix me!");
-		
+
 		if (null == dateDeb || null == dateFin) {
 			throw new InvalidAlgorithmParameterException("",new Throwable());
 		}
-		
+
 		try {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(dateDeb);
 			Integer minDiff = new Integer("-"+MainPMScmd.getMyPrefs().get("talib.daysbackwardday","10"));
 			QuotationsFactories.getFactory().incrementDate(calendar, -minDiff);
 			dateDeb =  calendar.getTime();
-			
+
 		} catch (NumberFormatException e) {
 			LOGGER.error("Invalid number of days backward : "+"-"+MainPMScmd.getMyPrefs().get("talib.daysbackwardday","10"),e);
 		}
-		
+
 		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
 		return allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, passNumber, passOneCalcMode, observers);
-		
+
 	}
 
-	
+
 	private Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> allEventsCalculation(
-				Collection<Stock> stList, Date startDate, Date endDate, 
-				Currency calculationCurrency, String eventListName, int passNumber, String passOneCalcMode, Observer... observers) 
-				throws IncompleteDataSetException {
-		
+			Collection<Stock> stList, Date startDate, Date endDate, 
+			Currency calculationCurrency, String eventListName, int passNumber, String passOneCalcMode, Observer... observers) 
+					throws IncompleteDataSetException {
+
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
-		
+
 		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
-		
+
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
 		List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
 		int obsSize = stList.size() + 1;
@@ -137,10 +137,10 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize));
 		}
 		Set<Observer> obsSet = new HashSet<Observer>(Arrays.asList(observers));
-		
+
 		Boolean isDataSetComplete = true;
 		for (final Stock stock : stList) {
-			
+
 			try {
 				LOGGER.guiInfo("Calculation requested : pass "+passNumber+" events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
 
@@ -149,7 +149,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 				IndicatorsCalculationThread calculationRunnableTarget = null;
 				Currency stockCalcCurrency = (calculationCurrency == null)? stock.getMarketValuation().getCurrency() : calculationCurrency;
-				
+
 				//Adjust calculation date to available quotes
 				Date adjustedStartDate = TunedConfMgr.getInstance().minimumStartDate(stock);
 				if (adjustedStartDate.before(startDate) || adjustedStartDate.equals(startDate)) {
@@ -171,7 +171,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+adjustedEndDate);
 					continue;
 				}
-				
+
 				LOGGER.info("Final dates adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " are now from "+adjustedStartDate+" to "+adjustedEndDate);
 				//Calculations
 				if (passNumber == 1) {//pass 1
@@ -187,7 +187,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 							availSecondPIndCalculators, eventQueue, jmsTemplate);
 
 				}
-				
+
 				if (calculationRunnableTarget != null) {
 					Future<SymbolEvents> submitedRunnable = (Future<SymbolEvents>) executor.submit(calculationRunnableTarget);
 					futures.add(submitedRunnable);
@@ -198,7 +198,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				isDataSetComplete = false;
 			}
 		}
-		
+
 		executor.shutdown();
 		try {
 			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
@@ -212,7 +212,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			LOGGER.error(shutdownNow, e);
 			isDataSetComplete = false;
 		}
-		
+
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 		List<Stock> failingStocks = new ArrayList<Stock>();
 		for (Future<SymbolEvents> future : futures) {
@@ -220,10 +220,10 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			try {
 
 				SymbolEvents se = future.get();
-				
+
 				//Events
 				allEvents.add(se);
-				
+
 				//Output
 				Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = se.getCalculationOutputs();
 				if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
@@ -232,7 +232,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			} catch (Exception e1) {
 
 				isDataSetComplete = false;
-				
+
 				if (e1.getCause() != null && e1.getCause() instanceof IncompleteDataSetException) {
 					LOGGER.warn(e1,e1);
 					failingStocks.addAll(((IncompleteDataSetException) e1.getCause()).getFailingStocks());
@@ -242,12 +242,12 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				} else {
 					LOGGER.error(e1, e1);
 				}
-				
+
 			}
 		}
-		
+
 		try {
-			
+
 			if (LOGGER.isInfoEnabled()) {
 				try {
 					int nbEvents = 0;
@@ -267,29 +267,29 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 					e.printStackTrace();
 				}
 			}
-			
+
 			EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
-			
+
 			for (Observer observer : observers) {
 				observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.NONE));
 			}
-			
+
 		} catch (Exception e) {	
 			isDataSetComplete = false;
-			
+
 			if (e.getCause() != null && (e.getCause() instanceof SQLIntegrityConstraintViolationException || e.getCause() instanceof BatchUpdateException)) {
 				LOGGER.warn("Intercepted : "+e+" -> IncompleteDataset");
 			} else {
 				LOGGER.error(e,e);
 			}
-			
+
 		}
-		
-		
+
+
 		if (!isDataSetComplete) {
 			throw new IncompleteDataSetException(failingStocks, allEvents, calculatedOutputReturn, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
 		}
-		
+
 		return calculatedOutputReturn;
 	}
 }

@@ -67,8 +67,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 /**
  * 
  * @author guil
- * The ParameterizedIndicatorsCompositioner is an IndicatorsCompositioner parameterised through the mean of Operations and with its algorithmic defined by an OperationsCompositioner
- *
+ * The ParameterizedIndicatorsCompositioner is a specific IndicatorsCompositioner calculator parameterized through the mean of an OperationCompositionner and its user formulae.
+ * It is the core calculator that is used to initiates all EventInfo in the calculations loops.
  */
 public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositioner {
 

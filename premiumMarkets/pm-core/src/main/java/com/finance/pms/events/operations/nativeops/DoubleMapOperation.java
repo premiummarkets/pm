@@ -35,6 +35,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -45,7 +46,7 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 		super("historical data", "Time series of real historical data or resulting of calculations");
 	}
 
-    public DoubleMapOperation(String reference) {
+	public DoubleMapOperation(String reference) {
 		super(reference, reference);
 	}
 
@@ -56,9 +57,9 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 	public DoubleMapOperation(String reference, String description, ArrayList<? extends Operation> operands) {
 		super(reference, description, operands);
 	}
-	
-	public DoubleMapOperation(String reference, String referenceAsOperand, String description, Value<?> defaultValue) {
-	    super(reference, referenceAsOperand, description, defaultValue);
+
+	public DoubleMapOperation(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
+		super(reference, referenceAsOperand, description, defaultValue);
 	}
 
 	@Override

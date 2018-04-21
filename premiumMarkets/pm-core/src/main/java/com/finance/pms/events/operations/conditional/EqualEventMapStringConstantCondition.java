@@ -2,7 +2,6 @@ package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.SortedMap;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -13,7 +12,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 
 @XmlRootElement
-public class EqualEventMapStringConstantCondition extends EqualStringConstantCondition<SortedMap<EventKey, EventValue>, EventKey, EventValue> {
+public class EqualEventMapStringConstantCondition extends EqualStringConstantCondition<EventKey, EventValue> {
 
     private EqualEventMapStringConstantCondition() {
         super(

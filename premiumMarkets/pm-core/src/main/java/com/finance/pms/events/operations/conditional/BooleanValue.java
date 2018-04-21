@@ -30,10 +30,11 @@
 package com.finance.pms.events.operations.conditional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-public class BooleanValue extends Value<Boolean> implements Cloneable {
+public class BooleanValue extends Value<Boolean> implements StringableValue, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanValue.class);
 	

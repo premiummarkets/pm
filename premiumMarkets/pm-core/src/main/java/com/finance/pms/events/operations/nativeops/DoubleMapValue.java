@@ -34,10 +34,11 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-public class DoubleMapValue extends Value<SortedMap<Date, Double>>  implements Cloneable {
+public class DoubleMapValue extends Value<SortedMap<Date, Double>> implements MapValue<Date, Double>, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleMapValue.class);
 	
@@ -74,5 +75,4 @@ public class DoubleMapValue extends Value<SortedMap<Date, Double>>  implements C
 		}
 		return null;
 	}
-
 }

@@ -485,7 +485,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	@Override
 	public void endRefreshAction(List<Exception> exceptions) {
-		//Nothing
+		if (exceptions != null && !exceptions.isEmpty()) showPopupDialog("Calculation has failed", "Ok", exceptions.toString(), null);
 	}
 
 	@Override

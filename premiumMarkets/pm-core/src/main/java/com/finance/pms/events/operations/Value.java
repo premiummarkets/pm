@@ -32,8 +32,6 @@ package com.finance.pms.events.operations;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -48,11 +46,6 @@ public abstract class Value<T> {
 	}
 	
 	public abstract T getValue(TargetStockInfo targetStock);
-	
-	//Default value as a string that would make sense as input to the String constructor (if any as this is valid only for values from leaf operations!)
-	public String getValueAsString() {
-		throw new NotImplementedException();
-	}
 	
 	public abstract String toString();
 

@@ -30,16 +30,16 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-public class BooleanMapValue extends Value<Map<Date, Boolean>> implements Cloneable {
+public class BooleanMapValue extends Value<SortedMap<Date, Boolean>> implements MapValue<Date, Boolean>, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 	

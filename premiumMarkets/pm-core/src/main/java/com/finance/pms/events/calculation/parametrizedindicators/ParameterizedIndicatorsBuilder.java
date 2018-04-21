@@ -106,7 +106,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 						List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
 						if (!checkInUse.isEmpty()) {
 							LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
-							cleanEventFor(checkInUse);
+							setDirtyCalculationsFor(checkInUse);
 							for (Operation opInUse : checkInUse) {
 								if (opInUse instanceof EventInfo) {
 									EventModel.dirtyCacheFor((EventInfo) opInUse);
@@ -129,11 +129,11 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 				}
 			}
 
-			private void cleanEventFor(List<Operation> checkInUse) {
+			private void setDirtyCalculationsFor(List<Operation> checkInUse) {
 				OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
 						.filter(op -> op instanceof OperationsCompositioner)
 						.collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
-				TunedConfMgr.getInstance().resetEventsAndConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
+				TunedConfMgr.getInstance().cleanEventsAndDirtyConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
 			}
 		});
 

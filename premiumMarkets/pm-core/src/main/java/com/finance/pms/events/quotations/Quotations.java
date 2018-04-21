@@ -154,7 +154,7 @@ public class Quotations {
 		this.setUnfilteredQuotationData(requestedQuotationsData);
 		
 		if (!hasQuotations()) {
-			throw new NoQuotationsException("No quotation available for "+this.stock+" within "+firstDate+" and "+lastDate);
+			throw new NoQuotationsException("No quotation available for "+this.stock+" within "+firstDate+" and "+lastDate+ " and filters "+cacheFilter+", "+otherCacheFilters);
 		}
 	}
 

@@ -36,6 +36,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -119,6 +120,11 @@ public class TunedConf {
 	//Hib
 	public void setDirty(Boolean dirty) {
 		this.dirty = dirty;
+	}
+	
+	@Transient
+	public Boolean isValid() {
+		return this.getLastCalculatedEvent().after(this.getLastCalculationStart());
 	}
 
 }

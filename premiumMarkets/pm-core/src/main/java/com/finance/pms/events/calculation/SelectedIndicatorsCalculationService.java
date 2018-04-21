@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -86,9 +87,10 @@ public class SelectedIndicatorsCalculationService {
 
 				} catch (Exception e1) {
 					LOGGER.warn("Could not proceed with initialisation of calculation for "+stock +": "+e1.getMessage());
-					//We clean the tunedConfs assuming subsequent calculations will fail as well.
+					//We update the tunedConfs assuming subsequent calculations will fail as well.
 					stocksEventInfos.get(stock).stream().forEach( ei -> {
 						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
+						tunedConf.setDirty(false);
 						TunedConfMgr.getInstance().updateConf(tunedConf, DateFactory.dateAtZero());
 					});
 					isDataSetComplete = false;
@@ -106,6 +108,13 @@ public class SelectedIndicatorsCalculationService {
 					try {
 						SymbolEvents symbolEvents = stockEventInfoFuture.get();
 						stockAllSymbolEvents.addEventResultElement(symbolEvents);
+					} catch (ExecutionException executionException) {
+						Throwable cause = executionException.getCause();
+						if (cause instanceof IncompleteDataSetException) {
+							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> stockAllSymbolEvents.addEventResultElement(se));
+							isDataSetComplete = false;
+							failingStocks.add(stock);
+						}
 					} catch (Exception e) {
 						LOGGER.error("Failed : events for stock "+stock.toString()+" between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate), e);
 						isDataSetComplete = false;
@@ -113,7 +122,7 @@ public class SelectedIndicatorsCalculationService {
 					}
 				}
 
-				//Output
+				//Output //TODO UI?
 				//Map<EventInfo, SortedMap<Date, double[]>> calculationOutput = symbolEventsMap.get(stock).getCalculationOutputs();
 				//if (calculationOutput == null) calculationOutput = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 				//calculatedOutputReturn.put(stock, calculationOutput);

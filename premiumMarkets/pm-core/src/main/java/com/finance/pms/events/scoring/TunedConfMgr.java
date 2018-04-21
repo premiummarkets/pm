@@ -155,18 +155,22 @@ public class TunedConfMgr {
 	}
 
 	private void setDirty(TunedConf tunedConf) {
-		updateConf(tunedConf, true, DateFactory.dateAtZero(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
+		updateConf(tunedConf, true, tunedConf.getLastCalculatedEvent(), tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
 	}
 
 	private void setClean(TunedConf tunedConf) {
-		updateConf(tunedConf, false, DateFactory.dateAtZero(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
+		updateConf(tunedConf, tunedConf.getDirty(), DateFactory.dateAtZero(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
 	}
 
 	public void updateConf(TunedConf tunedConf, Date lastEventDate) {
-		this.updateConf(tunedConf, false, lastEventDate, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
+		this.updateConf(tunedConf, tunedConf.getDirty(), lastEventDate, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
 	}
 
-	public void updateConf(TunedConf tunedConf, Boolean dirty, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
+	public void updateConf(TunedConf tunedConf, Date lastEventDate, Date newTunedConfStart, Date newTunedConfEnd) {
+		this.updateConf(tunedConf, tunedConf.getDirty(), lastEventDate, newTunedConfStart, newTunedConfEnd);
+	}
+
+	private void updateConf(TunedConf tunedConf, Boolean dirty, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
 		if (lastCalculatedEvent != null) tunedConf.setLastCalculatedEvent(lastCalculatedEvent);
 		tunedConf.setLastCalculationStart(lastCalculationStart);
 		tunedConf.setLastCalculationEnd(lastCalculationEnd);
@@ -227,16 +231,15 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void resetEventsAndConfs(String analysisName, EventInfo... indicators) {
+	public void cleanEventsAndDirtyConfs(String analysisName, EventInfo... indicators) {
+
+		EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, indicators);
 
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		loadAllTunedConfs.stream()
-			.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
-			.forEach(tc -> setDirty(tc));
-
-		EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, indicators);
-
+		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
+		.forEach(tc -> setDirty(tc));
 	}
 
 	/**
@@ -245,13 +248,14 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void resetEventsAndConfs(Stock stock, String analysisName, EventInfo[] indicators) {
+	public void cleanEventsAndDirtyConfs(Stock stock, String analysisName, EventInfo[] indicators) {
+
+		EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
+
 		for(EventInfo ei: indicators) {
 			TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
 			setDirty(tc);
 		}
-
-		EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
 	}
 
 }

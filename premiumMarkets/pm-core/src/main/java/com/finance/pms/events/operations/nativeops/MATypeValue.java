@@ -32,11 +32,12 @@ package com.finance.pms.events.operations.nativeops;
 import javax.xml.bind.annotation.XmlElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.tictactec.ta.lib.MAType;
 
-public class MATypeValue extends Value<MAType> implements Cloneable {
+public class MATypeValue extends Value<MAType> implements StringableValue, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(MATypeValue.class);
 	
@@ -67,7 +68,7 @@ public class MATypeValue extends Value<MAType> implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
+	public Object clone() throws CloneNotSupportedException {
 		try {
 			MATypeValue clone = (MATypeValue) super.clone();
 			return clone;

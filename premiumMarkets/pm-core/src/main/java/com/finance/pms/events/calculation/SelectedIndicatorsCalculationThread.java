@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -71,7 +72,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 	}
 
-	public SymbolEvents call() {
+	public SymbolEvents call() throws IncompleteDataSetException {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
 		try {
@@ -82,10 +83,13 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
 			LOGGER.guiInfo("Finishing "+eventInfo.getEventReadableDef()+" for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
 			return symbolEvents;
-
+			
+		} catch (IncompleteDataSetException e) {
+			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef());
+			throw e;
 		} catch (Exception e) {
 			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef());
-			return new SymbolEvents(stock);
+			throw new IncompleteDataSetException(stock, new HashSet<>(), null);
 		} finally {
 			this.setChanged();
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
@@ -94,21 +98,21 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 	}
 
 	//TODO Only handle OperationsCompositioner and get rid of First and Second pass
-	protected SymbolEvents calculate(Date start, Date end) {
-		
+	protected SymbolEvents calculate(Date start, Date end) throws IncompleteDataSetException {
+
 		SymbolEvents symbolEvents = new SymbolEvents(stock);
 
 		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
 		synchronized (tunedConf) {
-			
+
 			//FIXME delete needs the calculator..
-//			try {
-//				//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
-//				if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
-//			} catch (Exception e) {
-//				LOGGER.error(e,e);
-//			}
-			
+			//			try {
+			//				//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
+			//				if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
+			//			} catch (Exception e) {
+			//				LOGGER.error(e,e);
+			//			}
+
 			CalculationBounds calculationBounds;
 			try {
 				if (eventInfo instanceof OperationsCompositioner && !((OperationsCompositioner) eventInfo).isIdemPotent()) {
@@ -120,7 +124,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			} catch (InvalidAlgorithmParameterException e1) {
 				//Recoverable we leave the tunedConf as is
 				LOGGER.error("Failed invalid calculation dates for " + stock + " using analysis " + eventListName + ": from " + start + " to " + end);
-				throw new RuntimeException(e1);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
 			}
 
 			Date lastEventDate = DateFactory.dateAtZero();
@@ -155,7 +159,6 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					if (calculatedEventsForCalculator != null) {//There are results or empty results
 						lastEventDate = (calculatedEventsForCalculator.isEmpty())? tunedConf.getLastCalculatedEvent(): calculatedEventsForCalculator.lastKey().getDate();
 						dirty = false;
-
 						symbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
 						symbolEvents.addEventResultElement(calculatedEventsForCalculator, eventInfo);
 
@@ -163,23 +166,24 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						LOGGER.warn("Failed (null returned) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
 						lastEventDate = DateFactory.dateAtZero();
 						dirty = false; //Not recoverable issue
-
 						symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 						symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
+						throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
 
 					}
 
 				} else {//No calculation needed
 					LOGGER.info(
 							"Recalculation requested for "+stock+" using analysis "+eventListName+ " and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd+". "+
-							"No recalculation needed calculation bound is "+ calculationBounds.toString());
+									"No recalculation needed calculation bound is "+ calculationBounds.toString());
 					lastEventDate = tunedConf.getLastCalculatedEvent();
 					dirty = false;
 					symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 					symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
+
 				}
 
-			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
+				//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
 				LOGGER.error(
@@ -189,6 +193,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				dirty = false; //Not recoverable issue
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
 
 			} catch (Throwable e) {
 				// Recoverable??
@@ -199,13 +204,15 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				dirty = true; //Recoverable issue ??
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
 
 			} finally {
-				TunedConfMgr.getInstance().updateConf(tunedConf, dirty, lastEventDate, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
+				tunedConf.setDirty(dirty);
+				TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
 			}
 
 		}
-		
+
 		return symbolEvents;
 
 	}

@@ -50,6 +50,7 @@ import org.antlr.runtime.tree.CommonTree;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.antlr.NextToken.TokenType;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 
@@ -144,7 +145,7 @@ public abstract class ANTLRParserHelper {
 								"Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either :"+operation);
 					}
 					if (operand.getParameter() == null) {
-						String defaultAsString = (operand.getDefaultValue() != null)?operand.getDefaultValue().getValueAsString():null;
+						String defaultAsString = (operand.getDefaultValue() != null)?((StringableValue) operand.getDefaultValue()).getValueAsString():null;
 						editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString, operand.getIsVarArgs()));
 					}
 				}
