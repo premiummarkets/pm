@@ -40,7 +40,6 @@ import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -61,10 +60,8 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
-import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -115,29 +112,14 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 			LOGGER.guiInfo("Running task : Analysing from "+datedeb+" to "+datefin);
 
-			IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+			SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
-					SpringContext.getSingleton(), 
-					analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-					stockList, datedeb, datefin,
-					engineObservers.toArray(new Observer[0]));
-
-			Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
-
-			Boolean doRunPassOne = true;
-			//Check if the calculators are Parameterised and have only data free operands leading to first pass being unnecessary
-			if (viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null) {
-				Stream<? extends Object> filter = viewStateParams[0].stream()
-						.filter(e -> ((EventInfo) e).getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId()) && ((Operation) e).collectOperandsOfType(PMWithDataOperation.class).isEmpty());
-				if (filter.count() == viewStateParams[0].size()) {
-					doRunPassOne = false;
-					LOGGER.info("The requested operations are data free, no pass one will be processed : "+
-							viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(", ")));
-				}
-			}
+					SpringContext.getSingleton(), analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
+					stockList, datedeb, datefin, 
+					engineObservers.toArray(new Observer[0])); 
 
 			//Set calculators as dirty if required (This can be handled at the calculator level for further update
 			if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {
@@ -155,37 +137,14 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 				}
 			}
 
-			if (doRunPassOne) {
-				//Pass one
-				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
-				try {
-					runPassOne = runPassOne(actionThread, datedeb, datefin);
-				} catch (Exception e) {
-					LOGGER.error(e, e);
-				}
-				if (runPassOne != null)
-					outputRet.putAll(runPassOne);
+			Map<Stock, Map<EventInfo, EventDefCacheEntry>> result = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+			try {
+				result = run(actionThread, datedeb, datefin);
+			} catch (Exception e) {
+				LOGGER.error(e, e);
 			}
+			if (result != null) outputRet.putAll(result);
 
-			//Pass two
-			if (maxPass == 2) {
-				Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-				try {
-					runPassTwo = runPassTwo(actionThread, datedeb, datefin);
-				} catch (Exception e) {
-					LOGGER.error(e,e);
-				}
-				if (runPassTwo != null) {
-					for (Stock stock : runPassTwo.keySet()) {
-						Map<EventInfo, EventDefCacheEntry> map4Stock = outputRet.get(stock);
-						if (map4Stock == null) {
-							outputRet.put(stock, runPassTwo.get(stock));
-						} else {
-							map4Stock.putAll(runPassTwo.get(stock));
-						}
-					}
-				}
-			} 
 		}
 
 		postCallBackForAnalysis(outputRet, viewStateParams);
@@ -264,29 +223,16 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 	}
 
-	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassTwo(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
-
-		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passTwoOutput;
-		try {
-			passTwoOutput = actionThread.runIndicatorsCalculationPassTwo();
-		} catch (IncompleteDataSetException e1) {
-			passTwoOutput = e1.getCalculatedOutputs();
-		}
-
-		return finalising(actionThread, passTwoOutput, start, end);
-	}
-
-	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> runPassOne(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
+	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> run(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
 
 		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
 		try {
-			passOneOutput = actionThread.runIndicatorsCalculationPassOne(passOneOverwriteMode());
+			passOneOutput = actionThread.runIndicatorsCalculation();
 		} catch (IncompleteDataSetException e1) {
 			passOneOutput = e1.getCalculatedOutputs();
 		}
 
 		return finalising(actionThread, passOneOutput, start, end);
-
 	}
 
 	protected abstract String passOneOverwriteMode();
@@ -309,6 +255,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 			}
 		}
 		return ret;
+
 	}
 
 }

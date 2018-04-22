@@ -237,7 +237,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
             }
         };
 
-        this.analysisList = new ArrayList<String>();	
+        this.analysisList = new ArrayList<String>();
         this.eventRefreshStrategyEngine = modelStrategyEngine;
         this.engineObservers = new HashSet<Observer>();
 
@@ -368,7 +368,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
      * 
      * @author Guillaume Thoreton
      */
-    public void resetAnalisysList() {
+    public void resetAnalysisList() {
         analysisList.clear();
     }
 

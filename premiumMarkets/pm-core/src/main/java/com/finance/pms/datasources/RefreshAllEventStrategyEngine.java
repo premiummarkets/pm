@@ -55,7 +55,7 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
-import com.finance.pms.events.calculation.IndicatorsCalculationService;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -120,23 +120,18 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 			for (int i = 0; i < analysers.length; i++) {
 
 				LOGGER.debug("running analysis for " + analysers[i]);
-				IndicatorsCalculationService analyzer = (IndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
+				SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
 				ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 
 				//Calculations
-				IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
-						SpringContext.getSingleton(),
-						analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
-						sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, engineObservers.toArray(new Observer[0])
-				);
-
-				Integer maxPass = new Integer(MainPMScmd.getMyPrefs().get("event.nbPassMax", "1"));
+				IndicatorAnalysisCalculationRunnableMessage actionThread = 
+						new IndicatorAnalysisCalculationRunnableMessage(
+								SpringContext.getSingleton(), analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
+								sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, 
+								engineObservers.toArray(new Observer[0]));
 				try {
-					actionThread.runIndicatorsCalculationPassOne("auto");
-					if (maxPass == 2) {
-						actionThread.runIndicatorsCalculationPassTwo();
-					}
+					actionThread.runIndicatorsCalculation();
 				} catch (IncompleteDataSetException e) {
 					LOGGER.warn(e,e);
 				} catch (Exception e) {

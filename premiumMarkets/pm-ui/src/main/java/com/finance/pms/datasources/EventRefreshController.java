@@ -191,8 +191,8 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 
                 if (!lastTaskOfThisGroup.equals(TaskId.Clean) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
 
-                    eventModel.resetAnalisysList();
-                    eventModel.getAnalysisList().add("talib");
+                    eventModel.resetAnalysisList();
+                    eventModel.getAnalysisList().add("selectedIndsCalculator");
 
                     tasksGroup.add(new EventRefreshTask(TaskId.Clean, eventModel.rootViewParam , eventModel.otherViewParams) {
                         public void run() {
@@ -217,8 +217,8 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 
                 if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams, startAnalyseDate, endAnalysisDate)) ) {
 
-                    eventModel.resetAnalisysList();
-                    eventModel.getAnalysisList().add("talib");
+                    eventModel.resetAnalysisList();
+                    eventModel.getAnalysisList().add("selectedIndsCalculator");
 
                     tasksGroup.add(new EventRefreshTask(TaskId.Analysis, eventModel.rootViewParam , eventModel.otherViewParams, startAnalyseDate, endAnalysisDate) {
                         public void run() {

@@ -427,7 +427,15 @@ public class SymbolEvents implements Serializable {
 			this.calculationOutputs = new HashMap<EventInfo, SortedMap<Date,double[]>>();
 		}
 		this.calculationOutputs.put(eventInfo, calculationOutput);
-		
+
+	}
+	
+	public void addAllCalculationOutput(Map<EventInfo, SortedMap<Date,double[]>> calculationOutputs) {
+		if (this.calculationOutputs == null) {
+			this.calculationOutputs = new HashMap<EventInfo, SortedMap<Date,double[]>>();
+		}
+		this.calculationOutputs.putAll(calculationOutputs);
+
 	}
 
 }

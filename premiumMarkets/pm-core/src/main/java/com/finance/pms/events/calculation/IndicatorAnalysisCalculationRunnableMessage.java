@@ -32,16 +32,20 @@ package com.finance.pms.events.calculation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -55,25 +59,22 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private static final long serialVersionUID = 1L;
 	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorAnalysisCalculationRunnableMessage.class);
 
-	private final String periodType;
-	private final IndicatorsCalculationService analyzer;
+	//private final String periodType;
+	private final SelectedIndicatorsCalculationService analyzer;
 	private final Date datefin;
 	private final Date datedeb;
 	private Collection<Stock> shareList;
 	private Observer[] observers;
-	private Currency calculationCurrency;
-	
-	private Integer passNumber;
-	private String passOneRecalculationMode;
+	//private Currency calculationCurrency;
 
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
 	private IncompleteDataSetException exception;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
-													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
+													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType, 
 													Collection<Stock> shareList, Date datedeb, Date datefin, Observer... observers) {
 		super(999, springContext, eventListName);
-		this.periodType = periodType;
+		//this.periodType = periodType; //FIXME Not used
 		this.analyzer = analyzer;
 		this.datefin = datefin;
 		this.datedeb = datedeb;
@@ -84,24 +85,13 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	}
 	
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
-													IndicatorsCalculationService analyzer, String eventListName, String periodType, 
+													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType, 
 													Stock oneStock, Date datedeb, Date datefin, Currency calculationCurrency, Observer... observers) {
 		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, observers);
-		this.calculationCurrency = calculationCurrency;
+		//this.calculationCurrency = calculationCurrency; //FIXME Not used
 	}
 	
-	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassOne(String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
-		return this.runIndicatorsCalculation(1, passOneRecalculationMode);
-	}
-	
-	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationPassTwo() throws InterruptedException, IncompleteDataSetException {
-		return this.runIndicatorsCalculation(2, null);
-	}
-	
-	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(Integer passNumber, String passOneRecalculationMode) throws InterruptedException, IncompleteDataSetException {
-		
-		this.passNumber = passNumber;
-		this.passOneRecalculationMode = passOneRecalculationMode;
+	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation() throws InterruptedException, IncompleteDataSetException {
 		
 		this.exception = null;
 		this.runIndicatorsCalculationRes = null;
@@ -124,8 +114,10 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,getConfigs().get(Config.INDICATOR_PARAMS_NAME));
-
-			runIndicatorsCalculationRes = analyzer.runIndicatorsCalculation(shareList, getAnalysisName(), datedeb, datefin, calculationCurrency, periodType, passNumber, passOneRecalculationMode, observers);
+			
+			Map<Stock, List<EventInfo>> stocksEventInfos = shareList.stream().collect(Collectors.toMap(s -> s, s-> ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepsAndParameterised()));
+			List<SymbolEvents> calculated = analyzer.calculate(datedeb, datefin, getAnalysisName(), stocksEventInfos, observers);
+			runIndicatorsCalculationRes = calculated.stream().collect(Collectors.toMap(se -> se.getStock(), se -> se.getCalculationOutputs()));
 			
 		} catch (IncompleteDataSetException e) {
 			exception = e;

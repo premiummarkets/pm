@@ -61,52 +61,53 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
 public class WeatherChecker extends IndicatorsCompositioner {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(WeatherChecker.class);
 
 	private Date startDate;
 	private Date endDate;
 	SortedSet<WeatherElement> weatherElements;
 
+	public WeatherChecker(Date startDate, Date endDate, Observer... observers) {
+		super(observers);
+		this.weatherElements = WeatherDAOImpl.getInstance().getMonthlyWeatherUntil(endDate, new WeatherElementsComparator());
+		this.startDate = startDate;
+		this.endDate = endDate;
+	}
+
 	//com.finance.pms.events.EventInfo, com.finance.pms.datasources.shares.Stock, java.util.Date, java.util.Date, com.finance.pms.datasources.shares.Currency, java.lang.String, java.lang.Boolean, [Ljava.util.Observer;)
 	public WeatherChecker(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Observer...observers) 
 			throws NotEnoughDataException {
-		
-		super(observers);
-		
-		weatherElements = WeatherDAOImpl.getInstance().getMonthlyWeatherUntil(endDate, new WeatherElementsComparator());
-		this.startDate = startDate;
-		this.endDate = endDate;
-		
+		this(startDate, endDate, observers);
 	}
 
 	@Override 
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
-		
+
 		Calendar endDateCalendar = firstDayOfPrevMonthOf(endDate);
 		Calendar currentDateCalendar = firstDayOfPrevMonthOf(startDate);
 		Calendar todayCalendar = firstDayOfPrevMonthOf(EventSignalConfig.getNewDate());
-		
+
 		EventValue meanEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
 		EventValue trendChangeEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
-		
+
 		for (; 	currentDateCalendar.getTime().compareTo(endDateCalendar.getTime()) <= 0 && currentDateCalendar.getTime().compareTo(todayCalendar.getTime()) <= 0; 
 				currentDateCalendar.add(Calendar.MONTH, 1)) {
 
 			WeatherElement currentDateWeather = new WeatherElement(currentDateCalendar.getTime());
 			SortedSet<WeatherElement> currentDateTailSet = weatherElements.tailSet(currentDateWeather);
-			
+
 			if (currentDateTailSet.size() > 0) {
-			
+
 				currentDateWeather = currentDateTailSet.first();
-				
+
 				Calendar currentDateWeatherCal = Calendar.getInstance();
 				currentDateWeatherCal.setTime(currentDateWeather.getDate());
 				if (currentDateWeatherCal.get(Calendar.YEAR) != currentDateCalendar.get(Calendar.YEAR)) {
 					LOGGER.error("No weather info found for this month"+ currentDateCalendar.getTime()+". Please update.");
 					break;
 				}
-				
+
 				Date sameMonthZeroYear = getSameMonthOfZeroYear(currentDateWeather.getDate());
 				Date sameMonthNextYear = getSameMonthOfNextYear(currentDateWeather.getDate());
 				SortedSet<WeatherElement> monthWeatherElementHistory = weatherElements.subSet(new WeatherElement(sameMonthZeroYear), new WeatherElement(sameMonthNextYear));
@@ -117,9 +118,9 @@ public class WeatherChecker extends IndicatorsCompositioner {
 
 				//Trend change detection
 				trendChangeDetection(trendChangeEventValue, endDate, currentDateWeather, monthMeanOfMonthMeans, eventListName);
-				
+
 			} else {
-				
+
 				LOGGER.error("No month weather data for "+currentDateCalendar.getTime()+" in "+weatherElements+".\n Please update the weather data.");
 			}
 		}
@@ -129,15 +130,15 @@ public class WeatherChecker extends IndicatorsCompositioner {
 			LOGGER.info("Weather mean temperature hint : " +meanEventValue);
 			addEvent(eventData, meanEventValue.getDate(), meanEventValue.getEventDef(), meanEventValue.getEventType(), meanEventValue.getMessage(), eventListName, "mean");
 		}
-		
+
 		if (!trendChangeEventValue.getEventType().equals(EventType.NONE)) {
 			LOGGER.info("Weather trend change in temperature hint : " +trendChangeEventValue);
 			addEvent(eventData, trendChangeEventValue.getDate(), trendChangeEventValue.getEventDef(), trendChangeEventValue.getEventType(), trendChangeEventValue.getMessage(), eventListName, "trend");
 		}
-		
+
 		return eventData;
 	}
-	
+
 	private void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventInfo eventDefinition, EventType eventType, String message, String eventListName, String hint) {
 		EventKey iek = new WeatherEventKey(currentDate, eventDefinition, eventType, hint);
 		EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
@@ -162,32 +163,32 @@ public class WeatherChecker extends IndicatorsCompositioner {
 	private Date getSameMonthOfZeroYear(Date currentDate) {
 		Calendar currentDateCal = Calendar.getInstance();
 		currentDateCal.setTime(currentDate);
-		
+
 		Calendar zeroYearCal = Calendar.getInstance();
 		zeroYearCal.setTime(DateFactory.dateAtZero());
 		zeroYearCal.set(Calendar.MONTH, currentDateCal.get(Calendar.MONTH));
 		Date zeroDate = zeroYearCal.getTime();
 		return zeroDate;
 	}
-	
+
 	private void trendChangeDetection(EventValue eventValue, Date endDate, WeatherElement currentDateWeather, Integer meanHistory, String eventListName) {
-		
+
 		Calendar previousTwoYearsCalendar = Calendar.getInstance();
 		previousTwoYearsCalendar.setTime(currentDateWeather.getDate());
 		previousTwoYearsCalendar.add(Calendar.YEAR, -2);
-		
+
 		try {
 			SortedSet<WeatherElement> previousTwoYearsWeathers = weatherElements.subSet(new WeatherElement(previousTwoYearsCalendar.getTime()), currentDateWeather);
 			Iterator<WeatherElement> iterator = previousTwoYearsWeathers.iterator();
 			WeatherElement firstPrevious = iterator.next();
 			WeatherElement secondPrevious = iterator.next();
-			
+
 			checkWeatherDataValidity(currentDateWeather, firstPrevious, secondPrevious);
-			
+
 			Integer firstPreviousTemp = firstPrevious.getAvgTemp();
 			Integer secondPreviousTemp = secondPrevious.getAvgTemp();
 			Integer currentTemp = currentDateWeather.getAvgTemp();
-			
+
 			if (firstPreviousTemp > secondPreviousTemp && secondPreviousTemp < currentTemp && secondPreviousTemp <= meanHistory) {//up reversal
 				addTrendChangeEvent(eventValue, endDate, EventType.BULLISH, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature reversal detected ");
 			} else if (firstPreviousTemp < secondPreviousTemp && secondPreviousTemp > currentTemp && secondPreviousTemp >= meanHistory) {//down reversal
@@ -201,28 +202,27 @@ public class WeatherChecker extends IndicatorsCompositioner {
 	}
 
 	private void checkWeatherDataValidity(WeatherElement currentDateWeather, WeatherElement firstPrevious, WeatherElement secondPrevious) throws Exception {
-		
+
 		Calendar  firstPreviousCal = Calendar.getInstance();
 		firstPreviousCal.setTime(firstPrevious.getDate());
 		Calendar  secondPreviousCal = Calendar.getInstance();
 		secondPreviousCal.setTime(secondPrevious.getDate());
 		Calendar  currentCal = Calendar.getInstance();
 		currentCal.setTime(currentDateWeather.getDate());
-		
+
 		if (
 				firstPreviousCal.get(Calendar.YEAR) +1 != secondPreviousCal.get(Calendar.YEAR) || secondPreviousCal.get(Calendar.YEAR) +1 != currentCal.get(Calendar.YEAR) ||
 				firstPreviousCal.get(Calendar.MONTH) != secondPreviousCal.get(Calendar.MONTH) || secondPreviousCal.get(Calendar.MONTH) != currentCal.get(Calendar.MONTH)
-				
 			) {
 			throw new Exception("Weather information is not up to date. Please update.");
 		}
 	}
 
 	private void addTrendChangeEvent(EventValue eventValue, Date endDate, EventType eventType, String eventListName,
-									Date firstDayOfPrevMonth, Integer meanHistory, Integer firstPreviousTemp, Integer middlePreviousTemp, Integer currentTemp, String msgPreamb) {
+			Date firstDayOfPrevMonth, Integer meanHistory, Integer firstPreviousTemp, Integer middlePreviousTemp, Integer currentTemp, String msgPreamb) {
 		DateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
 		DateFormat monthSF = new SimpleDateFormat("MMMMMMMMMMMMMM yyyy");
-		
+
 		String message = 
 				eventType + " " + msgPreamb +
 				"for last " + monthSF.format(firstDayOfPrevMonth) + ". " +
@@ -230,7 +230,7 @@ public class WeatherChecker extends IndicatorsCompositioner {
 				"Current is "+currentTemp+". " +
 				"Mean is "+meanHistory+". " +
 				"On the "+simpleDateFormat.format(endDate);
-		
+
 		addEventConcat(eventValue, eventType, message);
 	}
 
@@ -245,10 +245,10 @@ public class WeatherChecker extends IndicatorsCompositioner {
 		} else {
 			trendHintMsg = "is Equal to historical mean";
 		}
-		
+
 		String message = "Last "+monthSF.format(currentDateWeather.getDate())+" avg temperature ("+currentDateWeather.getAvgTemp()+") "+trendHintMsg+" ("+meanHistory+") on the "+simpleDateFormat.format(endDate);
 		addEventConcat(eventValue, EventType.INFO, message);
-		
+
 	}
 
 	private Integer calculateMeanHistory(SortedSet<WeatherElement> monthWeatherElementHistory) {
@@ -258,7 +258,7 @@ public class WeatherChecker extends IndicatorsCompositioner {
 			meanMonthAvgHistory = meanMonthAvgHistory + weatherElement.getAvgTemp();
 		}
 		meanMonthAvgHistory = meanMonthAvgHistory/i;
-		
+
 		return meanMonthAvgHistory;
 	}
 
@@ -267,11 +267,11 @@ public class WeatherChecker extends IndicatorsCompositioner {
 	}
 
 	private EventValue addEventConcat(EventValue concatenedEvtVal, EventType newEventType, String message) {
-		
+
 		concatenedEvtVal.setMessage(message+"\n"+concatenedEvtVal.getMessage());
-		
+
 		EventType prevEventType= concatenedEvtVal.getEventType();
-		
+
 		switch (prevEventType) {//event type super seeding : NONE, INFO, BULLISH/BEARISH
 		case NONE : //NONE is super seeded by all others
 			concatenedEvtVal.setEventType(newEventType);
@@ -286,7 +286,7 @@ public class WeatherChecker extends IndicatorsCompositioner {
 		default:
 			throw new NotImplementedException(new Throwable());
 		}
-		
+
 		return concatenedEvtVal;
 	}
 
@@ -299,7 +299,7 @@ public class WeatherChecker extends IndicatorsCompositioner {
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.WEATHER;
 	}	
-	
+
 	@Override
 	public EmailFilterEventSource getSource() {
 		return EmailFilterEventSource.PMGlobalBuySell;

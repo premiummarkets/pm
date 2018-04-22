@@ -168,7 +168,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
                     Operation operand = operands.get(i);
 
-                    Value<?> output = operand.run(targetStock);		
+                    Value<?> output = operand.run(targetStock);
                     operandsOutputs.add(output);
 
                     gatherCalculatedOutput(targetStock, operand, output);

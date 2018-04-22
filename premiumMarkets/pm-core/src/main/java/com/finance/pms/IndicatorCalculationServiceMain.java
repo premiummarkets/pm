@@ -149,7 +149,8 @@ public class IndicatorCalculationServiceMain {
 					if (monitoredOnly) {
 						shareList = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
 					}
-					AbstractAnalysisClientRunnableMessage runnableMessage = new IndicatorAnalysisCalculationRunnableMessage(SpringContext.getSingleton(), analyzers[0], AUTOPORTFOLIO, periodType, shareList, datedeb, datefin);
+					AbstractAnalysisClientRunnableMessage runnableMessage = null; //FIXME
+							//new IndicatorAnalysisCalculationRunnableMessage(SpringContext.getSingleton(), analyzers[0], AUTOPORTFOLIO, periodType, shareList, datedeb, datefin);
 					Thread thread = new Thread(runnableMessage);
 					thread.start();
 					while (thread.isAlive());
@@ -197,9 +198,9 @@ public class IndicatorCalculationServiceMain {
 						LOGGER.debug("",e1);
 					}
 					
-					IndicatorAnalysisCalculationRunnableMessage indicatorAnalyser = 
-						new IndicatorAnalysisCalculationRunnableMessage(springContext, analyzers[0], COMMAND_LINE_ANALYSIS, periodType, shareList, datedeb, datefin);
-					indicatorAnalyser.runIndicatorsCalculationPassOne("auto");
+					IndicatorAnalysisCalculationRunnableMessage indicatorAnalyser = null; //FIXME
+						//new IndicatorAnalysisCalculationRunnableMessage(springContext, analyzers[0], COMMAND_LINE_ANALYSIS, periodType, shareList, datedeb, datefin);
+						//indicatorAnalyser.runIndicatorsCalculationPassOne("auto");
 					
 				} catch (Exception e) {
 					LOGGER.error("", e);

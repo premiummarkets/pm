@@ -108,10 +108,14 @@ public class SelectedIndicatorsCalculationService {
 					try {
 						SymbolEvents symbolEvents = stockEventInfoFuture.get();
 						stockAllSymbolEvents.addEventResultElement(symbolEvents);
+						stockAllSymbolEvents.addAllCalculationOutput(symbolEvents.getCalculationOutputs());
 					} catch (ExecutionException executionException) {
 						Throwable cause = executionException.getCause();
 						if (cause instanceof IncompleteDataSetException) {
-							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> stockAllSymbolEvents.addEventResultElement(se));
+							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> {
+								stockAllSymbolEvents.addEventResultElement(se);
+								stockAllSymbolEvents.addAllCalculationOutput(se.getCalculationOutputs());
+							});
 							isDataSetComplete = false;
 							failingStocks.add(stock);
 						}

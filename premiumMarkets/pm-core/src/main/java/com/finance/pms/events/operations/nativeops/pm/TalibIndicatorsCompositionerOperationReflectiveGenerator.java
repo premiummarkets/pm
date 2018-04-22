@@ -31,12 +31,12 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
 
                         List<String> inConstantsNames = Arrays.stream(calculatorClass.getDeclaredMethods())
                                 .filter(m -> m.getName().equals("init"))
-                                .flatMap(m -> Arrays.stream(m.getParameters()).map( p -> p.getName()))
+                                .flatMap(m -> Arrays.stream(m.getParameters()).map(p -> p.getName()))
                                 .collect(Collectors.toList());
 
                         LOGGER.info("Initialising TalibIndicatorsCompositionerGenericOperation : "+calculatorClass.getSimpleName());
                         return new TalibIndicatorsCompositionerGenericOperation(
-                                "gx_"+calculatorClass.getSimpleName(), "gx_ "+calculatorClass.getSimpleName(), 
+                                "gx_"+calculatorClass.getSimpleName(), "gx_"+calculatorClass.getSimpleName(),
                                 calculatorClass, inConstantsNames);
 
                     } catch (NotImplementedException e) {
