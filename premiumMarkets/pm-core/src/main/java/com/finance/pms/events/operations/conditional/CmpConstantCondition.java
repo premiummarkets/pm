@@ -62,7 +62,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 
 	
 	protected CmpConstantCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"), new DoubleMapOperation("historical data input"));
+		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"), new DoubleMapOperation("'"+reference+ "' indicator"));
 	}
 
 	public CmpConstantCondition(String reference, String description, ArrayList<Operation> operands) {

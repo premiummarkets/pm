@@ -38,7 +38,7 @@ public class EqualDoubleMapCondition extends CmpDoubleMapCondition {
 	
 
 	private EqualDoubleMapCondition() {
-		super("historical equality", "True when the first time series value is equal the second one.");
+		super("historical equality comparison", "True when the first time series value is equal the second one.");
 	}
 	
 	public EqualDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {

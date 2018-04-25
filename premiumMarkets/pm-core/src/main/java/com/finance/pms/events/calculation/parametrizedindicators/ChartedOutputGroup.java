@@ -85,8 +85,22 @@ public class ChartedOutputGroup {
 				discriminentReference = ((StringableValue) value).getValueAsString();
 			}
 
-			String famillyName = outputReference.getOperationReference()+ ((outputReference.getOutputSelector() != null)?":"+outputReference.getOutputSelector():"");
-			return discriminentReference + " (" + famillyName + ") displayed as " + outputReference.getReferenceAsOperand();
+			String famillyName = outputReference.getOperationReference() + 
+									((outputReference.getOutputSelector() != null)?":"+outputReference.getOutputSelector():"");
+
+//			String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
+//			if (type.equals(Type.MAIN)) {
+//				displayedAs = "indicator";
+//			}
+//			if (type.equals(Type.MULTISIGNAL) || type.equals(Type.SIGNAL)) {
+//				displayedAs = "signal";
+//			}
+
+			String displayedAs = (outputReference.getReferenceAsOperand() != null)?
+									outputReference.getReferenceAsOperand():
+									((outputReference.getOutputSelector() != null)?outputReference.getOutputSelector():outputReference.getOperationReference());
+
+			return discriminentReference + " (" + famillyName + ") on graph as " + displayedAs;
 		}
 
 		@Override

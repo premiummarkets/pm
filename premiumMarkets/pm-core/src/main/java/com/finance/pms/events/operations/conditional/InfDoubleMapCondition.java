@@ -37,7 +37,7 @@ import com.finance.pms.events.operations.Operation;
 public class InfDoubleMapCondition extends CmpDoubleMapCondition {
 	
 	private InfDoubleMapCondition() {
-		super("historical inferiority", "True when the first time series value is strictly below the second one.");
+		super("historical below comparison", "True when the first time series value is strictly below the second one.");
 	}
 	
 	public InfDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {

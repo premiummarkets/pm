@@ -248,7 +248,7 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void cleanEventsAndDirtyConfs(Stock stock, String analysisName, EventInfo[] indicators) {
+	public void cleanEventsAndDirtyConfs(Stock stock, String analysisName, EventInfo... indicators) {
 
 		EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
 

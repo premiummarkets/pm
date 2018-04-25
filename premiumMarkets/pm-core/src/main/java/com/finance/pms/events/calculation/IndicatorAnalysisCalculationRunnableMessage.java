@@ -70,8 +70,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculationRes;
 	private IncompleteDataSetException exception;
 
-	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
-													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType, 
+	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext,
+													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType,
 													Collection<Stock> shareList, Date datedeb, Date datefin, Observer... observers) {
 		super(999, springContext, eventListName);
 		//this.periodType = periodType; //FIXME Not used
@@ -85,7 +85,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	}
 	
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
-													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType, 
+													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType,
 													Stock oneStock, Date datedeb, Date datefin, Currency calculationCurrency, Observer... observers) {
 		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, observers);
 		//this.calculationCurrency = calculationCurrency; //FIXME Not used

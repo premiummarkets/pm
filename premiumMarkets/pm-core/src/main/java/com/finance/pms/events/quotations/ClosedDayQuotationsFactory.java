@@ -202,9 +202,38 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 				TreeMap::new,
 				(result, qU) -> result.put(qU.getDate(), new double[] {qU.getData(QuotationDataType.CLOSE).doubleValue()}),
 				TreeMap::putAll);
-
 	}
 
+	@Override
+	public SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
+		SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
+		for (int i = from; i <= to; i++) {
+			QuotationUnit quotationUnit = quotations.get(i);
+			fullRefSQuotationsMap.put(quotationUnit.getDate(),quotationUnit.getData(field).doubleValue());
+		}
+		return fullRefSQuotationsMap;
+	}
+
+	@Override
+	public SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
+		SortedMap<Date, Number> fullRefSQuotationsMap = new TreeMap<Date, Number>();
+		for (int i = from; i <= to; i++) {
+			QuotationUnit quotationUnit = quotations.get(i);
+			fullRefSQuotationsMap.put(quotationUnit.getDate(), quotationUnit.getData(field));
+		}
+		return fullRefSQuotationsMap;
+	}
+	
+	@Override
+	public SortedMap<Date, Double> buildExactSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException {
+		SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
+		for (int i = from; i <= to; i++) {
+			QuotationUnit quotationUnit = quotations.get(i);
+			fullRefSQuotationsMap.put(quotationUnit.getDate(), quotationUnit.getData(QuotationDataType.CLOSE).doubleValue());
+		}
+		return fullRefSQuotationsMap;
+	}
+	
 	@Override
 	public SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException {
 
@@ -227,26 +256,6 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		} catch (InvalidAlgorithmParameterException e) {
 			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
 		}
-	}
-
-	@Override
-	public SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
-		SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
-		for (int i = from; i <= to; i++) {
-			QuotationUnit quotationUnit = quotations.get(i);
-			fullRefSQuotationsMap.put(quotationUnit.getDate(),quotationUnit.getData(field).doubleValue());
-		}
-		return fullRefSQuotationsMap;
-	}
-
-	@Override
-	public SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
-		SortedMap<Date, Number> fullRefSQuotationsMap = new TreeMap<Date, Number>();
-		for (int i = from; i <= to; i++) {
-			QuotationUnit quotationUnit = quotations.get(i);
-			fullRefSQuotationsMap.put(quotationUnit.getDate(), quotationUnit.getData(field));
-		}
-		return fullRefSQuotationsMap;
 	}
 
 	@Override
