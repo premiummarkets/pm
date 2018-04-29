@@ -46,6 +46,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
@@ -85,21 +86,10 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
-	public TransactionHistory calculate(Date currentDate, String... eventListName) {
-		
-//		//Test
-//		try {
-//			if (currentDate.after(new SimpleDateFormat("yyyyMMdd").parse("20120930")) && this.name.equals("APEG") ) {
-//				System.out.println("I am here");
-//			}
-//		} catch (ParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		//Test
+	public TransactionHistory calculate(Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
 		
 		List<SymbolEvents> listEvents = loadEventsForCalculation(currentDate, eventListName);
-		return userPortfolioDelegate.calculate(listEvents, currentDate, getNonNullBuyPonderationRule(), getNonNullSellPonderationRule());
+		return userPortfolioDelegate.calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
 		
 	}
 

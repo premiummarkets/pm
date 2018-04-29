@@ -38,10 +38,10 @@ import java.util.TreeSet;
 import com.finance.pms.portfolio.PortfolioShare;
 
 public class PortfolioSharesAndEvents {
-	
+
 	SortedSet<PortfolioShare> portfolioShares;
 	private SortedMap<EventInfo,List<EventValue>> events;
-	
+
 	public PortfolioSharesAndEvents() {
 		super();
 		this.events = new TreeMap<EventInfo, List<EventValue>>();

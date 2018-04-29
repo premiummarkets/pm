@@ -48,42 +48,41 @@ import com.finance.pms.events.SymbolEvents;
  * @author Guillaume Thoreton
  */
 public abstract class PonderationRule implements Comparator<SymbolEvents>, Serializable {
-	
+
 	private static final long serialVersionUID = -5794918385779129800L;
 	private static MyLogger LOGGER = MyLogger.getLogger(PonderationRule.class);
-	
+
 	protected Signal signal;
-	private SortedMap<EventKey,EventValue> sortedEventMap;
-	
+
 	public PonderationRule() {
 		super();
 	}
 
-	private Signal calculateSignal() {
-		
+	private Signal calculateSignal(SortedMap<EventKey,EventValue> sortedEventMap) {
+
 		Integer isAddingUp = 0;
-		
+
 		for (EventKey eventKey : sortedEventMap.keySet()) {
-			
+
 			LOGGER.trace("Processing event : "+ sortedEventMap.get(eventKey) +" at date "+ new SimpleDateFormat("yyyy/MM/dd").format(eventKey.getDate()));
-			
+
 			if (isAddingUp != -1) {
 				isAddingUp = this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
 			} else {
 				//Check remaining alerts as all alerts must be checked and prevail
 				if (isNonCumulativeEvent(sortedEventMap.get(eventKey))) this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
 			}
-			
+
 			if (shallExit()) {
 				break;
 			}
 		}
-		
+
 		postCondition();
-		
+
 		return signal;
 	}
-	
+
 	protected abstract void postCondition();
 
 	private boolean isNonCumulativeEvent(EventValue eventValue) {
@@ -91,44 +90,43 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 	}
 
 	public Float finalWeight(SymbolEvents symbolEvents) {
-		
+
 		this.signal = initSignal(symbolEvents);
-		this.sortedEventMap = sortEventResults(symbolEvents);
-		this.signal = this.calculateSignal();
+		this.signal = this.calculateSignal(sortEventResults(symbolEvents));
 		return new Float(this.signal.getSignalWeight());
-		
+
 	}
-	
+
 	private SortedMap<EventKey,EventValue> sortEventResults(final SymbolEvents symbolEvents) {
-		
+
 		//Descending order sorted map
 		SortedMap<EventKey,EventValue> sortedMap = 
-			new TreeMap<EventKey, EventValue>(new Comparator<EventKey>() {
-				
-				public int compare(EventKey o1, EventKey o2) {
-					
-					if (o1.equals(o2)) {
-						return 0;
-					}
-					
-					int date = o2.getDate().compareTo(o1.getDate());
-					
-					if (date == 0) {
-						int eventDef = o2.getEventInfo().compareTo(o1.getEventInfo());
-						if (eventDef == 0) {
-							if (EventDefinition.SCREENER.equals(o1.getEventInfo())) {
-								throw new InvalidParameterException("Can't have two screener events at the same date : "+o2+ " and "+o1+" for "+symbolEvents.toString());
-							}
-							return o2.getEventType().compareTo(o1.getEventType());
-						}
-						return eventDef;
-					}
-					return date;
-				}
+				new TreeMap<EventKey, EventValue>(new Comparator<EventKey>() {
 
-			});
+					public int compare(EventKey o1, EventKey o2) {
+
+						if (o1.equals(o2)) {
+							return 0;
+						}
+
+						int date = o2.getDate().compareTo(o1.getDate());
+
+						if (date == 0) {
+							int eventDef = o2.getEventInfo().compareTo(o1.getEventInfo());
+							if (eventDef == 0) {
+								if (EventDefinition.SCREENER.equals(o1.getEventInfo())) {
+									throw new InvalidParameterException("Can't have two screener events at the same date : "+o2+ " and "+o1+" for "+symbolEvents.toString());
+								}
+								return o2.getEventType().compareTo(o1.getEventType());
+							}
+							return eventDef;
+						}
+						return date;
+					}
+
+				});
 		sortedMap.putAll(symbolEvents.getDataResultMap());
-	
+
 		return sortedMap;
 	}
 
@@ -154,6 +152,5 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName();
-	}	
-
+	}
 }

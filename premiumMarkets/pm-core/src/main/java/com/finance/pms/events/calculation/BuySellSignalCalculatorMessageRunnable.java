@@ -49,7 +49,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.portfolio.AutoPortfolioAnalyser;
+import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.portfolio.AutoPortfolioWays;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.TransactionHistory;
@@ -69,14 +69,16 @@ public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClie
 	private Date endDate;
 	private String signalProcessingName;
 	private String[] additionalEventListNames;
+	private PonderationRule ponderationRule;
 
-	public BuySellSignalCalculatorMessageRunnable(String messageTxt, Date startDate, Date endDate, String signalProcessingName, String... eventListName) {
+	public BuySellSignalCalculatorMessageRunnable(String messageTxt, Date startDate, Date endDate, String signalProcessingName, PonderationRule ponderationRule, String... eventListName) {
 		super(5000, SpringContext.getSingleton(), signalProcessingName);
 		this.messageTxt = messageTxt;
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.signalProcessingName = signalProcessingName;
 		this.additionalEventListNames = eventListName;
+		this.ponderationRule = ponderationRule;
 	}
 
 	public void runBuyNSellCalculation() throws InterruptedException {
@@ -95,7 +97,7 @@ public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClie
 				ConfigThreadLocal.set(configName, getPassedThroughConfigs().get(configName));
 			}
 
-			LOGGER.info("Processing signals " +getMessageTxt()+", " + getSignalProcessingName() + " on the " + getStartDate() + " with " + getAdditionalEventListNames());
+			LOGGER.info("Processing signals " + getMessageTxt() + ", " + getSignalProcessingName() + " on the " + getStartDate() + " with " + getAdditionalEventListNames());
 
 			AutoPortfolioWays portfolio = (AutoPortfolioWays) PortfolioMgr.getInstance().getPortfolio(getSignalProcessingName());
 
@@ -103,17 +105,17 @@ public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClie
 			currentDate.setTime(getStartDate());
 			while (currentDate.getTime().before(getEndDate()) || currentDate.getTime().compareTo(getEndDate()) == 0) {
 
-				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), getAdditionalEventListNames());
+				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), ponderationRule, ponderationRule, getAdditionalEventListNames());
 				sendTransactionHistory(calculationTransactions);
 
-				//QuotationsFactories.getFactory().incrementDate(currentDate, 1);
 				currentDate.add(Calendar.DAY_OF_YEAR, 1);
 
 			}
 
-			AutoPortfolioAnalyser logAnalyser = new AutoPortfolioAnalyser(portfolio);
-			String logAnalysisMsg = logAnalyser.message();
-			if (!logAnalysisMsg.isEmpty()) sendTransactionSummary(portfolio, logAnalysisMsg);
+			//FIXME if needed?
+//			AutoPortfolioAnalyser logAnalyser = new AutoPortfolioAnalyser(portfolio);
+//			String logAnalysisMsg = logAnalyser.message();
+//			if (!logAnalysisMsg.isEmpty()) sendTransactionSummary(portfolio, logAnalysisMsg);
 
 			LOGGER.info("Processor message completed : " +getMessageTxt()+", " +getSignalProcessingName()+" on the " + getStartDate()+ " with "+ Arrays.toString(getAdditionalEventListNames()));
 		

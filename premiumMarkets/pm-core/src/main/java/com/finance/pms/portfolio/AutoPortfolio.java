@@ -122,11 +122,11 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		super.setChanged();
 	}
 
-	public TransactionHistory calculate(Date endDate, String... additionalEventListNames) {
+	public TransactionHistory calculate(Date endDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... additionalEventListNames) {
 		
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
 		List<SymbolEvents> listEvents = loadEventsForCalculation(endDate, null);
-		return autoPortfolioDelegate.calculate(listEvents, endDate, getNonNullBuyPonderationRule(), getNonNullSellPonderationRule());
+		return autoPortfolioDelegate.calculate(listEvents, endDate, buyPonderationRule, sellPonderationRule);
 	}
 	
 

@@ -41,7 +41,7 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 
 	private static final long serialVersionUID = 573802685420097964L;
 	private static MyLogger LOGGER = MyLogger.getLogger(ValidatedLatestEventsPonderationRule.class);
-	
+
 	private Map<Stock, Validity> tuningValidityList;
 	private EventInfo filteredEventDef;
 
@@ -50,41 +50,41 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 		this.tuningValidityList = tuningValidityList;
 		this.filteredEventDef = evtDef;
 	}
-	
+
 	@Override
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
-		
+
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;
 		PonderationRule p1 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList, filteredEventDef);
 		PonderationRule p2 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList, filteredEventDef);
-		
+
 		return compareCal(se1, se2, p1, p2);
 	}
 
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
-		
+
 		Validity validity = tuningValidityList.get(symbolEvents.getStock());
-		
+
 		boolean isValid = false;
 		if (validity != null) {
 			isValid = validity.equals(Validity.SUCCESS);
 		} else {
 			LOGGER.warn("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+ ". Neural trend was not calculated for that stock.");
 		}
-		
+
 		if (isValid) {
 			return super.finalWeight(symbolEvents);
 		} else {
 			return 0.0f;
 		}
-		
+
 	}
 
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
 		return new ValidatedLatestEventsSignal(filteredEventDef);
 	}
-	
+
 }

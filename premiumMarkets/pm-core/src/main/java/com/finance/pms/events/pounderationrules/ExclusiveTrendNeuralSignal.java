@@ -54,7 +54,7 @@ public class ExclusiveTrendNeuralSignal extends DefaultSignal {
 				nbBullish++;
 			} else if (eventValue.getEventType().equals(EventType.BEARISH)) {
 				nbBearish--;
-			}	
+			}
 		}
 		return 0;
 	}
