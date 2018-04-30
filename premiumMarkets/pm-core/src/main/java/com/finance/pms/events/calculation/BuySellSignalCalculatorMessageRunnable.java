@@ -103,7 +103,7 @@ public class BuySellSignalCalculatorMessageRunnable extends AbstractAnalysisClie
 
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(getStartDate());
-			while (currentDate.getTime().before(getEndDate()) || currentDate.getTime().compareTo(getEndDate()) == 0) {
+			while (currentDate.getTime().compareTo(getEndDate()) <= 0) {
 
 				TransactionHistory calculationTransactions = portfolio.calculate(currentDate.getTime(), ponderationRule, ponderationRule, getAdditionalEventListNames());
 				sendTransactionHistory(calculationTransactions);

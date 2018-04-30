@@ -114,7 +114,7 @@ public class MyLogger {
 			
 			if (props.containsKey("mail.log.activated")) {
 				MainPMScmd.getMyPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
-				MyLogger.mailActivationType = props.getProperty("mail.log.activated");  
+				MyLogger.mailActivationType = props.getProperty("mail.log.activated");
 				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
 			} else {
 				MyLogger.mailActivationType =  MainPMScmd.getMyPrefs().get("mail.log.activated", "false");
@@ -570,7 +570,7 @@ public class MyLogger {
 					MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");  
 					if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
 					
-					Boolean isSendingErrorEmail = "true".equals(MyLogger.mailActivationType) || "force".equals(MyLogger.mailActivationType) ||  "forceNoTest".equals(MyLogger.mailActivationType);
+					Boolean isSendingErrorEmail = "true".equals(MyLogger.mailActivationType) || "force".equals(MyLogger.mailActivationType) || "forceNoTest".equals(MyLogger.mailActivationType);
 					Boolean isSendingTestEmail = "force".equals(MyLogger.mailActivationType);
 					Boolean isFailed = "failed".equals(MyLogger.mailActivationType);
 					
