@@ -57,7 +57,7 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 	protected SpringContext springContext;
 	protected AnalysisClient indicatorAnalysis;
 	protected String analysisName;
-	protected Object syncObject;
+	final protected Object syncObject;
 
 	public AbstractAnalysisClientRunnableMessage(Integer key, SpringContext springContext, String analysisName) {
 		super(key, ConfigThreadLocal.getAll());
