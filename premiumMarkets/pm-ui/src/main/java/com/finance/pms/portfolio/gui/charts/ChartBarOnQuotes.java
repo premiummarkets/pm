@@ -41,7 +41,7 @@ import com.finance.pms.events.scoring.chartUtils.BarChart;
 
 
 public class ChartBarOnQuotes extends BarChartDisplayStrategy {
-	
+
 	private ChartMain chartMain;
 
 	public ChartBarOnQuotes(ChartMain chartMain) {
@@ -52,13 +52,13 @@ public class ChartBarOnQuotes extends BarChartDisplayStrategy {
 
 	@Override
 	public void setBarYAxis() {
-		
+
 		chartMain.getMainPlot().setRangeAxis(1, chartMain.getMainYAxis());
 		chartMain.getMainPlot().mapDatasetToRangeAxis(1, 0);
-		
+
 	}
-	
-	
+
+
 	@Override
 	public double maxBarValue(TimeSeries lineSerie) {
 		return (Math.abs(lineSerie.getMinY()) < Math.abs(lineSerie.getMaxY()))?lineSerie.getMaxY():lineSerie.getMinY();

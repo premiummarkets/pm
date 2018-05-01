@@ -72,201 +72,203 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  */
 public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositioner {
 
-    private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsCompositioner.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsCompositioner.class);
 
-    private TargetStockInfo targetStock;
-    private OperationsCompositioner operationsCompositionerHolder;
+	private TargetStockInfo targetStock;
+	private OperationsCompositioner operationsCompositionerHolder;
 
-    public ParameterizedIndicatorsCompositioner(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers) 
-            throws WarningException  {
+	public ParameterizedIndicatorsCompositioner(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
+			throws WarningException  {
 
-        super(observers);	
-        this.operationsCompositionerHolder = (OperationsCompositioner) eventInfo;
+		super(observers);
+		this.operationsCompositionerHolder = (OperationsCompositioner) eventInfo;
 
-        //Adjust start
-        Integer startShiftOverrideValue = ((NumberValue) this.operationsCompositionerHolder.getOperands().get(3).getParameter()).getNumberValue().intValue();
-        int operationStartDateShift = 0;
-        if (!startShiftOverrideValue.equals(-1)) {
-            operationStartDateShift = startShiftOverrideValue;
-        } else {
-            operationStartDateShift = this.operationsCompositionerHolder.operationStartDateShift();
-        }
-        Calendar adjustedStartCal = Calendar.getInstance();
-        adjustedStartCal.setTime(startDate);
-        QuotationsFactories.getFactory().incrementDate(adjustedStartCal, -operationStartDateShift);
-        LOGGER.info(this.operationsCompositionerHolder.getReference()+" start date shift to : "+operationStartDateShift+". Requested start : "+startDate+", calculated start : "+adjustedStartCal.getTime());
+		//Adjust start
+		Integer startShiftOverrideValue = ((NumberValue) this.operationsCompositionerHolder.getOperands().get(3).getParameter()).getNumberValue().intValue();
+		int operationStartDateShift = 0;
+		if (!startShiftOverrideValue.equals(-1)) {
+			operationStartDateShift = startShiftOverrideValue;
+		} else {
+			operationStartDateShift = this.operationsCompositionerHolder.operationStartDateShift();
+		}
+		Calendar adjustedStartCal = Calendar.getInstance();
+		adjustedStartCal.setTime(startDate);
+		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, -operationStartDateShift);
+		LOGGER.info(this.operationsCompositionerHolder.getReference()+" start date shift to : "+operationStartDateShift+". Requested start : "+startDate+", calculated start : "+adjustedStartCal.getTime());
 
-        //Adjust end
-        Date lastQuote = stock.getLastQuote();
-        Date adjustedEndDate;
-        if (lastQuote.before(endDate)) {
-            adjustedEndDate = lastQuote;
-            LOGGER.info(this.operationsCompositionerHolder.getReference()+" end date shift to : "+operationStartDateShift+". Requested end : "+endDate+", calculated end : "+adjustedEndDate);
-        } else {
-            adjustedEndDate = endDate;
-        }
+		//Adjust end
+		Date lastQuote = stock.getLastQuote();
+		Date adjustedEndDate;
+		if (lastQuote.before(endDate)) {
+			adjustedEndDate = lastQuote;
+			LOGGER.info(this.operationsCompositionerHolder.getReference()+" end date shift to : "+operationStartDateShift+". Requested end : "+endDate+", calculated end : "+adjustedEndDate);
+		} else {
+			adjustedEndDate = endDate;
+		}
 
-        //Target stock instance
-        this.targetStock = new TargetStockInfo(analyseName, this.operationsCompositionerHolder.getReference(), stock, adjustedStartCal.getTime(), adjustedEndDate);
+		//Target stock instance
+		this.targetStock = new TargetStockInfo(analyseName, this.operationsCompositionerHolder.getReference(), stock, adjustedStartCal.getTime(), adjustedEndDate);
 
-    }
+	}
 
-    @Override
-    public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
+	@Override
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
 
-        SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 
-        if (operationsCompositionerHolder.getFormula() != null) {
+		if (operationsCompositionerHolder.getFormula() != null) {
 
-            operationsCompositionerHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
-            EventDataValue run = (EventDataValue) operationsCompositionerHolder.run(targetStock);
+			operationsCompositionerHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
+			EventDataValue run = (EventDataValue) operationsCompositionerHolder.run(targetStock);
 
-            SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
+			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
 
-            EventKey previousKey = null;
-            SortedSet<EventKey> toRemove = new TreeSet<EventKey>();
-            for (EventKey currentKey : returnedEvents.keySet()) {
-                
-                Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
-                Date currentKeyDate = currentKey.getDate();
-                
-                if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
-                    toRemove.add(currentKey);
-                    toRemove.add(previousKey);
-                }
+			//Finding duplicates
+			EventKey previousKey = null;
+			SortedSet<EventKey> toRemove = new TreeSet<EventKey>();
+			for (EventKey currentKey : returnedEvents.keySet()) {
 
-                previousKey = currentKey;
-            }
+				Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
+				Date currentKeyDate = currentKey.getDate();
 
-            LOGGER.warn("Indeterministic events for customised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
-            for (EventKey eventKey : toRemove) {
-                EventValue eventValue = returnedEvents.get(eventKey);
-                returnedEvents.remove(eventKey);
+				if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
+					toRemove.add(currentKey);
+					toRemove.add(previousKey);
+				}
 
-                EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
-                eventValue.setEventType(EventType.NONE);
-                returnedEvents.put(noneEventKey, eventValue);
-            }
+				previousKey = currentKey;
+			}
+			LOGGER.warn("Indeterministic events for customised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
 
-            edata.putAll(returnedEvents);
+			//Removing duplicates
+			for (EventKey eventKey : toRemove) {
+				EventValue eventValue = returnedEvents.get(eventKey);
+				returnedEvents.remove(eventKey);
 
-        }
+				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
+				eventValue.setEventType(EventType.NONE);
+				returnedEvents.put(noneEventKey, eventValue);
+			}
 
-        return edata;
-    }
+			edata.putAll(returnedEvents);
 
-    /**
-     * Here, outputs are gathered from the results of the calculation stored into TargetStockInfo.gatheredChartableOutputs
-     * @see com.finance.pms.events.calculation.IndicatorsCompositioner#calculationOutput()
-     */
-    @Override
-    public SortedMap<Date, double[]> calculationOutput() {
-        return buildCalculationOutput();
-    }
+		}
+
+		return edata;
+	}
+
+	/**
+	 * Here, outputs are gathered from the results of the calculation stored into TargetStockInfo.gatheredChartableOutputs
+	 * @see com.finance.pms.events.calculation.IndicatorsCompositioner#calculationOutput()
+	 */
+	@Override
+	public SortedMap<Date, double[]> calculationOutput() {
+		return buildCalculationOutput();
+	}
 
 
-    private SortedMap<Date, double[]> buildCalculationOutput() {
+	private SortedMap<Date, double[]> buildCalculationOutput() {
 
-        SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
+		SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
 
-        try {
+		try {
 
-            List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
+			List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
 
-            List<Object> normOutputs = new ArrayList<Object>();
-            SortedSet<Date> fullDateSet = new TreeSet<Date>();
+			List<Object> normOutputs = new ArrayList<Object>();
+			SortedSet<Date> fullDateSet = new TreeSet<Date>();
 
-            //Add Double outputs
-            for (Output output : gatheredOutputs) {
-                Value<?> outputData = output.getOutputData();
-                if (outputData != null) {
-                    SortedMap<Date, Double> data = ((DoubleMapValue) outputData).getValue(targetStock);
-                    normOutputs.add(data);
-                    fullDateSet.addAll(data.keySet());
-                }
-            }
+			//Add Double outputs
+			for (Output output : gatheredOutputs) {
+				Value<?> outputData = output.getOutputData();
+				if (outputData != null) {
+					SortedMap<Date, Double> data = ((DoubleMapValue) outputData).getValue(targetStock);
+					normOutputs.add(data);
+					fullDateSet.addAll(data.keySet());
+				}
+			}
 
-            //Add Constants
-            List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
-            for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
-                Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();
-                for (OutputDescr outputDescr : values) {
-                    if (outputDescr.getType().equals(Type.CONSTANT)) {
-                        normOutputs.add(outputDescr.getValue().getValue(targetStock));
-                        outputDescr.setOutputIndex(normOutputs.size()-1);
-                    }
-                }
-            }
+			//Add Constants
+			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
+			for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
+				Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();
+				for (OutputDescr outputDescr : values) {
+					if (outputDescr.getType().equals(Type.CONSTANT)) {
+						normOutputs.add(outputDescr.getValue().getValue(targetStock));
+						outputDescr.setOutputIndex(normOutputs.size()-1);
+					}
+				}
+			}
 
-            //Fill up outputs not attached
-            ChartedOutputGroup invisibleGroup = null;
-            for (int i = 0; i < gatheredOutputs.size(); i++) {
-                if (gatheredOutputs.get(i).getChartedDescription() == null) {
-                    OutputReference outputReference = gatheredOutputs.get(i).getOutputReference();
-                    if (invisibleGroup == null ) invisibleGroup = new ChartedOutputGroup(outputReference, i);
-                    invisibleGroup.getComponents().put(outputReference, invisibleGroup. new OutputDescr(outputReference, invisibleGroup, Type.INVISIBLE, i, null));
-                }
-            }
+			//Fill up outputs not attached
+			ChartedOutputGroup invisibleGroup = null;
+			for (int i = 0; i < gatheredOutputs.size(); i++) {
+				if (gatheredOutputs.get(i).getChartedDescription() == null) {
+					OutputReference outputReference = gatheredOutputs.get(i).getOutputReference();
+					if (invisibleGroup == null ) invisibleGroup = new ChartedOutputGroup(outputReference, i);
+					invisibleGroup.getComponents().put(outputReference, invisibleGroup. new OutputDescr(outputReference, invisibleGroup, Type.INVISIBLE, i, null));
+				}
+			}
 
-            ((EventDefDescriptorDynamic) operationsCompositionerHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
+			((EventDefDescriptorDynamic) operationsCompositionerHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
 
-            //Build
-            for (Date date : fullDateSet) {
+			//Build
+			for (Date date : fullDateSet) {
 
-                double[] retOutput = new double[normOutputs.size()]; 
+				double[] retOutput = new double[normOutputs.size()];
 
-                int outputPosition = 0;
-                for (Object normOutput : normOutputs) {
+				int outputPosition = 0;
+				for (Object normOutput : normOutputs) {
 
-                    if (normOutput instanceof SortedMap) {
+					if (normOutput instanceof SortedMap) {
 
-                        @SuppressWarnings("unchecked")
-                        Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
-                        retOutput[outputPosition] = translateOutputForCharting(ds2);
-                    } 
-                    else if (normOutput instanceof Double) {
-                        retOutput[outputPosition] = (Double)normOutput;
-                    }
-                    outputPosition++;
-                }
-                calculationOutput.put(date, retOutput);
-            }
+						@SuppressWarnings("unchecked")
+						Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
+						retOutput[outputPosition] = translateOutputForCharting(ds2);
+					}
+					else if (normOutput instanceof Double) {
+						retOutput[outputPosition] = (Double)normOutput;
+					}
+					outputPosition++;
+				}
+				calculationOutput.put(date, retOutput);
+			}
 
-        } catch (Exception e) {
-            LOGGER.warn(e,e);
-        }
+		} catch (Exception e) {
+			LOGGER.warn(e,e);
+		}
 
-        return calculationOutput;
-    }
+		return calculationOutput;
+	}
 
-    @Override
-    protected int getDaysSpan() {
-        return 0;
-    }
+	@Override
+	protected int getDaysSpan() {
+		return 0;
+	}
 
-    @Override
-    public EventInfo getEventDefinition() {
-        return operationsCompositionerHolder;
-    }
+	@Override
+	public EventInfo getEventDefinition() {
+		return operationsCompositionerHolder;
+	}
 
-    @Override
-    public EmailFilterEventSource getSource() {
-        return EmailFilterEventSource.PMTAEvents;
-    }
+	@Override
+	public EmailFilterEventSource getSource() {
+		return EmailFilterEventSource.PMTAEvents;
+	}
 
-    @Override
-    public Integer getStartShift() {
-        return 0;
-    }
+	@Override
+	public Integer getStartShift() {
+		return 0;
+	}
 
-    @Override
-    public ValidityFilter quotationsValidity() {
-        return ValidityFilter.CLOSE;
-    }
+	@Override
+	public ValidityFilter quotationsValidity() {
+		return ValidityFilter.CLOSE;
+	}
 
-    @Override
-    public Boolean isIdemPotent() {
-        return operationsCompositionerHolder.isIdemPotent();
-    }
+	@Override
+	public Boolean isIdemPotent() {
+		return operationsCompositionerHolder.isIdemPotent();
+	}
 
 }

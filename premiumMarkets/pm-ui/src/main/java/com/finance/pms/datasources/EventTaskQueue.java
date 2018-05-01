@@ -68,7 +68,7 @@ public class EventTaskQueue {
 						
 						task = tasks.take();
 						
-						try {		
+						try {
 							
 							if (!task.getTaskId().equals(TaskId.ViewRefresh)) setLastTaskFor(task);
 							ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, task.getConfig());
