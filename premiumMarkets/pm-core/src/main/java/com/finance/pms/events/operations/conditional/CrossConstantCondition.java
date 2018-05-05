@@ -81,12 +81,14 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 		
 		BooleanMapValue outputs = new  BooleanMapValue();
+		if (Double.isNaN(constant)) return outputs;
+		
 		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
 
 		for (Date date : data.keySet()) {
 			Double current = data.get(date);
 			Double previous = rightShiftedData.get(date);
-			if (previous != null && !previous.isNaN()) {
+			if (previous != null && !previous.isNaN() && !current.isNaN()) {
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(previous, current, constant);
 				if (conditionCheck != null) {

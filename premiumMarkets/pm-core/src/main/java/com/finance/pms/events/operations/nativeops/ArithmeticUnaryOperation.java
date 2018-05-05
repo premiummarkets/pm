@@ -62,9 +62,10 @@ public abstract class ArithmeticUnaryOperation extends DoubleMapOperation {
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(0)).getValue(targetStock);
 		Double unaryOperand = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
 		
-		DoubleMapValue outputs = new  DoubleMapValue();
+		DoubleMapValue outputs = new DoubleMapValue();
 		for (Date date : data.keySet()) {
-			outputs.getValue(targetStock).put(date, twoOperandsOp(data.get(date), unaryOperand));
+			Double leftOperand = data.get(date);
+			outputs.getValue(targetStock).put(date, (leftOperand == null || leftOperand.isNaN())?Double.NaN:twoOperandsOp(leftOperand, unaryOperand));
 		}
 		
 		return outputs;

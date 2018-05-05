@@ -54,13 +54,13 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.calculation.IndicatorsCompositioner;
+import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 
-public class WeatherChecker extends IndicatorsCompositioner {
+public class WeatherChecker extends IndicatorsOperator {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(WeatherChecker.class);
 

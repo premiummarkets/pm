@@ -83,60 +83,67 @@ public class ChartIndicLineSeriesDataSetBuilder {
                     int outputIdx = outputIndexes[k];
                     if (eventDefDescriptor.isDisplayed(outputIdx)) {
 
-                        groupIsDisplayed = true;
+                    	groupIsDisplayed = true;
 
-                        final String domain = eventDefDescriptorArray[outputIdx];
-                        TimeSeries timeSerie = new TimeSeries(domain);
-                        Boolean isNotNan = false;
-                        for (Date date : series.keySet()) {
-                            double[] ds = series.get(date);
-                            RegularTimePeriod period = new Day(date);
-                            Number value = ds[outputIdx];
-                            isNotNan = isNotNan || (!((Double) value).isNaN() && !((Double) value).isInfinite());
-                            //Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
-                            if (!((Double) value).isInfinite()) {
-                                TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-                                timeSerie.add(item, false);
-                            }
-                        }
+                    	final String domain = eventDefDescriptorArray[outputIdx];
+                    	TimeSeries timeSerie = new TimeSeries(domain);
+//                    	Boolean isNan = true;
+                    	for (Date date : series.keySet()) {
+                    		double[] ds = series.get(date);
+                    		RegularTimePeriod period = new Day(date);
+                    		Number value = ds[outputIdx];
+//                    		isNan = isNan && ( ((Double) value).isNaN() || ((Double) value).isInfinite());
+                    		//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
+                    		if (!((Double) value).isInfinite()) {
+                    			TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+                    			timeSerie.add(item, false);
+                    		}
+                    	}
 
-                        if (isNotNan) {//Series has values to display
+//                    	if (isNan) {//Series has no value to display we fill in two NaN values
+//                    		RegularTimePeriod periodStart = new Day(series.firstKey());
+//                    		TimeSeriesDataItem firstItem = new TimeSeriesDataItem(periodStart, Double.NaN);
+//                    		timeSerie.add(firstItem, false);
+//                    		RegularTimePeriod periodEnd = new Day(series.lastKey());
+//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
+//                    		timeSerie.add(lastItem, false);
+//                    	}
 
-                            groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
-                            groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
+                    	groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
+                    	groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
 
-                            dataset.addSeries(timeSerie);
+                    	dataset.addSeries(timeSerie);
 
-                            renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
-                            renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
+                    	renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
+                    	renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
 
-                            XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+                    	XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
-                                public String generateToolTip(XYDataset dataset, int series, int item) {
+                    		public String generateToolTip(XYDataset dataset, int series, int item) {
 
-                                    String y = "NaN";
-                                    String x = "NaN";
-                                    try {
-                                        y = numberFormat.format(dataset.getYValue(series, item));
-                                        Date date = new Date((long) dataset.getXValue(series, item));
-                                        x = simpleDateFormat.format(date);
-                                        return "<html>" + 
-                                        "<font size='2'>" + 
-                                        "<b>" + domain + "</b> on the " + x + "<br>"
-                                        + ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
-                                        "</font>" + 
-                                        "</html>";
-                                    } catch (Exception e) {
-                                        LOGGER.debug(e, e);
-                                    }
-                                    return "NaN";
+                    			String y = "NaN";
+                    			String x = "NaN";
+                    			try {
+                    				y = numberFormat.format(dataset.getYValue(series, item));
+                    				Date date = new Date((long) dataset.getXValue(series, item));
+                    				x = simpleDateFormat.format(date);
+                    				return "<html>" + 
+                    				"<font size='2'>" + 
+                    				"<b>" + domain + "</b> on the " + x + "<br>"
+                    				+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
+                    				"</font>" + 
+                    				"</html>";
+                    			} catch (Exception e) {
+                    				LOGGER.debug(e, e);
+                    			}
+                    			return "NaN";
 
-                                }
-                            };
+                    		}
+                    	};
 
-                            renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
-                            serieIdx++;
-                        }
+                    	renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
+                    	serieIdx++;
+
                     }
                 }
 

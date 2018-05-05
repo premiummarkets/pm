@@ -53,7 +53,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class RSIDivergence_old extends TalibIndicatorsCompositioner {
+public class RSIDivergence_old extends TalibIndicatorsOperator {
 	
 	SMA sma;
 	RSI rsi;

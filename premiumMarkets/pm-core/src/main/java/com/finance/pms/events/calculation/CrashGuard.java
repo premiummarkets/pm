@@ -52,7 +52,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
  * TODO Main indexes sma 10 negative/positive for 15 days in a row
  *
  */
-public class CrashGuard extends TalibIndicatorsCompositioner {
+public class CrashGuard extends TalibIndicatorsOperator {
 	
 	private static final int DAYS_SPAN = 10;
 	

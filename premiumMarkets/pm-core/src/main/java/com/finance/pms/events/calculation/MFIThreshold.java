@@ -51,7 +51,7 @@ import com.finance.pms.talib.indicators.MFI;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class MFIThreshold extends TalibIndicatorsCompositioner {
+public class MFIThreshold extends TalibIndicatorsOperator {
 
     private MFI mfi;
 

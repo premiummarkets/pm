@@ -31,9 +31,12 @@ package com.finance.pms.events.operations.conditional;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 
@@ -43,10 +46,10 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	private Map<String, DoubleMapValue> selectorOutputs;
 	private String calculationSelector;
 	
-	public MultiSelectorsValue(String calculationSelector) {
-		super();
-		this.calculationSelector = calculationSelector;
-		this.selectorOutputs = new HashMap<String, DoubleMapValue>();
+	public MultiSelectorsValue(List<String> availableOutputSelectors, String outputSelector) {
+		super(new TreeMap<>());
+		this.selectorOutputs = availableOutputSelectors.stream().collect(Collectors.toMap(s -> s, s -> new DoubleMapValue()));
+		this.calculationSelector = outputSelector;
 	}
 
 	public MultiSelectorsValue(Map<String, DoubleMapValue> selectorOutputs, String calculationSelector) {

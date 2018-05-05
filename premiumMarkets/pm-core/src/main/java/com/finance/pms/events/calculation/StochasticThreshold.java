@@ -55,7 +55,7 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 
-public class StochasticThreshold extends TalibIndicatorsCompositioner {
+public class StochasticThreshold extends TalibIndicatorsOperator {
 	
 	private StochasticOscillator stochasticOscillator;
 

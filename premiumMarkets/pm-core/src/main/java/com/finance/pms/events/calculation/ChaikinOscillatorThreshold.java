@@ -51,7 +51,7 @@ import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ChaikinOscillatorThreshold extends TalibIndicatorsCompositioner {
+public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 
 	private ChaikinOscillator chaikinOscillator;
 	

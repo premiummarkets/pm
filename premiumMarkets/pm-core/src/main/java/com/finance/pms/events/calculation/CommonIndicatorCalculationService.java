@@ -77,13 +77,13 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 	/** The LOGGER. */
 	private static MyLogger LOGGER = MyLogger.getLogger(CommonIndicatorCalculationService.class);
 
-	private Map<EventDefinition, Class<IndicatorsCompositioner>> availSecondPIndCalculators;
+	private Map<EventDefinition, Class<IndicatorsOperator>> availSecondPIndCalculators;
 
 	/**
 	 * Instantiates a new talib indicator calculation service.
 	 * Initialized in spring context
 	 */
-	public CommonIndicatorCalculationService(Map<EventDefinition, Class<IndicatorsCompositioner>> availableSecondPassIndicatorCalculators, JmsTemplate jmsTemplate, Queue eventQueue) {
+	public CommonIndicatorCalculationService(Map<EventDefinition, Class<IndicatorsOperator>> availableSecondPassIndicatorCalculators, JmsTemplate jmsTemplate, Queue eventQueue) {
 		this.eventQueue = eventQueue;
 		this.jmsTemplate = jmsTemplate;
 		this.availSecondPIndCalculators = availableSecondPassIndicatorCalculators;

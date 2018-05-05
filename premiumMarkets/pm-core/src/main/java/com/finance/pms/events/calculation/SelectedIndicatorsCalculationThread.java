@@ -23,7 +23,7 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsCompositioner;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
 import com.finance.pms.events.operations.conditional.OperationsCompositioner;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
@@ -138,9 +138,9 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 					//Calculator preparation
 					Currency currency = stock.getMarketValuation().getCurrency();
-					IndicatorsCompositioner calculator;
+					IndicatorsOperator calculator;
 					if (eventInfo instanceof OperationsCompositioner) {
-						calculator = new ParameterizedIndicatorsCompositioner(eventInfo, stock, adjustedStart, adjustedEnd, currency, eventListName, observers);
+						calculator = new ParameterizedIndicatorsOperator(eventInfo, stock, adjustedStart, adjustedEnd, currency, eventListName, observers);
 					} else {
 						calculator = legacyEventDefinitionHandling(stock);
 					}
@@ -217,12 +217,12 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 	}
 
-	private IndicatorsCompositioner legacyEventDefinitionHandling(Stock stock) {
+	private IndicatorsOperator legacyEventDefinitionHandling(Stock stock) {
 		try {
 			SpringContext springContext = SpringContext.getSingleton();
 			@SuppressWarnings("unchecked")
 			Map<String, String> nativeCalcsMap = (Map<String, String>) springContext.getBean("availableSecondPassIndicatorCalculators");
-			IndicatorsCompositioner calculator = instanciateECC(stock, eventInfo, nativeCalcsMap.get(eventInfo.getEventDefinitionRef()), observers);
+			IndicatorsOperator calculator = instanciateECC(stock, eventInfo, nativeCalcsMap.get(eventInfo.getEventDefinitionRef()), observers);
 			return calculator;
 		} catch (Throwable e) {
 			LOGGER.warn("Event definition not supported : "+eventInfo, e);
@@ -230,13 +230,13 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		}
 	}
 
-	private IndicatorsCompositioner instanciateECC(Stock stock, EventInfo eventInfo, String eventCompositionCalculatorStr, Observer... observers) throws Throwable {
+	private IndicatorsOperator instanciateECC(Stock stock, EventInfo eventInfo, String eventCompositionCalculatorStr, Observer... observers) throws Throwable {
 
 		@SuppressWarnings("unchecked")
-		Class<IndicatorsCompositioner> eventCompositionCalculator = (Class<IndicatorsCompositioner>) Class.forName(eventCompositionCalculatorStr);
+		Class<IndicatorsOperator> eventCompositionCalculator = (Class<IndicatorsOperator>) Class.forName(eventCompositionCalculatorStr);
 		try {
 
-			Constructor<IndicatorsCompositioner> constructor = 
+			Constructor<IndicatorsOperator> constructor = 
 					eventCompositionCalculator.getConstructor(
 							EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
 			return constructor.newInstance(eventInfo, stock, startDate, endDate, stock.getMarketValuation().getCurrency(), eventListName, observers);

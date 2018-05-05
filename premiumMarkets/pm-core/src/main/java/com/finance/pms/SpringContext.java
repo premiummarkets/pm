@@ -270,7 +270,7 @@ public class SpringContext extends GenericApplicationContext {
 			if (props.containsKey("events.type"))
 				MainPMScmd.getMyPrefs().put("events.type", props.getProperty("events.type"));
 
-			// Semaphore
+			//Semaphore
 			putInPrefs("alertcalculator.semaphore.nbthread",props);
 			putInPrefs("indicatorcalculator.semaphore.nbthread",props);
 			putInPrefs("indicEventsCalculator.semaphore.eventthread",props);
@@ -290,6 +290,7 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getMyPrefs().put("autoporfolio.generatecsv", props.getProperty("autoporfolio.generatecsv"));
 			if (props.containsKey("autoporfolio.generatepng"))
 				MainPMScmd.getMyPrefs().put("autoporfolio.generatepng", props.getProperty("autoporfolio.generatepng"));
+			putInPrefs("print.outputs",props);
 
 
 			//Quotes

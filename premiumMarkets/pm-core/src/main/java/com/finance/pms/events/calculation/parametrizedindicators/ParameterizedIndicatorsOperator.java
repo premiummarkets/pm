@@ -49,7 +49,7 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
-import com.finance.pms.events.calculation.IndicatorsCompositioner;
+import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -70,14 +70,14 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * The ParameterizedIndicatorsCompositioner is a specific IndicatorsCompositioner calculator parameterized through the mean of an OperationCompositionner and its user formulae.
  * It is the core calculator that is used to initiates all EventInfo in the calculations loops.
  */
-public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositioner {
+public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsCompositioner.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsOperator.class);
 
 	private TargetStockInfo targetStock;
 	private OperationsCompositioner operationsCompositionerHolder;
 
-	public ParameterizedIndicatorsCompositioner(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
+	public ParameterizedIndicatorsOperator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
 			throws WarningException  {
 
 		super(observers);
@@ -159,7 +159,7 @@ public class ParameterizedIndicatorsCompositioner extends IndicatorsCompositione
 
 	/**
 	 * Here, outputs are gathered from the results of the calculation stored into TargetStockInfo.gatheredChartableOutputs
-	 * @see com.finance.pms.events.calculation.IndicatorsCompositioner#calculationOutput()
+	 * @see com.finance.pms.events.calculation.IndicatorsOperator#calculationOutput()
 	 */
 	@Override
 	public SortedMap<Date, double[]> calculationOutput() {

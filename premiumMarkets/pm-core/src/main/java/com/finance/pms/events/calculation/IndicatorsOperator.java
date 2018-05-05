@@ -40,7 +40,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsCompositioner;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.dataresults.StandardEventKey;
@@ -62,11 +62,11 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  *	-- takes operands -> Operation(s)
  *  -- takes an operator -> Indicator(s)/Calculator(s)/IndicatorsCompositionner (former EventCompositionCalculator) => which should be renamed to IndicatorOperator, xxxOperator
  */
-public abstract class IndicatorsCompositioner {
+public abstract class IndicatorsOperator {
 
     protected Observer[] observers;
 
-    public IndicatorsCompositioner(Observer... observers) {
+    public IndicatorsOperator(Observer... observers) {
         this.observers = observers;
     }
 
@@ -94,7 +94,7 @@ public abstract class IndicatorsCompositioner {
      * Used for charting when using static {@link EventDefinition}.
      * Each index in the returned arrays corresponds to a matching entry in the static description of the EventDefinition associated here via {@link #getEventDefinition()}.
      * The exhaustive supported list includes : String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold.
-     * PARAMERIZED Events have a special implementation : {@link ParameterizedIndicatorsCompositioner}
+     * PARAMERIZED Events have a special implementation : {@link ParameterizedIndicatorsOperator}
      */
     public abstract SortedMap<Date, double[]> calculationOutput();
 

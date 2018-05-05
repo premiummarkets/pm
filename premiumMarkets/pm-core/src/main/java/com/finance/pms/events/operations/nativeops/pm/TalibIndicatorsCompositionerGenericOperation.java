@@ -44,7 +44,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.EventDefDescriptorStatic;
-import com.finance.pms.events.calculation.TalibIndicatorsCompositioner;
+import com.finance.pms.events.calculation.TalibIndicatorsOperator;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
@@ -69,11 +69,11 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
     private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionerGenericOperation.class);
 
-    private final Class<? extends TalibIndicatorsCompositioner> calculatorClass;
+    private final Class<? extends TalibIndicatorsOperator> calculatorClass;
 
     public TalibIndicatorsCompositionerGenericOperation(
             String reference, String description, 
-            Class<? extends TalibIndicatorsCompositioner> calculatorClass, List<String> inConstantsNames) throws Exception {
+            Class<? extends TalibIndicatorsOperator> calculatorClass, List<String> inConstantsNames) throws Exception {
         super(reference, description);
 
         this.calculatorClass = calculatorClass;
@@ -96,7 +96,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
         EventDataValue buySellEvents = new EventDataValue();
         try {
 
-            TalibIndicatorsCompositioner calculator = calculatorClass.getConstructor().newInstance();
+            TalibIndicatorsOperator calculator = calculatorClass.getConstructor().newInstance();
 
             List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
             calculator.genericInit(inputConstants.toArray(new Integer[0]));
@@ -134,10 +134,10 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
         }
         catch (TalibException e) {
-            LOGGER.warn(e);
+            LOGGER.warn(this.getReference() + " : " + e, true);
         }
         catch (Exception e) {
-            LOGGER.error(e,e);
+            LOGGER.error(this.getReference() + " : " + e, e);
         }
 
         return buySellEvents;

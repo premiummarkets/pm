@@ -79,13 +79,15 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
 		
 		BooleanMapValue outputs = new  BooleanMapValue();
+		if (Double.isNaN(threshold)) return outputs;
+		
 		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
-
+		
 		for (Date date : data.keySet()) {
 			Double current = data.get(date);
 			
 			@SuppressWarnings("unchecked")
-			Boolean conditionCheck = conditionCheck(current, threshold);
+			Boolean conditionCheck = (Double.isNaN(current))?null:conditionCheck(current, threshold);
 			if (conditionCheck != null) {
 				
 				if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {

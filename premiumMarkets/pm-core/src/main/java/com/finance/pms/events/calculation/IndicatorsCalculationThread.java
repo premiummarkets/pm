@@ -128,7 +128,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 	protected void calculate(SymbolEvents symbolEventsForStock, List<IncompleteDataSetException> dataSetExceptions) throws NotEnoughDataException, InvalidAlgorithmParameterException {
 
-		Set<IndicatorsCompositioner> eventsCalculators;
+		Set<IndicatorsOperator> eventsCalculators;
 
 		LOGGER.info("Effective recalculation (potentially incremental) for "+stock+" will occur from "+startDate+" to "+endDate);
 
@@ -149,14 +149,14 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 	}
 
-	abstract protected Set<IndicatorsCompositioner> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) throws IncompleteDataSetException;
+	abstract protected Set<IndicatorsOperator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) throws IncompleteDataSetException;
 
-	private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsCompositioner> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
+	private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsOperator> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
 
 		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
 		final List<EventInfo> failing = new ArrayList<EventInfo>();
 
-		for (final IndicatorsCompositioner evtCalculator: evtCalculators ) {
+		for (final IndicatorsOperator evtCalculator: evtCalculators ) {
 
 			Runnable runnable = new Runnable() {
 				public void run() {

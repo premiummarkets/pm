@@ -138,10 +138,10 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	}
 
 	@Override
-	protected Set<IndicatorsCompositioner> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) {
+	protected Set<IndicatorsOperator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) {
 		
 		LOGGER.info("First pass wanted events : "+getWantedEventCalculations());
-		Set<IndicatorsCompositioner> eventCalculations = new HashSet<IndicatorsCompositioner>();
+		Set<IndicatorsOperator> eventCalculations = new HashSet<IndicatorsOperator>();
 		
 		//Which EventCompositions have been found and wanted in the EventConfig (indicators field)
 		boolean zeroCrossMACDWanted = checkWanted(EventDefinition.PMMACDZEROCROSS);

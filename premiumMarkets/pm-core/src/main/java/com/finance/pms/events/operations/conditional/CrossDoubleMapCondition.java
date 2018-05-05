@@ -100,7 +100,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 			Double secondV = secondOp.get(date);
 			Double previousFirstOp = rightShiftedFirstOp.get(date);
 			Double previousSecondOp = rightShiftedSecondOp.get(date);
-			if (previousFirstOp != null && !previousFirstOp.isNaN() && previousSecondOp != null && !previousSecondOp.isNaN())  {
+			if (previousFirstOp != null && !previousFirstOp.isNaN() && previousSecondOp != null && !previousSecondOp.isNaN() && !firstV.isNaN() && !secondV.isNaN())  {
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(previousFirstOp, firstV, previousSecondOp, secondV);
 				

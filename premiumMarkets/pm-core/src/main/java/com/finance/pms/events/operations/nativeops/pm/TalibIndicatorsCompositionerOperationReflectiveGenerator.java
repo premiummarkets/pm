@@ -13,7 +13,7 @@ import org.reflections.Reflections;
 import org.springframework.stereotype.Service;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.TalibIndicatorsCompositioner;
+import com.finance.pms.events.calculation.TalibIndicatorsOperator;
 
 @Service("talibIndicatorsCompositionerOperationReflectiveGenerator")
 public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
@@ -22,7 +22,7 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
 
     public Map<String, TalibIndicatorsCompositionerGenericOperation> generate() throws IOException {
 
-        Set<Class<? extends TalibIndicatorsCompositioner>> compositionCalculatorsClasses = getClassesUsingReflexions("com.finance.pms.events.calculation");
+        Set<Class<? extends TalibIndicatorsOperator>> compositionCalculatorsClasses = getClassesUsingReflexions("com.finance.pms.events.calculation");
         Map<String, TalibIndicatorsCompositionerGenericOperation> compositionCalculatorOperations = compositionCalculatorsClasses.stream()
                 .filter(calculatorClass -> !Modifier.isAbstract( calculatorClass.getModifiers()))
                 .map(calculatorClass -> {
@@ -55,9 +55,9 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
         return compositionCalculatorOperations;
     }
     
-    private Set<Class<? extends TalibIndicatorsCompositioner>> getClassesUsingReflexions(String packageName) {
+    private Set<Class<? extends TalibIndicatorsOperator>> getClassesUsingReflexions(String packageName) {
         Reflections reflections = new Reflections(packageName);
-        Set<Class<? extends TalibIndicatorsCompositioner>> subTypes = reflections.getSubTypesOf(TalibIndicatorsCompositioner.class);
+        Set<Class<? extends TalibIndicatorsOperator>> subTypes = reflections.getSubTypesOf(TalibIndicatorsOperator.class);
         return subTypes;
     }
 }

@@ -52,7 +52,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class RSIThreshold extends TalibIndicatorsCompositioner {
+public class RSIThreshold extends TalibIndicatorsOperator {
 	
 
 	RSI rsi;

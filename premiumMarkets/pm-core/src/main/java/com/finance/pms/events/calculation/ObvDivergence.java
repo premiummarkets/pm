@@ -55,7 +55,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ObvDivergence extends TalibIndicatorsCompositioner {
+public class ObvDivergence extends TalibIndicatorsOperator {
 	
 	private static final int SMOOTHING = 2;
 	

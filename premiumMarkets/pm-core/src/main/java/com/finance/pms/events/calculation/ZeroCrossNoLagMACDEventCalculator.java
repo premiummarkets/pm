@@ -53,7 +53,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsCompositioner {
+public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsOperator {
 	
 	private ZeroLagMACD macd;
 

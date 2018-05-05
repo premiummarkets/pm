@@ -118,7 +118,6 @@ public class AlertsMgrDelegate {
 	}
 
 	private void addWeightedZeroProfitAlertGuard(BigDecimal profitGuard) {
-
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 		String belowGuardMessage = "";
 		addWeightedZeroProfitAlertGuard(profitGuard, belowGuardMessage);
@@ -133,9 +132,9 @@ public class AlertsMgrDelegate {
 		BigDecimal sellLimitGuardPrice;
 		if (!weightedInOut.isEmpty()) {
 			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(ps.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
-			sellLimitGuardPriceRate =  (avgBuyPrice.compareTo(BigDecimal.ZERO) > 0)?
+			sellLimitGuardPriceRate = (avgBuyPrice.compareTo(BigDecimal.ZERO) > 0)?
 					sellLimitGuardPrice.divide(avgBuyPrice, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4)):
-						BigDecimal.ZERO;
+					BigDecimal.ZERO;
 		} else {
 			sellLimitGuardPriceRate = getEventsConfig().getSellLimitGuardPrice();
 			sellLimitGuardPrice = addPercentage(avgBuyPrice, sellLimitGuardPriceRate);

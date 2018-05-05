@@ -76,7 +76,7 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 			for (int i=1; i < checkedInputs.size(); i++) {
 				Value<SortedMap<Date, Double>> input = checkedInputs.get(i);
 				Double rightOperand = input.getValue(targetStock).get(date);
-				leftOperand = twoOperandsOp(leftOperand, rightOperand);
+				leftOperand = (((leftOperand == null || leftOperand.isNaN()) || (rightOperand == null || rightOperand.isNaN())))?Double.NaN:twoOperandsOp(leftOperand, rightOperand);
 			}
 			outputs.getValue(targetStock).put(date, leftOperand);
 		}

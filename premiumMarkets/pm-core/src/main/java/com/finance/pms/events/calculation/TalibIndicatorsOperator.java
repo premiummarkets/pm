@@ -57,13 +57,13 @@ import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public abstract class TalibIndicatorsCompositioner extends IndicatorsCompositioner {
+public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositioner.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsOperator.class);
 
 	SortedMap<Date, double[]> calculationOutput;
 
-	public TalibIndicatorsCompositioner(Observer... observers) {
+	public TalibIndicatorsOperator(Observer... observers) {
 		super(observers);
 		this.calculationOutput = new TreeMap<Date, double[]>();
 	}

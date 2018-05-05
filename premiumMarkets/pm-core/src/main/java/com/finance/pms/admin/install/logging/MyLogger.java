@@ -541,10 +541,10 @@ public class MyLogger {
 	}
 
 	//Email settings options :
-	//false (no email no popup), 
-	//true (send error email only - no test error email, no duplicates -, with popup), 
-	//force (send error email and test error email - with duplicates -, no popup),
-	//forceNoTest (send only errors, no test and no popup)
+	//false (no email no popup)
+	//true (sends errors, no tests, no duplicates, with popup)
+	//force (sends errors, tests - with duplicates -, without popup) ie test
+	//forceNoTest (sends errors, no tests, without popup) ie trueNoPopups
 	private void sendMail(Object errorMsg, final Throwable error, final Boolean isTest) {
 		
 		//Is active?
@@ -576,14 +576,14 @@ public class MyLogger {
 					
 					Boolean isSendingEmail = ((isTest && isSendingTestEmail) || (!isTest && isSendingErrorEmail)) && !isFailed;
 					Boolean isPopup = ("true".equals(MyLogger.mailActivationType) || "failed".equals(MyLogger.mailActivationType)) && !isTest ;
-					Boolean hasDuplicate = isTest;
+					Boolean sendDuplicates = isTest;
 					
 					boolean errorMailHandlingsGrants = !isSendingEmail && !isPopup;
 					if (errorMailHandlingsGrants) return;
 					
 					//Msg hash
 					Integer bodyHashcode = createMsgBodyFirstLines(error, errorStr, 3).toString().hashCode();
-					if (!hasDuplicate) {
+					if (!sendDuplicates) {
 						if (hashesSet.contains(bodyHashcode)) {
 							return;
 						} else {
@@ -594,7 +594,7 @@ public class MyLogger {
 					try {
 						
 						semaphore.acquire();
-						delegateLogger.info("Sending mail on error; grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup+", has duplicate "+hasDuplicate);	
+						delegateLogger.info("Sending mail on error; grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup+", has duplicate "+sendDuplicates);	
 						
 						if (isPopup) {
 							

@@ -47,7 +47,7 @@ public class IncompleteDataSetException extends Exception {
 
 	private List<Stock> failingStocks;
 	private Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputs;
-	private Set<IndicatorsCompositioner> validEventCalculators;
+	private Set<IndicatorsOperator> validEventCalculators;
 	private List<SymbolEvents> symbolEvents;
 	
 	public IncompleteDataSetException(Stock failingStock, SymbolEvents validSymbolEventsForStock, String arg0) {
@@ -69,7 +69,7 @@ public class IncompleteDataSetException extends Exception {
 		this.symbolEvents = validSymbolEvents;
 	}
 
-	public IncompleteDataSetException(Stock failingStock, Set<IndicatorsCompositioner> validEventCaclulators, String error) {
+	public IncompleteDataSetException(Stock failingStock, Set<IndicatorsOperator> validEventCaclulators, String error) {
 		super(error);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
@@ -84,7 +84,7 @@ public class IncompleteDataSetException extends Exception {
 		return calculatedOutputs;
 	}
 
-	public Set<IndicatorsCompositioner> getValidEventCalculators() {
+	public Set<IndicatorsOperator> getValidEventCalculators() {
 		return validEventCalculators;
 	}
 

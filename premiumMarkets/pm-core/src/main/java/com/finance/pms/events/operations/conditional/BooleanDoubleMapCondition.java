@@ -83,7 +83,7 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 				} 
 				else if (exactDataSet()) {
 						gruyere = true;
-						break; 
+						break;
 				}
 			}
 			

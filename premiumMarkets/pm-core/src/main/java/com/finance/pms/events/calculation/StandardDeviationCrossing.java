@@ -52,7 +52,7 @@ import com.finance.pms.talib.indicators.StandardDeviation;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class StandardDeviationCrossing extends TalibIndicatorsCompositioner {
+public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 	
 	private StandardDeviation standardDeviation;
 	private SMA sma;

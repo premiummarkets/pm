@@ -61,7 +61,7 @@ public class QuotationQuery extends Query {
 			ORIGIN origin = ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)];
 			Boolean override = (isUserEntryRemovable && origin.equals(ORIGIN.WEB)) || (!isUserEntryRemovable && origin.equals(ORIGIN.USER));
 			if (override) {
-				retour.remove(retour.size()-1);
+				if (retour.size() > 0) retour.remove(retour.size()-1);
 				return entryDate;
 			} else {
 				return null;

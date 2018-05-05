@@ -21,7 +21,7 @@
 
 	<util:map id="availableSecondPassIndicatorCalculators">
 		<entry key="WEATHER" value="com.finance.pms.weather.WeatherChecker" />
-		<entry key="PARAMETERIZED" value="com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsCompositioner" />
+		<entry key="PARAMETERIZED" value="com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator" />
 	</util:map>
 	
  </beans>

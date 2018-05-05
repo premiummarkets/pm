@@ -56,7 +56,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class VarianceCalculator extends TalibIndicatorsCompositioner {
+public class VarianceCalculator extends TalibIndicatorsOperator {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(VarianceCalculator.class);
 
