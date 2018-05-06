@@ -41,21 +41,21 @@ import com.finance.pms.events.SymbolEvents;
 public class DefaultPonderationRule extends PonderationRule  { //Every event is 1 or -1
 
 	private static final long serialVersionUID = -9082913486132180089L;
-	
+
 	protected Integer buyThreshold;
 	protected Integer sellThreshold;
-	
+
 	public DefaultPonderationRule(Integer sellThreshold, Integer buyThreshold) {
 		super();
 		this.buyThreshold = buyThreshold;
 		this.sellThreshold = sellThreshold;
 	}
-	
+
 	@Override
 	public Boolean shallExit() {
 		return false;
 	}
-	
+
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
 		return new DefaultSignal(symbolEvents.getEventDefList());
@@ -66,14 +66,14 @@ public class DefaultPonderationRule extends PonderationRule  { //Every event is 
 		SymbolEvents se2 = o2;
 		PonderationRule p1 = new DefaultPonderationRule(sellThreshold, buyThreshold);
 		PonderationRule p2 = new DefaultPonderationRule(sellThreshold, buyThreshold);
-		
+
 		return compareCal(se1, se2, p1, p2);
 	}
 
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
 		Float finalWeight = super.finalWeight(symbolEvents);
-		symbolEvents.setLatestRelevantEventDate(signal.getLatestEventDate());
+		symbolEvents.setLatestRelevantEventDate(signal.getLatestRelevantEventDate());
 		symbolEvents.setTriggeringInfo(finalWeight, ((DefaultSignal) signal).getParsedEventDefs(), sellThreshold, buyThreshold);
 		return finalWeight;
 	}
@@ -87,5 +87,5 @@ public class DefaultPonderationRule extends PonderationRule  { //Every event is 
 	public String toString() {
 		return super.toString() + " [buyThreshold=" + buyThreshold + ", sellThreshold=" + sellThreshold + "]";
 	}
-	
+
 }

@@ -32,45 +32,45 @@ package com.finance.pms.events.pounderationrules;
 import com.finance.pms.events.SymbolEvents;
 
 public class LatestEventsPonderationRule extends PonderationRule {
-	
+
 	private static final long serialVersionUID = 2509603930728993786L;
 
 	protected Integer buyThreshold;
 	protected Integer sellThreshold;
-	
+
 	public LatestEventsPonderationRule(Integer sellThreshold, Integer buyThreshold) {
 		super();
 		this.buyThreshold = buyThreshold;
 		this.sellThreshold = sellThreshold;
 	}
 
-	
+
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
-		
+
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;
 		PonderationRule p1 = new LatestEventsPonderationRule(sellThreshold, buyThreshold);
 		PonderationRule p2 = new LatestEventsPonderationRule(sellThreshold, buyThreshold);
-		
+
 		return  compareCal(se1, se2, p1, p2);
 	}
-	
+
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
-		
+
 		Float finalWeight = super.finalWeight(symbolEvents);
-		symbolEvents.setLatestRelevantEventDate(((Signal) signal).getLatestEventDate());
-		
+		symbolEvents.setLatestRelevantEventDate(((Signal) signal).getLatestRelevantEventDate());
+
 		symbolEvents.setTriggeringInfo(finalWeight, ((Signal) signal).getParsedEventDefs(), sellThreshold, buyThreshold);
 		return finalWeight;
-		
+
 	}
 
 	@Override
 	public Boolean shallExit() {
 		return false;
 	}
-	
+
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
 		return new LatestEventsSignal(true,true);

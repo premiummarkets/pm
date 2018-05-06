@@ -43,7 +43,7 @@ public class DefaultSignal extends Signal {
 		List<String> list = new ArrayList<String>();
 		for (EventInfo eventDefinition : eventDefinitions) {
 			list.add(eventDefinition.getEventDefinitionRef());
-		}	
+		}
 		return list;
 	}
 
@@ -54,7 +54,7 @@ public class DefaultSignal extends Signal {
 	@Override
 	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		if (isFilteredEvent(eventKey)) {
-			latestEventDate = eventValue.getDate();
+			latestRelevantEventDate = eventValue.getDate();
 			parsedEventDefs.add(eventValue.getEventDef());
 			this.signalWeight = this.signalWeight + 
 								this.eventTypeWeigth(eventValue.getEventType().getEventTypeChar()) * 
@@ -94,7 +94,7 @@ public class DefaultSignal extends Signal {
 	}
 
 	protected boolean isFilteredEvent(EventKey eventKey) {
-		return eventDefList.contains(eventKey.getEventInfoExtra());
+		return eventDefList.contains(eventKey.getEventInfo().getEventDefinitionRef()) || eventDefList.contains(eventKey.getEventInfoExtra());
 	}
 
 }

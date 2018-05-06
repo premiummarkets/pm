@@ -148,7 +148,6 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	}
 
 	public void runAlertsOnThresholdCalculation() throws InterruptedException {
-
 		this.sendRunnableStartProcessingEvent(this.getAnalysisName(), this);
 		synchronized (this.syncObject) {
 			this.syncObject.wait();

@@ -416,6 +416,14 @@ public class EventsResources {
 
 	}
 
+	/**
+	 * @param stock
+	 * @param startDate inclusive
+	 * @param endDate inclusive
+	 * @param eventDefinitions
+	 * @param eventListNames
+	 * @return
+	 */
 	public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 
 		//Consistency checks
@@ -463,7 +471,13 @@ public class EventsResources {
 		return retVal;
 	}
 
-
+	/**
+	 * @param startDate inclusive
+	 * @param endDate inclusive
+	 * @param eventDefinitions
+	 * @param eventListNames
+	 * @return
+	 */
 	public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 
 		if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");

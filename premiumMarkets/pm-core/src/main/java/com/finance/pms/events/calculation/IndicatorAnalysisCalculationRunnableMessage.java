@@ -55,7 +55,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * @author Guillaume Thoreton
  */
 public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysisClientRunnableMessage {
-	
+
 	private static final long serialVersionUID = 1L;
 	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorAnalysisCalculationRunnableMessage.class);
 
@@ -71,8 +71,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	private IncompleteDataSetException exception;
 
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext,
-													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType,
-													Collection<Stock> shareList, Date datedeb, Date datefin, Observer... observers) {
+			SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType,
+			Collection<Stock> shareList, Date datedeb, Date datefin, Observer... observers) {
 		super(999, springContext, eventListName);
 		//this.periodType = periodType; //FIXME Not used
 		this.analyzer = analyzer;
@@ -81,30 +81,30 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.shareList = shareList;
 		//calculationCurrency is null : the stock currency will be used
 		this.observers = observers;
-		
+
 	}
-	
+
 	public IndicatorAnalysisCalculationRunnableMessage(SpringContext springContext, 
-													SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType,
-													Stock oneStock, Date datedeb, Date datefin, Currency calculationCurrency, Observer... observers) {
+			SelectedIndicatorsCalculationService analyzer, String eventListName, String periodType,
+			Stock oneStock, Date datedeb, Date datefin, Currency calculationCurrency, Observer... observers) {
 		this(springContext, analyzer, eventListName, periodType, Arrays.asList(new Stock[]{oneStock}), datedeb, datefin, observers);
 		//this.calculationCurrency = calculationCurrency; //FIXME Not used
 	}
-	
+
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation() throws InterruptedException, IncompleteDataSetException {
-		
+
 		this.exception = null;
 		this.runIndicatorsCalculationRes = null;
-		
+
 		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
 		synchronized (syncObject) {
 			syncObject.wait();
 		}
-		
+
 		if (exception != null) {
 			throw exception;
 		}
-		
+
 		return runIndicatorsCalculationRes;
 	}
 
@@ -114,11 +114,11 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,getConfigs().get(Config.INDICATOR_PARAMS_NAME));
-			
+
 			Map<Stock, List<EventInfo>> stocksEventInfos = shareList.stream().collect(Collectors.toMap(s -> s, s-> ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepsAndParameterised()));
 			List<SymbolEvents> calculated = analyzer.calculate(datedeb, datefin, getAnalysisName(), stocksEventInfos, observers);
 			runIndicatorsCalculationRes = calculated.stream().collect(Collectors.toMap(se -> se.getStock(), se -> se.getCalculationOutputs()));
-			
+
 		} catch (IncompleteDataSetException e) {
 			exception = e;
 
@@ -140,6 +140,6 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 	public Collection<Stock> getShareList() {
 		return shareList;
 	}
-	
-	
+
+
 }

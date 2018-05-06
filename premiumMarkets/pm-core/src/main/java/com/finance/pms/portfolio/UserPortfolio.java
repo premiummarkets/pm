@@ -30,8 +30,6 @@
 package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -41,14 +39,10 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
 /**
@@ -63,7 +57,7 @@ import com.finance.pms.threads.ObserverMsg;
 @Entity
 @DiscriminatorValue("default")
 public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserPortfolio.class);
 
 	private UserPortfolioDelegate userPortfolioDelegate;
@@ -79,65 +73,48 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		super(name, null, null, portfolioCurrency);
 		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
-	
-	
+
+
 	public UserPortfolio(UserPortfolio portfolio) {
 		super(portfolio);
 		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
-	public TransactionHistory calculate(Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
-		
-		List<SymbolEvents> listEvents = loadEventsForCalculation(currentDate, eventListName);
+	@Override
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
 		return userPortfolioDelegate.calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
-		
 	}
 
-	private List<SymbolEvents> loadEventsForCalculation(Date currentDate, String... eventListName) {
-		
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(currentDate);
-		Calendar nDaysAgoAtCurrentDate = QuotationsFactories.getFactory().incrementDate(calendar, -((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBackwardDaySpan());
-		Date dateStart = nDaysAgoAtCurrentDate.getTime();
-		
-		String[] fullEventListNames = Arrays.copyOf(eventListName, eventListName.length+1);
-		fullEventListNames[eventListName.length] = this.getName();
-		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, null, fullEventListNames);
-	}
-
-	
 	@Transient
 	public TransactionHistory getTransactionHistory() {
 		return userPortfolioDelegate.getTransactionHistory();
 	}
 
-	
+
 	public void notifyObservers(ObserverMsg string) {
 		super.notifyObservers(string);
 	}
 
-	
 	public BigDecimal withdrawCash(Date currentDate, Currency currency) throws NoCashAvailableException {
 		throw new NotImplementedException();
 	}
-	
-	
+
 	@Transient
 	public BigDecimal getAvailableCash(Date currentDate) {
 		throw new NotImplementedException();
 	}
-	
-	
+
+
 	public void exportAutoportfolioContent(Date date) {
 		throw new NotImplementedException();
 	}
-	
-	
+
+
 	public void setChanged() {
 		super.setChanged();
 	}
-	
-	
+
+
 	public void log(TransactionRecord transactionRecord) {
 		this.userPortfolioDelegate.log(transactionRecord);
 	}

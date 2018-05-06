@@ -30,9 +30,9 @@
 package com.finance.pms.events.pounderationrules;
 
 public interface ConfigFreePonderationRule {
-	
+
 	Integer getBuyThreshold();
-	
+
 	Integer getSellThreshold();
-	
+
 }

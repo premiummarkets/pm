@@ -38,17 +38,17 @@ import com.finance.pms.events.SymbolEvents;
 public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 
 	public UserPortfolioDelegate(AutoPortfolioWays userPortfolio) {
-		super(userPortfolio);
+		super(userPortfolio, false);
 	}
 
 	@Override
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount, PortfolioShare portfolioShare) {
 		TransactionRecord transactionRecord = 
-				new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "sell", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
+				new TransactionRecord(thisPortfolio.getName(), BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "sell", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
 		getTransactionHistory().add(transactionRecord);
 		return transactionRecord;
 	}
-	
+
 	@Override
 	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) {
 		if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
@@ -69,5 +69,5 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	protected boolean isInvalidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
 		return false;
 	}
-	
+
 }

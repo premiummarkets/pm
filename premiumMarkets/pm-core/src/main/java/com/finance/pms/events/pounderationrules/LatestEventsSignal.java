@@ -30,6 +30,7 @@
 package com.finance.pms.events.pounderationrules;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import com.finance.pms.admin.config.EventSignalConfig;
@@ -43,7 +44,7 @@ import com.finance.pms.talib.dataresults.AlertEventValue;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class LatestEventsSignal extends Signal {
-	
+
 	static MyLogger LOGGER = MyLogger.getLogger(LatestEventsSignal.class);
 
 	protected EventType lastParsedEventType;
@@ -60,18 +61,18 @@ public class LatestEventsSignal extends Signal {
 	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 
 		if (isFilteredEvent(eventValue)) {//Filtered
-			return addFilteredEvent(eventValue);
+			return addFilteredEvent(eventKey, eventValue);
 		} else { // Not filtered
 			return 0;
 		}
 	}
-	
-	protected Integer addFilteredEvent(EventValue eventValue) {
-		
+
+	protected Integer addFilteredEvent(EventKey eventKey, EventValue eventValue) {
+
 		if (isSameTrend(eventValue)) { //Same trend
 			if (!isAlreadyChecked(eventValue)) {
 				//Good : increment
-				listTriggeringEvent(eventValue, eventValue.getEventType(), eventValue.getEventDef());
+				listTriggeringEvent(eventValue.getDate(), eventValue.getEventType(), eventValue.getEventDef());
 				incrementWeight(eventValue);
 				return 1;
 			} else {//Same event def : ignore
@@ -115,34 +116,33 @@ public class LatestEventsSignal extends Signal {
 		} else {
 			return -1;
 		}
-		
 	}
 
-	protected void listTriggeringEvent(EventValue eventValue, EventType eventType, EventInfo eventDefinition) {
-			if (this.latestEventDate == null) this.latestEventDate = eventValue.getDate();
-			this.lastParsedEventType = eventType;
-			this.parsedEventDefs.add(eventDefinition);
+	protected void listTriggeringEvent(Date date, EventType eventType, EventInfo eventDefinition) {
+		if (this.latestRelevantEventDate == null) this.latestRelevantEventDate = date;
+		this.lastParsedEventType = eventType;
+		this.parsedEventDefs.add(eventDefinition);
 	}
-	
+
 	private void resetTriggeringEvent(EventValue eventValue, EventType eventType, EventInfo eventDefinition) {
-		
+
 		signalWeight = 0;
-		
-		this.latestEventDate = eventValue.getDate();
+
+		this.latestRelevantEventDate = eventValue.getDate();
 		this.lastParsedEventType = eventValue.getEventType();
 		this.parsedEventDefs = new HashSet<EventInfo>();
 		this.parsedEventDefs.add(eventValue.getEventDef());
-}
+	}
 
 	protected Boolean isFilteredEvent(EventValue eventValue) {
-		
+
 		if (eventValue.getEventType().equals(EventType.INFO)) return false;
 		if (eventValue.getEventType().equals(EventType.NONE)) return false;
-		
+
 		if (alerts && isAlert(eventValue)) {
 			return true;
 		}
-		
+
 		Boolean isOkEvent = false;
 		if (indicators && eventValue.getEventType().equals(EventType.BEARISH)) {
 			for (String si : ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellIndicators()) {

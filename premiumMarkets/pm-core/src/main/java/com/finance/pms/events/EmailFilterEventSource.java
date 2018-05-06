@@ -38,7 +38,7 @@ public enum EmailFilterEventSource {
 	PMAutoAlert ("Alerts on threshold on UserPortfolio", false, false, false),
 	PMUserAlert ("Alerts on threshold on UserPortfolio", true, true , false),
 	PMAutoBuySell ("Buy and sell Signals AutotPortfolio post processing", false, false, false),
-	PMUserBuySell ("Buy and sell Signals UserPortfolio post processing", true, false, false),
+	PMUserBuySell ("Buy and sell Signals UserPortfolio post processing", true, true, false),
 	PMGlobalBuySell ("Global events not related to a particular stock", false, true, false), 
 	Metrics ("Metrics", false, true, true),
 	Summary ("Summary messages", false, true, true);

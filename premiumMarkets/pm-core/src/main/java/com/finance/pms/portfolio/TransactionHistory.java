@@ -43,7 +43,7 @@ public class TransactionHistory extends ArrayList<TransactionRecord> {
 	private int lastNbSell;
 	private ArrayList<Double> bsDiffs;
 	private String previousMove;
-	
+
 	private boolean finalized = false;
 
 	public TransactionHistory(String name) {
@@ -57,19 +57,16 @@ public class TransactionHistory extends ArrayList<TransactionRecord> {
 		previousMove = "";
 	}
 
-	/**
-	 * 
-	 */
 	@Override
 	public boolean add(TransactionRecord transactionRecord) {
 		boolean res = super.add(transactionRecord);
 		this.add2(transactionRecord);
-		
+
 		return res;
 	}
-	
+
 	public void add2(TransactionRecord record) {
-		
+
 		if (finalized) throw new NotImplementedException();
 
 		if (previousMove.equals(record.getMovement())) {
@@ -93,36 +90,33 @@ public class TransactionHistory extends ArrayList<TransactionRecord> {
 			lastNbSell++;
 		}
 
-	}	
+	}
 
 	public Double getSellBuyAvgDiff() {
-		
+
 		finilize();
-		
+
 		Double diff = 0.0;
 		for (int i=1; i < bsDiffs.size(); i++) {
 			diff = diff + bsDiffs.get(i);
 		}
 		if (bsDiffs.size() == 0) return 0D;
 		if (bsDiffs.size() == 1) return diff;
-		
+
 		return diff/(bsDiffs.size()-1);
 	}
 
-	/**
-	 * 
-	 */
 	private void finilize() {
 		if (previousMove.equals("sell") && !finalized) {
 			bsDiffs.add(lastSell/lastNbSell - lastBuy/lastNbBuy);
 			finalized=true;
 		}
 	}
-	
+
 	public Integer nbDiffs() {
-		
+
 		finilize();
-		
+
 		return bsDiffs.size();
 	}
 
@@ -192,5 +186,5 @@ public class TransactionHistory extends ArrayList<TransactionRecord> {
 	public String toString() {
 		return "TransactionHistory [name=" + name + ", bsDiffs=" + bsDiffs + "]";
 	}
-	
+
 }

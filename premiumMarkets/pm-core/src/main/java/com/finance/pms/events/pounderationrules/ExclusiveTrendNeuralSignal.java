@@ -46,9 +46,9 @@ public class ExclusiveTrendNeuralSignal extends DefaultSignal {
 	}
 	
 	@Override
-	public Integer addEvent(EventKey eventKey,EventValue eventValue) {
+	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		if (isFilteredEvent(eventKey)) {
-			latestEventDate = eventValue.getDate();
+			latestRelevantEventDate = eventValue.getDate();
 			parsedEventDefs.add(eventValue.getEventDef());
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				nbBullish++;

@@ -47,7 +47,7 @@ public class ExclusiveTrendNeuralPonderationRule extends DefaultPonderationRule 
 		PonderationRule p1 = new ExclusiveTrendNeuralPonderationRule(sellThreshold, buyThreshold);
 		PonderationRule p2 = new ExclusiveTrendNeuralPonderationRule(sellThreshold, buyThreshold);
 		
-		return  compareCal(se1, se2, p1, p2);
+		return compareCal(se1, se2, p1, p2);
 	}
 	
 	@Override

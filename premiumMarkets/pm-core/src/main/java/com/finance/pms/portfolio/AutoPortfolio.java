@@ -76,12 +76,12 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	@SuppressWarnings("unused")
 	private AutoPortfolio() {
 		//Hibernate
- 		autoPortfolioDelegate = new AutoPortfolioDelegate(this);
+ 		autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
 	}
 	
 	public AutoPortfolio(AutoPortfolio portfolio) {
 		super(portfolio);	
-		autoPortfolioDelegate = new AutoPortfolioDelegate(this);
+		autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
 		additionalPortfolioEventListNames = portfolio.additionalPortfolioEventListNames;
 		eventSignalConfig = portfolio.eventSignalConfig;
 	}
@@ -89,7 +89,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, EventSignalConfig eventSignalConfig) {
 		super(name, buyPonderationRule, sellPonderationRule, null);
 		this.eventSignalConfig = eventSignalConfig;
-		autoPortfolioDelegate = new AutoPortfolioDelegate(this);
+		autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
 	}
 	
 	public synchronized BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
@@ -122,11 +122,11 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		super.setChanged();
 	}
 
-	public TransactionHistory calculate(Date endDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... additionalEventListNames) {
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
 		
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
-		List<SymbolEvents> listEvents = loadEventsForCalculation(endDate, null);
-		return autoPortfolioDelegate.calculate(listEvents, endDate, buyPonderationRule, sellPonderationRule);
+		///TODO List<SymbolEvents> listEvents = loadEventsForCalculation(currentDate, null);
+		return autoPortfolioDelegate.calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
 	}
 	
 

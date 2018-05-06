@@ -37,7 +37,7 @@ import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.SymbolEvents;
 
 public class TransactionRecord {
-	
+
 	//this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "eventList");
 	private String portfolioName;
 	private BigDecimal availableCash;
@@ -48,7 +48,7 @@ public class TransactionRecord {
 	private BigDecimal transactionPrice;
 	private SymbolEvents eventList;
 	private EmailFilterEventSource source;
-	
+
 	public TransactionRecord(String tunningPortfolioName,BigDecimal availbleCash, Date date, Stock stock, String movement, BigDecimal quantity, BigDecimal price, SymbolEvents eventList, EmailFilterEventSource source) {
 		super();
 		this.portfolioName = tunningPortfolioName;
@@ -61,11 +61,11 @@ public class TransactionRecord {
 		this.eventList = eventList;
 		this.source = source;
 	}
-	
+
 	public String getPortfolioName() {
 		return portfolioName;
 	}
-	
+
 	public BigDecimal getAvailableCash() {
 		return availableCash;
 	}
@@ -108,23 +108,24 @@ public class TransactionRecord {
 
 	@Override
 	public String toString() {
-		return " portfolioName : " + portfolioName 
-				+ ".\n stock : " + stock 
-				+ ".\n movement : " + movement
-				+ ".\n transactionPrice : " + transactionPrice 
-				+ ".\n date (mvt detection date) : " + date 
-				+ ".\n quantity left/bought : " + transactionQuantity
-				+ ".\n availableCash : " + availableCash 
-				+ ".\n eventList : " + eventList
-				+ ".\n buytriggeringEvents : " + ((eventList != null)? eventList.getBuyTriggeringEvents(): "none")
-				+ ".\n selltriggeringEvents : " + ((eventList != null)? eventList.getSellTriggeringEvents(): "none")
-				+ ".\n triggeringWeight : " + ((eventList != null)? eventList.getTriggeringFinalWeight(): "none");
+		return "\n Portfolio\t: " + portfolioName 
+				+ "\n Stock\t\t: " + stock 
+				+ "\n Detection date\t: " + date 
+				+ "\n Events\t\t:\n\t\t" + eventList.getSortedDataResultList().stream().map(e -> e.toString()).reduce((r, e) -> r + "\n\t\t" + e).orElse("none")
+				+ "\n Buy Events\t: " + ((eventList != null && eventList.getBuyTriggeringEvents() != null)? eventList.getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none") : "none")
+				+ "\n Sell Events\t: " + ((eventList != null && eventList.getSellTriggeringEvents() != null)? eventList.getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none") : "none")
+				+ "\n Weight\t\t: " + ((eventList != null)? eventList.getTriggeringFinalWeight(): "none")
+				+ "\n"
+				+ "\n Transaction Price\t: " + transactionPrice 
+				+ "\n Movement\t\t: " + movement
+				+ "\n Quantity left/bought\t: " + transactionQuantity
+				+ "\n Available Cash\t\t: " + availableCash;
 	}
 
 	public EmailFilterEventSource getSource() {
 		return source;
 	}
-	
-	
-	
+
+
+
 }

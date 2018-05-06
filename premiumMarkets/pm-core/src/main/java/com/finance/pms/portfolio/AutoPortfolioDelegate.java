@@ -67,23 +67,24 @@ import com.finance.pms.threads.ObserverMsg;
  *
  */
 public class AutoPortfolioDelegate {
-	
+
 	public static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
 	public static final BigDecimal DEFAULT_INITIAL_CASH;
-	
+
 	private TransactionHistory transactionHistory;
-	
+
 	static {
 		DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(10));
 	}
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
-	
+
 	protected AutoPortfolioWays thisPortfolio;
-	boolean initlog = true;
-
-
-	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio) {
+	
+	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio, Boolean isFileLogged) {
+		if (isFileLogged) {
+			this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "amount", "eventList");
+		}
 		this.thisPortfolio = autoPortfolio;
 	}
 
@@ -92,93 +93,83 @@ public class AutoPortfolioDelegate {
 		return transactionHistory;
 	}
 
-
-	public void initLog() {
-		if (initlog) {
-			this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "amount", "eventList");
-		}
-		initlog = false;
-	}
-
-
 	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyComparator, PonderationRule sellComparator) {
-	
-			initLog();
-			
-			TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
-			
-			LOGGER.debug("Checking events for AutoPortfolio : "+thisPortfolio.getName()+" and date "+currentDate);
-			thisCalculationHistory.addAll(this.checkSellSignals(currentDate, listEvents, sellComparator));
-			thisCalculationHistory.addAll(this.checkBuySignals(currentDate, listEvents, buyComparator));
-			LOGGER.debug("Just checked events for AutoPortfolio : "+thisPortfolio.getName()+" and date "+currentDate);
 
-			thisPortfolio.notifyObservers(new ObserverMsg(null, ObserverMsg.ObsKey.PRGSMSG, "Setting Quotations data"));
-			
-			return thisCalculationHistory;
+		TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
+
+		LOGGER.debug("Checking events for AutoPortfolio : "+thisPortfolio.getName()+" and date "+currentDate);
+		thisCalculationHistory.addAll(this.checkSellSignals(currentDate, listEvents, sellComparator));
+		thisCalculationHistory.addAll(this.checkBuySignals(currentDate, listEvents, buyComparator));
+		LOGGER.debug("Just checked events for AutoPortfolio : "+thisPortfolio.getName()+" and date "+currentDate);
+
+		thisPortfolio.notifyObservers(new ObserverMsg(null, ObserverMsg.ObsKey.PRGSMSG, "Setting Quotations data"));
+
+		return thisCalculationHistory;
+
 	}
-	
-	
+
+
 	private TransactionHistory checkBuySignals(Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
 
 		SymbolEvents symbolEventsThreshold = 
-			new SymbolEvents(
-				new Stock() {
+				new SymbolEvents(
+						new Stock() {
 
-					private static final long serialVersionUID = 1L;
-					
-					public String getSymbol() {
-						return "~";
-					}
-					public String getIsin() {
-						return "~";
-					}
-				},
-				new ConcurrentSkipListMap<EventKey, EventValue>(),
-				new ArrayList<String>(),
-				EventState.STATE_TERMINATED) {
-					
-					private static final long serialVersionUID = 1L;
-					
-					@Override
-					public float getWeight(PonderationRule pr) {
-						if (pr instanceof ConfigFreePonderationRule) {
-							return ((ConfigFreePonderationRule) pr).getBuyThreshold();
-						}
-						return new Float(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold());
-					}
-					
-					@Override
-					public String toString() {
-						return "Event buy threshold = "+getWeight(null);
-					}
-				
-			};
-			
+							private static final long serialVersionUID = 1L;
+
+							public String getSymbol() {
+								return "~";
+							}
+							public String getIsin() {
+								return "~";
+							}
+						},
+						new ConcurrentSkipListMap<EventKey, EventValue>(),
+						new ArrayList<String>(),
+						EventState.STATE_TERMINATED) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public float getWeight(PonderationRule pr) {
+				if (pr instanceof ConfigFreePonderationRule) {
+					return ((ConfigFreePonderationRule) pr).getBuyThreshold();
+				}
+				return new Float(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold());
+			}
+
+			@Override
+			public String toString() {
+				return "Event buy threshold = "+getWeight(null);
+			}
+
+		};
+
 		LOGGER.debug("Threshold event : "+symbolEventsThreshold);
-		
+
 		SortedSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
 		LOGGER.debug("Total bullish events : " + sortedSymbolEvents);
-		
+
 		SortedSet<SymbolEvents> sortedSymbolEventsTail = sortedSymbolEvents.headSet(symbolEventsThreshold);
 		LOGGER.debug("Filtered bullish events tail : "+sortedSymbolEventsTail);
 
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
 			try {
-				 TransactionRecord buyTrans = buyShare(symbolEvents,currentDate);
-				 if (buyTrans != null) {
-					 transactionHistory.add(buyTrans);
-				 }
+				TransactionRecord buyTrans = buyShare(symbolEvents,currentDate);
+				if (buyTrans != null) {
+					transactionHistory.add(buyTrans);
+				}
 			} catch (IgnoredEventDateException e) {
 				LOGGER.warn("Date of event is after current date. "+e);
 			}
 		}
-		
+
 		return transactionHistory;
-		
+
 	}
-	
+
 
 	private TransactionRecord buyShare(SymbolEvents symbolEvents,Date currentDate) throws IgnoredEventDateException {
 		return checkBuyability(symbolEvents, currentDate, null);
@@ -202,7 +193,7 @@ public class AutoPortfolioDelegate {
 					return null;
 				}
 			}
-				
+
 			return buy(symbolEvents, currentDate);
 
 		} catch (InvalidAlgorithmParameterException e) {
@@ -216,7 +207,7 @@ public class AutoPortfolioDelegate {
 		} 
 
 		thisPortfolio.setChanged();
-		
+
 		return null;
 	}
 
@@ -225,75 +216,75 @@ public class AutoPortfolioDelegate {
 	}
 
 	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
-		
-			Stock stock = symbolEvents.getStock();
-			//XXX what if we buy twice the same share but with a different currency?
-			Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null)? stock.getMarketValuation().getCurrency(): this.thisPortfolio.getPortfolioCurrency();
-			
-			synchronized (thisPortfolio) {
-				
-				BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
-				
-				LOGGER.debug("Buying : "+stock +" on event "+symbolEvents);	
-						
-				try {
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
-					BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);		
-					BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
-					
-					PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
-	
-					//Log
-					return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
-				} catch (NoQuotationsException e) {
-					LOGGER.warn(e);
-					throw new InvalidAlgorithmParameterException(e);
-				}
+
+		Stock stock = symbolEvents.getStock();
+		//XXX what if we buy twice the same share but with a different currency?
+		Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null)? stock.getMarketValuation().getCurrency(): this.thisPortfolio.getPortfolioCurrency();
+
+		synchronized (thisPortfolio) {
+
+			BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
+
+			LOGGER.debug("Buying : "+stock +" on event "+symbolEvents);	
+
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+				BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);		
+				BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
+
+				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
+
+				//Log
+				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
+			} catch (NoQuotationsException e) {
+				LOGGER.warn(e);
+				throw new InvalidAlgorithmParameterException(e);
 			}
+		}
 	}
-	
-	private TransactionHistory checkSellSignals(Date currentDate,List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
-		
+
+	private TransactionHistory checkSellSignals(Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
+
 		SymbolEvents symbolEventThreshold = new SymbolEvents(
-					new Stock() {
+				new Stock() {
 
-						private static final long serialVersionUID = 1L;
+					private static final long serialVersionUID = 1L;
 
-						public String getSymbol() {
-							return "0";
-						}
-						public String getIsin() {
-							return "0";
-						}
-					},
-					new ConcurrentSkipListMap<EventKey, EventValue>(),
-					new ArrayList<String>(),
-					EventState.STATE_TERMINATED) {
+					public String getSymbol() {
+						return "0";
+					}
+					public String getIsin() {
+						return "0";
+					}
+				},
+				new ConcurrentSkipListMap<EventKey, EventValue>(),
+				new ArrayList<String>(),
+				EventState.STATE_TERMINATED) {
 
-						private static final long serialVersionUID = 1L;
-						
-						@Override
-						public float getWeight(PonderationRule pr) {
-							if (pr instanceof ConfigFreePonderationRule) {
-								return ((ConfigFreePonderationRule) pr).getSellThreshold();
-							}
-							return new Float(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold());
-						}
-			
-						@Override
-						public String toString() {
-							return "Event sell threshold = "+getWeight(null);
-						}			
-					};
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public float getWeight(PonderationRule pr) {
+				if (pr instanceof ConfigFreePonderationRule) {
+					return ((ConfigFreePonderationRule) pr).getSellThreshold();
+				}
+				return new Float(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold());
+			}
+
+			@Override
+			public String toString() {
+				return "Event sell threshold = "+getWeight(null);
+			}
+		};
 		LOGGER.debug("Threshold event : "+symbolEventThreshold);
-	
+
 		NavigableSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
 		LOGGER.trace("Total bearish events : "+sortedSymbolEvents);
-		
+
 		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventThreshold);
 		LOGGER.debug("Filtered bearish events head : "+sortedSymbolEventsHead);
-		
+
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents : sortedSymbolEventsHead.descendingSet()) {
 			try {
@@ -305,10 +296,10 @@ public class AutoPortfolioDelegate {
 				LOGGER.warn("Date of event is after current date. "+e);
 			}
 		}
-		
+
 		return transactionHistory;
 	}
-	
+
 	private TransactionRecord sellShare(SymbolEvents symbolEvents, Date currentDate) throws IgnoredEventDateException {
 		return checkSellability(symbolEvents, currentDate, null);
 	}
@@ -321,7 +312,7 @@ public class AutoPortfolioDelegate {
 			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate,new Throwable());
 
 		try {
-			
+
 			if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
 
 				PortfolioShare portfolioShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
@@ -337,7 +328,7 @@ public class AutoPortfolioDelegate {
 			} else {
 				LOGGER.debug("Nothing to sell, share "+symbolEvents.getSymbol()+ " on event "+symbolEvents+", is not in shareList.");
 			}
-			
+
 		} catch (InvalidAlgorithmParameterException e) 	{
 			LOGGER.warn("Can't sell "+symbolEvents.getStock()+" in Auto portfolio  - no quotations : "+thisPortfolio.getName());
 		} catch (InvalidQuantityException e) {
@@ -345,9 +336,9 @@ public class AutoPortfolioDelegate {
 		} catch (Exception e) {
 			LOGGER.error("Can't sell share "+symbolEvents.getStock()+" in Auto portfolio : "+thisPortfolio.getName(),e);
 		}
-		
+
 		thisPortfolio.setChanged();
-		
+
 		return null;
 
 	}
@@ -357,64 +348,64 @@ public class AutoPortfolioDelegate {
 	}
 
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
-	
-			try {
-				Quotations quotations =  QuotationsFactories.getFactory().getQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
-				BigDecimal lastPrice = quotations.getClosestCloseForDate(currentDate);
-				
-				BigDecimal quantityProrata;
-				BigDecimal quantity = portfolioShare.getQuantity(currentDate);
-				if (unitAmount != null) {
-					quantityProrata = unitAmount.divide(lastPrice, 10, BigDecimal.ROUND_HALF_EVEN);
-					quantityProrata = quantityProrata.min(quantity);	
-				} else {
-					quantityProrata = quantity;
-				}
 
-				synchronized (this) {
-					thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
-					LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+quantity);
+		try {
+			Quotations quotations =  QuotationsFactories.getFactory().getQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
+			BigDecimal lastPrice = quotations.getClosestCloseForDate(currentDate);
 
-					//log
-					return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, lastPrice, currentDate);
-				}
-			} catch (NoQuotationsException e) {
-				LOGGER.warn(e);
-				throw new InvalidAlgorithmParameterException(e);
+			BigDecimal quantityProrata;
+			BigDecimal quantity = portfolioShare.getQuantity(currentDate);
+			if (unitAmount != null) {
+				quantityProrata = unitAmount.divide(lastPrice, 10, BigDecimal.ROUND_HALF_EVEN);
+				quantityProrata = quantityProrata.min(quantity);	
+			} else {
+				quantityProrata = quantity;
 			}
 
+			synchronized (this) {
+				thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
+				LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+quantity);
+
+				//log
+				return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, lastPrice, currentDate);
+			}
+		} catch (NoQuotationsException e) {
+			LOGGER.warn(e);
+			throw new InvalidAlgorithmParameterException(e);
+		}
+
 	}
-	
+
 	public void log(TransactionRecord transactionRecord) {
-		
+
 		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
 		String eventList = (transactionRecord.getEventList() == null)?"":transactionRecord.getEventList().toString();
-		
+
 		this.log(
 				transactionRecord.getAvailableCash().toString(),new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(transactionRecord.getDate()),
 				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(),transactionRecord.getStock().getName(), 
 				transactionRecord.getMovement(), transactionRecord.getTransactionQuantity().toString(), transactionRecord.getTransactionPrice().toString(), amount.toString(), 
 				eventList);
 	}
-	
+
 
 	public TransactionRecord log(String movement, AutoPortfolioWays shareList, Stock stock, SymbolEvents symbolEvents, BigDecimal quantity, BigDecimal price, Date currentDate) {
-		
+
 		TransactionRecord transactionRecord = new TransactionRecord(thisPortfolio.getName(), shareList.getAvailableCash(currentDate), currentDate, stock, movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
 		getTransactionHistory().add(transactionRecord);
-	
+
 		this.log(transactionRecord);
-		
+
 		return transactionRecord;
-		
+
 	}
-	
+
 	protected void log(String availableCash, String calcDate,String symbol,String isin, String sharename, String movement, String quantity, String price, String amount, String eventList) {
 
 		File log = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName()+"_Log.csv");
 		FileWriter fos = null;
 		try {
-			
+
 			fos = new FileWriter(log, true);
 
 			StringBuilder line = new StringBuilder();
@@ -422,7 +413,7 @@ public class AutoPortfolioDelegate {
 			String cleanSharename = sharename.replace(","," ");
 			line.append(availableCash+",").append(calcDate+","+symbol+","+isin+",").append(cleanSharename+",").append(movement+",").append(quantity+",").append(price+",").append(amount+",").append(cleanEventList);
 			LOGGER.debug(line);
-			
+
 			fos.write(line.toString()+"\n");
 			fos.flush();
 
@@ -442,5 +433,5 @@ public class AutoPortfolioDelegate {
 		}
 
 	}	
-	
+
 }

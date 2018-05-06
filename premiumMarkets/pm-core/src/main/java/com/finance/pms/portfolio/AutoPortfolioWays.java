@@ -32,16 +32,18 @@ package com.finance.pms.portfolio;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.threads.ObserverMsg;
 
 public interface AutoPortfolioWays {
-	
+
 	String getName();
 
 	void notifyObservers(ObserverMsg msg);
@@ -55,19 +57,19 @@ public interface AutoPortfolioWays {
 	void setChanged();
 
 	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException;
-	
-	TransactionHistory calculate(Date endDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName);
+
+	TransactionHistory calculate(List<SymbolEvents> events, Date enDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName);
 
 	void exportAutoportfolioContent(Date date);
 
 	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
-	
+
 	public TransactionHistory getTransactionHistory();
-	
+
 	public Currency getPortfolioCurrency();
-	
+
 	public void log(TransactionRecord transactionRecord);
-	
+
 	public String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable;
 
 }

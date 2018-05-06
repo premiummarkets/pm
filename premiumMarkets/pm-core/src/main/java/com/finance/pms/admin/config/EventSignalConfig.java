@@ -392,7 +392,7 @@ public class EventSignalConfig extends Config implements Cloneable {
         return EVENT_SIGNAL_NAME;
     }
 
-    public PonderationRule getBuyPonderationRule(Object... constructParam) {
+    public PonderationRule getNewBuyPonderationRule(Object... constructParam) {
         return instanciateClass(buyPonderationRule, constructParam);
     }
 
@@ -404,7 +404,7 @@ public class EventSignalConfig extends Config implements Cloneable {
         return sellPonderationRule;
     }
 
-    public PonderationRule getSellPonderationRule(Object... constructParam) {
+    public PonderationRule geNewtSellPonderationRule(Object... constructParam) {
         return instanciateClass(sellPonderationRule, constructParam);
     }
 
@@ -424,27 +424,21 @@ public class EventSignalConfig extends Config implements Cloneable {
                 LOGGER.debug("Found constructor with param for : "+newInstance.getClass().getName());
                 return newInstance;
             } catch (SecurityException e) {
-                LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName,e);
+                LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
                 return ponderationRuleClass.newInstance();
             } catch (NoSuchMethodException e) {
                 PonderationRule newInstance = ponderationRuleClass.newInstance();
                 LOGGER.debug("Found constructor with NO param for : "+newInstance.getClass().getName());
                 return newInstance;
             } catch (IllegalArgumentException e) {
-                LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName,e);
+                LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);
                 return ponderationRuleClass.newInstance();
             } catch (InvocationTargetException e) {
-                LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName,e);
+                LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);
                 return ponderationRuleClass.newInstance();
             }
-        } catch (InstantiationException e) {
-            LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName,e);
-            return new SilentPonderationRule();
-        } catch (IllegalAccessException e) {
-            LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName,e);
-            return new SilentPonderationRule();
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName,e);
+        } catch (Exception e) {
+            LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
             return new SilentPonderationRule();
         }
     }

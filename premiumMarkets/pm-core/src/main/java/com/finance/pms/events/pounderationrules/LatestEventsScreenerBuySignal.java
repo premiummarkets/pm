@@ -51,7 +51,7 @@ public class LatestEventsScreenerBuySignal extends LatestEventsSignal {
 	@Override
 	public Integer addEvent(EventKey eventKey, EventValue eventValue) {
 		if (isBullishTrend() && EventDefinition.SCREENER.equals(eventValue.getEventDef()) && eventValue.getEventType().equals(EventType.NONE)) {
-				listTriggeringEvent(eventValue, EventType.BULLISH, EventDefinition.SCREENER);
+				listTriggeringEvent(eventKey.getDate(), EventType.BULLISH, EventDefinition.SCREENER);
 				this.additionalRankWeight =  ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold() + ((AlertEventValue) eventValue).extractAdditionalRankWeight();
 				return 1;
 		} else {

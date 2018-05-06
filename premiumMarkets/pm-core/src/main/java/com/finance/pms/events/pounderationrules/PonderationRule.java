@@ -92,12 +92,12 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 	public Float finalWeight(SymbolEvents symbolEvents) {
 
 		this.signal = initSignal(symbolEvents);
-		this.signal = this.calculateSignal(sortEventResults(symbolEvents));
+		this.signal = this.calculateSignal(eventResultsBackwardSort(symbolEvents));
 		return new Float(this.signal.getSignalWeight());
 
 	}
 
-	private SortedMap<EventKey,EventValue> sortEventResults(final SymbolEvents symbolEvents) {
+	private SortedMap<EventKey,EventValue> eventResultsBackwardSort(final SymbolEvents symbolEvents) {
 
 		//Descending order sorted map
 		SortedMap<EventKey,EventValue> sortedMap = 

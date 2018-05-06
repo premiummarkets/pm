@@ -29,26 +29,23 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import java.util.Map;
+import java.util.HashMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
 
-public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderationRule {
+public class LatestValidatedPonderationRule extends LatestEventsPonderationRule {
 
 	private static final long serialVersionUID = 573802685420097964L;
-	private static MyLogger LOGGER = MyLogger.getLogger(ValidatedLatestEventsPonderationRule.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(LatestValidatedPonderationRule.class);
 
-	private Map<Stock, Validity> tuningValidityList;
-	private EventInfo filteredEventDef;
+	private HashMap<Stock, Validity> tuningValidityList;
 
-	public ValidatedLatestEventsPonderationRule(Integer sellThreshold, Integer buyThreshold, Map<Stock, Validity> tuningValidityList, EventInfo evtDef) {
+	public LatestValidatedPonderationRule(Integer sellThreshold, Integer buyThreshold, HashMap<Stock, Validity> tuningValidityList) {
 		super(sellThreshold, buyThreshold);
 		this.tuningValidityList = tuningValidityList;
-		this.filteredEventDef = evtDef;
 	}
 
 	@Override
@@ -56,8 +53,8 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;
-		PonderationRule p1 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList, filteredEventDef);
-		PonderationRule p2 = new ValidatedLatestEventsPonderationRule(sellThreshold, buyThreshold, tuningValidityList, filteredEventDef);
+		PonderationRule p1 = new LatestValidatedPonderationRule(sellThreshold, buyThreshold, tuningValidityList);
+		PonderationRule p2 = new LatestValidatedPonderationRule(sellThreshold, buyThreshold, tuningValidityList);
 
 		return compareCal(se1, se2, p1, p2);
 	}
@@ -79,12 +76,14 @@ public class ValidatedLatestEventsPonderationRule extends LatestEventsPonderatio
 		} else {
 			return 0.0f;
 		}
+		
+		//TODO isMature and isLoss (ie Alerts) for AutoPortfolios if (reversalTrendSignal.getIsMature()) ..
 
 	}
 
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
-		return new ValidatedLatestEventsSignal(filteredEventDef);
+		return new LatestValidatedSignal(symbolEvents.getEventDefList());
 	}
 
 }

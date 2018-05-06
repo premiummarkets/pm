@@ -209,7 +209,7 @@ public class Portfolio extends AbstractSharesList {
 			EventSignalConfig eventConfig = (EventSignalConfig)ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 			Integer sellEvtThresh = eventConfig.getSellEventTriggerThreshold();
 			Integer buyEvtThresh = eventConfig.getBuyEventTriggerThreshold();
-			PonderationRule defaultBuyPonderationRule = eventConfig.getBuyPonderationRule(sellEvtThresh,buyEvtThresh);
+			PonderationRule defaultBuyPonderationRule = eventConfig.getNewBuyPonderationRule(sellEvtThresh,buyEvtThresh);
 			LOGGER.warn("No buy weighting rule for "+this.name+" the config rule will be used "+defaultBuyPonderationRule);
 			return defaultBuyPonderationRule;
 		}
@@ -231,7 +231,7 @@ public class Portfolio extends AbstractSharesList {
 			EventSignalConfig eventConfig = (EventSignalConfig)ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 			Integer sellEvtThresh = eventConfig.getSellEventTriggerThreshold();
 			Integer buyEvtThresh = eventConfig.getBuyEventTriggerThreshold();
-			PonderationRule defaultSellPonderationRule = eventConfig.getSellPonderationRule(sellEvtThresh,buyEvtThresh);
+			PonderationRule defaultSellPonderationRule = eventConfig.geNewtSellPonderationRule(sellEvtThresh,buyEvtThresh);
 			LOGGER.warn("No sell weighting rule for "+this.name+" the config rule will be used "+defaultSellPonderationRule);
 			return defaultSellPonderationRule;
 		}

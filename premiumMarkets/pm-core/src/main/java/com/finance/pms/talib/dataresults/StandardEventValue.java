@@ -68,7 +68,7 @@ public class StandardEventValue extends EventValue {
 	}
 	
 	public StandardEventValue(Date date, String eventInfoReference, String eventTypeChar, String message, String eventListName) throws NoSuchFieldException{
-		super(date,EventDefinition.valueOfEventInfo(eventInfoReference),EventType.valueOf(eventTypeChar.charAt(0)),message, eventListName);
+		super(date, EventDefinition.valueOfEventInfo(eventInfoReference), EventType.valueOf(eventTypeChar.charAt(0)), message, eventListName);
 
 	}
 

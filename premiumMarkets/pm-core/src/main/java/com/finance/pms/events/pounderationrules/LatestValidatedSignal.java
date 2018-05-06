@@ -29,36 +29,51 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import com.finance.pms.events.EventInfo;
+import java.util.Set;
+
+import com.finance.pms.alerts.AlertOnThresholdType;
+import com.finance.pms.events.AlertEventKey;
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 
-public class ValidatedLatestEventsSignal extends LatestEventsSignal {
+public class LatestValidatedSignal extends LatestEventsSignal {
 
-	private EventInfo filteredEventDef;
+	private Set<String> filteredEventDef;
 
-	public ValidatedLatestEventsSignal(EventInfo filteredEventDef) {
+	public LatestValidatedSignal(Set<String> eventDefs) {
 		super(false, true);
-		this.filteredEventDef = filteredEventDef;
+		this.filteredEventDef = eventDefs;
 	}
 
 	@Override
-	public Integer addFilteredEvent(EventValue eventValue) {
-		
-		if (eventValue.getEventType().equals(EventType.BEARISH)) {
-			this.signalWeight--;
-		} else if (eventValue.getEventType().equals(EventType.BULLISH)) {
-			this.signalWeight++;
+	public Integer addFilteredEvent(EventKey eventKey, EventValue eventValue) {
+
+		if (eventKey.getEventInfo().equals(EventDefinition.ALERTTHRESHOLD)) {
+			if (((AlertEventKey) eventKey).getAlertType().equals(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT)) {
+				this.signalWeight--;
+				this.parsedEventDefs.add(eventKey.getEventInfo());
+			}
+			if (((AlertEventKey) eventKey).getAlertType().equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) {
+				this.signalWeight--;
+				this.parsedEventDefs.add(eventKey.getEventInfo());
+			}
+		} else {
+			if (eventKey.getEventType().equals(EventType.BEARISH)) {
+				this.signalWeight--;
+			} else if (eventKey.getEventType().equals(EventType.BULLISH)) {
+				this.signalWeight++;
+			}
+			listTriggeringEvent(eventKey.getDate(), eventKey.getEventType(), eventKey.getEventInfo());
 		}
-		listTriggeringEvent(eventValue, eventValue.getEventType(), eventValue.getEventDef());
-		
-		return 1;	
+
+		return 1;
 	}
-	
-	
+
 	@Override
 	protected Boolean isFilteredEvent(EventValue eventValue) {
-		return eventValue.getEventDef().equals(filteredEventDef);
+		return filteredEventDef.contains(eventValue.getEventDef().getEventDefinitionRef());
 	}
 
 }

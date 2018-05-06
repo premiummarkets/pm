@@ -345,6 +345,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
 				if (portfolioShare.getStock().lenientSymbolEquals(stock)) {
 					if (!portfolioShare.getMonitorLevel().equals(MonitorLevel.NONE)) {//Found monitored in Portfolio
+							if (portfolioShare.getAlertsOnEvent().isEmpty()) return true; //The default is pass through
 							Optional<AlertOnEvent> findFirst = portfolioShare.getAlertsOnEvent().stream()
 							.filter(aoe -> aoe.getEventInfoReference().equals(alertKey.getEventInfo().getEventDefinitionRef()))
 							.findFirst();

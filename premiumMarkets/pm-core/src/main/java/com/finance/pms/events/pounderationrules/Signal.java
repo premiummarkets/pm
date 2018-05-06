@@ -40,10 +40,10 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 
 public abstract class Signal {
-	
+
 	protected Integer signalWeight;
 	protected Collection<String> eventDefList;
-	protected Date latestEventDate;
+	protected Date latestRelevantEventDate;
 	protected Set<EventInfo> parsedEventDefs;
 
 	public Signal(Collection<String> eventDefList) {
@@ -60,11 +60,11 @@ public abstract class Signal {
 	public Integer getSignalWeight() {
 		return signalWeight;
 	}
-	
+
 	public abstract Integer addEvent(EventKey eventKey, EventValue eventValue);
 
-	public Date getLatestEventDate() {
-		return latestEventDate;
+	public Date getLatestRelevantEventDate() {
+		return latestRelevantEventDate;
 	}
 
 	public Set<EventInfo> getParsedEventDefs() {
@@ -74,6 +74,6 @@ public abstract class Signal {
 	protected void setSignalWeight(Integer signalWeight) {
 		this.signalWeight = signalWeight;
 	}
-	
-	
+
+
 }

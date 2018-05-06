@@ -132,7 +132,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				LOGGER.info("New export message received : " + m.getAnalyseName());
 				runSynchTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
 
-
 			} else if (message instanceof AbstractAnalysisClientRunnableMessage) {//Runnable Messages : screener, indicator (gwt), all stocks summaries and alerts on threshold
 
 				AbstractAnalysisClientRunnableMessage runnableMessage = (AbstractAnalysisClientRunnableMessage) message;
@@ -172,8 +171,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
 
 		LOGGER.debug(
-				"Email/Popup potential (before filtering) message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : " 
-						+ symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
+				"Email/Popup potential (before filtering) message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : "+
+				symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
 
 		Boolean sendMailEnabled = new Boolean(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
 
@@ -245,26 +244,32 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 		switch (eventType) {
 		case BEARISH:
-			String sellTrigPat = "selltriggeringEvents : ";
 			String sellTriggeringEvents = " ";
-			if (eMailTxt.contains(sellTrigPat)) {
-				int sstartIdx = eMailTxt.indexOf(sellTrigPat) + sellTrigPat.length();
-				sellTriggeringEvents = " with trigger " + eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
+			if (eventInfoRef.isEmpty()) {
+				String sellTrigPat = "Sell Events\t: ";
+				if (eMailTxt.contains(sellTrigPat)) {
+					int sstartIdx = eMailTxt.indexOf(sellTrigPat) + sellTrigPat.length();
+					sellTriggeringEvents = " with trigger "
+							+ eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
+				}
 			}
 			subject = source + " : " + stockName + eventInfoRef+ " " + eventType.name()+ sellTriggeringEvents + " in " + eventListName;
 			break;
 		case BULLISH:
-			String buyTrigPat = "buytriggeringEvents : ";
 			String buyTriggeringEvents = " ";
-			if (eMailTxt.contains(buyTrigPat)) {
-				int bstartIdx = eMailTxt.indexOf(buyTrigPat) + buyTrigPat.length();
-				buyTriggeringEvents = " with trigger" + eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
+			if (eventInfoRef.isEmpty()) {
+				String buyTrigPat = "Buy Events\t: ";
+				if (eMailTxt.contains(buyTrigPat)) {
+					int bstartIdx = eMailTxt.indexOf(buyTrigPat) + buyTrigPat.length();
+					buyTriggeringEvents = " with trigger "
+							+ eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
+				}
 			}
 			subject = source + " : " + stockName + eventInfoRef+ " "+eventType.name() + buyTriggeringEvents + " in " + eventListName;
 			break;
 		default:
 			String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
-			subject = source + " : " + stockName + eventInfoRef+ " " + addEventType + " in " + eventListName;
+			subject = source + " : " + stockName + eventInfoRef + " " + addEventType + " in " + eventListName;
 		}
 
 		mail.setSubject(subject);
@@ -284,34 +289,33 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		String evenTypeAdd = EventType.INFO.name();
 
 		switch(eventSource) {
-		case PMUserScreening:
-			if (eMailTxt.contains("rank is Down")) {
-				evenTypeAdd = "BEARISH";
-			} else if (eMailTxt.contains("rank is Up")) {
-				evenTypeAdd= "BULLISH";
-			} else if (eMailTxt.contains("Screener Alert")) {
-				evenTypeAdd = "SCREENING";
-			}
-			break;
-		case PMUserAlert:
-			if (eMailTxt.contains(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.getText())) {
-				evenTypeAdd = "SELL";
-			}
-			else if ((eMailTxt.contains(AlertOnThresholdType.BELOW_PRICE_CHANNEL.getText()))) {
-				evenTypeAdd = "BEARISH";
-			} else if (eMailTxt.contains(AlertOnThresholdType.ABOVE_PRICE_CHANNEL.getText())) {
-				evenTypeAdd = "BULLISH";
-			}
-			break;
-		case PMUserBuySell:
-			if (eMailTxt.contains("movement : sell")) {
-				evenTypeAdd = "SELL";
-			} else if (eMailTxt.contains("movement : buy")) {
-				evenTypeAdd = "BUY";
-			}
-			break;
-		default :
-		{}
+			case PMUserScreening:
+				if (eMailTxt.contains("rank is Down")) {
+					evenTypeAdd = "BEARISH";
+				} else if (eMailTxt.contains("rank is Up")) {
+					evenTypeAdd= "BULLISH";
+				} else if (eMailTxt.contains("Screener Alert")) {
+					evenTypeAdd = "SCREENING";
+				}
+				break;
+			case PMUserAlert:
+				if (eMailTxt.contains(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.getText())) {
+					evenTypeAdd = "SELL";
+				}
+				else if ((eMailTxt.contains(AlertOnThresholdType.BELOW_PRICE_CHANNEL.getText()))) {
+					evenTypeAdd = "BEARISH";
+				} else if (eMailTxt.contains(AlertOnThresholdType.ABOVE_PRICE_CHANNEL.getText())) {
+					evenTypeAdd = "BULLISH";
+				}
+				break;
+			case PMUserBuySell:
+				if (eMailTxt.contains("movement : sell")) {
+					evenTypeAdd = "SELL";
+				} else if (eMailTxt.contains("movement : buy")) {
+					evenTypeAdd = "BUY";
+				}
+				break;
+			default :
 		}
 
 		return evenTypeAdd;
