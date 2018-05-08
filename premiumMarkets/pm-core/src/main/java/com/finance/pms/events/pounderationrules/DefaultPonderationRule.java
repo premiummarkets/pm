@@ -73,13 +73,12 @@ public class DefaultPonderationRule extends PonderationRule  { //Every event is 
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
 		Float finalWeight = super.finalWeight(symbolEvents);
-		symbolEvents.setLatestRelevantEventDate(signal.getLatestRelevantEventDate());
-		symbolEvents.setTriggeringInfo(finalWeight, ((DefaultSignal) signal).getParsedEventDefs(), sellThreshold, buyThreshold);
+		symbolEvents.getSignal().setTriggeringInfo(((DefaultSignal) symbolEvents.getSignal()).getParsedEventDefs(), sellThreshold, buyThreshold);
 		return finalWeight;
 	}
 
 	@Override
-	protected void postCondition() {
+	protected void postCondition(Signal signal) {
 		//Nothing
 	}
 

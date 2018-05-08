@@ -37,7 +37,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
 public class VariationPonderationRule extends DefaultPonderationRule {
 
 	private static final long serialVersionUID = -8767974461321093296L;
-	
+
 	private VariationPonderationRule() {
 		super(
 				((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold(), 
@@ -50,10 +50,10 @@ public class VariationPonderationRule extends DefaultPonderationRule {
 		SymbolEvents se2 = o2;
 		PonderationRule p1 = new VariationPonderationRule();
 		PonderationRule p2 = new VariationPonderationRule();
-		
+
 		return  compareCal(se1, se2, p1, p2);
 	}
-	
+
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
 		return new VariationSignal();

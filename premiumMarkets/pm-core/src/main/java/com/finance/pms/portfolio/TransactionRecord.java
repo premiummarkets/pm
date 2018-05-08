@@ -111,10 +111,7 @@ public class TransactionRecord {
 		return "\n Portfolio\t: " + portfolioName 
 				+ "\n Stock\t\t: " + stock 
 				+ "\n Detection date\t: " + date 
-				+ "\n Events\t\t:\n\t\t" + eventList.getSortedDataResultList().stream().map(e -> e.toString()).reduce((r, e) -> r + "\n\t\t" + e).orElse("none")
-				+ "\n Buy Events\t: " + ((eventList != null && eventList.getBuyTriggeringEvents() != null)? eventList.getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none") : "none")
-				+ "\n Sell Events\t: " + ((eventList != null && eventList.getSellTriggeringEvents() != null)? eventList.getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none") : "none")
-				+ "\n Weight\t\t: " + ((eventList != null)? eventList.getTriggeringFinalWeight(): "none")
+				+ "\n "+((eventList != null)? eventList.toAutoPortfolioLog():"Events\t\t:\n\t\tNo event")
 				+ "\n"
 				+ "\n Transaction Price\t: " + transactionPrice 
 				+ "\n Movement\t\t: " + movement

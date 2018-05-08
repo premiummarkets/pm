@@ -76,8 +76,6 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 		} else {
 			return 0.0f;
 		}
-		
-		//TODO isMature and isLoss (ie Alerts) for AutoPortfolios if (reversalTrendSignal.getIsMature()) ..
 
 	}
 

@@ -64,9 +64,9 @@ public abstract class OneEventScreenerPonderationRule extends LatestEventsPonder
 
 
 	@Override
-	protected void postCondition() {
-		if (((OneEventScreenerSignal)this.signal).getIsSignalBullish() && ((OneEventScreenerSignal)this.signal).getIsInTopScreened()) {
-			this.signal.signalWeight = ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold() + ((OneEventScreenerSignal)this.signal).getAdditionalRankWeight();
+	protected void postCondition(Signal signal) {
+		if (((OneEventScreenerSignal)signal).getIsSignalBullish() && ((OneEventScreenerSignal)signal).getIsInTopScreened()) {
+			signal.signalWeight = ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold() + ((OneEventScreenerSignal)signal).getAdditionalRankWeight();
 		}
 	}
 }

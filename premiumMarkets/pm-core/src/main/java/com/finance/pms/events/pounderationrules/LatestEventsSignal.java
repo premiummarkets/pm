@@ -72,7 +72,7 @@ public class LatestEventsSignal extends Signal {
 		if (isSameTrend(eventValue)) { //Same trend
 			if (!isAlreadyChecked(eventValue)) {
 				//Good : increment
-				listTriggeringEvent(eventValue.getDate(), eventValue.getEventType(), eventValue.getEventDef());
+				recordAsTriggeringEvent(eventValue.getDate(), eventValue.getEventType(), eventValue.getEventDef());
 				incrementWeight(eventValue);
 				return 1;
 			} else {//Same event def : ignore
@@ -118,7 +118,7 @@ public class LatestEventsSignal extends Signal {
 		}
 	}
 
-	protected void listTriggeringEvent(Date date, EventType eventType, EventInfo eventDefinition) {
+	protected void recordAsTriggeringEvent(Date date, EventType eventType, EventInfo eventDefinition) {
 		if (this.latestRelevantEventDate == null) this.latestRelevantEventDate = date;
 		this.lastParsedEventType = eventType;
 		this.parsedEventDefs.add(eventDefinition);

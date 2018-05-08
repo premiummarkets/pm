@@ -30,12 +30,8 @@
 package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -44,11 +40,8 @@ import javax.persistence.Transient;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -64,24 +57,22 @@ import com.finance.pms.threads.ObserverMsg;
 public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
-	
+
 	public static final String NAME  = "AutoPortfolio";
 
 	private AutoPortfolioDelegate autoPortfolioDelegate;
-	
+
 	private String[] additionalPortfolioEventListNames = new String[0];
-	
+
 	private EventSignalConfig eventSignalConfig;
 
 	@SuppressWarnings("unused")
 	private AutoPortfolio() {
 		//Hibernate
- 		autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
 	}
-	
+
 	public AutoPortfolio(AutoPortfolio portfolio) {
-		super(portfolio);	
-		autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
+		super(portfolio);
 		additionalPortfolioEventListNames = portfolio.additionalPortfolioEventListNames;
 		eventSignalConfig = portfolio.eventSignalConfig;
 	}
@@ -89,20 +80,18 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, EventSignalConfig eventSignalConfig) {
 		super(name, buyPonderationRule, sellPonderationRule, null);
 		this.eventSignalConfig = eventSignalConfig;
-		autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
 	}
-	
+
 	public synchronized BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
 
 		BigDecimal ret = BigDecimal.ZERO;
 
-		BigDecimal totalInAmountEver = getTotalInAmountEver(null, currentDate);
-		BigDecimal totalOutAmountEver = getTotalOutAmountEver(null, currentDate);
-		if (totalInAmountEver.subtract(totalOutAmountEver).compareTo(AutoPortfolioDelegate.DEFAULT_INITIAL_CASH) <= 0) {
+		BigDecimal availableCash = getAvailableCash(currentDate);
+		if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0) {
 			ret = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
-		} 
+		}
 		else {
-			throw new NoCashAvailableException("No cash left : out " + totalOutAmountEver+" in "+ totalInAmountEver);
+			throw new NoCashAvailableException("Not enough cash left : " + availableCash);
 		}
 
 		return PortfolioMgr.getInstance().getCurrencyConverter().convert(Currency.EUR, transactionCurrency, ret, currentDate);
@@ -110,64 +99,24 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	@Transient
 	public BigDecimal getAvailableCash(Date currentDate) {
-		return getTotalOutAmountEver(null, currentDate);
+		BigDecimal inMinusOut = getTotalInAmountEver(null, currentDate).subtract(getTotalOutAmountEver(null, currentDate)).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+		return AutoPortfolioDelegate.DEFAULT_INITIAL_CASH.subtract(inMinusOut);
 	}
 
 	public void notifyObservers(ObserverMsg string) {
 		super.notifyObservers(string);
 	}
-	
+
 	@Override
 	public void setChanged() {
 		super.setChanged();
 	}
 
 	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
-		
+
 		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
-		///TODO List<SymbolEvents> listEvents = loadEventsForCalculation(currentDate, null);
-		return autoPortfolioDelegate.calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
+		return getAutoPortfolioDelegate().calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
 	}
-	
-
-	public List<SymbolEvents> loadEventsForCalculation(Date currentDate, Set<EventInfo> eventDefinitions) {
-		
-		List<SymbolEvents> fullListEvents = new ArrayList<SymbolEvents>();
-		fullListEvents = loadEvents(currentDate, eventSignalConfig, eventDefinitions, this.additionalPortfolioEventListNames, this.getName());
-
-		return fullListEvents;
-	}
-
-
-	private List<SymbolEvents> loadEvents(Date currentDate, EventSignalConfig eventSignalConfig, Set<EventInfo> eventDefinitions, String[] additionalPortfolioEventListNames, String... otherNames) {
-		
-		Date dateStart = eventLoadStartDate(currentDate, eventSignalConfig.getBackwardDaySpan());
-		String[] fullEventListNames = Arrays.copyOf(additionalPortfolioEventListNames, additionalPortfolioEventListNames.length+otherNames.length);
-		
-		for (int i = 0; i < otherNames.length; i++) {
-			fullEventListNames[additionalPortfolioEventListNames.length + i] = otherNames[i];
-		}
-		
-		return EventsResources.getInstance().crudReadEvents(dateStart, currentDate, eventDefinitions, fullEventListNames);
-	}
-
-	private Date eventLoadStartDate(Date currentDate, Integer backwardDaySpan) {
-		//Get start date
-//		Date dateStart;
-//		if (!MainGui.isGuiRunning) { //not in GUI
-//			dateStart = IndicatorCalculationServiceMain.getDateMoinsNJours(currentDate, backwardDaySpan);
-//		} else { //&& MainGui.isGuiRunning) { //in GUI
-//			dateStart =	MainGui.analyseStartDateCalculation();
-//		}
-//		return dateStart;
-		//FIXME set backwardDaySpan from UI
-		//return IndicatorCalculationServiceMain.getDateMoinsNJours(currentDate, backwardDaySpan);
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(currentDate);
-		Calendar nDaysAgoAtCurrentDate = QuotationsFactories.getFactory().incrementDate(calendar, -backwardDaySpan);
-		return nDaysAgoAtCurrentDate.getTime();
-	}
-
 
 	@Override
 	public void resetManualAlerts(PortfolioShare portfolioShare, AbstractSharesList sourcePortfolio) {
@@ -181,9 +130,9 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	@Transient
 	public TransactionHistory getTransactionHistory() {
-		return autoPortfolioDelegate.getTransactionHistory();
+		return getAutoPortfolioDelegate().getTransactionHistory();
 	}
-	
+
 	public void setAdditionalPortfolioEventListNames(String[] additionalEventListNames) {
 		this.additionalPortfolioEventListNames = additionalEventListNames;
 	}
@@ -193,7 +142,15 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	public void log(TransactionRecord transactionRecord) {
-		this.autoPortfolioDelegate.log(transactionRecord);
+		this.getAutoPortfolioDelegate().log(transactionRecord);
 	}
-	
+
+	@Transient
+	private AutoPortfolioDelegate getAutoPortfolioDelegate() {
+		if (autoPortfolioDelegate == null) {
+			autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
+		}
+		return autoPortfolioDelegate;
+	}
+
 }

@@ -67,7 +67,7 @@ public class PMLogRocOperation extends PMWithDataOperation {
 			HouseTrendSmoother houseTrend = new HouseTrendSmoother(period);
 			ret.getValue(targetStock).putAll(houseTrend.sSmooth(data, null));
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(e, e);
 		}
 		return ret;
 	}

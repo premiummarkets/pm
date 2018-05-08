@@ -67,12 +67,13 @@ public class LatestEventsScreenerBuyPonderationRule extends LatestEventsPonderat
 	}
 
 	@Override
-	protected void postCondition() {
-		if (	this.signal.signalWeight > 0 
-				&& ((LatestEventsScreenerBuySignal)this.signal).isBullishTrend() && ((LatestEventsScreenerBuySignal)this.signal).additionalRankWeight > 0) {
-			this.signal.signalWeight = this.signal.signalWeight + ((LatestEventsScreenerBuySignal)this.signal).additionalRankWeight ;
+	protected void postCondition(Signal signal) {
+		if (	signal.signalWeight > 0 
+				&& ((LatestEventsScreenerBuySignal) signal).isBullishTrend() && ((LatestEventsScreenerBuySignal) signal).additionalRankWeight > 0
+			) {
+			signal.signalWeight = signal.signalWeight + ((LatestEventsScreenerBuySignal) signal).additionalRankWeight ;
 		} else {
-			this.signal.signalWeight = 0;
+			signal.signalWeight = 0;
 		}
 	}
 	

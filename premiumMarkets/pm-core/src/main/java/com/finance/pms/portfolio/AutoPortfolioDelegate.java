@@ -34,6 +34,7 @@ import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -80,12 +81,12 @@ public class AutoPortfolioDelegate {
 	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
 
 	protected AutoPortfolioWays thisPortfolio;
-	
+
 	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio, Boolean isFileLogged) {
-		if (isFileLogged) {
-			this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "amount", "eventList");
-		}
 		this.thisPortfolio = autoPortfolio;
+		if (isFileLogged) {
+			this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "amount", "events", "run timestamp");
+		}
 	}
 
 	public TransactionHistory getTransactionHistory() {
@@ -157,12 +158,12 @@ public class AutoPortfolioDelegate {
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
 			try {
-				TransactionRecord buyTrans = buyShare(symbolEvents,currentDate);
+				TransactionRecord buyTrans = buyShare(symbolEvents, currentDate);
 				if (buyTrans != null) {
 					transactionHistory.add(buyTrans);
 				}
 			} catch (IgnoredEventDateException e) {
-				LOGGER.warn("Date of event is after current date. "+e);
+				LOGGER.warn("Date of event is after buy current date. "+e);
 			}
 		}
 
@@ -178,9 +179,9 @@ public class AutoPortfolioDelegate {
 	private TransactionRecord checkBuyability(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
-		LOGGER.debug("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate);
+		LOGGER.debug("Last event date : " + latestEventDateAndNewBuyDate + " and current date : " + currentDate);
 		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.after(currentDate)) {
-			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate,new Throwable());
+			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate + ". Invalid event date or no event found in "+symbolEvents, new Throwable());
 		}
 
 		try {
@@ -229,9 +230,12 @@ public class AutoPortfolioDelegate {
 
 			try {
 				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
-				BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);		
+				BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);
 				BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
 
+				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
+					throw new NoQuotationsException("Invalid stock "+stock+" with price "+buyPrice+ " on "+currentDate +". Can't be bought");
+				}
 				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
 
 				//Log
@@ -293,7 +297,7 @@ public class AutoPortfolioDelegate {
 					transactionHistory.add(sellTransaction);
 				}
 			} catch (IgnoredEventDateException e) {
-				LOGGER.warn("Date of event is after current date. "+e);
+				LOGGER.warn("Date of event is sell after current date. "+e);
 			}
 		}
 
@@ -309,13 +313,18 @@ public class AutoPortfolioDelegate {
 		//check if already done 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
 		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.after(currentDate)) 
-			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate,new Throwable());
+			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate + ". Invalid event date or no event found in "+symbolEvents, new Throwable());
 
 		try {
 
 			if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
 
 				PortfolioShare portfolioShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
+
+				if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
+					LOGGER.debug("Nothing to sell. No quantity remaining for this stock : " + portfolioShare + ". It'll remain as is until bought again and stays for portfolio transaction logging.");
+					return null;
+				}
 
 				if (isInvalidSellableDate(latestEventDateAndNewBuyDate, portfolioShare)) { 
 					//already sold with that signal
@@ -330,11 +339,11 @@ public class AutoPortfolioDelegate {
 			}
 
 		} catch (InvalidAlgorithmParameterException e) 	{
-			LOGGER.warn("Can't sell "+symbolEvents.getStock()+" in Auto portfolio  - no quotations : "+thisPortfolio.getName());
+			LOGGER.warn("Can't sell "+symbolEvents.getStock()+" from "+thisPortfolio.getName()+" - no quotations on the " + currentDate+ " : "+thisPortfolio.getListShares().get(symbolEvents.getStock()));
 		} catch (InvalidQuantityException e) {
-			LOGGER.error("Can't sell "+symbolEvents.getStock()+" in Auto portfolio  - Invalid quantity : "+thisPortfolio.getName(),e);
+			LOGGER.error("Can't sell "+symbolEvents.getStock()+" from "+thisPortfolio.getName()+" - invalid quantity on the " + currentDate+ " : "+thisPortfolio.getListShares().get(symbolEvents.getStock()), e);
 		} catch (Exception e) {
-			LOGGER.error("Can't sell share "+symbolEvents.getStock()+" in Auto portfolio : "+thisPortfolio.getName(),e);
+			LOGGER.error("Can't sell "+symbolEvents.getStock()+" from "+thisPortfolio.getName()+" on the " + currentDate + " : "+thisPortfolio.getListShares().get(symbolEvents.getStock()), e);
 		}
 
 		thisPortfolio.setChanged();
@@ -347,7 +356,7 @@ public class AutoPortfolioDelegate {
 		return !latestEventDateAndNewBuyDate.after(portfolioShare.getLastTransactionDate());
 	}
 
-	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
+	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal sellAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
 
 		try {
 			Quotations quotations =  QuotationsFactories.getFactory().getQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
@@ -355,9 +364,9 @@ public class AutoPortfolioDelegate {
 
 			BigDecimal quantityProrata;
 			BigDecimal quantity = portfolioShare.getQuantity(currentDate);
-			if (unitAmount != null) {
-				quantityProrata = unitAmount.divide(lastPrice, 10, BigDecimal.ROUND_HALF_EVEN);
-				quantityProrata = quantityProrata.min(quantity);	
+			if (sellAmount != null) {
+				quantityProrata = sellAmount.divide(lastPrice, 10, BigDecimal.ROUND_HALF_EVEN);
+				quantityProrata = quantityProrata.min(quantity);
 			} else {
 				quantityProrata = quantity;
 			}
@@ -379,13 +388,13 @@ public class AutoPortfolioDelegate {
 	public void log(TransactionRecord transactionRecord) {
 
 		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
-		String eventList = (transactionRecord.getEventList() == null)?"":transactionRecord.getEventList().toString();
+		String eventList = (transactionRecord.getEventList() == null)?"No Event":transactionRecord.getEventList().toAutoPortfolioLog();
 
 		this.log(
 				transactionRecord.getAvailableCash().toString(),new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(transactionRecord.getDate()),
 				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(),transactionRecord.getStock().getName(), 
-				transactionRecord.getMovement(), transactionRecord.getTransactionQuantity().toString(), transactionRecord.getTransactionPrice().toString(), amount.toString(), 
-				eventList);
+				transactionRecord.getMovement(), transactionRecord.getTransactionQuantity().toString(), transactionRecord.getTransactionPrice().toString(), amount.toString(),
+				eventList, LocalDateTime.now().toString());
 	}
 
 
@@ -400,7 +409,7 @@ public class AutoPortfolioDelegate {
 
 	}
 
-	protected void log(String availableCash, String calcDate,String symbol,String isin, String sharename, String movement, String quantity, String price, String amount, String eventList) {
+	protected void log(String availableCash, String calcDate,String symbol,String isin, String sharename, String movement, String quantity, String price, String amount, String eventList, String timeStamp) {
 
 		File log = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName()+"_Log.csv");
 		FileWriter fos = null;
@@ -409,9 +418,11 @@ public class AutoPortfolioDelegate {
 			fos = new FileWriter(log, true);
 
 			StringBuilder line = new StringBuilder();
-			String cleanEventList= "'"+eventList.replace(","," ").replace("\n"," ")+"'";
-			String cleanSharename = sharename.replace(","," ");
-			line.append(availableCash+",").append(calcDate+","+symbol+","+isin+",").append(cleanSharename+",").append(movement+",").append(quantity+",").append(price+",").append(amount+",").append(cleanEventList);
+			String cleanEventList= "\"" + eventList.replaceAll("\"", "'") + "\"";
+			String cleanSharename = "\"" + sharename.replaceAll("\"", "'") + "\"";
+			line
+				.append(availableCash+",").append(calcDate+","+symbol+","+isin+",").append(cleanSharename+",")
+				.append(movement+",").append(quantity+",").append(price+",").append(amount+",").append(timeStamp+",").append(cleanEventList);
 			LOGGER.debug(line);
 
 			fos.write(line.toString()+"\n");

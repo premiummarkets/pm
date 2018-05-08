@@ -299,10 +299,9 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				}
 				break;
 			case PMUserAlert:
-				if (eMailTxt.contains(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.getText())) {
+				if (eMailTxt.contains(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.getText()) || eMailTxt.contains(AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT.getText())) {
 					evenTypeAdd = "SELL";
-				}
-				else if ((eMailTxt.contains(AlertOnThresholdType.BELOW_PRICE_CHANNEL.getText()))) {
+				} else if ((eMailTxt.contains(AlertOnThresholdType.BELOW_PRICE_CHANNEL.getText()))) {
 					evenTypeAdd = "BEARISH";
 				} else if (eMailTxt.contains(AlertOnThresholdType.ABOVE_PRICE_CHANNEL.getText())) {
 					evenTypeAdd = "BULLISH";

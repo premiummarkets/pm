@@ -66,28 +66,25 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	private UserPortfolio() {
 		//hib
 		super();
-		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
 	public UserPortfolio(String name, Currency portfolioCurrency) {
 		super(name, null, null, portfolioCurrency);
-		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
 
 	public UserPortfolio(UserPortfolio portfolio) {
 		super(portfolio);
-		userPortfolioDelegate = new UserPortfolioDelegate(this);
 	}
 
 	@Override
 	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
-		return userPortfolioDelegate.calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
+		return getUserPortfolioDelegate().calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
 	}
 
 	@Transient
 	public TransactionHistory getTransactionHistory() {
-		return userPortfolioDelegate.getTransactionHistory();
+		return getUserPortfolioDelegate().getTransactionHistory();
 	}
 
 
@@ -116,7 +113,16 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 
 
 	public void log(TransactionRecord transactionRecord) {
-		this.userPortfolioDelegate.log(transactionRecord);
+		this.getUserPortfolioDelegate().log(transactionRecord);
+	}
+
+
+	@Transient
+	private UserPortfolioDelegate getUserPortfolioDelegate() {
+		if (userPortfolioDelegate == null) {
+			new UserPortfolioDelegate(this);
+		}
+		return userPortfolioDelegate;
 	}
 
 }

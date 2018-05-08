@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.events.pounderationrules.Signal;
 
 
 /**
@@ -66,16 +67,13 @@ public class SymbolEvents implements Serializable {
 	private Set<String> eventDefList;
 	private EventState eventsState;
 
-	private Date latestRelevantEventDate;
-
-	private Set<EventInfo> buyTriggeringEvents;
-	private Set<EventInfo> sellTriggeringEvents;
-	private Float triggeringFinalWeight;
+	private SymbolEventsWeightData weightData;
 
 	private Map<EventInfo, SortedMap<Date, double[]>> calculationOutputs;
 
 	public SymbolEvents(Stock stock) {
-		super();
+		this.weightData = null;
+		
 		this.stock = stock;
 		this.dataResultMap= new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
@@ -83,6 +81,8 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public SymbolEvents(Stock stock, ConcurrentSkipListMap<EventKey, EventValue> dataResultList, Collection<?> eventDefList, EventState state) {
+		this.weightData = null;
+
 		this.stock =stock;
 		this.dataResultMap = dataResultList;
 		this.eventDefList = new HashSet<String>();
@@ -97,6 +97,8 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public SymbolEvents(Stock stock, EventState eState) {
+		this.weightData = null;
+		
 		this.stock = stock;
 		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
@@ -104,6 +106,7 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public SymbolEvents(EventMessageObject eventMessageObject) throws NoSuchFieldException {
+		this.weightData = null;
 
 		ConcurrentSkipListMap<EventKey, EventValue> map= new ConcurrentSkipListMap<EventKey, EventValue>();
 		EventValue eventValue = eventMessageObject.getEventValue();
@@ -169,7 +172,14 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public float getWeight(PonderationRule ponderationRule) {
-		return ponderationRule.finalWeight(this);
+		if (weightData == null || !weightData.isSamePonderation(ponderationRule)) {
+			//LOGGER.info("Different ponderation recalculation needed.");
+			this.weightData = new SymbolEventsWeightData(ponderationRule);
+			return ponderationRule.finalWeight(this);
+		} else {
+			//LOGGER.info("Same ponderation no recalculation needed.");
+			return weightData.getFinalWeight();
+		}
 	}
 
 	@Override
@@ -180,11 +190,11 @@ public class SymbolEvents implements Serializable {
 		retour.append(";");
 		retour.append(stock.getName());
 		retour.append(";");
-		retour.append(" triggering weight : "+this.triggeringFinalWeight);
+		retour.append(" triggering weight : "+getTriggeringFinalWeight());
 		retour.append(";");
-		retour.append(" buy triggering events : "+((this.buyTriggeringEvents != null)?this.buyTriggeringEvents.stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
+		retour.append(" buy triggering events : "+((getBuyTriggeringEvents() != null)?getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
 		retour.append(";");
-		retour.append(" sell triggering events : "+((this.sellTriggeringEvents != null)?this.sellTriggeringEvents.stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
+		retour.append(" sell triggering events : "+((getSellTriggeringEvents() != null)?getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
 		retour.append(";[");
 		Iterator<EventValue> drlIt = drl.iterator();
 		while (drlIt.hasNext()) {
@@ -239,23 +249,11 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public String toAutoPortfolioLog()  {
-		StringBuilder stringBuilder = new StringBuilder();
-		Collection<EventValue> sortedEventValues=this.getSortedDataResultList();
-		if (sortedEventValues.size() > 0 ) {
-			stringBuilder.append("[");
-			Iterator<EventValue> sortedEventValuesIt = sortedEventValues.iterator();
-			while (sortedEventValuesIt.hasNext()) {
-				EventValue eventValue = sortedEventValuesIt.next();
-				stringBuilder.append(eventValue.toString());
-				if (sortedEventValuesIt.hasNext()) stringBuilder.append(",");
-			}
-			stringBuilder.append("]");
-		} else {
-			stringBuilder.append("No signal events?!");
-			stringBuilder.append(" Event state :"+this.eventsState);
-		}
-
-		return stringBuilder.toString();
+		return
+		"Events\t\t:\n\t\t" + getSortedDataResultList().stream().map(e -> e.toString()).reduce((r, e) -> r + "\n\t\t" + e).orElse("none")
+		+ "\n Buy Events\t: " + ((getBuyTriggeringEvents() != null)? getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none") : "none")
+		+ "\n Sell Events\t: " + ((getSellTriggeringEvents() != null)? getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none") : "none")
+		+ "\n Weight\t\t: " + getTriggeringFinalWeight();
 	}
 
 	/**
@@ -277,12 +275,14 @@ public class SymbolEvents implements Serializable {
 	 * @author Guillaume Thoreton
 	 */
 	public void addEventResultElement(EventKey eventKey, EventValue eventValue, String eventDefinition) {
+		this.weightData = null;
 		this.eventDefList.add(eventDefinition);
 		this.dataResultMap.put(eventKey, eventValue);
 	}
 
 
 	public void addEventResultElement(SortedMap<EventKey,EventValue> evl, Collection<?> edefl) {
+		this.weightData = null;
 		try {
 
 			for (Object eventInfo : edefl) {
@@ -310,6 +310,7 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public void addEventResultElement(SortedMap<EventKey,EventValue> evl,  EventInfo eventDefinition) {
+		this.weightData = null;
 		this.eventDefList.add(eventDefinition.getEventDefinitionRef());
 		this.dataResultMap.putAll(evl);
 	}
@@ -387,41 +388,38 @@ public class SymbolEvents implements Serializable {
 		return dataResultMap.firstKey().getDate();
 	}
 
-	//AutoPortfolio stuff //TODO implement a sub class to Symbol Events
+	//Weight stuff
 	public Date getLatestRelevantEventDate() {
-		return latestRelevantEventDate;
-	}
-
-	public void setLatestRelevantEventDate(Date lastRelevantEvent) {
-		this.latestRelevantEventDate = lastRelevantEvent;
-	}
-
-	public void setTriggeringInfo(Float finalWeight, Set<EventInfo> parsedEventDefs, Integer sellEventTriggerThreshold, Integer buyEventTriggerThreshold) {
-
-		this.triggeringFinalWeight = finalWeight;
-
-		if (triggeringFinalWeight >= buyEventTriggerThreshold)  {
-			this.buyTriggeringEvents = parsedEventDefs;
-		} else {
-			if (triggeringFinalWeight <= sellEventTriggerThreshold) {
-				this.sellTriggeringEvents = parsedEventDefs;
-			}
-		}
+		return getWeightData().getLatestRelevantEventDate();
 	}
 
 	public Set<EventInfo> getBuyTriggeringEvents() {
-		return buyTriggeringEvents;
+		return getWeightData().getBuyTriggeringEvents();
 	}
 
 	public Float getTriggeringFinalWeight() {
-		return triggeringFinalWeight;
+		return getWeightData().getFinalWeight();
 	}
 
 	public Set<EventInfo> getSellTriggeringEvents() {
-		return sellTriggeringEvents;
+		return getWeightData().getSellTriggeringEvents();
 	}
-	//End Auto portfolio stuff
+	
+	private SymbolEventsWeightData getWeightData() {
+		if (weightData == null) throw new UnsupportedOperationException("Weight not initialised for this "+this);
+		return weightData;
+	}
 
+	public void setSignal(Signal initSignal) {
+		getWeightData().setSignal(initSignal);
+	}
+
+	public Signal getSignal() {
+		return getWeightData().getSignal();
+	}
+	//End Weight stuff
+
+	//Calculated output stuff //TODO reset when this changes.
 	public Map<EventInfo, SortedMap<Date, double[]>> getCalculationOutputs() {
 		return calculationOutputs;
 	}
@@ -441,5 +439,6 @@ public class SymbolEvents implements Serializable {
 		this.calculationOutputs.putAll(calculationOutputs);
 
 	}
+	//End calculated output stuff
 
 }

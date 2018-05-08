@@ -35,7 +35,8 @@ public enum AlertOnThresholdType {
 	ABOVE_PRICE_CHANNEL ("Above channel threshold reached"), //Updated when triggered
 	BELOW_PRICE_CHANNEL ("Below channel threshold reached"), //Updated when triggered
 	ABOVE_TAKE_PROFIT_LIMIT ("Above take profit threshold limit"), //Should be updated when avg price changes and stays when triggered
-	BELOW_ZERO_WEIGHTED_PROFIT_LIMIT ("Below take 0% weighted profit limit"), //Should be updated when inflation changes and swap up/down when triggered -
+	BELOW_MAX_LOSS_LIMIT ("Below loss threshold limit"), //Should be updated when avg price changes and stays when triggered
+	BELOW_ZERO_WEIGHTED_PROFIT_LIMIT ("Below take 0% weighted profit limit"), //Should be updated when inflation changes and swap up/down when triggered
 	MANUALUP ("User threshold up reached"),
 	MANUALDOWN ("User threshold down reached");
 	

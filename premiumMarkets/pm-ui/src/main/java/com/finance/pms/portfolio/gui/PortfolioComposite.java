@@ -868,7 +868,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					}
 					{
 						MenuItem portfolioDeletePortfoliobutton = new MenuItem(mainGuiParent.portfolioSubMenu, SWT.CASCADE);
-						portfolioDeletePortfoliobutton.setText("Remove a portfolio");
+						portfolioDeletePortfoliobutton.setText("Remove portfolio");
 						portfolioDeletePortfoliobutton.addSelectionListener(new SelectionListener() {
 
 							@Override
@@ -1085,8 +1085,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						GridData isLatestTransactionsOnlyLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
 						isLatestTransactionsOnlyLayout.horizontalSpan = 2;
 						isLatestTransactionsOnly.setLayoutData(isLatestTransactionsOnlyLayout);
-						isLatestTransactionsOnly.setText("Use only latest transactions");
-						isLatestTransactionsOnly.setToolTipText("Take in acccount only the latest transactions for each line after a potential liquidation of theses lines in this portfolio.");
+						isLatestTransactionsOnly.setText("Use invested lines transactions only");
+						isLatestTransactionsOnly.setToolTipText("Take in acccount only the transactions for which the lines are still invested i.e. not empty.");
 						isLatestTransactionsOnly.setFont(MainGui.DEFAULTFONT);
 						isLatestTransactionsOnly.addSelectionListener(new SelectionListener() {
 

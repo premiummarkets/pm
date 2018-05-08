@@ -29,11 +29,13 @@
  */
 package com.finance.pms.events.pounderationrules;
 
+import java.util.Date;
 import java.util.Set;
 
 import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -43,37 +45,50 @@ public class LatestValidatedSignal extends LatestEventsSignal {
 	private Set<String> filteredEventDef;
 
 	public LatestValidatedSignal(Set<String> eventDefs) {
-		super(false, true);
+		super(true, true);
 		this.filteredEventDef = eventDefs;
-	}
-
-	@Override
-	public Integer addFilteredEvent(EventKey eventKey, EventValue eventValue) {
-
-		if (eventKey.getEventInfo().equals(EventDefinition.ALERTTHRESHOLD)) {
-			if (((AlertEventKey) eventKey).getAlertType().equals(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT)) {
-				this.signalWeight--;
-				this.parsedEventDefs.add(eventKey.getEventInfo());
-			}
-			if (((AlertEventKey) eventKey).getAlertType().equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) {
-				this.signalWeight--;
-				this.parsedEventDefs.add(eventKey.getEventInfo());
-			}
-		} else {
-			if (eventKey.getEventType().equals(EventType.BEARISH)) {
-				this.signalWeight--;
-			} else if (eventKey.getEventType().equals(EventType.BULLISH)) {
-				this.signalWeight++;
-			}
-			listTriggeringEvent(eventKey.getDate(), eventKey.getEventType(), eventKey.getEventInfo());
-		}
-
-		return 1;
 	}
 
 	@Override
 	protected Boolean isFilteredEvent(EventValue eventValue) {
 		return filteredEventDef.contains(eventValue.getEventDef().getEventDefinitionRef());
+	}
+
+	@Override
+	//Remember that the events are screened backward.
+	public Integer addFilteredEvent(EventKey eventKey, EventValue eventValue) {
+
+		if (eventKey.getEventInfo().equals(EventDefinition.ALERTTHRESHOLD)) {
+			AlertOnThresholdType alertType = ((AlertEventKey) eventKey).getAlertType();
+			if (alertType.equals(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT) || alertType.equals(AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT)) {
+				this.signalWeight--;
+				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventInfo());
+				return 1; //Adding up
+			}
+			//Too volatile
+//			if (alertType.equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) { 
+//				this.signalWeight--;
+//				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventInfo());
+//				return 1;  //Adding up
+//			}
+		} else {
+			if (eventKey.getEventType().equals(EventType.BEARISH)) {
+				this.signalWeight--;
+				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventType(), eventKey.getEventInfo());
+				return -1; //We stop cumulative events
+			} else if (eventKey.getEventType().equals(EventType.BULLISH)) {
+				this.signalWeight++;
+				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventType(), eventKey.getEventInfo());
+				return -1;  //We stop cumulative events
+			}
+		}
+
+		return 0;
+	}
+
+	protected void recordAsTriggeringEvent(Date date, EventInfo eventDefinition) {
+		if (this.latestRelevantEventDate == null) this.latestRelevantEventDate = date;
+		this.parsedEventDefs.add(eventDefinition);
 	}
 
 }

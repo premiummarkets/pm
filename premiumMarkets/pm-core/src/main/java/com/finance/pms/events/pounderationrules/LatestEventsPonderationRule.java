@@ -57,13 +57,9 @@ public class LatestEventsPonderationRule extends PonderationRule {
 
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
-
 		Float finalWeight = super.finalWeight(symbolEvents);
-		symbolEvents.setLatestRelevantEventDate(((Signal) signal).getLatestRelevantEventDate());
-
-		symbolEvents.setTriggeringInfo(finalWeight, ((Signal) signal).getParsedEventDefs(), sellThreshold, buyThreshold);
+		symbolEvents.getSignal().setTriggeringInfo(((Signal) symbolEvents.getSignal()).getParsedEventDefs(), sellThreshold, buyThreshold);
 		return finalWeight;
-
 	}
 
 	@Override
@@ -77,7 +73,7 @@ public class LatestEventsPonderationRule extends PonderationRule {
 	}
 
 	@Override
-	protected void postCondition() {
+	protected void postCondition(Signal signal) {
 		// Nothing
 	}
 

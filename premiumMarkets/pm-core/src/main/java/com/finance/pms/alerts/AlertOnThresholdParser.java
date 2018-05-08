@@ -119,10 +119,12 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					//TODO improved rules
 					EventType eventType = EventType.INFO; //default alert
 					if (
-							(AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) &&
-									portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0) || 
+							(
+									AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) && 
+									portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0
+							) || 
 							AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())
-							) 
+						) 
 					{ //price above buy price and going down or price below weighted profit guard => SELL
 						eventType = EventType.BEARISH;
 					}
@@ -157,7 +159,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					message = message + additionnalMessage(todaysQuotation);
 
 					EventType eventType = EventType.INFO; //default alert
-					if (AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.equals(alert.getAlertType())) { //above profit limit reach
+					if (AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.equals(alert.getAlertType()) || AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT.equals(alert.getAlertType())) { //above profit or below loss limit reach
 						//An info event is raised.
 					}
 
@@ -165,10 +167,10 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 				}
 			}
 		}
+
 	}
 
 	private String additionnalMessage(BigDecimal todaysQuotation) {
-
 		BigDecimal avgPriceDist = BigDecimal.ZERO;
 		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency());
 		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {

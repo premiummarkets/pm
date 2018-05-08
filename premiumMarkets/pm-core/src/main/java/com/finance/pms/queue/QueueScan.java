@@ -44,10 +44,10 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * @author Guillaume Thoreton
  */
 public class QueueScan extends Thread {
-	
+
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(QueueScan.class);
-	
+
 
 	private InnerQueue destination;
 	private MessageListener myMessageListener;
@@ -66,10 +66,10 @@ public class QueueScan extends Thread {
 		super();
 		this.destination = destination;
 		this.myMessageListener = myMessageListener;
-	
+
 	}
 
-	
+
 	public void setToBeStoped(Boolean toBeStoped) {
 		this.toBeStoped = toBeStoped;
 	}
@@ -89,42 +89,43 @@ public class QueueScan extends Thread {
 
 	@Override
 	public void run() {
-		
+
 		while (!toBeStoped || !destination.isEmpty()) {
-			
+
 			while (destination.isEmpty()) {
-				
+
 				if (toBeStoped) break;
-				
+
 				synchronized (destination) {
 					destination.notifyAll();
 				}
-				
+
 				try {
-					Thread.sleep(5000);
+					Thread.sleep(500);
 				} catch (InterruptedException ignored) {
 					LOGGER.debug("Interrupted Thread while Queue sleep : " + ignored);
 					toBeStoped = true;
 				}
 			}
-			
+
 			if (toBeStoped && destination.isEmpty()) break;
-			
-			Message nextMess = destination.nextMessage();
-			try {
-				LOGGER.debug("Processing message :"+nextMess);
-				this.myMessageListener.onMessage(nextMess);
-				
-			} catch (Exception e) {
-				
-				LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
-				LOGGER.debug(e,e);
-			} finally {
-				
+
+			while (!destination.isEmpty()) {
+				Message nextMess = destination.nextMessage();
 				try {
-					destination.removeMessage(nextMess);
-				} catch (Throwable e) {
-					LOGGER.error(e,e);
+					LOGGER.debug("Processing message :"+nextMess);
+					this.myMessageListener.onMessage(nextMess);
+	
+				} catch (Exception e) {
+					LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
+					LOGGER.debug(e,e);
+				} finally {
+	
+					try {
+						destination.removeMessage(nextMess);
+					} catch (Throwable e) {
+						LOGGER.error(e,e);
+					}
 				}
 			}
 		}
@@ -132,5 +133,5 @@ public class QueueScan extends Thread {
 		LOGGER.info("End of Queue Scan.");
 
 	}
-	
+
 }

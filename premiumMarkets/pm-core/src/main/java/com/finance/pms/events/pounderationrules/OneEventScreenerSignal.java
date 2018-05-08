@@ -64,14 +64,14 @@ public abstract class OneEventScreenerSignal extends LatestEventsSignal {
 		if (isFilteredEvent(eventValue)) {
 			//Bearish event occurred
 			if (getTriggeringEventDef().equals(eventValue.getEventDef()) &&  eventValue.getEventType().equals(EventType.BEARISH) && portfolio.getListShares().containsKey(this.stock)) { 
-				listTriggeringEvent(eventValue.getDate(), EventType.BEARISH, getTriggeringEventDef());
+				recordAsTriggeringEvent(eventValue.getDate(), EventType.BEARISH, getTriggeringEventDef());
 				this.signalWeight = ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold();
 				return -1;
 			} 
 			
 			//Bullish event occurred
 			if (getTriggeringEventDef().equals(eventValue.getEventDef()) &&  eventValue.getEventType().equals(EventType.BULLISH)){
-				listTriggeringEvent(eventValue.getDate(), EventType.BULLISH, getTriggeringEventDef());
+				recordAsTriggeringEvent(eventValue.getDate(), EventType.BULLISH, getTriggeringEventDef());
 				//Ok now we also need a share in top screener to buy ie screener with type none.
 				isSignalBullish = true;
 
@@ -79,7 +79,7 @@ public abstract class OneEventScreenerSignal extends LatestEventsSignal {
 			
 			//Is it a top screened share?
 			if (EventDefinition.SCREENER.equals(eventValue.getEventDef()) && eventValue.getEventType().equals(EventType.NONE)) {
-				listTriggeringEvent(eventValue.getDate(), EventType.BULLISH, EventDefinition.SCREENER);
+				recordAsTriggeringEvent(eventValue.getDate(), EventType.BULLISH, EventDefinition.SCREENER);
 				this.additionalRankWeight = ((AlertEventValue) eventValue).extractAdditionalRankWeight();
 				isInTopScreened = true;
 			}

@@ -45,6 +45,8 @@ public abstract class Signal {
 	protected Collection<String> eventDefList;
 	protected Date latestRelevantEventDate;
 	protected Set<EventInfo> parsedEventDefs;
+	private Set<EventInfo> buyTriggeringEvents;
+	private Set<EventInfo> sellTriggeringEvents;
 
 	public Signal(Collection<String> eventDefList) {
 		this.signalWeight = 0;
@@ -75,5 +77,26 @@ public abstract class Signal {
 		this.signalWeight = signalWeight;
 	}
 
+	protected void setLatestRelevantEventDate(Date latestRelevantEventDate) {
+		this.latestRelevantEventDate = latestRelevantEventDate;
+	}
+
+	public void setTriggeringInfo(Set<EventInfo> parsedEventDefs, Integer sellEventTriggerThreshold, Integer buyEventTriggerThreshold) {
+		if (getSignalWeight() >= buyEventTriggerThreshold)  {
+			buyTriggeringEvents = parsedEventDefs;
+		} else {
+			if (getSignalWeight() <= sellEventTriggerThreshold) {
+				sellTriggeringEvents = parsedEventDefs;
+			}
+		}
+	}
+
+	public Set<EventInfo> getBuyTriggeringEvents() {
+		return buyTriggeringEvents;
+	}
+
+	public Set<EventInfo> getSellTriggeringEvents() {
+		return sellTriggeringEvents;
+	}
 
 }

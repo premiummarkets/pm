@@ -104,6 +104,7 @@ public class EventSignalConfig extends Config implements Cloneable {
     private BigDecimal limitPriceAbove = new BigDecimal(MainPMScmd.getMyPrefs().get("event.stoploss", "0.04")).setScale(2);
     private BigDecimal limitPriceBelow = new BigDecimal(MainPMScmd.getMyPrefs().get("event.maxloss", "0.05")).setScale(2);
     private BigDecimal sellLimitToPrice = new BigDecimal(MainPMScmd.getMyPrefs().get("event.sellalert", "0.2")).setScale(2);
+    private BigDecimal sellLimitBelowPrice = new BigDecimal(MainPMScmd.getMyPrefs().get("event.sellbelowalert", "0.05")).setScale(2);
     private BigDecimal sellLimitGuardPrice = new BigDecimal(MainPMScmd.getMyPrefs().get("event.sellalertguard", "0.1")).setScale(2);
     private BigDecimal expectedRate = new BigDecimal(MainPMScmd.getMyPrefs().get("event.expectedrate", "0.05")).setScale(2);
 
@@ -359,17 +360,18 @@ public class EventSignalConfig extends Config implements Cloneable {
     public BigDecimal getSellLimitToPrice() {
         return sellLimitToPrice;
     }
-
+    
+    public BigDecimal getSellLimitBelowPrice() {
+    	return sellLimitBelowPrice;
+    }
 
     public BigDecimal getLimitPriceBelow() {
         return limitPriceBelow;
     }
 
-
     public List<String> getSellIndicators() {
         return sellIndicators;
     }
-
 
     public List<String> getBuyIndicators() {
         return buyIndicators;

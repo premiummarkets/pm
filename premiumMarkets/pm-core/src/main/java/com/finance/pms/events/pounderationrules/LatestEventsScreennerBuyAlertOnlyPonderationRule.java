@@ -66,11 +66,11 @@ public class LatestEventsScreennerBuyAlertOnlyPonderationRule extends LatestEven
 	}
 	
 	@Override
-	protected void postCondition() {
-		if (((LatestEventsScreenerBuySignal)this.signal).isBullishTrend() && ((LatestEventsScreenerBuySignal)this.signal).additionalRankWeight > 0) {
-			this.signal.signalWeight = this.signal.signalWeight + ((LatestEventsScreenerBuySignal)this.signal).additionalRankWeight ;
+	protected void postCondition(Signal signal) {
+		if (((LatestEventsScreenerBuySignal) signal).isBullishTrend() && ((LatestEventsScreenerBuySignal)signal).additionalRankWeight > 0) {
+			signal.signalWeight = signal.signalWeight + ((LatestEventsScreenerBuySignal)signal).additionalRankWeight ;
 		} else {
-			this.signal.signalWeight = 0;
+			signal.signalWeight = 0;
 		}
 	}
 	

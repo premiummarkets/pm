@@ -383,6 +383,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 				case MANUALUP:
 					return true;
 				case ABOVE_TAKE_PROFIT_LIMIT:
+				case BELOW_MAX_LOSS_LIMIT:
 					return monitorLevel.equals(MonitorLevel.BEARISH);
 				}
 

@@ -52,25 +52,24 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 	private static final long serialVersionUID = -5794918385779129800L;
 	private static MyLogger LOGGER = MyLogger.getLogger(PonderationRule.class);
 
-	protected Signal signal;
-
 	public PonderationRule() {
 		super();
 	}
 
-	private Signal calculateSignal(SortedMap<EventKey,EventValue> sortedEventMap) {
+	private void calculateSignal(SymbolEvents events) {
 
+		SortedMap<EventKey, EventValue> sortedBackwardsEventMap = eventResultsSortedBackward(events);
 		Integer isAddingUp = 0;
 
-		for (EventKey eventKey : sortedEventMap.keySet()) {
+		for (EventKey eventKey : sortedBackwardsEventMap.keySet()) {
 
-			LOGGER.trace("Processing event : "+ sortedEventMap.get(eventKey) +" at date "+ new SimpleDateFormat("yyyy/MM/dd").format(eventKey.getDate()));
+			LOGGER.trace("Processing event : "+ sortedBackwardsEventMap.get(eventKey) +" at date "+ new SimpleDateFormat("yyyy/MM/dd").format(eventKey.getDate()));
 
 			if (isAddingUp != -1) {
-				isAddingUp = this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
+				isAddingUp = events.getSignal().addEvent(eventKey, sortedBackwardsEventMap.get(eventKey));
 			} else {
 				//Check remaining alerts as all alerts must be checked and prevail
-				if (isNonCumulativeEvent(sortedEventMap.get(eventKey))) this.signal.addEvent(eventKey, sortedEventMap.get(eventKey));
+				if (isNonCumulativeEvent(sortedBackwardsEventMap.get(eventKey))) events.getSignal().addEvent(eventKey, sortedBackwardsEventMap.get(eventKey));
 			}
 
 			if (shallExit()) {
@@ -78,26 +77,22 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 			}
 		}
 
-		postCondition();
-
-		return signal;
+		postCondition(events.getSignal());
 	}
 
-	protected abstract void postCondition();
+	protected abstract void postCondition(Signal signal);
 
 	private boolean isNonCumulativeEvent(EventValue eventValue) {
 		return (eventValue.getEventDef().equals(EventDefinition.ALERTTHRESHOLD) || eventValue.getEventDef().equals(EventDefinition.SCREENER));
 	}
 
 	public Float finalWeight(SymbolEvents symbolEvents) {
-
-		this.signal = initSignal(symbolEvents);
-		this.signal = this.calculateSignal(eventResultsBackwardSort(symbolEvents));
-		return new Float(this.signal.getSignalWeight());
-
+		symbolEvents.setSignal(initSignal(symbolEvents));
+		calculateSignal(symbolEvents);
+		return symbolEvents.getSignal().getSignalWeight().floatValue();
 	}
 
-	private SortedMap<EventKey,EventValue> eventResultsBackwardSort(final SymbolEvents symbolEvents) {
+	private SortedMap<EventKey,EventValue> eventResultsSortedBackward(final SymbolEvents symbolEvents) {
 
 		//Descending order sorted map
 		SortedMap<EventKey,EventValue> sortedMap = 

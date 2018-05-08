@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -46,7 +45,6 @@ import org.springframework.jms.core.MessageCreator;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.AnalysisClient;
-import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
@@ -61,7 +59,6 @@ import com.finance.pms.portfolio.TransactionHistory;
 import com.finance.pms.portfolio.TransactionRecord;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.queue.SingleEventMessage;
-import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientRunnableMessage {
@@ -72,20 +69,20 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 	private String messageTxt;
 	private AutoPortfolioWays portfolio;
 
-	private Date startDate;
-	private Date endDate;
+	private Date spanStart;
+	private Date spanEnd;
 	private String[] additionalEventListNames;
 	private EventInfo eventInfo;
 
 	private PonderationRule buyPonderationRule;
 	private PonderationRule sellPonderationRule;
 
-	public AutoPortfolioBuySellMessageRunnable(AutoPortfolioWays portfolio, Date startDate, Date endDate, EventInfo eventInfo, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
+	public AutoPortfolioBuySellMessageRunnable(AutoPortfolioWays portfolio, Date spanStart, Date spanEnd, EventInfo eventInfo, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
 		super(5000, SpringContext.getSingleton(), portfolio.getName());
-		this.messageTxt = "Run Auto portfolios Calculation from " + startDate + " to "+ endDate;
+		this.messageTxt = "Run Auto portfolios Calculation from " + spanStart + " to "+ spanEnd;
 		this.portfolio = portfolio;
-		this.startDate = startDate;
-		this.endDate = endDate;
+		this.spanStart = spanStart;
+		this.spanEnd = spanEnd;
 		this.eventInfo = eventInfo;
 		this.buyPonderationRule = buyPonderationRule;
 		this.sellPonderationRule = sellPonderationRule;
@@ -94,9 +91,14 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 	public void runAsyncBuyNSellCalculation() throws InterruptedException {
 		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
-//				synchronized (syncObject) {
-//					syncObject.wait();
-//				}
+	}
+	
+
+	public void runBuyNSellCalculation() throws InterruptedException {
+		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
+		synchronized (syncObject) {
+			syncObject.wait();
+		}
 	}
 
 	public void run() {
@@ -109,23 +111,19 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 			}
 
 			String[] fullEventListNames = Arrays.copyOf(getAdditionalEventListNames(), getAdditionalEventListNames().length+1);
-			fullEventListNames[getAdditionalEventListNames().length] = getAnalysisName(); //Running analysis (Neural mainly) + portfolio specific events (mainly Alerts)
+			fullEventListNames[getAdditionalEventListNames().length] = getAnalysisName(); //Running analysis (getAdditionalEventListNames : mainly neural evtdefs) + portfolio specific events (getAnalysisName : portfolio name, mainly Alerts)
 
 			LOGGER.info("Processing signals " + getMessageTxt() + ", " + getAnalysisName() + " on the " + getStartDate() + " with " +  Arrays.toString(fullEventListNames));
 			Set<EventInfo> cfgIndepsAndParameterized = new HashSet<EventInfo>(Arrays.asList(EventDefinition.alertsOnThresholds())); //We retrieve events for this eventInfo complemented with potential alerts for this portfolio
 			cfgIndepsAndParameterized.add(eventInfo);
-			List<SymbolEvents> events = 
-					portfolio.getListShares().keySet().stream()
-					.map(s -> EventsResources.getInstance().crudReadEventsForStock(s, getStartDate(), getEndDate(), cfgIndepsAndParameterized, fullEventListNames))
-					.collect(Collectors.toList());
+//			List<SymbolEvents> events = 
+//					portfolio.getListShares().keySet().stream()
+//					.map(s -> EventsResources.getInstance().crudReadEventsForStock(s, getStartDate(), getEndDate(), cfgIndepsAndParameterized, fullEventListNames))
+//					.collect(Collectors.toList());
+			List<SymbolEvents> events = EventsResources.getInstance().crudReadEvents(getStartDate(), getEndDate(), cfgIndepsAndParameterized, fullEventListNames);
 
 			TransactionHistory calculationTransactions = portfolio.calculate(events, getEndDate(), buyPonderationRule, sellPonderationRule, getAdditionalEventListNames());
 			sendTransactionHistory(calculationTransactions);
-
-			//FIXME this is useful only when the transactions effectively occurred
-			//			AutoPortfolioAnalyser logAnalyser = new AutoPortfolioAnalyser(portfolio);
-			//			String logAnalysisMsg = logAnalyser.message();
-			//			if (!logAnalysisMsg.isEmpty()) sendTransactionSummary(portfolio, logAnalysisMsg);
 
 			LOGGER.info("Processor message completed : " +getMessageTxt()+", " +getAnalysisName()+" on the " + getStartDate()+ " with "+ Arrays.toString(fullEventListNames));
 
@@ -137,26 +135,6 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 			}
 		}
 
-	}
-
-	private void sendTransactionSummary(final AutoPortfolioWays portfolio, final String logAnalysisMsg) {
-
-		if (AnalysisClient.getEmailMsgQeueingFilter().contains(EmailFilterEventSource.Metrics)) {
-			jmsTemplate.send(eventQueue, new MessageCreator() {
-
-				public Message createMessage(Session session) throws JMSException {
-
-					EventKey eventKey = new StandardEventKey(getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO);
-					EventValue eventValue = new EventValue(getEndDate(), EventDefinition.UNKNOWN99, EventType.INFO, logAnalysisMsg, portfolio.getName());
-					SingleEventMessage infoMessage = new SingleEventMessage(portfolio.getName(), getEndDate(), AnalysisClient.ANY_STOCK, eventKey, eventValue, ConfigThreadLocal.getAll());
-					infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), EmailFilterEventSource.Summary); //Source (event calculator)
-					infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
-					infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);
-
-					return infoMessage;
-				}
-			});
-		}
 	}
 
 	private void sendTransactionHistory(TransactionHistory transactionHistory) {
@@ -206,23 +184,16 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 		return this.getClass().getName()+" processing "+this.getAnalysisName() + " at "+ getStartDate();
 	}
 
-	//	public static String messageLinks(String analysisName, Stock stock) {
-	//		return 
-	//				"Generated files :\n"+
-	//				"file:// "+System.getProperty("installdir") + File.separator + "autoPortfolioLogs"+ File.separator +analysisName+stock.getSymbol()+ "_*_BuyAndSellRecords*.csv\n" +
-	//				"file:// "+System.getProperty("installdir") + File.separator + "tmp" + File.separator + "nr_"+stock.getSymbol()+"_cf"+analysisName+"*.csv\n";
-	//	}
-
 	private String getMessageTxt() {
 		return messageTxt;
 	}
 
 	private Date getStartDate() {
-		return startDate;
+		return spanStart;
 	}
 
 	private Date getEndDate() {
-		return endDate;
+		return spanEnd;
 	}
 
 	private String[] getAdditionalEventListNames() {

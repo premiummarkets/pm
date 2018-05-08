@@ -56,7 +56,7 @@ public class ExclusiveTrendNeuralPonderationRule extends DefaultPonderationRule 
 	}
 	
 	@Override
-	protected void postCondition() {
+	protected void postCondition(Signal signal) {
 
 		Integer nbBullish = ((ExclusiveTrendNeuralSignal) signal).getNbBullish();
 		Integer nbBearish = ((ExclusiveTrendNeuralSignal) signal).getNbBearish();

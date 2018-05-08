@@ -165,6 +165,7 @@ public class AddAlertDialog extends Dialog {
 			
 				combo.add(AlertOnThresholdType.AVG_BUY_PRICE.name());
 				combo.add(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.name());
+				combo.add(AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT.name());
 				combo.add(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.name());
 				
 				combo.select(0);

@@ -59,14 +59,14 @@ public class SimpleScreenerSignal extends LatestEventsSignal {
 			
 			//Bearish event occurred
 			if (eventValue.getEventType().equals(EventType.BEARISH) && portfolio.getListShares().containsKey(this.stock)) { 
-				listTriggeringEvent(eventValue.getDate(), EventType.BEARISH, EventDefinition.SCREENER);
+				recordAsTriggeringEvent(eventValue.getDate(), EventType.BEARISH, EventDefinition.SCREENER);
 				this.signalWeight = ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold();
 				return -1;
 			} 
 			
 			//Bullish event occurred
 			if (eventValue.getEventType().equals(EventType.BULLISH) || eventValue.getEventType().equals(EventType.NONE)){
-				listTriggeringEvent(eventValue.getDate(), EventType.BULLISH, EventDefinition.SCREENER);
+				recordAsTriggeringEvent(eventValue.getDate(), EventType.BULLISH, EventDefinition.SCREENER);
 				this.signalWeight = ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold();
 				return 1;
 			} 

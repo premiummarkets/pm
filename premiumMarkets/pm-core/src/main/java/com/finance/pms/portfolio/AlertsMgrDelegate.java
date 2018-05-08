@@ -33,6 +33,7 @@ public class AlertsMgrDelegate {
 			addBuyPriceAlerts(transcationPrice, currentDate);
 			BigDecimal avgCostPerUnit = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
 			addAboveTakeProfitAlert(avgCostPerUnit, currentDate);
+			addBelowMaxLossAlert(avgCostPerUnit, currentDate);
 			addWeightedZeroProfitAlertGuardSetter(avgCostPerUnit, currentDate);
 			addChannelAlerts(transcationPrice);
 
@@ -179,6 +180,10 @@ public class AlertsMgrDelegate {
 		this.addAlertOnThreshold(ThresholdType.UP, price, AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT, message);
 	}
 
+	public void addBelowMaxLossAlert(BigDecimal price, String message) {
+		this.addAlertOnThreshold(ThresholdType.DOWN, price, AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT, message);
+	}
+
 	public void addWeightedZeroProfitAlertGuard(BigDecimal price, String message) {
 		this.addAlertOnThreshold(ThresholdType.DOWN, price, AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT, message);
 	}
@@ -225,6 +230,10 @@ public class AlertsMgrDelegate {
 		case ABOVE_TAKE_PROFIT_LIMIT:
 			//remove and reset a new take profit above alert
 			addAboveTakeProfitAlert(crossingPrice, EventSignalConfig.getNewDate());
+			break;
+		case BELOW_MAX_LOSS_LIMIT:
+			//remove and reset stop loss alert
+			addBelowMaxLossAlert(crossingPrice, EventSignalConfig.getNewDate());
 			break;
 		case AVG_BUY_PRICE:
 			//remove and reset alert buy price down
@@ -276,15 +285,15 @@ public class AlertsMgrDelegate {
 	}
 
 	/**
-	 * If price is up n% above avg buy price = > sell  
+	 * If price is up n% above avg buy price = > sell
 	 * Shift up to current price if calculated threshold below current price
 	 * @param currentDate 
 	 * @param transactionPrice
 	 */
 	private void addAboveTakeProfitAlert(BigDecimal calculationPrice, Date currentDate) {
-
 		try {
-			this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT);	
+
+			this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT);
 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
 
@@ -294,9 +303,38 @@ public class AlertsMgrDelegate {
 			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
 			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 
-			String aboveMessage = "("+readablePercentOf(sellLimitToPriceRate)+" gain. Price is "+ readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
+			String aboveMessage = "(" + readablePercentOf(sellLimitToPriceRate) + " gain. Price is " + readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
 
-			addAboveTakeProfitAlert(aboveSellLimit,aboveMessage);
+			addAboveTakeProfitAlert(aboveSellLimit, aboveMessage);
+
+		} catch (RuntimeException e) {
+			LOGGER.error("Failed to update Portfolio share :"+this,e);
+			throw e;
+		}
+	}
+
+	/**
+	 * If price is down n% below avg buy price => sell
+	 * Shift down to current price if calculated threshold above current price
+	 * @param currentDate 
+	 * @param transactionPrice
+	 */
+	private void addBelowMaxLossAlert(BigDecimal calculationPrice, Date currentDate) {
+		try {
+
+			this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT);
+
+			BigDecimal sellLimitBelowPriceRate = getEventsConfig().getSellLimitBelowPrice();
+
+			BigDecimal cashin = ps.getCashin(currentDate, ps.getTransactionCurrency());
+			BigDecimal reducedCashin = BigDecimal.ONE.subtract(sellLimitBelowPriceRate).multiply(cashin).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal cashout = ps.getCashout(currentDate, ps.getTransactionCurrency());
+			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal resultingPercentBelowAvgPrice = calculationPrice.divide(belowSellLimit, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
+
+			String belowMessage = "(" + readablePercentOf(sellLimitBelowPriceRate) + " loss. Price is " + readablePercentOf(resultingPercentBelowAvgPrice) + " below threshold)";
+
+			addAboveTakeProfitAlert(belowSellLimit, belowMessage);
 
 		} catch (RuntimeException e) {
 			LOGGER.error("Failed to update Portfolio share :"+this,e);
