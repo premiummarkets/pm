@@ -17,7 +17,7 @@
 
 	
 	<!-- Message listener container -->
-	<bean id="listenerContainer" class="com.finance.pms.queue.InnerMessageListener" destroy-method="stop">
+	<bean id="listenerContainer" class="com.finance.pms.queue.InnerMessageListener">
 	  <constructor-arg type="com.finance.pms.queue.InnerQueue" ref="eventqueue"/>
 	  <constructor-arg type="javax.jms.MessageListener" ref="indicatorAnalysis"/> 
 	</bean>

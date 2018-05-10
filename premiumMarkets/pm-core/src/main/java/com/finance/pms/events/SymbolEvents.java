@@ -190,7 +190,7 @@ public class SymbolEvents implements Serializable {
 		retour.append(";");
 		retour.append(stock.getName());
 		retour.append(";");
-		retour.append(" triggering weight : "+getTriggeringFinalWeight());
+		retour.append(" triggering weight : " + getTriggeringFinalWeight());
 		retour.append(";");
 		retour.append(" buy triggering events : "+((getBuyTriggeringEvents() != null)?getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
 		retour.append(";");

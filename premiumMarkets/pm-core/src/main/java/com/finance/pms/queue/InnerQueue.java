@@ -30,6 +30,7 @@
 package com.finance.pms.queue;
 
 import java.util.Map;
+import java.util.Observable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -44,15 +45,15 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * 
  * @author Guillaume Thoreton
  */
-public class InnerQueue implements Queue {
-	
+public class InnerQueue extends Observable implements Queue {
+
 	private static MyLogger LOGGER = MyLogger.getLogger(InnerQueue.class);
 
 	private ConcurrentLinkedQueue<Message> myQueue;
 	private int myQueueSize;
 	private Map<Integer,IdentifiedObjecMessage> inProcessQueue;
 
-	
+
 	public InnerQueue() {
 		super();
 		myQueue = new ConcurrentLinkedQueue<Message>();
@@ -62,9 +63,11 @@ public class InnerQueue implements Queue {
 
 	public void addMessage(Message myMessage) {
 		synchronized (myQueue) {
-			 myQueueSize++;
-			 myQueue.add(myMessage);
+			myQueueSize++;
+			myQueue.add(myMessage);
 		}
+		setChanged();
+		notifyObservers();
 	}
 
 	public Boolean isEmpty() {
@@ -72,25 +75,22 @@ public class InnerQueue implements Queue {
 			return myQueueSize == 0;
 		}
 	}
-	
+
 	public Boolean isEmptyAndProcessed() {
 		synchronized (myQueue) {
 			return myQueueSize == 0 && this.inProcessQueue.isEmpty();
 		}
-		
 	}
 
 	public Message nextMessage() {
-		
+
 		Message nextMess;
 		synchronized (myQueue) {
-			
 			nextMess = myQueue.poll();
 			myQueueSize--;
-			
 			inProcessQueue.put(((IdentifiedObjecMessage) nextMess).getMessageKey(),(IdentifiedObjecMessage) nextMess);
 		}
-		
+
 		return nextMess;
 	}
 
@@ -98,27 +98,26 @@ public class InnerQueue implements Queue {
 		synchronized (myQueue) {
 			inProcessQueue.remove(((IdentifiedObjecMessage)identifiedObjecMessage).getMessageKey());
 		}
-		
 	}
 
 	public String getQueueName() throws JMSException {
 		throw new UnsupportedOperationException();
 	}
-	
+
 	public Integer size() {
 		synchronized (myQueue) {
 			return myQueueSize;
 		}
-		
+
 	}
-	
+
 	public Integer messagesInProcess() {
 		synchronized (myQueue) {
 			return inProcessQueue.size();
 		}
-		
+
 	}
-	
+
 	public String toString() {
 		StringBuffer retVal = new StringBuffer("[ ");
 		String sep = "";
@@ -130,7 +129,6 @@ public class InnerQueue implements Queue {
 				LOGGER.error("",e);
 			}
 			sep = ",";
-			
 		}
 		retVal.append(" ]");
 		return retVal.toString();
@@ -140,8 +138,6 @@ public class InnerQueue implements Queue {
 		synchronized (myQueue) {
 			return myQueue.contains(message);
 		}
-		
 	}
-	
-	
+
 }

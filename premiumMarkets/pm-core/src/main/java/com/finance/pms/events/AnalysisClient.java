@@ -115,17 +115,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			} else {
 				throw new IllegalArgumentException("The message is not an IdentifiedObjecMessage : "+message.getClass().getSimpleName());
 			}
-
-			//    		if (message instanceof BuySellSignalCalculatorMessage) { //Retrieve events from DB and process Auto portfolios. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
-			//    			
-			//    			BuySellSignalCalculatorMessage processorMessage = (BuySellSignalCalculatorMessage)((BuySellSignalCalculatorMessage) message).getObject();
-			//    			LOGGER.debug("New processor message received : " + processorMessage.getMessageTxt());
-			//    			runSynchTask(
-			//    					processorMessage.getSignalProcessingName(),
-			//    					new BuySellSignalCalculatorMessageRunnable(processorMessage, (JmsTemplate) applicationContext.getBean("jmsTemplate"), (InnerQueue) applicationContext.getBean("eventqueue")));
-			//
-			// 
-			//    		} else 
 			if (message instanceof ExportAutoPortfolioMessage) { //Not used??  //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
 
 				ExportAutoPortfolioMessage m = (ExportAutoPortfolioMessage) message;

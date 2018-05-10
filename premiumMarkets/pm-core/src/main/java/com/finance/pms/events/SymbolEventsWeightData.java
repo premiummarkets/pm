@@ -6,46 +6,49 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.Signal;
+import com.finance.pms.events.pounderationrules.SilentSignal;
 
 public class SymbolEventsWeightData {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(SymbolEventsWeightData.class);
 
 	private PonderationRule ponderationRule;
-	private Signal signal;
+	private Optional<Signal> signal;
 
 	public SymbolEventsWeightData(PonderationRule ponderationRule) {
 		super();
 		this.ponderationRule = ponderationRule;
+		this.signal = Optional.empty();
 	}
 
 	public void setSignal(Signal initSignal) {
-		this.signal= initSignal;
+		this.signal = Optional.of(initSignal);
 	}
 
 	public Signal getSignal() {
-		return signal;
+		return signal.orElse(new SilentSignal());
 	}
 
 	public Date getLatestRelevantEventDate() {
-		return signal.getLatestRelevantEventDate();
+		return getSignal().getLatestRelevantEventDate();
 	}
 
 	public Set<EventInfo> getBuyTriggeringEvents() {
-		return signal.getBuyTriggeringEvents();
+		return getSignal().getBuyTriggeringEvents();
 	}
 
 	public Set<EventInfo> getSellTriggeringEvents() {
-		return signal.getSellTriggeringEvents();
+		return getSignal().getSellTriggeringEvents();
 	}
 
 	public Float getFinalWeight() {
-		return signal.getSignalWeight().floatValue();
+		return getSignal().getSignalWeight().floatValue();
 	}
 
 	public PonderationRule getPonderationRule() {

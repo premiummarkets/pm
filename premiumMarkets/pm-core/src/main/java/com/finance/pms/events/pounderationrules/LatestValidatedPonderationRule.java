@@ -68,7 +68,7 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 		if (validity != null) {
 			isValid = validity.equals(Validity.SUCCESS);
 		} else {
-			LOGGER.warn("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+ ". Neural trend was not calculated for that stock.");
+			LOGGER.warn("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+". Neural trend was not calculated for that stock.");
 		}
 
 		if (isValid) {

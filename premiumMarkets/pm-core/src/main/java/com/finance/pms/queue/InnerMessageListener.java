@@ -31,15 +31,8 @@ package com.finance.pms.queue;
 
 import javax.jms.MessageListener;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.Lifecycle;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The listener interface for receiving innerMessage events. The class that is
  * interested in processing a innerMessage event implements this interface, and
@@ -50,18 +43,18 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * 
  * @see InnerMessageEvent
  */
-public class InnerMessageListener implements BeanFactoryAware, Lifecycle {
-	
-	
+public class InnerMessageListener { //implements BeanFactoryAware, Lifecycle {
+
+
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(InnerMessageListener.class);
-	
-	/** The bean factory. */
-	BeanFactory beanFactory;
-	
-	/** The queueScan. */
-	QueueScan queueScan;
-	
+
+//	/** The bean factory. */
+//	BeanFactory beanFactory;
+//
+//	/** The queueScan. */
+//	QueueScan queueScan;
+
 
 	/**
 	 * Instantiates a new inner message listener.
@@ -72,54 +65,56 @@ public class InnerMessageListener implements BeanFactoryAware, Lifecycle {
 	 * @author Guillaume Thoreton
 	 */
 	public InnerMessageListener(InnerQueue destination, MessageListener messageListener) {	
-		queueScan = new QueueScan(destination,messageListener);
-		this.start();
+		//queueScan = new QueueScan(destination, messageListener);
+		//this.start();
+		destination.addObserver(new QueueScan(destination, messageListener));
 	}
 
 
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
-	 */
-	public void setBeanFactory(BeanFactory arg0) throws BeansException {
-		this.beanFactory = arg0;
-	}
+//	/* (non-Javadoc)
+//	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
+//	 */
+//	public void setBeanFactory(BeanFactory arg0) throws BeansException {
+//		this.beanFactory = arg0;
+//	}
 
 
-	/* (non-Javadoc)
-	 * @see org.springframework.context.Lifecycle#isRunning()
-	 */
-	public boolean isRunning() {
-		return queueScan.isAlive();
-	}
+//		/* (non-Javadoc)
+//		 * @see org.springframework.context.Lifecycle#isRunning()
+//		 */
+//		public boolean isRunning() {
+////			return queueScan.isAlive();
+//			return false;
+//		}
 
 
-	/* (non-Javadoc)
-	 * @see org.springframework.context.Lifecycle#start()
-	 */
-	public void start() {
-		queueScan.start();
-	}
+//		/* (non-Javadoc)
+//		 * @see org.springframework.context.Lifecycle#start()
+//		 */
+//		public void start() {
+////			queueScan.start();
+//		}
 
 
-	/* (non-Javadoc)
-	 * @see org.springframework.context.Lifecycle#stop()
-	 */
-	public void stop() {
-		try {
-			LOGGER.info("Trying to stop the inner message listener");
-			synchronized (queueScan) {
-				try {
-					LOGGER.info("Ascking event listener to stop.");
-					queueScan.setToBeStoped(true);
-					queueScan.join();
-					LOGGER.info("Event listener is stoped.");
-				} catch (InterruptedException e) {
-					LOGGER.error("",e);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-		
+//	/* (non-Javadoc)
+//	 * @see org.springframework.context.Lifecycle#stop()
+//	 */
+//	public void stop() {
+//		//		try {
+//		//			LOGGER.info("Trying to stop the inner message listener");
+//		//			synchronized (queueScan) {
+//		//				try {
+//		//					LOGGER.info("Ascking event listener to stop.");
+//		//					queueScan.setToBeStoped(true);
+//		//					queueScan.join();
+//		//					LOGGER.info("Event listener is stoped.");
+//		//				} catch (InterruptedException e) {
+//		//					LOGGER.error("",e);
+//		//				}
+//		//			}
+//		//		} catch (Exception e) {
+//		//			e.printStackTrace();
+//		//		}
+//	}
+
 }

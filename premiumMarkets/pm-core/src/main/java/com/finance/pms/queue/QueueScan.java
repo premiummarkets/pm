@@ -29,29 +29,27 @@
  */
 package com.finance.pms.queue;
 
+import java.util.Observable;
+import java.util.Observer;
+
 import javax.jms.Message;
 import javax.jms.MessageListener;
-
-import org.springframework.beans.factory.BeanFactory;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class QueueScan.
  * 
  * @author Guillaume Thoreton
  */
-public class QueueScan extends Thread {
-
+public class QueueScan implements Observer {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(QueueScan.class);
 
-
 	private InnerQueue destination;
 	private MessageListener myMessageListener;
-	private Boolean toBeStoped = false;
+//	private Boolean toBeStoped = false;
 
 
 	/**
@@ -70,68 +68,89 @@ public class QueueScan extends Thread {
 	}
 
 
-	public void setToBeStoped(Boolean toBeStoped) {
-		this.toBeStoped = toBeStoped;
-	}
+//	public void setToBeStoped(Boolean toBeStoped) {
+//		this.toBeStoped = toBeStoped;
+//	}
 
-	/**
-	 * Start.
-	 * 
-	 * @param beanFactory the bean factory
-	 * 
-	 * @author Guillaume Thoreton
-	 */
-	public synchronized void start(BeanFactory beanFactory) {
-		super.start();
-		LOGGER.debug("dataSource in QueueScan : "+beanFactory.getBean("dataSource"));
-	}
+//	/**
+//	 * Start.
+//	 * 
+//	 * @param beanFactory the bean factory
+//	 * 
+//	 * @author Guillaume Thoreton
+//	 */
+//	public synchronized void start(BeanFactory beanFactory) {
+//		super.start();
+//		LOGGER.debug("dataSource in QueueScan : "+beanFactory.getBean("dataSource"));
+//	}
+//
+//
+//	@Override
+//	public void run() {
+//
+//		while (!toBeStoped || !destination.isEmpty()) {
+//
+//			while (destination.isEmpty()) {
+//
+//				if (toBeStoped) break;
+//
+//				synchronized (destination) {
+//					destination.notifyAll();
+//				}
+//
+//				try {
+//					Thread.sleep(500);
+//				} catch (InterruptedException ignored) {
+//					LOGGER.debug("Interrupted Thread while Queue sleep : " + ignored);
+//					toBeStoped = true;
+//				}
+//			}
+//
+//			if (toBeStoped && destination.isEmpty()) break;
+//
+//			while (!destination.isEmpty()) {
+//				Message nextMess = destination.nextMessage();
+//				try {
+//					LOGGER.debug("Processing message :"+nextMess);
+//					this.myMessageListener.onMessage(nextMess);
+//	
+//				} catch (Exception e) {
+//					LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
+//					LOGGER.debug(e, e);
+//				} finally {
+//					try {
+//						destination.removeMessage(nextMess);
+//					} catch (Throwable e) {
+//						LOGGER.error(e, e);
+//					}
+//				}
+//			}
+//		}
+//
+//		LOGGER.info("End of Queue Scan.");
+//
+//	}
 
 
 	@Override
-	public void run() {
+	public void update(Observable o, Object arg) {
+		while (!destination.isEmpty()) {
+			Message nextMess = destination.nextMessage();
+			try {
+				LOGGER.debug("Processing message :"+nextMess);
+				this.myMessageListener.onMessage(nextMess);
 
-		while (!toBeStoped || !destination.isEmpty()) {
-
-			while (destination.isEmpty()) {
-
-				if (toBeStoped) break;
-
-				synchronized (destination) {
-					destination.notifyAll();
-				}
-
+			} catch (Exception e) {
+				LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
+				LOGGER.debug(e, e);
+			} finally {
 				try {
-					Thread.sleep(500);
-				} catch (InterruptedException ignored) {
-					LOGGER.debug("Interrupted Thread while Queue sleep : " + ignored);
-					toBeStoped = true;
-				}
-			}
-
-			if (toBeStoped && destination.isEmpty()) break;
-
-			while (!destination.isEmpty()) {
-				Message nextMess = destination.nextMessage();
-				try {
-					LOGGER.debug("Processing message :"+nextMess);
-					this.myMessageListener.onMessage(nextMess);
-	
-				} catch (Exception e) {
-					LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
-					LOGGER.debug(e,e);
-				} finally {
-	
-					try {
-						destination.removeMessage(nextMess);
-					} catch (Throwable e) {
-						LOGGER.error(e,e);
-					}
+					destination.removeMessage(nextMess);
+				} catch (Throwable e) {
+					LOGGER.error(e, e);
 				}
 			}
 		}
-
-		LOGGER.info("End of Queue Scan.");
-
 	}
 
 }
