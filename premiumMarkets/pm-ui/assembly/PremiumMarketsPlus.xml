@@ -38,6 +38,15 @@
 				<outputDirectory></outputDirectory>
 			</fileSet>
 			<fileSet>
+				<directory></directory>
+				<includes>
+					<include>nativeOps.xml</include>
+					<include>nativeIndicators.xml</include>
+					<include>nativeOpsEnhanced.xml</include>
+				</includes>
+				<outputDirectory></outputDirectory>
+			</fileSet>
+			<fileSet>
 				<directory>target/lib</directory>
 				<excludes>
 					<exclude>PremiumMarketsForecast.zip</exclude>
