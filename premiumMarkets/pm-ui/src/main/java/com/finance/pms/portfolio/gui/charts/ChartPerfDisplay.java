@@ -177,13 +177,13 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							final Button bPrice =  new Button(priceToogleGrp, SWT.RADIO);
 							bPrice.setBackground(MainGui.pOPUP_BG);
 							bPrice.setText("Relative to average buy price");
-							bPrice.setToolTipText("The result will be displayed relative to the average buy price basis, reflecting the unrealized gain.");
+							bPrice.setToolTipText("The result will be displayed relative to the basis, reflecting the unrealized gain. Sum(in)/quantity");
 							bPrice.setFont(MainGui.DEFAULTFONT);
 							bPrice.setSelection(!isIncludeMoneyOutSelected);
 							final Button uPrice =  new Button(priceToogleGrp, SWT.RADIO);
 							uPrice.setBackground(MainGui.pOPUP_BG);
 							uPrice.setText("Relative to cost per unit");
-							uPrice.setToolTipText("The result will be displayed relative to the final cost per unit at date, taking in account the moneys out.");
+							uPrice.setToolTipText("The result will be displayed relative to the cost per unit, taking in account the moneys out. (Sum(in) - Sum(out))/quantity");
 							uPrice.setFont(MainGui.DEFAULTFONT);
 							uPrice.setSelection(isIncludeMoneyOutSelected);
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {

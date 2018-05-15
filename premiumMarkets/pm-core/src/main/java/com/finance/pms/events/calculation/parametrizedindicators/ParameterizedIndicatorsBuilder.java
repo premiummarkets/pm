@@ -133,7 +133,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 				OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
 						.filter(op -> op instanceof OperationsCompositioner)
 						.collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
-				TunedConfMgr.getInstance().cleanEventsAndDirtyConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
+				TunedConfMgr.getInstance().deleteEventsAndDirtyConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
 			}
 		});
 

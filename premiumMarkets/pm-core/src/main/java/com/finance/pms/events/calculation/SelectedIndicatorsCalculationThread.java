@@ -85,10 +85,10 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			return symbolEvents;
 			
 		} catch (IncompleteDataSetException e) {
-			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef());
+			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef(), e);
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef());
+			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef(), e);
 			throw new IncompleteDataSetException(stock, new HashSet<>(), null);
 		} finally {
 			this.setChanged();
@@ -123,7 +123,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				}
 			} catch (InvalidAlgorithmParameterException e1) {
 				//Recoverable we leave the tunedConf as is
-				LOGGER.error("Failed invalid calculation dates for " + stock + " using analysis " + eventListName + ": from " + start + " to " + end);
+				LOGGER.error("Failed invalid calculation dates for " + stock + " using analysis " + eventListName + ": from " + start + " to " + end, e1);
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
 			}
 

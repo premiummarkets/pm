@@ -1156,7 +1156,7 @@ public class EventsResources {
 		}
 
 		//For safe consistency
-		TunedConfMgr.getInstance().cleanTunedConfFor(stock, analysisName, indicators);
+		TunedConfMgr.getInstance().resetTunedConfDatesFor(stock, analysisName, indicators);
 	}
 
 	public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
@@ -1192,7 +1192,7 @@ public class EventsResources {
 		}
 
 		//For safe consistency
-		TunedConfMgr.getInstance().cleanTunedConfFor(analysisName, indicators);
+		TunedConfMgr.getInstance().resetTunedConfDatesFor(analysisName, indicators);
 	}
 
 	public void crudDeleteEventsForAnalysisName(String analysisName) {
@@ -1216,7 +1216,7 @@ public class EventsResources {
 		}
 
 		//For safe consistency
-		TunedConfMgr.getInstance().cleanTunedConfFor(analysisName);
+		TunedConfMgr.getInstance().resetTunedConfDatesFor(analysisName);
 	}
 
 	public void cleanPersistedEventsCache() throws SQLException {

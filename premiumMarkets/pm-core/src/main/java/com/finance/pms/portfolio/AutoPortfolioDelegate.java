@@ -85,7 +85,7 @@ public class AutoPortfolioDelegate {
 	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio, Boolean isFileLogged) {
 		this.thisPortfolio = autoPortfolio;
 		if (isFileLogged) {
-			this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "amount", "events", "run timestamp");
+			this.log("available cash","date", "symbol", "isin", "sharename", "currency", "movement", "quantity", "price", "amount", "events", "run timestamp");
 		}
 	}
 
@@ -392,7 +392,7 @@ public class AutoPortfolioDelegate {
 
 		this.log(
 				transactionRecord.getAvailableCash().toString(),new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(transactionRecord.getDate()),
-				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(),transactionRecord.getStock().getName(), 
+				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(),transactionRecord.getStock().getName(), transactionRecord.getStock().getMarketValuation().getCurrency().toString(),
 				transactionRecord.getMovement(), transactionRecord.getTransactionQuantity().toString(), transactionRecord.getTransactionPrice().toString(), amount.toString(),
 				eventList, LocalDateTime.now().toString());
 	}
@@ -409,7 +409,7 @@ public class AutoPortfolioDelegate {
 
 	}
 
-	protected void log(String availableCash, String calcDate,String symbol,String isin, String sharename, String movement, String quantity, String price, String amount, String eventList, String timeStamp) {
+	protected void log(String availableCash, String calcDate,String symbol,String isin, String sharename, String currency, String movement, String quantity, String price, String amount, String eventList, String timeStamp) {
 
 		File log = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName()+"_Log.csv");
 		FileWriter fos = null;
@@ -421,7 +421,7 @@ public class AutoPortfolioDelegate {
 			String cleanEventList= "\"" + eventList.replaceAll("\"", "'") + "\"";
 			String cleanSharename = "\"" + sharename.replaceAll("\"", "'") + "\"";
 			line
-				.append(availableCash+",").append(calcDate+","+symbol+","+isin+",").append(cleanSharename+",")
+				.append(availableCash+",").append(calcDate+","+symbol+","+isin+",").append(cleanSharename+",").append(currency+",")
 				.append(movement+",").append(quantity+",").append(price+",").append(amount+",").append(timeStamp+",").append(cleanEventList);
 			LOGGER.debug(line);
 

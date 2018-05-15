@@ -131,7 +131,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 						EventInfo[] eiArray = viewStateParams[0].stream()
 								.map(e -> ((EventInfo) e))
 								.toArray(EventInfo[]::new);
-						TunedConfMgr.getInstance().cleanEventsAndDirtyConfs(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
+						TunedConfMgr.getInstance().deleteEventsAndDirtyConfs(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
 					});
 					viewStateParams[1] = null;
 				}

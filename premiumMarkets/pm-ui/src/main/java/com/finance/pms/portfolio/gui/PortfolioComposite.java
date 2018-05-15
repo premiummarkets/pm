@@ -597,6 +597,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			synchronized (this.portfolio) {
 
 				this.portfolio.setIsUiDirty(false);
+				this.portfolio.setLatestTransactionsOnly(true);
 
 				try {
 
@@ -680,9 +681,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		Value ("Actual value", ""),
 		Basis ("Basis","Formula : Average(buy price) * actual quantity"),
 		TotalGain ("Total gain","Formula : (value + Sum(out))- Sum(in)"),
-		TotalGainPercent ("Percent total gain","Formula : ((value + Sum(out))- Sum(in)) /  Sum(in) "),
+		TotalGainPercent ("Percent total gain","Formula : ((value + Sum(out))- Sum(in)) / basis"),
 		UnrGain ("Unrealised gain", "Formula : value - basis \nwhere basis = Average(buy price) * actual quantity"),
-		UnrGainPercent ("Percent unrealised gain", "Formula : ( value - basis ) / basis \nwhere basis = Average(buy price) * actual quantity"),
+		UnrGainPercent ("Percent unrealised gain", "Formula : (value - basis) / basis \nwhere basis = Average(buy price) * actual quantity"),
 		MoneyIn ("Money in", ""),
 		MoneyOut ("Money out", "");
 

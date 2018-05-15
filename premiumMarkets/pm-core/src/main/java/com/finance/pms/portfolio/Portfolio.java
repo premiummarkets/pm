@@ -94,7 +94,7 @@ public class Portfolio extends AbstractSharesList {
 	private SortedSet<TransactionElement> transactions;
 
 	private Boolean uiDirty = true;
-	private Boolean latestTransactionsOnly = true;
+	private Boolean latestTransactionsOnly = false;
 
 	protected Portfolio() {
 		super();
@@ -305,13 +305,13 @@ public class Portfolio extends AbstractSharesList {
 
 	@Transient
 	public BigDecimal getGainTotalPercent(Date currentStartDate, Date currentEndDate) {
-		BigDecimal totalInAmountEver = this.getTotalInAmountEver(currentStartDate, currentEndDate);
-		if (totalInAmountEver.compareTo(BigDecimal.ZERO) == 0) {
-			if (this.getListShares().size() > 0) LOGGER.warn("getGainTotalPercent : Total amount in is zero for Portfolio "+this.name+" using dates from "+currentStartDate + " to " + currentEndDate+". Also not empty.");
+		BigDecimal basis = this.getBasis(currentStartDate, currentEndDate);
+		if (basis.compareTo(BigDecimal.ZERO) == 0) {
+			if (this.getListShares().size() > 0) LOGGER.warn("getGainTotalPercent : Basis is zero for Portfolio "+this.name+" using dates from "+currentStartDate + " to " + currentEndDate+". Also not empty.");
 			return BigDecimal.ZERO;
 		}
 		BigDecimal gainAmountForDate = this.getGainTotal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(totalInAmountEver, 10, BigDecimal.ROUND_HALF_EVEN);
+		return gainAmountForDate.divide(basis, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@Transient

@@ -158,7 +158,7 @@ public class TunedConfMgr {
 		updateConf(tunedConf, true, tunedConf.getLastCalculatedEvent(), tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
 	}
 
-	private void setClean(TunedConf tunedConf) {
+	private void resetDates(TunedConf tunedConf) {
 		updateConf(tunedConf, tunedConf.getDirty(), DateFactory.dateAtZero(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
 	}
 
@@ -204,12 +204,12 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void cleanTunedConfFor(String analysisName, EventInfo... indicators) { 
+	public void resetTunedConfDatesFor(String analysisName, EventInfo... indicators) { 
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		loadAllTunedConfs.stream()
 		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
-		.forEach(tc -> setClean(tc));
+		.forEach(tc -> resetDates(tc));
 	}
 
 	/**
@@ -219,10 +219,10 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void cleanTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
+	public void resetTunedConfDatesFor(Stock stock, String analysisName, EventInfo[] indicators) {
 		for(EventInfo ei: indicators) {
 			TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-			setClean(tc);
+			resetDates(tc);
 		}
 	}
 
@@ -231,7 +231,7 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void cleanEventsAndDirtyConfs(String analysisName, EventInfo... indicators) {
+	public void deleteEventsAndDirtyConfs(String analysisName, EventInfo... indicators) {
 
 		EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, indicators);
 
@@ -248,7 +248,7 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void cleanEventsAndDirtyConfs(Stock stock, String analysisName, EventInfo... indicators) {
+	public void deleteEventsAndDirtyConfs(Stock stock, String analysisName, EventInfo... indicators) {
 
 		EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
 
