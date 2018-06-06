@@ -68,7 +68,7 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 		if (validity != null) {
 			isValid = validity.equals(Validity.SUCCESS);
 		} else {
-			LOGGER.warn("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+". Neural trend was not calculated for that stock.");
+			LOGGER.warn("No validity information found for " + symbolEvents.getStock() + " while parsing events " + symbolEvents + ". Neural trend was not calculated for that stock.");
 		}
 
 		if (isValid) {
@@ -82,6 +82,22 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
 		return new LatestValidatedSignal(symbolEvents.getEventDefList());
+	}
+
+	@Override
+	protected void postCondition(Signal signal) {
+		LatestValidatedSignal LVSignal = (LatestValidatedSignal) signal;
+		//Updating cumulative event signal with Bull Bear neural events.
+		switch (LVSignal.getNbTrendChange()) {
+			case 0 : //No event detected
+				break;
+			case 1 : //One Type of Event, no yoyo : weight = sum(cumulative events) + bullish - bearish
+				signal.setSignalWeight(signal.getSignalWeight() +  LVSignal.getNbBullish() - LVSignal.getNbBearish());
+				break;
+			default : //Yoyo, Bull/Bear, we ignore the signal
+				LOGGER.warn("Yo yo trend detected.");
+				break;
+		}
 	}
 
 }
