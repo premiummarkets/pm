@@ -24,7 +24,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
-import com.finance.pms.events.operations.conditional.OperationsCompositioner;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -97,7 +97,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 	}
 
-	//TODO Only handle OperationsCompositioner and get rid of First and Second pass
+	//TODO Only handle EventInfoOpsCompoOperation and get rid of First and Second pass
 	protected SymbolEvents calculate(Date start, Date end) throws IncompleteDataSetException {
 
 		SymbolEvents symbolEvents = new SymbolEvents(stock);
@@ -115,7 +115,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 			CalculationBounds calculationBounds;
 			try {
-				if (eventInfo instanceof OperationsCompositioner && !((OperationsCompositioner) eventInfo).isIdemPotent()) {
+				if (eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent()) {
 					calculationBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
 				} else {
 					EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
@@ -139,7 +139,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					//Calculator preparation
 					Currency currency = stock.getMarketValuation().getCurrency();
 					IndicatorsOperator calculator;
-					if (eventInfo instanceof OperationsCompositioner) {
+					if (eventInfo instanceof EventInfoOpsCompoOperation) {
 						calculator = new ParameterizedIndicatorsOperator(eventInfo, stock, adjustedStart, adjustedEnd, currency, eventListName, observers);
 					} else {
 						calculator = legacyEventDefinitionHandling(stock);

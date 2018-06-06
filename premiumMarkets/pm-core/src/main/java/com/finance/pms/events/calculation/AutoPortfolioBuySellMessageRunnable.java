@@ -95,10 +95,12 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 	
 
 	public void runBuyNSellCalculation() throws InterruptedException {
-		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
 		synchronized (syncObject) {
+			this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
+			LOGGER.info(Thread.currentThread() + ": waiting on " + syncObject.hashCode());
 			syncObject.wait();
 		}
+		LOGGER.info(Thread.currentThread() + ": released " + syncObject.hashCode());
 	}
 
 	public void run() {
@@ -130,9 +132,11 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 		} catch (Exception e) {
 			LOGGER.error("Error in "+this.toString(),e);
 		} finally {
+			LOGGER.info(Thread.currentThread() + ": notifying " + syncObject.hashCode());
 			synchronized (syncObject) {
 				syncObject.notify();
 			}
+			LOGGER.info(Thread.currentThread() + ": notified " + syncObject.hashCode());
 		}
 
 	}

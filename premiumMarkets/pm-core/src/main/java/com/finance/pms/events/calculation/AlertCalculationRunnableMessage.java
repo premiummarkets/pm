@@ -133,7 +133,6 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	}
 
 	public void run() {
-
 		try {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			this.analysePortfolioCollection(startDate, endDate, portfolios);
@@ -148,8 +147,8 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	}
 
 	public void runAlertsOnThresholdCalculation() throws InterruptedException {
-		this.sendRunnableStartProcessingEvent(this.getAnalysisName(), this);
 		synchronized (this.syncObject) {
+			this.sendRunnableStartProcessingEvent(this.getAnalysisName(), this);
 			this.syncObject.wait();
 		}
 	}

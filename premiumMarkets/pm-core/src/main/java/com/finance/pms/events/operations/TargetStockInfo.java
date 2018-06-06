@@ -47,6 +47,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.ChartableCondition;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
@@ -123,7 +124,7 @@ public class TargetStockInfo {
     private Date startDate;
     private Date endDate;
     private String analysisName;
-    private String operationsCompositionerReference;
+    private EventInfoOpsCompoOperation EventInfoOpsCompoOperation;
 
     private List<Output> calculatedOutputsCache;
 
@@ -132,10 +133,10 @@ public class TargetStockInfo {
    
     private Map<OutputReference, EventsAnalyser> outputAnalysers;
 
-    public TargetStockInfo(String analysisName, String operationsCompositionerReference, Stock stock, Date startDate, Date endDate) throws WarningException {
+    public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation EventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
         super();
         this.analysisName = analysisName;
-        this.operationsCompositionerReference = operationsCompositionerReference;
+        this.EventInfoOpsCompoOperation = EventInfoOpsCompoOperationHolder;
         this.stock = stock;
 
         Date lastQuote = stock.getLastQuote();
@@ -175,7 +176,7 @@ public class TargetStockInfo {
     }
 
     public Value<?> checkAlreadyCalculated(Operation operation) {
-        if (operation.getFormula() == null && !(operation instanceof StockOperation)) return null;
+        if (operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
         int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation)));
         if (indexOf == -1) {
             return null;
@@ -199,7 +200,7 @@ public class TargetStockInfo {
         if (output instanceof MultiSelectorsValue) {
             for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
                 //encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
-                String tamperedFormula = operation.getFormula().replaceAll(":[^\\(]*\\(", ":"+selector+"(");
+                String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"(");
                 OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), (operation instanceof LeafOperation), operation.getOperationReference());
                 this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) output).getValue(selector)));
             }
@@ -350,8 +351,8 @@ public class TargetStockInfo {
 
     }
 
-    public String getOperationsCompositionerReference() {
-        return operationsCompositionerReference;
+    public EventInfoOpsCompoOperation getEventInfoOpsCompoOperation() {
+        return EventInfoOpsCompoOperation;
     }
 
     public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {

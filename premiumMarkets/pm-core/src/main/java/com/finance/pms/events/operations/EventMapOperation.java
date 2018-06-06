@@ -34,5 +34,10 @@ public class EventMapOperation extends Operation implements MapOperation {
         return 0;
     }
 
+	@Override
+	public void invalidateOperation(String analysisName) {
+		//Nothing
+	}
+
 
 }

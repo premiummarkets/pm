@@ -400,7 +400,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 
                 }
 
-                //SWT jars 
+                //SWT jars
                 String jnlpSelectedFileName = System.getProperty("swt.jar");
                 if (jnlpSelectedFileName == null) {//Install has been started from cmd line
 

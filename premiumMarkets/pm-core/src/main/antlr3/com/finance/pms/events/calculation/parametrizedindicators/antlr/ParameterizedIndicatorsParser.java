@@ -1,25 +1,19 @@
-// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2017-12-05 21:51:59
+// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-05-28 18:51:08
  //parser
      package com.finance.pms.events.calculation.parametrizedindicators.antlr;
-    import org.antlr.runtime.BitSet;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.Parser;
-import org.antlr.runtime.ParserRuleReturnScope;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
-import org.antlr.runtime.Token;
-import org.antlr.runtime.TokenStream;
-import org.antlr.runtime.tree.CommonTree;
-import org.antlr.runtime.tree.CommonTreeAdaptor;
-import org.antlr.runtime.tree.RewriteRuleSubtreeStream;
-import org.antlr.runtime.tree.RewriteRuleTokenStream;
-import org.antlr.runtime.tree.TreeAdaptor;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.IndsParserDelegate;
+    import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
+    import com.finance.pms.events.calculation.antlr.UnfinishedNestedCondition;
+    import com.finance.pms.events.calculation.antlr.InvalidOperationException;
 
-import com.finance.pms.events.calculation.antlr.IndsParserDelegate;
-import com.finance.pms.events.calculation.antlr.InvalidOperationException;
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-import com.finance.pms.events.calculation.antlr.UnfinishedNestedCondition;
+
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
+
+import org.antlr.runtime.tree.*;
 
 
 @SuppressWarnings("all")
@@ -29,14 +23,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 		"CLOSEPARENTEHSIS", "COMMA", "COMMENT", "CrossDownConstantCondition", 
 		"CrossDownDoubleMapCondition", "CrossUpConstantCondition", "CrossUpDoubleMapCondition", 
 		"DAYS", "DownRatioCondition", "EqualConstantCondition", "EqualDoubleMapCondition", 
-		"EqualEventMapStringConstantCondition", "HigherHighCondition", "HigherLowCondition", 
-		"HistoricalData", "InfConstantCondition", "InfDoubleMapCondition", "LENIENT", 
-		"LINE_COMMENT", "LowerHighCondition", "LowerLowCondition", "NOT", "NotDoubleMapCondition", 
-		"NullCondition", "Number", "NumberToken", "OPENPARENTEHSIS", "OR", "Operation", 
-		"OperationOutput", "OperationsCompositioner", "OrDoubleMapCondition", 
-		"PERCENT", "ReverseCondition", "StockOperation", "String", "StringOperation", 
-		"StringToken", "SupConstantCondition", "SupDoubleMapCondition", "Tcheat", 
-		"UpRatioCondition", "WS", "WhiteChar", "'also display'", "'bearish'", 
+		"EqualEventMapStringConstantCondition", "EventInfoOpsCompoOperation", 
+		"HigherHighCondition", "HigherLowCondition", "HistoricalData", "InfConstantCondition", 
+		"InfDoubleMapCondition", "LENIENT", "LINE_COMMENT", "LowerHighCondition", 
+		"LowerLowCondition", "NOT", "NotDoubleMapCondition", "NullCondition", 
+		"Number", "NumberToken", "OPENPARENTEHSIS", "OR", "Operation", "OperationOutput", 
+		"OrDoubleMapCondition", "PERCENT", "ReverseCondition", "StockOperation", 
+		"String", "StringOperation", "StringToken", "SupConstantCondition", "SupDoubleMapCondition", 
+		"Tcheat", "UpRatioCondition", "WS", "WhiteChar", "'also display'", "'bearish'", 
 		"'bullish'", "'crosses down historical'", "'crosses down threshold'", 
 		"'crosses up historical'", "'crosses up threshold'", "'equals historical'", 
 		"'equals threshold'", "'equals trend'", "'for'", "'goes down more than'", 
@@ -92,25 +86,25 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final int EqualConstantCondition=15;
 	public static final int EqualDoubleMapCondition=16;
 	public static final int EqualEventMapStringConstantCondition=17;
-	public static final int HigherHighCondition=18;
-	public static final int HigherLowCondition=19;
-	public static final int HistoricalData=20;
-	public static final int InfConstantCondition=21;
-	public static final int InfDoubleMapCondition=22;
-	public static final int LENIENT=23;
-	public static final int LINE_COMMENT=24;
-	public static final int LowerHighCondition=25;
-	public static final int LowerLowCondition=26;
-	public static final int NOT=27;
-	public static final int NotDoubleMapCondition=28;
-	public static final int NullCondition=29;
-	public static final int Number=30;
-	public static final int NumberToken=31;
-	public static final int OPENPARENTEHSIS=32;
-	public static final int OR=33;
-	public static final int Operation=34;
-	public static final int OperationOutput=35;
-	public static final int OperationsCompositioner=36;
+	public static final int EventInfoOpsCompoOperation=18;
+	public static final int HigherHighCondition=19;
+	public static final int HigherLowCondition=20;
+	public static final int HistoricalData=21;
+	public static final int InfConstantCondition=22;
+	public static final int InfDoubleMapCondition=23;
+	public static final int LENIENT=24;
+	public static final int LINE_COMMENT=25;
+	public static final int LowerHighCondition=26;
+	public static final int LowerLowCondition=27;
+	public static final int NOT=28;
+	public static final int NotDoubleMapCondition=29;
+	public static final int NullCondition=30;
+	public static final int Number=31;
+	public static final int NumberToken=32;
+	public static final int OPENPARENTEHSIS=33;
+	public static final int OR=34;
+	public static final int Operation=35;
+	public static final int OperationOutput=36;
 	public static final int OrDoubleMapCondition=37;
 	public static final int PERCENT=38;
 	public static final int ReverseCondition=39;
@@ -194,7 +188,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 	// $ANTLR start "complete_expression"
-	// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:145:1: complete_expression : bcond= bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^( OperationsCompositioner bullish_condition bearish_condition also_display fixed_start_shift StringOperation ) ;
+	// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:145:1: complete_expression : bcond= bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^( EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation ) ;
 	public final ParameterizedIndicatorsParser.complete_expression_return complete_expression() throws RecognitionException {
 		ParameterizedIndicatorsParser.complete_expression_return retval = new ParameterizedIndicatorsParser.complete_expression_return();
 		retval.start = input.LT(1);
@@ -212,7 +206,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 		RewriteRuleSubtreeStream stream_bearish_condition=new RewriteRuleSubtreeStream(adaptor,"rule bearish_condition");
 
 		try {
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:145:21: (bcond= bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^( OperationsCompositioner bullish_condition bearish_condition also_display fixed_start_shift StringOperation ) )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:145:21: (bcond= bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^( EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation ) )
 			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:147:4: bcond= bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift
 			{
 			pushFollow(FOLLOW_bullish_condition_in_complete_expression341);
@@ -236,7 +230,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 			stream_fixed_start_shift.add(fixed_start_shift3.getTree());
 			// AST REWRITE
-			// elements: bullish_condition, also_display, bearish_condition, fixed_start_shift
+			// elements: bullish_condition, fixed_start_shift, bearish_condition, also_display
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -246,12 +240,12 @@ public class ParameterizedIndicatorsParser extends Parser {
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 			root_0 = (CommonTree)adaptor.nil();
-			// 147:90: -> ^( OperationsCompositioner bullish_condition bearish_condition also_display fixed_start_shift StringOperation )
+			// 147:90: -> ^( EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation )
 			{
-				// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:147:93: ^( OperationsCompositioner bullish_condition bearish_condition also_display fixed_start_shift StringOperation )
+				// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:147:93: ^( EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation )
 				{
 				CommonTree root_1 = (CommonTree)adaptor.nil();
-				root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(OperationsCompositioner, "OperationsCompositioner"), root_1);
+				root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(EventInfoOpsCompoOperation, "EventInfoOpsCompoOperation"), root_1);
 				adaptor.addChild(root_1, stream_bullish_condition.nextTree());
 				adaptor.addChild(root_1, stream_bearish_condition.nextTree());
 				adaptor.addChild(root_1, stream_also_display.nextTree());
@@ -5556,13 +5550,13 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_also_display_in_complete_expression346 = new BitSet(new long[]{0x0000000000000000L,0x0000000000001000L});
 	public static final BitSet FOLLOW_fixed_start_shift_in_complete_expression348 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_69_in_bullish_condition378 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_bullish_condition380 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_bullish_condition380 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_bullish_condition382 = new BitSet(new long[]{0x0002000000000080L});
 	public static final BitSet FOLLOW_WhiteChar_in_bullish_condition384 = new BitSet(new long[]{0x0002000000000080L});
 	public static final BitSet FOLLOW_COMMA_in_bullish_condition387 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_bullish_condition389 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_66_in_bearish_condition405 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_bearish_condition407 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_bearish_condition407 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_bearish_condition410 = new BitSet(new long[]{0x0002000000000080L});
 	public static final BitSet FOLLOW_WhiteChar_in_bearish_condition412 = new BitSet(new long[]{0x0002000000000080L});
 	public static final BitSet FOLLOW_COMMA_in_bearish_condition415 = new BitSet(new long[]{0x0002000000000002L});
@@ -5572,12 +5566,12 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_COMMA_in_bearish_condition433 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_bearish_condition435 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_50_in_also_display452 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_also_display454 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_also_display454 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_also_display456 = new BitSet(new long[]{0x0002000000000080L});
 	public static final BitSet FOLLOW_WhiteChar_in_also_display458 = new BitSet(new long[]{0x0002000000000080L});
 	public static final BitSet FOLLOW_COMMA_in_also_display461 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_76_in_fixed_start_shift496 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_fixed_start_shift498 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_fixed_start_shift498 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_fixed_start_shift502 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_fixed_start_shift504 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_fixed_start_shift506 = new BitSet(new long[]{0x0000000000000080L});
@@ -5585,34 +5579,34 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_65_in_bearish_not_bullish538 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish547 = new BitSet(new long[]{0x0000000000000010L});
 	public static final BitSet FOLLOW_AND_in_bearish_not_bullish549 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish551 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish551 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_bearish_not_bullish553 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish581 = new BitSet(new long[]{0x0000000200000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish581 = new BitSet(new long[]{0x0000000400000000L});
 	public static final BitSet FOLLOW_OR_in_bearish_not_bullish583 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish585 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_bearish_not_bullish585 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_bearish_not_bullish588 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_and_expression_in_primary_expression630 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_or_expression_in_and_expression645 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_lenient_in_and_expression649 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_and_expression652 = new BitSet(new long[]{0x0000000000000010L});
 	public static final BitSet FOLLOW_AND_in_and_expression654 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_and_expression656 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_and_expression656 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_or_expression_in_and_expression658 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_atom_in_or_expression690 = new BitSet(new long[]{0x0002000000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_or_expression693 = new BitSet(new long[]{0x0000000200000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_or_expression693 = new BitSet(new long[]{0x0000000400000000L});
 	public static final BitSet FOLLOW_OR_in_or_expression695 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_or_expression697 = new BitSet(new long[]{0x0000000508100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_or_expression697 = new BitSet(new long[]{0x0000000A10200000L});
 	public static final BitSet FOLLOW_atom_in_or_expression699 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_booleanhistory_in_atom726 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_OPENPARENTEHSIS_in_atom733 = new BitSet(new long[]{0x0002000508100000L});
-	public static final BitSet FOLLOW_WhiteChar_in_atom735 = new BitSet(new long[]{0x0002000508100000L});
+	public static final BitSet FOLLOW_OPENPARENTEHSIS_in_atom733 = new BitSet(new long[]{0x0002000A10200000L});
+	public static final BitSet FOLLOW_WhiteChar_in_atom735 = new BitSet(new long[]{0x0002000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_atom738 = new BitSet(new long[]{0x0002000000000040L});
 	public static final BitSet FOLLOW_WhiteChar_in_atom740 = new BitSet(new long[]{0x0002000000000040L});
 	public static final BitSet FOLLOW_CLOSEPARENTEHSIS_in_atom743 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_NOT_in_atom755 = new BitSet(new long[]{0x0002000100000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_atom757 = new BitSet(new long[]{0x0002000100000000L});
-	public static final BitSet FOLLOW_OPENPARENTEHSIS_in_atom760 = new BitSet(new long[]{0x0002000508100000L});
-	public static final BitSet FOLLOW_WhiteChar_in_atom762 = new BitSet(new long[]{0x0002000508100000L});
+	public static final BitSet FOLLOW_NOT_in_atom755 = new BitSet(new long[]{0x0002000200000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_atom757 = new BitSet(new long[]{0x0002000200000000L});
+	public static final BitSet FOLLOW_OPENPARENTEHSIS_in_atom760 = new BitSet(new long[]{0x0002000A10200000L});
+	public static final BitSet FOLLOW_WhiteChar_in_atom762 = new BitSet(new long[]{0x0002000A10200000L});
 	public static final BitSet FOLLOW_primary_expression_in_atom765 = new BitSet(new long[]{0x0002000000000040L});
 	public static final BitSet FOLLOW_WhiteChar_in_atom767 = new BitSet(new long[]{0x0002000000000040L});
 	public static final BitSet FOLLOW_CLOSEPARENTEHSIS_in_atom770 = new BitSet(new long[]{0x0000000000000002L});
@@ -5624,62 +5618,62 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_HistoricalData_in_operand837 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_Operation_in_operand857 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_NumberToken_in_constant871 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_WhiteChar_in_lenient900 = new BitSet(new long[]{0x0000000000800000L});
+	public static final BitSet FOLLOW_WhiteChar_in_lenient900 = new BitSet(new long[]{0x0000000001000000L});
 	public static final BitSet FOLLOW_LENIENT_in_lenient902 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_63_in_opcmpcondition940 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition942 = new BitSet(new long[]{0x0000000400100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition942 = new BitSet(new long[]{0x0000000800200000L});
 	public static final BitSet FOLLOW_operand_in_opcmpcondition946 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition972 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_opcmpcondition974 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition976 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition976 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition980 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition982 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition984 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_67_in_opcmpcondition1006 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1008 = new BitSet(new long[]{0x0000000400100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1008 = new BitSet(new long[]{0x0000000800200000L});
 	public static final BitSet FOLLOW_operand_in_opcmpcondition1012 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1040 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_opcmpcondition1042 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1044 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1044 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition1048 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1050 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition1052 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_57_in_opcmpcondition1074 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1076 = new BitSet(new long[]{0x0000000400100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1076 = new BitSet(new long[]{0x0000000800200000L});
 	public static final BitSet FOLLOW_operand_in_opcmpcondition1080 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1107 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_opcmpcondition1109 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1111 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1111 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition1115 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1117 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition1119 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_53_in_opcmpcondition1142 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1144 = new BitSet(new long[]{0x0000000400100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1144 = new BitSet(new long[]{0x0000000800200000L});
 	public static final BitSet FOLLOW_operand_in_opcmpcondition1146 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1183 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_opcmpcondition1185 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1187 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1187 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition1191 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1193 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition1195 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1208 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_opcmpcondition1210 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1212 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1212 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition1216 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1218 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition1220 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_55_in_opcmpcondition1264 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1266 = new BitSet(new long[]{0x0000000400100000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1266 = new BitSet(new long[]{0x0000000800200000L});
 	public static final BitSet FOLLOW_operand_in_opcmpcondition1268 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1306 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_opcmpcondition1308 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1310 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1310 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition1314 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1316 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition1318 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1329 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_opcmpcondition1331 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1333 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1333 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_opcmpcondition1337 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_opcmpcondition1339 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_opcmpcondition1341 = new BitSet(new long[]{0x0000000000000002L});
@@ -5687,153 +5681,153 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1393 = new BitSet(new long[]{0x0018000000000000L});
 	public static final BitSet FOLLOW_trendconstant_in_constantcmp1397 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_58_in_constantcmp1425 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1427 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1427 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1431 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1466 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_constantcmp1468 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1470 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1470 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1474 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1476 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_constantcmp1478 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1480 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_constantcmp1482 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1484 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1484 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1488 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1490 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_constantcmp1492 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_64_in_constantcmp1521 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1523 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1523 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1527 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1561 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_constantcmp1563 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1565 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1565 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1569 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1571 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_constantcmp1573 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1575 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_constantcmp1577 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1579 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1579 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1583 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1585 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_constantcmp1587 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_68_in_constantcmp1616 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1618 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1618 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1622 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1657 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_constantcmp1659 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1661 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1661 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1665 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1667 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_constantcmp1669 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1671 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_constantcmp1673 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1675 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1675 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_constantcmp1679 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_constantcmp1681 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_constantcmp1683 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_77_in_presetcondition1721 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1761 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000400L});
 	public static final BitSet FOLLOW_74_in_presetcondition1763 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1765 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1765 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition1769 = new BitSet(new long[]{0x0000004000000000L});
 	public static final BitSet FOLLOW_PERCENT_in_presetcondition1771 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1773 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_presetcondition1775 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1777 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1777 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition1781 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1783 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition1785 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_78_in_presetcondition1829 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1869 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000400L});
 	public static final BitSet FOLLOW_74_in_presetcondition1871 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1873 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1873 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition1877 = new BitSet(new long[]{0x0000004000000000L});
 	public static final BitSet FOLLOW_PERCENT_in_presetcondition1879 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1881 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_presetcondition1883 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1885 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1885 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition1889 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1891 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition1893 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_61_in_presetcondition1936 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1938 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1938 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition1942 = new BitSet(new long[]{0x0000004000000000L});
 	public static final BitSet FOLLOW_PERCENT_in_presetcondition1944 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1987 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_presetcondition1989 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1991 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1991 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition1995 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition1997 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition1999 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2010 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_presetcondition2012 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2014 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2014 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2018 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2020 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2022 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_62_in_presetcondition2060 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2062 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2062 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2066 = new BitSet(new long[]{0x0000004000000000L});
 	public static final BitSet FOLLOW_PERCENT_in_presetcondition2068 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2112 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_presetcondition2114 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2116 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2116 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2120 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2122 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2124 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2135 = new BitSet(new long[]{0x1000000000000000L});
 	public static final BitSet FOLLOW_60_in_presetcondition2137 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2139 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2139 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2143 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2145 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2147 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_56_in_presetcondition2192 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2194 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2194 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2198 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2241 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_presetcondition2243 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2245 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2245 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2249 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2251 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2253 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2264 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_presetcondition2266 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2268 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2268 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2272 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2274 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2276 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_54_in_presetcondition2322 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2324 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2324 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2328 = new BitSet(new long[]{0x0002000000000002L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2370 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
 	public static final BitSet FOLLOW_79_in_presetcondition2372 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2374 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2374 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2378 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2380 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2382 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2393 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000800L});
 	public static final BitSet FOLLOW_75_in_presetcondition2395 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2397 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2397 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2401 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2403 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2405 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_70_in_presetcondition2449 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2451 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2451 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2455 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2457 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2459 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_71_in_presetcondition2491 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2493 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2493 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2497 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2499 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2501 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_72_in_presetcondition2533 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2535 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2535 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2539 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2541 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2543 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_73_in_presetcondition2575 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2577 = new BitSet(new long[]{0x0000000080000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2577 = new BitSet(new long[]{0x0000000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2581 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2583 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2585 = new BitSet(new long[]{0x0000000000000002L});

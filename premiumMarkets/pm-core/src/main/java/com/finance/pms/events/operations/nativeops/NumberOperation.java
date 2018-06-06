@@ -61,5 +61,10 @@ public class NumberOperation extends Operation  implements LeafOperation {
 	public int operationStartDateShift() {
 		return (getParameter() != null )?((NumberValue)getParameter()).getValue(null).intValue():0;
 	}
+
+	@Override
+	public void invalidateOperation(String analysisName) {
+		//Nothing
+	}
 	
 }

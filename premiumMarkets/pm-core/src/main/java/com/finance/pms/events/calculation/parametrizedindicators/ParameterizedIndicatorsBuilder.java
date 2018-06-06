@@ -37,11 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.EventDefinition;
@@ -49,9 +47,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.conditional.OperationsCompositioner;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
-import com.finance.pms.events.scoring.TunedConfMgr;
 
 //@Service("parameterizedIndicatorsBuilder")
 public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
@@ -100,43 +96,59 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 				ObsMsg msg = (ObsMsg) arg;
 
-				switch(msg.getType()) { 
-				case OPERATION_CRUD :    //Any ops change or status change
-					if (msg.getOperation() != null) {
-						List<Operation> checkInUse = actualCheckInUse(getCurrentOperations().values(), msg.getOperation());
-						if (!checkInUse.isEmpty()) {
-							LOGGER.info("Operation "+msg.getOperation()+" has been changed, deleting related events for : "+checkInUse);
-							setDirtyCalculationsFor(checkInUse);
-							for (Operation opInUse : checkInUse) {
-								if (opInUse instanceof EventInfo) {
-									EventModel.dirtyCacheFor((EventInfo) opInUse);
-								} else {
-									LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
-								}
-							}
-							EventModel.updateEventInfoStamp();
-							throw new InUsedExecption(checkInUse);
+				Operation operation = msg.getOperation();
+				switch(msg.getType()) {
+				case OPERATION_cRud :				//This is when we want to check if an operation is used by indicators (nothing to delete here)
+				{
+					if (operation != null) {
+						List<Operation> impactedIndicators = actualCheckInUse(getCurrentOperations().values(), operation);
+						if (!impactedIndicators.isEmpty()) {
+							throw new InUseException(impactedIndicators);
 						}
 					}
 					break;
-				case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
-					if (msg.getOperation() != null) actualReplaceInUse(getCurrentOperations().values(), msg.getOperation());
+				}
+				case OPERATION_CrUD :				//Any Operation change or status change
+				{
+					if (operation != null) {
+						clearPreviousCalculations(operation);
+					}
 					break;
-				case RESET_OPS_INMEM_INSTANCES :    //Reset ops list from scratch
+				}
+				case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
+					if (operation != null) actualReplaceInUse(getCurrentOperations().values(), operation);
+					break;
+				case RESET_OPS_INMEM_INSTANCES :	//Reset ops list from scratch
 					resetUserOperations();
 					updateEditableOperationLists();
 					break;
 				}
 			}
 
-			private void setDirtyCalculationsFor(List<Operation> checkInUse) {
-				OperationsCompositioner[] cHoldersInUse = checkInUse.stream()
-						.filter(op -> op instanceof OperationsCompositioner)
-						.collect(Collectors.toList()).toArray(new OperationsCompositioner[0]);
-				TunedConfMgr.getInstance().deleteEventsAndDirtyConfs(IndicatorCalculationServiceMain.UI_ANALYSIS, cHoldersInUse);
-			}
 		});
 
+	}
+
+	@Override
+	public void clearPreviousCalculations(Operation operation) throws InUseException {
+
+		try {
+			super.clearPreviousCalculations(operation);
+		} catch (InUseException e1) {
+
+			List<Operation> impactedIndicators = e1.getInUse();
+			LOGGER.info("Operation " + operation.getReference()+" has been changed, deleting indicators calculation caches for : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+			for (Operation opInUse : impactedIndicators) {
+				if (opInUse instanceof EventInfo) {
+					EventModel.dirtyCacheFor((EventInfo) opInUse);
+				} else {
+					LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
+				}
+			}
+			EventModel.updateEventInfoStamp();
+
+			throw e1;
+		}
 	}
 
 	private void resetUserOperations() {
@@ -187,7 +199,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	}
 
 	@Override
-	public List<Operation> notifyChanged(Operation operation) {
+	public List<Operation> notifyChanged(Operation operation, ObsMsgType msgType) {
 		//Nothing
 		return new ArrayList<Operation>();
 	}

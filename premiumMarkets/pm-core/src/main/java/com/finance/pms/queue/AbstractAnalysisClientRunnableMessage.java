@@ -79,13 +79,10 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 
 	//TODO factorise as well ...
 	protected void sendRunnableStartProcessingEvent(final String analyseName, final AbstractAnalysisClientRunnableMessage objectMessage) {	
-
 		jmsTemplate.send(eventQueue, new MessageCreator() {
-
 			public Message createMessage(Session session) throws JMSException {
 				return objectMessage;
 			}
-
 		});
 	}
 

@@ -1,20 +1,16 @@
-// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2017-11-30 20:24:02
+// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2018-05-28 18:51:09
  //lexer
     package com.finance.pms.events.operations.parameterized.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+    
+ 
 
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedOperationsLexer extends Lexer {
@@ -656,17 +652,17 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = StringToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"' )
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+ '\"'
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' )+ '\"' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' )+ '\"'
 			{
 			match('\"'); 
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:146:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' )+
 			int cnt9=0;
 			loop9:
 			while (true) {
 				int alt9=2;
 				int LA9_0 = input.LA(1);
-				if ( (LA9_0=='.'||(LA9_0 >= 'A' && LA9_0 <= 'Z')||LA9_0=='_'||(LA9_0 >= 'a' && LA9_0 <= 'z')) ) {
+				if ( ((LA9_0 >= ',' && LA9_0 <= ':')||(LA9_0 >= '=' && LA9_0 <= '?')||(LA9_0 >= 'A' && LA9_0 <= 'Z')||LA9_0=='_'||(LA9_0 >= 'a' && LA9_0 <= 'z')) ) {
 					alt9=1;
 				}
 
@@ -674,7 +670,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
-					if ( input.LA(1)=='.'||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
+					if ( (input.LA(1) >= ',' && input.LA(1) <= ':')||(input.LA(1) >= '=' && input.LA(1) <= '?')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
 						input.consume();
 					}
 					else {
@@ -1029,11 +1025,11 @@ public class ParameterizedOperationsLexer extends Lexer {
 		"\1\uffff\1\1\1\2\1\3\15\uffff\1\10\1\11\1\12\1\13\20\uffff\1\14\1\15\20"+
 		"\uffff\1\6\1\7\7\uffff\1\5\3\uffff\1\4\3\uffff";
 	static final String DFA14_specialS =
-		"\1\70\3\uffff\1\1\1\4\1\7\1\12\1\14\1\23\1\24\1\26\1\30\1\15\1\41\1\45"+
-		"\1\54\5\uffff\1\2\1\60\1\6\1\11\1\16\1\17\1\25\1\27\1\31\1\32\1\35\1\37"+
-		"\1\65\1\44\1\50\2\uffff\1\3\1\34\1\10\1\13\1\71\1\20\1\43\1\47\1\52\1"+
-		"\33\1\36\1\40\1\56\1\46\1\51\1\5\2\uffff\1\66\1\67\1\55\1\21\1\53\1\57"+
-		"\1\42\1\uffff\1\62\1\63\1\64\1\uffff\1\22\1\61\1\0}>";
+		"\1\21\3\uffff\1\1\1\3\1\5\1\11\1\14\1\26\1\27\1\30\1\31\1\15\1\40\1\43"+
+		"\1\54\5\uffff\1\6\1\62\1\12\1\16\1\20\1\22\1\32\1\33\1\34\1\36\1\41\1"+
+		"\44\1\70\1\47\1\52\2\uffff\1\7\1\35\1\13\1\17\1\2\1\23\1\51\1\55\1\56"+
+		"\1\37\1\42\1\45\1\60\1\50\1\53\1\10\2\uffff\1\71\1\0\1\57\1\24\1\61\1"+
+		"\63\1\46\1\uffff\1\65\1\66\1\67\1\uffff\1\25\1\64\1\4}>";
 	static final String[] DFA14_transitionS = {
 			"\2\24\1\uffff\2\24\22\uffff\1\24\1\uffff\1\22\5\uffff\1\1\1\2\2\uffff"+
 			"\1\3\1\21\1\uffff\1\25\12\21\1\23\6\uffff\3\20\1\14\1\12\5\20\1\16\1"+
@@ -1152,15 +1148,15 @@ public class ParameterizedOperationsLexer extends Lexer {
 			int _s = s;
 			switch ( s ) {
 					case 0 : 
-						int LA14_71 = input.LA(1);
+						int LA14_58 = input.LA(1);
 						 
-						int index14_71 = input.index();
+						int index14_58 = input.index();
 						input.rewind();
 						s = -1;
-						if ( ((LA14_71 >= '0' && LA14_71 <= '9')||(LA14_71 >= 'A' && LA14_71 <= 'Z')||LA14_71=='_'||(LA14_71 >= 'a' && LA14_71 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						if ( ((LA14_58 >= '0' && LA14_58 <= '9')||(LA14_58 >= 'A' && LA14_58 <= 'Z')||LA14_58=='_'||(LA14_58 >= 'a' && LA14_58 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
 						else s = 59;
 						 
-						input.seek(index14_71);
+						input.seek(index14_58);
 						if ( s>=0 ) return s;
 						break;
 
@@ -1178,6 +1174,58 @@ public class ParameterizedOperationsLexer extends Lexer {
 						break;
 
 					case 2 : 
+						int LA14_43 = input.LA(1);
+						 
+						int index14_43 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_43 >= '0' && LA14_43 <= '9')||(LA14_43 >= 'A' && LA14_43 <= 'Z')||LA14_43=='_'||(LA14_43 >= 'a' && LA14_43 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 59;
+						 
+						input.seek(index14_43);
+						if ( s>=0 ) return s;
+						break;
+
+					case 3 : 
+						int LA14_5 = input.LA(1);
+						 
+						int index14_5 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_5=='p') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 24;}
+						else if ( ((LA14_5 >= '0' && LA14_5 <= '9')||(LA14_5 >= 'A' && LA14_5 <= 'Z')||LA14_5=='_'||(LA14_5 >= 'a' && LA14_5 <= 'o')||(LA14_5 >= 'q' && LA14_5 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_5);
+						if ( s>=0 ) return s;
+						break;
+
+					case 4 : 
+						int LA14_71 = input.LA(1);
+						 
+						int index14_71 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_71 >= '0' && LA14_71 <= '9')||(LA14_71 >= 'A' && LA14_71 <= 'Z')||LA14_71=='_'||(LA14_71 >= 'a' && LA14_71 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 59;
+						 
+						input.seek(index14_71);
+						if ( s>=0 ) return s;
+						break;
+
+					case 5 : 
+						int LA14_6 = input.LA(1);
+						 
+						int index14_6 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_6=='i') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 25;}
+						else if ( ((LA14_6 >= '0' && LA14_6 <= '9')||(LA14_6 >= 'A' && LA14_6 <= 'Z')||LA14_6=='_'||(LA14_6 >= 'a' && LA14_6 <= 'h')||(LA14_6 >= 'j' && LA14_6 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_6);
+						if ( s>=0 ) return s;
+						break;
+
+					case 6 : 
 						int LA14_22 = input.LA(1);
 						 
 						int index14_22 = input.index();
@@ -1191,7 +1239,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 3 : 
+					case 7 : 
 						int LA14_39 = input.LA(1);
 						 
 						int index14_39 = input.index();
@@ -1205,20 +1253,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 4 : 
-						int LA14_5 = input.LA(1);
-						 
-						int index14_5 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_5=='p') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 24;}
-						else if ( ((LA14_5 >= '0' && LA14_5 <= '9')||(LA14_5 >= 'A' && LA14_5 <= 'Z')||LA14_5=='_'||(LA14_5 >= 'a' && LA14_5 <= 'o')||(LA14_5 >= 'q' && LA14_5 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_5);
-						if ( s>=0 ) return s;
-						break;
-
-					case 5 : 
+					case 8 : 
 						int LA14_54 = input.LA(1);
 						 
 						int index14_54 = input.index();
@@ -1232,7 +1267,20 @@ public class ParameterizedOperationsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 6 : 
+					case 9 : 
+						int LA14_7 = input.LA(1);
+						 
+						int index14_7 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_7=='o') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 26;}
+						else if ( ((LA14_7 >= '0' && LA14_7 <= '9')||(LA14_7 >= 'A' && LA14_7 <= 'Z')||LA14_7=='_'||(LA14_7 >= 'a' && LA14_7 <= 'n')||(LA14_7 >= 'p' && LA14_7 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_7);
+						if ( s>=0 ) return s;
+						break;
+
+					case 10 : 
 						int LA14_24 = input.LA(1);
 						 
 						int index14_24 = input.index();
@@ -1246,20 +1294,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 7 : 
-						int LA14_6 = input.LA(1);
-						 
-						int index14_6 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_6=='i') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 25;}
-						else if ( ((LA14_6 >= '0' && LA14_6 <= '9')||(LA14_6 >= 'A' && LA14_6 <= 'Z')||LA14_6=='_'||(LA14_6 >= 'a' && LA14_6 <= 'h')||(LA14_6 >= 'j' && LA14_6 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_6);
-						if ( s>=0 ) return s;
-						break;
-
-					case 8 : 
+					case 11 : 
 						int LA14_41 = input.LA(1);
 						 
 						int index14_41 = input.index();
@@ -1270,47 +1305,6 @@ public class ParameterizedOperationsLexer extends Lexer {
 						else s = 40;
 						 
 						input.seek(index14_41);
-						if ( s>=0 ) return s;
-						break;
-
-					case 9 : 
-						int LA14_25 = input.LA(1);
-						 
-						int index14_25 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_25=='g') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 42;}
-						else if ( ((LA14_25 >= '0' && LA14_25 <= '9')||(LA14_25 >= 'A' && LA14_25 <= 'Z')||LA14_25=='_'||(LA14_25 >= 'a' && LA14_25 <= 'f')||(LA14_25 >= 'h' && LA14_25 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_25);
-						if ( s>=0 ) return s;
-						break;
-
-					case 10 : 
-						int LA14_7 = input.LA(1);
-						 
-						int index14_7 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_7=='o') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 26;}
-						else if ( ((LA14_7 >= '0' && LA14_7 <= '9')||(LA14_7 >= 'A' && LA14_7 <= 'Z')||LA14_7=='_'||(LA14_7 >= 'a' && LA14_7 <= 'n')||(LA14_7 >= 'p' && LA14_7 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_7);
-						if ( s>=0 ) return s;
-						break;
-
-					case 11 : 
-						int LA14_42 = input.LA(1);
-						 
-						int index14_42 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_42=='h') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 58;}
-						else if ( ((LA14_42 >= '0' && LA14_42 <= '9')||(LA14_42 >= 'A' && LA14_42 <= 'Z')||LA14_42=='_'||(LA14_42 >= 'a' && LA14_42 <= 'g')||(LA14_42 >= 'i' && LA14_42 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_42);
 						if ( s>=0 ) return s;
 						break;
 
@@ -1343,6 +1337,34 @@ public class ParameterizedOperationsLexer extends Lexer {
 						break;
 
 					case 14 : 
+						int LA14_25 = input.LA(1);
+						 
+						int index14_25 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_25=='g') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 42;}
+						else if ( ((LA14_25 >= '0' && LA14_25 <= '9')||(LA14_25 >= 'A' && LA14_25 <= 'Z')||LA14_25=='_'||(LA14_25 >= 'a' && LA14_25 <= 'f')||(LA14_25 >= 'h' && LA14_25 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_25);
+						if ( s>=0 ) return s;
+						break;
+
+					case 15 : 
+						int LA14_42 = input.LA(1);
+						 
+						int index14_42 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_42=='h') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 58;}
+						else if ( ((LA14_42 >= '0' && LA14_42 <= '9')||(LA14_42 >= 'A' && LA14_42 <= 'Z')||LA14_42=='_'||(LA14_42 >= 'a' && LA14_42 <= 'g')||(LA14_42 >= 'i' && LA14_42 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_42);
+						if ( s>=0 ) return s;
+						break;
+
+					case 16 : 
 						int LA14_26 = input.LA(1);
 						 
 						int index14_26 = input.index();
@@ -1356,559 +1378,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 15 : 
-						int LA14_27 = input.LA(1);
-						 
-						int index14_27 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_27=='l') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 44;}
-						else if ( ((LA14_27 >= '0' && LA14_27 <= '9')||(LA14_27 >= 'A' && LA14_27 <= 'Z')||LA14_27=='_'||(LA14_27 >= 'a' && LA14_27 <= 'k')||(LA14_27 >= 'm' && LA14_27 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_27);
-						if ( s>=0 ) return s;
-						break;
-
-					case 16 : 
-						int LA14_44 = input.LA(1);
-						 
-						int index14_44 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_44=='u') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 60;}
-						else if ( ((LA14_44 >= '0' && LA14_44 <= '9')||(LA14_44 >= 'A' && LA14_44 <= 'Z')||LA14_44=='_'||(LA14_44 >= 'a' && LA14_44 <= 't')||(LA14_44 >= 'v' && LA14_44 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_44);
-						if ( s>=0 ) return s;
-						break;
-
 					case 17 : 
-						int LA14_60 = input.LA(1);
-						 
-						int index14_60 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_60=='m') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 69;}
-						else if ( ((LA14_60 >= '0' && LA14_60 <= '9')||(LA14_60 >= 'A' && LA14_60 <= 'Z')||LA14_60=='_'||(LA14_60 >= 'a' && LA14_60 <= 'l')||(LA14_60 >= 'n' && LA14_60 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_60);
-						if ( s>=0 ) return s;
-						break;
-
-					case 18 : 
-						int LA14_69 = input.LA(1);
-						 
-						int index14_69 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_69=='e') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 71;}
-						else if ( ((LA14_69 >= '0' && LA14_69 <= '9')||(LA14_69 >= 'A' && LA14_69 <= 'Z')||LA14_69=='_'||(LA14_69 >= 'a' && LA14_69 <= 'd')||(LA14_69 >= 'f' && LA14_69 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_69);
-						if ( s>=0 ) return s;
-						break;
-
-					case 19 : 
-						int LA14_9 = input.LA(1);
-						 
-						int index14_9 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_9=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 28;}
-						else if ( ((LA14_9 >= '0' && LA14_9 <= '9')||(LA14_9 >= 'A' && LA14_9 <= 'Z')||LA14_9=='_'||(LA14_9 >= 'a' && LA14_9 <= 'l')||(LA14_9 >= 'n' && LA14_9 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_9);
-						if ( s>=0 ) return s;
-						break;
-
-					case 20 : 
-						int LA14_10 = input.LA(1);
-						 
-						int index14_10 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_10=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 29;}
-						else if ( ((LA14_10 >= '0' && LA14_10 <= '9')||(LA14_10 >= 'A' && LA14_10 <= 'Z')||LA14_10=='_'||(LA14_10 >= 'a' && LA14_10 <= 'l')||(LA14_10 >= 'n' && LA14_10 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_10);
-						if ( s>=0 ) return s;
-						break;
-
-					case 21 : 
-						int LA14_28 = input.LA(1);
-						 
-						int index14_28 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_28=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 45;}
-						else if ( ((LA14_28 >= '0' && LA14_28 <= '9')||(LA14_28 >= 'A' && LA14_28 <= 'Z')||LA14_28=='_'||(LA14_28 >= 'b' && LA14_28 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_28);
-						if ( s>=0 ) return s;
-						break;
-
-					case 22 : 
-						int LA14_11 = input.LA(1);
-						 
-						int index14_11 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_11=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 30;}
-						else if ( ((LA14_11 >= '0' && LA14_11 <= '9')||(LA14_11 >= 'A' && LA14_11 <= 'Z')||LA14_11=='_'||(LA14_11 >= 'a' && LA14_11 <= 'l')||(LA14_11 >= 'n' && LA14_11 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_11);
-						if ( s>=0 ) return s;
-						break;
-
-					case 23 : 
-						int LA14_29 = input.LA(1);
-						 
-						int index14_29 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_29=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 46;}
-						else if ( ((LA14_29 >= '0' && LA14_29 <= '9')||(LA14_29 >= 'A' && LA14_29 <= 'Z')||LA14_29=='_'||(LA14_29 >= 'b' && LA14_29 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_29);
-						if ( s>=0 ) return s;
-						break;
-
-					case 24 : 
-						int LA14_12 = input.LA(1);
-						 
-						int index14_12 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_12=='e') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 31;}
-						else if ( ((LA14_12 >= '0' && LA14_12 <= '9')||(LA14_12 >= 'A' && LA14_12 <= 'Z')||LA14_12=='_'||(LA14_12 >= 'a' && LA14_12 <= 'd')||(LA14_12 >= 'f' && LA14_12 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_12);
-						if ( s>=0 ) return s;
-						break;
-
-					case 25 : 
-						int LA14_30 = input.LA(1);
-						 
-						int index14_30 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_30=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 47;}
-						else if ( ((LA14_30 >= '0' && LA14_30 <= '9')||(LA14_30 >= 'A' && LA14_30 <= 'Z')||LA14_30=='_'||(LA14_30 >= 'b' && LA14_30 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_30);
-						if ( s>=0 ) return s;
-						break;
-
-					case 26 : 
-						int LA14_31 = input.LA(1);
-						 
-						int index14_31 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_31=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 48;}
-						else if ( ((LA14_31 >= '0' && LA14_31 <= '9')||(LA14_31 >= 'A' && LA14_31 <= 'Z')||LA14_31=='_'||(LA14_31 >= 'a' && LA14_31 <= 'l')||(LA14_31 >= 'n' && LA14_31 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_31);
-						if ( s>=0 ) return s;
-						break;
-
-					case 27 : 
-						int LA14_48 = input.LA(1);
-						 
-						int index14_48 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_48=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 61;}
-						else if ( ((LA14_48 >= '0' && LA14_48 <= '9')||(LA14_48 >= 'A' && LA14_48 <= 'Z')||LA14_48=='_'||(LA14_48 >= 'b' && LA14_48 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_48);
-						if ( s>=0 ) return s;
-						break;
-
-					case 28 : 
-						int LA14_40 = input.LA(1);
-						 
-						int index14_40 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeNativeOpAhead())) ) {s = 55;}
-						else if ( ((runtimeUserOpAhead())) ) {s = 56;}
-						 
-						input.seek(index14_40);
-						if ( s>=0 ) return s;
-						break;
-
-					case 29 : 
-						int LA14_32 = input.LA(1);
-						 
-						int index14_32 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_32=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 49;}
-						else if ( ((LA14_32 >= '0' && LA14_32 <= '9')||(LA14_32 >= 'A' && LA14_32 <= 'Z')||LA14_32=='_'||(LA14_32 >= 'a' && LA14_32 <= 'l')||(LA14_32 >= 'n' && LA14_32 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_32);
-						if ( s>=0 ) return s;
-						break;
-
-					case 30 : 
-						int LA14_49 = input.LA(1);
-						 
-						int index14_49 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_49=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 62;}
-						else if ( ((LA14_49 >= '0' && LA14_49 <= '9')||(LA14_49 >= 'A' && LA14_49 <= 'Z')||LA14_49=='_'||(LA14_49 >= 'b' && LA14_49 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_49);
-						if ( s>=0 ) return s;
-						break;
-
-					case 31 : 
-						int LA14_33 = input.LA(1);
-						 
-						int index14_33 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_33=='i') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 50;}
-						else if ( ((LA14_33 >= '0' && LA14_33 <= '9')||(LA14_33 >= 'A' && LA14_33 <= 'Z')||LA14_33=='_'||(LA14_33 >= 'a' && LA14_33 <= 'h')||(LA14_33 >= 'j' && LA14_33 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_33);
-						if ( s>=0 ) return s;
-						break;
-
-					case 32 : 
-						int LA14_50 = input.LA(1);
-						 
-						int index14_50 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_50=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 63;}
-						else if ( ((LA14_50 >= '0' && LA14_50 <= '9')||(LA14_50 >= 'A' && LA14_50 <= 'Z')||LA14_50=='_'||(LA14_50 >= 'a' && LA14_50 <= 'l')||(LA14_50 >= 'n' && LA14_50 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_50);
-						if ( s>=0 ) return s;
-						break;
-
-					case 33 : 
-						int LA14_14 = input.LA(1);
-						 
-						int index14_14 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_14=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 35;}
-						else if ( ((LA14_14 >= '0' && LA14_14 <= '9')||(LA14_14 >= 'A' && LA14_14 <= 'Z')||LA14_14=='_'||(LA14_14 >= 'b' && LA14_14 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_14);
-						if ( s>=0 ) return s;
-						break;
-
-					case 34 : 
-						int LA14_63 = input.LA(1);
-						 
-						int index14_63 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_63=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 70;}
-						else if ( ((LA14_63 >= '0' && LA14_63 <= '9')||(LA14_63 >= 'A' && LA14_63 <= 'Z')||LA14_63=='_'||(LA14_63 >= 'b' && LA14_63 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_63);
-						if ( s>=0 ) return s;
-						break;
-
-					case 35 : 
-						int LA14_45 = input.LA(1);
-						 
-						int index14_45 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_45 >= '0' && LA14_45 <= '9')||(LA14_45 >= 'A' && LA14_45 <= 'Z')||LA14_45=='_'||(LA14_45 >= 'a' && LA14_45 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_45);
-						if ( s>=0 ) return s;
-						break;
-
-					case 36 : 
-						int LA14_35 = input.LA(1);
-						 
-						int index14_35 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_35=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 52;}
-						else if ( ((LA14_35 >= '0' && LA14_35 <= '9')||(LA14_35 >= 'A' && LA14_35 <= 'Z')||LA14_35=='_'||(LA14_35 >= 'a' && LA14_35 <= 'l')||(LA14_35 >= 'n' && LA14_35 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_35);
-						if ( s>=0 ) return s;
-						break;
-
-					case 37 : 
-						int LA14_15 = input.LA(1);
-						 
-						int index14_15 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_15=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 36;}
-						else if ( ((LA14_15 >= '0' && LA14_15 <= '9')||(LA14_15 >= 'A' && LA14_15 <= 'Z')||LA14_15=='_'||(LA14_15 >= 'b' && LA14_15 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_15);
-						if ( s>=0 ) return s;
-						break;
-
-					case 38 : 
-						int LA14_52 = input.LA(1);
-						 
-						int index14_52 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_52=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 65;}
-						else if ( ((LA14_52 >= '0' && LA14_52 <= '9')||(LA14_52 >= 'A' && LA14_52 <= 'Z')||LA14_52=='_'||(LA14_52 >= 'b' && LA14_52 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_52);
-						if ( s>=0 ) return s;
-						break;
-
-					case 39 : 
-						int LA14_46 = input.LA(1);
-						 
-						int index14_46 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_46 >= '0' && LA14_46 <= '9')||(LA14_46 >= 'A' && LA14_46 <= 'Z')||LA14_46=='_'||(LA14_46 >= 'a' && LA14_46 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_46);
-						if ( s>=0 ) return s;
-						break;
-
-					case 40 : 
-						int LA14_36 = input.LA(1);
-						 
-						int index14_36 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_36=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 53;}
-						else if ( ((LA14_36 >= '0' && LA14_36 <= '9')||(LA14_36 >= 'A' && LA14_36 <= 'Z')||LA14_36=='_'||(LA14_36 >= 'a' && LA14_36 <= 'l')||(LA14_36 >= 'n' && LA14_36 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_36);
-						if ( s>=0 ) return s;
-						break;
-
-					case 41 : 
-						int LA14_53 = input.LA(1);
-						 
-						int index14_53 = input.index();
-						input.rewind();
-						s = -1;
-						if ( (LA14_53=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 66;}
-						else if ( ((LA14_53 >= '0' && LA14_53 <= '9')||(LA14_53 >= 'A' && LA14_53 <= 'Z')||LA14_53=='_'||(LA14_53 >= 'b' && LA14_53 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_53);
-						if ( s>=0 ) return s;
-						break;
-
-					case 42 : 
-						int LA14_47 = input.LA(1);
-						 
-						int index14_47 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_47 >= '0' && LA14_47 <= '9')||(LA14_47 >= 'A' && LA14_47 <= 'Z')||LA14_47=='_'||(LA14_47 >= 'a' && LA14_47 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_47);
-						if ( s>=0 ) return s;
-						break;
-
-					case 43 : 
-						int LA14_61 = input.LA(1);
-						 
-						int index14_61 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_61 >= '0' && LA14_61 <= '9')||(LA14_61 >= 'A' && LA14_61 <= 'Z')||LA14_61=='_'||(LA14_61 >= 'a' && LA14_61 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_61);
-						if ( s>=0 ) return s;
-						break;
-
-					case 44 : 
-						int LA14_16 = input.LA(1);
-						 
-						int index14_16 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_16 >= '0' && LA14_16 <= '9')||(LA14_16 >= 'A' && LA14_16 <= 'Z')||LA14_16=='_'||(LA14_16 >= 'a' && LA14_16 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						 
-						input.seek(index14_16);
-						if ( s>=0 ) return s;
-						break;
-
-					case 45 : 
-						int LA14_59 = input.LA(1);
-						 
-						int index14_59 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeHistoryOpAhead())) ) {s = 68;}
-						else if ( ((runtimeNativeOpAhead())) ) {s = 55;}
-						else if ( ((runtimeUserOpAhead())) ) {s = 56;}
-						 
-						input.seek(index14_59);
-						if ( s>=0 ) return s;
-						break;
-
-					case 46 : 
-						int LA14_51 = input.LA(1);
-						 
-						int index14_51 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeMATypeOpAhead())) ) {s = 64;}
-						else if ( ((runtimeNativeOpAhead())) ) {s = 55;}
-						else if ( ((runtimeUserOpAhead())) ) {s = 56;}
-						 
-						input.seek(index14_51);
-						if ( s>=0 ) return s;
-						break;
-
-					case 47 : 
-						int LA14_62 = input.LA(1);
-						 
-						int index14_62 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_62 >= '0' && LA14_62 <= '9')||(LA14_62 >= 'A' && LA14_62 <= 'Z')||LA14_62=='_'||(LA14_62 >= 'a' && LA14_62 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_62);
-						if ( s>=0 ) return s;
-						break;
-
-					case 48 : 
-						int LA14_23 = input.LA(1);
-						 
-						int index14_23 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_23 >= '0' && LA14_23 <= '9')||(LA14_23 >= 'A' && LA14_23 <= 'Z')||LA14_23=='_'||(LA14_23 >= 'a' && LA14_23 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 40;
-						 
-						input.seek(index14_23);
-						if ( s>=0 ) return s;
-						break;
-
-					case 49 : 
-						int LA14_70 = input.LA(1);
-						 
-						int index14_70 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_70 >= '0' && LA14_70 <= '9')||(LA14_70 >= 'A' && LA14_70 <= 'Z')||LA14_70=='_'||(LA14_70 >= 'a' && LA14_70 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_70);
-						if ( s>=0 ) return s;
-						break;
-
-					case 50 : 
-						int LA14_65 = input.LA(1);
-						 
-						int index14_65 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_65 >= '0' && LA14_65 <= '9')||(LA14_65 >= 'A' && LA14_65 <= 'Z')||LA14_65=='_'||(LA14_65 >= 'a' && LA14_65 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_65);
-						if ( s>=0 ) return s;
-						break;
-
-					case 51 : 
-						int LA14_66 = input.LA(1);
-						 
-						int index14_66 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_66 >= '0' && LA14_66 <= '9')||(LA14_66 >= 'A' && LA14_66 <= 'Z')||LA14_66=='_'||(LA14_66 >= 'a' && LA14_66 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_66);
-						if ( s>=0 ) return s;
-						break;
-
-					case 52 : 
-						int LA14_67 = input.LA(1);
-						 
-						int index14_67 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_67 >= '0' && LA14_67 <= '9')||(LA14_67 >= 'A' && LA14_67 <= 'Z')||LA14_67=='_'||(LA14_67 >= 'a' && LA14_67 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 59;
-						 
-						input.seek(index14_67);
-						if ( s>=0 ) return s;
-						break;
-
-					case 53 : 
-						int LA14_34 = input.LA(1);
-						 
-						int index14_34 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_34 >= '0' && LA14_34 <= '9')||(LA14_34 >= 'A' && LA14_34 <= 'Z')||LA14_34=='_'||(LA14_34 >= 'a' && LA14_34 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 51;
-						 
-						input.seek(index14_34);
-						if ( s>=0 ) return s;
-						break;
-
-					case 54 : 
-						int LA14_57 = input.LA(1);
-						 
-						int index14_57 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_57 >= '0' && LA14_57 <= '9')||(LA14_57 >= 'A' && LA14_57 <= 'Z')||LA14_57=='_'||(LA14_57 >= 'a' && LA14_57 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 59;
-						 
-						input.seek(index14_57);
-						if ( s>=0 ) return s;
-						break;
-
-					case 55 : 
-						int LA14_58 = input.LA(1);
-						 
-						int index14_58 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((LA14_58 >= '0' && LA14_58 <= '9')||(LA14_58 >= 'A' && LA14_58 <= 'Z')||LA14_58=='_'||(LA14_58 >= 'a' && LA14_58 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
-						else s = 59;
-						 
-						input.seek(index14_58);
-						if ( s>=0 ) return s;
-						break;
-
-					case 56 : 
 						int LA14_0 = input.LA(1);
 						 
 						int index14_0 = input.index();
@@ -1940,16 +1410,542 @@ public class ParameterizedOperationsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 57 : 
-						int LA14_43 = input.LA(1);
+					case 18 : 
+						int LA14_27 = input.LA(1);
 						 
-						int index14_43 = input.index();
+						int index14_27 = input.index();
 						input.rewind();
 						s = -1;
-						if ( ((LA14_43 >= '0' && LA14_43 <= '9')||(LA14_43 >= 'A' && LA14_43 <= 'Z')||LA14_43=='_'||(LA14_43 >= 'a' && LA14_43 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						if ( (LA14_27=='l') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 44;}
+						else if ( ((LA14_27 >= '0' && LA14_27 <= '9')||(LA14_27 >= 'A' && LA14_27 <= 'Z')||LA14_27=='_'||(LA14_27 >= 'a' && LA14_27 <= 'k')||(LA14_27 >= 'm' && LA14_27 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_27);
+						if ( s>=0 ) return s;
+						break;
+
+					case 19 : 
+						int LA14_44 = input.LA(1);
+						 
+						int index14_44 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_44=='u') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 60;}
+						else if ( ((LA14_44 >= '0' && LA14_44 <= '9')||(LA14_44 >= 'A' && LA14_44 <= 'Z')||LA14_44=='_'||(LA14_44 >= 'a' && LA14_44 <= 't')||(LA14_44 >= 'v' && LA14_44 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_44);
+						if ( s>=0 ) return s;
+						break;
+
+					case 20 : 
+						int LA14_60 = input.LA(1);
+						 
+						int index14_60 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_60=='m') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 69;}
+						else if ( ((LA14_60 >= '0' && LA14_60 <= '9')||(LA14_60 >= 'A' && LA14_60 <= 'Z')||LA14_60=='_'||(LA14_60 >= 'a' && LA14_60 <= 'l')||(LA14_60 >= 'n' && LA14_60 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_60);
+						if ( s>=0 ) return s;
+						break;
+
+					case 21 : 
+						int LA14_69 = input.LA(1);
+						 
+						int index14_69 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_69=='e') && (((runtimeHistoryOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 71;}
+						else if ( ((LA14_69 >= '0' && LA14_69 <= '9')||(LA14_69 >= 'A' && LA14_69 <= 'Z')||LA14_69=='_'||(LA14_69 >= 'a' && LA14_69 <= 'd')||(LA14_69 >= 'f' && LA14_69 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_69);
+						if ( s>=0 ) return s;
+						break;
+
+					case 22 : 
+						int LA14_9 = input.LA(1);
+						 
+						int index14_9 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_9=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 28;}
+						else if ( ((LA14_9 >= '0' && LA14_9 <= '9')||(LA14_9 >= 'A' && LA14_9 <= 'Z')||LA14_9=='_'||(LA14_9 >= 'a' && LA14_9 <= 'l')||(LA14_9 >= 'n' && LA14_9 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_9);
+						if ( s>=0 ) return s;
+						break;
+
+					case 23 : 
+						int LA14_10 = input.LA(1);
+						 
+						int index14_10 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_10=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 29;}
+						else if ( ((LA14_10 >= '0' && LA14_10 <= '9')||(LA14_10 >= 'A' && LA14_10 <= 'Z')||LA14_10=='_'||(LA14_10 >= 'a' && LA14_10 <= 'l')||(LA14_10 >= 'n' && LA14_10 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_10);
+						if ( s>=0 ) return s;
+						break;
+
+					case 24 : 
+						int LA14_11 = input.LA(1);
+						 
+						int index14_11 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_11=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 30;}
+						else if ( ((LA14_11 >= '0' && LA14_11 <= '9')||(LA14_11 >= 'A' && LA14_11 <= 'Z')||LA14_11=='_'||(LA14_11 >= 'a' && LA14_11 <= 'l')||(LA14_11 >= 'n' && LA14_11 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_11);
+						if ( s>=0 ) return s;
+						break;
+
+					case 25 : 
+						int LA14_12 = input.LA(1);
+						 
+						int index14_12 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_12=='e') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 31;}
+						else if ( ((LA14_12 >= '0' && LA14_12 <= '9')||(LA14_12 >= 'A' && LA14_12 <= 'Z')||LA14_12=='_'||(LA14_12 >= 'a' && LA14_12 <= 'd')||(LA14_12 >= 'f' && LA14_12 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_12);
+						if ( s>=0 ) return s;
+						break;
+
+					case 26 : 
+						int LA14_28 = input.LA(1);
+						 
+						int index14_28 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_28=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 45;}
+						else if ( ((LA14_28 >= '0' && LA14_28 <= '9')||(LA14_28 >= 'A' && LA14_28 <= 'Z')||LA14_28=='_'||(LA14_28 >= 'b' && LA14_28 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_28);
+						if ( s>=0 ) return s;
+						break;
+
+					case 27 : 
+						int LA14_29 = input.LA(1);
+						 
+						int index14_29 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_29=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 46;}
+						else if ( ((LA14_29 >= '0' && LA14_29 <= '9')||(LA14_29 >= 'A' && LA14_29 <= 'Z')||LA14_29=='_'||(LA14_29 >= 'b' && LA14_29 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_29);
+						if ( s>=0 ) return s;
+						break;
+
+					case 28 : 
+						int LA14_30 = input.LA(1);
+						 
+						int index14_30 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_30=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 47;}
+						else if ( ((LA14_30 >= '0' && LA14_30 <= '9')||(LA14_30 >= 'A' && LA14_30 <= 'Z')||LA14_30=='_'||(LA14_30 >= 'b' && LA14_30 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_30);
+						if ( s>=0 ) return s;
+						break;
+
+					case 29 : 
+						int LA14_40 = input.LA(1);
+						 
+						int index14_40 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeNativeOpAhead())) ) {s = 55;}
+						else if ( ((runtimeUserOpAhead())) ) {s = 56;}
+						 
+						input.seek(index14_40);
+						if ( s>=0 ) return s;
+						break;
+
+					case 30 : 
+						int LA14_31 = input.LA(1);
+						 
+						int index14_31 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_31=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 48;}
+						else if ( ((LA14_31 >= '0' && LA14_31 <= '9')||(LA14_31 >= 'A' && LA14_31 <= 'Z')||LA14_31=='_'||(LA14_31 >= 'a' && LA14_31 <= 'l')||(LA14_31 >= 'n' && LA14_31 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_31);
+						if ( s>=0 ) return s;
+						break;
+
+					case 31 : 
+						int LA14_48 = input.LA(1);
+						 
+						int index14_48 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_48=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 61;}
+						else if ( ((LA14_48 >= '0' && LA14_48 <= '9')||(LA14_48 >= 'A' && LA14_48 <= 'Z')||LA14_48=='_'||(LA14_48 >= 'b' && LA14_48 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_48);
+						if ( s>=0 ) return s;
+						break;
+
+					case 32 : 
+						int LA14_14 = input.LA(1);
+						 
+						int index14_14 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_14=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 35;}
+						else if ( ((LA14_14 >= '0' && LA14_14 <= '9')||(LA14_14 >= 'A' && LA14_14 <= 'Z')||LA14_14=='_'||(LA14_14 >= 'b' && LA14_14 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_14);
+						if ( s>=0 ) return s;
+						break;
+
+					case 33 : 
+						int LA14_32 = input.LA(1);
+						 
+						int index14_32 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_32=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 49;}
+						else if ( ((LA14_32 >= '0' && LA14_32 <= '9')||(LA14_32 >= 'A' && LA14_32 <= 'Z')||LA14_32=='_'||(LA14_32 >= 'a' && LA14_32 <= 'l')||(LA14_32 >= 'n' && LA14_32 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_32);
+						if ( s>=0 ) return s;
+						break;
+
+					case 34 : 
+						int LA14_49 = input.LA(1);
+						 
+						int index14_49 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_49=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 62;}
+						else if ( ((LA14_49 >= '0' && LA14_49 <= '9')||(LA14_49 >= 'A' && LA14_49 <= 'Z')||LA14_49=='_'||(LA14_49 >= 'b' && LA14_49 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_49);
+						if ( s>=0 ) return s;
+						break;
+
+					case 35 : 
+						int LA14_15 = input.LA(1);
+						 
+						int index14_15 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_15=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 36;}
+						else if ( ((LA14_15 >= '0' && LA14_15 <= '9')||(LA14_15 >= 'A' && LA14_15 <= 'Z')||LA14_15=='_'||(LA14_15 >= 'b' && LA14_15 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_15);
+						if ( s>=0 ) return s;
+						break;
+
+					case 36 : 
+						int LA14_33 = input.LA(1);
+						 
+						int index14_33 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_33=='i') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 50;}
+						else if ( ((LA14_33 >= '0' && LA14_33 <= '9')||(LA14_33 >= 'A' && LA14_33 <= 'Z')||LA14_33=='_'||(LA14_33 >= 'a' && LA14_33 <= 'h')||(LA14_33 >= 'j' && LA14_33 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_33);
+						if ( s>=0 ) return s;
+						break;
+
+					case 37 : 
+						int LA14_50 = input.LA(1);
+						 
+						int index14_50 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_50=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 63;}
+						else if ( ((LA14_50 >= '0' && LA14_50 <= '9')||(LA14_50 >= 'A' && LA14_50 <= 'Z')||LA14_50=='_'||(LA14_50 >= 'a' && LA14_50 <= 'l')||(LA14_50 >= 'n' && LA14_50 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_50);
+						if ( s>=0 ) return s;
+						break;
+
+					case 38 : 
+						int LA14_63 = input.LA(1);
+						 
+						int index14_63 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_63=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 70;}
+						else if ( ((LA14_63 >= '0' && LA14_63 <= '9')||(LA14_63 >= 'A' && LA14_63 <= 'Z')||LA14_63=='_'||(LA14_63 >= 'b' && LA14_63 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_63);
+						if ( s>=0 ) return s;
+						break;
+
+					case 39 : 
+						int LA14_35 = input.LA(1);
+						 
+						int index14_35 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_35=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 52;}
+						else if ( ((LA14_35 >= '0' && LA14_35 <= '9')||(LA14_35 >= 'A' && LA14_35 <= 'Z')||LA14_35=='_'||(LA14_35 >= 'a' && LA14_35 <= 'l')||(LA14_35 >= 'n' && LA14_35 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_35);
+						if ( s>=0 ) return s;
+						break;
+
+					case 40 : 
+						int LA14_52 = input.LA(1);
+						 
+						int index14_52 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_52=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 65;}
+						else if ( ((LA14_52 >= '0' && LA14_52 <= '9')||(LA14_52 >= 'A' && LA14_52 <= 'Z')||LA14_52=='_'||(LA14_52 >= 'b' && LA14_52 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_52);
+						if ( s>=0 ) return s;
+						break;
+
+					case 41 : 
+						int LA14_45 = input.LA(1);
+						 
+						int index14_45 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_45 >= '0' && LA14_45 <= '9')||(LA14_45 >= 'A' && LA14_45 <= 'Z')||LA14_45=='_'||(LA14_45 >= 'a' && LA14_45 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_45);
+						if ( s>=0 ) return s;
+						break;
+
+					case 42 : 
+						int LA14_36 = input.LA(1);
+						 
+						int index14_36 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_36=='m') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 53;}
+						else if ( ((LA14_36 >= '0' && LA14_36 <= '9')||(LA14_36 >= 'A' && LA14_36 <= 'Z')||LA14_36=='_'||(LA14_36 >= 'a' && LA14_36 <= 'l')||(LA14_36 >= 'n' && LA14_36 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_36);
+						if ( s>=0 ) return s;
+						break;
+
+					case 43 : 
+						int LA14_53 = input.LA(1);
+						 
+						int index14_53 = input.index();
+						input.rewind();
+						s = -1;
+						if ( (LA14_53=='a') && (((runtimeMATypeOpAhead())||(runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 66;}
+						else if ( ((LA14_53 >= '0' && LA14_53 <= '9')||(LA14_53 >= 'A' && LA14_53 <= 'Z')||LA14_53=='_'||(LA14_53 >= 'b' && LA14_53 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_53);
+						if ( s>=0 ) return s;
+						break;
+
+					case 44 : 
+						int LA14_16 = input.LA(1);
+						 
+						int index14_16 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_16 >= '0' && LA14_16 <= '9')||(LA14_16 >= 'A' && LA14_16 <= 'Z')||LA14_16=='_'||(LA14_16 >= 'a' && LA14_16 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						 
+						input.seek(index14_16);
+						if ( s>=0 ) return s;
+						break;
+
+					case 45 : 
+						int LA14_46 = input.LA(1);
+						 
+						int index14_46 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_46 >= '0' && LA14_46 <= '9')||(LA14_46 >= 'A' && LA14_46 <= 'Z')||LA14_46=='_'||(LA14_46 >= 'a' && LA14_46 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_46);
+						if ( s>=0 ) return s;
+						break;
+
+					case 46 : 
+						int LA14_47 = input.LA(1);
+						 
+						int index14_47 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_47 >= '0' && LA14_47 <= '9')||(LA14_47 >= 'A' && LA14_47 <= 'Z')||LA14_47=='_'||(LA14_47 >= 'a' && LA14_47 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_47);
+						if ( s>=0 ) return s;
+						break;
+
+					case 47 : 
+						int LA14_59 = input.LA(1);
+						 
+						int index14_59 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeHistoryOpAhead())) ) {s = 68;}
+						else if ( ((runtimeNativeOpAhead())) ) {s = 55;}
+						else if ( ((runtimeUserOpAhead())) ) {s = 56;}
+						 
+						input.seek(index14_59);
+						if ( s>=0 ) return s;
+						break;
+
+					case 48 : 
+						int LA14_51 = input.LA(1);
+						 
+						int index14_51 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeMATypeOpAhead())) ) {s = 64;}
+						else if ( ((runtimeNativeOpAhead())) ) {s = 55;}
+						else if ( ((runtimeUserOpAhead())) ) {s = 56;}
+						 
+						input.seek(index14_51);
+						if ( s>=0 ) return s;
+						break;
+
+					case 49 : 
+						int LA14_61 = input.LA(1);
+						 
+						int index14_61 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_61 >= '0' && LA14_61 <= '9')||(LA14_61 >= 'A' && LA14_61 <= 'Z')||LA14_61=='_'||(LA14_61 >= 'a' && LA14_61 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_61);
+						if ( s>=0 ) return s;
+						break;
+
+					case 50 : 
+						int LA14_23 = input.LA(1);
+						 
+						int index14_23 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_23 >= '0' && LA14_23 <= '9')||(LA14_23 >= 'A' && LA14_23 <= 'Z')||LA14_23=='_'||(LA14_23 >= 'a' && LA14_23 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 40;
+						 
+						input.seek(index14_23);
+						if ( s>=0 ) return s;
+						break;
+
+					case 51 : 
+						int LA14_62 = input.LA(1);
+						 
+						int index14_62 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_62 >= '0' && LA14_62 <= '9')||(LA14_62 >= 'A' && LA14_62 <= 'Z')||LA14_62=='_'||(LA14_62 >= 'a' && LA14_62 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_62);
+						if ( s>=0 ) return s;
+						break;
+
+					case 52 : 
+						int LA14_70 = input.LA(1);
+						 
+						int index14_70 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_70 >= '0' && LA14_70 <= '9')||(LA14_70 >= 'A' && LA14_70 <= 'Z')||LA14_70=='_'||(LA14_70 >= 'a' && LA14_70 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_70);
+						if ( s>=0 ) return s;
+						break;
+
+					case 53 : 
+						int LA14_65 = input.LA(1);
+						 
+						int index14_65 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_65 >= '0' && LA14_65 <= '9')||(LA14_65 >= 'A' && LA14_65 <= 'Z')||LA14_65=='_'||(LA14_65 >= 'a' && LA14_65 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_65);
+						if ( s>=0 ) return s;
+						break;
+
+					case 54 : 
+						int LA14_66 = input.LA(1);
+						 
+						int index14_66 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_66 >= '0' && LA14_66 <= '9')||(LA14_66 >= 'A' && LA14_66 <= 'Z')||LA14_66=='_'||(LA14_66 >= 'a' && LA14_66 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_66);
+						if ( s>=0 ) return s;
+						break;
+
+					case 55 : 
+						int LA14_67 = input.LA(1);
+						 
+						int index14_67 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_67 >= '0' && LA14_67 <= '9')||(LA14_67 >= 'A' && LA14_67 <= 'Z')||LA14_67=='_'||(LA14_67 >= 'a' && LA14_67 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
 						else s = 59;
 						 
-						input.seek(index14_43);
+						input.seek(index14_67);
+						if ( s>=0 ) return s;
+						break;
+
+					case 56 : 
+						int LA14_34 = input.LA(1);
+						 
+						int index14_34 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_34 >= '0' && LA14_34 <= '9')||(LA14_34 >= 'A' && LA14_34 <= 'Z')||LA14_34=='_'||(LA14_34 >= 'a' && LA14_34 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 51;
+						 
+						input.seek(index14_34);
+						if ( s>=0 ) return s;
+						break;
+
+					case 57 : 
+						int LA14_57 = input.LA(1);
+						 
+						int index14_57 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((LA14_57 >= '0' && LA14_57 <= '9')||(LA14_57 >= 'A' && LA14_57 <= 'Z')||LA14_57=='_'||(LA14_57 >= 'a' && LA14_57 <= 'z')) && (((runtimeNativeOpAhead())||(runtimeUserOpAhead())))) {s = 23;}
+						else s = 59;
+						 
+						input.seek(index14_57);
 						if ( s>=0 ) return s;
 						break;
 			}

@@ -227,11 +227,11 @@ public class TunedConfMgr {
 	}
 
 	/**
-	 * Deletes Events, Reset calculation dates AND sets Dirty.
+	 * Deletes Events, Reset calculation dates AND set Dirty.
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void deleteEventsAndDirtyConfs(String analysisName, EventInfo... indicators) {
+	public void deleteEventsDirtyConfs(String analysisName, EventInfo... indicators) {
 
 		EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, indicators);
 
@@ -243,7 +243,7 @@ public class TunedConfMgr {
 	}
 
 	/**
-	 * Deletes Events, Reset calculation dates AND sets Dirty.
+	 * Deletes Events, Reset calculation dates AND set Dirty.
 	 * @param stock
 	 * @param analysisName
 	 * @param indicators

@@ -101,4 +101,9 @@ public class Condition<T> extends Operation {
 		}
 		return maxDateShift;
 	}
+
+	@Override
+	public void invalidateOperation(String analysisName) {
+		//Nothing
+	}
 }

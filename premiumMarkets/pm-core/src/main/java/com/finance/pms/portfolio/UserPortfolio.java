@@ -120,7 +120,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	@Transient
 	private UserPortfolioDelegate getUserPortfolioDelegate() {
 		if (userPortfolioDelegate == null) {
-			new UserPortfolioDelegate(this);
+			userPortfolioDelegate = new UserPortfolioDelegate(this);
 		}
 		return userPortfolioDelegate;
 	}

@@ -99,7 +99,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	@Transient
 	public BigDecimal getAvailableCash(Date currentDate) {
-		BigDecimal inMinusOut = getTotalInAmountEver(null, currentDate).subtract(getTotalOutAmountEver(null, currentDate)).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal inMinusOut = getTotalInAmountEver(null, currentDate).subtract(getTotalOutAmountEver(null, currentDate)).setScale(2, BigDecimal.ROUND_HALF_EVEN);
 		return AutoPortfolioDelegate.DEFAULT_INITIAL_CASH.subtract(inMinusOut);
 	}
 

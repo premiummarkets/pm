@@ -314,7 +314,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 
         private TaskId taskId;
         private Long eventInfoChangeStamp;
-        private Long taskCreationStamp;
+        private Long taskCreationDate;
 
         @SuppressWarnings("rawtypes")
         private List taskRootParam;
@@ -354,7 +354,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
                     }
                 }
             } 
-            this.taskCreationStamp = DateFactory.midnithDate(new Date()).getTime();
+            this.taskCreationDate = DateFactory.midnithDate(new Date()).getTime();
 
             this.addParams = new ArrayList<Object>();
             if (addParams != null) {
@@ -425,7 +425,7 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 
             try {
 
-                if (this.taskCreationStamp < other.taskCreationStamp) return false;
+                if (this.taskCreationDate < other.taskCreationDate) return false;
 
                 if (!eventInfoChangeStamp.equals(other.eventInfoChangeStamp))
                     return false;
@@ -506,12 +506,12 @@ public class EventRefreshController implements  SelectionListener { //MouseListe
 
         @Override
         public String toString() {
-            return "EventRefreshTask [taskId=" + taskId + ", eventInfoChangeStamp=" + eventInfoChangeStamp + ", taskCreationStamp=" + taskCreationStamp
+            return "EventRefreshTask [taskId=" + taskId + ", eventInfoChangeStamp=" + eventInfoChangeStamp + ", taskCreationDate=" + taskCreationDate
                     + ", viewParamPositions=" + Arrays.toString(viewParamPositionsForTaskId) + ", taskRootParam=" + taskRootParam  + ", taskOtherParams=" + taskOtherParams + ", addParams=" + addParams + "]";
         }
 
-        public void setTaskCreationStamp(Long taskCreationStamp) {
-            this.taskCreationStamp = taskCreationStamp;
+        public void setTaskCreationDate(Long taskCreationDate) {
+            this.taskCreationDate = taskCreationDate;
         }
 
     }

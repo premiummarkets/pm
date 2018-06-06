@@ -56,7 +56,7 @@ import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.calculation.antlr.EditorIndsLexerDelegate;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.conditional.OperationsCompositioner;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 
 public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
@@ -142,8 +142,8 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				@SuppressWarnings({ "rawtypes", "unchecked" })
 				private void handleEnableDisableFormula() {
 
-					final Set<OperationsCompositioner> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
-					final Set<OperationsCompositioner> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
+					final Set<EventInfoOpsCompoOperation> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
+					final Set<EventInfoOpsCompoOperation> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
 					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("operationscompositionner"));//XXX
 					
 					ActionDialogAction closeAction = new ActionDialogAction() {
@@ -161,7 +161,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 							checkBoxDisabled();
 						}
 					};
-					PopupMenu<OperationsCompositioner> popupMenu = new PopupMenu<OperationsCompositioner>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, false, true, SWT.CHECK, null, closeAction, false);
+					PopupMenu<EventInfoOpsCompoOperation> popupMenu = new PopupMenu<EventInfoOpsCompoOperation>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, false, true, SWT.CHECK, null, closeAction, false);
 					popupMenu.open();
 				}
 
@@ -291,7 +291,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	@Override
 	protected void previousCalcsAsDirty(String identifier) {
 		
-		OperationsCompositioner operation = (OperationsCompositioner) parameterizedBuilder.getUserCurrentOperations().get(identifier);
+		EventInfoOpsCompoOperation operation = (EventInfoOpsCompoOperation) parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		EventModel.dirtyCacheFor(operation);
 		EventModel.updateEventInfoStamp();
 		

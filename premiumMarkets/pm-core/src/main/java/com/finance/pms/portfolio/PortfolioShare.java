@@ -204,7 +204,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
 		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.warn("Cash in is zero for "+this);
+			LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
 			return value.add(cashout).subtract(cashin).divide(cashin, 10, BigDecimal.ROUND_HALF_EVEN);
@@ -243,7 +243,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
 		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.warn("Cash in is zero for "+this);
+			LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
 			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 10, BigDecimal.ROUND_HALF_EVEN);

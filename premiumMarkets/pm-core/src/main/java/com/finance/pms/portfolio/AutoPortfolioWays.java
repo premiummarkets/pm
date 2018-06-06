@@ -34,7 +34,9 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 
+import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -71,5 +73,7 @@ public interface AutoPortfolioWays {
 	public void log(TransactionRecord transactionRecord);
 
 	public String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable;
+	
+	public SortedSet<TransactionElement> getTransactions();
 
 }

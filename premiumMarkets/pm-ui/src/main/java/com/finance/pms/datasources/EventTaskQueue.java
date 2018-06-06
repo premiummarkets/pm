@@ -146,7 +146,7 @@ public class EventTaskQueue {
 			for (TaskId supOrEqualTaskId : TaskId.values()) {
 				if (supOrEqualTaskId.ordinal() >= taskToReset.ordinal()) {
 					EventRefreshTask eventRefreshTask = lastRunningTasks.get(supOrEqualTaskId);
-					if (eventRefreshTask != null) eventRefreshTask.setTaskCreationStamp(0l);
+					if (eventRefreshTask != null) eventRefreshTask.setTaskCreationDate(0l);
 				}
 			}
 		}

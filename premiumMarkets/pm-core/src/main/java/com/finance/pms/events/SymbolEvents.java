@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.Signal;
 
@@ -390,23 +391,43 @@ public class SymbolEvents implements Serializable {
 
 	//Weight stuff
 	public Date getLatestRelevantEventDate() {
-		return getWeightData().getLatestRelevantEventDate();
+		try {
+			return getWeightData().getLatestRelevantEventDate();
+		} catch (Exception e) {
+			LOGGER.warn("No weigth was calculated :" + e);
+			return DateFactory.dateAtZero();
+		}
 	}
 
 	public Set<EventInfo> getBuyTriggeringEvents() {
-		return getWeightData().getBuyTriggeringEvents();
+		try {
+			return getWeightData().getBuyTriggeringEvents();
+		} catch (Exception e) {
+			LOGGER.warn("No weigth was calculated :" + e);
+			return new HashSet<>();
+		}
 	}
 
 	public Float getTriggeringFinalWeight() {
-		return getWeightData().getFinalWeight();
+		try {
+			return getWeightData().getFinalWeight();
+		} catch (Exception e) {
+			LOGGER.warn("No weigth was calculated :" + e);
+			return 0f;
+		}
 	}
 
 	public Set<EventInfo> getSellTriggeringEvents() {
-		return getWeightData().getSellTriggeringEvents();
+		try {
+			return getWeightData().getSellTriggeringEvents();
+		} catch (Exception e) {
+			LOGGER.warn("No weigth was calculated :" + e);
+			return new HashSet<>();
+		}
 	}
 	
 	private SymbolEventsWeightData getWeightData() {
-		if (weightData == null) throw new UnsupportedOperationException("Weight not initialised for this "+this);
+		if (weightData == null) throw new UnsupportedOperationException("Weight not initialised for this "+this.getSymbol() + " and " + this.getEventDefList());
 		return weightData;
 	}
 

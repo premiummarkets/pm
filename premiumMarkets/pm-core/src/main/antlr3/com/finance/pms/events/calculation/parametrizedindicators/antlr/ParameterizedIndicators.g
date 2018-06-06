@@ -41,7 +41,7 @@ tokens {
   
   EqualEventMapStringConstantCondition ;
   
-  OperationsCompositioner ;
+  EventInfoOpsCompoOperation ;
   StringOperation ;
   
   OR ='or';
@@ -144,7 +144,7 @@ tokens {
 
 complete_expression :
    //TODO : common optional statement condition for also_display and fixed_start_shift
-   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(OperationsCompositioner bullish_condition bearish_condition also_display fixed_start_shift StringOperation) 
+   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation) 
    ;
 
 bullish_condition :
@@ -271,7 +271,7 @@ NumberToken
       ;
 
 StringToken
-     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_')* '"'
+     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_' )* '"'
      ;
 
 HistoricalData

@@ -55,7 +55,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
-import com.finance.pms.events.operations.conditional.OperationsCompositioner;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.pounderationrules.LatestEventsIndicatorOnlyPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
@@ -114,7 +114,7 @@ public class EventSignalConfig extends Config implements Cloneable {
     private SortedSet<EventInfo> allTechIndicatorsSortedCache= null; //First and second pass indicators + Sub parameterised events
     private SortedSet<EventInfo> allEventInfos = null; //First and second pass indicators + Sub parameterised events + alerts, screener events and 'constant' events.
     private SortedSet<EventInfo> allParameterized = null;
-    private SortedSet<OperationsCompositioner> filteredParameterised = null;
+    private SortedSet<EventInfoOpsCompoOperation> filteredParameterised = null;
 
 
     private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getMyPrefs().get("event.buytrigger", "1"));
@@ -225,14 +225,14 @@ public class EventSignalConfig extends Config implements Cloneable {
     public void tamperIndepAndParameterizedEventInfoList(Collection<EventInfo> overridingEventInfos) {
 
         Set<String> indepIndicators = new HashSet<String>();
-        SortedSet<OperationsCompositioner> filteredParameterised = new TreeSet<OperationsCompositioner>();
+        SortedSet<EventInfoOpsCompoOperation> filteredParameterised = new TreeSet<EventInfoOpsCompoOperation>();
         for (EventInfo eventInfo : overridingEventInfos) {
             if (this.getIndepIndicators().contains(eventInfo)) {
                 indepIndicators.add(eventInfo.getEventDefinitionRef());
             }
             if (eventInfo.getEventDefId().equals(EventDefinition.PARAMETERIZED.getEventDefId())) {
                 indepIndicators.add(EventDefinition.PARAMETERIZED.name());
-                filteredParameterised.add((OperationsCompositioner) eventInfo);
+                filteredParameterised.add((EventInfoOpsCompoOperation) eventInfo);
             }
         }
 
@@ -708,7 +708,7 @@ public class EventSignalConfig extends Config implements Cloneable {
         this.perceptronTrainingPMEventOccLowerSpan = trainingPMEventOccLowerSpan;
     }
 
-    public void setFilteredParameterised(SortedSet<OperationsCompositioner> filteredParameterised) {
+    public void setFilteredParameterised(SortedSet<EventInfoOpsCompoOperation> filteredParameterised) {
         this.filteredParameterised = filteredParameterised;
     }
 

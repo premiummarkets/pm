@@ -119,13 +119,13 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 				ExportAutoPortfolioMessage m = (ExportAutoPortfolioMessage) message;
 				LOGGER.info("New export message received : " + m.getAnalyseName());
-				runSynchTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
+				runAsyncTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
 
 			} else if (message instanceof AbstractAnalysisClientRunnableMessage) {//Runnable Messages : screener, indicator (gwt), all stocks summaries and alerts on threshold
 
 				AbstractAnalysisClientRunnableMessage runnableMessage = (AbstractAnalysisClientRunnableMessage) message;
 				LOGGER.info("New runnable message received : "+runnableMessage.getAnalysisName()+" for "+runnableMessage.getClass().getName());
-				runSynchTask(runnableMessage.getAnalysisName(), runnableMessage);
+				runAsyncTask(runnableMessage.getAnalysisName(), runnableMessage);
 
 			} else if (message instanceof EmailMessage) { //SymbolEvent : send email
 
@@ -182,7 +182,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		} 
 	}
 
-	private void runSynchTask(String analysisName, Runnable runnable) {
+	private void runAsyncTask(String analysisName, Runnable runnable) {
 
 		LOGGER.debug("Executing executor :"+runnable.getClass().getName()+" for "+ analysisName);
 		analysisExecutor.execute(runnable);

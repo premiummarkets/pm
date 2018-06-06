@@ -68,4 +68,9 @@ public class StringOperation extends Operation  implements LeafOperation {
 		return 0;
 	}
 
+	@Override
+	public void invalidateOperation(String analysisName) {
+		//Nothing
+	}
+
 }

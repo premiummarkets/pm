@@ -96,8 +96,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 		this.exception = null;
 		this.runIndicatorsCalculationRes = null;
 
-		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
 		synchronized (syncObject) {
+			this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
 			syncObject.wait();
 		}
 

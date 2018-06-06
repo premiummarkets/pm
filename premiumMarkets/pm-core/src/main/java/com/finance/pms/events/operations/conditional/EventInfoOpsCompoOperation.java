@@ -58,32 +58,32 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
  * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
- * The OperationsCompositioner is a specific type of operation that generates bullish and bearish events to be used in the UI.
- * As an operation, the OperationsCompositioner takes other operations as operands and is calculated using a specific IndicatorsCompositionner calculator, the ParameterizedIndicatorsCompositioner.
- * An OperationsCompositioner is defined through the UI via formula files.
- * OperationsCompositioner unlike other operations can't be reused for further composition or parameterization.
- * Hence, every indicator created in the ./userparametrised/indicator folder will instantiate an OperationsCompositioner which will be calculated (run) by the ParameterizedIndicatorsCompositioner.
+ * The EventInfoOpsCompoOperation is a specific type of operation that generates bullish and bearish events to be used in the UI.
+ * As an operation, the EventInfoOpsCompoOperation takes other operations as operands and is calculated using a specific IndicatorsCompositionner calculator, the ParameterizedIndicatorsCompositioner.
+ * An EventInfoOpsCompoOperation is defined through the UI via formula files.
+ * EventInfoOpsCompoOperation unlike other operations can't be reused for further composition or parameterization.
+ * Hence, every indicator created in the ./userparametrised/indicator folder will instantiate an EventInfoOpsCompoOperation which will be calculated (run) by the ParameterizedIndicatorsCompositioner.
  */
-//FIXME rename IndicatorsBullBearSwitchOperation
 @XmlRootElement
-public class OperationsCompositioner extends EventMapOperation implements EventInfo {
+public class EventInfoOpsCompoOperation extends EventMapOperation implements EventInfo {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(OperationsCompositioner.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(EventInfoOpsCompoOperation.class);
 
 	@XmlTransient
 	private final EventDefDescriptorDynamic eventDefDescriptor;
 
-	public OperationsCompositioner() {
+	public EventInfoOpsCompoOperation() {
 		super("operationscompositionner","operationscompositionner", 
 				new ArrayList<Operation>(
 						Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new NumberOperation("startShiftOverride"), new StringOperation("eventListName")})));
-		eventDefDescriptor = new EventDefDescriptorDynamic();
+		this.eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
-	public OperationsCompositioner(ArrayList<Operation> operands, String outputSelector) {
+	public EventInfoOpsCompoOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 	}
@@ -183,8 +183,8 @@ public class OperationsCompositioner extends EventMapOperation implements EventI
 	public void setReference(String reference) {
 		super.setReference(reference);
 		this.eventDefDescriptor.setDescriptorReference(reference);
-		if (this.getFormula() != null) {
-			String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormula(), 0)[1];
+		if (this.getFormulae() != null) {
+			String indentedFormula = FormulaUtils.indentOperationFormula(this.getFormulae(), 0)[1];
 			this.eventDefDescriptor.setBullishDescription(FormulaUtils.bullishClause(indentedFormula));
 			this.eventDefDescriptor.setBearishDescription(FormulaUtils.bearishClause(indentedFormula));
 			this.eventDefDescriptor.setAlsoDisplayDescription(FormulaUtils.alsoDisplayClause(indentedFormula));
@@ -220,6 +220,11 @@ public class OperationsCompositioner extends EventMapOperation implements EventI
 	@Override
 	public Integer getEventOccWeight() {
 		return 1;
+	}
+
+	@Override
+	public void invalidateOperation(String analysisName) {
+		TunedConfMgr.getInstance().deleteEventsDirtyConfs(analysisName, this);
 	}
 
 }

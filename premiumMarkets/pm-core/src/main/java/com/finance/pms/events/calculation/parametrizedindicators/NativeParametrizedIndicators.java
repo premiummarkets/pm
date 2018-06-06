@@ -45,7 +45,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.conditional.OperationsCompositioner;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 
 @XmlRootElement
@@ -68,8 +68,8 @@ public class NativeParametrizedIndicators {
 		
 		NativeParametrizedIndicators nativeParametrizedIndicators = new NativeParametrizedIndicators();
 		
-		OperationsCompositioner baseOperationsCompositioner = new OperationsCompositioner();
-		nativeParametrizedIndicators.calculators.add(baseOperationsCompositioner);
+		EventInfoOpsCompoOperation baseEventInfoOpsCompoOperation = new EventInfoOpsCompoOperation();
+		nativeParametrizedIndicators.calculators.add(baseEventInfoOpsCompoOperation);
 		
 		try {
 			JAXBContext context = JAXBContext.newInstance(NativeParametrizedIndicators.class);

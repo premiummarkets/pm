@@ -182,11 +182,11 @@ public class QuotationUpdate {
 		return symbols;
 	}
 	
-	public Collection<Stock> getQuotesForAllUserPortfoliosAndMonitored() {
+	public Collection<Stock> getQuotesForAllMonitoredUserPortfolios() {
 		
 		//load stocks for all user portfolios
 		StockList userPortoflioStocks = new StockList();
-		Collection<Stock> userPortoflioSymbols = DataSource.getInstance().getShareDAO().loadAllUserPortoflioStocks();
+		Collection<Stock> userPortoflioSymbols = DataSource.getInstance().getShareDAO().loadMonitoredUserPortoflioStocks();
 		userPortoflioStocks.addAll(userPortoflioSymbols);
 		try {
 			getQuotes(userPortoflioStocks);

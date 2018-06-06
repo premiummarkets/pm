@@ -54,6 +54,7 @@ public interface ShareDAO {
 	
 	public Collection<Stock> loadAllUserPortoflioStocks();
 	public Collection<Stock> loadAllPortoflioStocks();
+	Collection<Stock> loadMonitoredUserPortoflioStocks();
 	public List<Stock> loadMonitoredStocks();
 	public List<Stock> loadAllStocks();
 	

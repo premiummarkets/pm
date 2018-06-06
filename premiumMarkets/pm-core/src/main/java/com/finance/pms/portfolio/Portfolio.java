@@ -483,7 +483,7 @@ public class Portfolio extends AbstractSharesList {
 		}
 
 		if (totalQuantityBought.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.warn("getPriceAvgBuyFor : Bought Transaction sum to zero for "+portfolioShare);
+			LOGGER.debug("getPriceAvgBuyFor : Bought Transaction sum to zero for "+portfolioShare);
 			return BigDecimal.ZERO;
 		} else {
 			return totalMoneyInvested.divide(totalQuantityBought, 10, BigDecimal.ROUND_HALF_EVEN);

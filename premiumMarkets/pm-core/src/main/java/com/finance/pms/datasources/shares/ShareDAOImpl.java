@@ -60,8 +60,8 @@ import com.finance.pms.screening.ScreeningSupplementedStock;
 
 @Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
-	
-	
+
+
 	@Override
 	public void saveOrUpdateStocks(List<Validatable> shares) {
 		//this.getHibernateTemplate().saveOrUpdateAll(shares);
@@ -73,7 +73,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
 	public List<Stock> loadShares(ShareFilter shareFilter) {
-		
+
 		DetachedCriteria criteria = DetachedCriteria.forClass(Stock.class);
 		if (shareFilter.getCategories().length > 0) {
 			criteria.add(Restrictions.in("category",shareFilter.getCategories()));
@@ -82,12 +82,12 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 			criteria.add(Restrictions.sqlRestriction(shareFilter.getRequestConstraint()));
 		}
 		criteria.add(Restrictions.conjunction());
-	
+
 		List<Stock> list =  new ArrayList<Stock>((Collection<? extends Stock>) this.getHibernateTemplate().findByCriteria(criteria));
-		
+
 		return list;
 	}
-	
+
 	@Transactional(readOnly=true)
 	public List<Stock> loadAllStocks() {
 		return this.getHibernateTemplate().loadAll(Stock.class);
@@ -96,12 +96,12 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly=true)
 	public List<Stock> loadMonitoredStocks() {
-		
+
 		return this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
 
-			
+
 			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
-				
+
 				Query query = session.createQuery("select distinct stock from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> :monitorLevel");
 				query.setParameter("monitorLevel", MonitorLevel.NONE);
 				return query.list();
@@ -110,10 +110,23 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		});
 	}
 
+	@Override
+	@Transactional(readOnly=true)
+	public Collection<Stock> loadMonitoredUserPortoflioStocks() {
+		Collection<Stock> stocks = new HashSet<Stock>();
+		List<UserPortfolio> userPortfolios = this.getHibernateTemplate().loadAll(UserPortfolio.class);
+		for (UserPortfolio userPortfolio : userPortfolios) {
+			for (PortfolioShare portfolioShare : userPortfolio.getListShares().values()) {
+				if (!portfolioShare.getMonitorLevel().equals(MonitorLevel.NONE)) stocks.add(portfolioShare.getStock());
+			}
+		}
+		return stocks;
+	}
+
 	@Transactional(readOnly=true)
 	public Stock loadStockBy(final String symbol,final String isin) {
 		return this.getHibernateTemplate().execute(new HibernateCallback<Stock>() {
-			
+
 			public Stock doInHibernate(Session session) throws HibernateException, SQLException {
 				Criteria criteria = session.createCriteria(Stock.class);
 				criteria.add(Restrictions.and(Restrictions.eq("isin", isin),Restrictions.eq("symbol", symbol)));
@@ -124,70 +137,70 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	@Transactional(readOnly=true)
 	public List<Stock> loadStockByIsinOrSymbol(final String ref) {
-		
+
 		return this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
-			
+
 			@SuppressWarnings("unchecked")
 			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
-				
+
 				String[] refSplit = ref.split("\\.");
 				String symbolRoot = (refSplit.length == 0)?ref:refSplit[0]+".%";
-				
+
 				Criteria exactCriteria = session.createCriteria(Stock.class);
 				exactCriteria.add(Restrictions.eq("symbol", ref));
 				List<Stock> stocks = exactCriteria.list();
-				
+
 				if (stocks.isEmpty()) {
 					Criteria sndChanceCriteria = session.createCriteria(Stock.class);
 					sndChanceCriteria.add(Restrictions.or(Restrictions.like("symbol", symbolRoot), Restrictions.eq("isin", ref)));
 					stocks = sndChanceCriteria.list();
 				}
-				
+
 				return stocks;
-				
+
 			}
 
 		});
 	}
 
-	
+
 	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> trends) {
 		//this.getHibernateTemplate().saveOrUpdateAll(listTrend);
 		for (ScreeningSupplementedStock trend : trends) {
 			this.getHibernateTemplate().saveOrUpdate(trend);
 		}
 	}
-	
-	
+
+
 	public void saveOrUpdateStock(Stock stock) {
 		this.getHibernateTemplate().saveOrUpdate(stock);
 	}
-	
-	
+
+
 	@Transactional(readOnly=true)
 	public ScreeningSupplementedStock loadTrendForStock(Stock stock) {
-		
+
 		org.hibernate.classic.Session currentSession = this.getHibernateTemplate().getSessionFactory().getCurrentSession();
 		Criteria criteria = currentSession.createCriteria(ScreeningSupplementedStock.class);
 		criteria.add(Restrictions.eq("stock", stock));
 		criteria.addOrder(Order.desc("trendDate"));
 		criteria.setMaxResults(1);
-		
+
 		@SuppressWarnings("unchecked")
 		List<ScreeningSupplementedStock> results = criteria.list();
-		
+
 		return (results == null || results.isEmpty() || results.get(0) == null)? null : results.get(0);
-				
+
 	}
 
-	
+
 	public void saveOrUpdateStocks(Set<Stock> listStocks) {
 		//getHibernateTemplate().saveOrUpdateAll(listStocks);
 		for (Stock stock : listStocks) {
 			getHibernateTemplate().saveOrUpdate(stock);
 		}
 	}
-	
+
 	@Override
 	@Transactional(readOnly=true)
 	public Collection<Stock> loadAllUserPortoflioStocks() {
@@ -220,7 +233,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		criteria.setProjection(Projections.distinct(Projections.property( "sectorHint" )));
 		@SuppressWarnings("unchecked")
 		List<String> results = criteria.list();
-		
+
 		return results;
 	}
 
@@ -228,16 +241,16 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	@Override
 	@Transactional(readOnly=true)
 	public List<Stock> loadSharesLike(String like, int maxResults) {
-		
+
 		Criteria crit = getSession().createCriteria(Stock.class);
 		crit.setMaxResults(maxResults);
 		crit.add(Restrictions.or(Restrictions.or(Restrictions.ilike("symbol", like+"%"), Restrictions.ilike("isin", like+"%")),Restrictions.ilike("name", like+"%")));
 		crit.addOrder(Property.forName("symbol").asc()).addOrder(Property.forName("name").asc()).addOrder(Property.forName("isin").asc());
-		
+
 		return crit.list();
-		
+
 	}
-	
+
 	@Override
 	public void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit) {
 		getHibernateTemplate().saveOrUpdate(quotationUnit);
@@ -250,5 +263,5 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 			getHibernateTemplate().saveOrUpdate(quotationUnit);
 		}
 	}
-	
+
 }

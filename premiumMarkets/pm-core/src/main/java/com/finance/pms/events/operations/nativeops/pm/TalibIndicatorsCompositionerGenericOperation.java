@@ -54,12 +54,13 @@ import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.talib.indicators.TalibException;
 
 /**
- * A like the OperationsCompositioner, the TalibIndicatorsCompositionerGenericOperation is a specific type of operation that generates bullish and bearish events to be used in the UI.
+ * A like the EventInfoOpsCompoOperation, the TalibIndicatorsCompositionerGenericOperation is a specific type of operation that generates bullish and bearish events to be used in the UI.
  * The difference is that instead of relying on a formula defined by the user, it finds its calculation definition within classes descendant from the TalibIndicatorsCompositioner calculator.
  * However, as an implementation convenience, it need to be wrapped within a formula and hence an OperationCompositionner in order to be processed eventually using the ParameterizedIndicatorsCompositioner.
  * @author guil
@@ -133,7 +134,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
             buildChartable(targetStock, outputQualifiers);
 
         }
-        catch (TalibException e) {
+        catch (TalibException | NoQuotationsException e) {
             LOGGER.warn(this.getReference() + " : " + e, true);
         }
         catch (Exception e) {
@@ -179,5 +180,15 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
         return (thisOperationStartShift)*7/5;
     }
+
+    @Override
+    public Boolean isIdemPotent() {
+    	return true;
+    }
+
+	@Override
+	public void invalidateOperation(String analysisName) {
+		//Nothing  //This is not an EventInfo but an operation although it can be composed within one of Parameterized Indicator.
+	}
 
 }

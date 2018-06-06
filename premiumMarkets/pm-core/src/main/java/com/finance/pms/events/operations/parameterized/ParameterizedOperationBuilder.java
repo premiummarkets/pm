@@ -103,7 +103,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
         values.remove(values.indexOf(operation));
 
         List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
-        actualCheckInUse.addAll(notifyChanged(operation));
+        actualCheckInUse.addAll(notifyChanged(operation, ObsMsgType.OPERATION_cRud));
 
         return actualCheckInUse;
     }
@@ -112,22 +112,27 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
     public void replaceInUse(Operation replacementOp) throws StackOverflowError {
 
         List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
-        LOGGER.info("Using operations for "+replacementOp.getReference()+" : "+usingOperations);
-        List<Operation> usingIndicators = notifyChanged(replacementOp);
-        LOGGER.info("Using indicators for "+replacementOp.getReference()+" : "+usingIndicators);
+        LOGGER.info("Operations using " + replacementOp.getReference() + " : " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+
+        List<Operation> usingIndicators = notifyChanged(replacementOp, ObsMsgType.OPERATION_cRud);
+
+        LOGGER.info("Indicators using " + replacementOp.getReference() + " : " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
         actualReplaceInUse(usingIndicators, replacementOp);
 
     }
 
 
+    /**
+     * For notifying the indicators builder and access the user indicators list.
+     */
     @Override
-    public List<Operation> notifyChanged(Operation operation) {
+    public List<Operation> notifyChanged(Operation operation, ObsMsgType msgType) {
 
         List<Operation> actualCheckInUse = new ArrayList<Operation>();
         try {
             this.setChanged();
-            this.notifyObservers(new ObsMsg(ObsMsgType.OPERATION_CRUD, operation));
-        } catch (InUsedExecption e) {
+            this.notifyObservers(new ObsMsg(msgType, operation));
+        } catch (InUseException e) {
             actualCheckInUse.addAll(e.getInUse());
         }
 
@@ -145,7 +150,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
             try {
                 this.setChanged();
                 this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation));
-            } catch (InUsedExecption e) {
+            } catch (InUseException e) {
                 actualCheckInUse.addAll(e.getInUse());
             }
         }

@@ -164,7 +164,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 
-		LOGGER.info("highLight(Integer "+idx+", Stock "+selectedShare+", Boolean "+recalculationGranted+", PopupType... "+popupTypes);
+		LOGGER.info("highLight(Integer "+idx+", Stock "+selectedShare+", Boolean "+recalculationGranted+", PopupType... "+Arrays.toString(popupTypes));
 
 		try {
 

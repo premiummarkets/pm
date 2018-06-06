@@ -114,7 +114,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		}
 
 		Operation builtOperation = buildOperation(commonTree);
-		if (builtOperation != null) builtOperation.setFormula(formula);
+		if (builtOperation != null) builtOperation.setFormulae(formula);
 		return builtOperation;
 	}
 

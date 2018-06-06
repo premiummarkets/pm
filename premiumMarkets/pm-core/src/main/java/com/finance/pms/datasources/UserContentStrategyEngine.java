@@ -206,10 +206,10 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 		for (Stock stock : builtStockList) {
 
-			LOGGER.guiInfo("Running task : Cleaning previous "+((Stock)stock).getFriendlyName()+
-					" with sets of events as dirty : "+
+			LOGGER.guiInfo("Running task : Deleting previous events and set config as dirty for "+((Stock)stock).getFriendlyName()+
+					" and event definitions requested : "+
 					((viewStateParams != null && viewStateParams.length >= 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected")+
-					" . Will delete : "+ Arrays.toString(eventDefsArray));
+					". Will delete : "+ Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
 
 			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefsArray);
 

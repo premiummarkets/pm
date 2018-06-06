@@ -52,10 +52,10 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  * In particular, the IndicatorsCompositioner generates events (SortedMap<EventKey, EventValue>) and hence can be used as operator for an EventDefinition.
  * It can be used for the mean of defining a new EventDefinition (also originally called second pass operations) through its implementation, but is then not modifiable/parameterizable.
  * For instance, TalibIndicatorsCompositioner is one specific IndicatorsCompositioner combining Talib operations.
- * For the TalibIndicatorsCompositioner to be available as EventInfo, we needed an operation that is NOT an OperationsCompositioner. 
+ * For the TalibIndicatorsCompositioner to be available as EventInfo, we needed an operation that is NOT an EventInfoOpsCompoOperation. 
  * As its operand are actually hard coded, this first is a PMDataFreeOperation.
  * The approach was to create an operation (TalibIndicatorsCompositionerGenericOperation) with each TalibIndicatorsCompositioner as its operator.
- * It then needs to be wrapped within an OperationsCompositioners through a UI defined formulae. {@link com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerGenericOperation}.
+ * It then needs to be wrapped within an EventInfoOpsCompoOperations through a UI defined formulae. {@link com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerGenericOperation}.
  * 
  * Reviewed terminology :
  * 	OperationsCompositionner (former EventConditionHolder) => which should be renamed to IndicatorsBullBearSwitchOperation or EventInfoBullBearSwitchOperation

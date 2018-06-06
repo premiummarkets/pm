@@ -102,6 +102,8 @@ import com.finance.pms.events.calculation.antlr.EditorOpsLexerDelegate;
 import com.finance.pms.events.calculation.antlr.NextToken;
 import com.finance.pms.events.calculation.antlr.NextToken.TokenType;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
+import com.finance.pms.events.calculation.antlr.ParameterizedBuilder.InUseException;
+import com.finance.pms.events.calculation.antlr.ParameterizedBuilder.ObsMsgType;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.portfolio.ShareListMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -782,8 +784,15 @@ public class OperationBuilderComposite extends Composite {
 
     protected void previousCalcsAsDirty(String identifier) {
         Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
-        if (operation == null) LOGGER.warn("No operation was found in User Current Operations for identifier :"+identifier);
-        else parameterizedBuilder.notifyChanged(operation);
+        if (operation == null) {
+        	LOGGER.warn("No operation was found in User Current Operations for identifier :"+identifier);
+        } else {
+        	try {
+				parameterizedBuilder.clearPreviousCalculations(operation);
+			} catch (InUseException e) {
+				parameterizedBuilder.notifyChanged(operation, ObsMsgType.OPERATION_CrUD);
+			}
+        }
     }
 
     protected void refreshViews() {
@@ -832,7 +841,7 @@ public class OperationBuilderComposite extends Composite {
         if (oldId != null && !oldId.isEmpty()) {
             Operation oldOp = currentOperations.get(oldId);
             if (oldOp != null) {
-                String oldFormula = oldOp.getFormula();
+                String oldFormula = oldOp.getFormulae();
                 if (oldFormula == null || !oldFormula.equals(formatedEditorTxt())) {
                     hasChanged = true;
                 }
@@ -1072,7 +1081,7 @@ public class OperationBuilderComposite extends Composite {
 
         if (selected != -1 && selected < formulaReference.getItemCount()) {
             formulaReference.select(selected);
-            setEditorText(parameterizedBuilder.getUserCurrentOperations().get(getFormatedReferenceTxt()).getFormula());
+            setEditorText(parameterizedBuilder.getUserCurrentOperations().get(getFormatedReferenceTxt()).getFormulae());
             setErrorLabel("");
             checkBoxDisabled();
         }
@@ -1302,7 +1311,7 @@ public class OperationBuilderComposite extends Composite {
         }
         tokenAltsTable.remove(alternatives.size(), tokenAltsTable.getItems().length - 1);
 
-        LOGGER.info("Alternatives size " + alternatives.size() + ". Alternatives : " + alternatives);
+        LOGGER.info("Alternatives size " + alternatives.size() + ". Alternatives : " + (alternatives.subList(0, Math.min(alternatives.size(), 20)) + "..."));
 
         if (tokenAltsTable.getItems().length > 0) {
             tokenAltsTable.select(0);

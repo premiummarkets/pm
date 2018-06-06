@@ -54,7 +54,7 @@ public class OutputReference implements Comparable<OutputReference> {
 	public OutputReference(Operation operation) {
 		this.reference = operation.getReference();
 		this.outputSelector  = operation.getOutputSelector();
-		this.formula = operation.getFormula();
+		this.formula = operation.getFormulae();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		this.isLeaf = (operation instanceof LeafOperation);
 		
@@ -64,7 +64,7 @@ public class OutputReference implements Comparable<OutputReference> {
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
 		this.reference = operation.getReference();
 		this.outputSelector = multiOutputDiscriminator;
-		this.formula = operation.getFormula();
+		this.formula = operation.getFormulae();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		this.isLeaf = (operation instanceof LeafOperation);
 		

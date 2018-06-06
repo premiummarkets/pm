@@ -57,7 +57,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventDataValue;
-import com.finance.pms.events.operations.conditional.OperationsCompositioner;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
@@ -75,39 +75,39 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedIndicatorsOperator.class);
 
 	private TargetStockInfo targetStock;
-	private OperationsCompositioner operationsCompositionerHolder;
+	private EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder;
 
 	public ParameterizedIndicatorsOperator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
 			throws WarningException  {
 
 		super(observers);
-		this.operationsCompositionerHolder = (OperationsCompositioner) eventInfo;
+		this.eventInfoOpsCompoOperationHolder = (EventInfoOpsCompoOperation) eventInfo;
 
 		//Adjust start
-		Integer startShiftOverrideValue = ((NumberValue) this.operationsCompositionerHolder.getOperands().get(3).getParameter()).getNumberValue().intValue();
+		Integer startShiftOverrideValue = ((NumberValue) this.eventInfoOpsCompoOperationHolder.getOperands().get(3).getParameter()).getNumberValue().intValue();
 		int operationStartDateShift = 0;
 		if (!startShiftOverrideValue.equals(-1)) {
 			operationStartDateShift = startShiftOverrideValue;
 		} else {
-			operationStartDateShift = this.operationsCompositionerHolder.operationStartDateShift();
+			operationStartDateShift = this.eventInfoOpsCompoOperationHolder.operationStartDateShift();
 		}
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
 		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, -operationStartDateShift);
-		LOGGER.info(this.operationsCompositionerHolder.getReference()+" start date shift to : "+operationStartDateShift+". Requested start : "+startDate+", calculated start : "+adjustedStartCal.getTime());
+		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+" start date shift to : "+operationStartDateShift+". Requested start : "+startDate+", calculated start : "+adjustedStartCal.getTime());
 
 		//Adjust end
 		Date lastQuote = stock.getLastQuote();
 		Date adjustedEndDate;
 		if (lastQuote.before(endDate)) {
 			adjustedEndDate = lastQuote;
-			LOGGER.info(this.operationsCompositionerHolder.getReference()+" end date shift to : "+operationStartDateShift+". Requested end : "+endDate+", calculated end : "+adjustedEndDate);
+			LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+" end date shift to : "+operationStartDateShift+". Requested end : "+endDate+", calculated end : "+adjustedEndDate);
 		} else {
 			adjustedEndDate = endDate;
 		}
 
 		//Target stock instance
-		this.targetStock = new TargetStockInfo(analyseName, this.operationsCompositionerHolder.getReference(), stock, adjustedStartCal.getTime(), adjustedEndDate);
+		this.targetStock = new TargetStockInfo(analyseName, this.eventInfoOpsCompoOperationHolder, stock, adjustedStartCal.getTime(), adjustedEndDate);
 
 	}
 
@@ -116,10 +116,10 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 
-		if (operationsCompositionerHolder.getFormula() != null) {
+		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
 
-			operationsCompositionerHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
-			EventDataValue run = (EventDataValue) operationsCompositionerHolder.run(targetStock);
+			eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
+			EventDataValue run = (EventDataValue) eventInfoOpsCompoOperationHolder.run(targetStock);
 
 			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
 
@@ -210,7 +210,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				}
 			}
 
-			((EventDefDescriptorDynamic) operationsCompositionerHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
+			((EventDefDescriptorDynamic) eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
 
 			//Build
 			for (Date date : fullDateSet) {
@@ -248,7 +248,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 	@Override
 	public EventInfo getEventDefinition() {
-		return operationsCompositionerHolder;
+		return eventInfoOpsCompoOperationHolder;
 	}
 
 	@Override
@@ -268,7 +268,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 	@Override
 	public Boolean isIdemPotent() {
-		return operationsCompositionerHolder.isIdemPotent();
+		return eventInfoOpsCompoOperationHolder.isIdemPotent();
 	}
 
 }

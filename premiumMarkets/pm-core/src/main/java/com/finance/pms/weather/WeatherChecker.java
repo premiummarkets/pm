@@ -81,7 +81,7 @@ public class WeatherChecker extends IndicatorsOperator {
 		this(startDate, endDate, observers);
 	}
 
-	@Override 
+	@Override
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
 
 		Calendar endDateCalendar = firstDayOfPrevMonthOf(endDate);

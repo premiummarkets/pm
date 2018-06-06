@@ -1011,7 +1011,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		if (hintNumber == 0) {
 			LOGGER.info("First run : updating quotes");
 			QuotationUpdate quotationUpdate = new QuotationUpdate();
-			quotationUpdate.getQuotesForAllUserPortfoliosAndMonitored();
+			quotationUpdate.getQuotesForAllMonitoredUserPortfolios();
 		} else {
 			LOGGER.info("This is not the First run : no quotes update");
 		}

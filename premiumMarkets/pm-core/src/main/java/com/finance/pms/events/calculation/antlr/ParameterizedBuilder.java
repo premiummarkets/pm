@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
+import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
@@ -58,7 +59,7 @@ import com.finance.pms.events.operations.nativeops.MapOperation;
 public abstract class ParameterizedBuilder extends Observable {
 
     public static final String userParameterizedPath = System.getProperty("installdir") + File.separator + "userParameterized";
-    public enum ObsMsgType {OPERATION_CRUD,UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES};
+    public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES};
 
     protected class ObsMsg {
         private ObsMsgType type;
@@ -152,7 +153,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
         Map<String, Operation> map = new HashMap<String, Operation>();
         for (Operation operation : getCurrentOperations(waitForSync).values()) {
-            if (operation.getFormula() != null) map.put(operation.getReference(), operation);
+            if (operation.getFormulae() != null) map.put(operation.getReference(), operation);
         }
         return map;
     }
@@ -161,7 +162,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
         Map<String, Operation> map = new HashMap<String, Operation>();
         for (Operation operation : getCurrentOperations().values()) {
-            if (operation.getFormula() != null && !operation.getDisabled()) map.put(operation.getReference(), operation);
+            if (operation.getFormulae() != null && !operation.getDisabled()) map.put(operation.getReference(), operation);
         }
         return map;
     }
@@ -263,9 +264,9 @@ public abstract class ParameterizedBuilder extends Observable {
             }
         }
 
-        if (operation.getFormula() != null) {
+        if (operation.getFormulae() != null) {
             String duplReference = infereNextDuplIdx(operation.getReference());
-            String duplFormula = infererNewFormula(duplOperands, operation.getFormula());
+            String duplFormula = infererNewFormula(duplOperands, operation.getFormulae());
             addFormula(duplReference, duplFormula);
             return getCurrentOperations().get(duplReference);
         } else {
@@ -294,7 +295,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
     public abstract void replaceInUse(Operation operation);
 
-    public abstract List<Operation> notifyChanged(Operation operation);
+    public abstract List<Operation> notifyChanged(Operation operation, ObsMsgType msgType);
 
 
     protected List<Operation> actualCheckInUse(Collection<Operation> operations, Operation operationToCheck) {
@@ -517,13 +518,13 @@ public abstract class ParameterizedBuilder extends Observable {
         return nativeOperations;
     }
 
-    public class InUsedExecption extends RuntimeException {
+    public class InUseException extends RuntimeException {
 
         private static final long serialVersionUID = 635237818106787530L;
 
         List<Operation> inUse;
 
-        public InUsedExecption(List<Operation> inUse) {
+        public InUseException(List<Operation> inUse) {
             super();
             this.inUse = inUse;
         }
@@ -544,6 +545,19 @@ public abstract class ParameterizedBuilder extends Observable {
     }
 
     public abstract void resetCaches();
+    
+	public void clearPreviousCalculations(Operation operation) throws InUseException {
+		List<Operation> impactedIndicators = actualCheckInUse(getCurrentOperations().values(), operation);
+		if (!impactedIndicators.isEmpty()) {
+			LOGGER.info("Operation " + operation.getReference()+" has been changed, invalidating operations : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+			invalidateOperations(impactedIndicators);
+			throw new InUseException(impactedIndicators);
+		}
+	}
+
+	private void invalidateOperations(List<Operation> impactedOps) {
+		impactedOps.stream().forEach(o -> o.invalidateOperation(IndicatorCalculationServiceMain.UI_ANALYSIS));
+	}
 
 
 }
