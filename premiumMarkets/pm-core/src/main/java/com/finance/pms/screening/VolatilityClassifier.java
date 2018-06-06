@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import com.finance.pms.datasources.shares.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,22 @@ public class VolatilityClassifier {
 	@Autowired
 	PortfolioDAO portfolioDAO;
 
+	public void generatePortfoliosLMHFromPreviousCalculations(String volatiliesCsvPath, Currency currency, int threshold) throws Exception {
+
+		File volatilitiesCsv = new File(volatiliesCsvPath);
+		boolean existsCsvFile = volatilitiesCsv.exists();
+		if (existsCsvFile) {
+			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
+			List<Entry<Stock, Double[]>> entries = filterSubListSameCurrency(currency, sorted);
+			exportToLowMedHighVolsShareLists(currency.name(), threshold, entries);
+		}
+
+	}
+
+	private List<Entry<Stock, Double[]>> filterSubListSameCurrency(Currency currency, List<Entry<Stock, Double[]>> sorted) throws IOException {
+		return sorted.stream().filter(e -> e.getKey().getMarketValuation().getCurrency().equals(currency)).collect(Collectors.toList());
+	}
+
 	/**
 	 * Generate a volatilities file around the reference stock volatility using all available stocks
 	 * @param referenceStock
@@ -47,10 +64,10 @@ public class VolatilityClassifier {
 	 * @param supportFile
 	 * @throws Exception
 	 */
-	public void generateVolatilitiesInRangeOfFromNewCalculation(Stock referenceStock, int threshold, String supportFile) throws Exception {
+	public void generateSupportFileInRangeOfFromNewCalculation(Stock referenceStock, int threshold, String supportFile) throws Exception {
 
 		List<Entry<Stock, Double[]>> sorted = calculateFor(shareDAO.loadAllStocks(), DateFactory.dateAtZero(), new Date());
-		List<Entry<Stock, Double[]>> entries = filterSubListInRangeAndExport(referenceStock, threshold, sorted);
+		List<Entry<Stock, Double[]>> entries = filterSubListInRange(referenceStock, threshold, sorted);
 		exportToFile(referenceStock.getFriendlyName(), supportFile, entries);
 
 	}
@@ -62,19 +79,19 @@ public class VolatilityClassifier {
 	 * @param supportFile
 	 * @throws Exception
 	 */
-	public void generateVolatilitiesInRangeOfFromPreviousCalculations(String volatiliesCsvPath, Stock referenceStock, int threshold, String supportFile) throws Exception {
+	public void generateSupportFileInRangeOfFromPreviousCalculations(String volatiliesCsvPath, Stock referenceStock, int threshold, String supportFile) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
-		if(existsCsvFile) {
+		if (existsCsvFile) {
 			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
-			List<Entry<Stock, Double[]>> entries = filterSubListInRangeAndExport(referenceStock, threshold, sorted);
+			List<Entry<Stock, Double[]>> entries = filterSubListInRange(referenceStock, threshold, sorted);
 			exportToFile(referenceStock.getFriendlyName(), supportFile, entries);
 		}
 
 	}
 
-	private List<Entry<Stock, Double[]>> filterSubListInRangeAndExport(Stock referenceStock, int threshold, List<Entry<Stock, Double[]>> sorted) throws IOException {
+	private List<Entry<Stock, Double[]>> filterSubListInRange(Stock referenceStock, int threshold, List<Entry<Stock, Double[]>> sorted) throws IOException {
 
 		//Find i
 		int i = 0;
@@ -99,13 +116,13 @@ public class VolatilityClassifier {
 	 * @param threshold
 	 * @throws Exception
 	 */
-	public void generateVolatilitiesLMHFromPreviousCalculation(String volatiliesCsvPath, int threshold) throws Exception {
+	public void generatePortfoliosLMHFromPreviousCalculation(String volatiliesCsvPath, int threshold) {
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
-		if(existsCsvFile) {
+		if (existsCsvFile) {
 			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
 			//Create Indep Portfolios
-			exportToLowMedHighVolsShareLists(threshold, sorted);
+			exportToLowMedHighVolsShareLists("MISCELLANEOUS", threshold, sorted);
 		}
 	}
 
@@ -114,12 +131,12 @@ public class VolatilityClassifier {
 	 * @param threshold
 	 * @throws Exception
 	 */
-	public void generateVolatilitiesLMHFromNewCalculation(int threshold) throws Exception {
+	public void generatePortfoliosLMHFromNewCalculation(int threshold) throws Exception {
 
 		List<Entry<Stock, Double[]>> sorted = calculateFor(shareDAO.loadAllStocks(), DateFactory.dateAtZero(), new Date());
 
 		//Create Indep Portfolios
-		exportToLowMedHighVolsShareLists(threshold, sorted);
+		exportToLowMedHighVolsShareLists("MISCELLANEOUS", threshold, sorted);
 	}
 
 	private List<Entry<Stock, Double[]>> uploadFromFile(File volatilitiesCsv) {
@@ -192,10 +209,10 @@ public class VolatilityClassifier {
 	};
 
 
-	private void exportToLowMedHighVolsShareLists(int threshold, List<Entry<Stock, Double[]>> sorted) {
-		createOnePortfolioShareList(sorted, sorted.size()/2 - threshold/2, sorted.size()/2 + threshold/2, "VOLATILITY,MEDIUMVOLATILITY:MISCELLANEOUS");
-		createOnePortfolioShareList(sorted, 0, threshold, "VOLATILITY,LOWVOLATILITY:MISCELLANEOUS");
-		createOnePortfolioShareList(sorted, sorted.size() - threshold, sorted.size(), "VOLATILITY,HIGHVOLATILITY:MISCELLANEOUS");
+	private void exportToLowMedHighVolsShareLists(String listMName, int threshold, List<Entry<Stock, Double[]>> sorted) {
+		createOnePortfolioShareList(sorted, sorted.size()/2 - threshold/2, sorted.size()/2 + threshold/2, "VOLATILITY" + ",MEDIUMVOLATILITY:" + listMName);
+		createOnePortfolioShareList(sorted, 0, threshold, "VOLATILITY" + ",LOWVOLATILITY:" + listMName);
+		createOnePortfolioShareList(sorted, sorted.size() - threshold, sorted.size(), "VOLATILITY" + ",HIGHVOLATILITY:" + listMName);
 	}
 
 	private void createOnePortfolioShareList(List<Entry<Stock, Double[]>> sorted, int from, int to, String shareListName) {
@@ -210,6 +227,7 @@ public class VolatilityClassifier {
 			shareList.addShare(e.getKey());
 		});
 		portfolioDAO.saveOrUpdatePortfolio(shareList);
+
 	}
 
 }
