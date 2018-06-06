@@ -43,6 +43,9 @@ import com.finance.pms.events.EventValue;
 public class LatestValidatedSignal extends LatestEventsSignal {
 
 	private Set<String> filteredEventDef;
+	private int nbBullish;
+	private int nbBearish;
+	private int nbTrendChange;
 
 	public LatestValidatedSignal(Set<String> eventDefs) {
 		super(true, true);
@@ -67,28 +70,48 @@ public class LatestValidatedSignal extends LatestEventsSignal {
 			}
 			//Too volatile
 //			if (alertType.equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) { 
-//				this.signalWeight--;
+//				nbBearish++;
 //				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventInfo());
 //				return 1;  //Adding up
 //			}
 		} else {
 			if (eventKey.getEventType().equals(EventType.BEARISH)) {
-				this.signalWeight--;
+				nbBearish++;
+				checkTrendChange(eventValue);
 				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventType(), eventKey.getEventInfo());
-				return -1; //We stop cumulative events
+				return 1; //We carry on to detect yoyos
 			} else if (eventKey.getEventType().equals(EventType.BULLISH)) {
-				this.signalWeight++;
+				nbBullish++;
+				checkTrendChange(eventValue);
 				recordAsTriggeringEvent(eventKey.getDate(), eventKey.getEventType(), eventKey.getEventInfo());
-				return -1;  //We stop cumulative events
+				return 1; //We carry on to detect yoyos
 			}
 		}
 
 		return 0;
 	}
 
-	protected void recordAsTriggeringEvent(Date date, EventInfo eventDefinition) {
+	private void checkTrendChange(EventValue eventValue) {
+		if (lastParsedEventType != eventValue.getEventType()) nbTrendChange ++;
+		lastParsedEventType = eventValue.getEventType();
+	}
+
+	private void recordAsTriggeringEvent(Date date, EventInfo eventDefinition) {
 		if (this.latestRelevantEventDate == null) this.latestRelevantEventDate = date;
 		this.parsedEventDefs.add(eventDefinition);
+	}
+
+
+	public int getNbBullish() {
+		return nbBullish;
+	}
+
+	public int getNbBearish() {
+		return nbBearish;
+	}
+
+	public int getNbTrendChange() {
+		return nbTrendChange;
 	}
 
 }
