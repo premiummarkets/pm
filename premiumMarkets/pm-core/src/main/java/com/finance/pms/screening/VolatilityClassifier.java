@@ -41,7 +41,7 @@ public class VolatilityClassifier {
 	@Autowired
 	PortfolioDAO portfolioDAO;
 
-	public void generatePortfoliosLMHFromPreviousCalculations(String volatiliesCsvPath, Currency currency, int threshold) throws Exception {
+	public void generatePortfoliosLMHFromPreviousCalculation(String volatiliesCsvPath, Currency currency, int threshold) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();

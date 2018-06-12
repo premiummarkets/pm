@@ -57,32 +57,32 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class, DownRatioCondition.class, UpRatioCondition.class})
 public abstract class CrossConstantCondition extends Condition<Double> {
-	
+
 	@SuppressWarnings("unused")
 	private CrossConstantCondition() {
 		super();
 	}
-	
+
 	public CrossConstantCondition(String reference, String description, Operation... operands) {
 		super(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+
 		Double constant = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(4)).getValue(targetStock);
-		
+
 		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
-		
+
 		BooleanMapValue outputs = new  BooleanMapValue();
 		if (Double.isNaN(constant)) return outputs;
-		
+
 		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
 
 		for (Date date : data.keySet()) {
@@ -92,18 +92,18 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(previous, current, constant);
 				if (conditionCheck != null) {
-					
+
 					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-						
+
 						underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
-						
+
 						if (conditionCheck && forPeriod > 0) {
-							
+
 							Calendar startForPeriodCal = Calendar.getInstance();
 							startForPeriodCal.setTime(date);
 							QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
 							Date startForPeriod = startForPeriodCal.getTime();
-							
+
 							SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
 							if (startForPeriod.before(data.firstKey())) {
 								conditionCheck = null;
@@ -114,11 +114,11 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 								}
 							}
 						}
-						
+
 						if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
-						
+
 					}
-					
+
 					if (conditionCheck != null && conditionCheck && overPeriod > 0) {
 						Calendar endOverPeriodCal = Calendar.getInstance();
 						endOverPeriodCal.setTime(date);
@@ -129,18 +129,18 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 							outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
 						}
 					}
-					
+
 				}
 			}
 		}
-		
+
 		return outputs;
 	}
 
 	public int mainInputPosition() {
 		return 4;
 	}
-	
+
 	@Override
 	public int operationStartDateShift() {
 		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
