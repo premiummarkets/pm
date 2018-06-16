@@ -1620,7 +1620,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				}
 				{
 					final MenuItem resetQuotesMenuItem = new MenuItem(portfolioShareCtxMenu, SWT.NONE);
-					resetQuotesMenuItem.setText("Reset quotations download");
+					resetQuotesMenuItem.setText("Reset quotations download...");
 					portfolioShareCtxMenu.addMenuListener(new MenuListener() {
 
 						@Override

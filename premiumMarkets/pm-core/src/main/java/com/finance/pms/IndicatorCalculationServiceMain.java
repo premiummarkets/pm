@@ -189,8 +189,10 @@ public class IndicatorCalculationServiceMain {
 					Integer sellEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold(); 
 					Integer buyEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
 					AutoPortfolio autoPortfolio = PortfolioMgr.getInstance().getOrCreateAutoPortfolio(
-							COMMAND_LINE_ANALYSIS, new LatestEventsScreennerBuyAlertOnlyPonderationRule(COMMAND_LINE_ANALYSIS),
-							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold));
+							COMMAND_LINE_ANALYSIS,
+							new LatestEventsScreennerBuyAlertOnlyPonderationRule(COMMAND_LINE_ANALYSIS),
+							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold),
+							null);
 					
 					try {
 						PortfolioMgr.getInstance().addPortfolio(autoPortfolio);

@@ -46,6 +46,7 @@ import org.springframework.context.ApplicationContextAware;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnEvent;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.currency.CurrencyConverter;
 import com.finance.pms.datasources.web.currency.CurrencyConverterImpl;
@@ -103,11 +104,11 @@ public class PortfolioMgr implements ApplicationContextAware {
 		}
 	}
 
-	public AutoPortfolio getOrCreateAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
+	public AutoPortfolio getOrCreateAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
 
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 
-		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, eventSignalConfig);
+		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
 		int index = this.portfolios.indexOf(autoPortfolio);
 		if (index == -1) {	
 

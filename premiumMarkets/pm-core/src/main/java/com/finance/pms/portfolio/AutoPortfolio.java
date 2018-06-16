@@ -77,8 +77,8 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		eventSignalConfig = portfolio.eventSignalConfig;
 	}
 
-	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, EventSignalConfig eventSignalConfig) {
-		super(name, buyPonderationRule, sellPonderationRule, null);
+	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency, EventSignalConfig eventSignalConfig) {
+		super(name, buyPonderationRule, sellPonderationRule, currency);
 		this.eventSignalConfig = eventSignalConfig;
 	}
 
