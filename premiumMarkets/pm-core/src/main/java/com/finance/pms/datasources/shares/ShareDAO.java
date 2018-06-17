@@ -51,10 +51,9 @@ public interface ShareDAO {
 	public void saveOrUpdateStocks(Set<Stock> listStocks);
 	public void saveOrUpdateStocks(List<Validatable> shares);
 
-	
 	public Collection<Stock> loadAllUserPortoflioStocks();
 	public Collection<Stock> loadAllPortoflioStocks();
-	Collection<Stock> loadMonitoredUserPortoflioStocks();
+	public Collection<Stock> loadMonitoredUserPortoflioStocks();
 	public List<Stock> loadMonitoredStocks();
 	public List<Stock> loadAllStocks();
 	

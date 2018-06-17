@@ -43,8 +43,8 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 @XmlSeeAlso({
-    PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, 
-    FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class
+    PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class,
+    FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class, VolatilityOperation.class
 })
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 

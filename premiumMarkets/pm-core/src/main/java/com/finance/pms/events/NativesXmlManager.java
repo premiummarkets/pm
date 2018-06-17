@@ -56,6 +56,7 @@ import com.finance.pms.events.operations.nativeops.TalibSmaOperation;
 import com.finance.pms.events.operations.nativeops.UnaryDivision;
 import com.finance.pms.events.operations.nativeops.UnaryProduct;
 import com.finance.pms.events.operations.nativeops.UnarySum;
+import com.finance.pms.events.operations.nativeops.VolatilityOperation;
 
 
 public class NativesXmlManager {
@@ -117,6 +118,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(leftShiterOperation);
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
 		nativeOperations.addOperation(bandNormalizerOperation);
+		VolatilityOperation volatilityOperation = new VolatilityOperation();
+		nativeOperations.addOperation(volatilityOperation);
 		
 		return nativeOperations;
 	}

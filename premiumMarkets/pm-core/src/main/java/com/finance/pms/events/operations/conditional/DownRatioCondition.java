@@ -55,7 +55,9 @@ public class DownRatioCondition extends CrossConstantCondition implements UnaryC
 		Double prev = (Double) ops[0];
 		Double current = (Double) ops[1];
 		Double constant = (Double) ops[2];
-		return (current - prev)/Math.abs(prev) < -constant/100;
+		if (prev <= 0 || current < 0) throw new UnsupportedOperationException("Values must be positive. Unmet condition as "+prev+" <= 0 || "+current+" < 0");
+		return (current - prev)/prev < -constant/100;
+		
 	}
 
 }

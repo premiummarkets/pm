@@ -1006,7 +1006,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	protected static void postInstanceInit(final MainGui inst) {
 
 		//Post inits
-		//first time update
+		//First time update
 		Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
 		if (hintNumber == 0) {
 			LOGGER.info("First run : updating quotes");

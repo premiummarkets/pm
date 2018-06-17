@@ -136,6 +136,9 @@ public class EventSignalConfig extends Config implements Cloneable {
 
     //Neural and Bar chart event occ span
     private int perceptronTrainingPMEventOccLowerSpan = new Integer(MainPMScmd.getMyPrefs().get("perceptron.trainingPMEventOccLowerSpan", "12"));
+    
+    //Encog
+	private boolean isIterative = false;
 
 
 
@@ -711,5 +714,13 @@ public class EventSignalConfig extends Config implements Cloneable {
     public void setFilteredParameterised(SortedSet<EventInfoOpsCompoOperation> filteredParameterised) {
         this.filteredParameterised = filteredParameterised;
     }
+
+	public boolean isIterative() {
+		return isIterative;
+	}
+
+	public void setIterative(boolean isIterative) {
+		this.isIterative = isIterative;
+	}
 
 }

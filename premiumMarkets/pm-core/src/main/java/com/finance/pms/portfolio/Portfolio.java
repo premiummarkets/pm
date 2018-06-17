@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -136,11 +137,12 @@ public class Portfolio extends AbstractSharesList {
 
 	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException {
 
-		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, mLevel, trCurrency);
+		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, trCurrency);
 		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {
 			shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
 		}
 		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(buyPrice, currentDate);
+		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) portfolioShare.setMonitorLevel(mLevel);
 
 		return portfolioShare;
 
@@ -189,11 +191,13 @@ public class Portfolio extends AbstractSharesList {
 
 	public PortfolioShare addOrUpdateShareWithoutTransaction(Stock stock, String account, Currency transactionCurrency, Date currentDate) {
 
-		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, MonitorLevel.BEARISH, transactionCurrency);
+		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, transactionCurrency);
 		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
-		portfolioShare.setExternalAccount(account); 
+		portfolioShare.setExternalAccount(account);
+		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) portfolioShare.setMonitorLevel(MonitorLevel.BEARISH);
 
 		return portfolioShare;
+
 	}
 
 	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
@@ -256,11 +260,11 @@ public class Portfolio extends AbstractSharesList {
 		this.portfolioCurrency = portfolioCurrency;
 	}
 
-	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, MonitorLevel mLevel, Currency transactionCurrency) {
+	protected PortfolioShare getOrCreatePortfolioShare(Stock stock, Currency transactionCurrency) {
 
 		PortfolioShare portfolioShare = getShareForSymbolAndIsin(stock.getSymbol(), stock.getIsin());
 		if (portfolioShare == null) {
-			portfolioShare = new PortfolioShare(this, stock, mLevel, transactionCurrency);
+			portfolioShare = new PortfolioShare(this, stock, MonitorLevel.NONE, transactionCurrency);
 			addShareToList(portfolioShare);
 		}
 
@@ -729,6 +733,10 @@ public class Portfolio extends AbstractSharesList {
 		return sortedByStock;
 	}
 
+	@Transient
+	public List<PortfolioShare> getUnOwnedPorfolioShares() {
+		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) == 0).collect(Collectors.toList());
+	}
 
 	@Transient
 	public Boolean isUiDirty() {

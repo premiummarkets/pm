@@ -35,7 +35,7 @@ public class HistoricalVolatilityCalculator {
     public Double averageAnnualisedVolatility(int from, int to) throws IndexOutOfBoundsException {
         if (to < basicPeriod + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriod + returnCalculationNbPeriods));
         return IntStream
-                .rangeClosed(from + basicPeriod + returnCalculationNbPeriods, to)
+                .range(from + basicPeriod + returnCalculationNbPeriods, to)
                 .mapToDouble(d -> annualisedVolatilityAt(d))
                 .average()
                 .getAsDouble();

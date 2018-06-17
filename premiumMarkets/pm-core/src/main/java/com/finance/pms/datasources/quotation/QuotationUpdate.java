@@ -193,12 +193,8 @@ public class QuotationUpdate {
 		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
-		
-		//return monitored
-		StockList monitoredStocks = new StockList();
-		Collection<Stock> monitoredSymbols = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
-		monitoredStocks.addAll(monitoredSymbols);
-		return monitoredStocks;
+
+		return userPortoflioSymbols;
 	}
 	
 	public void getQuotesForSharesListInDB(String sharesListName, SortedSet<Indice> indices) {

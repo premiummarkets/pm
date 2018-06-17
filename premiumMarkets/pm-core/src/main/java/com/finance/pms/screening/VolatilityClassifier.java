@@ -166,10 +166,10 @@ public class VolatilityClassifier {
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
 				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 900, ValidityFilter.OHLCV);
-				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size() -1);
+				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations);
-				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, quotations.size());
-				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.annualisedVolatilityAt(quotations.size()-1);
+				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());
+				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.annualisedVolatilityAt(closeQuotations.size()-1);
 				return new Double[]{averageAnnualisedVolatility, threeMonthAnnualisedVolatility};
 			} catch (Exception e) {
 				LOGGER.warn(s +" volatility failed :" + e.toString());

@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.SortedMap;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
@@ -184,7 +185,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
                 }
 
             }
-
+        } catch (NoSuchElementException e) {
+        	LOGGER.warn("Can't refresh indicator chart : "+ e);
         } catch (Exception e) {
             LOGGER.warn("Can't refresh indicator chart : "+ e, e);
         }

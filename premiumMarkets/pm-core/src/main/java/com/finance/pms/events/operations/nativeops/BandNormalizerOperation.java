@@ -46,9 +46,9 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	private static MyLogger LOGGER = MyLogger.getLogger(BandNormalizerOperation.class);
 
 	public BandNormalizerOperation() {
-		super("bandNormalizer", "Normalise the data between the lower and the upper threshold", 
-				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"), 
-				new StringOperation("boolean","keepZero","keep the zero distance to max/min as same distance as the original", new StringValue("FALSE")), 
+		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
+				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
+				new StringOperation("boolean","keepZero","Keep distance ratio of min and max to zero as the original", new StringValue("FALSE")),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
