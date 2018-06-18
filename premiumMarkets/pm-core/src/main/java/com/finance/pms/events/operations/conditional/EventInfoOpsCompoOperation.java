@@ -77,9 +77,17 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	private final EventDefDescriptorDynamic eventDefDescriptor;
 
 	public EventInfoOpsCompoOperation() {
-		super("operationscompositionner","operationscompositionner", 
-				new ArrayList<Operation>(
-						Arrays.asList(new Operation[]{new Condition<Object>("bullishCondition"), new Condition<Object>("bearishCondition"), new Condition<Object>("alsoDisplay"), new NumberOperation("startShiftOverride"), new StringOperation("eventListName")})));
+		this("operationscompositionner","operationscompositionner");
+	}
+
+	public EventInfoOpsCompoOperation(String reference, String description) {
+		super(reference, description,
+				new ArrayList<>(Arrays.asList(new Condition<>("bullishCondition"),
+										new Condition<>("bearishCondition"),
+										new Condition<>("alsoDisplay"),
+										new NumberOperation("startShiftOverride"),
+										new StringOperation("eventListName")))
+		);
 		this.eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
