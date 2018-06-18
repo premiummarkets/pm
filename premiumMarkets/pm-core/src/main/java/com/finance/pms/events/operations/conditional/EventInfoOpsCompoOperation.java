@@ -226,11 +226,6 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public Integer getEventOccWeight() {
-		return 1;
-	}
-
-	@Override
 	public void invalidateOperation(String analysisName) {
 		TunedConfMgr.getInstance().deleteEventsDirtyConfs(analysisName, this);
 	}

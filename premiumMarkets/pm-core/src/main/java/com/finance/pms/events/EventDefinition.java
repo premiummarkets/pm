@@ -436,9 +436,4 @@ public enum EventDefinition implements Serializable, EventInfo {
         }
     }
 
-    @Override
-    public Integer getEventOccWeight() {
-        return eventOccWeight;
-    }
-
 }

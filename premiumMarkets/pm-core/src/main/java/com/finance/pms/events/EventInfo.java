@@ -49,7 +49,5 @@ public interface EventInfo extends InfoObject {
 	public int compareTo(EventInfo eventInfo);
 
 	public Integer getEventDefId();
-	
-	public Integer getEventOccWeight();
 
 }
