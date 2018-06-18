@@ -85,7 +85,6 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 		return additionalOutputs;
 	}
 
-
 	@Override
 	public Map<String, Type> getAdditionalOutputsTypes() {
 		return additionalOutputsTypes;
