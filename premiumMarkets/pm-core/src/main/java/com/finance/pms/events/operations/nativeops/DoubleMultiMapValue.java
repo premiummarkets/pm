@@ -4,8 +4,10 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.operations.conditional.MultiMapValue;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
 
 public class DoubleMultiMapValue extends DoubleMapValue implements MultiMapValue {
 
@@ -14,8 +16,8 @@ public class DoubleMultiMapValue extends DoubleMapValue implements MultiMapValue
     private Map<String, DoubleMapValue> additionalOutputs;
     private Map<String, ChartedOutputGroup.Type> additionalOutputsTypes;
 
-    public DoubleMultiMapValue() {
-        super();
+    public DoubleMultiMapValue(SortedMap<Date, Double> map) {
+        super(map);
         additionalOutputs = new HashMap<String, DoubleMapValue>();
         additionalOutputsTypes = new HashMap<String, ChartedOutputGroup.Type>();
     }

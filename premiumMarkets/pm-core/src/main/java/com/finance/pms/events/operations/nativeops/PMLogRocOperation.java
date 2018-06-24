@@ -43,6 +43,7 @@ import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
 public class PMLogRocOperation extends PMWithDataOperation {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(PMLogRocOperation.class);
+	private static final int DATAINPUTIDX = 1;
 	
 	public PMLogRocOperation() {
 		super("logroc", "Roc logarithmic over a period", new NumberOperation("number", "logRocPeriod", "Roc period", new NumberValue(1.0)), new DoubleMapOperation());
@@ -59,7 +60,7 @@ public class PMLogRocOperation extends PMWithDataOperation {
 		
 		//Param check
 		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
 		//Cacl
 		DoubleMapValue ret = new DoubleMapValue();
@@ -74,7 +75,7 @@ public class PMLogRocOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue() + getOperands().get(1).operationStartDateShift();
+		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue() + getOperands().get(DATAINPUTIDX).operationStartDateShift();
 	}
 
 }

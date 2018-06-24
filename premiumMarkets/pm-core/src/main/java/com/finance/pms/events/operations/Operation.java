@@ -580,7 +580,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return result;
 	}
 
-	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default. This can be overridden by making this operation itself idempotent
+	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
+	//This can be overridden by making this operation itself not idempotent
 	//Non idempotent operation will invalidate any previous calculation.
 	public Boolean isIdemPotent() {
 		if (operands.isEmpty()) return true;

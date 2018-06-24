@@ -42,9 +42,11 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
@@ -55,6 +57,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.pounderationrules.LatestEventsIndicatorOnlyPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
@@ -224,6 +227,27 @@ public class EventSignalConfig extends Config implements Cloneable {
         }
         return indepIndicators;
     }
+
+	public List<EventInfo> tamperIndepAndParameterizedEventInfoList(String[] eventInfoStrings) {
+		ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
+		Map<String, Operation> userCurrentOperations = parameterizedIndiactorsBuilder.getUserEnabledOperations();
+		List<EventInfo> eventDefinitionsFilter = 
+				Arrays.stream(eventInfoStrings)
+				.map(s -> {
+					EventInfo eventInfoOpsCompoOperation = (EventInfoOpsCompoOperation) userCurrentOperations.get(s); //Dynamic Event Info
+					if (eventInfoOpsCompoOperation == null) {//Native EventDefinition
+						eventInfoOpsCompoOperation = EventDefinition.valueOf(s);
+					}
+					return eventInfoOpsCompoOperation;
+				})
+				.collect(Collectors.toList());
+		//XXX Dodge pass as event refs are passed as string and not calculated inputs
+		//EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
+		this.tamperIndepAndParameterizedEventInfoList(eventDefinitionsFilter);
+		//ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, eventConfig);
+		//XXX
+		return eventDefinitionsFilter;
+	}
 
     public void tamperIndepAndParameterizedEventInfoList(Collection<EventInfo> overridingEventInfos) {
 

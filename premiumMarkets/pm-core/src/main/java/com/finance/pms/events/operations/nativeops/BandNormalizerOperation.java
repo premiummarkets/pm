@@ -42,8 +42,8 @@ import com.finance.pms.events.scoring.functions.Normalizer;
 
 public class BandNormalizerOperation extends PMWithDataOperation {
 
-
 	private static MyLogger LOGGER = MyLogger.getLogger(BandNormalizerOperation.class);
+	private static final int DATAINPUTIDX = 3;
 
 	public BandNormalizerOperation() {
 		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
@@ -65,7 +65,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 		int lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		int upperThreshold = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 		Boolean keepZero = Boolean.valueOf(((StringValue)inputs.get(2)).getValue(targetStock));
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
 		//Calc
 		DoubleMapValue ret = new DoubleMapValue();
@@ -83,7 +83,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return getOperands().get(1).operationStartDateShift();
+		return getOperands().get(DATAINPUTIDX).operationStartDateShift();
 	}
 
 }

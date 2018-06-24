@@ -55,7 +55,7 @@ import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
 public class TalibGenericOperation extends TalibOperation {
-	
+
 	private final List<String> inConstantsNames;
 	private final List<String> inDataNames;
 	private final List<String> outDataNames;
@@ -68,7 +68,7 @@ public class TalibGenericOperation extends TalibOperation {
 		this.inDataNames = inDataNames;
 		this.outDataNames = outDataNames;
 		this.method = method;
-		
+
 		ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
 		for (String inConstantName : inConstantsNames) {
 			if (inConstantName.contains("MAType")) {
@@ -84,22 +84,21 @@ public class TalibGenericOperation extends TalibOperation {
 			overridingOperands.add(data);
 		}
 		this.setOperands(overridingOperands);
-		
+
 		if (outDataNames.size() > 1) this.setAvailableOutputSelectors(outDataNames);
 	}
 
 	@Override
 	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
-		
+
 		int inDataNamesArgsIdx = 2;
 		int constantArgIdx = inDataNamesArgsIdx+inDataNames.size();
 		int outEleIdx = constantArgIdx + inConstantsNames.size();
 		int outDataArgIdx = outEleIdx + 2;
 		int outSize = outDataNames.size();
-		
+
 		Object[] args = new Object[outDataArgIdx + outSize];
-		
-		
+
 		//Constants
 		List<Object> inConstants = new ArrayList<Object>();
 
@@ -118,7 +117,7 @@ public class TalibGenericOperation extends TalibOperation {
 				throw new TalibException("In constant type not supported :" + value, new Throwable());
 			}
 		}
-		
+
 		//N input data
 		int startIdx = 0;
 		int endIdx = Integer.MAX_VALUE;
@@ -131,18 +130,18 @@ public class TalibGenericOperation extends TalibOperation {
 			inDatas.add(mapToArray(inData));
 			args[i+inDataNamesArgsIdx]=inDatas.get(i);
 		}
-		
+
 		args[0] = startIdx;
 		args[1] = endIdx;
-		
+
 		//OutElements
 		args[outEleIdx] = outBegIdx;
 		args[outEleIdx+1] = outNBElement;
-		
+
 		//N outputs
 		List<Object> outDatas = new ArrayList<Object>();
 		if (getAvailableOutputSelectors().isEmpty()) { //only one output available (could be int[] or double[])
-			
+
 			if (outDataNames.get(0).contains("Integer")) {
 				outDatas.add(new int[endIdx-startIdx+1]);
 				args[outDataArgIdx] = outDatas.get(0);
@@ -150,7 +149,7 @@ public class TalibGenericOperation extends TalibOperation {
 				outDatas.add(new double[endIdx-startIdx+1]);
 				args[outDataArgIdx] = outDatas.get(0);
 			}
-			
+
 		} else {
 			for (int i = 0; i < outSize; i++) { //several outputs available (we assume double[] ...)//XXX
 				outDatas.add(new double[endIdx-startIdx+1]);
@@ -164,18 +163,18 @@ public class TalibGenericOperation extends TalibOperation {
 		} catch (Exception e) {
 			throw new TalibException("Ooops", e);
 		} 
-		
+
 		if (!rc.equals(RetCode.Success)) throw new TalibException("", new Exception());
 
 		//N selector ~ N outputs
 		if (getAvailableOutputSelectors().isEmpty()) {
-			
+
 			if (outDataNames.get(0).contains("Integer")) {
-				return arrayToMap(dateKeySet,  (int[]) outDatas.get(0), outBegIdx.value);
+				return arrayToMap(dateKeySet, (int[]) outDatas.get(0), outBegIdx.value);
 			} else {
-				return arrayToMap(dateKeySet,  (double[]) outDatas.get(0), outBegIdx.value);
+				return arrayToMap(dateKeySet, (double[]) outDatas.get(0), outBegIdx.value);
 			}
-			
+
 		} else {
 			for (int i = 0; i < outSize; i++) {//several outputs available (we assume double[] ...)//XXX
 				if (getOutputSelector().equals(outDataNames.get(i))){
@@ -183,13 +182,13 @@ public class TalibGenericOperation extends TalibOperation {
 				}
 			}
 		}
-		
+
 		throw new TalibException("Ooops", new Exception());
 	}
 
 	@Override
 	public int operationStartDateShift() {
-		
+
 		int thisOperationStartShift = 0;
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Operation numberOperand = getOperands().get(i);
@@ -198,12 +197,12 @@ public class TalibGenericOperation extends TalibOperation {
 				thisOperationStartShift = thisOperationStartShift + constant;
 			}
 		}
-		
+
 		int operandsOperationStartShift = 0;
 		for (int i = inConstantsNames.size(); i < inDataNames.size() + inConstantsNames.size(); i++) {
 			operandsOperationStartShift = Math.max(getOperands().get(i).operationStartDateShift(), operandsOperationStartShift);
 		}
-		
+
 		return (thisOperationStartShift + operandsOperationStartShift)*7/5;
 	}
 

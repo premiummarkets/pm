@@ -217,7 +217,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							chartTarget.getMainChartWraper().resetIndicChart();
 							updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
 						} else {
-							//Disposing of the graph settings popup as nothing evt def is selected for charting
+							LOGGER.info("Disposing of the graph settings popup as nothing evt def is selected for charting");
 							if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
 								chartSettingsPopup.inhibate();
 								chartSettingsPopup.getSelectionShell().dispose();
@@ -512,6 +512,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				}
 
 				private void handleEvent() {
+					LOGGER.info("populatePopups : initEvtChartingPopup");
 					initEvtChartingPopup(true);
 				}
 
@@ -747,6 +748,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 
 		if (evtDefChartingPopupMenu != null && !evtDefChartingPopupMenu.getSelectionShell().isDisposed()) {
+			LOGGER.info("refreshView : initEvtChartingPopup");
 			initEvtChartingPopup(false);
 		}
 

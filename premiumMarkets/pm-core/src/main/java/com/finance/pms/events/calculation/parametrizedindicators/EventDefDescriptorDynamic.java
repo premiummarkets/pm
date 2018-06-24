@@ -92,7 +92,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	protected void initDescriptionsList() {
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for : " + descriptorReference+ ". There may be a clear in progress?");
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("No group to be found for the dynamic description of " + descriptorReference+ ". There may be a clear in progress?");
 
 		SortedSet<OutputDescr> descriptionSet = new TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
 			@Override

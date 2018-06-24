@@ -205,11 +205,11 @@ public class PopupMenu<T extends InfoObject>  {
 		selectionShell.open();
 
 	}
-	
+
 	public void inhibate() {
 		this.hasChanged = false;
 		this.closeAction = null;
-//		this.selectionAction = null;
+		//		this.selectionAction = null;
 	}
 
 	protected void initPopup() {
@@ -316,7 +316,6 @@ public class PopupMenu<T extends InfoObject>  {
 		this.availableOptSet.clear();
 		this.availableOptSet.addAll(availEventDefs);
 		this.selectionSet = selectionSet;
-		this.hasChanged=true;
 
 		Control[] children = selectionShell.getChildren();
 		for (Control control : children) {
@@ -328,6 +327,8 @@ public class PopupMenu<T extends InfoObject>  {
 		//Size
 		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y - 20), true);
 		selectionShell.setSize(computeSize.x,computeSize.y);
+
+		this.hasChanged=true;
 	}
 
 	private void runCloseAction() {
