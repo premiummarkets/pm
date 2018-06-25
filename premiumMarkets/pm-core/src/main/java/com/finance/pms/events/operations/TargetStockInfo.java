@@ -46,7 +46,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
-import com.finance.pms.events.operations.conditional.ChartableCondition;
+import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
@@ -55,308 +55,311 @@ import com.finance.pms.events.operations.nativeops.StockOperation;
 
 public class TargetStockInfo {
 
-    public class Output {
+	public class Output {
 
-        OutputReference outputReference;
-        Value<?> outputData;
-        OutputDescr chartedDescription;
+		OutputReference outputReference;
+		Value<?> outputData;
+		OutputDescr chartedDescription;
 
-        public Output(OutputReference outputReference) {
-            super();
-            this.outputReference = outputReference;
-        }
+		public Output(OutputReference outputReference) {
+			super();
+			this.outputReference = outputReference;
+		}
 
-        public Output(OutputReference outputReference, Value<?> outputData) {
-            super();
-            this.outputReference = outputReference;
-            this.outputData = outputData;
-        }
+		public Output(OutputReference outputReference, Value<?> outputData) {
+			super();
+			this.outputReference = outputReference;
+			this.outputData = outputData;
+		}
 
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((outputReference == null) ? 0 : outputReference.hashCode());
-            return result;
-        }
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((outputReference == null) ? 0 : outputReference.hashCode());
+			return result;
+		}
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            Output other = (Output) obj;
-            if (outputReference == null) {
-                if (other.outputReference != null)
-                    return false;
-            } else if (!outputReference.equals(other.outputReference))
-                return false;
-            return true;
-        }
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Output other = (Output) obj;
+			if (outputReference == null) {
+				if (other.outputReference != null)
+					return false;
+			} else if (!outputReference.equals(other.outputReference))
+				return false;
+			return true;
+		}
 
-        public Value<?> getOutputData() {
-            return outputData;
-        }
+		public Value<?> getOutputData() {
+			return outputData;
+		}
 
-        public OutputDescr getChartedDescription() {
-            return chartedDescription;
-        }
+		public OutputDescr getChartedDescription() {
+			return chartedDescription;
+		}
 
-        private void setChartedDescription(OutputDescr chartedDescription) {
-            this.chartedDescription = chartedDescription;
-        }
+		private void setChartedDescription(OutputDescr chartedDescription) {
+			this.chartedDescription = chartedDescription;
+		}
 
-        @Override
-        public String toString() {
-            return "Output [outputReference=" + outputReference + ", chartedDescription=" + chartedDescription + "]";
-        }
+		@Override
+		public String toString() {
+			return "Output [outputReference=" + outputReference + ", chartedDescription=" + chartedDescription + "]";
+		}
 
-        public OutputReference getOutputReference() {
-            return outputReference;
-        }
+		public OutputReference getOutputReference() {
+			return outputReference;
+		}
 
-    }
+	}
 
-    private Stock stock;
-    private Date startDate;
-    private Date endDate;
-    private String analysisName;
-    private EventInfoOpsCompoOperation EventInfoOpsCompoOperation;
+	private Stock stock;
+	private Date startDate;
+	private Date endDate;
+	private String analysisName;
+	private EventInfoOpsCompoOperation EventInfoOpsCompoOperation;
 
-    private List<Output> calculatedOutputsCache;
+	private List<Output> calculatedOutputsCache;
 
-    private List<Output> gatheredChartableOutputs;
-    private List<ChartedOutputGroup> chartedOutputGroups;
-   
-    private Map<OutputReference, EventsAnalyser> outputAnalysers;
+	private List<Output> gatheredChartableOutputs;
+	private List<ChartedOutputGroup> chartedOutputGroups;
 
-    public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation EventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
-        super();
-        this.analysisName = analysisName;
-        this.EventInfoOpsCompoOperation = EventInfoOpsCompoOperationHolder;
-        this.stock = stock;
+	private Map<OutputReference, EventsAnalyser> outputAnalysers;
 
-        Date lastQuote = stock.getLastQuote();
-        if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : "+stock.toString());
-        this.startDate = startDate;
-        this.endDate = endDate;
+	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation EventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
+		super();
+		this.analysisName = analysisName;
+		this.EventInfoOpsCompoOperation = EventInfoOpsCompoOperationHolder;
+		this.stock = stock;
 
-        this.calculatedOutputsCache = new ArrayList<TargetStockInfo.Output>();
-        this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
-        this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
-        this.outputAnalysers = new HashMap<>();
-    }
+		Date lastQuote = stock.getLastQuote();
+		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : "+stock.toString());
+		this.startDate = startDate;
+		this.endDate = endDate;
 
-    public Stock getStock() {
-        return stock;
-    }
-    public Date getStartDate() {
-        return startDate;
-    }
-    public Date getEndDate() {
-        return endDate;
-    }
-    public String getAnalysisName() {
-        return analysisName;
-    }
+		this.calculatedOutputsCache = new ArrayList<TargetStockInfo.Output>();
+		this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
+		this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
+		this.outputAnalysers = new HashMap<>();
+	}
 
-    public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events) {
-        SortedMap<EventKey, EventValue> analyzedEvents = events;
-        for (OutputReference key : outputAnalysers.keySet()) {
-            analyzedEvents = outputAnalysers.get(key).analyse(analyzedEvents);
-        }
-        return analyzedEvents;
-    }
+	public Stock getStock() {
+		return stock;
+	}
+	public Date getStartDate() {
+		return startDate;
+	}
+	public Date getEndDate() {
+		return endDate;
+	}
+	public String getAnalysisName() {
+		return analysisName;
+	}
 
-    public void addEventAnalyser(Operation operation, EventsAnalyser eventAnalyser) {
-        outputAnalysers.put(new OutputReference(operation), eventAnalyser);
-    }
+	public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events) {
+		SortedMap<EventKey, EventValue> analyzedEvents = events;
+		for (OutputReference key : outputAnalysers.keySet()) {
+			analyzedEvents = outputAnalysers.get(key).analyse(analyzedEvents);
+		}
+		return analyzedEvents;
+	}
 
-    public Value<?> checkAlreadyCalculated(Operation operation) {
-        if (operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
-        int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation)));
-        if (indexOf == -1) {
-            return null;
-        }
-        return calculatedOutputsCache.get(indexOf).outputData ;
-    }
+	public void addEventAnalyser(Operation operation, EventsAnalyser eventAnalyser) {
+		outputAnalysers.put(new OutputReference(operation), eventAnalyser);
+	}
 
-    /**
-     * This method also calls setMain for MultiSelectorsValue
-     */
-    public void addOutput(Operation operation, Value<?> output) {
+	public Value<?> checkAlreadyCalculated(Operation operation) {
+		if (operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
+		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation)));
+		if (indexOf == -1) {
+			return null;
+		}
+		return calculatedOutputsCache.get(indexOf).outputData ;
+	}
 
-        Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
-        if (alreadyCalculated != null) {
-            if (getIndexOfChartableOutput(operation) == -1) {
-                this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), alreadyCalculated));
-            }
-            return;
-        }
+	/**
+	 * This method also calls setMain for MultiSelectorsValue
+	 */
+	public void addOutput(Operation operation, Value<?> output) {
 
-        if (output instanceof MultiSelectorsValue) {
-            for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
-                //encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
-                String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"(");
-                OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), (operation instanceof LeafOperation), operation.getOperationReference());
-                this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) output).getValue(selector)));
-            }
-            this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), ((MultiSelectorsValue) output).getValue(((MultiSelectorsValue) output).getCalculationSelector())));
-        } else {
-            this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
-            this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), output));
-        }
+		Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
+		if (alreadyCalculated != null) {
+			if (getIndexOfChartableOutput(operation) == -1) {
+				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), alreadyCalculated));
+			}
+			return;
+		}
 
-    }
+		if (output instanceof MultiSelectorsValue) {
+			for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
+				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
+				String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"(");
+				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), (operation instanceof LeafOperation), operation.getOperationReference());
+				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) output).getValue(selector)));
+			}
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), ((MultiSelectorsValue) output).getValue(((MultiSelectorsValue) output).getCalculationSelector())));
+		} else {
+			this.calculatedOutputsCache.add(new Output(new OutputReference(operation), output));
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), output));
+		}
 
-    public void addExtraneousChartableOutput(Operation operation, DoubleMapValue output, String multiOutputDiscriminator) {
-        this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
-    }
+	}
 
-    public ChartedOutputGroup setMain(Operation operation, String mainOperationQualifier) {
-        int indexOfOutput = gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, mainOperationQualifier)));
-        return setMain(operation, indexOfOutput);
-    }
+	public void addExtraneousChartableOutput(Operation operation, DoubleMapValue output, String multiOutputDiscriminator) {
+		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
+	}
 
-    public ChartedOutputGroup setMain(Operation operation) {
-        Integer indexOfOutput = getIndexOfChartableOutput(operation);
-        return setMain(operation, indexOfOutput);
-    }
+	public ChartedOutputGroup setMain(Operation operation, String mainOperationQualifier) {
+		int indexOfOutput = gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, mainOperationQualifier)));
+		return setMain(operation, indexOfOutput);
+	}
 
-    private ChartedOutputGroup setMain(Operation operation, Integer indexOfOutput) {
-        if (indexOfOutput != -1) {
+	public ChartedOutputGroup setMain(Operation operation) {
+		Integer indexOfOutput = getIndexOfChartableOutput(operation);
+		return setMain(operation, indexOfOutput);
+	}
 
-            Output output = gatheredChartableOutputs.get(indexOfOutput);
-            OutputDescr chartedDesrc = output.getChartedDescription();
-            if (chartedDesrc != null) {
-                chartedDesrc.maskType(Type.MAIN);
-            } else {
-                ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, indexOfOutput);
-                chartedOutputGroups.add(chartedOutputGroup);
-                chartedDesrc = chartedOutputGroup.getThisDescription();
-                output.setChartedDescription(chartedDesrc);
-            }
-            return chartedDesrc.getContainer();
+	private ChartedOutputGroup setMain(Operation operation, Integer indexOfOutput) {
+		if (indexOfOutput != -1) {
 
-        } else {
-            throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: "+operation.getClass()+" for "+operation);
-        }
-    }
+			Output output = gatheredChartableOutputs.get(indexOfOutput);
+			OutputDescr chartedDesrc = output.getChartedDescription();
+			if (chartedDesrc != null) {
+				chartedDesrc.maskType(Type.MAIN);
+			} else {
+				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, indexOfOutput);
+				chartedOutputGroups.add(chartedOutputGroup);
+				chartedDesrc = chartedOutputGroup.getThisDescription();
+				output.setChartedDescription(chartedDesrc);
+			}
+			return chartedDesrc.getContainer();
 
-    public Integer getIndexOfChartableOutput(Operation operation) {
-        return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation)));
-    }
+		} else {
+			throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: "+operation.getClass()+" for "+operation);
+		}
+	}
 
-    public Integer getIndexOfChartableOutput(OutputReference outputRef) {
-        return gatheredChartableOutputs.indexOf(new Output(outputRef));
-    }
+	public Integer getIndexOfChartableOutput(Operation operation) {
+		return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation)));
+	}
 
-    public List<ChartedOutputGroup> getChartedOutputGroups() {
-        return chartedOutputGroups;
-    }
+	public Integer getIndexOfChartableOutput(OutputReference outputRef) {
+		return gatheredChartableOutputs.indexOf(new Output(outputRef));
+	}
 
-    public void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
+	public List<ChartedOutputGroup> getChartedOutputGroups() {
+		return chartedOutputGroups;
+	}
 
-        Integer indexOfOutput = getIndexOfChartableOutput(operation);
-        if (indexOfOutput != -1) {
-            Output output = gatheredChartableOutputs.get(indexOfOutput);
-            OutputDescr chartedDescr = output.getChartedDescription();
-            if (chartedDescr != null) {
-                //Merge mainChartedGrp and existingChartedGrp if <> + maskType
-                ChartedOutputGroup existingChartedGrp = chartedDescr.getContainer();
-                if (existingChartedGrp.equals(mainChartedGrp)) {
-                    chartedDescr.maskType(Type.SIGNAL);
-                } else {
-                    OutputDescr existingChartedDesrc = existingChartedGrp.getThisDescription();
-                    existingChartedDesrc.maskType(Type.BOTH);
-                    mainChartedGrp.mvComponentInThisGrp(existingChartedGrp.getThisReference(), existingChartedDesrc);
-                    for (OutputReference oldContentRef : existingChartedGrp.getComponents().keySet()) {
-                        OutputDescr oldOutputDescr = existingChartedGrp.getComponents().get(oldContentRef);
-                        mainChartedGrp.mvComponentInThisGrp(oldContentRef, oldOutputDescr);
-                    }
-                    this.chartedOutputGroups.remove(this.chartedOutputGroups.indexOf(existingChartedGrp));
-                }
-            } else {
-                chartedDescr = mainChartedGrp.addSignal(operation, indexOfOutput);
-                output.setChartedDescription(chartedDescr);
-            }
+	public void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
 
-        } else {
-            throw new RuntimeException("Output not found for "+operation);
-        }
-    }
+		Integer indexOfOutput = getIndexOfChartableOutput(operation);
+		if (indexOfOutput != -1) {
+			Output output = gatheredChartableOutputs.get(indexOfOutput);
+			OutputDescr chartedDescr = output.getChartedDescription();
+			if (chartedDescr != null) {
+				//Merge mainChartedGrp and existingChartedGrp if <> + maskType
+				ChartedOutputGroup existingChartedGrp = chartedDescr.getContainer();
+				if (existingChartedGrp.equals(mainChartedGrp)) {
+					chartedDescr.maskType(Type.SIGNAL);
+				} else {
+					OutputDescr existingChartedDesrc = existingChartedGrp.getThisDescription();
+					existingChartedDesrc.maskType(Type.BOTH);
+					mainChartedGrp.mvComponentInThisGrp(existingChartedGrp.getThisReference(), existingChartedDesrc);
+					for (OutputReference oldContentRef : existingChartedGrp.getComponents().keySet()) {
+						OutputDescr oldOutputDescr = existingChartedGrp.getComponents().get(oldContentRef);
+						mainChartedGrp.mvComponentInThisGrp(oldContentRef, oldOutputDescr);
+					}
+					this.chartedOutputGroups.remove(this.chartedOutputGroups.indexOf(existingChartedGrp));
+				}
+			} else {
+				chartedDescr = mainChartedGrp.addSignal(operation, indexOfOutput);
+				output.setChartedDescription(chartedDescr);
+			}
+
+		} else {
+			throw new RuntimeException("Output not found for "+operation);
+		}
+	}
 
 
-    public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, String outputQualifier) {
-        Integer indexOfMain = getIndexOfChartableOutput(new OutputReference(operand, outputQualifier));
-        addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
-    }
+	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, String outputQualifier) {
+		Integer indexOfMain = getIndexOfChartableOutput(new OutputReference(operand, outputQualifier));
+		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
+	}
 
-    public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
-        Integer indexOfMain = getIndexOfChartableOutput(operand.getOperands().get(((ChartableCondition)operand).mainInputPosition()));
-        addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
-    }
+	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
+		Integer indexOfMain = 0;
+		if (operand instanceof ChartableWithMain) {
+			indexOfMain = getIndexOfChartableOutput(operand.getOperands().get(((ChartableWithMain)operand).mainInputPosition()));
+		}
+		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
+	}
 
-    private void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, Integer indexOfMain) {
-        Output output = gatheredChartableOutputs.get(indexOfMain);
-        OutputDescr chartedDesrc = output.getChartedDescription();
-        if (chartedDesrc != null) {
-            ChartedOutputGroup mainChartedGroup = chartedDesrc.getContainer();
-            for (String outputKey : outputTypes.keySet()) {
-                Integer indexOfOutput = getIndexOfChartableOutput(new OutputReference(operand, outputKey));
-                mainChartedGroup.addAdditonalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
-            }
-        } else {
-            throw new RuntimeException("Multi Output Main group not found not found for "+operand);
-        }
-    }
+	private void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, Integer indexOfMain) {
+		Output output = gatheredChartableOutputs.get(indexOfMain);
+		OutputDescr chartedDesrc = output.getChartedDescription();
+		if (chartedDesrc != null) {
+			ChartedOutputGroup mainChartedGroup = chartedDesrc.getContainer();
+			for (String outputKey : outputTypes.keySet()) {
+				Integer indexOfOutput = getIndexOfChartableOutput(new OutputReference(operand, outputKey));
+				mainChartedGroup.addAdditonalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
+			}
+		} else {
+			throw new RuntimeException("Multi Output Main group (at index "+indexOfMain+") not found not found for " + operand);
+		}
+	}
 
-    @Override
-    public String toString() {
-        return "TargetStockInfo [stock=" + stock + ", startDate=" + startDate + ", endDate=" + endDate + ", analysisName=" + analysisName + "]";
-    }
+	@Override
+	public String toString() {
+		return "TargetStockInfo [stock=" + stock + ", startDate=" + startDate + ", endDate=" + endDate + ", analysisName=" + analysisName + "]";
+	}
 
-    public List<Output> getGatheredChartableOutputs() {
-        return gatheredChartableOutputs;
-    }
+	public List<Output> getGatheredChartableOutputs() {
+		return gatheredChartableOutputs;
+	}
 
-    public void printOutputs() {
+	public void printOutputs() {
 
-        Set<Date> allKeys = new TreeSet<Date>();
-        String header = this.stock.getFriendlyName().replaceAll(",", " ") + ",";
+		Set<Date> allKeys = new TreeSet<Date>();
+		String header = this.stock.getFriendlyName().replaceAll(",", " ") + ",";
 
-        for (Output output : gatheredChartableOutputs) {
-            Value<?> outputData = output.getOutputData();
-            if (outputData instanceof DoubleMapValue) {
-                header = header + output.getOutputReference().getReference()+",";
-                Set<Date> keySet = ((DoubleMapValue)outputData).getValue(this).keySet();
-                allKeys.addAll(keySet);
-            }
-        }
-        System.out.println(header);
+		for (Output output : gatheredChartableOutputs) {
+			Value<?> outputData = output.getOutputData();
+			if (outputData instanceof DoubleMapValue) {
+				header = header + output.getOutputReference().getReference()+",";
+				Set<Date> keySet = ((DoubleMapValue)outputData).getValue(this).keySet();
+				allKeys.addAll(keySet);
+			}
+		}
+		System.out.println(header);
 
-        for (Date date : allKeys) {
-            String line = date + ",";
-            for (Output output : gatheredChartableOutputs) {
-                Value<?> outputData = output.getOutputData();
-                if (outputData instanceof DoubleMapValue) {
-                    line = line + ((DoubleMapValue)outputData).getValue(this).get(date) + ",";
-                }
-            }
-            System.out.println(line);
-        }
+		for (Date date : allKeys) {
+			String line = date + ",";
+			for (Output output : gatheredChartableOutputs) {
+				Value<?> outputData = output.getOutputData();
+				if (outputData instanceof DoubleMapValue) {
+					line = line + ((DoubleMapValue)outputData).getValue(this).get(date) + ",";
+				}
+			}
+			System.out.println(line);
+		}
 
-    }
+	}
 
-    public EventInfoOpsCompoOperation getEventInfoOpsCompoOperation() {
-        return EventInfoOpsCompoOperation;
-    }
+	public EventInfoOpsCompoOperation getEventInfoOpsCompoOperation() {
+		return EventInfoOpsCompoOperation;
+	}
 
-    public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {
-        return outputAnalysers;
-    }
+	public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {
+		return outputAnalysers;
+	}
 
 }

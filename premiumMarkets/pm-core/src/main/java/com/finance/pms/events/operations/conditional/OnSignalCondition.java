@@ -29,7 +29,7 @@
  */
 package com.finance.pms.events.operations.conditional;
 
-public interface OnSignalCondition  extends ChartableCondition {
+public interface OnSignalCondition  extends ChartableWithMain {
 
 	int inputSignalPosition();
 

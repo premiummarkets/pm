@@ -44,7 +44,6 @@ import javax.xml.bind.annotation.XmlType;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
-import com.finance.pms.events.operations.conditional.ChartableCondition;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.conditional.MultiMapValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
@@ -197,7 +196,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			targetStock.addOutput(operand, output);
 		}
 		//We also gather extraneous chartable outputs from conditions.
-		if (operand instanceof ChartableCondition && output instanceof MultiMapValue) {
+		if (output instanceof MultiMapValue) {
 			addAdditionalOutputs(targetStock, operand, (MultiMapValue) output);
 		}
 
@@ -227,7 +226,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			//pick up or create the group
 			int mainOpPosition = ((UnaryCondition) this).mainInputPosition();
 			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
-
 		}
 
 		return chartedOutputGroup;

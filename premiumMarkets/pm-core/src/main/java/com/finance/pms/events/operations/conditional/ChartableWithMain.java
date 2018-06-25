@@ -30,7 +30,7 @@
 package com.finance.pms.events.operations.conditional;
 
 
-public interface ChartableCondition {
+public interface ChartableWithMain {
 
 	int mainInputPosition();
 

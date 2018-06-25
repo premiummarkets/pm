@@ -296,7 +296,6 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 		return outputMap;
 	}
 
-
 	protected abstract double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx);
 
 	@Override

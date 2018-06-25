@@ -52,7 +52,7 @@ public class LowerLowCondition extends HighsAndLowsCondition {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Boolean conditionCheck(Comparable... ops) {
-		return highLowSolver.lowerLow(((ArrayList<Double>)ops[0]).toArray(new Double[0]),((ArrayList<Double>)ops[1]).toArray(new Double[0]), (Double) ops[2] , (ArrayList<Double>)ops[3], (MutableInt) ops[4], (MutableInt) ops[5]);
+		return highLowSolver.lowerLow(((ArrayList<Double>)ops[0]).toArray(new Double[0]),((ArrayList<Double>)ops[1]).toArray(new Double[0]), (Double) ops[2], (ArrayList<Double>)ops[3], (MutableInt) ops[4], (MutableInt) ops[5]);
 	}
 	
 }
