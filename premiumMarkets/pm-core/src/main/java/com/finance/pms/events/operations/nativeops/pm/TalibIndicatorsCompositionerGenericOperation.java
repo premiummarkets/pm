@@ -171,7 +171,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
     }
 
     @Override
-    //Approximative calculation based on the different parameters assumed as periods passed to this operation. 
+    //Approximate calculation based on the different parameters assumed as periods passed to this operation.
     public int operationStartDateShift() {
         Integer thisOperationStartShift = getOperands().stream()
                 .filter(o -> o instanceof NumberOperation)
