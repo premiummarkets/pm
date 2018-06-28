@@ -90,17 +90,13 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new BooleanMapValue();
 	}
 
-	@Override //TODO add shift inherent to over, for and spanning
+	@Override
 	public int operationStartDateShift() {
-		int maxDateShift = 0;
-		for (Operation operand : getOperands()) {
-			maxDateShift = Math.max(maxDateShift, operand.operationStartDateShift());
-		}
-		return maxDateShift;
+		return 0;
 	}
 
 	@Override

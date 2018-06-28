@@ -40,7 +40,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public MultiSelectorsValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public MultiSelectorsValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int basicPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();

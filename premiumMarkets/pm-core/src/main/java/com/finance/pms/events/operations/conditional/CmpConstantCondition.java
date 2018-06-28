@@ -54,13 +54,16 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * does not make sense : 'spanning'. As the condition is a status in time not an event in time.
  */
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {
-	
+
+	private static final int MAIN_POSITION = 3;
+	private static final int THRESHOLD_POSITION = 0;
+
 	@SuppressWarnings("unused")
 	private CmpConstantCondition() {
 		super();
 	}
 
-	
+
 	protected CmpConstantCondition(String reference, String description) {
 		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"), new DoubleMapOperation("'"+reference+ "' indicator"));
 	}
@@ -71,36 +74,36 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
-		Double threshold = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
+		Double threshold = ((NumberValue) inputs.get(THRESHOLD_POSITION)).getValue(targetStock).doubleValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
-		
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+
 		BooleanMapValue outputs = new  BooleanMapValue();
 		if (Double.isNaN(threshold)) return outputs;
-		
+
 		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
-		
+
 		for (Date date : data.keySet()) {
 			Double current = data.get(date);
-			
+
 			@SuppressWarnings("unchecked")
 			Boolean conditionCheck = (Double.isNaN(current))?null:conditionCheck(current, threshold);
 			if (conditionCheck != null) {
-				
+
 				if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-					
+
 					underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
-					
+
 					if (conditionCheck && forPeriod > 0) {
-						
+
 						Calendar startForPeriodCal = Calendar.getInstance();
 						startForPeriodCal.setTime(date);
 						QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
 						Date startForPeriod = startForPeriodCal.getTime();
-						
+
 						SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
 						if (startForPeriod.before(data.firstKey())) {
 							conditionCheck = null;
@@ -111,9 +114,9 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 							}
 						}
 					}
-					
+
 					if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
-					
+
 				}
 
 				if (conditionCheck != null && conditionCheck && overPeriod > 0) {
@@ -126,30 +129,30 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 						outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
 					}
 				}
-				
+
 			}
 		}
-		
+
 		return outputs;
 	}
 
 	@Override
 	public int inputThresholdPosition() {
-		return 0;
-	}
-	
-	@Override
-	public int mainInputPosition() {
-		return 3;
+		return THRESHOLD_POSITION;
 	}
 
 	@Override
+	public int mainInputPosition() {
+		return MAIN_POSITION;
+	}
+
+	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
-		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
+		int maxDateShift = 0;
 		for (int i = inputThresholdPosition()+1; i < mainInputPosition(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;
-	}	
+	}
 
 }

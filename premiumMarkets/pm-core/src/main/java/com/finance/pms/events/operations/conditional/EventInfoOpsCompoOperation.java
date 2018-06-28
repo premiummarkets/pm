@@ -97,12 +97,12 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
-		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2));
-		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));
+		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2)); //not used for calculation
+		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));  //not implemented
 		StringValue eventListName = ((StringValue) inputs.get(4));
 
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
@@ -217,12 +217,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	@Override
 	public int operationStartDateShift() {
-		//return Math.max(getOperands().get(0).operationStartDateShift(), getOperands().get(1).operationStartDateShift());
-		int maxDateShift = 0;
-		for (Operation operand : getOperands()) {
-			maxDateShift = Math.max(maxDateShift, operand.operationStartDateShift());
-		}
-		return maxDateShift;
+		return 0;
 	}
 
 	@Override

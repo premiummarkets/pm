@@ -59,7 +59,7 @@ public class PMSMAOperation extends PMDataFreeOperation {
 	
 	
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		Integer period = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
@@ -68,7 +68,7 @@ public class PMSMAOperation extends PMDataFreeOperation {
 		try {
 			SMA sma = new SMA(period);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(), 
 					sma.getStartShift(), sma.quotationValidity());
 			sma.calculateIndicator(quotations);

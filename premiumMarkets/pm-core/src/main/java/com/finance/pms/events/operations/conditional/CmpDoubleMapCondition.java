@@ -53,14 +53,16 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 
  * @author Guillaume Thoreton
  * Additional constraints :
- * 'over'
+ * not implemented : 'over'
  * 'for'
- * does not make sense : 'spanning' . As the condition is a status in time not an event in time.
+ * does not make sense : 'spanning'. As the condition is a status not an event in time.
  */
 @XmlSeeAlso({SupDoubleMapCondition.class, InfDoubleMapCondition.class, EqualDoubleMapCondition.class})
 public abstract class CmpDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
-	
+	private static final int MAIN_POSITION = 1;
+	private static final int SIGNAL_POSITION = 2;
+
 	@SuppressWarnings("unused")
 	private CmpDoubleMapCondition() {
 		super();
@@ -76,16 +78,16 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
 		Integer forPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
-		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
-		
+		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
+
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		fullKeySet.addAll(firstOp.keySet());
 		fullKeySet.addAll(secondOp.keySet());
-		
+
 		BooleanMapValue outputs = new  BooleanMapValue();
 		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
 
@@ -93,19 +95,19 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 			Double firstV = firstOp.get(date);
 			Double secondV = secondOp.get(date);
 			if (firstV != null && !firstV.isNaN() && secondV != null && !secondV.isNaN()) {
-				
+
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(firstV, secondV);
-				
+
 				underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
-				
+
 				if (conditionCheck && forPeriod > 0) {
-					
+
 					Calendar startForPeriodCal = Calendar.getInstance();
 					startForPeriodCal.setTime(date);
 					QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
 					Date startForPeriod = startForPeriodCal.getTime();
-					
+
 					SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
 					if (startForPeriod.before(fullKeySet.first())) {
 						conditionCheck = null;
@@ -116,27 +118,27 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 						}
 					}
 				}
-				
+
 				if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
 			}
 		}
-		
+
 		return outputs;
 	}
 
 	@Override
 	public int inputSignalPosition() {
-		return 2;
+		return SIGNAL_POSITION;
 	}
-	
+
 	@Override
 	public int mainInputPosition() {
-		return 1;
+		return MAIN_POSITION;
 	}
-	
-	@Override
+
+	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
-		int maxDateShift = Math.max(getOperands().get(mainInputPosition()).operationStartDateShift(),getOperands().get(inputSignalPosition()).operationStartDateShift());
+		int maxDateShift = 0;
 		for (int i = 0; i < mainInputPosition(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}

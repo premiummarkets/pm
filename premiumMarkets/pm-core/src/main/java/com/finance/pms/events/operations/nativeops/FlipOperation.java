@@ -55,7 +55,7 @@ public class FlipOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Double flipAxe = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
@@ -78,6 +78,6 @@ public class FlipOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return getOperands().get(1).operationStartDateShift();
+		return 0;
 	}
 }

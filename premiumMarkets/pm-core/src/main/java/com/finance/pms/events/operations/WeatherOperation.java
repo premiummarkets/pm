@@ -18,12 +18,12 @@ public class WeatherOperation extends EventMapOperation {
 	}
 
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		EventDataValue buySellEvents = new EventDataValue();
 		try {
 
-			WeatherChecker calculator = new WeatherChecker(targetStock.getStartDate(), targetStock.getEndDate());
+			WeatherChecker calculator = new WeatherChecker(targetStock.getStartDate(thisStartShift), targetStock.getEndDate());
 			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(null, "inMem"+this.getClass().getSimpleName()+"Operation");
 			buySellEvents = new EventDataValue(eventsFor);
 

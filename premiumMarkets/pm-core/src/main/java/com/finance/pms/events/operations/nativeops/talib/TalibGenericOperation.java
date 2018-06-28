@@ -176,7 +176,7 @@ public class TalibGenericOperation extends TalibOperation {
 			}
 
 		} else {
-			for (int i = 0; i < outSize; i++) {//several outputs available (we assume double[] ...)//XXX
+			for (int i = 0; i < outSize; i++) {//Several outputs available (we assume double[] ...)//XXX
 				if (getOutputSelector().equals(outDataNames.get(i))){
 					return arrayToMap(dateKeySet, (double[]) outDatas.get(i), outBegIdx.value);
 				}
@@ -198,12 +198,7 @@ public class TalibGenericOperation extends TalibOperation {
 			}
 		}
 
-		int operandsOperationStartShift = 0;
-		for (int i = inConstantsNames.size(); i < inDataNames.size() + inConstantsNames.size(); i++) {
-			operandsOperationStartShift = Math.max(getOperands().get(i).operationStartDateShift(), operandsOperationStartShift);
-		}
-
-		return (thisOperationStartShift + operandsOperationStartShift)*7/5;
+		return thisOperationStartShift+1;
 	}
 
 }

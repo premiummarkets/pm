@@ -24,7 +24,7 @@ public abstract class EqualStringConstantCondition<X, Y> extends Condition<Strin
     }
     
     @Override
-    public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+    public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         String constant = ((StringValue) inputs.get(0)).getValue(targetStock);
         @SuppressWarnings("unchecked") MapValue<X, Y> value = (MapValue<X, Y>) inputs.get(1);
@@ -50,6 +50,5 @@ public abstract class EqualStringConstantCondition<X, Y> extends Condition<Strin
     public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<String> ... ops) {
         return  ((String)ops[0]).compareToIgnoreCase((String) ops[1]) == 0;
     }
-
 
 }

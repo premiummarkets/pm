@@ -44,7 +44,7 @@ import com.finance.pms.events.operations.Value;
 
 @XmlSeeAlso({AndDoubleMapCondition.class, OrDoubleMapCondition.class, NotDoubleMapCondition.class})
 public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
-	
+
 	protected BooleanDoubleMapCondition() {
 		super();
 	}
@@ -58,22 +58,22 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
 		if (shortcutUnary() && inputs.size() == 1) return (BooleanMapValue) inputs.get(0);
 		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;
-		
+
 		List<SortedMap<Date, Boolean>> maps = new ArrayList<SortedMap<Date,Boolean>>();
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		for (Value<SortedMap<Date, Boolean>> input : checkedInputs) {
 			fullKeySet.addAll(input.getValue(targetStock).keySet());
 			maps.add(input.getValue(targetStock));
 		}
-		
+
 		BooleanMapValue outputs = new  BooleanMapValue();
 
 		for (Date date : fullKeySet) {
-			
+
 			Boolean gruyere = false;
 			List<Boolean> currentOps = new ArrayList<Boolean>();
 			for (SortedMap<Date, Boolean> map : maps) {
@@ -82,26 +82,26 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 					currentOps.add(currentOp);
 				} 
 				else if (exactDataSet()) {
-						gruyere = true;
-						break;
+					gruyere = true;
+					break;
 				}
 			}
-			
+
 			if (!gruyere) {
 				Boolean conditionCheck = conditionCheck(currentOps.toArray(new Boolean[0]));
 				if (conditionCheck != null) {
 					outputs.getValue(targetStock).put(date, conditionCheck);
 				}
 			}
-			
+
 		}
-		
+
 		return outputs;
 	}
-	
+
 	protected abstract Boolean shortcutUnary();
-	
+
 	protected abstract Boolean exactDataSet();
 
-	
+
 }

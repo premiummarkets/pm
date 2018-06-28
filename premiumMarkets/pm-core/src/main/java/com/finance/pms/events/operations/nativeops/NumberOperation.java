@@ -39,7 +39,7 @@ import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
 public class NumberOperation extends Operation  implements LeafOperation {
-	
+
 	public NumberOperation() {
 		super("number","A number constant like period or threshold.");
 	}
@@ -47,24 +47,25 @@ public class NumberOperation extends Operation  implements LeafOperation {
 	public NumberOperation(String reference) {
 		super(reference, reference);
 	}
-	
+
 	public NumberOperation(String reference, String refAsOperand, String description, NumberValue defaultValue) {
 		super(reference, refAsOperand, description, defaultValue);
 	}
 
 	@Override
-	public NumberValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumberValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((NumberValue)inputs.get(0));
 	}
 
 	@Override
+	//A parameter here is actually the value of the constant as in the formulae?
 	public int operationStartDateShift() {
-		return (getParameter() != null )?((NumberValue)getParameter()).getValue(null).intValue():0;
+		return (getParameter() != null )?((NumberValue) getParameter()).getValue(null).intValue():0;
 	}
 
 	@Override
 	public void invalidateOperation(String analysisName) {
 		//Nothing
 	}
-	
+
 }

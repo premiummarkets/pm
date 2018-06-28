@@ -56,7 +56,7 @@ public class LeftShifterOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int leftShiftSpan = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
@@ -78,7 +78,7 @@ public class LeftShifterOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue() + getOperands().get(1).operationStartDateShift();
+		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue();
 	}
 
 }

@@ -39,7 +39,6 @@ import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -59,7 +58,7 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		if (inputs.size() == 0) return new DoubleMapValue();
 		if (inputs.size() == 1) return (DoubleMapValue) inputs.get(0);
@@ -85,14 +84,5 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	}
 	
 	public abstract Double twoOperandsOp(Double op0, Double op1);
-	
-	@Override
-	public int operationStartDateShift() {
-		int maxDateShift = 0;
-		for (Operation operand : getOperands()) {
-			maxDateShift = Math.max(maxDateShift, operand.operationStartDateShift());
-		}
-		return maxDateShift;
-	}
 
 }

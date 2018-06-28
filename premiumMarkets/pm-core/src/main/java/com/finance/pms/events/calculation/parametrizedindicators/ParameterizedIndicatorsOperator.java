@@ -63,7 +63,6 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
 /**
  * 
  * @author guil
@@ -93,8 +92,6 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		}
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
-		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, -operationStartDateShift);
-		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+" start date shift to : "+operationStartDateShift+". Requested start : "+startDate+", calculated start : "+adjustedStartCal.getTime());
 
 		//Adjust end
 		Date lastQuote = stock.getLastQuote();
@@ -119,7 +116,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
 
 			eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
-			EventDataValue run = (EventDataValue) eventInfoOpsCompoOperationHolder.run(targetStock);
+			EventDataValue run = (EventDataValue) eventInfoOpsCompoOperationHolder.run(targetStock, 0);
 
 			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
 

@@ -30,6 +30,7 @@
 package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
@@ -52,8 +54,11 @@ import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class TargetStockInfo {
+
+	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
 
 	public class Output {
 
@@ -121,10 +126,10 @@ public class TargetStockInfo {
 	}
 
 	private Stock stock;
-	private Date startDate;
-	private Date endDate;
+	private final Date startDate;
+	private final Date endDate;
 	private String analysisName;
-	private EventInfoOpsCompoOperation EventInfoOpsCompoOperation;
+	private EventInfoOpsCompoOperation eventInfoOpsCompoOperation;
 
 	private List<Output> calculatedOutputsCache;
 
@@ -133,10 +138,10 @@ public class TargetStockInfo {
 
 	private Map<OutputReference, EventsAnalyser> outputAnalysers;
 
-	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation EventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
+	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
 		super();
 		this.analysisName = analysisName;
-		this.EventInfoOpsCompoOperation = EventInfoOpsCompoOperationHolder;
+		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperationHolder;
 		this.stock = stock;
 
 		Date lastQuote = stock.getLastQuote();
@@ -153,9 +158,15 @@ public class TargetStockInfo {
 	public Stock getStock() {
 		return stock;
 	}
-	public Date getStartDate() {
-		return startDate;
+
+	public Date getStartDate(int startShift) {
+		Calendar startCal = Calendar.getInstance();
+		startCal.setTime(startDate);
+		QuotationsFactories.getFactory().incrementDate(startCal, -startShift);
+		LOGGER.info(this.eventInfoOpsCompoOperation.getReference()+" start date shift to : "+startShift+". Requested start : "+startDate+", calculated start : "+startCal.getTime());
+		return startCal.getTime();
 	}
+
 	public Date getEndDate() {
 		return endDate;
 	}
@@ -355,7 +366,7 @@ public class TargetStockInfo {
 	}
 
 	public EventInfoOpsCompoOperation getEventInfoOpsCompoOperation() {
-		return EventInfoOpsCompoOperation;
+		return eventInfoOpsCompoOperation;
 	}
 
 	public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {

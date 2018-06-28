@@ -73,6 +73,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
 
+	private static final int MAIN_POSITION = 3;
+
 	private HighsAndLowsCondition() {
 	}
 
@@ -91,17 +93,17 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 	@Override
 	public int mainInputPosition() {
-		return 3;
+		return MAIN_POSITION;
 	}
 
 
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
 
 		Double minimunNbDaysBetweenExtrs = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Integer lookBackNbdays = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
 		if (minimunNbDaysBetweenExtrs < 4) return new BooleanMultiMapValue(data.keySet(), false); //We need a least 3 days to draw one of these
@@ -230,7 +232,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 	@Override
 	public int operationStartDateShift() {
-		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
+		int maxDateShift = 0;
 		for (int i = 0; i < mainInputPosition(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
