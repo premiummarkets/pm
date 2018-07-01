@@ -403,6 +403,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		}
 
 		popupButtonsGroup.layout();
+		chartTarget.myPack();
 
 	}
 

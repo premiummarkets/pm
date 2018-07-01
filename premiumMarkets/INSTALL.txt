@@ -1,0 +1,10 @@
+
+- Build
+-- First time 
+mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=http://www.premiummarkets.uk/ -Denv=pmui -Dinitdb=pmuidb
+-- Then
+mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=http://www.premiummarkets.uk/ -Denv=pmui
+
+- Install
+java -jar ~/.m2/repository/com/finance/pm/pm-uiinstall/0.0.1-SNAPSHOT/pm-uiinstall-0.0.1-SNAPSHOT-allinone.jar
+

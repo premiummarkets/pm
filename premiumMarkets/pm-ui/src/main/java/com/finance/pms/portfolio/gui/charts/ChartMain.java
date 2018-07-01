@@ -547,7 +547,7 @@ public class ChartMain extends Chart {
 
 						indicPlot = new XYPlot(null, null, null, indicRenderer);
 						//indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
-						indicPlot.setNoDataMessage("No indicator output is available. Check that the stocks and date ranges are valid.");
+						indicPlot.setNoDataMessage("No indicator output available. Click 'Calculations Update'.\nAlso check that the selected stock and date ranges are valid.");
 						indicPlot.setDomainMinorGridlinesVisible(true);
 					}
 

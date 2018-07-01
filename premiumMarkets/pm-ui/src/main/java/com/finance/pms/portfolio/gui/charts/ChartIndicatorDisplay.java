@@ -56,8 +56,10 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
@@ -151,9 +153,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		this.chartTarget.getMainChartWraper().initMainPlot(
 				ChartMain.NUMBER_FORMAT, 
 				"Nothing to display?\n" +
-						"Select a stock in your portfolio and " +
-						"Use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select your calculator(s).\n" +
-				"Also check the portfolio stocks and sliding date ranges. There may be no quotations available.");
+						"First select a stock in your portfolio.\n" +
+						"Then use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select calculators.\n" +
+				"Also check the portfolio stocks and sliding date ranges. Quotations have to be available.");
+		
 
 		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice());
 
@@ -251,10 +254,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			//Message if all areas are empty.
 			if (!areEvtDefsTrendsSelected && !isEvtDefGraphSelected){
-//				String errorMessage ="No Calculator or Trend is selected.\n Use the buttons below the chart to select a calculator and trends.";
-//				showPopupDialog(errorMessage, "Ok", null, null);
 				chartedCalculatorButton.forceFocus();
-				initChartedCalculatorPopup(true);
+				initChartedCalculatorPopup(false);
 			}
 
 		} finally {
@@ -498,170 +499,197 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		cleanPopupButtonsGroup(popusGroup);
 
 		{
-			chartedCalculatorButton = new Button(popusGroup, SWT.PUSH);
-			chartedCalculatorButton.setFont(MainGui.DEFAULTFONT);
-			chartedCalculatorButton.setText(INDICATORSBUTTXT);
-			chartedCalculatorButton.setToolTipText("This is to setup the display of calculators historical data at the bottom of the chart.\nYou must select a share in the portfolio to display its analysis.");
+			Group chartedCalculatorGroup = new Group(popusGroup, SWT.NONE);
+			RowLayout chartedCalculatorGroupL = new RowLayout(SWT.VERTICAL);
+			chartedCalculatorGroupL.justify = true;
+			chartedCalculatorGroupL.fill=true;
+			chartedCalculatorGroupL.wrap=false;
+			chartedCalculatorGroupL.marginHeight=0;
+			chartedCalculatorGroup.setLayout(chartedCalculatorGroupL);
+			{
+				chartedCalculatorButton = new Button(chartedCalculatorGroup, SWT.PUSH);
+				chartedCalculatorButton.setFont(MainGui.DEFAULTFONT);
+				chartedCalculatorButton.setText(INDICATORSBUTTXT);
+				chartedCalculatorButton.setToolTipText("This is to setup the display of calculators historical data at the bottom of the chart.\nYou must select a share in the portfolio to display its analysis.");
 
-			chartedCalculatorButton.addSelectionListener(new SelectionListener() {
+				chartedCalculatorButton.addSelectionListener(new SelectionListener() {
 
-				@Override
-				public void widgetSelected(SelectionEvent e) {		
-					handleChartedCalculatorSelection();
-				}
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						handleChartedCalculatorSelection();
+					}
 
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleChartedCalculatorSelection();
-				}
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handleChartedCalculatorSelection();
+					}
 
-				private void handleChartedCalculatorSelection() {
-					LOGGER.info("populatePopups : initEvtChartingPopup");
-					initChartedCalculatorPopup(true);
-				}
+					private void handleChartedCalculatorSelection() {
+						LOGGER.info("populatePopups : initEvtChartingPopup");
+						initChartedCalculatorPopup(true);
+					}
 
-			});
+				});
 
+			}
+			{
+				calculatorSettingsButton = new Button(chartedCalculatorGroup, SWT.NONE);
+				calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
+				calculatorSettingsButton.setText("Calculator settings ...");
+				calculatorSettingsButton.setToolTipText(
+						"Only user defined calculators can be customised.\n" +
+								"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
+								"And wait for its calculation to finish before changing the display settings.\n" +
+						"New calculators can be defined using the menu Events -> Customise and create calculators ...");
+				calculatorSettingsButton.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {	
+						handleCalculatorSettingsSelection();
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handleCalculatorSettingsSelection();
+					}
+
+					private void handleCalculatorSettingsSelection() {
+						initCalculatorSettingsPopup(true);
+					}
+
+				});
+
+			}
 		}
 		{
-			calculatorSettingsButton = new Button(popusGroup, SWT.NONE);
-			calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
-			calculatorSettingsButton.setText("Calculator settings ...");
-			calculatorSettingsButton.setToolTipText(
-					"Only user defined calculators can be customised.\n" +
-							"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
-							"And wait for its calculation to finish before changing the display settings.\n" +
-					"New calculators can be defined using the menu Events -> Customise and create calculators ...");
-			calculatorSettingsButton.addSelectionListener(new SelectionListener() {
+			Group chartedTrendsGroup = new Group(popusGroup, SWT.NONE);
+			RowLayout chartedTrendsGroupL = new RowLayout(SWT.VERTICAL);
+			chartedTrendsGroupL.justify = true;
+			chartedTrendsGroupL.fill=true;
+			chartedTrendsGroupL.wrap=false;
+			chartedTrendsGroupL.marginHeight=0;
+			chartedTrendsGroup.setLayout(chartedTrendsGroupL);
+			{
+				chartedTrendsButton = new Button(chartedTrendsGroup, SWT.PUSH);
+				chartedTrendsButton.setFont(MainGui.DEFAULTFONT);
+				chartedTrendsButton.setText(TRENDBUTTXT);
+				chartedTrendsButton.setToolTipText("This is to setup the display of gathered calculators trends.\nYou must select a share in the portfolio to display its analysis.");
 
-				@Override
-				public void widgetSelected(SelectionEvent e) {	
-					handleCalculatorSettingsSelection();
-				}
+				chartedTrendsButton.addSelectionListener(new SelectionListener() {
 
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {	
-					handleCalculatorSettingsSelection();
-				}
-
-				private void handleCalculatorSettingsSelection() {
-					initCalculatorSettingsPopup(true);
-				}
-
-			});
-
-		}
-		{
-			chartedTrendsButton = new Button(popusGroup, SWT.PUSH);
-			chartedTrendsButton.setFont(MainGui.DEFAULTFONT);
-			chartedTrendsButton.setText(TRENDBUTTXT);
-			chartedTrendsButton.setToolTipText("This is to setup the display of gathered calculators trends.\nYou must select a share in the portfolio to display its analysis.");
-
-			chartedTrendsButton.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {		
-					handleChartedTrendsSelection();
-				}
+					@Override
+					public void widgetSelected(SelectionEvent e) {		
+						handleChartedTrendsSelection();
+					}
 
 
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleChartedTrendsSelection();
-				}
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handleChartedTrendsSelection();
+					}
 
-				private void handleChartedTrendsSelection() {
-					initChartedTrendsPopup(true);
-				}
+					private void handleChartedTrendsSelection() {
+						initChartedTrendsPopup(true);
+					}
 
-			});
+				});
 
-		}
-		{
-			Button trendSettingsButton = new Button(popusGroup, SWT.NONE);
-			trendSettingsButton.setFont(MainGui.DEFAULTFONT);
-			trendSettingsButton.setText("Trends settings ...");
-			trendSettingsButton.addSelectionListener(new SelectionListener() {
+			}
+			{
+				Button trendSettingsButton = new Button(chartedTrendsGroup, SWT.NONE);
+				trendSettingsButton.setFont(MainGui.DEFAULTFONT);
+				trendSettingsButton.setText("Trends settings ...");
+				trendSettingsButton.addSelectionListener(new SelectionListener() {
 
-				@Override
-				public void widgetSelected(SelectionEvent e) {	
-					handleTrendSettingsSelection();
-				}
+					@Override
+					public void widgetSelected(SelectionEvent e) {	
+						handleTrendSettingsSelection();
+					}
 
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {	
-					handleTrendSettingsSelection();
-				}
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						handleTrendSettingsSelection();
+					}
 
-				private void handleTrendSettingsSelection() {
+					private void handleTrendSettingsSelection() {
 
-					ActionDialogAction action = new ActionDialogAction() {
+						ActionDialogAction action = new ActionDialogAction() {
 
-						@Override
-						public void action() {
+							@Override
+							public void action() {
 
-							Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
-							if (viewStateParams != null) {
-								highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND);
-							} else {
-								if  (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
-									String errorMessage = "You must select a share in the portfolio to display its analysis.";
-									showPopupDialog(errorMessage, "Ok", null, null);
+								Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
+								if (viewStateParams != null) {
+									highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND);
+								} else {
+									if  (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
+										String errorMessage = "You must select a share in the portfolio to display its analysis.";
+										showPopupDialog(errorMessage, "Ok", null, null);
+									}
 								}
 							}
+						};
+
+						if (trendSettingsDialog == null || trendSettingsDialog.getShell().isDisposed()) {
+							trendSettingsDialog = new BarSettingsDialog(chartTarget, trendSettings, action);
+							Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
+							trendSettings = trendSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
+						} else {
+							trendSettingsDialog.getShell().setVisible(true);
+							trendSettingsDialog.getShell().setActive();
+							trendSettingsDialog.getShell().setFocus();
 						}
-					};
 
-					if (trendSettingsDialog == null || trendSettingsDialog.getShell().isDisposed()) {
-						trendSettingsDialog = new BarSettingsDialog(chartTarget, trendSettings, action);
-						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-						trendSettings = trendSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
-					} else {
-						trendSettingsDialog.getShell().setVisible(true);
-						trendSettingsDialog.getShell().setActive();
-						trendSettingsDialog.getShell().setFocus();
 					}
+				});
 
-				}
-			});
-
+			}
 		}
 		{
-			recalculationButton = new Button(popusGroup, SWT.PUSH);
-			recalculationButton.setFont(MainGui.DEFAULTFONT);
-			recalculationButton.setText("Calculations Update");
-			recalculationButton.setEnabled(false);
-		}
-		{
-			Button forceRecalculationButton =  new Button(popusGroup, SWT.PUSH);
-			forceRecalculationButton.setFont(MainGui.DEFAULTFONT);
-			forceRecalculationButton.setText("Force Calculations Update");
-			RefreshableView parentView = chartTarget;
-			forceRecalculationButton.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+			Group recalcGroup = new Group(popusGroup, SWT.SHADOW_NONE);
+			RowLayout recalcGroupL = new RowLayout(SWT.VERTICAL);
+			recalcGroupL.justify = true;
+			recalcGroupL.fill=true;
+			recalcGroupL.wrap=false;
+			recalcGroupL.marginHeight=0;
+			recalcGroup.setLayout(recalcGroupL);
+			{
+				recalculationButton = new Button(recalcGroup, SWT.PUSH);
+				recalculationButton.setFont(MainGui.DEFAULTFONT);
+				recalculationButton.setText("Calculations Update");
+				recalculationButton.setEnabled(false);
+			}
+			{
+				Button forceRecalculationButton =  new Button(recalcGroup, SWT.PUSH);
+				forceRecalculationButton.setFont(MainGui.DEFAULTFONT);
+				forceRecalculationButton.setText("Force Calculations Update");
+				RefreshableView parentView = chartTarget;
+				forceRecalculationButton.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 
-				@Override
-				public void widgetSelected(SelectionEvent evt) {
-					LOGGER.guiInfo("Forced recalculation. Cleaning and Recalculating. Thanks for waiting ...");
+					@Override
+					public void widgetSelected(SelectionEvent evt) {
+						LOGGER.guiInfo("Forced recalculation. Cleaning and Recalculating. Thanks for waiting ...");
 
-					EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
+						EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
 
-					Set<EventInfo> allSelectedEventInfos = chartTarget.getChartedEvtDefsTrends();
-					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allSelectedEventInfos.add(chartTarget.getChartedEvtDef());
+						Set<EventInfo> allSelectedEventInfos = chartTarget.getChartedEvtDefsTrends();
+						if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allSelectedEventInfos.add(chartTarget.getChartedEvtDef());
 
-					if (allSelectedEventInfos != null && !allSelectedEventInfos.isEmpty() && chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
-						chartTarget.getHightlitedEventModel().setViewParam(0, allSelectedEventInfos);
-						chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty")); //The dirty state has to be checked on the TunedConf status of the EventInfo
+						if (allSelectedEventInfos != null && !allSelectedEventInfos.isEmpty() && chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
+							chartTarget.getHightlitedEventModel().setViewParam(0, allSelectedEventInfos);
+							chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty")); //The dirty state has to be checked on the TunedConf status of the EventInfo
+						}
+
+						//Will clean selected event infos for this stock
+						this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
+						super.widgetSelected(evt);
 					}
 
-					//Will clean selected event infos for this stock
-					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
-					super.widgetSelected(evt);
-				}
-
-			});
+				});
+			}
 		}
-
 		popusGroup.layout();
+		chartTarget.myPack();
 
 	}
 

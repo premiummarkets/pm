@@ -1083,19 +1083,9 @@ public class MainGui extends SashForm implements RefreshableView {
 			((PortfolioComposite)inst.winTable[2]).setWeights(new int[]{100-x1Port, x1Port});
 		}
 
-		//Chart
+		//Chart and Chart Buttons
 		{
-			Rectangle chartShashBounds = ((ChartsComposite)inst.winTable[1]).getClientArea();
-
-			Point chartPrefSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
-			Point chartCompositeSize = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
-			((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.setSize(chartCompositeSize);
-			Rectangle chartButtonsBounds = ((ChartsComposite)inst.winTable[1]).chartBoutonsGroup.getBounds();
-			int xChart = 100*chartButtonsBounds.height/chartShashBounds.height;
-			if ((100 -xChart) < 20) {
-				xChart=30;
-			}
-			((ChartsComposite)inst.winTable[1]).setWeights(new int[]{100-xChart, xChart});
+			((ChartsComposite)inst.winTable[1]).myPack();
 		}
 	}
 

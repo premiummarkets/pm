@@ -15,6 +15,7 @@
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
 	<test>false</test>
 	<pm.buildtime>${timestamp}</pm.buildtime>
+	<swt.version>4.3</swt.version>
   </properties>
   <dependencies>
     <dependency>
@@ -68,12 +69,12 @@
 			<artifactId>swt-4.4-gtk-linux-x86_64</artifactId>
 			<version>4.4</version>
 		</dependency> -->
-		<dependency>
-			<groupId>swt</groupId>
-			<artifactId>swt-4.4-gtk-linux-x86</artifactId>
-			<version>4.4</version>
-			<scope>provided</scope>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>swt</groupId> -->
+<!-- 			<artifactId>swt-4.4-gtk-linux-x86</artifactId> -->
+<!-- 			<version>4.4</version> -->
+<!-- 			<scope>provided</scope> -->
+<!-- 		</dependency> -->
 	<!-- 	<dependency>
 			<groupId>swt</groupId>
 			<artifactId>swt-4.4-gtk-solaris-sparc</artifactId>
@@ -94,6 +95,33 @@
 			<artifactId>swt-4.4-win32-win32-x86</artifactId>
 			<version>4.4</version>
 		</dependency> -->
+	<dependency>
+		<groupId>org.eclipse.swt</groupId>
+		<artifactId>org.eclipse.swt.win32.win32.x86_64</artifactId>
+		<version>${swt.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.eclipse.swt</groupId>
+		<artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
+		<version>${swt.version}</version>
+		<!-- To use the debug jar, add this -->
+<!-- 		<classifier>debug</classifier> -->
+	</dependency>
+	<dependency>
+		<groupId>org.eclipse.swt</groupId>
+		<artifactId>org.eclipse.swt.gtk.linux.x86</artifactId>
+		<version>${swt.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.eclipse.swt</groupId>
+		<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
+		<version>${swt.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.eclipse.swt</groupId>
+		<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
+		<version>${swt.version}</version>
+	</dependency>
 	<dependency>
 		<groupId>org.easymock</groupId>
 		<artifactId>easymock</artifactId>

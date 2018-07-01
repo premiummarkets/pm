@@ -68,6 +68,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -243,6 +244,19 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		return portfolioComposite.getCurrentShareSelectionIdx();
 	}
 
+	public void myPack() {
+		Rectangle chartShashBounds = this.getClientArea();
+
+		org.eclipse.swt.graphics.Point chartPrefSize = this.chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+		org.eclipse.swt.graphics.Point chartCompositeSize = this.chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
+		this.chartBoutonsGroup.setSize(chartCompositeSize);
+		Rectangle chartButtonsBounds = this.chartBoutonsGroup.getBounds();
+		int xChart = 100*chartButtonsBounds.height/chartShashBounds.height;
+		if ((100 -xChart) < 20) {
+			xChart=30;
+		}
+		this.setWeights(new int[]{100-xChart, xChart});
+	}
 
 	private void initGUI() {
 		try {
@@ -475,7 +489,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						}
 
 
-						//Gain focus mgt						
+						//Gain focus mgnt
 						if (!closeRequested) {
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
@@ -569,7 +583,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				chartBoutonsGroup.setFont(MainGui.DEFAULTFONT);
 				chartBoutonsGroup.setBackground(innerBgColor);
 
-				//TODO Update button : change layout to grid with 3 columns and 2 lines
 				{
 					popusGroup = new Group(chartBoutonsGroup, SWT.NONE);
 					GridData popusGroupData = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -581,7 +594,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					popusGroupL.wrap=false;
 					popusGroupL.marginHeight=0;
 					popusGroup.setLayout(popusGroupL);
-
 				}
 
 				//Sliding
