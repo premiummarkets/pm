@@ -53,6 +53,7 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
@@ -122,25 +123,28 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	protected static final String TRENDBUTTXT = "Charted Trends ...";
 	private static final String INDICATORSBUTTXT = "Charted Calculator ...";
 
-	private Button evtDefsTrendChartingBut;
-	private Button evtDefsChartingBut;
+	private Button chartedCalculatorButton;
+	private PopupMenu<EventInfo> chartedCalculatorPopupMenu;
 
-	private PopupMenu<EventInfo> evtDefTrendPopupMenu;
-	private PopupMenu<EventInfo> evtDefChartingPopupMenu;
+	private Button calculatorSettingsButton;
+	private PopupMenu<OutputDescr> calculatorSettingsPopupMenu;
 
-	private BarSettings barChartSettings;
-	private BarSettingsDialog barSettingsDialog;
+	private Button chartedTrendsButton;
+	private PopupMenu<EventInfo> chartedTrendsPopupMenu;
 
-	private PopupMenu<OutputDescr> chartSettingsPopup;
+	//private Button trendSettingsButton
+	private BarSettings trendSettings;
+	private BarSettingsDialog trendSettingsDialog;
 
-	private Button indicSettings;
+	private Button recalculationButton;
 
 	private Map<EventInfo, TuningResDTO> tuningRessCache = new HashMap<>();
+
 
 	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
 		super();
 
-		this.barChartSettings = new BarSettings();
+		this.trendSettings = new BarSettings();
 
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
@@ -218,9 +222,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
 						} else {
 							LOGGER.info("Disposing of the graph settings popup as nothing evt def is selected for charting");
-							if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
-								chartSettingsPopup.inhibate();
-								chartSettingsPopup.getSelectionShell().dispose();
+							if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+								calculatorSettingsPopupMenu.inhibate();
+								calculatorSettingsPopupMenu.getSelectionShell().dispose();
 							}
 						}
 					}
@@ -247,8 +251,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			//Message if all areas are empty.
 			if (!areEvtDefsTrendsSelected && !isEvtDefGraphSelected){
-				String errorMessage ="No Calculator or Trend is selected.\n Use the buttons below the chart to select a calculator and trends.";
-				showPopupDialog(errorMessage, "Ok", null, null);
+//				String errorMessage ="No Calculator or Trend is selected.\n Use the buttons below the chart to select a calculator and trends.";
+//				showPopupDialog(errorMessage, "Ok", null, null);
+				chartedCalculatorButton.forceFocus();
+				initChartedCalculatorPopup(true);
 			}
 
 		} finally {
@@ -268,11 +274,25 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			@Override
 			public void widgetSelected(SelectionEvent evt) {
+
 				LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
 				EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
 				//Will clean notUpToDateEI (selected event infos which have no output cached) event infos for this stock
 				this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
+
 				super.widgetSelected(evt);
+
+				if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
+					updateChartIndicator(selectedShare, false, true);
+				}
+				if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
+					updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), false, true);
+				}
+
+				recalculationButton.setForeground(null);
+				recalculationButton.setEnabled(false);
+				recalculationButton.setToolTipText("You can click on this when calculation needs updated");
+				recalculationButton.removeSelectionListener(this);
 			}
 
 		};
@@ -286,37 +306,21 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			chartTarget.getHightlitedEventModel().setViewParam(0, notUpToDateEI);
 
 			String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
-			String click = "Click to update calculations";
 			if (minDate.after(new Date(0))) msg = msg +"\nMinimun calculation date reached for this stock : "+new SimpleDateFormat("MMM dd yyyy").format(minDate);
 			for (EventInfo eventInfo : notUpToDateEI) {
 				if (chartTarget.getChartedEvtDefsTrends().contains(eventInfo) || chartTarget.getChartedEvtDef().equals(eventInfo)) {
 					msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 
 				}
 			}
-			ActionDialogAction action  = new ActionDialogAction() {
 
-				@Override
-				public void action() {		
-					ctrller.widgetSelected(null);
-					if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-						updateChartIndicator(selectedShare, false, true);
-					} else {
-						if (chartSettingsPopup != null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
-							chartSettingsPopup.getSelectionShell().dispose();
-						}
-					}
-
-					if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {     
-						updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), false, true);
-					}
-				}
-
-			};
-
-			showPopupDialog(msg, click, null, action);
+			recalculationButton.addSelectionListener(ctrller);
+			recalculationButton.setToolTipText(msg);
+			recalculationButton.setForeground(new Color(chartTarget.getDisplay(), 255, 0, 0));
+			recalculationButton.setEnabled(true);
+			recalculationButton.forceFocus();
 
 		} else {
-			//hidePopupDialog();
+			//Nothing as disabling should happened in the EventSelectionListener itself.
 		}
 
 	}
@@ -382,14 +386,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							try {
 								SymbolEvents ses = (SymbolEvents) arg;
 								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = 
-										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, barChartSettings);
-								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), barChartSettings, chartTarget.getPlotChartDimensions());
+										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, trendSettings);
+								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {
 								LOGGER.error(
 										"arg : "+ arg +
 										", chartTarget.getMainChartWraper() : "+chartTarget.getMainChartWraper()+
 										", chartTarget.getHighligtedId() : "+chartTarget.getHighligtedId()+
-										", barChartSettings : "+barChartSettings+
+										", barChartSettings : "+trendSettings+
 										", chartTarget.getPlotChartDimensions() : "+chartTarget.getPlotChartDimensions(),e);
 							}
 						}
@@ -470,8 +474,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			}
 
-			if (chartSettingsPopup!= null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
-				initChartSettingsPopup(false);
+			if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+				initCalculatorSettingsPopup(false);
 			}
 
 		}
@@ -494,102 +498,102 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		cleanPopupButtonsGroup(popusGroup);
 
 		{
-			evtDefsChartingBut = new Button(popusGroup, SWT.PUSH);
-			evtDefsChartingBut.setFont(MainGui.DEFAULTFONT);
-			evtDefsChartingBut.setText(INDICATORSBUTTXT);
-			evtDefsChartingBut.setToolTipText("This is to setup the display of calculators historical data at the bottom of the chart.\nYou must select a share in the portfolio to display its analysis.");
+			chartedCalculatorButton = new Button(popusGroup, SWT.PUSH);
+			chartedCalculatorButton.setFont(MainGui.DEFAULTFONT);
+			chartedCalculatorButton.setText(INDICATORSBUTTXT);
+			chartedCalculatorButton.setToolTipText("This is to setup the display of calculators historical data at the bottom of the chart.\nYou must select a share in the portfolio to display its analysis.");
 
-			evtDefsChartingBut.addSelectionListener(new SelectionListener() {
+			chartedCalculatorButton.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {		
-					handleEvent();
+					handleChartedCalculatorSelection();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleEvent();
+					handleChartedCalculatorSelection();
 				}
 
-				private void handleEvent() {
+				private void handleChartedCalculatorSelection() {
 					LOGGER.info("populatePopups : initEvtChartingPopup");
-					initEvtChartingPopup(true);
+					initChartedCalculatorPopup(true);
 				}
 
 			});
 
 		}
 		{
-			indicSettings = new Button(popusGroup, SWT.NONE);
-			indicSettings.setFont(MainGui.DEFAULTFONT);
-			indicSettings.setText("Calculator settings ...");
-			indicSettings.setToolTipText(
+			calculatorSettingsButton = new Button(popusGroup, SWT.NONE);
+			calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
+			calculatorSettingsButton.setText("Calculator settings ...");
+			calculatorSettingsButton.setToolTipText(
 					"Only user defined calculators can be customised.\n" +
 							"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
 							"And wait for its calculation to finish before changing the display settings.\n" +
 					"New calculators can be defined using the menu Events -> Customise and create calculators ...");
-			indicSettings.addSelectionListener(new SelectionListener() {
+			calculatorSettingsButton.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {	
-					handleIndicSettingsSelection();
+					handleCalculatorSettingsSelection();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {	
-					handleIndicSettingsSelection();
+					handleCalculatorSettingsSelection();
 				}
 
-				private void handleIndicSettingsSelection() {
-					initChartSettingsPopup(true);
+				private void handleCalculatorSettingsSelection() {
+					initCalculatorSettingsPopup(true);
 				}
 
 			});
 
 		}
 		{
-			evtDefsTrendChartingBut = new Button(popusGroup, SWT.PUSH);
-			evtDefsTrendChartingBut.setFont(MainGui.DEFAULTFONT);
-			evtDefsTrendChartingBut.setText(TRENDBUTTXT);
-			evtDefsTrendChartingBut.setToolTipText("This is to setup the display of gathered calculators trends.\nYou must select a share in the portfolio to display its analysis.");
+			chartedTrendsButton = new Button(popusGroup, SWT.PUSH);
+			chartedTrendsButton.setFont(MainGui.DEFAULTFONT);
+			chartedTrendsButton.setText(TRENDBUTTXT);
+			chartedTrendsButton.setToolTipText("This is to setup the display of gathered calculators trends.\nYou must select a share in the portfolio to display its analysis.");
 
-			evtDefsTrendChartingBut.addSelectionListener(new SelectionListener() {
+			chartedTrendsButton.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {		
-					handleEvent();
+					handleChartedTrendsSelection();
 				}
 
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleEvent();
+					handleChartedTrendsSelection();
 				}
 
-				private void handleEvent() {
-					initEvtDefTrendPopup(true);
+				private void handleChartedTrendsSelection() {
+					initChartedTrendsPopup(true);
 				}
 
 			});
 
 		}
 		{
-			Button barSettings = new Button(popusGroup, SWT.NONE);
-			barSettings.setFont(MainGui.DEFAULTFONT);
-			barSettings.setText("Trends settings ...");
-			barSettings.addSelectionListener(new SelectionListener() {
+			Button trendSettingsButton = new Button(popusGroup, SWT.NONE);
+			trendSettingsButton.setFont(MainGui.DEFAULTFONT);
+			trendSettingsButton.setText("Trends settings ...");
+			trendSettingsButton.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {	
-					handleIndicSettingsSelection();
+					handleTrendSettingsSelection();
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {	
-					handleIndicSettingsSelection();
+					handleTrendSettingsSelection();
 				}
 
-				private void handleIndicSettingsSelection() {
+				private void handleTrendSettingsSelection() {
 
 					ActionDialogAction action = new ActionDialogAction() {
 
@@ -608,14 +612,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						}
 					};
 
-					if (barSettingsDialog == null || barSettingsDialog.getShell().isDisposed()) {
-						barSettingsDialog = new BarSettingsDialog(chartTarget, barChartSettings, action);
+					if (trendSettingsDialog == null || trendSettingsDialog.getShell().isDisposed()) {
+						trendSettingsDialog = new BarSettingsDialog(chartTarget, trendSettings, action);
 						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-						barChartSettings = barSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
+						trendSettings = trendSettingsDialog.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y));
 					} else {
-						barSettingsDialog.getShell().setVisible(true);
-						barSettingsDialog.getShell().setActive();
-						barSettingsDialog.getShell().setFocus();
+						trendSettingsDialog.getShell().setVisible(true);
+						trendSettingsDialog.getShell().setActive();
+						trendSettingsDialog.getShell().setFocus();
 					}
 
 				}
@@ -623,15 +627,21 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		}
 		{
-			Button recalc =  new Button(popusGroup, SWT.PUSH);
-			recalc.setFont(MainGui.DEFAULTFONT);
-			recalc.setText("Force&&Update Calculations");
+			recalculationButton = new Button(popusGroup, SWT.PUSH);
+			recalculationButton.setFont(MainGui.DEFAULTFONT);
+			recalculationButton.setText("Calculations Update");
+			recalculationButton.setEnabled(false);
+		}
+		{
+			Button forceRecalculationButton =  new Button(popusGroup, SWT.PUSH);
+			forceRecalculationButton.setFont(MainGui.DEFAULTFONT);
+			forceRecalculationButton.setText("Force Calculations Update");
 			RefreshableView parentView = chartTarget;
-			recalc.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+			forceRecalculationButton.addSelectionListener(new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
-					LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
+					LOGGER.guiInfo("Forced recalculation. Cleaning and Recalculating. Thanks for waiting ...");
 
 					EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
 
@@ -747,17 +757,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 		}
 
-		if (evtDefChartingPopupMenu != null && !evtDefChartingPopupMenu.getSelectionShell().isDisposed()) {
+		if (chartedCalculatorPopupMenu != null && !chartedCalculatorPopupMenu.getSelectionShell().isDisposed()) {
 			LOGGER.info("refreshView : initEvtChartingPopup");
-			initEvtChartingPopup(false);
+			initChartedCalculatorPopup(false);
 		}
 
-		if (evtDefTrendPopupMenu!= null && !evtDefTrendPopupMenu.getSelectionShell().isDisposed()) {
-			initEvtDefTrendPopup(false);
+		if (chartedTrendsPopupMenu!= null && !chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
+			initChartedTrendsPopup(false);
 		}
 	}
 
-	private void initEvtDefTrendPopup(Boolean activate) {
+	private void initChartedTrendsPopup(Boolean activate) {
 
 		Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 		ActionDialogAction disactivateAction = new ActionDialogAction() {
@@ -779,19 +789,19 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 		};
 
-		if (evtDefTrendPopupMenu == null || evtDefTrendPopupMenu.getSelectionShell().isDisposed()) {
+		if (chartedTrendsPopupMenu == null || chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
 
-			evtDefTrendPopupMenu = new PopupMenu<EventInfo>(chartTarget, evtDefsTrendChartingBut, availEventDefs, chartTarget.getChartedEvtDefsTrends(), false, true, SWT.CHECK, null, disactivateAction, true);
+			chartedTrendsPopupMenu = new PopupMenu<EventInfo>(chartTarget, chartedTrendsButton, availEventDefs, chartTarget.getChartedEvtDefsTrends(), false, true, SWT.CHECK, null, disactivateAction, true);
 			Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-			evtDefTrendPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), true);
+			chartedTrendsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), true);
 
 		} else {
 
-			evtDefTrendPopupMenu.updateAction(availEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
-			evtDefTrendPopupMenu.getSelectionShell().setVisible(true);
+			chartedTrendsPopupMenu.updateAction(availEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
+			chartedTrendsPopupMenu.getSelectionShell().setVisible(true);
 			if (activate) {
-				evtDefTrendPopupMenu.getSelectionShell().setActive();
-				evtDefTrendPopupMenu.getSelectionShell().setFocus();
+				chartedTrendsPopupMenu.getSelectionShell().setActive();
+				chartedTrendsPopupMenu.getSelectionShell().setFocus();
 			}
 
 		}
@@ -799,7 +809,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 
-	private void initEvtChartingPopup(Boolean activatePopup) {
+	private void initChartedCalculatorPopup(Boolean activatePopup) {
 
 		Set<EventInfo> availEventDefs = new HashSet<EventInfo>(EventDefinition.loadMaxPassPrefsEventInfo());
 		availEventDefs.add(EventDefinition.ZERO);
@@ -831,26 +841,26 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 		};
 
-		if (evtDefChartingPopupMenu == null || evtDefChartingPopupMenu.getSelectionShell().isDisposed()) {
+		if (chartedCalculatorPopupMenu == null || chartedCalculatorPopupMenu.getSelectionShell().isDisposed()) {
 
-			evtDefChartingPopupMenu = new PopupMenu<EventInfo>(chartTarget, evtDefsChartingBut, availEventDefs, chartedEvtDefTmpSet, false, false, SWT.RADIO, action);
+			chartedCalculatorPopupMenu = new PopupMenu<EventInfo>(chartTarget, chartedCalculatorButton, availEventDefs, chartedEvtDefTmpSet, false, false, SWT.RADIO, action);
 			Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-			evtDefChartingPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), false);
+			chartedCalculatorPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), false);
 
 		} else {
 
-			evtDefChartingPopupMenu.updateAction(availEventDefs, chartedEvtDefTmpSet, action, null, null);
-			evtDefChartingPopupMenu.getSelectionShell().setVisible(true);
+			chartedCalculatorPopupMenu.updateAction(availEventDefs, chartedEvtDefTmpSet, action, null, null);
+			chartedCalculatorPopupMenu.getSelectionShell().setVisible(true);
 			if (activatePopup) {
-				evtDefChartingPopupMenu.getSelectionShell().setActive();
-				evtDefChartingPopupMenu.getSelectionShell().setFocus();
+				chartedCalculatorPopupMenu.getSelectionShell().setActive();
+				chartedCalculatorPopupMenu.getSelectionShell().setFocus();
 			}
 
 		}
 
 	}
 
-	private void initChartSettingsPopup(Boolean activatePopup) {
+	private void initCalculatorSettingsPopup(Boolean activatePopup) {
 
 		try {
 
@@ -897,23 +907,23 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					};
 
-					if (chartSettingsPopup == null || chartSettingsPopup.getSelectionShell().isDisposed()) {
-						chartSettingsPopup = new PopupMenu<OutputDescr>(chartTarget, indicSettings, availableOutputs, displayedOutputs, false, true, SWT.CHECK, null, disactivateAction, true);
+					if (calculatorSettingsPopupMenu == null || calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayedOutputs, false, true, SWT.CHECK, null, disactivateAction, true);
 						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-						chartSettingsPopup.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
+						calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
 					} else {
-						chartSettingsPopup.updateAction(availableOutputs, displayedOutputs, null, disactivateAction, true);
-						chartSettingsPopup.getSelectionShell().setVisible(true);
+						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayedOutputs, null, disactivateAction, true);
+						calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
 						if (activatePopup) {
-							chartSettingsPopup.getSelectionShell().setActive();
-							chartSettingsPopup.getSelectionShell().setFocus();
+							calculatorSettingsPopupMenu.getSelectionShell().setActive();
+							calculatorSettingsPopupMenu.getSelectionShell().setFocus();
 						}
 					}
 
 				} else {
 
-					if (chartSettingsPopup!= null && !chartSettingsPopup.getSelectionShell().isDisposed()) {
-						chartSettingsPopup.getSelectionShell().dispose();
+					if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+						calculatorSettingsPopupMenu.getSelectionShell().dispose();
 					}
 					isEmptyOutputIndicator = true;
 
@@ -935,8 +945,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	@Override
 	public void shutDownDisplay() {
 
-		if (evtDefChartingPopupMenu != null) evtDefChartingPopupMenu.getSelectionShell().dispose();
-		if (evtDefTrendPopupMenu != null) evtDefTrendPopupMenu.getSelectionShell().dispose();
+		if (chartedCalculatorPopupMenu != null) chartedCalculatorPopupMenu.getSelectionShell().dispose();
+		if (chartedTrendsPopupMenu != null) chartedTrendsPopupMenu.getSelectionShell().dispose();
 
 		chartTarget.getMainChartWraper().resetLineChart();
 		chartTarget.getMainChartWraper().resetBarChart();

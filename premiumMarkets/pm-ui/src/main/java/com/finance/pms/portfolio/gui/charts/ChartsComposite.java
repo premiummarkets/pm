@@ -569,9 +569,10 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				chartBoutonsGroup.setFont(MainGui.DEFAULTFONT);
 				chartBoutonsGroup.setBackground(innerBgColor);
 
+				//TODO Update button : change layout to grid with 3 columns and 2 lines
 				{
 					popusGroup = new Group(chartBoutonsGroup, SWT.NONE);
-					GridData popusGroupData = new GridData(SWT.FILL, SWT.FILL,true, false);
+					GridData popusGroupData = new GridData(SWT.FILL, SWT.FILL, true, false);
 					popusGroup.setLayoutData(popusGroupData);
 					popusGroup.setBackground(innerBgColor);
 					RowLayout popusGroupL = new RowLayout(SWT.HORIZONTAL);
@@ -651,7 +652,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						endDateLabel.setFont(MainGui.DEFAULTFONT);
 					}
 
-					//but start
+					//button start
 					{
 						Button startOneYearBack = new Button(slidingGroup, SWT.ARROW|SWT.LEFT);
 						GridData startOneYearBackData = new GridData(SWT.END, SWT.FILL,false, true);
@@ -726,7 +727,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 							}
 						});
 					}
-					///but end
+					///button end
 
 					{
 						Button endOneYearBack = new Button(slidingGroup, SWT.ARROW|SWT.LEFT);

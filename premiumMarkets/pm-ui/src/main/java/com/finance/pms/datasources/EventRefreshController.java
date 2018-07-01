@@ -55,7 +55,7 @@ import com.finance.pms.threads.ObserverMsg;
  * 
  * @author Guillaume Thoreton
  */
-public class EventRefreshController implements  SelectionListener { //MouseListener,
+public class EventRefreshController implements SelectionListener { //MouseListener,
 
     private static MyLogger LOGGER = MyLogger.getLogger(EventRefreshController.class);
 
