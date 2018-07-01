@@ -115,7 +115,6 @@ public class EventRefreshController implements SelectionListener { //MouseListen
                 return;
             }
 
-
             List<EventRefreshTask> tasksGroup = new ArrayList<EventRefreshController.EventRefreshTask>();
 
             if (taskIds.contains(TaskId.FetchLists) ) { // && isFetchListStocks() ) {	

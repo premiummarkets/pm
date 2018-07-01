@@ -38,8 +38,6 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.EventDefinition;
@@ -119,6 +117,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 					if (operation != null) actualReplaceInUse(getCurrentOperations().values(), operation);
 					break;
 				case RESET_OPS_INMEM_INSTANCES :	//Reset ops list from scratch
+					resetCaches();
 					resetUserOperations();
 					updateEditableOperationLists();
 					break;
@@ -213,8 +212,8 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	@Override
 	public void resetCaches() {
-		throw new NotImplementedException();
-	}	
+		getUserEnabledOperations().values().stream().forEach(o -> clearPreviousCalculations(o));
+	}
 
 	@Override
 	protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
