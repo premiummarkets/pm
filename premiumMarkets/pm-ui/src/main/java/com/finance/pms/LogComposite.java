@@ -47,9 +47,9 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.threads.ObserverMsg;
 
 public class LogComposite extends Composite implements Observer, Comparable<Observer> {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(LogComposite.class);
-	
+
 	public Label logDisplay;
 	public ProgressBar progressBar;
 	public Label progressBarLabel;
@@ -61,7 +61,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 
 	public LogComposite(Composite parent) {
 		super(parent, SWT.NONE);
-		
+
 		{
 			GridLayout group1Layout = new GridLayout();
 			group1Layout.numColumns = 10;
@@ -69,13 +69,13 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			group1Layout.verticalSpacing = 0;
 			group1Layout.makeColumnsEqualWidth = true;
 			this.setLayout(group1Layout);
-			
+
 			this.setBackgroundMode(SWT.INHERIT_DEFAULT);
 			{
 				logDisplay = new Label(this,SWT.NONE);
-			    GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
-			    logDisplayGD.horizontalSpan=4;
-			    logDisplay.setLayoutData(logDisplayGD);
+				GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
+				logDisplayGD.horizontalSpan=4;
+				logDisplay.setLayoutData(logDisplayGD);
 				logDisplay.setFont(MainGui.DEFAULTFONT);
 				logDisplay.setForeground(new Color(getDisplay(),255,0,0));
 			}
@@ -84,7 +84,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
 				logDisplayGD.horizontalSpan=4;
 				progressBar.setLayoutData(logDisplayGD);
-				
+
 				progressBar.setFont(MainGui.DEFAULTFONT);
 				progressBar.setMaximum(100);
 				progressBar.setSelection(0);
@@ -102,28 +102,31 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		}
 		this.layout();
 		this.pack();
-				
+
 	}
-	
+
 	public void progressBarUpdate() {
 
 		long currentTime = (new Date()).getTime();
-		
+
 		long timeElapsed = (nbIterDone == 0)? 0 : (currentTime - startTime);
-		
+
 		if (timeElapsed > 0) {
 			String timeElapsedStr = timeElapsed/(1000*60) + " minutes "+ (timeElapsed - (1000*60)*(timeElapsed/(1000*60)))/1000 + " seconds.";
 			progressBarLabel.setText("Time elapsed : " + timeElapsedStr);
 			progressBarLabel.pack();
 		}
-		
-		logDisplay.setText(MyLogger.lastMsg.getLastMessage());
-		logDisplay.setToolTipText(MyLogger.lastMsg.getLastMessage());
-		logDisplay.pack();
-		
+
+		String lastMessage = MyLogger.lastMsg.getLastMessage();
+		if (lastMessage != null) {
+			logDisplay.setText(lastMessage);
+			logDisplay.setToolTipText(lastMessage);
+			logDisplay.pack();
+		}
+
 		double percentDone = (totalIter == 0)? 0 : new Double(nbIterDone)/new Double(totalIter);
 		progressBar.setSelection((int) Math.rint(percentDone*100));
-		
+
 		this.layout();
 
 	}
@@ -132,23 +135,23 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 		progressBarLabel.setText("_ _ _");
 		progressBar.setSelection(0);
 		logDisplay.setText("");
-		
+
 		progressBarLabel.pack();
 		logDisplay.pack();
-		
+
 		this.layout();
 
 		view.refreshView(exceptions);
 	}
 
 	public void initRefresh(RefreshableView view) {
-		
+
 		progressBar.setSelection(0);
 		startTime = (new Date()).getTime();
 		this.view = view;
-		
+
 		Observer observer = new Observer() {
-			
+
 			@Override
 			public void update(Observable o, final Object arg) {
 
@@ -164,50 +167,50 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				});
 			}
 		};
-		
+
 		MyLogger.lastMsg.addObserver(observer);
 	}
 
 	public void update(Observable o, Object arg) {
-		
+
 		ObserverMsg observerMsg = (ObserverMsg) arg;
-	
+
 		if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.INITMSG)) { //Logger init
-			
+
 			try {
 				totalIter = (Integer) observerMsg.getNameValuePairs().get(0).value;
 				nbIterDone = 0;
-				
+
 				Display.getDefault().asyncExec(new Runnable() {
-					
+
 					public void run() {
 						if (totalIter != null && nbIterDone != null) {
 							progressBarUpdate();
 						}
 					}
-					
+
 				});
-				
+
 			} catch (Exception e) {
 				LOGGER.warn("Unhandled logger notification : "+arg);
 			}
-	
+
 		} else if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) { //Logger end
-			
+
 			//refresh is done in endJob()
 			//view.refreshView();
-			
+
 		} else {//Increment
-		
+
 			Display.getDefault().asyncExec(new Runnable() {
-	
+
 				public void run() {
 					if (totalIter != null && nbIterDone != null) {
 						nbIterDone ++;
 						progressBarUpdate();
 					}
 				}
-				
+
 			});
 		}	
 	}
