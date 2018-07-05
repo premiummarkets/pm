@@ -59,7 +59,7 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 
 	public RSIThreshold(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer[] observers) {
 		super(observers);
-		init(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+		init(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
 	}
 
 	public RSIThreshold() {

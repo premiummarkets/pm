@@ -528,7 +528,7 @@ public class ChartMain extends Chart {
 		EventQueue.invokeLater(runnable);
 	}
 
-	public void updateIndicDataSet(final EventInfo chartedEvtDef, final SortedMap<Date, double[]> series, final Rectangle2D plotArea) {
+	public void updateIndicDataSet(final Map<EventInfo, SortedMap<Date, double[]>> eventsSeries, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
 
@@ -547,12 +547,12 @@ public class ChartMain extends Chart {
 
 						indicPlot = new XYPlot(null, null, null, indicRenderer);
 						//indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
-						indicPlot.setNoDataMessage("No indicator output available. Click 'Calculations Update'.\nAlso check that the selected stock and date ranges are valid.");
+						indicPlot.setNoDataMessage("No indicator output available. Click 'Calculations Update' or 'Calculator Settings'.\nAlso check that the selected stock and date ranges are valid.");
 						indicPlot.setDomainMinorGridlinesVisible(true);
 					}
 
 					//Chart
-					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, chartedEvtDef, series);
+					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, eventsSeries);
 					dataSetBuilder.build();
 
 					//Combine group

@@ -137,7 +137,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	//TODO mv to ChartIndicatorDisplay Strategy (+ getInstance instead of new one Strategy object to keep state)
 	private SortedSet<EventInfo> chartedEvtDefsTrends;
-	private EventInfo chartedEvtDef;
 
 	public Group chartBoutonsGroup;
 	private Group popusGroup;
@@ -175,7 +174,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHighlighted(), logComposite);
 
 		this.chartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
-		this.chartedEvtDef = EventDefinition.ZERO;
 
 		this.sliderSelection = false;
 
@@ -1062,12 +1060,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
 	protected void checkChartSelectionValidity() {
-		try {
-			chartedEvtDef = EventDefinition.valueOfEventInfo(chartedEvtDef.getEventDefinitionRef());
-		} catch (NoSuchFieldException e) {
-			LOGGER.warn("Event info as been disabled or deleted. Removing from chart indicators selection : "+chartedEvtDef);
-			chartedEvtDef = EventDefinition.ZERO;
-		}
 
 		SortedSet<EventInfo> updatedChartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
 		for (EventInfo eventInfo : chartedEvtDefsTrends) {
@@ -1082,7 +1074,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
 	@Override
-	public Date getAnalysisStartDate() {		
+	public Date getAnalysisStartDate() {
 		return this.slidingStartDate;
 	}
 
@@ -1128,15 +1120,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	public Set<EventInfo> getChartedEvtDefsTrends() {
 		return chartedEvtDefsTrends;
-	}
-
-	public EventInfo getChartedEvtDef() {
-		return chartedEvtDef;
-	}
-
-
-	public void setChartedEvtDef(EventInfo chartedEvtDef) {
-		this.chartedEvtDef = chartedEvtDef;
 	}
 
 

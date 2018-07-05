@@ -125,9 +125,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	protected static final String TRENDBUTTXT = "Charted Trends ...";
 	private static final String INDICATORSBUTTXT = "Charted Calculator ...";
 
-	private Button chartedCalculatorButton;
-	private PopupMenu<EventInfo> chartedCalculatorPopupMenu;
-
 	private Button calculatorSettingsButton;
 	private PopupMenu<OutputDescr> calculatorSettingsPopupMenu;
 
@@ -156,7 +153,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						"First select a stock in your portfolio.\n" +
 						"Then use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select calculators.\n" +
 				"Also check the portfolio stocks and sliding date ranges. Quotations have to be available.");
-		
+
 
 		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice());
 
@@ -178,7 +175,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			this.chartTarget.getShell().setEnabled(false);
 			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 
-
 			chartTarget.getMainChartWraper().setMainYAxisLabel("");
 			if (idx == null || selectedShare == null ) {
 				return;
@@ -196,16 +192,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			chartTarget.getMainChartWraper().setMainYAxisLabel(selectedShare.getFriendlyName());
 			chartTarget.getMainChartWraper().highLightSerie(idx, 1);
 
-			boolean isEvtDefGraphSelected = !EventDefinition.ZERO.equals(chartTarget.getChartedEvtDef());
 			boolean areEvtDefsTrendsSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
-			if (areEvtDefsTrendsSelected || isEvtDefGraphSelected) {//Some thing has to be displayed
+			if (areEvtDefsTrendsSelected) {//Some thing has to be displayed
 
 				//We try and run
 				try {
 					//Gather event infos selected
 					Set<EventInfo> allEvtInfos = chartTarget.initChartedEvtDefsTrendsSet();
 					allEvtInfos.addAll(chartTarget.getChartedEvtDefsTrends());
-					if (isEvtDefGraphSelected) allEvtInfos.add(chartTarget.getChartedEvtDef());
 
 					//Gather obsolete calculations
 					HashSet<EventInfo> notUpToDateEventInfos = new HashSet<EventInfo>();
@@ -220,19 +214,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					List<PopupType> popupTypesList = Arrays.asList(popupTypes);
 
 					if (popupTypesList.contains(PopupType.EVTCHARTING)) {
-						if (isEvtDefGraphSelected) {
-							chartTarget.getMainChartWraper().resetIndicChart();
-							updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
-						} else {
-							LOGGER.info("Disposing of the graph settings popup as nothing evt def is selected for charting");
-							if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-								calculatorSettingsPopupMenu.inhibate();
-								calculatorSettingsPopupMenu.getSelectionShell().dispose();
-							}
-						}
+						chartTarget.getMainChartWraper().resetIndicChart();
+						updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
 					}
 
-					if (popupTypesList.contains(PopupType.EVTTREND) && areEvtDefsTrendsSelected) {
+					if (popupTypesList.contains(PopupType.EVTTREND)) {
 						chartTarget.getMainChartWraper().resetBarChart();
 						updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, recalculationGranted);
 					}
@@ -246,16 +232,13 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					LOGGER.error(e,e);
 				}
 
-			} 
+			}
 
 			//Clear chart areas if nothing is to be displayed
-			if (!isEvtDefGraphSelected) chartTarget.getMainChartWraper().resetIndicChart();
-			if (!areEvtDefsTrendsSelected) chartTarget.getMainChartWraper().resetBarChart();
-
-			//Message if all areas are empty.
-			if (!areEvtDefsTrendsSelected && !isEvtDefGraphSelected){
-				chartedCalculatorButton.forceFocus();
-				initChartedCalculatorPopup(false);
+			if (!areEvtDefsTrendsSelected) {
+				chartTarget.getMainChartWraper().resetIndicChart();
+				chartTarget.getMainChartWraper().resetBarChart();
+				initChartedTrendsPopup(false);
 			}
 
 		} finally {
@@ -283,10 +266,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				super.widgetSelected(evt);
 
-				if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-					updateChartIndicator(selectedShare, false, true);
-				}
 				if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
+					updateChartIndicator(selectedShare, false, true);
 					updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), false, true);
 				}
 
@@ -309,7 +290,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
 			if (minDate.after(new Date(0))) msg = msg +"\nMinimun calculation date reached for this stock : "+new SimpleDateFormat("MMM dd yyyy").format(minDate);
 			for (EventInfo eventInfo : notUpToDateEI) {
-				if (chartTarget.getChartedEvtDefsTrends().contains(eventInfo) || chartTarget.getChartedEvtDef().equals(eventInfo)) {
+				if (chartTarget.getChartedEvtDefsTrends().contains(eventInfo)) {
 					msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 
 				}
 			}
@@ -410,10 +391,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				//Missing bars
 				if (!needsUpdate && !noDataTrends.isEmpty()) {
 					String chartedEvtStr = EventDefinition.getReadableEventDefSetAsString(", ", noDataTrends);
-					String errMsg = 
+					String errMsg =
 							"No events are available for : " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n" +
 									"If you just cleared the calculation results, you may want to Force and Update the calculations.";
-					String addMsg = 
+					String addMsg =
 							"This may also happen if calculations failed or if there is not enough quotations for the period.\n" +
 									//+ "Check the selected Trends in " + TRENDBUTTXT + " as well as the date boundaries against the available quotations.\n"
 									"You may want to check the date boundaries against the available quotations.\n" +
@@ -436,29 +417,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	private void updateChartIndicator(final Stock selectedShare, boolean recalculationGranted, boolean needsUpdate) {
 
-		SortedMap<Date, double[]> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, chartTarget.getChartedEvtDef());
+		Map<EventInfo, SortedMap<Date, double[]>> eventsSeries = new HashMap<>();
+		for (EventInfo eventInfo: chartTarget.getChartedEvtDefsTrends()) {
 
-		if (outputCache == null || outputCache.isEmpty()) {
-
-			//No indic found despite recalc
-			if (!recalculationGranted && !needsUpdate) {
-				String errMsg = 
-						"No output data are available for display within the period you have selected share "+selectedShare.getFriendlyName()+" and "+chartTarget.getChartedEvtDef().getEventReadableDef()+".\n" +
-								"If you just cleared the calculations results, you may want to Force and Update calculations.";
-				String addMsg = 
-						"This may also happen if calculations failed, or if there is not enough quotations for the period.\n" +
-								//"Check the calculators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.\n" +
-								"You may want to check the date boundaries against the available quotations.\n" +
-								"Also note that some calculators need full OLHC and Volume in order to be calculated.\n"+
-								"If '"+chartTarget.getChartedEvtDef().getEventReadableDef()+"' is a calculator created by you, you may also want to check the formula.";
-				showPopupDialog(errMsg, "Ok", addMsg, null);
-			}
-
-		} else {
-
-			//Thats all good, we display
+			SortedMap<Date, double[]> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, eventInfo);
 			SortedMap<Date, double[]> subMap = new TreeMap<Date, double[]>();
-			if (!outputCache.isEmpty()) {
+			if (outputCache != null && !outputCache.isEmpty()) {
 
 				Calendar instance = Calendar.getInstance();
 				instance.setTime(chartTarget.getSlidingEndDate());
@@ -471,14 +435,32 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					subMap = outputCache.subMap(this.chartTarget.getSlidingStartDate(), endPlus1);
 				}
 
-				if (!subMap.isEmpty()) chartTarget.getMainChartWraper().updateIndicDataSet(chartTarget.getChartedEvtDef(), subMap, chartTarget.getPlotChartDimensions());
+				eventsSeries.put(eventInfo, subMap);
 
 			}
+		}
 
-			if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-				initCalculatorSettingsPopup(false);
+		if (eventsSeries.isEmpty()) {
+
+			if (!recalculationGranted && !needsUpdate) {//No indic found despite recalc
+				String errMsg = 
+						"No output data are available for display within the period you have selected share "+selectedShare.getFriendlyName()+" and selected indicators.\n" +
+								"If you just cleared the calculations results, you may want to Force and Update calculations.";
+				String addMsg = 
+						"This may also happen if calculations failed, or if there is not enough quotations for the period.\n" +
+								//"Check the calculators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.\n" +
+								"You may want to check the date boundaries against the available quotations.\n" +
+								"Also note that some calculators need full OLHC and Volume in order to be calculated.\n" +
+								"If the selected indicators were created by you, you may also want to check the formula.";
+				showPopupDialog(errMsg, "Ok", addMsg, null);
 			}
 
+		} else { //Thats all or some are good, we display
+			chartTarget.getMainChartWraper().updateIndicDataSet(eventsSeries, chartTarget.getPlotChartDimensions());
+		}
+
+		if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+			initCalculatorSettingsPopup(false);
 		}
 
 	}
@@ -506,32 +488,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			chartedCalculatorGroupL.wrap=false;
 			chartedCalculatorGroupL.marginHeight=0;
 			chartedCalculatorGroup.setLayout(chartedCalculatorGroupL);
-			{
-				chartedCalculatorButton = new Button(chartedCalculatorGroup, SWT.PUSH);
-				chartedCalculatorButton.setFont(MainGui.DEFAULTFONT);
-				chartedCalculatorButton.setText(INDICATORSBUTTXT);
-				chartedCalculatorButton.setToolTipText("This is to setup the display of calculators historical data at the bottom of the chart.\nYou must select a share in the portfolio to display its analysis.");
-
-				chartedCalculatorButton.addSelectionListener(new SelectionListener() {
-
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						handleChartedCalculatorSelection();
-					}
-
-					@Override
-					public void widgetDefaultSelected(SelectionEvent e) {
-						handleChartedCalculatorSelection();
-					}
-
-					private void handleChartedCalculatorSelection() {
-						LOGGER.info("populatePopups : initEvtChartingPopup");
-						initChartedCalculatorPopup(true);
-					}
-
-				});
-
-			}
 			{
 				calculatorSettingsButton = new Button(chartedCalculatorGroup, SWT.NONE);
 				calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
@@ -673,8 +629,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
 
 						Set<EventInfo> allSelectedEventInfos = chartTarget.getChartedEvtDefsTrends();
-						if (!chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) allSelectedEventInfos.add(chartTarget.getChartedEvtDef());
-
 						if (allSelectedEventInfos != null && !allSelectedEventInfos.isEmpty() && chartTarget.getHightlitedEventModel().getViewParamRoot() != null) {
 							chartTarget.getHightlitedEventModel().setViewParam(0, allSelectedEventInfos);
 							chartTarget.getHightlitedEventModel().setViewParam(1, Arrays.asList("setDirty")); //The dirty state has to be checked on the TunedConf status of the EventInfo
@@ -785,11 +739,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 		}
 
-		if (chartedCalculatorPopupMenu != null && !chartedCalculatorPopupMenu.getSelectionShell().isDisposed()) {
-			LOGGER.info("refreshView : initEvtChartingPopup");
-			initChartedCalculatorPopup(false);
-		}
-
 		if (chartedTrendsPopupMenu!= null && !chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
 			initChartedTrendsPopup(false);
 		}
@@ -806,7 +755,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 				if (viewStateParams != null ) {
 					LOGGER.info("Calling highLight from initEvtDefTrendPopup (Dialog Action).");
-					highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND);
+					highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND, PopupType.EVTCHARTING);
 				} else {
 					if (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
 						String errorMessage = "You must select a share in the portfolio to display its analysis.";
@@ -836,63 +785,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-
-	private void initChartedCalculatorPopup(Boolean activatePopup) {
-
-		Set<EventInfo> availEventDefs = new HashSet<EventInfo>(EventDefinition.loadMaxPassPrefsEventInfo());
-		availEventDefs.add(EventDefinition.ZERO);
-		final Set<EventInfo> chartedEvtDefTmpSet = new HashSet<EventInfo>();
-		chartedEvtDefTmpSet.add(chartTarget.getChartedEvtDef());
-
-		ActionDialogAction action = new ActionDialogAction() {
-
-			@Override
-			public void action() {
-
-				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
-				if (!chartedEvtDefTmpSet.isEmpty()) {
-					//changing evtdef selection
-					chartTarget.setChartedEvtDef(chartedEvtDefTmpSet.iterator().next());
-					//if stock selected, we update
-					boolean stockSelected = viewStateParams != null;
-					if (stockSelected) {
-						LOGGER.info("Calling highLight from initEvtChartingPopup (Dialog Action).");
-						highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
-					} else {
-						//warning only if evtdef selected and no stock
-						if (chartTarget.getChartedEvtDef() != null && !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO)) {
-							String errorMessage = "You must select a share in the portfolio to display its analysis.";
-							showPopupDialog(errorMessage, "Ok", null, null);
-						}
-					}
-				}
-			}
-		};
-
-		if (chartedCalculatorPopupMenu == null || chartedCalculatorPopupMenu.getSelectionShell().isDisposed()) {
-
-			chartedCalculatorPopupMenu = new PopupMenu<EventInfo>(chartTarget, chartedCalculatorButton, availEventDefs, chartedEvtDefTmpSet, false, false, SWT.RADIO, action);
-			Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-			chartedCalculatorPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), false);
-
-		} else {
-
-			chartedCalculatorPopupMenu.updateAction(availEventDefs, chartedEvtDefTmpSet, action, null, null);
-			chartedCalculatorPopupMenu.getSelectionShell().setVisible(true);
-			if (activatePopup) {
-				chartedCalculatorPopupMenu.getSelectionShell().setActive();
-				chartedCalculatorPopupMenu.getSelectionShell().setFocus();
-			}
-
-		}
-
-	}
-
 	private void initCalculatorSettingsPopup(Boolean activatePopup) {
 
 		try {
 
-			boolean isIndicatorSelected = chartTarget.getChartedEvtDef() != null && !chartTarget.getChartedEvtDef().equals(EventDefinition.ZERO);
+			boolean isIndicatorSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
 			boolean isEmptyOutputIndicator = false;
 			boolean isClearInProgress = false;
 			String errorMessage = 
@@ -908,8 +805,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				final Set<OutputDescr> displayedOutputs = new TreeSet<OutputDescr>();
 
 				try {
-					availableOutputs.addAll(chartTarget.getChartedEvtDef().getEventDefDescriptor().allOutputs());
-					displayedOutputs.addAll(chartTarget.getChartedEvtDef().getEventDefDescriptor().displayedOutputs());
+					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
+						availableOutputs.addAll(t.getEventDefDescriptor().allOutputs());
+						displayedOutputs.addAll(t.getEventDefDescriptor().displayedOutputs());
+					});
 				} catch (NoSuchElementException e) {
 					isClearInProgress = true;
 					LOGGER.warn(e);
@@ -973,7 +872,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	@Override
 	public void shutDownDisplay() {
 
-		if (chartedCalculatorPopupMenu != null) chartedCalculatorPopupMenu.getSelectionShell().dispose();
 		if (chartedTrendsPopupMenu != null) chartedTrendsPopupMenu.getSelectionShell().dispose();
 
 		chartTarget.getMainChartWraper().resetLineChart();

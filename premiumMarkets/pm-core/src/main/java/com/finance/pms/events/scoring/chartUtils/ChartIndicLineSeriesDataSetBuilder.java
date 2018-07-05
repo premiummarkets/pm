@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 
@@ -35,14 +36,12 @@ public class ChartIndicLineSeriesDataSetBuilder {
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartIndicLineSeriesDataSetBuilder.class);
 	private XYPlot indicPlot;
 
-	private EventInfo chartedEvtDef;
-	private SortedMap<Date, double[]> series;
+	private Map<EventInfo, SortedMap<Date, double[]>> eventsSeries;
 
-	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, EventInfo chartedEvtDef, SortedMap<Date, double[]> series) {
+	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, Map<EventInfo, SortedMap<Date, double[]>> eventsSeries) {
 		super();
 		this.indicPlot = indicPlot;
-		this.chartedEvtDef = chartedEvtDef;
-		this.series = series;
+		this.eventsSeries = eventsSeries;
 	}
 
 	public void build() {
@@ -54,136 +53,143 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 			indicPlot.clearRangeAxes();
 
-			final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
-			String[] eventDefDescriptorArray = new String[0];
-			if (eventDefDescriptor != null) {
-				eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
-			}
+			int eventDefStartIdx = 0;
+			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {
 
-			int nbOfGroupsAlreadyDisplayed = 0;
-			for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
-
-				Boolean groupIsDisplayed = false;
-
-				//Renderer
-				XYItemRenderer renderer = indicPlot.getRenderer(groupIdx);
-				if (renderer == null) {
-					renderer = new XYLineAndShapeRenderer(true, false);
-					//renderer.setBaseItemLabelsVisible(true, false);
-					indicPlot.setRenderer(groupIdx, renderer);
+				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
+				String[] eventDefDescriptorArray = new String[0];
+				if (eventDefDescriptor != null) {
+					eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
 				}
 
-				//Build data set adding data series and tool tips for group
-				TimeSeriesCollection dataset = new TimeSeriesCollection();
-				Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
-				int serieIdx = 0;
-				double groupMaxY = Double.MIN_VALUE;
-				double groupMinY = Double.MAX_VALUE;
-				for (int k = 0; k < outputIndexes.length; k++) {
+				int eventDefNbOfGroupsDisplayed = 0;
 
-					int outputIdx = outputIndexes[k];
-					if (eventDefDescriptor.isDisplayed(outputIdx)) {
+				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
 
-						groupIsDisplayed = true;
+					Boolean groupIsDisplayed = false;
 
-						final String domain = eventDefDescriptorArray[outputIdx];
-						TimeSeries timeSerie = new TimeSeries(domain);
-						//Boolean isNan = true;
-						for (Date date : series.keySet()) {
-							double[] ds = series.get(date);
-							RegularTimePeriod period = new Day(date);
-							Number value = ds[outputIdx];
-							//isNan = isNan && ( ((Double) value).isNaN() || ((Double) value).isInfinite());
-							//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
-							if (!((Double) value).isInfinite()) {
-								TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-								timeSerie.add(item, false);
-							}
-						}
+					//Renderer
+					int rendererIdx = eventDefStartIdx + groupIdx;
+					XYItemRenderer renderer = indicPlot.getRenderer(rendererIdx);
+					if (renderer == null) {
+						renderer = new XYLineAndShapeRenderer(true, false);
+						//renderer.setBaseItemLabelsVisible(true, false);
+						indicPlot.setRenderer(rendererIdx, renderer);
+					}
 
-						//                    	if (isNan) {//Series has no value to display we fill in two NaN values
-						//                    		RegularTimePeriod periodStart = new Day(series.firstKey());
-						//                    		TimeSeriesDataItem firstItem = new TimeSeriesDataItem(periodStart, Double.NaN);
-						//                    		timeSerie.add(firstItem, false);
-						//                    		RegularTimePeriod periodEnd = new Day(series.lastKey());
-						//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
-						//                    		timeSerie.add(lastItem, false);
-						//                    	}
+					//Build data set adding data series and tool tips for group
+					TimeSeriesCollection dataset = new TimeSeriesCollection();
+					Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
+					int serieIdx = 0;
+					double groupMaxY = Double.MIN_VALUE;
+					double groupMinY = Double.MAX_VALUE;
+					for (int k = 0; k < outputIndexes.length; k++) {
 
-						groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
-						groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
+						int outputIdx = outputIndexes[k];
+						if (eventDefDescriptor.isDisplayed(outputIdx)) {
 
-						dataset.addSeries(timeSerie);
+							groupIsDisplayed = true;
 
-						renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
-						renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
-
-						XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
-
-							public String generateToolTip(XYDataset dataset, int series, int item) {
-
-								String y = "NaN";
-								String x = "NaN";
-								try {
-									y = numberFormat.format(dataset.getYValue(series, item));
-									Date date = new Date((long) dataset.getXValue(series, item));
-									x = simpleDateFormat.format(date);
-									return "<html>" + 
-									"<font size='2'>" + 
-									"<b>" + domain + "</b> on the " + x + "<br>"
-									+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
-									"</font>" + 
-									"</html>";
-								} catch (Exception e) {
-									LOGGER.debug(e, e);
+							final String domain = eventDefDescriptorArray[outputIdx];
+							TimeSeries timeSerie = new TimeSeries(domain);
+							//Boolean isNan = true;
+							for (Date date : eventsSeries.get(chartedEvtDef).keySet()) {
+								double[] ds = eventsSeries.get(chartedEvtDef).get(date);
+								RegularTimePeriod period = new Day(date);
+								Number value = ds[outputIdx];
+								//						isNan = isNan && ( ((Double) value).isNaN() || ((Double) value).isInfinite());
+								//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
+								if (!((Double) value).isInfinite()) {
+									TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+									timeSerie.add(item, false);
 								}
-								return "NaN";
-
 							}
-						};
 
-						renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
-						serieIdx++;
+							//                    	if (isNan) {//Series has no value to display we fill in two NaN values
+							//                    		RegularTimePeriod periodStart = new Day(series.firstKey());
+							//                    		TimeSeriesDataItem firstItem = new TimeSeriesDataItem(periodStart, Double.NaN);
+							//                    		timeSerie.add(firstItem, false);
+							//                    		RegularTimePeriod periodEnd = new Day(series.lastKey());
+							//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
+							//                    		timeSerie.add(lastItem, false);
+							//                    	}
+
+							groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
+							groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
+
+							dataset.addSeries(timeSerie);
+
+							renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
+							renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
+
+							XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
+
+								public String generateToolTip(XYDataset dataset, int series, int item) {
+
+									String y = "NaN";
+									String x = "NaN";
+									try {
+										y = numberFormat.format(dataset.getYValue(series, item));
+										Date date = new Date((long) dataset.getXValue(series, item));
+										x = simpleDateFormat.format(date);
+										return "<html>" +
+										"<font size='2'>" +
+										"<b>" + domain + "</b> on the " + x + "<br>"
+										+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
+										"</font>" +
+										"</html>";
+									} catch (Exception e) {
+										LOGGER.debug(e, e);
+									}
+									return "NaN";
+
+								}
+							};
+
+							renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
+							serieIdx++;
+
+						}
+					}
+
+					//Y Axe for group
+					if (groupIsDisplayed) {
+
+						ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
+						if (rangeAxis == null) {
+
+							double thresholdCenter = groupCenter(eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
+							rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
+
+							if (eventDefNbOfGroupsDisplayed == 0) {
+								indicPlot.addRangeMarker(rendererIdx, new ValueMarker(0), Layer.FOREGROUND, false);
+								indicPlot.setRangeGridlinesVisible(true);
+								AxisLocation location = AxisLocation.TOP_OR_LEFT;
+								indicPlot.setRangeAxisLocation(rendererIdx, location);
+								rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
+							}
+							else if (eventDefNbOfGroupsDisplayed <= 2) {
+								AxisLocation location = AxisLocation.TOP_OR_RIGHT;
+								indicPlot.setRangeAxisLocation(rendererIdx, location);
+								rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
+							}
+							else {
+								rangeAxis.setVisible(false);
+							}
+
+							indicPlot.setRangeAxis(rendererIdx, rangeAxis, true);
+							eventDefNbOfGroupsDisplayed++;
+						}
+
+						//Set group dateSet
+						indicPlot.setDataset(rendererIdx, dataset);
+						if ( rendererIdx != 0 ) indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
 					}
-				}
-
-				//Y Axe for group
-				if (groupIsDisplayed) {
-
-					ValueAxis rangeAxis = indicPlot.getRangeAxis(groupIdx);
-					if (rangeAxis == null) {
-
-						double thresholdCenter = groupCenter(series, eventDefDescriptor, groupIdx);
-						rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
-
-						if (nbOfGroupsAlreadyDisplayed == 0) {
-							indicPlot.addRangeMarker(groupIdx, new ValueMarker(0), Layer.FOREGROUND, false);
-							indicPlot.setRangeGridlinesVisible(true);
-							AxisLocation location = AxisLocation.TOP_OR_LEFT;
-							indicPlot.setRangeAxisLocation(groupIdx, location);
-							rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-						}
-						else if (nbOfGroupsAlreadyDisplayed <= 2) {
-							AxisLocation location = AxisLocation.TOP_OR_RIGHT;
-							indicPlot.setRangeAxisLocation(groupIdx, location);
-							rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-						} 
-						else {
-							rangeAxis.setVisible(false);
-						}
-
-						indicPlot.setRangeAxis(groupIdx, rangeAxis, true);
-
-						nbOfGroupsAlreadyDisplayed++;
-					}
-
-					//Set group dateSet
-					indicPlot.setDataset(groupIdx, dataset);
-					if ( groupIdx != 0 ) indicPlot.mapDatasetToRangeAxis(groupIdx, groupIdx);
 
 				}
 
+				eventDefStartIdx = eventDefStartIdx + eventDefNbOfGroupsDisplayed;
 			}
 		} catch (NoSuchElementException e) {
 			LOGGER.warn("Can't refresh indicator chart : "+ e);
