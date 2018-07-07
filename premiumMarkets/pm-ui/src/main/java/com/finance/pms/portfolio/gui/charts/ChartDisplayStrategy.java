@@ -186,4 +186,6 @@ public abstract class ChartDisplayStrategy {
 		if (popupDialog != null) popupDialog.getParent().dispose();
 	}
 
+	public abstract void cleanPreviousStockSelection();
+
 }

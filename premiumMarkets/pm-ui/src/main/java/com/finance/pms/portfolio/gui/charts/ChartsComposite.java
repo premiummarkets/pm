@@ -210,7 +210,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	}
 
-	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
+	public void rowSelectioHighLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
+		chartDisplayStrategy.cleanPreviousStockSelection();
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
@@ -1083,7 +1084,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public Date getAnalysisEndDate() {
 		return this.slidingEndDate;
 	}
-
 
 
 	private void sliderChangesApply() {

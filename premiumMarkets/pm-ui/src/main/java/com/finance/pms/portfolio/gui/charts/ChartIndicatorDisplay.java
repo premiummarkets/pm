@@ -205,7 +205,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					HashSet<EventInfo> notUpToDateEventInfos = new HashSet<EventInfo>();
 					Calendar minDate = Calendar.getInstance();
 					minDate.setTime(new Date(0));
-					Boolean needsUpdate = 
+					Boolean needsUpdate =
 							chartTarget.getHightlitedEventModel().cacheNeedsUpdateCheck(
 									selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
 									notUpToDateEventInfos, minDate, allEvtInfos.toArray(new EventInfo[0]));
@@ -250,7 +250,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-
 	private void eventsRecalculationAck(final Stock selectedShare, Date slidingStartDate, Date slidingEndDate, final HashSet<EventInfo> notUpToDateEI, Calendar minDate) {
 
 		RefreshableView parentView = chartTarget;
@@ -270,11 +269,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					updateChartIndicator(selectedShare, false, true);
 					updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), false, true);
 				}
-
-				recalculationButton.setForeground(null);
-				recalculationButton.setEnabled(false);
-				recalculationButton.setToolTipText("You can click on this when calculation needs updated");
-				recalculationButton.removeSelectionListener(this);
+				disableRecalculationButton();
 			}
 
 		};
@@ -302,9 +297,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			recalculationButton.forceFocus();
 
 		} else {
-			//Nothing as disabling should happened in the EventSelectionListener itself.
+			//Disabling should happened in the EventSelectionListener itself.
 		}
 
+	}
+
+	public void disableRecalculationButton() {
+		recalculationButton.setForeground(null);
+		recalculationButton.setEnabled(false);
+		recalculationButton.setToolTipText("You can click on this when calculation needs updated");
+		Arrays.stream(recalculationButton.getListeners(SWT.Selection)).forEach(l -> recalculationButton.removeListener(SWT.Selection, l));
+		Arrays.stream(recalculationButton.getListeners(SWT.DefaultSelection)).forEach(l -> recalculationButton.removeListener(SWT.DefaultSelection, l));
 	}
 
 	private void hideAllButSelected(final Stock selectedShare) {
@@ -884,6 +887,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	@Override
 	public void updateButtonsToolTips() {
 		//Nothing
+	}
+
+	@Override
+	public void cleanPreviousStockSelection() {
+		disableRecalculationButton();
 	}
 
 
