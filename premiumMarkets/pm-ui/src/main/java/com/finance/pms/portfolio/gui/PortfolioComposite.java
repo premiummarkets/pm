@@ -1851,8 +1851,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								LOGGER.info("Calling highLight from Portfolio Table (MouseListener");
 								chartsComposite.rowSelectioHighLight(selectionIndex, selectedShare.getStock(), true);
 								modelControler.addOrUpdateSlidingShareToTab(selectedPortfolioIdx(), selectedShare);
-							} 
-						} 
+							}
+						}
 					}
 
 					tabItemClickHandler(table, event);

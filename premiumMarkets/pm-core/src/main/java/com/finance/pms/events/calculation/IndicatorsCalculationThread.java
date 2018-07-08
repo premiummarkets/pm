@@ -248,9 +248,9 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 						lastEventDate = DateFactory.dateAtZero();
 						LOGGER.error(e);
 					} finally {
-						//We update the tunedConfs
-						tunedConf.setDirty(false);
-						TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate);
+						//We update the tunedConf
+						//Dirty is set to false as we assume that no retry will occur in case of failure?
+						TunedConfMgr.getInstance().updateConf(tunedConf, false, lastEventDate);
 					}
 				}
 			};

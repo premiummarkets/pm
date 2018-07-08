@@ -125,13 +125,13 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 			if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {
 				Object isDirty = viewStateParams[1].iterator().next();
 				if (isDirty != null && isDirty.equals("setDirty")) {
-					//"setDirty" is set on forced recalculation.
+					LOGGER.info("'setDirty' requested (forced recalculation) for " + rootParam + " and " + Arrays.toString(viewStateParams));
 					stockList.stream()
 					.forEach(stock -> {
 						EventInfo[] eiArray = viewStateParams[0].stream()
 								.map(e -> ((EventInfo) e))
 								.toArray(EventInfo[]::new);
-						TunedConfMgr.getInstance().deleteEventsAndDirtyConfs(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
+						TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
 					});
 					viewStateParams[1] = null;
 				}
