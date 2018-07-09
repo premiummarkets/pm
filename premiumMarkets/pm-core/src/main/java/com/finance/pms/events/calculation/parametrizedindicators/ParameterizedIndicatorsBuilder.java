@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -61,7 +62,6 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	}
 
 	public ParameterizedIndicatorsBuilder() {
-
 		super();
 		operationPackages = new String[] {"com.finance.pms.events.operations.conditional.", "com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLRIndicatorsParserHelper();
@@ -134,20 +134,22 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		try {
 			super.clearPreviousCalculations(operation);
 		} catch (InUseException e1) {
-
 			List<Operation> impactedIndicators = e1.getInUse();
 			LOGGER.info("Operation " + operation.getReference()+" has been changed, deleting indicators calculation caches for : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
-			for (Operation opInUse : impactedIndicators) {
-				if (opInUse instanceof EventInfo) {
-					EventModel.dirtyCacheFor((EventInfo) opInUse);
-				} else {
-					LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
-				}
-			}
-			EventModel.updateEventInfoStamp();
-
-			throw e1;
+			resetCachesFor(impactedIndicators);
 		}
+
+	}
+
+	private void resetCachesFor(Collection<Operation> impactedIndicators) {
+		for (Operation opInUse : impactedIndicators) {
+			if (opInUse instanceof EventInfo) {
+				EventModel.dirtyCacheFor((EventInfo) opInUse);
+			} else {
+				LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
+			}
+		}
+		EventModel.updateEventInfoStamp();
 	}
 
 	private void resetUserOperations() {
@@ -189,7 +191,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	@Override
 	public List<Operation> checkInUse(Operation operation) {
 		//We don't check root indicator operations as they can't be reused
-		return new ArrayList<Operation>();
+		return new ArrayList<Operation>(); //FIXME this is not true any more with the iterative operation or Encog operation?
 	}
 
 	@Override
@@ -212,7 +214,8 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	@Override
 	public void resetCaches() {
-		getUserEnabledOperations().values().stream().forEach(o -> clearPreviousCalculations(o));
+		//getUserEnabledOperations().values().stream().forEach(o -> clearPreviousCalculations(o)); 	//XXX this will delete ALL the calculated events for ALL operations
+		resetCachesFor(getUserEnabledOperations().values());
 	}
 
 	@Override
