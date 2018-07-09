@@ -37,6 +37,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.datasources.shares.Stock;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -188,7 +189,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
     }
 
 	@Override
-	public void invalidateOperation(String analysisName) {
+	public void invalidateOperation(String analysisName, Stock... stock) {
 		//Nothing  //This is not an EventInfo but an operation although it can be composed within one of Parameterized Indicator.
 	}
 

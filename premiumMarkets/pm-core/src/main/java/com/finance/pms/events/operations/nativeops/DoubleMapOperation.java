@@ -34,6 +34,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -73,7 +74,7 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName) {
+	public void invalidateOperation(String analysisName, Stock... stock) {
 		//Nothing
 	}
 

@@ -36,6 +36,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -100,7 +101,7 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName) {
+	public void invalidateOperation(String analysisName, Stock... stock) {
 		//Nothing
 	}
 }

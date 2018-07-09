@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
@@ -128,10 +129,22 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					LOGGER.info("'setDirty' requested (forced recalculation) for " + rootParam + " and " + Arrays.toString(viewStateParams));
 					stockList.stream()
 					.forEach(stock -> {
+
+						//Legacy EventInfo from EventDefinition
 						EventInfo[] eiArray = viewStateParams[0].stream()
 								.map(e -> ((EventInfo) e))
+								.filter(e -> e instanceof  EventDefinition)
 								.toArray(EventInfo[]::new);
 						TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
+
+						//EventInfoOpsCompoOperation
+						viewStateParams[0].stream()
+								.map(e -> ((EventInfo) e))
+								.forEach(e -> {
+									if (e instanceof EventInfoOpsCompoOperation) {
+										((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(IndicatorCalculationServiceMain.UI_ANALYSIS, stock);
+									}
+								});
 					});
 					viewStateParams[1] = null;
 				}

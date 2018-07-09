@@ -43,6 +43,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.conditional.MultiMapValue;
@@ -589,9 +590,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
 	}
 
-	public abstract void invalidateOperation(String analysisName);
+	public abstract void invalidateOperation(String analysisName, Stock... stock);
 
-	public void invalidateAllNonIdempotentOperands(String analysisName) {
+	public void invalidateAllNonIdempotentOperands(String analysisName, Stock... stock) {
 		if (!this.isIdemPotent()) {
 			LOGGER.info("Invalidating " + this.getReference());
 			this.invalidateOperation(analysisName);
@@ -599,7 +600,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		operands.stream().forEach(
 			o -> {
 				if (!o.getOperands().isEmpty()) {
-					o.invalidateAllNonIdempotentOperands(analysisName);
+					o.invalidateAllNonIdempotentOperands(analysisName, stock);
 				}
 			});
 	}

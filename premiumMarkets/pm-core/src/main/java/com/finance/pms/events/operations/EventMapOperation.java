@@ -3,6 +3,7 @@ package com.finance.pms.events.operations;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
@@ -35,7 +36,7 @@ public class EventMapOperation extends Operation implements MapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName) {
+	public void invalidateOperation(String analysisName, Stock... stock) {
 		//Nothing
 	}
 

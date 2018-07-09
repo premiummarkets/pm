@@ -42,6 +42,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
@@ -231,8 +232,12 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName) {
-		TunedConfMgr.getInstance().deleteEventsDirtyConfs(analysisName, this);
+	public void invalidateOperation(String analysisName, Stock... stock) {
+		if (stock != null && stock.length != 0) {
+			Arrays.stream(stock).forEach(s -> TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(s, analysisName, this));
+		} else {
+			TunedConfMgr.getInstance().deleteEventsDirtyConfs(analysisName, this);
+		}
 	}
 
 }

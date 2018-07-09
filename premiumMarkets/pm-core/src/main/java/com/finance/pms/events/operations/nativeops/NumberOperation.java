@@ -33,6 +33,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -64,7 +65,7 @@ public class NumberOperation extends Operation  implements LeafOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName) {
+	public void invalidateOperation(String analysisName, Stock... stock) {
 		//Nothing
 	}
 
