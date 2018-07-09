@@ -102,7 +102,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private Boolean disabled;
 
-
 	protected Operation() {
 		super();
 		this.operands = new ArrayList<Operation>();
@@ -149,7 +148,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.disabled = false;
 	}
 
-	public Value<?> run(TargetStockInfo targetStock) {
+	public Value<?> run(TargetStockInfo targetStock, int parentStartShift) {
+
+		int thisStartShift = parentStartShift + operationStartDateShift();
 
 		Value<?> alreadyCalculated = null;
 		try {
@@ -167,7 +168,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 					Operation operand = operands.get(i);
 
-					Value<?> output = operand.run(targetStock);
+					Value<?> output = operand.run(targetStock, thisStartShift);
 					operandsOutputs.add(output);
 
 					gatherCalculatedOutput(targetStock, operand, output);
@@ -176,9 +177,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 				createChartedOutputGroups(targetStock, operandsOutputs);
 
-				Value<?> operationOutput = calculate(targetStock, operandsOutputs);
+				Value<?> operationOutput = calculate(targetStock, thisStartShift, operandsOutputs);
 
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Operation "+this.getReference()+((this.getOutputSelector()!=null)?":"+this.getOutputSelector():"")+" returns "+operationOutput.toString());
+				if (LOGGER.isDebugEnabled()) 
+					LOGGER.debug("Operation " + this.getReference() + ((this.getOutputSelector()!=null)?":"+this.getOutputSelector():"") + " returns "+operationOutput.toString());
+
 				return operationOutput;
 			}
 
@@ -243,7 +246,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		targetStock.addChartInfoForAdditonalOutputs(operand, operandsOutput.getAdditionalOutputsTypes());
 	}
 
-	public abstract Value<?> calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 
 	/**
 	 * Operation reference as in User Operations list.

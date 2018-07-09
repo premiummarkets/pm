@@ -72,9 +72,9 @@ public class SelectedIndicatorsCalculationService {
 
 				try {
 
-					LOGGER.guiInfo("Calculation requested : events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+					LOGGER.guiInfo("Calculation requested : events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 					QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
-					LOGGER.info("Calculation adjusted : events for stock "+stock.toString()+ " between "+dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate())+" and "+dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
+					LOGGER.info("Calculation adjusted : events for stock " + stock.toString() + " between " + dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate()) + " and " + dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
 
 					List<Future<SymbolEvents>> eventInfosFutures = new ArrayList<>();
 					for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
@@ -86,12 +86,11 @@ public class SelectedIndicatorsCalculationService {
 					futuresMap.put(stock, eventInfosFutures);
 
 				} catch (Exception e1) {
-					LOGGER.warn("Could not proceed with initialisation of calculation for "+stock +": "+e1.getMessage());
+					LOGGER.warn("Could not proceed with initialisation of calculation for " + stock + ": " + e1.getMessage());
 					//We update the tunedConfs assuming subsequent calculations will fail as well.
 					stocksEventInfos.get(stock).stream().forEach( ei -> {
 						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
-						tunedConf.setDirty(false);
-						TunedConfMgr.getInstance().updateConf(tunedConf, DateFactory.dateAtZero());
+						TunedConfMgr.getInstance().updateConf(tunedConf, false, DateFactory.dateAtZero());
 					});
 					isDataSetComplete = false;
 					failingStocks.add(stock);
@@ -167,19 +166,19 @@ public class SelectedIndicatorsCalculationService {
 		if (minimumStartDate.before(startDate) || minimumStartDate.equals(startDate)) {
 			minimumStartDate = startDate;
 		} else {
-			LOGGER.info("Start date calculation adjusted : for stock "+stock.toString()+ " is now starting on "+minimumStartDate);
+			LOGGER.info("Start date calculation adjusted : for stock " + stock.toString() + " is now starting on " + minimumStartDate);
 		}
 		if (minimumStartDate.after(endDate) || minimumStartDate.equals(endDate)) {
-			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock "+stock.toString()+ " between "+minimumStartDate+" and "+endDate);
+			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock " + stock.toString() + " between " + minimumStartDate + " and " + endDate);
 		}
 		Date maximumEndDate = TunedConfMgr.getInstance().maximumEndDate(stock);
 		if (maximumEndDate.after(endDate) || maximumEndDate.equals(endDate)) {
 			maximumEndDate = endDate;
 		} else {
-			LOGGER.info("End Date calculation adjusted : events for stock "+stock.toString()+ " is now ending on  "+maximumEndDate);
+			LOGGER.info("End Date calculation adjusted : events for stock " + stock.toString() + " is now ending on  " + maximumEndDate);
 		}
 		if (maximumEndDate.before(minimumStartDate) || maximumEndDate.equals(minimumStartDate)) {
-			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock "+stock.toString()+ " between "+minimumStartDate+" and "+maximumEndDate);
+			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock " + stock.toString() + " between " + minimumStartDate + " and " + maximumEndDate);
 		}
 
 		return new QuotesBounds(minimumStartDate, maximumEndDate);

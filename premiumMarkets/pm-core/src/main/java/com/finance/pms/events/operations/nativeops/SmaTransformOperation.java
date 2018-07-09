@@ -58,7 +58,7 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer orgPeriog = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
@@ -82,10 +82,7 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 
 	@Override
 	public int operationStartDateShift() {
-		int shift = 0;
-		for (Operation operand : getOperands()) {
-			shift = shift +  operand.operationStartDateShift();
-		}
+		int shift = getOperands().get(0).operationStartDateShift() + getOperands().get(1).operationStartDateShift();
 		return shift;
 	}
 

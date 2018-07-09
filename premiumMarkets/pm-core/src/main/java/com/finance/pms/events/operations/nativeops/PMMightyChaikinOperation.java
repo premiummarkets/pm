@@ -66,7 +66,7 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer fastPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
@@ -77,7 +77,7 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(fastPeriod, slowPeriod);
 			
 			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(),
 					mChaikin.getStartShift(), mChaikin.quotationsValidity());
 			

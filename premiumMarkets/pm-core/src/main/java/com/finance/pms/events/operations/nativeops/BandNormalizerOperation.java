@@ -59,7 +59,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
@@ -71,7 +71,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 		DoubleMapValue ret = new DoubleMapValue();
 		try {
 
-			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, targetStock.getStartDate(), targetStock.getEndDate(), lowerThreshold, upperThreshold, keepZero);
+			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, data.firstKey(), data.lastKey(), lowerThreshold, upperThreshold, keepZero);
 			SortedMap<Date, Double> shifted = normalizer.normalised(data);
 			ret.getValue(targetStock).putAll(shifted);
 
@@ -83,7 +83,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return getOperands().get(DATAINPUTIDX).operationStartDateShift();
+		return 0;
 	}
 
 }

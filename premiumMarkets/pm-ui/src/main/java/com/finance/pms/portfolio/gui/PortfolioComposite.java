@@ -602,7 +602,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				try {
 
 					ArrayList<SlidingPortfolioShare> listOfShares = tabBuildSlidingPortfolioShareList(portfolio.getListShares().values());
-					
+
 					Collections.sort(listOfShares, new Comparator<SlidingPortfolioShare>() {
 						public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
 							BigDecimal o2TodaysGainTotalPercent = o2.getTodaysGainTotalPercent();
@@ -815,7 +815,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										}
 
 										highLightSlidingColsAndInfos();
-
 
 									} finally {
 										getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -1080,7 +1079,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 						});
 					}
-					
+
 					{
 						isLatestTransactionsOnly = new Button(portfolioInfosGroup, SWT.CHECK);
 						GridData isLatestTransactionsOnlyLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -1115,7 +1114,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			LOGGER.error("",e);
 		}
 	}
-	
+
 	public void isLatestTransactionsOnlyChange() {
 
 		int si = selectedPortfolioIdx();
@@ -1850,10 +1849,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							if (selectionIndex != -1) {
 								SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
 								LOGGER.info("Calling highLight from Portfolio Table (MouseListener");
-								chartsComposite.highLight(selectionIndex, selectedShare.getStock(), true);
+								chartsComposite.rowSelectioHighLight(selectionIndex, selectedShare.getStock(), true);
 								modelControler.addOrUpdateSlidingShareToTab(selectedPortfolioIdx(), selectedShare);
-							} 
-						} 
+							}
+						}
 					}
 
 					tabItemClickHandler(table, event);
@@ -2262,7 +2261,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							e.printStackTrace();
 						}
 					}
-					
+
 					final Date currentStartDate = DateFactory.dateAtZero();
 					final Date currentEndDate = EventSignalConfig.getNewDate();
 					;
@@ -2322,7 +2321,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 							if (currentPortfolioTab != getCurrentTabSelection())
 								return;
-							
+
 							isLatestTransactionsOnly.setSelection(currentPortfolio.isLatestTransactionsOnly());
 
 							TableItem item = portfolioInfosTable.getItem(0);

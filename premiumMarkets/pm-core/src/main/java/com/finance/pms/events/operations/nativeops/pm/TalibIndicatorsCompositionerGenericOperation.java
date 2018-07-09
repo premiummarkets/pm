@@ -92,7 +92,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
      * @return True when bullish and False when bearish
      */
     @Override
-    public EventDataValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+    public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         EventDataValue buySellEvents = new EventDataValue();
         try {
@@ -102,8 +102,9 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
             List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
             calculator.genericInit(inputConstants.toArray(new Integer[0]));
 
-            Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-                    targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+            Date shiftedStartDate = targetStock.getStartDate(thisStartShift);
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+                    targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), 
                     true, targetStock.getStock().getMarketValuation().getCurrency(), 
                     calculator.getStartShift(), calculator.quotationsValidity());
 

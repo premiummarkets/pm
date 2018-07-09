@@ -166,11 +166,15 @@ public class TunedConfMgr {
 		this.updateConf(tunedConf, tunedConf.getDirty(), lastEventDate, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
 	}
 
+	public void updateConf(TunedConf tunedConf, Boolean dirty, Date lastEventDate) {
+		this.updateConf(tunedConf, dirty, lastEventDate, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
+	}
+
 	public void updateConf(TunedConf tunedConf, Date lastEventDate, Date newTunedConfStart, Date newTunedConfEnd) {
 		this.updateConf(tunedConf, tunedConf.getDirty(), lastEventDate, newTunedConfStart, newTunedConfEnd);
 	}
 
-	private void updateConf(TunedConf tunedConf, Boolean dirty, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
+	public void updateConf(TunedConf tunedConf, Boolean dirty, Date lastCalculatedEvent, Date lastCalculationStart, Date lastCalculationEnd) {
 		if (lastCalculatedEvent != null) tunedConf.setLastCalculatedEvent(lastCalculatedEvent);
 		tunedConf.setLastCalculationStart(lastCalculationStart);
 		tunedConf.setLastCalculationEnd(lastCalculationEnd);
@@ -240,6 +244,7 @@ public class TunedConfMgr {
 		loadAllTunedConfs.stream()
 		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
 		.forEach(tc -> setDirty(tc));
+
 	}
 
 	/**
@@ -248,7 +253,7 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void deleteEventsAndDirtyConfs(Stock stock, String analysisName, EventInfo... indicators) {
+	public void deleteEventsDirtyConfsFor(Stock stock, String analysisName, EventInfo... indicators) {
 
 		EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
 
@@ -256,6 +261,7 @@ public class TunedConfMgr {
 			TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
 			setDirty(tc);
 		}
+
 	}
 
 }

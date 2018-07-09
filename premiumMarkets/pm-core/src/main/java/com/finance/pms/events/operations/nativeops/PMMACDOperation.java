@@ -66,7 +66,7 @@ public class PMMACDOperation extends PMDataFreeOperation {
 	
 	
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer fastPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
@@ -77,7 +77,7 @@ public class PMMACDOperation extends PMDataFreeOperation {
 		try {
 			MACD macd = new MACD(fastPeriod, slowPeriod, signalPeriod);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(), 
 					macd.getStartShift(), macd.quotationValidity());
 			macd.calculateIndicator(quotations);

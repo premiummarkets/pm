@@ -58,6 +58,9 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class, DownRatioCondition.class, UpRatioCondition.class})
 public abstract class CrossConstantCondition extends Condition<Double> {
 
+	private static final int MAIN_POSITION = 4;
+	protected static final int CONSTANT_POSITION = 0;
+
 	@SuppressWarnings("unused")
 	private CrossConstantCondition() {
 		super();
@@ -68,13 +71,13 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		Double constant = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Double constant = ((NumberValue) inputs.get(CONSTANT_POSITION)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(4)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
@@ -138,13 +141,13 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	}
 
 	public int mainInputPosition() {
-		return 4;
+		return MAIN_POSITION;
 	}
 
-	@Override
+	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
-		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
-		for (int i = 1; i < mainInputPosition(); i++) {
+		int maxDateShift = 0;
+		for (int i = CONSTANT_POSITION+1; i < mainInputPosition(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;

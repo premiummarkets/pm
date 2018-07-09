@@ -54,31 +54,33 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 
  */
 public class ReverseCondition extends Condition<Boolean>  implements UnaryCondition {
-	
+
+
+	private static final int MAIN_POSITION = 3;
 
 	private ReverseCondition() {
 		super("historical data reverse", "True when a time series reverses up or down", 
-		new NumberOperation("direction"), new NumberOperation("change ratio"), new NumberOperation("dates comparison span"), new DoubleMapOperation("historical data input"));
+				new NumberOperation("direction"), new NumberOperation("change ratio"), new NumberOperation("dates comparison span"), new DoubleMapOperation("historical data input"));
 	}
 
 	public ReverseCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 	}
-	
+
 	@Override
-	
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
 		Double direction = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Double changeRatio = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
-		
+		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+
 		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
-		
+
 		BooleanMapValue outputs = new  BooleanMapValue();
 		Boolean isUp = null;
 		Boolean wasDown = null;
@@ -103,18 +105,18 @@ public class ReverseCondition extends Condition<Boolean>  implements UnaryCondit
 				wasUp = isUp;
 			}
 		}
-		
+
 		return outputs;
 	}
 
 	@Override
 	public int mainInputPosition() {
-		return 3;
+		return MAIN_POSITION;
 	}
-	
+
 	@Override
 	public int operationStartDateShift() {
-		int maxDateShift = getOperands().get(mainInputPosition()).operationStartDateShift();
+		int maxDateShift = 0;
 		for (int i = 2; i < mainInputPosition(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}

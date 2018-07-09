@@ -41,23 +41,23 @@ import com.finance.pms.events.operations.nativeops.StringValue;
 
 @XmlRootElement
 public class AndDoubleMapCondition extends BooleanDoubleMapCondition {
-	
+
 	private Boolean exactDataSet;
 
 	private AndDoubleMapCondition() {
 		super("and", "Compare two boolean time series over time and is true when all are true and present.");
 	}
-	
+
 	public AndDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
 	}
-	
+
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		Boolean lenient = Boolean.valueOf(((StringValue)inputs.get(0)).getValue(targetStock));
 		exactDataSet = !lenient;
-		return super.calculate(targetStock, inputs.subList(1, inputs.size()));
+		return super.calculate(targetStock, thisStartShift, inputs.subList(1, inputs.size()));
 	}
 
 	@Override
@@ -67,8 +67,6 @@ public class AndDoubleMapCondition extends BooleanDoubleMapCondition {
 		}
 		return true;
 	}
-	
-	
 
 	@Override
 	protected Boolean shortcutUnary() {

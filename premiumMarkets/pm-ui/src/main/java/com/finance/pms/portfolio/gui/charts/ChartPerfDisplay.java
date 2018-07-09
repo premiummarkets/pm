@@ -403,6 +403,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		}
 
 		popupButtonsGroup.layout();
+		chartTarget.myPack();
 
 	}
 
@@ -479,7 +480,6 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	@Override
 	public void refreshView(List<Exception> exceptions) {
 		// Nothing
-
 	}
 
 	@Override
@@ -502,6 +502,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			chartTarget.chartBoutonsGroup.layout();
 		}
 
+	}
+
+	@Override
+	public void cleanPreviousStockSelection() {
+		//Nothing
 	}
 
 

@@ -39,6 +39,8 @@ import java.util.TreeMap;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -60,6 +62,7 @@ import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.talib.dataresults.StandardEventValue;
+import com.finance.pms.threads.ConfigThreadLocal;
 /**
  * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
  * The EventInfoOpsCompoOperation is a specific type of operation that generates bullish and bearish events to be used in the UI.
@@ -83,11 +86,11 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	public EventInfoOpsCompoOperation(String reference, String description) {
 		super(reference, description,
 				new ArrayList<>(Arrays.asList(new Condition<>("bullishCondition"),
-										new Condition<>("bearishCondition"),
-										new Condition<>("alsoDisplay"),
-										new NumberOperation("startShiftOverride"),
-										new StringOperation("eventListName")))
-		);
+						new Condition<>("bearishCondition"),
+						new Condition<>("alsoDisplay"),
+						new NumberOperation("startShiftOverride"),
+						new StringOperation("eventListName")))
+				);
 		this.eventDefDescriptor = new EventDefDescriptorDynamic();
 	}
 
@@ -97,12 +100,19 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
+		//We don't calculate event for operands when iterating are they are not used in the iterative calculation. This is to avoid excessive database access.
+		//isIterative should be reset false when iterations complete in order to take in account only events from the iterative itself.
+		boolean isIterative = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).isIterative();
+		if (isIterative) {
+			return new EventDataValue();
+		}
 
 		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
-		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2));
-		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));
+		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2)); //not used for calculation
+		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));  //not implemented
 		StringValue eventListName = ((StringValue) inputs.get(4));
 
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
@@ -217,12 +227,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	@Override
 	public int operationStartDateShift() {
-		//return Math.max(getOperands().get(0).operationStartDateShift(), getOperands().get(1).operationStartDateShift());
-		int maxDateShift = 0;
-		for (Operation operand : getOperands()) {
-			maxDateShift = Math.max(maxDateShift, operand.operationStartDateShift());
-		}
-		return maxDateShift;
+		return 0;
 	}
 
 	@Override

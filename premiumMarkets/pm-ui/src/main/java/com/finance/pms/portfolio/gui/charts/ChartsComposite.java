@@ -68,6 +68,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -136,7 +137,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	//TODO mv to ChartIndicatorDisplay Strategy (+ getInstance instead of new one Strategy object to keep state)
 	private SortedSet<EventInfo> chartedEvtDefsTrends;
-	private EventInfo chartedEvtDef;
 
 	public Group chartBoutonsGroup;
 	private Group popusGroup;
@@ -174,7 +174,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHighlighted(), logComposite);
 
 		this.chartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
-		this.chartedEvtDef = EventDefinition.ZERO;
 
 		this.sliderSelection = false;
 
@@ -211,7 +210,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	}
 
-	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
+	public void rowSelectioHighLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
+		chartDisplayStrategy.cleanPreviousStockSelection();
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
@@ -243,6 +243,19 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		return portfolioComposite.getCurrentShareSelectionIdx();
 	}
 
+	public void myPack() {
+		Rectangle chartShashBounds = this.getClientArea();
+
+		org.eclipse.swt.graphics.Point chartPrefSize = this.chartBoutonsGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT); 
+		org.eclipse.swt.graphics.Point chartCompositeSize = this.chartBoutonsGroup.computeSize(chartPrefSize.x, Math.max(50,chartPrefSize.y));
+		this.chartBoutonsGroup.setSize(chartCompositeSize);
+		Rectangle chartButtonsBounds = this.chartBoutonsGroup.getBounds();
+		int xChart = 100*chartButtonsBounds.height/chartShashBounds.height;
+		if ((100 -xChart) < 20) {
+			xChart=30;
+		}
+		this.setWeights(new int[]{100-xChart, xChart});
+	}
 
 	private void initGUI() {
 		try {
@@ -475,7 +488,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						}
 
 
-						//Gain focus mgt						
+						//Gain focus mgnt
 						if (!closeRequested) {
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
@@ -571,7 +584,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 				{
 					popusGroup = new Group(chartBoutonsGroup, SWT.NONE);
-					GridData popusGroupData = new GridData(SWT.FILL, SWT.FILL,true, false);
+					GridData popusGroupData = new GridData(SWT.FILL, SWT.FILL, true, false);
 					popusGroup.setLayoutData(popusGroupData);
 					popusGroup.setBackground(innerBgColor);
 					RowLayout popusGroupL = new RowLayout(SWT.HORIZONTAL);
@@ -580,7 +593,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					popusGroupL.wrap=false;
 					popusGroupL.marginHeight=0;
 					popusGroup.setLayout(popusGroupL);
-
 				}
 
 				//Sliding
@@ -651,7 +663,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						endDateLabel.setFont(MainGui.DEFAULTFONT);
 					}
 
-					//but start
+					//button start
 					{
 						Button startOneYearBack = new Button(slidingGroup, SWT.ARROW|SWT.LEFT);
 						GridData startOneYearBackData = new GridData(SWT.END, SWT.FILL,false, true);
@@ -726,7 +738,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 							}
 						});
 					}
-					///but end
+					///button end
 
 					{
 						Button endOneYearBack = new Button(slidingGroup, SWT.ARROW|SWT.LEFT);
@@ -1049,12 +1061,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
 	protected void checkChartSelectionValidity() {
-		try {
-			chartedEvtDef = EventDefinition.valueOfEventInfo(chartedEvtDef.getEventDefinitionRef());
-		} catch (NoSuchFieldException e) {
-			LOGGER.warn("Event info as been disabled or deleted. Removing from chart indicators selection : "+chartedEvtDef);
-			chartedEvtDef = EventDefinition.ZERO;
-		}
 
 		SortedSet<EventInfo> updatedChartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
 		for (EventInfo eventInfo : chartedEvtDefsTrends) {
@@ -1069,7 +1075,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 
 	@Override
-	public Date getAnalysisStartDate() {		
+	public Date getAnalysisStartDate() {
 		return this.slidingStartDate;
 	}
 
@@ -1078,7 +1084,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public Date getAnalysisEndDate() {
 		return this.slidingEndDate;
 	}
-
 
 
 	private void sliderChangesApply() {
@@ -1115,15 +1120,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	public Set<EventInfo> getChartedEvtDefsTrends() {
 		return chartedEvtDefsTrends;
-	}
-
-	public EventInfo getChartedEvtDef() {
-		return chartedEvtDef;
-	}
-
-
-	public void setChartedEvtDef(EventInfo chartedEvtDef) {
-		this.chartedEvtDef = chartedEvtDef;
 	}
 
 

@@ -207,8 +207,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
 
 			} finally {
-				tunedConf.setDirty(dirty);
-				TunedConfMgr.getInstance().updateConf(tunedConf, lastEventDate, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
+				TunedConfMgr.getInstance().updateConf(tunedConf, dirty, lastEventDate, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
 			}
 
 		}

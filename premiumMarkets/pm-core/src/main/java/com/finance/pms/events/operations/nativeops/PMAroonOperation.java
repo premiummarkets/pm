@@ -62,7 +62,7 @@ public class PMAroonOperation extends PMDataFreeOperation {
     }
 
     @Override
-    public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+    public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         //Param check
         Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
@@ -73,7 +73,7 @@ public class PMAroonOperation extends PMDataFreeOperation {
             //HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
             HouseAroon arron = new HouseAroon(period);
             Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-                    targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), 
+                    targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
                     true, targetStock.getStock().getMarketValuation().getCurrency(), 
                     arron.getStartShift(), arron.quotationValidity());
             arron.calculateIndicator(quotations);

@@ -52,7 +52,7 @@ public class OperationValue<T> extends Value<T> implements Cloneable  {
 	@Override
 	public T getValue(TargetStockInfo targetStock) {
 		ArrayList<Value<T>> emptyInputs = new ArrayList<Value<T>>(); //parameterised operation has no input params
-		return (T) operation.calculate(targetStock, emptyInputs);
+		return (T) operation.calculate(targetStock, 0, emptyInputs); //XXX what is this?
 	}
 
 	@Override

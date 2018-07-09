@@ -38,7 +38,7 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 @XmlRootElement
 public class CrossUpConstantCondition extends CrossConstantCondition implements OnThresholdCondition {
-	
+
 
 	private CrossUpConstantCondition() {
 		super(
@@ -47,7 +47,7 @@ public class CrossUpConstantCondition extends CrossConstantCondition implements 
 				new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"),  new NumberOperation("length of time over which it is true"), 
 				new DoubleMapOperation("historical data input"));
 	}
-	
+
 	public CrossUpConstantCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
@@ -58,10 +58,10 @@ public class CrossUpConstantCondition extends CrossConstantCondition implements 
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
 		return ops[0].compareTo((Double) ops[2]) <= 0 &&  ops[2].compareTo((Double) ops[1]) < 0;
 	}
-	
+
 	@Override
 	public int inputThresholdPosition() {
-		return 0;
+		return CONSTANT_POSITION;
 	}
 
 }

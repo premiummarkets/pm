@@ -60,7 +60,9 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 
 @XmlSeeAlso({CrossUpDoubleMapCondition.class, CrossDownDoubleMapCondition.class})
 public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
-	
+
+	private static final int MAIN_POSITION = 2;
+	private static final int SIGNAL_POSITION = 3;
 
 	@SuppressWarnings("unused")
 	private CrossDoubleMapCondition() {
@@ -70,29 +72,29 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	public CrossDoubleMapCondition(String reference, String description) {
 		super(reference, description, new NumberOperation("dates comparison span"),  new NumberOperation("time period over which it happens"), new DoubleMapOperation("'"+reference+ "' left operand (data)"), new DoubleMapOperation("'"+reference+ "' right operand (signal)"));
 	}
-	
+
 	public CrossDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
 		this(reference, description);
 		this.setOperands(operands);
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
 		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(2)).getValue(targetStock);
-		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
-		
+		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
+
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		fullKeySet.addAll(firstOp.keySet());
 		fullKeySet.addAll(secondOp.keySet());
-		
+
 		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedFirstOp = rightShifter.shift(firstOp);
 		SortedMap<Date, Double> rightShiftedSecondOp = rightShifter.shift(secondOp);
-		
+
 		BooleanMapValue outputs = new  BooleanMapValue();
 
 		for (Date date : fullKeySet) {
@@ -103,13 +105,13 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 			if (previousFirstOp != null && !previousFirstOp.isNaN() && previousSecondOp != null && !previousSecondOp.isNaN() && !firstV.isNaN() && !secondV.isNaN())  {
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(previousFirstOp, firstV, previousSecondOp, secondV);
-				
+
 				if (conditionCheck != null) {
-				
+
 					if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
 						outputs.getValue(targetStock).put(date, conditionCheck);
 					}
-					
+
 					if (conditionCheck && overPeriod > 0) {
 						Calendar endOverPeriodCal = Calendar.getInstance();
 						endOverPeriodCal.setTime(date);
@@ -123,23 +125,23 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 				}
 			}
 		}
-		
+
 		return outputs;
 	}
 
 	@Override
 	public int mainInputPosition() {
-		return 2;
+		return MAIN_POSITION;
 	}
 
 	@Override
 	public int inputSignalPosition() {
-		return 3;
+		return SIGNAL_POSITION;
 	}
-	
-	@Override
+
+	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
-		int maxDateShift = Math.max(getOperands().get(mainInputPosition()).operationStartDateShift(),getOperands().get(inputSignalPosition()).operationStartDateShift());
+		int maxDateShift = 0;
 		for (int i = 0; i < mainInputPosition(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}

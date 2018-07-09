@@ -63,7 +63,7 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((DoubleMapValue)inputs.get(0));
 	}
 

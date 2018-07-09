@@ -95,7 +95,7 @@ public enum EventDefinition implements Serializable, EventInfo {
                     "Aroon oscillator (Up-Down) is below -90", null), 4), //
 
     PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  
-            new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold", 
+            new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold",
                     "Rsi crosses above Upper threshold",null, "Rsi crosses below Lower threshold", null), 20),//
     PMMFITHRESHOLD (111,"MFI Threshold Cross", false, 
             new  EventDefDescriptorStatic("Mfi",null,null,null,"Lower threshold","Upper threshold", 

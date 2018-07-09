@@ -59,7 +59,7 @@ public class StringOperation extends Operation  implements LeafOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock,  int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((StringValue)inputs.get(0));
 	}
 
