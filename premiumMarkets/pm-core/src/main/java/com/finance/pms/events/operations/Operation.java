@@ -29,11 +29,7 @@
  */
 package com.finance.pms.events.operations;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -594,7 +590,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public void invalidateAllNonIdempotentOperands(String analysisName, Stock... stock) {
 		if (!this.isIdemPotent()) {
-			LOGGER.info("Invalidating " + this.getReference());
+			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + Arrays.toString(stock));
 			this.invalidateOperation(analysisName);
 		}
 		operands.stream().forEach(

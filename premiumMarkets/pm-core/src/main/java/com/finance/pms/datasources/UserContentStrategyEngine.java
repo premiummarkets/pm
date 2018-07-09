@@ -132,19 +132,16 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 						//Legacy EventInfo from EventDefinition
 						EventInfo[] eiArray = viewStateParams[0].stream()
+								.filter(e -> e instanceof EventDefinition)
 								.map(e -> ((EventInfo) e))
-								.filter(e -> e instanceof  EventDefinition)
 								.toArray(EventInfo[]::new);
 						TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
 
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
-								.map(e -> ((EventInfo) e))
-								.forEach(e -> {
-									if (e instanceof EventInfoOpsCompoOperation) {
-										((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(IndicatorCalculationServiceMain.UI_ANALYSIS, stock);
-									}
-								});
+								.filter(e -> e instanceof  EventInfoOpsCompoOperation)
+								.forEach(e ->
+										((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(IndicatorCalculationServiceMain.UI_ANALYSIS, stock));
 					});
 					viewStateParams[1] = null;
 				}
