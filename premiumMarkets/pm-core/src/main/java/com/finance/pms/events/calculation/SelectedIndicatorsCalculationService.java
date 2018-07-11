@@ -90,7 +90,7 @@ public class SelectedIndicatorsCalculationService {
 					//We update the tunedConfs assuming subsequent calculations will fail as well.
 					stocksEventInfos.get(stock).stream().forEach( ei -> {
 						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
-						TunedConfMgr.getInstance().updateConf(tunedConf, false, DateFactory.dateAtZero());
+						TunedConfMgr.getInstance().updateConf(tunedConf, false);
 					});
 					isDataSetComplete = false;
 					failingStocks.add(stock);

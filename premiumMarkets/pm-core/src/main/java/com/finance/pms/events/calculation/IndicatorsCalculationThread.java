@@ -57,7 +57,6 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -165,7 +164,6 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 					ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
 					TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
-					Date lastEventDate = DateFactory.dateAtZero();
 					try {
 						//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
 						if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
@@ -227,30 +225,21 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 												"No recalculation needed calculation bound is "+ calculationBounds.toString());
 							}
 
-							if (failing.isEmpty()) {
-								//if We inc or reset, tuned conf last event will need update : We add it in the map
-								if ( (calculationBounds.getCalcStatus().equals(CalcStatus.INC) || calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) && symbolEventsForStock.getDataResultMap().size() > 0) {
-									lastEventDate =  symbolEventsForStock.getSortedDataResultList(new DataResultReversedComparator()).get(0).getDate();
-								} else {
-									lastEventDate = tunedConf.getLastCalculatedEvent();
-								}
-							} else {//Error(s) as occurred. This should invalidate tuned conf
+							if (!failing.isEmpty()) {//Error(s) as occurred. This should invalidate tuned conf
 								if (LOGGER.isEnabledFor(Level.ERROR)) {
 									failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
 								}
-								//We make the tunedConf clean assuming a subsequent calculation will also fail. However the last event is here reset to zero.
-								lastEventDate = DateFactory.dateAtZero();
+								//We will make the tunedConf clean assuming a subsequent calculation will also fail. FIXME calculation date have been changed however.
 							}
 
 						}//End synchronized
 
 					} catch (InvalidAlgorithmParameterException e) {
-						lastEventDate = DateFactory.dateAtZero();
 						LOGGER.error(e);
 					} finally {
 						//We update the tunedConf
 						//Dirty is set to false as we assume that no retry will occur in case of failure?
-						TunedConfMgr.getInstance().updateConf(tunedConf, false, lastEventDate);
+						TunedConfMgr.getInstance().updateConf(tunedConf, false);
 					}
 				}
 			};

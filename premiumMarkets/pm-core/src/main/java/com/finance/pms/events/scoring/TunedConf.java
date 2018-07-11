@@ -53,9 +53,7 @@ public class TunedConf {
 
 	private Boolean dirty;
 	private Date lastCalculationStart;
-	private Date lastCalculatedEvent;
 	private Date lastCalculationEnd;
-
 
 	@SuppressWarnings("unused")
 	private TunedConf() {
@@ -66,8 +64,7 @@ public class TunedConf {
 	public TunedConf(Stock stock, String configFile, String eventDefinition) {
 		super();
 		this.tunedConfId = new TunedConfId(stock, configFile, eventDefinition);
-		this.dirty = false;
-		this.lastCalculatedEvent = DateFactory.dateAtZero();
+		this.dirty = true;
 		this.lastCalculationStart = DateFactory.dateAtZero();
 		this.lastCalculationEnd =  DateFactory.dateAtZero();
 	}
@@ -82,15 +79,6 @@ public class TunedConf {
 	}
 
 	@Temporal(TemporalType.DATE)
-	public Date getLastCalculatedEvent() {
-		return lastCalculatedEvent;
-	}
-
-	public void setLastCalculatedEvent(Date lastCalculatedEvent) {
-		this.lastCalculatedEvent = lastCalculatedEvent;
-	}
-
-	@Temporal(TemporalType.DATE)
 	public Date getLastCalculationEnd() {
 		return lastCalculationEnd;
 	}
@@ -101,7 +89,7 @@ public class TunedConf {
 
 	@Override
 	public String toString() {
-		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + lastCalculationStart + ", lastCalculatedEvent=" + lastCalculatedEvent + ", lastCalculationEnd=" + lastCalculationEnd + ", dirty=" + dirty + "]";
+		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + lastCalculationStart + ", lastCalculationEnd=" + lastCalculationEnd + ", dirty=" + dirty + "]";
 	}
 
 	@EmbeddedId
@@ -116,15 +104,15 @@ public class TunedConf {
 	public Boolean getDirty() {
 		return dirty;
 	}
-	
+
 	//Hib
 	public void setDirty(Boolean dirty) {
 		this.dirty = dirty;
 	}
-	
+
 	@Transient
-	public Boolean isValid() {
-		return this.getLastCalculatedEvent().after(this.getLastCalculationStart());
+	public Boolean isValid(Date start, Date end) {
+		return !getDirty() && lastCalculationStart.compareTo(start) <= 0 && lastCalculationEnd.compareTo(end) >= 0;
 	}
 
 }
