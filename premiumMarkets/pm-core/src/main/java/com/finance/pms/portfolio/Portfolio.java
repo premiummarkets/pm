@@ -194,7 +194,11 @@ public class Portfolio extends AbstractSharesList {
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, transactionCurrency);
 		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account);
-		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) portfolioShare.setMonitorLevel(MonitorLevel.BEARISH);
+		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) {
+			portfolioShare.setMonitorLevel(MonitorLevel.BEARISH);
+		} else {
+			portfolioShare.setMonitorLevel(MonitorLevel.NONE);
+		}
 
 		return portfolioShare;
 
@@ -736,6 +740,11 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public List<PortfolioShare> getUnOwnedPorfolioShares() {
 		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) == 0).collect(Collectors.toList());
+	}
+
+	@Transient
+	public List<PortfolioShare> getOwnedPorfolioShares() {
+		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
 	}
 
 	@Transient

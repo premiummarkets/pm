@@ -285,7 +285,6 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 		}
 
-
 		if (!isDataSetComplete) {
 			throw new IncompleteDataSetException(failingStocks, allEvents, calculatedOutputReturn, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
 		}
