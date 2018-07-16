@@ -591,7 +591,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public void invalidateAllNonIdempotentOperands(String analysisName, Stock... stock) {
 		if (!this.isIdemPotent()) {
 			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + Arrays.toString(stock));
-			this.invalidateOperation(analysisName);
+			this.invalidateOperation(analysisName, stock);
 		}
 		operands.stream().forEach(
 			o -> {
