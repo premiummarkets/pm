@@ -36,9 +36,10 @@ import java.util.TreeMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.TimedMapValue;
 import com.finance.pms.events.operations.Value;
 
-public class DoubleMapValue extends Value<SortedMap<Date, Double>> implements MapValue<Date, Double>, Cloneable {
+public class DoubleMapValue extends Value<SortedMap<Date, Double>> implements TimedMapValue<Double>, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleMapValue.class);
 	

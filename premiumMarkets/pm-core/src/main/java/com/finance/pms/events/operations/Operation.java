@@ -87,7 +87,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	//This name as operand of the parent
 	private String referenceAsOperand;
 
-	//This reference as native operation (should not be changed)//TODO use this reference to sort out reentrant and invalid ops instead of the overridden reference.
+	//This reference as native operation (should not be changed) //TODO use this reference to sort out reentrant and invalid ops instead of the overridden reference.
 	private String operationReference;
 
 	private Boolean isVarArgs = false;

@@ -37,9 +37,10 @@ import java.util.TreeMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.TimedMapValue;
 import com.finance.pms.events.operations.Value;
 
-public class BooleanMapValue extends Value<SortedMap<Date, Boolean>> implements MapValue<Date, Boolean>, Cloneable {
+public class BooleanMapValue extends Value<SortedMap<Date, Boolean>> implements TimedMapValue<Boolean>, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 	
