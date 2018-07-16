@@ -38,20 +38,20 @@ import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
 public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
-	
+
 	private Integer id;
 	private String serieName;
 	private Color serieColor;
 	private float serieStrokeSize;
 	private String stockDescr;
 	private TuningResDTO tuningRes;
-	
+
 	private boolean labeled;
-	
+
 	private String eventDisplayeDef;
 	private EventDefDescriptor eventDefDescriptor;
 	private double base;
-	
+
 	//Ui bar chart
 	public DataSetBarDescr(Integer id, String serieName, String eventDisplayeDef, EventDefDescriptor eventDefDescriptor, TuningResDTO tuningRes, String stockDescr, double base, Color serieColor, float serieStrokeSize){
 		super();
@@ -64,7 +64,7 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		this.eventDisplayeDef = eventDisplayeDef;
 		this.eventDefDescriptor = eventDefDescriptor;
 		this.base = base;
-		
+
 	}
 
 	//PmGWT out chart
@@ -76,9 +76,9 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		this.serieStrokeSize = serieStrokeSize;
 		this.stockDescr = serieName;
 		this.base = 0;
-		
+
 	}
-	
+
 	//PmGWT out chart
 	public DataSetBarDescr(int id, String serieName, Color serieColor) {
 		super();
@@ -88,15 +88,15 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		this.serieStrokeSize = 1f;
 		this.stockDescr = serieName;
 		this.base = 0;
-		
+
 	}
 
 	@Override
 	public int compareTo(DataSetBarDescr o) {
 		return id.compareTo(o.id);
 	}
-	
-	
+
+
 
 	@Override
 	public int hashCode() {
@@ -150,7 +150,7 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 
 	public void setLabeled(boolean b) {
 		this.labeled = b;
-		
+
 	}
 
 	public boolean isLabeled() {
@@ -166,17 +166,17 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		}
 		return tuningResLabel;
 	}
-	
+
 	public Double getFollowProfit() {
 		if (tuningRes == null) return Double.NaN;
 		return tuningRes.getFollowProfit();
 	}
-	
+
 	public Double getStopLossProfit() {
 		if (tuningRes == null) return Double.NaN;
 		return tuningRes.getStopLossProfit();
 	}
-	
+
 	public Double getStockPriceChange() {
 		if (tuningRes == null) return Double.NaN;
 		return tuningRes.getStockPriceChange();

@@ -23,6 +23,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.scoring.CalculationBounds;
 import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfId;
 import com.finance.pms.events.scoring.TunedConfMgr;
 
 @RunWith(PowerMockRunner.class)
@@ -38,7 +39,7 @@ public class EventsStatusCheckerTest {
     
     private Stock stock = AnalysisClient.ANY_STOCK;
     private String analysisName = "analisys";
-    private EventInfo eventDef = EventDefinition.NEURALNEUROPH;
+    private EventInfo eventDef = EventDefinition.ZERO;
     private EventsStatusChecker checker;
 
 
@@ -61,6 +62,7 @@ public class EventsStatusCheckerTest {
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
         EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
         PowerMock.replayAll();
@@ -87,6 +89,7 @@ public class EventsStatusCheckerTest {
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
         EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
         PowerMock.replayAll();
@@ -117,6 +120,7 @@ public class EventsStatusCheckerTest {
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
         EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
         PowerMock.replayAll();
@@ -146,6 +150,7 @@ public class EventsStatusCheckerTest {
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
         EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
         PowerMock.replayAll();
@@ -166,11 +171,72 @@ public class EventsStatusCheckerTest {
     }
     
     @Test
+    public void testAutoCalcAndSetDatesBoundsInc3() throws ParseException, InvalidAlgorithmParameterException {
+        
+        simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date previousStart = simpleDateFormat.parse("2009-12-21");
+        Date previousEnd = simpleDateFormat.parse("2015-12-20");
+        
+
+        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
+
+        
+        PowerMock.replayAll();
+        
+        checker = new EventsStatusChecker(tunedConf);
+        
+        //when
+        Date startRequested = simpleDateFormat.parse("2010-12-21");
+        Date endRequested = simpleDateFormat.parse("2017-12-21");
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        
+        //then
+        assertEquals(TunedConfMgr.CalcStatus.INC, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(previousStart, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getPmStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+    }
+    
+    @Test
+    public void testAutoCalcAndSetDatesBoundsInc4() throws ParseException, InvalidAlgorithmParameterException {
+        
+        simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date previousStart = simpleDateFormat.parse("2009-12-21");
+        Date previousEnd = simpleDateFormat.parse("2015-12-20");
+        
+
+        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
+
+        
+        PowerMock.replayAll();
+        
+        checker = new EventsStatusChecker(tunedConf);
+        
+        //when
+        Date startRequested = simpleDateFormat.parse("2008-12-21");
+        Date endRequested = simpleDateFormat.parse("2012-12-21");
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        
+        //then
+        assertEquals(TunedConfMgr.CalcStatus.INC, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
+        assertEquals(previousStart, autoCalcAndSetDatesBounds.getPmEnd());
+    }
+    
+    @Test
     public void testAutoCalcAndSetDatesBoundsOutSide() throws ParseException, InvalidAlgorithmParameterException {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
         Date previousEnd = simpleDateFormat.parse("2017-12-20");
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
         
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
@@ -204,6 +270,7 @@ public class EventsStatusCheckerTest {
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
         EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
         PowerMock.replayAll();
@@ -233,6 +300,7 @@ public class EventsStatusCheckerTest {
 
         EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
         EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
         PowerMock.replayAll();

@@ -197,10 +197,10 @@
 					<artifactId>javassist</artifactId>
 					<groupId>org.javassist</groupId>
 				</exclusion>
-				 <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>asm</groupId>
-                </exclusion>
+<!-- 				 <exclusion> -->
+<!--                     <artifactId>asm</artifactId> -->
+<!--                     <groupId>asm</groupId> -->
+<!--                 </exclusion> -->
             </exclusions>
 		</dependency>
 		<dependency>

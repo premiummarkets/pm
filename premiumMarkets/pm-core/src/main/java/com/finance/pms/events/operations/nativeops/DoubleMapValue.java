@@ -34,16 +34,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TimedMapValue;
 import com.finance.pms.events.operations.Value;
 
 public class DoubleMapValue extends Value<SortedMap<Date, Double>> implements TimedMapValue<Double>, Cloneable {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleMapValue.class);
-	
-	SortedMap<Date, Double> map;
+
+	private SortedMap<Date, Double> map;
 
 	public DoubleMapValue(SortedMap<Date, Double> map) {
 		super();
@@ -58,12 +57,12 @@ public class DoubleMapValue extends Value<SortedMap<Date, Double>> implements Ti
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 		return map;
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() +" : size is "+map.size() + ((map.size() > 0)?", first key "+map.firstKey()+ ", last key "+map.lastKey():"");
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object clone() {

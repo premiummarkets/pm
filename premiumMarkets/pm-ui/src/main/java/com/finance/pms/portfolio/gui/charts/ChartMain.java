@@ -476,6 +476,8 @@ public class ChartMain extends Chart {
 
 					resetVerticalLines(plotArea);
 
+					renderer.annotationChanged(null);
+
 				} catch (Exception e) {
 					LOGGER.error(e,e);
 				}
