@@ -25,6 +25,10 @@ public class EventMapOperation extends Operation implements MapOperation {
 		super(reference, description, operands);
 	}
 
+	public EventMapOperation(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
+		super(reference, referenceAsOperand, description, defaultValue);
+	}
+
 	@Override
 	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((EventDataValue)inputs.get(0));

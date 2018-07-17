@@ -78,10 +78,9 @@ public class SelectedIndicatorsCalculationService {
 
 					List<Future<SymbolEvents>> eventInfosFutures = new ArrayList<>();
 					for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
-						Callable<SymbolEvents> calculationRunnable = 
-								new SelectedIndicatorsCalculationThread(stock, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
-						Future<SymbolEvents> submitedRunnable = executor.submit(calculationRunnable);
-						eventInfosFutures.add(submitedRunnable);
+						Callable<SymbolEvents> calculationRunnable = new SelectedIndicatorsCalculationThread(stock, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
+						Future<SymbolEvents> submittedRunnable = executor.submit(calculationRunnable);
+						eventInfosFutures.add(submittedRunnable);
 					}
 					futuresMap.put(stock, eventInfosFutures);
 
