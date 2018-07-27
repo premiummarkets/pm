@@ -35,25 +35,23 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JFrame;
-import javax.swing.Timer;
+import javax.swing.*;
 
 public class ClickListener extends MouseAdapter implements ActionListener
 {
-    private final static int clickInterval = (Integer)Toolkit.getDefaultToolkit().
-        getDesktopProperty("awt.multiClickInterval");
 
-    MouseEvent lastEvent;
-    Timer timer;
+    private MouseEvent lastEvent;
+    private Timer timer;
 
     public ClickListener()
     {
-        this(clickInterval);
+        this((Integer) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval"));
     }
 
-    public ClickListener(int delay)
+    public ClickListener(Integer delay)
     {
-        timer = new Timer( delay, this);
+        if (delay == null) delay = 200;
+        timer = new Timer(delay, this);
     }
 
     public void mouseClicked (MouseEvent e)

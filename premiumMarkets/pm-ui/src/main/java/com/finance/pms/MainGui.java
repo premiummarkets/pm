@@ -987,7 +987,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 		} catch (Throwable e) {
 
-			System.out.println("Unhandled error running the ui : "+e);
+			System.out.println("Unhandled error running the ui : " + e);
 			e.printStackTrace();
 			genericSuddenDeathMsg(e);
 
