@@ -365,14 +365,14 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
                         task.comeOn(PROGRESSBAR_REALINC, (String) arg);
                     }
                 };
+                
+                //DB
                 DbInstaller dbInstaller = new DbInstaller();
                 dbInstaller.addObserver(or);
 
-                //DB
-                dbInstall(dbInstaller);
-
                 if (dbAlreadyInstalled) {//upgrade
                     System.out.println(Install.APP_NAME+" has been installed before. Will try and upgrade");
+                    dbExtraction(dbInstaller, false);
                     try {
                         task.comeOn(PROGRESSBAR_REALINC, "Upgrading Database!");
                         System.out.println("Upgrading Database!");
@@ -387,12 +387,12 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
                     }
 
                 } else {//first install : populate
-
                     System.out.println(Install.APP_NAME+" first or new install! good luck :))");
+                    dbExtraction(dbInstaller, true);
                     //displayTime("extract DB");
                     task.comeOn(PROGRESSBAR_REALINC, "Importing data in Database!");
                     System.out.println("Importing data in Database!");
-                    dbInstaller.importDB(installFolder, DbInstaller.EXTRACTDIR, connect(installFolder));
+                    dbInstaller.importDBData(installFolder, DbInstaller.EXTRACTDIR, connect(installFolder));
                     closeConnection();
                     System.out.println("Database initialised");
                     //displayTime("importDB");
@@ -515,7 +515,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
             return null;
         }
 
-        protected void dbInstall(DbInstaller dbInstaller) throws MalformedURLException {
+        protected void dbExtraction(DbInstaller dbInstaller, Boolean unCompressData) throws MalformedURLException {
 
             URL export = this.getClass().getClassLoader().getResource("export");
             URL derby = this.getClass().getClassLoader().getResource("derby");
@@ -525,7 +525,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 
             System.out.println("Will try extract or download.");
             try {
-                dbInstaller.extractDB(dbName, dbInstallUrl, BaseCheckPanelDescriptor.initDbName, installFolder);
+                dbInstaller.extractDataAndSql(dbName, dbInstallUrl, BaseCheckPanelDescriptor.initDbName, installFolder, unCompressData);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -738,12 +738,12 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
                     boolean mkdir = newdir.mkdir();
                     System.out.println("Done! And created : "+mkdir);
 
-                } else  {//File
+                } else {//File
 
                     String newfile = installFolder.getAbsolutePath() + File.separator + item.getName();
                     System.out.println("Deleting previous file "+ newfile);
                     new File(newfile).delete();
-                    System.out.print("Writing " + newfile+ " ... ");
+                    System.out.print("Writing " + newfile + " ... ");
                     InputStream is = zf.getInputStream(item);
                     FileOutputStream fos = new FileOutputStream(newfile);
                     BufferedInputStream bis = new BufferedInputStream(is);
