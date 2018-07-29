@@ -238,8 +238,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			if (!areEvtDefsTrendsSelected) {
 				chartTarget.getMainChartWraper().resetIndicChart();
 				chartTarget.getMainChartWraper().resetBarChart();
-				initChartedTrendsPopup(false);
-				initCalculatorSettingsPopup(false);
+				refreshChartedTrendsPopup(false);
+				refreshCalculatorSettingsPopup(false);
 			}
 
 		} finally {
@@ -510,7 +510,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 
 					private void handleCalculatorSettingsSelection() {
-						initCalculatorSettingsPopup(true);
+						refreshCalculatorSettingsPopup(true);
 					}
 
 				});
@@ -545,7 +545,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 
 					private void handleChartedTrendsSelection() {
-						initChartedTrendsPopup(true);
+						refreshChartedTrendsPopup(true);
 					}
 
 				});
@@ -740,14 +740,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 
 		if (chartedTrendsPopupMenu!= null && !chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
-			initChartedTrendsPopup(false);
+			refreshChartedTrendsPopup(false);
 		}
 		if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-			initCalculatorSettingsPopup(false);
+			refreshCalculatorSettingsPopup(false);
 		}
 	}
 
-	private void initChartedTrendsPopup(Boolean activate) {
+	private void refreshChartedTrendsPopup(Boolean activate) {
 
 		Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 		ActionDialogAction disactivateAction = new ActionDialogAction() {
@@ -788,7 +788,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-	private void initCalculatorSettingsPopup(Boolean activatePopup) {
+	private void refreshCalculatorSettingsPopup(Boolean activatePopup) {
 
 		try {
 
@@ -796,11 +796,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			boolean isEmptyOutputIndicator = false;
 			boolean isClearInProgress = false;
 			String errorMessage = 
-					"Only user defined calculators can be customised.\n" +
-							"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
-							"And wait for its calculation to finish before changing the display settings.\n" +
+							"Select one of your user defined calculators in '"+TRENDBUTTXT + "'\n" +
 							"New calculators can be defined using the menu Events -> Customise and create calculators ...";
-
 
 			if ( isIndicatorSelected ) {
 
@@ -853,7 +850,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				} else {
 
-					if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
 						calculatorSettingsPopupMenu.getSelectionShell().dispose();
 					}
 					isEmptyOutputIndicator = true;
@@ -862,9 +859,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			}
 
-			boolean isPopupActive = calculatorSettingsPopupMenu != null && calculatorSettingsPopupMenu.getSelectionShell().isVisible();
-			boolean hasEmptyResults = !isClearInProgress && isEmptyOutputIndicator;
-			if (isPopupActive && (!isIndicatorSelected || hasEmptyResults)) {
+			boolean isPopupActive = calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed() && calculatorSettingsPopupMenu.getSelectionShell().isVisible();
+			boolean hasEmptyResults = isClearInProgress || isEmptyOutputIndicator;
+			if (!isPopupActive && (!isIndicatorSelected || hasEmptyResults)) {
 				showPopupDialog("No calculator is selected or no results is available.", "Ok", errorMessage, null);
 			}
 
