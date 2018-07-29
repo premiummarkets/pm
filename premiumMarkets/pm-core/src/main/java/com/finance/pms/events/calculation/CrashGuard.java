@@ -37,6 +37,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.quotations.QuotationUnit;
@@ -60,11 +61,18 @@ public class CrashGuard extends TalibIndicatorsOperator {
 //	private Integer smaQuotationStartDateIdx;
 	
 	public CrashGuard(Integer signalSmaPeriod) {
+		super(EventDefinition.CRASHGUARD);
         init(signalSmaPeriod);
     }
-	
-	public CrashGuard() {
+
+	public CrashGuard(Observer... observers) {
+		super(EventDefinition.CRASHGUARD, observers);
+		this.sma = new SMA(0); //?
+	}
+
+	public CrashGuard(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer signalSmaPeriod) {
@@ -79,7 +87,7 @@ public class CrashGuard extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.CRASHGUARD);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		
 		Integer smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 		
@@ -95,11 +103,6 @@ public class CrashGuard extends TalibIndicatorsOperator {
 		}
 		
 		return res;
-	}
-
-	public CrashGuard(Observer... observers) {
-		super(observers);
-		this.sma = new SMA(0); //?
 	}
 
 	@Override

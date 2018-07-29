@@ -74,7 +74,7 @@ public class StockOperation extends DoubleMapOperation {
 		 
 		SortedMap<Date, Double> buildSMapFromQuotations = new TreeMap<Date, Double>();
 		try {
-			Date shiftedStartDate = targetStock.getStartDate(thisStartShift);
+			Date shiftedStartDate =  getStartDate(targetStock.getStartDate(), thisStartShift);
 			switch(targetStockInputType) {
 			case CLOSE :
 				{

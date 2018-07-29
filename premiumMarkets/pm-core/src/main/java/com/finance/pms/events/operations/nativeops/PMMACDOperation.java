@@ -77,7 +77,7 @@ public class PMMACDOperation extends PMDataFreeOperation {
 		try {
 			MACD macd = new MACD(fastPeriod, slowPeriod, signalPeriod);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
+					targetStock.getStock(),  getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(), 
 					macd.getStartShift(), macd.quotationValidity());
 			macd.calculateIndicator(quotations);

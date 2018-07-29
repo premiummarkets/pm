@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Observer;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.RSI;
 import com.finance.pms.talib.indicators.SMA;
@@ -44,12 +45,13 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	private Integer rsiQuotationStartDateIdx;
 	
 	public RSIDivergence(Integer rsiTimePeriod, Integer rsiUpperThreshold, Integer rsiLowerThreshold, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMRSIDIVERGENCE, observers);
 		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
 	}
 	
-    public RSIDivergence() {
+    public RSIDivergence(EventInfo reference) {
         //Reflective ops generator
+    	super(reference);
     }
     
     protected void init(Integer rsiTimePeriod, Integer rsiUpperThreshold, Integer rsiLowerThreshold) {

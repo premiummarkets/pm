@@ -30,7 +30,6 @@
 package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +38,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
 
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
@@ -54,11 +52,10 @@ import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class TargetStockInfo {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
+//	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
 
 	public class Output {
 
@@ -158,18 +155,15 @@ public class TargetStockInfo {
 	public Stock getStock() {
 		return stock;
 	}
-
-	public Date getStartDate(int startShift) {
-		Calendar startCal = Calendar.getInstance();
-		startCal.setTime(startDate);
-		QuotationsFactories.getFactory().incrementDate(startCal, -startShift);
-		LOGGER.info(this.eventInfoOpsCompoOperation.getReference()+" start date shift to : "+startShift+". Requested start : "+startDate+", calculated start : "+startCal.getTime());
-		return startCal.getTime();
+	
+	public Date getStartDate() {
+		return startDate;
 	}
 
 	public Date getEndDate() {
 		return endDate;
 	}
+
 	public String getAnalysisName() {
 		return analysisName;
 	}

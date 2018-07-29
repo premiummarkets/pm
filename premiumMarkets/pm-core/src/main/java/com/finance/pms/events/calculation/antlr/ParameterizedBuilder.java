@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -556,7 +557,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 	private void invalidateOperations(List<Operation> impactedOps) {
-		impactedOps.stream().forEach(o -> o.invalidateOperation(IndicatorCalculationServiceMain.UI_ANALYSIS));
+		impactedOps.stream().forEach(o -> o.invalidateOperation(IndicatorCalculationServiceMain.UI_ANALYSIS, Optional.empty()));
 	}
 
 

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Observer;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.MFI;
 import com.finance.pms.talib.indicators.TalibIndicator;
@@ -43,12 +44,13 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 	private Integer mfiQuotationStartDateIdx;
 
 	public MFIDivergence(Integer timePeriod, Integer lowerThres, Integer upperThres, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMMFIDIVERGENCE, observers);
 		init(timePeriod, lowerThres, upperThres);
 	}
 	
-    public MFIDivergence() {
+    public MFIDivergence(EventInfo reference) {
         //Reflective ops generator
+    	super(reference);
     }
     
     protected void init(Integer timePeriod, Integer lowerThres, Integer upperThres) {

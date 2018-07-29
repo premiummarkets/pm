@@ -39,6 +39,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -56,12 +57,13 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 	private ChaikinOscillator chaikinOscillator;
 	
 	public ChaikinOscillatorThreshold(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMCHAIKINOSCTHRESHOLD, observers);
 		init(chkInfastPeriod, chkInslowPeriod);
 	}
 	
-	public ChaikinOscillatorThreshold() {
+	public ChaikinOscillatorThreshold(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 	
     protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod) {
@@ -76,7 +78,7 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
 
-		FormulatRes res = new FormulatRes(EventDefinition.PMCHAIKINOSCTHRESHOLD);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
 		
 		Integer stochIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, quotationIdx);

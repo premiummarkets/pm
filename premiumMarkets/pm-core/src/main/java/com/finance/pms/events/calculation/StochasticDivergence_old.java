@@ -43,6 +43,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -91,12 +92,13 @@ public class StochasticDivergence_old extends TalibIndicatorsOperator {
 //	}
 	
 	public StochasticDivergence_old(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMSSTOCHDIVERGENCEOLD, observers);
 		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, 2);
 	}
 
-	public StochasticDivergence_old() {
+	public StochasticDivergence_old(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Integer signalSMAPeriod) {

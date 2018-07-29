@@ -31,6 +31,7 @@ package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -74,7 +75,7 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Stock... stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
 		//Nothing
 	}
 

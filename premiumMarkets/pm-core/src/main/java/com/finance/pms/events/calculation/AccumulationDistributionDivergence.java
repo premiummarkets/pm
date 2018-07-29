@@ -41,6 +41,7 @@ import java.util.SortedMap;
 import org.apache.commons.math3.stat.descriptive.rank.Max;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -65,12 +66,13 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsOperator 
     SMA chaikinSma20;
 
     public AccumulationDistributionDivergence(Observer... observers) {
-        super(observers);
+        super(EventDefinition.PMACCDISTDIVERGENCE, observers);
         init(20, 65, 20, 65);
     }
     
-    public AccumulationDistributionDivergence() {
+    public AccumulationDistributionDivergence(EventInfo reference) {
       //Reflective ops generator
+    	super(reference);
     }
 
     protected void init(Integer fastPriceMAPeriod, Integer slowPriceMAPeriod, Integer fastChainkinMAPeriod, Integer slowChainkinMAPeriod) {

@@ -39,6 +39,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -56,13 +57,14 @@ public class MFIThreshold extends TalibIndicatorsOperator {
     private MFI mfi;
 
     public MFIThreshold(Integer mfTimePeriod, Integer mfiLowerThreshold, Integer mfiUpperThreshold, Observer... observers) {
-        super(observers);
+        super(EventDefinition.PMMFITHRESHOLD, observers);
         init(mfTimePeriod, mfiLowerThreshold, mfiUpperThreshold);
     }
 
 
-    public MFIThreshold() {
+    public MFIThreshold(EventInfo reference) {
         //Reflective ops generator
+    	super(reference);
     }
 
     protected void init(Integer mfTimePeriod, Integer mfiLowerThreshold, Integer mfiUpperThreshold) {
@@ -76,7 +78,7 @@ public class MFIThreshold extends TalibIndicatorsOperator {
 
     @Override
     protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
-        FormulatRes res = new FormulatRes(EventDefinition.PMMFITHRESHOLD);
+        FormulatRes res = new FormulatRes(getEventDefinition());
         res.setCurrentDate(qU.getDate());
 
         Integer mfiIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.mfi, quotationIdx);

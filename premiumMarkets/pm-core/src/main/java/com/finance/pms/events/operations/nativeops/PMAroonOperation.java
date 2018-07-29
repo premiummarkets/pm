@@ -73,7 +73,7 @@ public class PMAroonOperation extends PMDataFreeOperation {
             //HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
             HouseAroon arron = new HouseAroon(period);
             Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-                    targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
+                    targetStock.getStock(),  getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(), 
                     true, targetStock.getStock().getMarketValuation().getCurrency(), 
                     arron.getStartShift(), arron.quotationValidity());
             arron.calculateIndicator(quotations);

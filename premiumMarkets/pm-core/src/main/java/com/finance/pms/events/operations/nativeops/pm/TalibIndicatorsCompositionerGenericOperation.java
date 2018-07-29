@@ -33,20 +33,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.EventDefDescriptorStatic;
 import com.finance.pms.events.calculation.TalibIndicatorsOperator;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -62,137 +66,143 @@ import com.finance.pms.talib.indicators.TalibException;
 
 /**
  * A like the EventInfoOpsCompoOperation, the TalibIndicatorsCompositionerGenericOperation is a specific type of operation that generates bullish and bearish events to be used in the UI.
- * The difference is that instead of relying on a formula defined by the user, it finds its calculation definition within classes descendant from the TalibIndicatorsCompositioner calculator.
- * However, as an implementation convenience, it need to be wrapped within a formula and hence an OperationCompositionner in order to be processed eventually using the ParameterizedIndicatorsCompositioner.
+ * The difference is that instead of relying on a formula defined by the user, it finds its calculation definition within classes descendant of TalibIndicatorsOperator.
+ * However, as this is not an Event Info itself (FIXME??), it need to be wrapped within a formula and hence an EventInfoOpsCompoOperation in order to be processed eventually using the ParameterizedIndicatorsOperator.
+ * The wrapping EventInfoOpsCompoOperation must be eponym for this to fully work.
+ * //FIXME??? The problem is that this kind of 'EventInfo' is actually an operation (with variable operands) and this causes problems because of the indicator V operations segregation (chartable V composed)
+ * //FIXME indeed, indicator definition doesn't support variables operands.
  * @author guil
  */
 //FIXME rename TalibIndicatorsCompositionerBullBearSwitchOperation
 public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperation {
 
-    private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionerGenericOperation.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsCompositionerGenericOperation.class);
 
-    private final Class<? extends TalibIndicatorsOperator> calculatorClass;
+	private final Class<? extends TalibIndicatorsOperator> calculatorClass;
 
-    public TalibIndicatorsCompositionerGenericOperation(
-            String reference, String description, 
-            Class<? extends TalibIndicatorsOperator> calculatorClass, List<String> inConstantsNames) throws Exception {
-        super(reference, description);
+	public TalibIndicatorsCompositionerGenericOperation(
+			String reference, String description, 
+			Class<? extends TalibIndicatorsOperator> calculatorClass, List<String> inConstantsNames) throws Exception {
+		super(reference, description);
 
-        this.calculatorClass = calculatorClass;
+		this.calculatorClass = calculatorClass;
 
-        ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
-        for (String inConstantName : inConstantsNames) {
-            NumberOperation constant = new NumberOperation("number", inConstantName, inConstantName, null);
-            overridingOperands.add(constant);
-        }
-        this.setOperands(overridingOperands);
+		ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
+		for (String inConstantName : inConstantsNames) {
+			NumberOperation constant = new NumberOperation("number", inConstantName, inConstantName, null);
+			overridingOperands.add(constant);
+		}
+		this.setOperands(overridingOperands);
 
-    }
+	}
 
-    /**
-     * @return True when bullish and False when bearish
-     */
-    @Override
-    public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	/**
+	 * @return True when bullish and False when bearish
+	 */
+	@Override
+	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-        EventDataValue buySellEvents = new EventDataValue();
-        try {
+		EventDataValue buySellEvents = new EventDataValue();
+		try {
 
-            TalibIndicatorsOperator calculator = calculatorClass.getConstructor().newInstance();
+			//XXX getting back the eponym EventInfoOpsCompoOperation indicator from the operation name (@see TalibIndicatorsCompositionerGenericOperation.class)
+			EventInfo thisEventInfoOpsCompoOperation = (EventInfo) ((ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder")).getUserEnabledOperations().get(this.getReference());
 
-            List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
-            calculator.genericInit(inputConstants.toArray(new Integer[0]));
+			TalibIndicatorsOperator calculator = calculatorClass.getConstructor(EventInfo.class).newInstance(thisEventInfoOpsCompoOperation);
 
-            Date shiftedStartDate = targetStock.getStartDate(thisStartShift);
+			List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
+			calculator.genericInit(inputConstants.toArray(new Integer[0]));
+
+			Date shiftedStartDate =  getStartDate(targetStock.getStartDate(), thisStartShift);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-                    targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), 
-                    true, targetStock.getStock().getMarketValuation().getCurrency(), 
-                    calculator.getStartShift(), calculator.quotationsValidity());
+					targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), 
+					true, targetStock.getStock().getMarketValuation().getCurrency(), 
+					calculator.getStartShift(), calculator.quotationsValidity());
 
-            //Events is the only functional output for this operation => boolean
-            SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(quotations, "inMem"+this.getClass().getSimpleName()+"Operation");
-            buySellEvents = new EventDataValue(eventsFor);
+			//Events is the only functional output for this operation => boolean
+			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(quotations, targetStock.getAnalysisName());
+			buySellEvents = new EventDataValue(eventsFor);
 
-            //Adding indicator outputs for charting
-            EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();
-            EventDefDescriptorStatic eventDefDescriptor = eventDefinition.getEventDefDescriptor();
-            if (eventDefDescriptor == null) {
-                throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
-            }
-            LinkedHashMap<String, Type> outputQualifiers = eventDefDescriptor.descriptionMap();
+			//Adding indicator outputs for charting
+			EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();
+			EventDefDescriptorStatic eventDefDescriptor = eventDefinition.getEventDefDescriptor();
+			if (eventDefDescriptor == null) {
+				throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
+			}
+			LinkedHashMap<String, Type> outputQualifiers = eventDefDescriptor.descriptionMap();
 
-            SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
-            int i = 0;
-            for (String outputName : outputQualifiers.keySet()) {
-                SortedMap<Date, Double> output = new TreeMap<Date, Double>();
-                transOutput(calculationOutput, output, i);
+			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
+			int i = 0;
+			for (String outputName : outputQualifiers.keySet()) {
+				SortedMap<Date, Double> output = new TreeMap<Date, Double>();
+				transOutput(calculationOutput, output, i);
 
-                //addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput)
-                targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(output), outputName);
+				//addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput)
+				targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(output), outputName);
 
-                i++;
-            }
+				i++;
+			}
 
-            buildChartable(targetStock, outputQualifiers);
+			buildChartable(targetStock, outputQualifiers);
 
-        }
-        catch (TalibException | NoQuotationsException e) {
-            LOGGER.warn(this.getReference() + " : " + e, true);
-        }
-        catch (Exception e) {
-            LOGGER.error(this.getReference() + " : " + e, e);
-        }
+		}
+		catch (TalibException | NoQuotationsException e) {
+			LOGGER.warn(this.getReference() + " : " + e, true);
+		}
+		catch (Exception e) {
+			LOGGER.error(this.getReference() + " : " + e, e);
+		}
 
-        return buySellEvents;
-    }
+		return buySellEvents;
+	}
 
-    private void buildChartable(TargetStockInfo targetStock, LinkedHashMap<String, Type> outputQualifiers) {
+	private void buildChartable(TargetStockInfo targetStock, LinkedHashMap<String, Type> outputQualifiers) {
 
-        //createChartedOutputGroups(targetStock, operandsOutputs)
-        String mainOutputQualifier = outputQualifiers.keySet().stream().findFirst().get(); //first element ..
-        targetStock.setMain(this, mainOutputQualifier);
+		//createChartedOutputGroups(targetStock, operandsOutputs)
+		String mainOutputQualifier = outputQualifiers.keySet().stream().findFirst().get(); //first element ..
+		targetStock.setMain(this, mainOutputQualifier);
 
-        //addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) tail
-        LinkedHashMap<String, Type> filteredOuputQualifiers = new LinkedHashMap<>();
-        outputQualifiers.entrySet().stream().forEach(e ->  {
-            if (e.getValue().equals(Type.CONSTANT)) {
-                filteredOuputQualifiers.put(e.getKey(), Type.MULTISIGNAL);
-            } 
-            else {
-                filteredOuputQualifiers.put(e.getKey(), e.getValue());
-            }
-        });
-        targetStock.addChartInfoForAdditonalOutputs(this, filteredOuputQualifiers, mainOutputQualifier);
+		//addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) tail
+		LinkedHashMap<String, Type> filteredOuputQualifiers = new LinkedHashMap<>();
+		outputQualifiers.entrySet().stream().forEach(e ->  {
+			if (e.getValue().equals(Type.CONSTANT)) {
+				filteredOuputQualifiers.put(e.getKey(), Type.MULTISIGNAL);
+			} 
+			else {
+				filteredOuputQualifiers.put(e.getKey(), e.getValue());
+			}
+		});
+		targetStock.addChartInfoForAdditonalOutputs(this, filteredOuputQualifiers, mainOutputQualifier);
 
-    }
+	}
 
-    protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest, int originIdx) {
-        for (Date date : origin.keySet()) {
-            dest.put(date, origin.get(date)[originIdx]);
-        }
-    }
-
-    @Override
-    //Approximate calculation based on the different parameters assumed as periods passed to this operation.
-    public int operationStartDateShift() {
-        Integer thisOperationStartShift = getOperands().stream()
-                .filter(o -> o instanceof NumberOperation)
-                .map(o -> ((NumberValue)o.getParameter()).getValue(null).intValue())
-                .reduce(0, (r, e) -> r + e);
-
-        return (thisOperationStartShift)*7/5;
-    }
-
-    @Override
-    public Boolean isIdemPotent() {
-    	return true;
-    }
+	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest, int originIdx) {
+		for (Date date : origin.keySet()) {
+			dest.put(date, origin.get(date)[originIdx]);
+		}
+	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Stock... stock) {
+	//Approximate calculation based on the different parameters assumed as periods passed to this operation.
+	public int operationStartDateShift() {
+		Integer thisOperationStartShift = getOperands().stream()
+				.filter(o -> o instanceof NumberOperation)
+				.map(o -> ((NumberValue)o.getParameter()).getValue(null).intValue())
+				.reduce(0, (r, e) -> r + e);
+
+		return (thisOperationStartShift)*7/5;
+	}
+
+	@Override
+	public Boolean isIdemPotent() {
+		return true;
+	}
+
+	@Override
+	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
 		//Nothing
-        //  This is not an EventInfo but an operation although it can be composed within one of Parameterized Indicator -> Event to delete
-        //  And this doesn't have any storage calculation result to wipe out.
+		//  This is not an EventInfo but an operation although it can be composed within one of Parameterized Indicator -> Event to delete
+		//  And this doesn't have any storage calculation result to wipe out.
 	}
 
 }

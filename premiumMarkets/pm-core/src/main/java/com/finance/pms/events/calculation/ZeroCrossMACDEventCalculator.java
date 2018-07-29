@@ -39,6 +39,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -57,12 +58,13 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsOperator {
 	private MACD macd;
 
 	public ZeroCrossMACDEventCalculator(Integer fastPeriod, Integer slowPeriod, Integer signalPeriod, Observer ... observers) {
-		super(observers);
+		super(EventDefinition.PMMACDZEROCROSS, observers);
 		init(fastPeriod, slowPeriod, signalPeriod);
 	}
 	
-	public ZeroCrossMACDEventCalculator() {
+	public ZeroCrossMACDEventCalculator(EventInfo reference) {
         //Reflective ops generator
+		super(reference);
     }
 
     protected void init(Integer macdFastPeriod, Integer macdSlowPeriod, Integer macdSignalPeriod) {
@@ -77,7 +79,7 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer calculatorIndex) throws InvalidAlgorithmParameterException {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.PMMACDZEROCROSS);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
 		
 		Integer macdIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.macd, calculatorIndex);

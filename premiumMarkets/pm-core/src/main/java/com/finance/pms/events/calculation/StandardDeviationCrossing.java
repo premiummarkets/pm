@@ -39,6 +39,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -58,12 +59,13 @@ public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 	private SMA sma;
 
 	public StandardDeviationCrossing(Observer[] observers) {
-		super(observers);
+		super(EventDefinition.STDDEV, observers);
 		init(42);
 	}
 	
-	public StandardDeviationCrossing() {
+	public StandardDeviationCrossing(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer smaPeriod) {
@@ -78,7 +80,7 @@ public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 
 	@Override
 	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
-		FormulatRes res = new FormulatRes(EventDefinition.STDDEV);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		Date date = qU.getDate();
 		res.setCurrentDate(date);
 		
