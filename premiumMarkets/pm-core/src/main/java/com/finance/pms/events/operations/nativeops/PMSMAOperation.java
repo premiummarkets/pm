@@ -68,7 +68,7 @@ public class PMSMAOperation extends PMDataFreeOperation {
 		try {
 			SMA sma = new SMA(period);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
+					targetStock.getStock(),  getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(), 
 					sma.getStartShift(), sma.quotationValidity());
 			sma.calculateIndicator(quotations);

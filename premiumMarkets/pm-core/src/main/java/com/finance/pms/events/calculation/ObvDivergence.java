@@ -40,6 +40,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -67,12 +68,13 @@ public class ObvDivergence extends TalibIndicatorsOperator {
 	private Quotations quotationsCopy;
 	
 	public ObvDivergence(Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMOBVDIVERGENCE, observers);
 		init(SMOOTHING, SMOOTHING);
 	}
 	
-    public ObvDivergence() {
+    public ObvDivergence(EventInfo reference) {
         //Reflective ops generator
+    	super(reference);
     }
     
     protected void init(Integer signalSmaPeriod, Integer smoothSmaPeriod) {
@@ -90,7 +92,7 @@ public class ObvDivergence extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.PMOBVDIVERGENCE);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
 		
 		int obvIdx = getIndicatorIndexFromQuotationIndex(this.obv, quotationIdx);

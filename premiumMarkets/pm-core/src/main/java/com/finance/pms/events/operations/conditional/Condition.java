@@ -32,6 +32,7 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -101,7 +102,7 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Stock... stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
 		//Nothing
 	}
 }

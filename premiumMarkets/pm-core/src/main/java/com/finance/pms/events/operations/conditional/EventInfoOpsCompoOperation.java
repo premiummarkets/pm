@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -232,9 +233,9 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Stock... stock) {
-		if (stock != null && stock.length != 0) {
-			Arrays.stream(stock).forEach(s -> TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(s, analysisName, this));
+	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+		if (stock.isPresent()) {
+			TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock.get(), analysisName, this);
 		} else {
 			TunedConfMgr.getInstance().deleteEventsDirtyConfs(analysisName, this);
 		}

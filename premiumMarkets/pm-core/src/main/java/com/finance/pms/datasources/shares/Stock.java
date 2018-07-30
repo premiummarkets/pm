@@ -63,32 +63,32 @@ import com.finance.pms.datasources.web.ProvidersList;
 @IdClass(StockId.class)
 @Table(name="SHARES")
 public class Stock extends Validatable {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(Stock.class);
 	private static final long serialVersionUID = 2357651331343818162L;
 
 	public static final String MISSINGCODE="NON_AVAILABLE";
-	
-    private String symbol;
-    private String isin;
-    
-    private String name;
-    private StockCategories category;
-    private Date lastQuote;
-    private MarketValuation marketValuation;
-    private SymbolMarketQuotationProvider symbolMarketQuotationProvider;
-    private String sectorHint;
-    private TradingMode tradingMode;
-    private Long capitalisation;
-    
-    private Boolean overrideUserQuotes;
+
+	private String symbol;
+	private String isin;
+
+	private String name;
+	private StockCategories category;
+	private Date lastQuote;
+	private MarketValuation marketValuation;
+	private SymbolMarketQuotationProvider symbolMarketQuotationProvider;
+	private String sectorHint;
+	private TradingMode tradingMode;
+	private Long capitalisation;
+
+	private Boolean overrideUserQuotes;
 	private String refName;
 
 	public Stock() {
 		super();
 		this.symbolMarketQuotationProvider = new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT, null);
 	}
-	
+
 	public Stock(String symbol, String isin) {
 		this.symbol=symbol;
 		this.isin=isin;
@@ -111,45 +111,45 @@ public class Stock extends Validatable {
 		this.sectorHint = s.sectorHint;
 		this.capitalisation = s.capitalisation;
 	}
-	
+
 	@Deprecated
 	public Stock(String isin, String symbol, StockCategories stockCat, SymbolMarketQuotationProvider marketQuotationsProvider, MarketValuation market) {
 		this.marketValuation = market;
-	    this.symbolMarketQuotationProvider = marketQuotationsProvider;
+		this.symbolMarketQuotationProvider = marketQuotationsProvider;
 		try {
 			this.setIsin(isin);
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.debug(e);
 		}
-	    try {
+		try {
 			this.setSymbol(symbol);
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.debug(e);
 		}
-	    this.category = stockCat;
-	    this.overrideUserQuotes = true;
-	    
-	    this.tradingMode = TradingMode.CONTINUOUS;
-	    this.sectorHint = "";
-	    this.capitalisation = 0L;
+		this.category = stockCat;
+		this.overrideUserQuotes = true;
+
+		this.tradingMode = TradingMode.CONTINUOUS;
+		this.sectorHint = "";
+		this.capitalisation = 0L;
 	}
-	
+
 	public Stock(String isin, String symbol, String name, Boolean removable,
 			StockCategories category, SymbolMarketQuotationProvider marketQuotationsProvider,
 			MarketValuation  market,
 			String sectorHint, TradingMode tradingMode, Long capitalisation) throws InvalidAlgorithmParameterException {
-		
+
 		this.marketValuation = market;
 		this.symbolMarketQuotationProvider = marketQuotationsProvider;
-	    this.setIsin(isin);
-	    this.setSymbol(symbol);
-	    this.name = name;
-	    this.overrideUserQuotes = removable;
-	    this.category = category;
-	    
-	    this.sectorHint = sectorHint;
-	    this.tradingMode = tradingMode;
-	    this.capitalisation = capitalisation;
+		this.setIsin(isin);
+		this.setSymbol(symbol);
+		this.name = name;
+		this.overrideUserQuotes = removable;
+		this.category = category;
+
+		this.sectorHint = sectorHint;
+		this.tradingMode = tradingMode;
+		this.capitalisation = capitalisation;
 	}
 
 	public Stock(String isin, String symbol, String name, Boolean removable,
@@ -157,18 +157,18 @@ public class Stock extends Validatable {
 			SymbolMarketQuotationProvider marketQuotationsProvider, 
 			MarketValuation market,
 			String sectorHint, TradingMode tradingMode, Long capitalisation)  throws InvalidAlgorithmParameterException {
-	    this.marketValuation = market;
-	    this.symbolMarketQuotationProvider = marketQuotationsProvider;
-	    this.setIsin(isin);
-	    this.setSymbol(symbol);
-	    this.name = name;
-	    this.overrideUserQuotes = removable;
-	    this.category = category;
-	    this.lastQuote = lastquote;
-	    
-	    this.tradingMode = tradingMode;
-	    this.sectorHint = sectorHint;
-	    this.capitalisation = capitalisation;
+		this.marketValuation = market;
+		this.symbolMarketQuotationProvider = marketQuotationsProvider;
+		this.setIsin(isin);
+		this.setSymbol(symbol);
+		this.name = name;
+		this.overrideUserQuotes = removable;
+		this.category = category;
+		this.lastQuote = lastquote;
+
+		this.tradingMode = tradingMode;
+		this.sectorHint = sectorHint;
+		this.capitalisation = capitalisation;
 	}
 
 	public void resetStock(Stock stock) {
@@ -194,18 +194,18 @@ public class Stock extends Validatable {
 		if (getClass() != obj.getClass()) return false;
 		final Stock other = (Stock) obj;
 		if (isin == null || other.isin == null) {
-			
+
 		} else if (!isin.trim().equals(other.isin.trim())) 
 			return false;
 		if (symbol == null || other.symbol == null) {
 			if (isin == null || other.isin == null)
-					return false;
+				return false;
 		} else if (!symbol.trim().equals(other.symbol.trim())) 
 			return false;
-		
+
 		return true;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -220,17 +220,17 @@ public class Stock extends Validatable {
 			return (this.getSymbol().compareTo(((Stock) o).getSymbol()) == 0)?
 					this.getIsin().compareTo(((Stock) o).getIsin())
 					:this.getSymbol().compareTo(((Stock) o).getSymbol());
-					
-		throw new RuntimeException("Can't compare Stock with ... "+o.getClass().getName());
+
+					throw new RuntimeException("Can't compare Stock with ... "+o.getClass().getName());
 	}
 
 	@Transient
 	private boolean isObsolete() {
-	    GregorianCalendar gcal = new GregorianCalendar();
-	    gcal.setTime(this.lastQuote);
-	    gcal.add(Calendar.MONTH,12);
-	    Date obsolete = gcal.getTime();
-	    return (obsolete.compareTo(new Date()) < 0);
+		GregorianCalendar gcal = new GregorianCalendar();
+		gcal.setTime(this.lastQuote);
+		gcal.add(Calendar.MONTH,12);
+		Date obsolete = gcal.getTime();
+		return (obsolete.compareTo(new Date()) < 0);
 	}
 
 	public boolean isFieldSet(String attribute) {
@@ -251,11 +251,11 @@ public class Stock extends Validatable {
 
 	@Override
 	public Query toDataBase() {
-		
+
 		SimpleDateFormat sf = new SimpleDateFormat("yyyy/MM/dd");
-		
+
 		Query iq = new Query();
-		
+
 		//Ajout d'une requete pour la base
 		iq.addValue(this.getSymbol());
 		iq.addValue(this.getIsin());
@@ -275,13 +275,13 @@ public class Stock extends Validatable {
 		iq.addValue(this.getCapitalisation());
 		return iq;
 	}
-	
-	
+
+
 	@Override
 	public String toString() {
-		
+
 		String str = "";
-		
+
 		try {
 			Currency currency = Currency.NAN;
 			if (this.getMarketValuation() != null) {
@@ -293,11 +293,11 @@ public class Stock extends Validatable {
 				lastDateStr = dateFormat.format(this.lastQuote);
 			}
 			str = getFriendlyName().replace(")", " / ") + lastDateStr +" / "+currency + ")";
-			
+
 		} catch (RuntimeException e) {
 			LOGGER.error("Can't print stock : "+this.symbol+";"+this.isin+";"+this.name+";"+lastQuote, e);
 		}
-		
+
 		return str;
 	}
 
@@ -305,30 +305,30 @@ public class Stock extends Validatable {
 		ProvidersList.getMarketListInstance(shareListName).retrieveAndCompleteStockInfo(this, stockList);
 	}
 
-    public void setIsin(String isin) throws InvalidAlgorithmParameterException {
-    	
-    		this.isin = isin;
-    		String oldSymbol = this.symbol;
-			try {
-				if (this.symbol != null && !this.symbol.equals(Stock.MISSINGCODE) && this.isin != null && !this.isin.equals(Stock.MISSINGCODE)) {
-					this.setSymbol(this.symbol);
-				}
-			} catch (InvalidAlgorithmParameterException e) {
-				throw new InvalidAlgorithmParameterException("WARN : Invalid match between isin :"+isin+" and symbol :"+oldSymbol+" while setting isin");			
-			} 
-			
-			if (this.isin == null || this.isin.equals(Stock.MISSINGCODE)) 
-				throw new InvalidAlgorithmParameterException("WARN : No Isin set for this stock : "+ symbol +" . Be aware that the symbol might not be suffixed");
-       
-    }
+	public void setIsin(String isin) throws InvalidAlgorithmParameterException {
 
-    public String getName() {
-        return name;
-    }
+		this.isin = isin;
+		String oldSymbol = this.symbol;
+		try {
+			if (this.symbol != null && !this.symbol.equals(Stock.MISSINGCODE) && this.isin != null && !this.isin.equals(Stock.MISSINGCODE)) {
+				this.setSymbol(this.symbol);
+			}
+		} catch (InvalidAlgorithmParameterException e) {
+			throw new InvalidAlgorithmParameterException("WARN : Invalid match between isin :"+isin+" and symbol :"+oldSymbol+" while setting isin");			
+		} 
 
-    public void setName(String name) {
-        this.name = (name != null)?name.trim():null;
-    }
+		if (this.isin == null || this.isin.equals(Stock.MISSINGCODE)) 
+			throw new InvalidAlgorithmParameterException("WARN : No Isin set for this stock : "+ symbol +" . Be aware that the symbol might not be suffixed");
+
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = (name != null)?name.trim():null;
+	}
 
 	@Id
 	@Column(name="SYMBOL")
@@ -339,11 +339,11 @@ public class Stock extends Validatable {
 	@Id
 	@Column(name="ISIN")
 	public String getIsin() {
-        return (isin != null)?isin.trim():null;
-    }
+		return (isin != null)?isin.trim():null;
+	}
 
 	@Transient
-    public String getSymbolRoot() {
+	public String getSymbolRoot() {
 		String fullSymbol = this.getSymbol();
 		if (fullSymbol.contains(".")) {
 			int indexOfDot = fullSymbol.indexOf(".");
@@ -353,37 +353,37 @@ public class Stock extends Validatable {
 		}
 	}
 
-    public void setSymbol(String symbol) throws InvalidAlgorithmParameterException {
-    	this.symbol = this.symbolMarketQuotationProvider.getFullSymbol((symbol != null)?symbol.trim():null);
-    }
+	public void setSymbol(String symbol) throws InvalidAlgorithmParameterException {
+		this.symbol = this.symbolMarketQuotationProvider.getFullSymbol((symbol != null)?symbol.trim():null);
+	}
 
-    @Column(name="REMOVABLE")
-    public Boolean isOverrideUserQuotes() {
-        return overrideUserQuotes;
-    }
+	@Column(name="REMOVABLE")
+	public Boolean isOverrideUserQuotes() {
+		return overrideUserQuotes;
+	}
 
-    @Enumerated(EnumType.STRING)
-    public StockCategories getCategory() {
+	@Enumerated(EnumType.STRING)
+	public StockCategories getCategory() {
 		return category;
 	}
 
-    @Embedded
-    @AttributeOverride(name="market",column=@Column(name="MARKETLISTPROVIDER"))
+	@Embedded
+	@AttributeOverride(name="market",column=@Column(name="MARKETLISTPROVIDER"))
 	public MarketValuation getMarketValuation() {
 		return marketValuation;
 	}
-    
-    @Transient
-    public Market getMarket() {
-    	return (marketValuation != null)?marketValuation.getMarket():Market.UNKNOWN;
-    }
-    
-    public void setMarketValuation(MarketValuation market) {
-    	this.marketValuation = market;
-    }
 
-    @Embedded
-    @AttributeOverride(name="marketQuotationProvider.name", column = @Column(name="QUOTATIONPROVIDER"))
+	@Transient
+	public Market getMarket() {
+		return (marketValuation != null)?marketValuation.getMarket():Market.UNKNOWN;
+	}
+
+	public void setMarketValuation(MarketValuation market) {
+		this.marketValuation = market;
+	}
+
+	@Embedded
+	@AttributeOverride(name="marketQuotationProvider.name", column = @Column(name="QUOTATIONPROVIDER"))
 	public SymbolMarketQuotationProvider getSymbolMarketQuotationProvider() {
 		return symbolMarketQuotationProvider;
 	}
@@ -408,7 +408,7 @@ public class Stock extends Validatable {
 	public void setOverrideUserQuotes(Boolean overrideUserQuotes) {
 		this.overrideUserQuotes = overrideUserQuotes;
 	}
-	
+
 	public void setSectorHint(String sectorHint) {
 		this.sectorHint = sectorHint;
 	}
@@ -427,7 +427,7 @@ public class Stock extends Validatable {
 	public void setTradingMode(TradingMode tradingMode) {
 		this.tradingMode = tradingMode;
 	}
-	
+
 	public Long getCapitalisation() {
 		return capitalisation;
 	}
@@ -441,7 +441,7 @@ public class Stock extends Validatable {
 		String stockSimplifiedSymbol = stock.getSymbol().split("\\.")[0];
 		return stockSimplifiedSymbol.equals(thisSimplifiedSymbol);
 	}
-	
+
 	public boolean lenientEquals(String... refs) {
 		for (String ref : refs) {
 			if (ref != null &&
@@ -449,8 +449,8 @@ public class Stock extends Validatable {
 							this.getSymbol().equals(ref) || 
 							this.getIsin().equals(ref) || 
 							this.getName().replaceAll("['. \\s()]", "").equalsIgnoreCase(ref.replaceAll("['. \\s()]", ""))
-					)
-				) {
+							)
+					) {
 				return true;
 			}
 		}
@@ -461,6 +461,6 @@ public class Stock extends Validatable {
 	public String getFriendlyName() {
 		return this.getName().replaceAll("([,;/])"," ")+" ("+this.getSymbol()+" / "+this.getIsin()+")";
 	}
-	
+
 }
 

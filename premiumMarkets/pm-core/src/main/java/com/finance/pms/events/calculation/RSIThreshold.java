@@ -39,6 +39,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -58,12 +59,13 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 	RSI rsi;
 
 	public RSIThreshold(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer[] observers) {
-		super(observers);
+		super(EventDefinition.PMRSITHRESHOLD, observers);
 		init(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
 	}
 
-	public RSIThreshold() {
+	public RSIThreshold(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold) {
@@ -78,7 +80,7 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.PMRSITHRESHOLD);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
 
 		Integer rsiIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.rsi, quotationIdx);

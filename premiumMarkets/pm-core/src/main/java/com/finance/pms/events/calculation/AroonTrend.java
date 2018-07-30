@@ -42,6 +42,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -65,12 +66,13 @@ public class AroonTrend extends TalibIndicatorsOperator {
     private HouseAroon aroon;
 
     public AroonTrend(Observer...observers) {
-        super(observers);
+        super(EventDefinition.PMAROONTREND, observers);
         init(getDaysSpan(), -90, 90, 0);
     }
 
-    public AroonTrend() {
+    public AroonTrend(EventInfo reference) {
         //Reflective ops generator
+    	super(reference);
     }
 
     //TODO distinguish thresholds from periods if ever the thresholds can be output in the charts (using the target stock?)

@@ -40,6 +40,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -88,12 +89,13 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 //	}
 	
 	public RSIDivergence_old(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMRSIDIVERGENCEOLD, observers);
 		init(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold, 12);
 	}
 	
-	public RSIDivergence_old() {
+	public RSIDivergence_old(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Integer signalSMAPeriod) {

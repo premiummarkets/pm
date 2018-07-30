@@ -46,6 +46,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EmailFilterEventSource;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -58,42 +59,44 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsOperator.class);
 
+	private EventInfo eventInfoOpsCompoOperation;
 	SortedMap<Date, double[]> calculationOutput;
 
-	public TalibIndicatorsOperator(Observer... observers) {
+	public TalibIndicatorsOperator(EventInfo eventInfoOpsCompoOperation, Observer... observers) {
 		super(observers);
+		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperation;
 		this.calculationOutput = new TreeMap<Date, double[]>();
 	}
 
 	@Override
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws TalibException {
-		
+
 		initIndicators(quotations);
-	
+
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 		FormulatRes res;
-		
+
 		try {
-			
+
 			for (int quotationIndex = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); quotationIndex <= quotations.getLastDateIdx() ; quotationIndex++) {
-				
+
 				QuotationUnit qU = quotations.get(quotationIndex);
 				res = eventFormulaCalculation(qU, quotationIndex);
 				res.setCurrentDate(qU.getDate());
-				
+
 				if (res.formulaTrend() != 0) {
 					Date current = res.getCurrentDate();
 					EventType eventType = EventType.valueOf(res.formulaTrend() + 1);
-					StandardEventKey iek = new StandardEventKey(current, res.getEventDefinition(), eventType);
-					EventValue iev = new StandardEventValue(current, res.getEventDefinition(), eventType, eventListName);
+					StandardEventKey iek = new StandardEventKey(current, eventInfoOpsCompoOperation, eventType);
+					EventValue iev = new StandardEventValue(current, eventInfoOpsCompoOperation, eventType, eventListName);
 					edata.put(iek, iev);
 				}
-				
+
 			}
-			
+
 		} catch (Exception e) {
 			String message = "Talib indicator failed :"+this.getClass().getSimpleName()+" for "+quotations.getStock();
 			LOGGER.error(message,e);
@@ -103,9 +106,9 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 				exportToCSV(edata, quotations, eventListName);
 			}
 		}
-		
+
 		calculationOutput = buildOutput(quotations); //Here because divergences output can't be calculated in the loop
-		
+
 		return edata;
 
 	}
@@ -113,16 +116,16 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	protected abstract void initIndicators(Quotations quotations) throws TalibException;
 
 	protected abstract FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException;
-	
+
 	protected abstract Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex);
 
 	protected Integer getIndicatorIndexFromQuotationIndex(TalibIndicator indicator, Integer quotationIndex) {
 		Integer indicatorIndex = quotationIndex - indicator.getOutBegIdx().value;
 		return indicatorIndex;
 	}
-	
+
 	public void exportToCSV(Map<EventKey, EventValue> edata, Quotations quotations, String eventListName) {
-		
+
 		String stockName = quotations.getStock().getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_");
 		File export = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator + stockName + "_"+ this.getClass().getSimpleName() + "_" + eventListName +".csv");
 
@@ -136,7 +139,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 				fos.write(line);
 			}
 			fos.flush();
-			
+
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}  finally {
@@ -147,9 +150,9 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 					LOGGER.error("", e);
 				}
 		}
-		
+
 	}
-	
+
 	protected String addScoringHeader(String head, List<Integer> scoringSmas) {
 		if (scoringSmas == null) return head;
 		for (Integer integer : scoringSmas) {
@@ -158,11 +161,11 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 		return head;
 	}
 
-	
+
 	protected String addScoringLinesElement(String line, Date date, List<SortedMap<Date, double[]>> linearsExpects) {
-		
+
 		if (linearsExpects == null) return line;
-		
+
 		for (SortedMap<Date, double[]> linear : linearsExpects) {
 			double[] ds = linear.get(date);
 			if (ds != null) {
@@ -171,23 +174,23 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 				line = line + "0,";
 			}
 		}
-		
+
 		return line;
 	}
 
 	protected  abstract String getHeader(List<Integer> scoringSmas);
 
 	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects);
-	
+
 
 	protected Boolean lowerLow(double[] data, double[] threshCurve) {
-		
+
 		//build low through array
 		List<Double> lowThrough = lowThrough(data, threshCurve);
-		
+
 		//linear reg of the curve
 		double dataSlope = dataSlope(lowThrough);
-		
+
 		return dataSlope < 0;
 
 	}
@@ -224,24 +227,24 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 		}
 		return highPeaks;
 	}
-	
+
 
 	protected Boolean higherLow(double[] data, double[] threshCurve) {
-		
+
 		//build low through array
 		List<Double> lowThrough = lowThrough(data, threshCurve);
-		
+
 		//linear reg of the curve
 		double dataSlope = dataSlope(lowThrough);
-		
+
 		return dataSlope > 0;
-		
-		
+
+
 	}
-	
+
 
 	protected Boolean lowerHigh(double[] data, double[] threshCurve) {
-		
+
 		//build high peaks array
 		List<Double> highPeaks = highPeaks(data, threshCurve);
 
@@ -249,9 +252,9 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 		double dataSlope = dataSlope(highPeaks);
 
 		return dataSlope < 0;
-		
+
 	}
-	
+
 	private double dataSlope(List<Double> data) {
 		double[] dataArr = new double[data.size()];
 		for (int i = 0; i < dataArr.length; i++) {
@@ -261,7 +264,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	}
 
 	protected double dataSlope(double[] data) {
-		
+
 		//linear reg of the curve
 		double[][] regInput = new double[data.length][];
 		for (int i = 0; i < data.length; i++) {
@@ -270,17 +273,17 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 		SimpleRegression regression = new SimpleRegression();
 		regression.addData(regInput);
 		double slope = regression.getSlope();
-		
+
 		return slope;
-	
+
 	}
-	
+
 	public  SortedMap<Date, double[]> calculationOutput() {
 		return calculationOutput;
 	}
 
 	protected SortedMap<Date, double[]> buildOutput(Quotations quotations) {
-		
+
 		Boolean returnOutput = Boolean.valueOf(MainPMScmd.getMyPrefs().get("indicators.returnoutput", "false"));
 
 		SortedMap<Date, double[]> outputMap = new TreeMap<Date, double[]>();
@@ -305,6 +308,6 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 	public abstract Integer getOutputBeginIdx();
 
-    public abstract void genericInit(Integer... constants);
+	public abstract void genericInit(Integer... constants);
 
 }

@@ -42,6 +42,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -60,12 +61,13 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 	private StochasticOscillator stochasticOscillator;
 
 	public StochasticThreshold(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMSSTOCHTHRESHOLD, observers);
 		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 	}
 
-	public StochasticThreshold() {
+	public StochasticThreshold(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
@@ -80,7 +82,7 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException  {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.PMSSTOCHTHRESHOLD);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
 		
 		Integer stochIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.stochasticOscillator, quotationIdx);

@@ -30,11 +30,13 @@
 package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -60,6 +62,7 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 /**
  * !!Operations must be state less across calculations as reused!! 
@@ -568,6 +571,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	public abstract int operationStartDateShift();
+	
+	public Date getStartDate(Date startDate, int startShift) {
+		Calendar startCal = Calendar.getInstance();
+		startCal.setTime(startDate);
+		QuotationsFactories.getFactory().incrementDate(startCal, -startShift);
+		LOGGER.info(this.getReference()+" start date shift to : "+startShift+". Requested start : "+startDate+", calculated start : "+startCal.getTime());
+		return startCal.getTime();
+	}
 
 	public List<Operation> collectOperandsOfType(Class<? extends DoubleMapOperation> operationType) {
 		if (operands.isEmpty()) return new ArrayList<>();
@@ -591,11 +602,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
 	}
 
-	public abstract void invalidateOperation(String analysisName, Stock... stock);
+	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock);
 
-	public void invalidateAllNonIdempotentOperands(String analysisName, Stock... stock) {
+	public void invalidateAllNonIdempotentOperands(String analysisName, Optional<Stock> stock) {
 		if (!this.isIdemPotent()) {
-			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + Arrays.toString(stock));
+			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
 			this.invalidateOperation(analysisName, stock);
 		}
 		operands.stream().forEach(

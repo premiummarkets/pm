@@ -205,9 +205,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					HashSet<EventInfo> notUpToDateEventInfos = new HashSet<EventInfo>();
 					Calendar minDate = Calendar.getInstance();
 					minDate.setTime(new Date(0));
-					Boolean needsUpdate =
+					Boolean outputDataNeedsUpdate =
 							chartTarget.getHightlitedEventModel().cacheNeedsUpdateCheck(
-									selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
+									selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(),
 									notUpToDateEventInfos, minDate, allEvtInfos.toArray(new EventInfo[0]));
 
 					//Refresh charts where required
@@ -215,16 +215,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					if (popupTypesList.contains(PopupType.EVTCHARTING)) {
 						chartTarget.getMainChartWraper().resetIndicChart();
-						updateChartIndicator(selectedShare, recalculationGranted, recalculationGranted);
+						updateChartIndicator(selectedShare, recalculationGranted, outputDataNeedsUpdate);
 					}
 
 					if (popupTypesList.contains(PopupType.EVTTREND)) {
 						chartTarget.getMainChartWraper().resetBarChart();
-						updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, recalculationGranted);
+						updateBarChart(selectedShare, chartTarget.getSlidingStartDate(), recalculationGranted, outputDataNeedsUpdate);
 					}
 
 					//Update chart content if needed (this subsequently will trigger charts updates calls)
-					if (needsUpdate) {
+					if (outputDataNeedsUpdate) {
 						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), notUpToDateEventInfos, minDate);
 					}
 
@@ -238,7 +238,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			if (!areEvtDefsTrendsSelected) {
 				chartTarget.getMainChartWraper().resetIndicChart();
 				chartTarget.getMainChartWraper().resetBarChart();
-				initChartedTrendsPopup(false);
+				refreshChartedTrendsPopup(false);
+				refreshCalculatorSettingsPopup(false);
 			}
 
 		} finally {
@@ -325,7 +326,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-	private void updateBarChart(final Stock selectedShare, Date exentedStartDate, final Boolean recalculationGranted, final Boolean needsUpdate) {
+	private void updateBarChart(final Stock selectedShare, Date exentedStartDate, final Boolean recalculationGranted, final Boolean outputDataNeedsUpdate) {
 
 		final Map<String, Config> configs = ConfigThreadLocal.getAll();
 
@@ -350,7 +351,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 						TuningResDTO tuningResDTO = null;
 						try {
-							if (needsUpdate || tuningRessCache == null || tuningRessCache.get(eventDefinition) == null) {
+							if (outputDataNeedsUpdate || tuningRessCache == null || tuningRessCache.get(eventDefinition) == null) {
 								tuningResDTO = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
 							} else {
 								tuningResDTO = tuningRessCache.get(eventDefinition);
@@ -392,7 +393,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				}
 
 				//Missing bars
-				if (!needsUpdate && !noDataTrends.isEmpty()) {
+				if (!outputDataNeedsUpdate && !noDataTrends.isEmpty()) {
 					String chartedEvtStr = EventDefinition.getReadableEventDefSetAsString(", ", noDataTrends);
 					String errMsg =
 							"No events are available for : " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n" +
@@ -418,7 +419,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-	private void updateChartIndicator(final Stock selectedShare, boolean recalculationGranted, boolean needsUpdate) {
+	private void updateChartIndicator(final Stock selectedShare, boolean recalculationGranted, boolean outputDataNeedsUpdate) {
 
 		Map<EventInfo, SortedMap<Date, double[]>> eventsSeries = new HashMap<>();
 		for (EventInfo eventInfo: chartTarget.getChartedEvtDefsTrends()) {
@@ -445,7 +446,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		if (eventsSeries.isEmpty()) {
 
-			if (!recalculationGranted && !needsUpdate) {//No indic found despite recalc
+			if (!recalculationGranted && !outputDataNeedsUpdate) {//No indic found despite recalc
 				String errMsg = 
 						"No output data are available for display within the period you have selected share "+selectedShare.getFriendlyName()+" and selected indicators.\n" +
 								"If you just cleared the calculations results, you may want to Force and Update calculations.";
@@ -460,10 +461,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		} else { //Thats all or some are good, we display
 			chartTarget.getMainChartWraper().updateIndicDataSet(eventsSeries, chartTarget.getPlotChartDimensions());
-		}
-
-		if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-			initCalculatorSettingsPopup(false);
 		}
 
 	}
@@ -513,7 +510,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 
 					private void handleCalculatorSettingsSelection() {
-						initCalculatorSettingsPopup(true);
+						refreshCalculatorSettingsPopup(true);
 					}
 
 				});
@@ -548,7 +545,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 
 					private void handleChartedTrendsSelection() {
-						initChartedTrendsPopup(true);
+						refreshChartedTrendsPopup(true);
 					}
 
 				});
@@ -743,11 +740,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 
 		if (chartedTrendsPopupMenu!= null && !chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
-			initChartedTrendsPopup(false);
+			refreshChartedTrendsPopup(false);
+		}
+		if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+			refreshCalculatorSettingsPopup(false);
 		}
 	}
 
-	private void initChartedTrendsPopup(Boolean activate) {
+	private void refreshChartedTrendsPopup(Boolean activate) {
 
 		Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 		ActionDialogAction disactivateAction = new ActionDialogAction() {
@@ -788,7 +788,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	}
 
-	private void initCalculatorSettingsPopup(Boolean activatePopup) {
+	private void refreshCalculatorSettingsPopup(Boolean activatePopup) {
 
 		try {
 
@@ -796,11 +796,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			boolean isEmptyOutputIndicator = false;
 			boolean isClearInProgress = false;
 			String errorMessage = 
-					"Only user defined calculators can be customised.\n" +
-							"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
-							"And wait for its calculation to finish before changing the display settings.\n" +
+							"Select one of your user defined calculators in '"+TRENDBUTTXT + "'\n" +
 							"New calculators can be defined using the menu Events -> Customise and create calculators ...";
-
 
 			if ( isIndicatorSelected ) {
 
@@ -841,7 +838,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayedOutputs, false, true, SWT.CHECK, null, disactivateAction, true);
 						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
 						calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
-					} else {
+					} 
+					else {
 						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayedOutputs, null, disactivateAction, true);
 						calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
 						if (activatePopup) {
@@ -852,7 +850,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				} else {
 
-					if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
 						calculatorSettingsPopupMenu.getSelectionShell().dispose();
 					}
 					isEmptyOutputIndicator = true;
@@ -861,8 +859,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			}
 
-			if (!isIndicatorSelected || (!isClearInProgress && isEmptyOutputIndicator)) {
-				showPopupDialog("No calculator selected or No settings available for the selected calculator.", "Ok", errorMessage, null);	
+			boolean isPopupActive = calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed() && calculatorSettingsPopupMenu.getSelectionShell().isVisible();
+			boolean hasEmptyResults = isClearInProgress || isEmptyOutputIndicator;
+			if (!isPopupActive && (!isIndicatorSelected || hasEmptyResults)) {
+				showPopupDialog("No calculator is selected or no results is available.", "Ok", errorMessage, null);
 			}
 
 		} catch (Exception e) {

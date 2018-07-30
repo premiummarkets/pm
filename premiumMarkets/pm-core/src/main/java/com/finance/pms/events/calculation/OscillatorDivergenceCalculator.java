@@ -46,6 +46,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -68,8 +69,8 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 	private HighLowSolver highLowSolver;
 	private Quotations quotationsCopy;
 	
-	public OscillatorDivergenceCalculator(Observer ...observers) {
-		super(observers);
+	public OscillatorDivergenceCalculator(EventInfo eventInfo, Observer ...observers) {
+		super(eventInfo, observers);
 		
 		highLowSolver = new HighLowSolver();
 		higherLows = new TreeMap<Integer, Double>();

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Observer;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.houseIndicators.HouseAroon;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.SMA;
@@ -48,12 +49,13 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	private Integer stochQuotationStartDateIdx;
 	
 	public StochasticDivergence(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMSSTOCHDIVERGENCE, observers);
 		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 	}
 	
-	public StochasticDivergence() {
+	public StochasticDivergence(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {

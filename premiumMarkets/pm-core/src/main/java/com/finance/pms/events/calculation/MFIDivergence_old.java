@@ -40,6 +40,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -61,12 +62,13 @@ public class MFIDivergence_old extends TalibIndicatorsOperator {
 	private Quotations quotationCopy;
 	
 	public MFIDivergence_old(Integer mfiTimePeriod, Integer mfiLowerThres, Integer mfiUpperThres, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMMFIDIVERGENCEOLD, observers);
 		init(mfiTimePeriod, mfiLowerThres, mfiUpperThres, 12);
 	}
 	
-	public MFIDivergence_old() {
+	public MFIDivergence_old(EventInfo reference) {
 	    //Reflective ops generator
+		super(reference);
 	}
 
 	protected void init(Integer mfiTimePeriod, Integer mfiLowerThres, Integer mfiUpperThres, Integer signalSmaPeriod) {

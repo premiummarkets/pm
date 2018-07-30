@@ -45,6 +45,7 @@ import java.util.SortedMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -75,7 +76,7 @@ public class VarianceCalculator extends TalibIndicatorsOperator {
 	
 
 	public VarianceCalculator(Stock stock, Integer timePeriod, Integer devSpanDiff, Integer minValid, Integer smaPeriod, String eventListName, Observer... observers) {
-		super(observers);
+		super(EventDefinition.VARIANCE, observers);
 		this.stock =stock;
 		this.analysisName = eventListName;
 		init(timePeriod, devSpanDiff, minValid, smaPeriod);
@@ -83,8 +84,9 @@ public class VarianceCalculator extends TalibIndicatorsOperator {
 		if (LOGGER.isTraceEnabled()) initExport();
 	}
 	
-	public VarianceCalculator() {
+	public VarianceCalculator(EventInfo reference) {
         //Reflective ops generator
+		super(reference);
     }
 
     protected void init(Integer timePeriod, Integer devSpanDiff, Integer minValid, Integer smaPeriod) {
@@ -166,7 +168,7 @@ public class VarianceCalculator extends TalibIndicatorsOperator {
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 		
-		FormulatRes res = new FormulatRes(EventDefinition.VARIANCE);
+		FormulatRes res = new FormulatRes(getEventDefinition());
 		Date date = qU.getDate();
 		res.setCurrentDate(date);
 		

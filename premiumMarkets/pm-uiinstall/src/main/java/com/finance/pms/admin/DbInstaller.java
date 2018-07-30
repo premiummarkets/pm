@@ -80,7 +80,7 @@ public class DbInstaller extends Observable {
 		super();
 	}
 
-	public void extractDB(String targetDbName, String remoteDb, String dbZipFileName, File folderTo) throws NoPreparedDbException {
+	public void extractDataAndSql(String targetDbName, String remoteDb, String dbZipFileName, File folderTo, Boolean unCompressData) throws NoPreparedDbException {
 
 		//extract db
 		System.out.println("Extract db : "+ dbZipFileName +" to "+ folderTo + " and alternatively from "+ remoteDb);
@@ -100,7 +100,7 @@ public class DbInstaller extends Observable {
 			System.out.println("Data base found in package.");
 		}
 
-		uncompressBzip2(packagedDbStream, folderTo);
+		uncompressBzip2(packagedDbStream, folderTo, unCompressData);
 		System.out.println("Extract db. Done!");
 
 		String defaultDbName = "premiummarkets";
@@ -112,7 +112,7 @@ public class DbInstaller extends Observable {
 
 	}
 
-	protected void uncompressBzip2(InputStream bzip2FileIS, File folderTo) {
+	protected void uncompressBzip2(InputStream bzip2FileIS, File folderTo, Boolean unCompressData) {
 
 		try {
 
@@ -122,15 +122,18 @@ public class DbInstaller extends Observable {
 			TarEntry tarEntry = tis.getNextEntry();
 
 			while (tarEntry != null) {
-				File destPath = new File(folderTo.getAbsolutePath() + File.separator + tarEntry.getName());
-				System.out.println("Extracting " + destPath.getAbsoluteFile());
-				if (destPath.exists()) { //Upgrade
+
+				if (!unCompressData) { //Upgrade
 					if (tarEntry.getName().startsWith("derby") || tarEntry.getName().endsWith(".dat") || tarEntry.getName().endsWith(".dat.bz2")) {
 						System.out.println("Upgrade, skipping extraction of " + tarEntry.getName());
 						tarEntry = tis.getNextEntry();
 						continue;
 					}
 				}
+
+				File destPath = new File(folderTo.getAbsolutePath() + File.separator + tarEntry.getName());
+				System.out.println("Extracting " + destPath.getAbsoluteFile());
+
 				if (!tarEntry.isDirectory()) {
 
 					if (!destPath.getParentFile().exists()) {
@@ -186,7 +189,7 @@ public class DbInstaller extends Observable {
 		return zI;
 	}
 
-	public void importDB(File installFolder, String extractDirName, Connection connection) throws OtherException {
+	public void importDBData(File installFolder, String extractDirName, Connection connection) throws OtherException {
 
 		System.out.println("Doing : Import db");
 
@@ -194,7 +197,7 @@ public class DbInstaller extends Observable {
 		dropConstraints(installFolder, extractDirName, connection);
 
 		//insert data and create indexes
-		importDerby(installFolder, extractDirName, connection);
+		importData(installFolder, extractDirName, connection);
 
 		//create keys and indexes 
 		createIndexesAndKeys(installFolder, extractDirName, connection);
@@ -417,9 +420,9 @@ public class DbInstaller extends Observable {
 		return true;
 	}
 
-	private void importDerby(File installFolter, String extractDirName, Connection connection) throws OtherException {
+	private void importData(File installFolter, String extractDirName, Connection connection) throws OtherException {
 
-		String installPath = installFolter.getAbsolutePath()+File.separator;
+		String installPath = installFolter.getAbsolutePath() + File.separator;
 
 		File datDir = new File(installPath+extractDirName);
 
@@ -435,7 +438,7 @@ public class DbInstaller extends Observable {
 		for (File bz2File : bzip2Files) {
 			try {
 				InputStream bzip2FileIS = new FileInputStream(bz2File);
-				uncompressBzip2(bzip2FileIS, datDir.getAbsoluteFile());
+				uncompressBzip2(bzip2FileIS, datDir.getAbsoluteFile(), true);
 			} catch (FileNotFoundException e) {
 				System.out.println("Well I couldn't find the file : " + bz2File.getAbsolutePath() + ". Also I could list it in " + datDir.getAbsoluteFile() + " as a .bz2 compressed file");
 				e.printStackTrace();
@@ -521,7 +524,7 @@ public class DbInstaller extends Observable {
 			e.printStackTrace();
 			throw new OtherException(e);
 		} catch (SQLException e) {
-			System.out.println("Scripts KEYS.sql is atomic so I should not be here");
+			System.out.println("Scripts KEYS.sql is NOT atomic so I should not be here");
 			e.printStackTrace();
 		}
 
@@ -541,7 +544,7 @@ public class DbInstaller extends Observable {
 			e.printStackTrace();
 			throw new OtherException(e);
 		} catch (SQLException e) {
-			System.out.println("Scripts INDEXES.sql is atomic so I should not be here");
+			System.out.println("Scripts INDEXES.sql is NOT atomic so I should not be here");
 			e.printStackTrace();
 		}
 
@@ -568,7 +571,7 @@ public class DbInstaller extends Observable {
 					if (atomic) {
 						fr.close();
 						throw new SQLException(status, e);
-					} 
+					}
 				}
 				System.out.println(statement + " Done!");
 			}

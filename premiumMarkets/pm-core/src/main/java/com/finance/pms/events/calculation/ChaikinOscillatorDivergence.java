@@ -35,6 +35,7 @@ import java.util.Observer;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.ChaikinOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
@@ -45,12 +46,13 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	private Integer chaikinQuotationStartDateIdx;
 	
 	public ChaikinOscillatorDivergence(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMCHAIKINOSCDIVERGENCE, observers);
 		init(chkInfastPeriod, chkInslowPeriod);
 	}
 	
-    public ChaikinOscillatorDivergence() {
+    public ChaikinOscillatorDivergence(EventInfo reference) {
         //Reflective ops generator
+    	super(reference);
     }
     
     protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod) {

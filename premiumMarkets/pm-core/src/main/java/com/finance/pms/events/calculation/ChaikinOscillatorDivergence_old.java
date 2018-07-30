@@ -40,6 +40,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 
 import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
@@ -61,12 +62,13 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 	private Quotations quotationsCopy;
 	
 	public ChaikinOscillatorDivergence_old(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
-		super(observers);
+		super(EventDefinition.PMMIGHTYCHAIKIN, observers);
 		init(chkInfastPeriod, chkInslowPeriod, 2);
 	}
 	
-	public ChaikinOscillatorDivergence_old() {
+	public ChaikinOscillatorDivergence_old(EventInfo reference) {
 	  //Reflective ops generator
+		super(reference);
 	}
 	
     protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod, Integer signalSmaPeriod) {
