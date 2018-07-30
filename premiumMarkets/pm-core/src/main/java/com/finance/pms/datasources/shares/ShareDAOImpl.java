@@ -99,7 +99,6 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 		return this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
 
-
 			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
 
 				Query query = session.createQuery("select distinct stock from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> :monitorLevel");
@@ -244,7 +243,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 		Criteria crit = getSession().createCriteria(Stock.class);
 		crit.setMaxResults(maxResults);
-		crit.add(Restrictions.or(Restrictions.or(Restrictions.ilike("symbol", like+"%"), Restrictions.ilike("isin", like+"%")),Restrictions.ilike("name", like+"%")));
+		crit.add(Restrictions.or(Restrictions.or(Restrictions.ilike("symbol", like+"%"), Restrictions.ilike("isin", like+"%")), Restrictions.ilike("name", like+"%")));
 		crit.addOrder(Property.forName("symbol").asc()).addOrder(Property.forName("name").asc()).addOrder(Property.forName("isin").asc());
 
 		return crit.list();
