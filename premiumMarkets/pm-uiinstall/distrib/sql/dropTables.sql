@@ -10,3 +10,4 @@ drop table tunedconf;
 drop table users;
 drop table weather;
 drop table shares;
+drop table PERF_SUPPLEMENT;

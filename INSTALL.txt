@@ -1,10 +1,18 @@
+#------------ Build and Install from source -------------
+#- Build
+cd premiumMarkets
 
-- Build
--- First time 
+#-- First time 
+#Create a place holder for the database using apache debry ij command line tool :
+./ij
+ij>connect 'jdbc:derby:./pm-uiinstall/distrib/derby/premiummarkets;create=true';
+ij>run './pm-uiinstall/distrib/sql/all.sql';
+#Run maven build
 mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=http://www.premiummarkets.uk/ -Denv=pmui -Dinitdb=pmuidb
--- Then
+
+#-- Then
 mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=http://www.premiummarkets.uk/ -Denv=pmui
 
-- Install
+#- Install
 java -jar ~/.m2/repository/com/finance/pm/pm-uiinstall/0.0.1-SNAPSHOT/pm-uiinstall-0.0.1-SNAPSHOT-allinone.jar
 
