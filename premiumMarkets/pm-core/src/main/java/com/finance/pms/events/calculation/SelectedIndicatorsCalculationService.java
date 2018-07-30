@@ -102,12 +102,13 @@ public class SelectedIndicatorsCalculationService {
 				SymbolEvents stockAllSymbolEvents = new SymbolEvents(stock);
 				allEvents.add(stockAllSymbolEvents);
 				for(Future<SymbolEvents> stockEventInfoFuture : futuresMap.get(stock)) {
-					
+
 					try {
 						SymbolEvents symbolEvents = stockEventInfoFuture.get();
 						stockAllSymbolEvents.addEventResultElement(symbolEvents);
 						stockAllSymbolEvents.addAllCalculationOutput(symbolEvents.getCalculationOutputs());
 					} catch (ExecutionException executionException) {
+						LOGGER.warn("Failed : events for stock " + stock.toString() + " between "+dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
 						Throwable cause = executionException.getCause();
 						if (cause instanceof IncompleteDataSetException) {
 							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> {
@@ -118,7 +119,7 @@ public class SelectedIndicatorsCalculationService {
 							failingStocks.add(stock);
 						}
 					} catch (Exception e) {
-						LOGGER.error("Failed : events for stock "+stock.toString()+" between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate), e);
+						LOGGER.error("Failed : events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), e);
 						isDataSetComplete = false;
 						failingStocks.add(stock);
 					}

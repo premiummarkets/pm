@@ -35,7 +35,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.Timer;
 
 public class ClickListener extends MouseAdapter implements ActionListener
 {

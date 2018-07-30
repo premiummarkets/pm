@@ -83,7 +83,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
 			LOGGER.guiInfo("Finishing "+eventInfo.getEventReadableDef()+" for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
 			return symbolEvents;
-			
+
 		} catch (IncompleteDataSetException e) {
 			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef(), e);
 			throw e;
@@ -154,12 +154,13 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					SortedMap<EventKey, EventValue> calculatedEventsForCalculator = calculator.calculateEventsFor(quotations, eventListName);
 
 					if (calculatedEventsForCalculator != null) {//There are results or empty results
+						LOGGER.info("Calculated " + calculatedEventsForCalculator.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						dirty = false;
 						symbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
 						symbolEvents.addEventResultElement(calculatedEventsForCalculator, eventInfo);
 
 					} else {//No results
-						LOGGER.warn("Failed (null returned) calculation for "+symbolEvents.getSymbol()+" using analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd);
+						LOGGER.warn("Failed (null returned) calculation for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						dirty = false; //Not recoverable issue
 						symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 						symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
@@ -169,8 +170,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 				} else {//No calculation needed
 					LOGGER.info(
-							"Recalculation requested for "+stock+" using analysis "+eventListName+ " and "+eventInfo.getEventDefinitionRef()+" from "+adjustedStart+" to "+adjustedEnd+". "+
-									"No recalculation needed calculation bound is "+ calculationBounds.toString());
+							"Recalculation requested for " + stock + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd+". " +
+									"No recalculation needed calculation bound is " + calculationBounds.toString());
 					dirty = false;
 					symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 					symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
@@ -181,8 +182,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
 				LOGGER.error(
-						"Failed (empty) calculation for "+stock+" using analysis "+eventListName+ " and "+
-								eventInfo.getEventDefinitionRef()+" from "+calculationBounds.getPmStart()+" to "+calculationBounds.getPmEnd(), e);
+						"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and " +
+								eventInfo.getEventDefinitionRef() + " from " + calculationBounds.getPmStart() + " to " + calculationBounds.getPmEnd(), e);
 				dirty = false; //Not recoverable issue
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
@@ -191,12 +192,12 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			} catch (Throwable e) {
 				// Recoverable??
 				LOGGER.error(
-						"Failed (empty) calculation for "+stock+" using analysis "+eventListName+ " and "+
-								eventInfo.getEventDefinitionRef()+" from "+calculationBounds.getPmStart()+" to "+calculationBounds.getPmEnd(), e);
+						"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and "+
+								eventInfo.getEventDefinitionRef() + " from " + calculationBounds.getPmStart() + " to " + calculationBounds.getPmEnd(), e);
 				dirty = true; //Recoverable issue ??
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
-				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : " + eventInfo);
 
 			} finally {
 				TunedConfMgr.getInstance().updateConf(tunedConf, dirty, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
@@ -216,7 +217,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			IndicatorsOperator calculator = instanciateECC(stock, eventInfo, nativeCalcsMap.get(eventInfo.getEventDefinitionRef()), observers);
 			return calculator;
 		} catch (Throwable e) {
-			LOGGER.warn("Event definition not supported : "+eventInfo, e);
+			LOGGER.warn("Event definition not supported : " + eventInfo, e);
 			throw new RuntimeException(e);
 		}
 	}

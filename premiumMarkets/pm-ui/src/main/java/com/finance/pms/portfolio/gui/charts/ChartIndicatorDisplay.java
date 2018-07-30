@@ -793,11 +793,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		try {
 
 			boolean isIndicatorSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
-			boolean isEmptyOutputIndicator = false;
-			boolean isClearInProgress = false;
-			String errorMessage = 
-							"Select one of your user defined calculators in '"+TRENDBUTTXT + "'\n" +
-							"New calculators can be defined using the menu Events -> Customise and create calculators ...";
+//			boolean isEmptyOutputIndicator = false;
+//			boolean isClearInProgress = false;
 
 			if ( isIndicatorSelected ) {
 
@@ -810,7 +807,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						displayedOutputs.addAll(t.getEventDefDescriptor().displayedOutputs());
 					});
 				} catch (NoSuchElementException e) {
-					isClearInProgress = true;
+//					isClearInProgress = true;
 					LOGGER.warn(e);
 				} 
 
@@ -853,17 +850,20 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
 						calculatorSettingsPopupMenu.getSelectionShell().dispose();
 					}
-					isEmptyOutputIndicator = true;
+//					isEmptyOutputIndicator = true;
 
 				}
 
 			}
 
-			boolean isPopupActive = calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed() && calculatorSettingsPopupMenu.getSelectionShell().isVisible();
-			boolean hasEmptyResults = isClearInProgress || isEmptyOutputIndicator;
-			if (!isPopupActive && (!isIndicatorSelected || hasEmptyResults)) {
-				showPopupDialog("No calculator is selected or no results is available.", "Ok", errorMessage, null);
-			}
+//			boolean isPopupActive = calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed() && calculatorSettingsPopupMenu.getSelectionShell().isVisible();
+//			boolean hasEmptyResults = isClearInProgress || isEmptyOutputIndicator;
+//			if (!isPopupActive && (!isIndicatorSelected || hasEmptyResults)) {
+//			String errorMessage = 
+//				"Select one of your user defined calculators in '"+TRENDBUTTXT + "'\n" +
+//				"New calculators can be defined using the menu Events -> Customise and create calculators ...";
+//				showPopupDialog("No calculator is selected or no results is available.", "Ok", errorMessage, null);
+//			}
 
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
