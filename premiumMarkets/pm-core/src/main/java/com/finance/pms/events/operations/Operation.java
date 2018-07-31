@@ -184,7 +184,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 				Value<?> operationOutput = calculate(targetStock, thisStartShift, operandsOutputs);
 
-				if (LOGGER.isDebugEnabled()) 
+				if (LOGGER.isDebugEnabled())
 					LOGGER.debug("Operation " + this.getReference() + ((this.getOutputSelector()!=null)?":"+this.getOutputSelector():"") + " returns "+operationOutput.toString());
 
 				return operationOutput;

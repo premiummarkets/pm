@@ -48,7 +48,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 
 @XmlRootElement
 public class StockOperation extends DoubleMapOperation {
-	
+
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StockOperation.class);
 
@@ -56,7 +56,7 @@ public class StockOperation extends DoubleMapOperation {
 		super("stock", "Time series of real stock historical data (close, low, high and volume))");
 		setAvailableOutputSelectors(new ArrayList<String>( Arrays.asList(new String[]{"close","open","high","low","volume"})));
 	}
-	
+
 	public StockOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
@@ -65,48 +65,48 @@ public class StockOperation extends DoubleMapOperation {
 
 	@Override
 	public DoubleMapValue run(TargetStockInfo targetStock, int thisStartShift) {
-		
+
 		String outputSelector = getOutputSelector();
 		QuotationDataType targetStockInputType = QuotationDataType.CLOSE;
 		if (outputSelector != null) {
 			targetStockInputType = QuotationDataType.valueOf(outputSelector.toUpperCase());
 		}
-		 
+
 		SortedMap<Date, Double> buildSMapFromQuotations = new TreeMap<Date, Double>();
 		try {
 			Date shiftedStartDate =  getStartDate(targetStock.getStartDate(), thisStartShift);
 			switch(targetStockInputType) {
 			case CLOSE :
-				{
-					Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.CLOSE);
-					buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
-					break;
-				}
+			{
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.CLOSE);
+				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
+				break;
+			}
 			case HIGH :
 			case LOW :
 			case OPEN :
-				{
-					Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLC);
-					buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
-					break;
-				}
+			{
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLC);
+				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
+				break;
+			}
 			case VOLUME :
-				{
-					Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.VOLUME);
-					buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
-					break;
-				}
+			{
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.VOLUME);
+				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
+				break;
+			}
 			default :
-				{
-					Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLCV);
-					buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
-				}
+			{
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLCV);
+				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
+			}
 			}
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		} 
-		
+
 		return new DoubleMapValue(buildSMapFromQuotations);
 	}
 
@@ -114,5 +114,5 @@ public class StockOperation extends DoubleMapOperation {
 	public int operationStartDateShift() {
 		return 0;
 	}
-	
+
 }
