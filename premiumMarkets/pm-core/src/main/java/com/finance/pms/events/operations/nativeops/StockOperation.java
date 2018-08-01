@@ -29,17 +29,16 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -49,12 +48,17 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 @XmlRootElement
 public class StockOperation extends DoubleMapOperation {
 
-
 	protected static MyLogger LOGGER = MyLogger.getLogger(StockOperation.class);
 
+	public StockOperation(String reference, String description, Operation ... operands) {
+		super(reference, description, new ArrayList<>(Arrays.asList(operands)));
+	}
+
 	public StockOperation() {
-		super("stock", "Time series of real stock historical data (close, low, high and volume))");
-		setAvailableOutputSelectors(new ArrayList<String>( Arrays.asList(new String[]{"close","open","high","low","volume"})));
+		this("stock", "Time series of real stock historical data (close, low, high and volume))",
+				new StringOperation("string","stockReference", "Optional stock reference in format SYMBOL_ISIN", null));
+		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
+		setAvailableOutputSelectors(new ArrayList<>( Arrays.asList(new String[]{"close","open","high","low","volume"}) ));
 	}
 
 	public StockOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -64,7 +68,15 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public DoubleMapValue run(TargetStockInfo targetStock, int thisStartShift) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
+		Stock stock;
+		if (inputs != null && inputs.size() > 0) {
+			String[] symbolIsinReference = ((StringValue) inputs.get(0)).getValue(targetStock).split("_");
+			stock = DataSource.getInstance().getShareDAO().loadStockBy(symbolIsinReference[0], symbolIsinReference[1]);
+		} else {
+			stock = targetStock.getStock();
+		}
 
 		String outputSelector = getOutputSelector();
 		QuotationDataType targetStockInputType = QuotationDataType.CLOSE;
@@ -75,10 +87,11 @@ public class StockOperation extends DoubleMapOperation {
 		SortedMap<Date, Double> buildSMapFromQuotations = new TreeMap<Date, Double>();
 		try {
 			Date shiftedStartDate =  getStartDate(targetStock.getStartDate(), thisStartShift);
+
 			switch(targetStockInputType) {
 			case CLOSE :
 			{
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.CLOSE);
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.CLOSE);
 				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
 				break;
 			}
@@ -86,19 +99,19 @@ public class StockOperation extends DoubleMapOperation {
 			case LOW :
 			case OPEN :
 			{
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLC);
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLC);
 				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
 				break;
 			}
 			case VOLUME :
 			{
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.VOLUME);
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.VOLUME);
 				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
 				break;
 			}
 			default :
 			{
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLCV);
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(stock, shiftedStartDate, targetStock.getEndDate(), true, null, 1, ValidityFilter.OHLCV);
 				buildSMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotationsInstance, targetStockInputType, quotationsInstance.getFirstDateShiftedIdx(), quotationsInstance.getLastDateIdx());
 			}
 			}
@@ -112,7 +125,7 @@ public class StockOperation extends DoubleMapOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return 0;
+		return 1;
 	}
 
 }
