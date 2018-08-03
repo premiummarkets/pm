@@ -137,7 +137,8 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		try {
 			//Analysis of above event in light of previously calculated ops
 			if (edata.isEmpty()) {
-				LOGGER.warn("No event data found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
+				LOGGER.warn("No event data found. The up stream main operation has failed for " +
+						targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 			} else {
 				edata = targetStock.analyseEvents(edata);
 			}
