@@ -41,7 +41,6 @@ public class NativeOperationsTest {
 	@Test
 	public void test() throws Exception {
 		
-		
 		NativesXmlManager nativesXmlManager = new NativesXmlManager(xmlfile);
 		
 		NativeOperations nativeOperations = nativesXmlManager.initNativeOperations();

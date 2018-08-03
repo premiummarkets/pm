@@ -30,26 +30,24 @@
 package com.finance.pms.events.calculation.antlr;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.MATypeOperation;
-import com.finance.pms.events.operations.nativeops.NumberOperation;
-import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.*;
 
 public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 
 	public enum ParamType {
 
 		//TODO MAType could just be a String as well, no need for a particular case here
-		NUMBER(NumberOperation.class, "Number"), DATA (DoubleMapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String");
+		NUMBER(NumberOperation.class, "Number"), DATA (MapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String");
 
-		Class<? extends Operation> operandClass;
+		Class<?> operandClass;
 		String typeDescr;
-
-		private ParamType(Class<? extends Operation> operandClass, String typeDescr) {
+		
+		private ParamType(Class<?> operandClass, String typeDescr) {
 			this.operandClass = operandClass;
 			this.typeDescr = typeDescr;
 		}
@@ -58,7 +56,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 			for (ParamType paramType : ParamType.values()) {
 				if (paramType.operandClass.isAssignableFrom(operandClass2)) return paramType;
 			}
-			throw new RuntimeException("No Param type for leaf operand type : " + operandClass2);
+			throw new RuntimeException("No Param type assignable from operand type : " + operandClass2 + ". Available Param Types are " + EnumSet.allOf(ParamType.class));
 		}
 
 		public static ParamType valueOfTokenName(String tokenName, Set<EditorOpDescr> allOps) {
