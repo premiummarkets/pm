@@ -35,7 +35,7 @@ public class DoubleArrayMapValue extends Value<java.util.SortedMap<Date, double[
 		return map;
 	}
 
-	//The particularity of DoubleArrayMaps is that the column amount and refs is know only at runtime.
+	//The peculiarity of DoubleArrayMaps is that the column amount and refs is known only at runtime.
 	//Hence, this has to be held in the value not the operation.
 	public List<String> getColumnsReferences() {
 		return this.columnsReferences;

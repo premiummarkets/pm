@@ -134,7 +134,7 @@ public abstract class ANTLRParserHelper {
 
 			//Params
 			List<Operation> operands = operation.getOperands();
-			if (operands.size() == 0) {//undeterministic nb of operands
+			if (operands.size() == 0) {//Indeterministic nb of operands
 				//TODO infer type operand from the empty list
 				editorOpDescr.addParam(editorOpDescr.new Param("undeterministic", DoubleMapOperation.class, "undeterministic", "undeterministic" , null, false));
 			} else {
@@ -142,11 +142,16 @@ public abstract class ANTLRParserHelper {
 					if (operand.getParameter() != null && !(operand instanceof LeafOperation)) {
 						//XXX
 						throw new UnsupportedOperationException(
-								"Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either :"+operation);
+								"A native operation is supposed NOT to be a composition of other ops (its parameters can only be LeafOperation : Double or MapOfDouble). Hence it is not reentrant either :" + operation);
 					}
 					if (operand.getParameter() == null) {
 						String defaultAsString = (operand.getDefaultValue() != null)?((StringableValue) operand.getDefaultValue()).getValueAsString():null;
-						editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString, operand.getIsVarArgs()));
+						try {
+							editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString, operand.getIsVarArgs()));
+						} catch (Exception e) {
+							LOGGER.error("Failed parsing operation " + operation.toString(), e);
+							throw e;
+						}
 					}
 				}
 			}

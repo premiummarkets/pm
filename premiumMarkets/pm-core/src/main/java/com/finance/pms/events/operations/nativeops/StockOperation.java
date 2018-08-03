@@ -29,7 +29,12 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -55,8 +60,10 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	public StockOperation() {
-		this("stock", "Time series of real stock historical data (close, low, high and volume))",
-				new StringOperation("string","stockReference", "Optional stock reference in format SYMBOL_ISIN", null));
+		this(
+			"stock", "Time series of real stock historical data (close, low, high and volume))",
+			new StringOperation("string", "stockReference", "Optional stock reference in format SYMBOL_ISIN", null)
+		);
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 		setAvailableOutputSelectors(new ArrayList<>( Arrays.asList(new String[]{"close","open","high","low","volume"}) ));
 	}

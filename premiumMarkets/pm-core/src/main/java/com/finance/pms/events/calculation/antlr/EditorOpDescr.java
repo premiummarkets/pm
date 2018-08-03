@@ -40,31 +40,31 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 
 public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
-	
+
 	public enum ParamType {
-		
+
 		//TODO MAType could just be a String as well, no need for a particular case here
 		NUMBER(NumberOperation.class, "Number"), DATA (DoubleMapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String");
-		
+
 		Class<? extends Operation> operandClass;
 		String typeDescr;
-		
+
 		private ParamType(Class<? extends Operation> operandClass, String typeDescr) {
 			this.operandClass = operandClass;
 			this.typeDescr = typeDescr;
 		}
-		
+
 		public static ParamType valueOf(Class<? extends Operation> operandClass2) {
 			for (ParamType paramType : ParamType.values()) {
 				if (paramType.operandClass.isAssignableFrom(operandClass2)) return paramType;
 			}
-			throw new RuntimeException("No Param type for : "+operandClass2);
+			throw new RuntimeException("No Param type for leaf operand type : " + operandClass2);
 		}
-		
+
 		public static ParamType valueOfTokenName(String tokenName, Set<EditorOpDescr> allOps) {
-			
+
 			tokenName = tokenName.split(":")[0];
-			
+
 			if (tokenName.equals("Number")) {
 				return NUMBER;
 			} else if (tokenName.equals("StockOperation")) {
@@ -92,17 +92,17 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 			return typeDescr;
 		}
 	};
-	
+
 	public class Param {
-		
+
 		private ParamType paramType;
 		private String paramName;
 		private String paramDescription;
 		private String paramSynoptic;
 		private String paramDefault;
 		private Boolean isVarArgs;
-	
-		
+
+
 		public Param(String refAsOperand, Class<? extends Operation> operandClass, String paramSynoptic, String paramDescription, String defaultAsString, Boolean isVarArgs) {
 			super();
 			this.paramType = ParamType.valueOf(operandClass);
@@ -138,17 +138,17 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 			return paramSynoptic;
 		}
 	}
-	
+
 	private String name;
 	private List<Param> params;
 	private List<String> outputSelectors;
 	private String description;
 	private String synoptic;
 	private String shortSynoptic;
-	
+
 	private int nbCommasParsed;
 	private List<String> parsedParam;
-	
+
 	public EditorOpDescr(String name, String description, String synoptic, String shortSynoptic) {
 		super();
 		this.name = name;
@@ -157,9 +157,9 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 		this.parsedParam = new ArrayList<String>();
 		this.synoptic = synoptic;
 		this.shortSynoptic = shortSynoptic;
-		
+
 	}
-	
+
 	public void addParam(Param param) {
 		this.params.add(param);
 		this.parsedParam.add(null);
@@ -172,48 +172,48 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 	public List<Param> getParams() {
 		return params;
 	}
-	
+
 	public Boolean undeterministicParamCount() {
-	    //Operation with an empty list operands
-	    if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
-            return true;
-        }
-	    //Operation with trailing "varargs" operand
-	    else if (params != null) {
-	        for(int i = 0; i < params.size(); i++) {
-	            if (params.get(i).paramName != null && params.get(i).isVarArgs) {
-	                return true;
-	            }
-	        }
-	    }
-	    return false;
+		//Operation with an empty list operands
+		if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
+			return true;
+		}
+		//Operation with trailing "varargs" operand
+		else if (params != null) {
+			for(int i = 0; i < params.size(); i++) {
+				if (params.get(i).paramName != null && params.get(i).isVarArgs) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
-	
+
 	/**
 	 * Only last param can be a varArgs?
 	 * @param currentParamPos
 	 * @return
 	 */
 	public Param getCurrentParamOrVarArg(Integer currentParamPos) {
-	    //Empty list operands
-	    if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
-	        return params.get(0);
-	    }
-	    //Trailing "varargs" operand
-	    else if (params != null) {
-	        int i = 0;
-	        for(; i < params.size(); i++) {
-                if (params.get(i).paramName != null && params.get(i).isVarArgs) {
-                    break; //varArg position
-                }
-            }
-	        if (currentParamPos < i) {//current position is not the varArg yet
-	            return params.get(currentParamPos);
-	        } else {//We passed the first varArg
-	            return params.get(i);
-	        }
-	    }
-	    return null; //No varArg (should not be here ...) throw Exception?
+		//Empty list operands
+		if (params != null && params.size() == 1 && params.get(0).paramName != null && params.get(0).paramName.equals("undeterministic")) {
+			return params.get(0);
+		}
+		//Trailing "varargs" operand
+		else if (params != null) {
+			int i = 0;
+			for(; i < params.size(); i++) {
+				if (params.get(i).paramName != null && params.get(i).isVarArgs) {
+					break; //varArg position
+				}
+			}
+			if (currentParamPos < i) {//current position is not the varArg yet
+				return params.get(currentParamPos);
+			} else {//We passed the first varArg
+				return params.get(i);
+			}
+		}
+		return null; //No varArg (should not be here ...) throw Exception?
 	}
 
 	@Override
@@ -309,6 +309,6 @@ public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
 	public String getShortSynoptic() {
 		return shortSynoptic;
 	}
-	
-	
+
+
 }

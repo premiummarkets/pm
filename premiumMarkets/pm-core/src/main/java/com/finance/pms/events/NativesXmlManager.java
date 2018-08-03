@@ -37,7 +37,27 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.nativeops.*;
+import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.Division;
+import com.finance.pms.events.operations.nativeops.FlipOperation;
+import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
+import com.finance.pms.events.operations.nativeops.NativeOperations;
+import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
+import com.finance.pms.events.operations.nativeops.PMAroonOperation;
+import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
+import com.finance.pms.events.operations.nativeops.PMMACDOperation;
+import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
+import com.finance.pms.events.operations.nativeops.PMSMAOperation;
+import com.finance.pms.events.operations.nativeops.Product;
+import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.operations.nativeops.Subtraction;
+import com.finance.pms.events.operations.nativeops.Sum;
+import com.finance.pms.events.operations.nativeops.TalibMacdOperation;
+import com.finance.pms.events.operations.nativeops.TalibSmaOperation;
+import com.finance.pms.events.operations.nativeops.UnaryDivision;
+import com.finance.pms.events.operations.nativeops.UnaryProduct;
+import com.finance.pms.events.operations.nativeops.UnarySum;
+import com.finance.pms.events.operations.nativeops.VolatilityOperation;
 
 
 public class NativesXmlManager {
