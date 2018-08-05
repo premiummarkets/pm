@@ -42,8 +42,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -81,8 +81,8 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer forPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> firstOp = ((ChartableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
-		SortedMap<Date, Double> secondOp = ((ChartableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> firstOp = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> secondOp = ((UnarableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		fullKeySet.addAll(firstOp.keySet());

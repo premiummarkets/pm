@@ -58,15 +58,15 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 	}
 
 	@Override
-	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer orgPeriog = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		Integer destPeriod = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(2)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(2)).getValue(targetStock);
 		
 		//Calc
-		ChartableMapValue ret = new DoubleMapValue();
+		UnarableMapValue ret = new DoubleMapValue();
 		try {
 			
 			SmaTransformator<Double> transformator = new SmaTransformator<Double>(Double.class, orgPeriog, destPeriod);

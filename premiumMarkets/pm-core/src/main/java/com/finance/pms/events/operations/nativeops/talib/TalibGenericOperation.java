@@ -41,8 +41,8 @@ import java.util.TreeSet;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
@@ -124,7 +124,7 @@ public class TalibGenericOperation extends TalibOperation {
 		Set<Date> dateKeySet = new TreeSet<Date>();
 		List<double[]> inDatas = new ArrayList<double[]>();
 		for (int i = 0; i < inDataNames.size(); i++) {
-			SortedMap<Date, Double> inData = ((ChartableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
+			SortedMap<Date, Double> inData = ((UnarableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
 			endIdx  = Math.min(endIdx, inData.size()-1);
 			dateKeySet.addAll(inData.keySet());
 			inDatas.add(mapToArray(inData));

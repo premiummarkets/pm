@@ -62,12 +62,12 @@ public class PMAroonOperation extends PMDataFreeOperation {
     }
 
     @Override
-    public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+    public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         //Param check
         Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 
-        ChartableMapValue ret = new DoubleMapValue();
+        UnarableMapValue ret = new DoubleMapValue();
         try {
 
             //HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);

@@ -43,10 +43,10 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 @XmlRootElement
-public class EventMapValue extends ChartableMapValue implements StringableMapValue {
+public class EventMapValue extends UnarableMapValue implements StringableMapValue {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventMapValue.class);
 

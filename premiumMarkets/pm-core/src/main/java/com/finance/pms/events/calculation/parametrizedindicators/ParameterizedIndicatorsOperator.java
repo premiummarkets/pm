@@ -58,7 +58,7 @@ import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.EventMapValue;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.Quotations;
@@ -177,7 +177,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			for (Output output : gatheredOutputs) {
 				Value<?> outputData = output.getOutputData();
 				if (outputData != null) {
-					SortedMap<Date, Double> data = ((ChartableMapValue) outputData).getValue(targetStock);
+					SortedMap<Date, Double> data = ((UnarableMapValue) outputData).getValue(targetStock);
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());
 				}

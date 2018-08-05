@@ -14,7 +14,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.MultiMapValue;
 
-public class DoubleArrayMapValue extends ChartableMapValue implements MultiMapValue {
+public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapValue {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleArrayMapValue.class);
 
@@ -51,7 +51,7 @@ public class DoubleArrayMapValue extends ChartableMapValue implements MultiMapVa
 	}
 
 	@Override
-	public Map<String, ChartableMapValue> getAdditionalOutputs() {
+	public Map<String, UnarableMapValue> getAdditionalOutputs() {
 		return IntStream.range(0, this.columnsReferences.size())
 				.boxed()
 				.collect(Collectors.toMap(

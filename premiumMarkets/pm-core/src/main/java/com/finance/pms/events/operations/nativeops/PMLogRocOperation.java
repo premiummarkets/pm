@@ -56,14 +56,14 @@ public class PMLogRocOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
 		//Cacl
-		ChartableMapValue ret = new DoubleMapValue();
+		UnarableMapValue ret = new DoubleMapValue();
 		try {
 			HouseTrendSmoother houseTrend = new HouseTrendSmoother(period);
 			ret.getValue(targetStock).putAll(houseTrend.sSmooth(data, null));

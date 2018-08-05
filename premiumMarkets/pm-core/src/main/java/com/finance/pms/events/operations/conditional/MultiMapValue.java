@@ -32,12 +32,12 @@ package com.finance.pms.events.operations.conditional;
 import java.util.Map;
 
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 public interface MultiMapValue {
 
 	public abstract Map<String, Type> getAdditionalOutputsTypes();
 
-	public abstract Map<String, ChartableMapValue> getAdditionalOutputs();
+	public abstract Map<String, UnarableMapValue> getAdditionalOutputs();
 
 }

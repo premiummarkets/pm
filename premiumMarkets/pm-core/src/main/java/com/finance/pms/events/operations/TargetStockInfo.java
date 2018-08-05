@@ -49,7 +49,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.OutputReference
 import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 
@@ -218,7 +218,7 @@ public class TargetStockInfo {
 
 	}
 
-	public void addExtraneousChartableOutput(Operation operation, ChartableMapValue output, String multiOutputDiscriminator) {
+	public void addExtraneousChartableOutput(Operation operation, UnarableMapValue output, String multiOutputDiscriminator) {
 		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
 	}
 
@@ -339,9 +339,9 @@ public class TargetStockInfo {
 
 		for (Output output : gatheredChartableOutputs) {
 			Value<?> outputData = output.getOutputData();
-			if (outputData instanceof ChartableMapValue) {
+			if (outputData instanceof UnarableMapValue) {
 				header = header + output.getOutputReference().getReference()+",";
-				Set<Date> keySet = ((ChartableMapValue)outputData).getValue(this).keySet();
+				Set<Date> keySet = ((UnarableMapValue)outputData).getValue(this).keySet();
 				allKeys.addAll(keySet);
 			}
 		}
@@ -351,8 +351,8 @@ public class TargetStockInfo {
 			String line = date + ",";
 			for (Output output : gatheredChartableOutputs) {
 				Value<?> outputData = output.getOutputData();
-				if (outputData instanceof ChartableMapValue) {
-					line = line + ((ChartableMapValue)outputData).getValue(this).get(date) + ",";
+				if (outputData instanceof UnarableMapValue) {
+					line = line + ((UnarableMapValue)outputData).getValue(this).get(date) + ",";
 				}
 			}
 			System.out.println(line);

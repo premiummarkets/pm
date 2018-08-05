@@ -74,7 +74,7 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Stock stock = null;
 			String value = ((StringValue) inputs.get(0)).getValue(targetStock);

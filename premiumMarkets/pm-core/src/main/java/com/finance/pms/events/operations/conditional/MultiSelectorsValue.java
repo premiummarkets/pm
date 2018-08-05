@@ -38,13 +38,13 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 
 //Used as a cache for GraphableMapValue to avoid multiple recalculations when several outputs are available (via selectors) for the same operation.
 public class MultiSelectorsValue extends DoubleMapValue {
 	
-	private Map<String, ChartableMapValue> selectorOutputs;
+	private Map<String, UnarableMapValue> selectorOutputs;
 	private String calculationSelector;
 	
 	public MultiSelectorsValue(List<String> availableOutputSelectors, String outputSelector) {
@@ -53,13 +53,13 @@ public class MultiSelectorsValue extends DoubleMapValue {
 		this.calculationSelector = outputSelector;
 	}
 
-	public MultiSelectorsValue(Map<String, ChartableMapValue> selectorOutputs, String calculationSelector) {
+	public MultiSelectorsValue(Map<String, UnarableMapValue> selectorOutputs, String calculationSelector) {
 		super(selectorOutputs.get(calculationSelector).getValue(null));
 		this.selectorOutputs = selectorOutputs;
 		this.calculationSelector = calculationSelector;
 	}
 
-	public ChartableMapValue getValue(String selector) {
+	public UnarableMapValue getValue(String selector) {
 		return selectorOutputs.get(selector);
 	}
 	
@@ -82,9 +82,9 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	public Object clone() {
 		try {
 			MultiSelectorsValue clone = (MultiSelectorsValue) super.clone();
-			clone.selectorOutputs = new HashMap<String, ChartableMapValue>();
+			clone.selectorOutputs = new HashMap<String, UnarableMapValue>();
 			for (String selector : selectorOutputs.keySet()) {
-				clone.selectorOutputs.put(selector, (ChartableMapValue) selectorOutputs.get(selector).clone());
+				clone.selectorOutputs.put(selector, (UnarableMapValue) selectorOutputs.get(selector).clone());
 			}
 			return clone;
 		} catch (Exception e) {

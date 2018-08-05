@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.TargetStockInfo;
 
-public class DoubleMapValue extends ChartableMapValue {
+public class DoubleMapValue extends UnarableMapValue {
 
 	private SortedMap<Date, Double> map;
 

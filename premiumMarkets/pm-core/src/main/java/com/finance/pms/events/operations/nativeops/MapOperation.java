@@ -27,8 +27,8 @@ public abstract class MapOperation extends Operation {
 	}
 
 	@Override
-	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return ((ChartableMapValue)inputs.get(0));
+	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return ((UnarableMapValue)inputs.get(0));
 	}
 
 }

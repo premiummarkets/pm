@@ -68,7 +68,7 @@ public class TalibSmaOperation extends TalibOperation {
 		//Param check
 		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		Boolean fixLag = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
-		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 		
 		SortedMap<Date, Double> smoothed = null;
 		if (data.size() > period) {
