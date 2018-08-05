@@ -123,9 +123,9 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							//                    		timeSerie.add(lastItem, false);
 							//                    	}
 							//or
-							//						if (Double.isNaN(timeSerie.getMaxY()) && Double.isNaN(timeSerie.getMinY())) {
-							//							timeSerie.clear();
-							//						}
+							if (Double.isNaN(timeSerie.getMaxY()) && Double.isNaN(timeSerie.getMinY())) {
+								continue;
+							}
 
 							//Data Set
 							groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
