@@ -40,42 +40,42 @@ public class OutputReference implements Comparable<OutputReference> {
 	String formula;
 	String referenceAsOperand;
 	Boolean isLeaf;
-	
+
 	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, Boolean isLeaf, String operationReference) {
 		this.reference = reference;
 		this.outputSelector = outputSelector;
 		this.formula = formula;
 		this.referenceAsOperand = referenceAsOperand;
 		this.isLeaf = isLeaf;
-		
+
 		this.operationReference = operationReference;
 	}
-	
+
 	public OutputReference(Operation operation) {
 		this.reference = operation.getReference();
 		this.outputSelector  = operation.getOutputSelector();
 		this.formula = operation.getFormulae();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		this.isLeaf = (operation instanceof LeafOperation);
-		
+
 		this.operationReference = operation.getOperationReference();
 	}
-	
+
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
 		this.reference = operation.getReference();
 		this.outputSelector = multiOutputDiscriminator;
 		this.formula = operation.getFormulae();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		this.isLeaf = (operation instanceof LeafOperation);
-		
+
 		this.operationReference = operation.getOperationReference();
 	}
-	
+
 	@Override
 	public int hashCode() {
-		
+
 		if (isLeaf) return super.hashCode();
-		
+
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((formula == null) ? 0 : formula.replaceAll("\\s+","").hashCode());
@@ -85,9 +85,9 @@ public class OutputReference implements Comparable<OutputReference> {
 	}
 	@Override
 	public boolean equals(Object obj) {
-		
-		if (isLeaf) return super.equals(obj);
-		
+
+		if (isLeaf) return super.equals(obj); //Leaf (like number threshold) don't have specific description so they have to be considered different.
+
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -95,31 +95,31 @@ public class OutputReference implements Comparable<OutputReference> {
 		if (getClass() != obj.getClass())
 			return false;
 		OutputReference other = (OutputReference) obj;
-		
+
 		if (formula == null) {
 			if (other.formula != null)
 				return false;
 		}
 		else if (other.formula == null) 
-		        return false;
+			return false;
 		else if (!formula.replaceAll("\\s+","").equals(other.formula.replaceAll("\\s+","")))
 			return false;
-		
+
 		if (outputSelector == null) {
 			if (other.outputSelector != null)
 				return false;
 		} else if (!outputSelector.equals(other.outputSelector))
 			return false;
-		
+
 		if (operationReference == null) {
 			if (other.operationReference != null)
 				return false;
 		} else if (!operationReference.equals(other.operationReference))
 			return false;
-		
+
 		return true;
 	}
-	
+
 	@Override
 	public int compareTo(OutputReference o) {
 
@@ -155,7 +155,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		if (compareTo == 0 && isLeaf) {
 			compareTo = this.hashCode() - o.hashCode();
 		}
-		
+
 		return compareTo;
 	}
 
@@ -187,5 +187,5 @@ public class OutputReference implements Comparable<OutputReference> {
 	public Boolean getIsLeaf() {
 		return isLeaf;
 	}
-	
+
 }

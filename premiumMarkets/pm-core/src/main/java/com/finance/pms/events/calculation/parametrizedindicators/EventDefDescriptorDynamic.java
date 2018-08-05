@@ -31,6 +31,7 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -54,6 +55,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		{Color.CYAN, Color.MAGENTA, Color.GREEN, new Color(50, 49, 50)},
 		{Color.BLUE, new Color(128,0,0), new Color(128,128,0), new Color(178,178,50)}
 	};
+	private double[] randoms;
 
 	private String descriptorReference;
 	private String bullishDescription;
@@ -70,6 +72,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	public EventDefDescriptorDynamic() {
 		super();
 		exportBaseFileName = Optional.empty();
+		randoms = new double[100];
+		Arrays.setAll(randoms, i -> Math.random());
 	}
 
 	@Override
@@ -152,10 +156,10 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 			initLists();
 		}
 
-		int groupIdx = getGroupFor(outputIdx);
+		int groupIdx = getGroupIndexFor(outputIdx);
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
-		int alpha = (int) (155 +  100 - 100*((double)groupIdx)/getGroupsCount());
+		int alpha = (int) (255 - 128*((double)groupIdx)/getGroupsCount());
 		Color[] grpColors = COLORS[groupIdx % COLORS.length];
 
 		switch (descripitonList.get(outputIdx).getType()) {
@@ -166,7 +170,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		case BOTH :
 			return new Color(grpColors[2].getRed(), (grpColors[2].getGreen() + outputIdx * 10) % 256, grpColors[2].getBlue(), alpha);
 		case MULTI :
-			return new Color(grpColors[3].getRed(), (grpColors[3].getGreen() + outputIdx * 10) % 256, grpColors[3].getBlue(), alpha);
+			return new Color((grpColors[3].getRed() + (int)(128*randoms[outputIdx%100])) % 256, (grpColors[3].getGreen() + (int)(128*randoms[(outputIdx+1)%100])) % 256, (grpColors[3].getBlue() + (int)(128*randoms[(outputIdx+2)%100])) % 256, alpha);
 		case MULTISIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/4);
 		default :
@@ -190,8 +194,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public int getGroupFor(int i) {
-		ChartedOutputGroup container = descripitonList.get(i).getContainer();
+	public int getGroupIndexFor(int outputIdx) {
+		ChartedOutputGroup container = descripitonList.get(outputIdx).getContainer();
 		return chartedOutputGroups.indexOf(container);
 	}
 
@@ -310,6 +314,11 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	public void setExportBaseFileName(String exportBaseFileName) {
 		this.exportBaseFileName = Optional.of(exportBaseFileName);
+	}
+
+	@Override
+	public String getGroupFullDescriptionFor(int groupIndex) {
+		return chartedOutputGroups.get(groupIndex).toString();
 	}
 
 }

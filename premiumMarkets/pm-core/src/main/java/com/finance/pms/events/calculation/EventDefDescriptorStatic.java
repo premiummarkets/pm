@@ -173,7 +173,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
 
     @Override
-    public int getGroupFor(int i) {
+    public int getGroupIndexFor(int i) {
         return 0;
     }
 
@@ -232,7 +232,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     }
 
 
-    private String initDesrciption( String description, String[] paramsMethods) {
+    private String initDesrciption(String description, String[] paramsMethods) {
         Object[] paramsValues = (paramsMethods != null)?configParams(paramsMethods):new Object[0];
         if (paramsValues != null) return String.format(description, paramsValues);
         return description;
@@ -270,6 +270,12 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     @Override
     public String getExportBaseFileName() {
         return "static";
-    }	
+    }
+
+
+	@Override
+	public String getGroupFullDescriptionFor(int groupIndex) {
+		return descriptionMap.toString();
+	}
 
 }

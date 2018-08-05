@@ -47,7 +47,9 @@ public interface EventDefDescriptor {
 
 	Boolean displayValues();
 
-	int getGroupFor(int i);
+	int getGroupIndexFor(int outputIndex);
+
+	String getGroupFullDescriptionFor(int groupIndex);
 
 	int getGroupsCount();
 
@@ -62,7 +64,7 @@ public interface EventDefDescriptor {
 	public abstract Set<OutputDescr> allOutputs();
 
 	boolean isDisplayed(int outputIdx);
-	
+
 	String getExportBaseFileName();
 
 }

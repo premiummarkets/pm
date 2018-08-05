@@ -31,6 +31,7 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
@@ -41,25 +42,28 @@ import com.finance.pms.portfolio.InfoObject;
 public class ChartedOutputGroup {
 
 	public enum Type {MAIN, SIGNAL, BOTH, CONSTANT, MULTI, MULTISIGNAL, INVISIBLE}; //BOTH is MAIN & SIGNAL
-	
+
 	public class OutputDescr implements InfoObject, Comparable<OutputDescr>{
-		
-		OutputReference outputReference;
-		ChartedOutputGroup container;
-		Type type;
-		Integer outputIndex;
-		Value<?> value;
-		
-		Boolean displayOnChart;
-		
+
+		private UUID uuid;
+
+		private OutputReference outputReference;
+		private ChartedOutputGroup container;
+		private Type type;
+		private Integer outputIndex;
+		private Value<?> value;
+
+		private Boolean displayOnChart;
+
 		public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, Value<?> value) {
 			super();
+			this.uuid = UUID.randomUUID();
 			this.outputReference = outputReference;
 			this.container = container;
 			this.type = type;
 			this.outputIndex = outputIndex;
 			this.value = value;
-			
+
 			this.displayOnChart = true;
 		}
 
@@ -86,21 +90,21 @@ public class ChartedOutputGroup {
 			}
 
 			String famillyName = outputReference.getOperationReference() +
-									((outputReference.getOutputSelector() != null)?":" + outputReference.getOutputSelector():"");
+					((outputReference.getOutputSelector() != null)?":" + outputReference.getOutputSelector():"");
 
-//			String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
-//			if (type.equals(Type.MAIN)) {
-//				displayedAs = "indicator";
-//			}
-//			if (type.equals(Type.MULTISIGNAL) || type.equals(Type.SIGNAL)) {
-//				displayedAs = "signal";
-//			}
+			//			String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
+			//			if (type.equals(Type.MAIN)) {
+			//				displayedAs = "indicator";
+			//			}
+			//			if (type.equals(Type.MULTISIGNAL) || type.equals(Type.SIGNAL)) {
+			//				displayedAs = "signal";
+			//			}
 
 			String displayedAs = (outputReference.getReferenceAsOperand() != null)?
-									outputReference.getReferenceAsOperand():
-									((outputReference.getOutputSelector() != null)?outputReference.getOutputSelector():outputReference.getOperationReference());
+					outputReference.getReferenceAsOperand():
+						((outputReference.getOutputSelector() != null)?outputReference.getOutputSelector():outputReference.getOperationReference());
 
-			return discriminentReference + " (" + famillyName + ") on graph as " + displayedAs;
+					return discriminentReference + " (" + famillyName + ") on graph as " + displayedAs;
 		}
 
 		@Override
@@ -113,7 +117,7 @@ public class ChartedOutputGroup {
 		}
 
 		public void maskType(Type newType) {
-			
+
 			switch (newType) {
 			case MAIN :
 				if (this.type.equals(Type.SIGNAL) || this.type.equals(Type.BOTH)) this.type = Type.BOTH;
@@ -124,7 +128,7 @@ public class ChartedOutputGroup {
 			default :
 				this.type = newType;
 			}
-			
+
 		}
 
 		private void setContainer(ChartedOutputGroup container) {
@@ -151,30 +155,65 @@ public class ChartedOutputGroup {
 
 		@Override
 		public int compareTo(OutputDescr o) {
-			return (this.fullQualifiedName() + this.hashCode()).compareTo(o.fullQualifiedName() + o.hashCode());
+			return (this.uuid).compareTo(o.uuid);
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			OutputDescr other = (OutputDescr) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (uuid == null) {
+				if (other.uuid != null)
+					return false;
+			} else if (!uuid.equals(other.uuid))
+				return false;
+			return true;
+		}
+
+		private ChartedOutputGroup getOuterType() {
+			return ChartedOutputGroup.this;
+		}
+
 	}
-	
-	OutputReference thisReference;
-	OutputDescr thisDescription;
-	Map<OutputReference, OutputDescr> components;
-	
+
+	private OutputReference thisReference;
+	private OutputDescr thisDescription;
+	private Map<OutputReference, OutputDescr> components;
+	private UUID uuid;
+
 	//Non displayed group
 	public ChartedOutputGroup(OutputReference outputReference, int outputIndex) {
+		uuid = UUID.randomUUID();
 		thisDescription = new OutputDescr(outputReference, this, Type.INVISIBLE, outputIndex, null);
 		thisReference = outputReference;
 		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
 	}
-	
-	
+
 	//Adding a main
 	public ChartedOutputGroup(Operation operation, int outputIndex) {
+		uuid = UUID.randomUUID();
 		OutputReference outputReference = new OutputReference(operation);
 		thisDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
 		thisReference = outputReference;
 		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
 	}
-	
+
 	public OutputDescr addSignal(Operation operation, int outputIndex) {
 		OutputReference outputReference = new OutputReference(operation);
 		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null);
@@ -187,12 +226,12 @@ public class ChartedOutputGroup {
 		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, true, operation.getOperationReference()); 
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
 	}
-	
+
 	public void addAdditonalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
 		OutputReference outputReference = new OutputReference(operation, outputKey);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null));
 	}
-	
+
 	public OutputDescr mvComponentInThisGrp(OutputReference outputRef, OutputDescr outputDescr) {
 		outputDescr.setContainer(this);
 		this.components.put(outputRef,outputDescr);
@@ -207,11 +246,24 @@ public class ChartedOutputGroup {
 		return thisDescription;
 	}
 
+	public UUID groupUniqueId() {
+		return uuid;
+	}
+
+	public OutputReference getThisReference() {
+		return thisReference;
+	}
+
+	@Override
+	public String toString() {
+		return "ChartedOutputGroup [\n\t uuid=" + uuid + ", \n\t thisReference=" + thisReference + ", \n\t thisDescription=" + thisDescription + ", \n\t components=" + components + "]";
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((thisReference == null) ? 0 : thisReference.hashCode());
+		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
 		return result;
 	}
 
@@ -224,22 +276,12 @@ public class ChartedOutputGroup {
 		if (getClass() != obj.getClass())
 			return false;
 		ChartedOutputGroup other = (ChartedOutputGroup) obj;
-		if (thisReference == null) {
-			if (other.thisReference != null)
+		if (uuid == null) {
+			if (other.uuid != null)
 				return false;
-		} else if (!thisReference.equals(other.thisReference))
+		} else if (!uuid.equals(other.uuid))
 			return false;
 		return true;
-	}
-
-	public OutputReference getThisReference() {
-		return thisReference;
-	}
-
-
-	@Override
-	public String toString() {
-		return "ChartedOutputGroup [\n\t thisReference=" + thisReference + ", \n\t thisDescription=" + thisDescription + ", \n\t components=" + components + "]";
 	}
 
 }

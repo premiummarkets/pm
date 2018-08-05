@@ -105,9 +105,12 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 		EventMapValue buySellEvents = new EventMapValue();
 		try {
 
-			//XXX getting back the eponym EventInfoOpsCompoOperation indicator from the operation name (@see TalibIndicatorsCompositionerGenericOperation.class)
+			//XXX getting back the eponym EventInfoOpsCompoOperation indicator from the operation name (@see TalibIndicatorsCompositionerGenericOperation.class above)
 			EventInfo thisEventInfoOpsCompoOperation = (EventInfo) ((ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder")).getUserEnabledOperations().get(this.getReference());
-
+			if (thisEventInfoOpsCompoOperation == null) 
+				throw new Exception(this.getReference() + " is a paremterized operation wich outputs events (like an indicator) and has for input the generic indicator composionner: " + this.getOperationReference() +
+					". However, it needs to be backed up by your own EPONYM indicator as the latter can't be paramterized through the editor. " +
+					this.getReference() + " is not defined as an indicator. Make sure operation and indicator have the same name.");
 			TalibIndicatorsOperator calculator = calculatorClass.getConstructor(EventInfo.class).newInstance(thisEventInfoOpsCompoOperation);
 
 			List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());

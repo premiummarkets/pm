@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.jfree.chart.axis.AxisLocation;
@@ -66,6 +68,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
 
+					LOGGER.debug("Group description : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+
 					Boolean groupIsDisplayed = false;
 
 					//Renderer
@@ -77,12 +81,16 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						indicPlot.setRenderer(rendererIdx, renderer);
 					}
 
-					//Build data set adding data series and tool tips for group
+					//Build data set adding data series and tool tips for each output of the group
 					TimeSeriesCollection dataset = new TimeSeriesCollection();
 					Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
 					int serieIdx = 0;
 					double groupMaxY = Double.MIN_VALUE;
 					double groupMinY = Double.MAX_VALUE;
+					SortedSet<Date> fullDateSet = new TreeSet<Date>();
+					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
+						fullDateSet.addAll(output.keySet());
+					}
 					for (int k = 0; k < outputIndexes.length; k++) {
 
 						int outputIdx = outputIndexes[k];
@@ -90,22 +98,23 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 							groupIsDisplayed = true;
 
+							//Build the timeSeries for the output
 							final String domain = eventDefDescriptorArray[outputIdx];
 							TimeSeries timeSerie = new TimeSeries(domain);
-							//Boolean isNan = true;
-							for (Date date : eventsSeries.get(chartedEvtDef).keySet()) {
+							for (Date date : fullDateSet) {
 								double[] ds = eventsSeries.get(chartedEvtDef).get(date);
-								RegularTimePeriod period = new Day(date);
-								Number value = ds[outputIdx];
-								//						isNan = isNan && ( ((Double) value).isNaN() || ((Double) value).isInfinite());
-								//Double.NEGATIVE_INFINITY act as a marker for data not available but line still have to be drawn.
-								if (!((Double) value).isInfinite()) {
-									TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-									timeSerie.add(item, false);
+								Number value;
+								if (ds != null) {
+									value = ds[outputIdx];
+									if (value != null && !Double.isInfinite(value.doubleValue())) {//Negative Infinity means we should ignore the entry. NaN means not wanted for display and breaks the line so it needs to be keep
+										RegularTimePeriod period = new Day(date);
+										TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+										timeSerie.add(item, false);
+									}
 								}
 							}
 
-							//                    	if (isNan) {//Series has no value to display we fill in two NaN values
+							//                    if (Double.isNaN(timeSerie.getMaxY()) && Double.isNaN(timeSerie.getMinY())) { {//Series has no value to display we fill in two NaN values
 							//                    		RegularTimePeriod periodStart = new Day(series.firstKey());
 							//                    		TimeSeriesDataItem firstItem = new TimeSeriesDataItem(periodStart, Double.NaN);
 							//                    		timeSerie.add(firstItem, false);
@@ -113,7 +122,12 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
 							//                    		timeSerie.add(lastItem, false);
 							//                    	}
+							//or
+							//						if (Double.isNaN(timeSerie.getMaxY()) && Double.isNaN(timeSerie.getMinY())) {
+							//							timeSerie.clear();
+							//						}
 
+							//Data Set
 							groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
 							groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
 
@@ -152,8 +166,9 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						}
 					}
 
-					//Y Axe for group
-					if (groupIsDisplayed) {
+					//Y Axe for group. Finalizing the Group.
+					boolean hasData = groupMinY != Double.MAX_VALUE && groupMaxY != Double.MIN_VALUE;
+					if (groupIsDisplayed && hasData) {
 
 						ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
 						if (rangeAxis == null) {
@@ -185,6 +200,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						indicPlot.setDataset(rendererIdx, dataset);
 						if ( rendererIdx != 0 ) indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
+					} else {
+						LOGGER.warn("Group not displayed: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx) + ((groupIsDisplayed && !hasData)?".\n Group has no data.":""));
 					}
 
 				}

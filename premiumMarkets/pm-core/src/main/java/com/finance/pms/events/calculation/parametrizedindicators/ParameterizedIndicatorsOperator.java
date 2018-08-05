@@ -166,8 +166,6 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 	private SortedMap<Date, double[]> buildCalculationOutput() {
 
-		SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
-
 		try {
 
 			List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
@@ -210,31 +208,37 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			((EventDefDescriptorDynamic) eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
 
 			//Build
-			for (Date date : fullDateSet) {
-
-				double[] retOutput = new double[normOutputs.size()];
-
-				int outputPosition = 0;
-				for (Object normOutput : normOutputs) {
-
-					if (normOutput instanceof SortedMap) {
-
-						@SuppressWarnings("unchecked")
-						Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
-						retOutput[outputPosition] = translateOutputForCharting(ds2);
-					}
-					else if (normOutput instanceof Double) {
-						retOutput[outputPosition] = (Double)normOutput;
-					}
-					outputPosition++;
-				}
-				calculationOutput.put(date, retOutput);
-			}
+			return buildSortedMap(normOutputs, fullDateSet);
 
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
 		}
 
+		return new TreeMap<Date, double[]>();
+	}
+
+	private SortedMap<Date, double[]> buildSortedMap(List<Object> normOutputs, SortedSet<Date> fullDateSet) {
+		SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
+		for (Date date : fullDateSet) {
+
+			double[] retOutput = new double[normOutputs.size()];
+
+			int outputPosition = 0;
+			for (Object normOutput : normOutputs) {
+
+				if (normOutput instanceof SortedMap) {
+
+					@SuppressWarnings("unchecked")
+					Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
+					retOutput[outputPosition] = translateOutputForCharting(ds2);
+				}
+				else if (normOutput instanceof Double) {
+					retOutput[outputPosition] = (Double)normOutput;
+				}
+				outputPosition++;
+			}
+			calculationOutput.put(date, retOutput);
+		}
 		return calculationOutput;
 	}
 
