@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.datasources.shares.Stock;
@@ -59,16 +58,17 @@ import com.finance.pms.events.operations.Value;
  * Note 'days' here mean days calendar open days not quotation days.
  */
 
-@XmlRootElement
 @XmlSeeAlso({
-    BooleanDoubleMapCondition.class, 
-    EqualConstantCondition.class, // within CmpConstantCondition.class, 
-    CmpDoubleMapCondition.class, 
-    CrossConstantCondition.class, 
-    CrossDoubleMapCondition.class, 
-    EqualEventMapStringConstantCondition.class, //with in EqualStringConstantCondition<T extends SortedMap<X,Y>, X, Y>
+    BooleanDoubleMapCondition.class,
+    CmpConstantCondition.class,
+    CmpDoubleMapCondition.class,
+    CmpDoubleMapCondition.class,
+    CrossConstantCondition.class,
+    CrossDoubleMapCondition.class,
+    EqualStringConstantCondition.class,
     HighsAndLowsCondition.class, 
-    NullCondition.class})
+    NullCondition.class,
+    ReverseCondition.class})
 public class Condition<T> extends Operation {	
 	
 	protected Condition() {

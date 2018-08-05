@@ -60,7 +60,12 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		if (shortcutUnary() && inputs.size() == 1) return (BooleanMapValue) inputs.get(0);
+		if (shortcutUnary() && inputs.size() == 1) {
+			BooleanMapValue booleanMapValue = new BooleanMapValue();
+			booleanMapValue.getValue(targetStock).putAll(((BooleanMapValue) inputs.get(0)).getValue(targetStock)); //We need to recreate the input object as an inherited BooleanMultiMapValue would break the graph
+			return booleanMapValue;
+		}
+
 		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;
 
 		List<SortedMap<Date, Boolean>> maps = new ArrayList<SortedMap<Date,Boolean>>();
@@ -70,7 +75,7 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 			maps.add(input.getValue(targetStock));
 		}
 
-		BooleanMapValue outputs = new  BooleanMapValue();
+		BooleanMapValue outputs = new BooleanMapValue();
 
 		for (Date date : fullKeySet) {
 
@@ -80,9 +85,9 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 				Boolean currentOp = map.get(date);
 				if (currentOp != null) {
 					currentOps.add(currentOp);
-				} 
+				}
 				else if (exactDataSet()) {
-					gruyere = true;
+					gruyere = true; //Will result in an empty output
 					break;
 				}
 			}

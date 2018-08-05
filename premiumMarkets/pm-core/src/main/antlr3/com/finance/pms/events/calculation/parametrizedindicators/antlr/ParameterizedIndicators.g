@@ -39,7 +39,7 @@ tokens {
   LowerHighCondition ;
   LowerLowCondition ;
   
-  EqualEventMapStringConstantCondition ;
+  EqualStringConstantCondition ;
   
   EventInfoOpsCompoOperation ;
   StringOperation ;
@@ -188,13 +188,13 @@ atom :
   'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotDoubleMapCondition primary_expression)
   ;
  
-booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree]  ->  presetcondition | opcmpcondition[$firstOp.tree]   ->  opcmpcondition| constantcmp[$firstOp.tree]   ->  constantcmp );
-operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) | opName = Operation {checkOperationValidity($opName);} -> Operation;
+booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree] -> presetcondition | opcmpcondition[$firstOp.tree] -> opcmpcondition| constantcmp[$firstOp.tree] -> constantcmp );
+operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""])) | opName = Operation {checkOperationValidity($opName);} -> Operation;
 constant :  NumberToken -> ^(Number NumberToken) ;
 trendconstant : 'bullish' | 'bearish' ;
 lenient : (WhiteChar LENIENT  -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
 
-opcmpcondition [CommonTree firstOp] : 
+opcmpcondition [CommonTree firstOp] :
 
   ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(SupDoubleMapCondition {$forNbDays.tree} {$firstOp} {$secondOp.tree}) )? |
@@ -207,16 +207,16 @@ opcmpcondition [CommonTree firstOp] :
         ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
           WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS 
           -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$firstOp} operand) )? |
-        
-  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"])  {$firstOp} operand)) 
+
+  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand)) 
        ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
          WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS 
          -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$firstOp} operand) )?;
-       
+
 
 constantcmp [CommonTree firstOp] :
- 
-  ('equals trend' WhiteChar trendSignal=trendconstant -> ^(EqualEventMapStringConstantCondition ^(String trendconstant) {$firstOp}) ) |
+
+  ('equals trend' WhiteChar trendSignal=trendconstant -> ^(EqualStringConstantCondition ^(String trendconstant) {$firstOp}) ) |
     
   ('equals threshold' WhiteChar threshold=constant -> ^(EqualConstantCondition constant ^(Number NumberToken["0"])  ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$firstOp}) )? |
@@ -224,9 +224,9 @@ constantcmp [CommonTree firstOp] :
   ('is above threshold' WhiteChar threshold=constant -> ^(SupConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(SupConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$firstOp}) )? |
     
-  ('is below threshold' WhiteChar threshold=constant -> ^(InfConstantCondition constant ^(Number NumberToken["0"])  ^(Number NumberToken["0"]) {$firstOp}) )
+  ('is below threshold' WhiteChar threshold=constant -> ^(InfConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(InfConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$firstOp}) )?;
-    
+
 
 presetcondition [CommonTree firstOp]  : 
 

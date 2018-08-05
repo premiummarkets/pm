@@ -37,7 +37,7 @@ import com.finance.pms.events.operations.Operation;
 
 @XmlRootElement
 public class Sum extends ArithmeticOperation {
-	
+
 
 	public Sum() {
 		super("sum_", "Summation of n historical data series", new ArrayList<DoubleMapOperation>());

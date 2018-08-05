@@ -85,8 +85,8 @@ public class ChartedOutputGroup {
 				discriminentReference = ((StringableValue) value).getValueAsString();
 			}
 
-			String famillyName = outputReference.getOperationReference() + 
-									((outputReference.getOutputSelector() != null)?":"+outputReference.getOutputSelector():"");
+			String famillyName = outputReference.getOperationReference() +
+									((outputReference.getOutputSelector() != null)?":" + outputReference.getOutputSelector():"");
 
 //			String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
 //			if (type.equals(Type.MAIN)) {
@@ -151,7 +151,7 @@ public class ChartedOutputGroup {
 
 		@Override
 		public int compareTo(OutputDescr o) {
-			return this.fullQualifiedName().compareTo(o.fullQualifiedName());
+			return (this.fullQualifiedName() + this.hashCode()).compareTo(o.fullQualifiedName() + o.hashCode());
 		}
 	}
 	

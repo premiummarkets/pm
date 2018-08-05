@@ -39,11 +39,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 
-//Used as a cache for DoubleMapValues to avoid multiple recalculations when several outputs are available (via selectors) for the same operation.
+//Used as a cache for GraphableMapValue to avoid multiple recalculations when several outputs are available (via selectors) for the same operation.
 public class MultiSelectorsValue extends DoubleMapValue {
 	
-	private Map<String, DoubleMapValue> selectorOutputs;
+	private Map<String, ChartableMapValue> selectorOutputs;
 	private String calculationSelector;
 	
 	public MultiSelectorsValue(List<String> availableOutputSelectors, String outputSelector) {
@@ -52,13 +53,13 @@ public class MultiSelectorsValue extends DoubleMapValue {
 		this.calculationSelector = outputSelector;
 	}
 
-	public MultiSelectorsValue(Map<String, DoubleMapValue> selectorOutputs, String calculationSelector) {
+	public MultiSelectorsValue(Map<String, ChartableMapValue> selectorOutputs, String calculationSelector) {
 		super(selectorOutputs.get(calculationSelector).getValue(null));
 		this.selectorOutputs = selectorOutputs;
 		this.calculationSelector = calculationSelector;
 	}
 
-	public DoubleMapValue getValue(String selector) {
+	public ChartableMapValue getValue(String selector) {
 		return selectorOutputs.get(selector);
 	}
 	
@@ -81,9 +82,9 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	public Object clone() {
 		try {
 			MultiSelectorsValue clone = (MultiSelectorsValue) super.clone();
-			clone.selectorOutputs = new HashMap<String, DoubleMapValue>();
+			clone.selectorOutputs = new HashMap<String, ChartableMapValue>();
 			for (String selector : selectorOutputs.keySet()) {
-				clone.selectorOutputs.put(selector, (DoubleMapValue) selectorOutputs.get(selector).clone());
+				clone.selectorOutputs.put(selector, (ChartableMapValue) selectorOutputs.get(selector).clone());
 			}
 			return clone;
 		} catch (Exception e) {

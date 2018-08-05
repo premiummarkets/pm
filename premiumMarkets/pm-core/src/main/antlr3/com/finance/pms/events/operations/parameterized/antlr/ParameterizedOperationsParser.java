@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2018-07-09 10:02:33
+// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2018-08-04 17:48:01
  //parser
     package com.finance.pms.events.operations.parameterized.antlr;
     import java.util.ArrayList;
@@ -307,7 +307,7 @@ public class ParameterizedOperationsParser extends Parser {
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:120:10: (opName= Nativeop (outSelect= OutputSelector )? '(' (pars+= params )? ')' -> ^( Nativeop ( ^( OperationOutput OutputSelector ) )? ( params )? ) )
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:2: opName= Nativeop (outSelect= OutputSelector )? '(' (pars+= params )? ')'
 			{
-			opName=(Token)match(input,Nativeop,FOLLOW_Nativeop_in_nativeop127);  
+			opName=(Token)match(input,Nativeop,FOLLOW_Nativeop_in_nativeop126);  
 			stream_Nativeop.add(opName);
 
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:18: (outSelect= OutputSelector )?
@@ -320,7 +320,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:20: outSelect= OutputSelector
 					{
-					outSelect=(Token)match(input,OutputSelector,FOLLOW_OutputSelector_in_nativeop133);  
+					outSelect=(Token)match(input,OutputSelector,FOLLOW_OutputSelector_in_nativeop132);  
 					stream_OutputSelector.add(outSelect);
 
 					}
@@ -329,7 +329,7 @@ public class ParameterizedOperationsParser extends Parser {
 			}
 
 			outputSelectorHint(opName, outSelect);
-			char_literal4=(Token)match(input,19,FOLLOW_19_in_nativeop140);  
+			char_literal4=(Token)match(input,19,FOLLOW_19_in_nativeop139);  
 			stream_19.add(char_literal4);
 
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:95: (pars+= params )?
@@ -342,7 +342,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:121:96: pars+= params
 					{
-					pushFollow(FOLLOW_params_in_nativeop145);
+					pushFollow(FOLLOW_params_in_nativeop144);
 					pars=params();
 					state._fsp--;
 
@@ -355,11 +355,11 @@ public class ParameterizedOperationsParser extends Parser {
 			}
 
 			checkParamExhaust(opName, list_pars);
-			char_literal5=(Token)match(input,20,FOLLOW_20_in_nativeop151);  
+			char_literal5=(Token)match(input,20,FOLLOW_20_in_nativeop150);  
 			stream_20.add(char_literal5);
 
 			// AST REWRITE
-			// elements: OutputSelector, Nativeop, params
+			// elements: Nativeop, params, OutputSelector
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -455,10 +455,10 @@ public class ParameterizedOperationsParser extends Parser {
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:122:8: (opName= Userop '(' (pars+= params )? ')' -> ^( Userop ( params )? ) )
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:123:2: opName= Userop '(' (pars+= params )? ')'
 			{
-			opName=(Token)match(input,Userop,FOLLOW_Userop_in_userop178);  
+			opName=(Token)match(input,Userop,FOLLOW_Userop_in_userop176);  
 			stream_Userop.add(opName);
 
-			char_literal6=(Token)match(input,19,FOLLOW_19_in_userop180);  
+			char_literal6=(Token)match(input,19,FOLLOW_19_in_userop178);  
 			stream_19.add(char_literal6);
 
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:123:20: (pars+= params )?
@@ -471,7 +471,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:123:21: pars+= params
 					{
-					pushFollow(FOLLOW_params_in_userop185);
+					pushFollow(FOLLOW_params_in_userop183);
 					pars=params();
 					state._fsp--;
 
@@ -484,11 +484,11 @@ public class ParameterizedOperationsParser extends Parser {
 			}
 
 			checkParamExhaust(opName, list_pars);
-			char_literal7=(Token)match(input,20,FOLLOW_20_in_userop191);  
+			char_literal7=(Token)match(input,20,FOLLOW_20_in_userop189);  
 			stream_20.add(char_literal7);
 
 			// AST REWRITE
-			// elements: Userop, params
+			// elements: params, Userop
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 
@@ -566,7 +566,7 @@ public class ParameterizedOperationsParser extends Parser {
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:125:8: ( param ( ',' param )* -> ( param )+ )
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:125:10: param ( ',' param )*
 			{
-			pushFollow(FOLLOW_param_in_params212);
+			pushFollow(FOLLOW_param_in_params208);
 			param8=param();
 			state._fsp--;
 
@@ -584,10 +584,10 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:125:17: ',' param
 					{
-					char_literal9=(Token)match(input,21,FOLLOW_21_in_params215);  
+					char_literal9=(Token)match(input,21,FOLLOW_21_in_params211);  
 					stream_21.add(char_literal9);
 
-					pushFollow(FOLLOW_param_in_params217);
+					pushFollow(FOLLOW_param_in_params213);
 					param10=param();
 					state._fsp--;
 
@@ -709,7 +709,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:126:9: NumberToken
 					{
-					NumberToken11=(Token)match(input,NumberToken,FOLLOW_NumberToken_in_param232);  
+					NumberToken11=(Token)match(input,NumberToken,FOLLOW_NumberToken_in_param228);  
 					stream_NumberToken.add(NumberToken11);
 
 					// AST REWRITE
@@ -743,7 +743,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 2 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:126:49: MATypeToken
 					{
-					MATypeToken12=(Token)match(input,MATypeToken,FOLLOW_MATypeToken_in_param245);  
+					MATypeToken12=(Token)match(input,MATypeToken,FOLLOW_MATypeToken_in_param241);  
 					stream_MATypeToken.add(MATypeToken12);
 
 					// AST REWRITE
@@ -777,7 +777,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 3 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:126:88: StringToken
 					{
-					StringToken13=(Token)match(input,StringToken,FOLLOW_StringToken_in_param257);  
+					StringToken13=(Token)match(input,StringToken,FOLLOW_StringToken_in_param253);  
 					stream_StringToken.add(StringToken13);
 
 					// AST REWRITE
@@ -814,7 +814,7 @@ public class ParameterizedOperationsParser extends Parser {
 					root_0 = (CommonTree)adaptor.nil();
 
 
-					pushFollow(FOLLOW_operand_in_param270);
+					pushFollow(FOLLOW_operand_in_param266);
 					operand14=operand();
 					state._fsp--;
 
@@ -884,7 +884,7 @@ public class ParameterizedOperationsParser extends Parser {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:127:11: stockhistory
 					{
-					pushFollow(FOLLOW_stockhistory_in_operand278);
+					pushFollow(FOLLOW_stockhistory_in_operand274);
 					stockhistory15=stockhistory();
 					state._fsp--;
 
@@ -916,7 +916,7 @@ public class ParameterizedOperationsParser extends Parser {
 					root_0 = (CommonTree)adaptor.nil();
 
 
-					pushFollow(FOLLOW_expression_in_operand286);
+					pushFollow(FOLLOW_expression_in_operand282);
 					expression16=expression();
 					state._fsp--;
 
@@ -953,7 +953,7 @@ public class ParameterizedOperationsParser extends Parser {
 
 
 	// $ANTLR start "stockhistory"
-	// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:1: stockhistory : HistoricalData -> ^( StockOperation ^( OperationOutput HistoricalData ) ) ;
+	// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:1: stockhistory : HistoricalData -> ^( StockOperation ^( OperationOutput HistoricalData ) ^( String StringToken[\"\\\"THIS\\\"\"] ) ) ;
 	public final ParameterizedOperationsParser.stockhistory_return stockhistory() throws RecognitionException {
 		ParameterizedOperationsParser.stockhistory_return retval = new ParameterizedOperationsParser.stockhistory_return();
 		retval.start = input.LT(1);
@@ -966,10 +966,10 @@ public class ParameterizedOperationsParser extends Parser {
 		RewriteRuleTokenStream stream_HistoricalData=new RewriteRuleTokenStream(adaptor,"token HistoricalData");
 
 		try {
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:14: ( HistoricalData -> ^( StockOperation ^( OperationOutput HistoricalData ) ) )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:14: ( HistoricalData -> ^( StockOperation ^( OperationOutput HistoricalData ) ^( String StringToken[\"\\\"THIS\\\"\"] ) ) )
 			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:16: HistoricalData
 			{
-			HistoricalData17=(Token)match(input,HistoricalData,FOLLOW_HistoricalData_in_stockhistory294);  
+			HistoricalData17=(Token)match(input,HistoricalData,FOLLOW_HistoricalData_in_stockhistory290);  
 			stream_HistoricalData.add(HistoricalData17);
 
 			// AST REWRITE
@@ -983,9 +983,9 @@ public class ParameterizedOperationsParser extends Parser {
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 			root_0 = (CommonTree)adaptor.nil();
-			// 128:31: -> ^( StockOperation ^( OperationOutput HistoricalData ) )
+			// 128:31: -> ^( StockOperation ^( OperationOutput HistoricalData ) ^( String StringToken[\"\\\"THIS\\\"\"] ) )
 			{
-				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:34: ^( StockOperation ^( OperationOutput HistoricalData ) )
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:34: ^( StockOperation ^( OperationOutput HistoricalData ) ^( String StringToken[\"\\\"THIS\\\"\"] ) )
 				{
 				CommonTree root_1 = (CommonTree)adaptor.nil();
 				root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(StockOperation, "StockOperation"), root_1);
@@ -994,6 +994,14 @@ public class ParameterizedOperationsParser extends Parser {
 				CommonTree root_2 = (CommonTree)adaptor.nil();
 				root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(OperationOutput, "OperationOutput"), root_2);
 				adaptor.addChild(root_2, stream_HistoricalData.nextNode());
+				adaptor.addChild(root_1, root_2);
+				}
+
+				// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:128:85: ^( String StringToken[\"\\\"THIS\\\"\"] )
+				{
+				CommonTree root_2 = (CommonTree)adaptor.nil();
+				root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(String, "String"), root_2);
+				adaptor.addChild(root_2, (CommonTree)adaptor.create(StringToken, "\"THIS\""));
 				adaptor.addChild(root_1, root_2);
 				}
 
@@ -1032,23 +1040,23 @@ public class ParameterizedOperationsParser extends Parser {
 	public static final BitSet FOLLOW_expression_in_indicatorexpr99 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_nativeop_in_expression111 = new BitSet(new long[]{0x0000000000000002L});
 	public static final BitSet FOLLOW_userop_in_expression115 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_Nativeop_in_nativeop127 = new BitSet(new long[]{0x0000000000082000L});
-	public static final BitSet FOLLOW_OutputSelector_in_nativeop133 = new BitSet(new long[]{0x0000000000080000L});
-	public static final BitSet FOLLOW_19_in_nativeop140 = new BitSet(new long[]{0x0000000000130B20L});
-	public static final BitSet FOLLOW_params_in_nativeop145 = new BitSet(new long[]{0x0000000000100000L});
-	public static final BitSet FOLLOW_20_in_nativeop151 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_Userop_in_userop178 = new BitSet(new long[]{0x0000000000080000L});
-	public static final BitSet FOLLOW_19_in_userop180 = new BitSet(new long[]{0x0000000000130B20L});
-	public static final BitSet FOLLOW_params_in_userop185 = new BitSet(new long[]{0x0000000000100000L});
-	public static final BitSet FOLLOW_20_in_userop191 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_param_in_params212 = new BitSet(new long[]{0x0000000000200002L});
-	public static final BitSet FOLLOW_21_in_params215 = new BitSet(new long[]{0x0000000000030B20L});
-	public static final BitSet FOLLOW_param_in_params217 = new BitSet(new long[]{0x0000000000200002L});
-	public static final BitSet FOLLOW_NumberToken_in_param232 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_MATypeToken_in_param245 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_StringToken_in_param257 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_operand_in_param270 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_stockhistory_in_operand278 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_expression_in_operand286 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_HistoricalData_in_stockhistory294 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_Nativeop_in_nativeop126 = new BitSet(new long[]{0x0000000000082000L});
+	public static final BitSet FOLLOW_OutputSelector_in_nativeop132 = new BitSet(new long[]{0x0000000000080000L});
+	public static final BitSet FOLLOW_19_in_nativeop139 = new BitSet(new long[]{0x0000000000130B20L});
+	public static final BitSet FOLLOW_params_in_nativeop144 = new BitSet(new long[]{0x0000000000100000L});
+	public static final BitSet FOLLOW_20_in_nativeop150 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_Userop_in_userop176 = new BitSet(new long[]{0x0000000000080000L});
+	public static final BitSet FOLLOW_19_in_userop178 = new BitSet(new long[]{0x0000000000130B20L});
+	public static final BitSet FOLLOW_params_in_userop183 = new BitSet(new long[]{0x0000000000100000L});
+	public static final BitSet FOLLOW_20_in_userop189 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_param_in_params208 = new BitSet(new long[]{0x0000000000200002L});
+	public static final BitSet FOLLOW_21_in_params211 = new BitSet(new long[]{0x0000000000030B20L});
+	public static final BitSet FOLLOW_param_in_params213 = new BitSet(new long[]{0x0000000000200002L});
+	public static final BitSet FOLLOW_NumberToken_in_param228 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_MATypeToken_in_param241 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_StringToken_in_param253 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_operand_in_param266 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_stockhistory_in_operand274 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_expression_in_operand282 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_HistoricalData_in_stockhistory290 = new BitSet(new long[]{0x0000000000000002L});
 }

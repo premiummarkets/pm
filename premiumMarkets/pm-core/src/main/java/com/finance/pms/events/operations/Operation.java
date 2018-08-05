@@ -40,7 +40,6 @@ import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -53,10 +52,9 @@ import com.finance.pms.events.operations.conditional.MultiMapValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
-import com.finance.pms.events.operations.nativeops.ArithmeticOperation;
-import com.finance.pms.events.operations.nativeops.ArithmeticUnaryOperation;
-import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
+import com.finance.pms.events.operations.nativeops.MATypeOperation;
+import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
@@ -69,11 +67,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * Operands : resolved at runtime.
  * Parameters : preset operands already resolved.
  **/
-@XmlRootElement
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
-@XmlSeeAlso({
-	ArithmeticOperation.class, ArithmeticUnaryOperation.class, //with in DoubleMapOperation
-	Condition.class, DoubleMapOperation.class, EventMapOperation.class, NumberOperation.class, StringOperation.class})
+@XmlSeeAlso({Condition.class, MapOperation.class, MATypeOperation.class, NumberOperation.class, StringOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -200,7 +195,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output) {
 
 		//We gather only outputs for StockOperation and User formulas.
-		if ( (output instanceof DoubleMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
+		if ( (output instanceof ChartableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
 			targetStock.addOutput(operand, output);
 		}
 		//We also gather extraneous chartable outputs from conditions.
@@ -242,7 +237,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private void addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) {
 
 		//add to gathered
-		Map<String, DoubleMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
+		Map<String, ChartableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
 			targetStock.addExtraneousChartableOutput(operand, extraneousOutputs.get(extOutKey), extOutKey);
 		}
@@ -580,19 +575,19 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return startCal.getTime();
 	}
 
-	public List<Operation> collectOperandsOfType(Class<? extends DoubleMapOperation> operationType) {
-		if (operands.isEmpty()) return new ArrayList<>();
-		ArrayList<Operation> result = new ArrayList<>();
-		operands.stream().forEach(
-				o -> {
-					if (operationType.isAssignableFrom(o.getClass())) {
-						result.add(o);
-					} else {
-						result.addAll(o.collectOperandsOfType(operationType));
-					}
-				});
-		return result;
-	}
+//	public List<Operation> collectOperandsOfType(Class<? extends DoubleMapOperation> operationType) {
+//		if (operands.isEmpty()) return new ArrayList<>();
+//		ArrayList<Operation> result = new ArrayList<>();
+//		operands.stream().forEach(
+//				o -> {
+//					if (operationType.isAssignableFrom(o.getClass())) {
+//						result.add(o);
+//					} else {
+//						result.addAll(o.collectOperandsOfType(operationType));
+//					}
+//				});
+//		return result;
+//	}
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
 	//This can be overridden by making this operation itself not idempotent

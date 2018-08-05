@@ -35,11 +35,11 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.conditional.EventDataValue;
+import com.finance.pms.events.operations.conditional.EventMapValue;
 
 public class OperationValue<T> extends Value<T> implements Cloneable  {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(EventDataValue.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(OperationValue.class);
 	
 	Operation operation;
 

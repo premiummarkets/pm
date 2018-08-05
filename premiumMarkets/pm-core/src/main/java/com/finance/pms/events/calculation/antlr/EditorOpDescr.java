@@ -35,24 +35,27 @@ import java.util.List;
 import java.util.Set;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.*;
+import com.finance.pms.events.operations.nativeops.MATypeOperation;
+import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.StringOperation;
 
-public class EditorOpDescr implements Comparable<EditorOpDescr> , Cloneable {
+public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 
 	public enum ParamType {
 
 		//TODO MAType could just be a String as well, no need for a particular case here
 		NUMBER(NumberOperation.class, "Number"), DATA (MapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String");
 
-		Class<?> operandClass;
+		Class<? extends Operation> operandClass;
 		String typeDescr;
 		
-		private ParamType(Class<?> operandClass, String typeDescr) {
+		private ParamType(Class<? extends Operation> operandClass, String typeDescr) {
 			this.operandClass = operandClass;
 			this.typeDescr = typeDescr;
 		}
 
-		public static ParamType valueOf(Class<? extends Operation> operandClass2) {
+		public static ParamType valueOf(Class<?  extends Operation> operandClass2) {
 			for (ParamType paramType : ParamType.values()) {
 				if (paramType.operandClass.isAssignableFrom(operandClass2)) return paramType;
 			}

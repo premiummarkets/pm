@@ -20,7 +20,7 @@ tokens {
     import com.finance.pms.events.calculation.antlr.OpsParserDelegate;
     import com.finance.pms.events.calculation.antlr.ParamsCountException;
     import com.finance.pms.events.calculation.antlr.UnfinishedParameterException;
-     import com.finance.pms.events.calculation.antlr.InvalidOperationException;
+    import com.finance.pms.events.calculation.antlr.InvalidOperationException;
     import com.finance.pms.events.calculation.antlr.EditorOpDescr;
     import com.finance.pms.events.calculation.antlr.MissingOutputSelectorException;
     import com.finance.pms.events.calculation.antlr.InvalidOperationException;
@@ -117,15 +117,15 @@ tokens {
 indicatorexpr : expression -> expression ;
 expression : nativeop | userop;
 
-nativeop : 
+nativeop :
  opName=Nativeop ( outSelect=OutputSelector )? {outputSelectorHint($opName, $outSelect);} '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')' -> ^(Nativeop ^(OperationOutput OutputSelector)? params?);
-userop : 
+userop :
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
-  
+
 params : param (',' param)* -> param+ ;
 param : NumberToken ->  ^(Number NumberToken) | MATypeToken -> ^(MAType MATypeToken) | StringToken ->  ^(String StringToken) | operand ;
 operand : stockhistory -> stockhistory | expression ;
-stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData)) ;
+stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""]));
 
 HistoricalData
      : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low'  | 'volume')

@@ -51,8 +51,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.antlr.NextToken.TokenType;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
-import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
+import com.finance.pms.events.operations.nativeops.MapOperation;
 
 public abstract class ANTLRParserHelper {
 
@@ -136,7 +136,7 @@ public abstract class ANTLRParserHelper {
 			List<Operation> operands = operation.getOperands();
 			if (operands.size() == 0) {//Indeterministic nb of operands
 				//TODO infer type operand from the empty list
-				editorOpDescr.addParam(editorOpDescr.new Param("undeterministic", DoubleMapOperation.class, "undeterministic", "undeterministic" , null, false));
+				editorOpDescr.addParam(editorOpDescr.new Param("undeterministic", MapOperation.class, "undeterministic", "undeterministic", null, false));
 			} else {
 				for (Operation operand : operands) {
 					if (operand.getParameter() != null && !(operand instanceof LeafOperation)) {

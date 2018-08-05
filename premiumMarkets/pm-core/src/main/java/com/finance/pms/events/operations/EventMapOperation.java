@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Optional;
 
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.operations.conditional.EventDataValue;
+import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
-public class EventMapOperation extends Operation implements MapOperation {
+public class EventMapOperation extends MapOperation {
 
 	public EventMapOperation() {
 		super("historical data", "Time series of real historical data or resulting of calculations");
@@ -31,8 +31,8 @@ public class EventMapOperation extends Operation implements MapOperation {
 	}
 
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return ((EventDataValue)inputs.get(0));
+	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return ((EventMapValue)inputs.get(0));
 	}
 
 	@Override

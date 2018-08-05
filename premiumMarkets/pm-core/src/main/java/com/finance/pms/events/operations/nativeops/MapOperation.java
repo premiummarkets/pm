@@ -1,5 +1,34 @@
 package com.finance.pms.events.operations.nativeops;
 
-public interface MapOperation {
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import com.finance.pms.events.operations.EventMapOperation;
+import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
+
+@XmlSeeAlso({ArrayMapOperation.class, DoubleMapOperation.class, EventMapOperation.class})
+public abstract class MapOperation extends Operation {
+
+	public MapOperation(String reference, String description) {
+		super(reference, description);
+	}
+
+	public MapOperation(String reference, String description, ArrayList<? extends Operation> operands) {
+		super(reference, description, operands);
+	}
+
+	public MapOperation(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
+		super(reference, referenceAsOperand, description, defaultValue);
+	}
+
+	@Override
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return ((ChartableMapValue)inputs.get(0));
+	}
 
 }

@@ -60,9 +60,9 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
         this(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
     }
 
-    protected DoubleMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
+    protected ChartableMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
 
-        DoubleMapValue dateDoubleMap = new DoubleMapValue();
+        ChartableMapValue dateDoubleMap = new DoubleMapValue();
         for (int i = 0; i < talibIndicator.getOutNBElement().value; i++) {
             Date calculatorDate = quotations.getDate(i + talibIndicator.getOutBegIdx().value);
             Double output = outputs[i];
@@ -73,7 +73,7 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
 
     }
 
-    protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, DoubleMapValue input) {
+    protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, ChartableMapValue input) {
 
         SortedMap<Date, double[]> doubleArrayMap = new TreeMap<Date, double[]>();
         SortedMap<Date, Double> inputValue = input.getValue(targetStock);

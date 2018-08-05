@@ -102,13 +102,13 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		//We don't calculate event for operands when iterating are they are not used in the iterative calculation. This is to avoid excessive database access.
+		//We don't calculate event for operands when iterating as they are not used in the iterative calculation. This is to avoid excessive database access.
 		//isIterative should be reset false when iterations complete in order to take in account only events from the iterative itself.
 		boolean isIterative = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).isIterative();
 		if (isIterative) {
-			return new EventDataValue();
+			return new EventMapValue();
 		}
 
 		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
@@ -155,7 +155,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			LOGGER.warn(e, e);
 		}
 
-		return new EventDataValue(edata);
+		return new EventMapValue(edata);
 	}
 
 	@Override

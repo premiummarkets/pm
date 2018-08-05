@@ -35,11 +35,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -53,6 +55,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 'for'
  * does not make sense : 'spanning'. As the condition is a status in time not an event in time.
  */
+@XmlSeeAlso({EqualConstantCondition.class, InfConstantCondition.class, SupConstantCondition.class})
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {
 
 	private static final int MAIN_POSITION = 3;
@@ -79,7 +82,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 		Double threshold = ((NumberValue) inputs.get(THRESHOLD_POSITION)).getValue(targetStock).doubleValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		BooleanMapValue outputs = new  BooleanMapValue();
 		if (Double.isNaN(threshold)) return outputs;

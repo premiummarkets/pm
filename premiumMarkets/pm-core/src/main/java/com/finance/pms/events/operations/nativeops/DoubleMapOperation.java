@@ -41,8 +41,8 @@ import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({PMIndicatorOperation.class, StockOperation.class, TalibOperation.class})
-public class DoubleMapOperation extends Operation implements MapOperation {
+@XmlSeeAlso({ArithmeticOperation.class, ArithmeticUnaryOperation.class, PMIndicatorOperation.class, StockOperation.class, TalibOperation.class})
+public class DoubleMapOperation extends MapOperation {
 
 	public DoubleMapOperation() {
 		super("historical data", "Time series of real historical data or resulting of calculations");
@@ -65,8 +65,8 @@ public class DoubleMapOperation extends Operation implements MapOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return ((DoubleMapValue)inputs.get(0));
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return ((ChartableMapValue)inputs.get(0));
 	}
 
 	@Override

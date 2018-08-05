@@ -37,7 +37,7 @@ import com.finance.pms.events.operations.Operation;
 
 @XmlRootElement
 public class Product extends ArithmeticOperation {
-	
+
 
 	public Product() {
 		super("product_", "Product of n historical data series", new ArrayList<DoubleMapOperation>());

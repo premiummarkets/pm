@@ -66,13 +66,13 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer fastPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		Integer slowPeriod = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 
-		DoubleMapValue ret = new DoubleMapValue();
+		ChartableMapValue ret = new DoubleMapValue();
 		try {
 			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(fastPeriod, slowPeriod);
 			
@@ -83,7 +83,7 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 			
 			SortedMap<EventKey, EventValue> eventsFor = mChaikin.calculateEventsFor(quotationsInstance, "inMem"+this.getClass().getSimpleName()+"Operation ");
 			
-			DoubleMapValue buySellEvents = new DoubleMapValue();
+			ChartableMapValue buySellEvents = new DoubleMapValue();
 			for (EventKey eventKey : eventsFor.keySet()) {
 				if (eventKey.getEventType().equals(EventType.BULLISH)) {
 					buySellEvents.getValue(targetStock).put(eventKey.getDate(),-100.0);

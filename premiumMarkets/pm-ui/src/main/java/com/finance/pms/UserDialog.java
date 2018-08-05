@@ -50,7 +50,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * @author Guillaume Thoreton
  */
 public class UserDialog extends Dialog {
-	
+
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 
@@ -67,26 +67,26 @@ public class UserDialog extends Dialog {
 		this.erreur = erreur;
 		this.addMessage = addMessage;
 	}
-	
+
 	protected UserDialog(Shell parent, String title, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHELL_TRIM));
 		this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
-	
+
 	}
 
 	public void open() {
-		
+
 		try {
 
 			RowLayout dialogShellLayout = new RowLayout(SWT.VERTICAL);
 			dialogShellLayout.fill = true;
 			dialogShellLayout.wrap = false;
 			this.getParent().setLayout(dialogShellLayout);
-			
+
 			this.getParent().setBackground(MainGui.pOPUP_BG);
-			
+
 			{
 				errorTxt = new Text(getParent(), SWT.WRAP);
 				errorTxt.setFont(MainGui.DEFAULTFONT);
@@ -100,16 +100,16 @@ public class UserDialog extends Dialog {
 			}
 			initAddMsg();
 			initButton();
-			
+
 			layout();
-			
+
 			Point pt = getParent().getDisplay().getCursorLocation();
 			int x = Math.max(0, Math.min(getParent().getDisplay().getBounds().width-getParent().getSize().x, pt.x-getParent().getSize().x-10));
 			int y = Math.max(0, Math.min(getParent().getDisplay().getBounds().height-getParent().getSize().y, pt.y+10));
 			getParent().setLocation(x, y);
-			
+
 			getParent().open();
-			
+
 			getParent().getDisplay().syncExec(new Runnable() {
 				@Override
 				public void run() {
@@ -120,22 +120,22 @@ public class UserDialog extends Dialog {
 					}
 				}
 			});
-			
-			
+
+
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
 	}
 
 	private void initButton() {
-		
+
 		valideButton = new Button(getParent(), SWT.PUSH | SWT.CENTER);
 		validationButtonTxtAndAction();
-		
+
 	}
 
 	private void initAddMsg() {
-		
+
 		addMsgTxt = new Text(getParent(), SWT.WRAP| SWT.V_SCROLL);
 		addMsgTxt.setFont(MainGui.DEFAULTFONT);
 		addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
@@ -146,15 +146,15 @@ public class UserDialog extends Dialog {
 		} else {
 			addMsgTxt.setText(cleanMsg(this.addMessage, true));
 		}
-		
+
 	}
 
 	protected void layout() {
-		
+
 		if (errorTxt != null) {
 			errorTxt.pack();
 		}
-	
+
 		if (addMsgTxt != null) {
 			addMsgTxt.pack();
 			addMsgTxt.setSize(addMsgTxt.getSize().x+10, Math.max(addMsgTxt.getSize().y, 200));
@@ -162,15 +162,15 @@ public class UserDialog extends Dialog {
 
 		getParent().pack();
 		getParent().layout();
-		
+
 	}
-	
+
 	public void updateDialog(String title, String erreur, String addMessage) {
-		
-		this.getParent().setText(title);
+
+		if (title != null) this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
-		
+
 		if (erreur != null && errorTxt != null)  {
 			errorTxt.setText(cleanMsg(this.erreur, false));
 			errorTxt.setVisible(true);
@@ -186,28 +186,28 @@ public class UserDialog extends Dialog {
 			addMsgTxt.setVisible(false);
 		}
 		valideButton.setText("Ok");
-	
+
 		layout();
-		
+
 		getParent().setActive();
 		valideButton.setFocus();
-		
+
 	}
 
 	String cleanMsg(String message, Boolean addCR) {
-	
+
 		String cleanMessage = message;
 		if (addCR) {
 			cleanMessage = message.replaceAll("\\. ", ".\n");
 		}
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
-		
+
 		return cleanMessage+"\n";
 	}
 
 	protected void validationButtonTxtAndAction() {
-		
+
 		valideButton.setText("Ok");
 		valideButton.setFont(MainGui.DEFAULTFONT);
 		valideButton.addMouseListener(new MouseAdapter() {
@@ -217,7 +217,7 @@ public class UserDialog extends Dialog {
 			}
 		});
 		valideButton.addKeyListener(new KeyListener() {
-			
+
 			@Override
 			public void keyReleased(KeyEvent e) {
 				System.out.println("Key released : "+e.keyCode+","+e.character+","+e.doit);
@@ -225,14 +225,14 @@ public class UserDialog extends Dialog {
 					dispose();
 				}
 			}
-			
+
 			@Override
 			public void keyPressed(KeyEvent e) {
 				System.out.println("Key pressed : "+e.keyCode+","+e.character+","+e.doit);
 			}
-		
+
 		});
-			
+
 	}
 
 	protected void dispose() {
@@ -240,7 +240,7 @@ public class UserDialog extends Dialog {
 	}
 
 	public boolean sameDialog(String erreur, String addMessage) {
-		
+
 		if (this.addMessage == null) {
 			if (addMessage != null)
 				return false;

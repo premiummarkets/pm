@@ -55,7 +55,7 @@ import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.conditional.EventDataValue;
+import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -100,9 +100,9 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	 * @return True when bullish and False when bearish
 	 */
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		EventDataValue buySellEvents = new EventDataValue();
+		EventMapValue buySellEvents = new EventMapValue();
 		try {
 
 			//XXX getting back the eponym EventInfoOpsCompoOperation indicator from the operation name (@see TalibIndicatorsCompositionerGenericOperation.class)
@@ -121,7 +121,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
 			//Events is the only functional output for this operation => boolean
 			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(quotations, targetStock.getAnalysisName());
-			buySellEvents = new EventDataValue(eventsFor);
+			buySellEvents = new EventMapValue(eventsFor);
 
 			//Adding indicator outputs for charting
 			EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();

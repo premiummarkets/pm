@@ -38,11 +38,11 @@ import com.finance.pms.events.operations.Operation;
 @XmlRootElement
 public class Subtraction extends ArithmeticOperation {
 
-	
+
 	public Subtraction() {
 		super("subtraction_", "Subtraction of two historical data series",new DoubleMapOperation("minuend"), new DoubleMapOperation("subtrahend"));
 	}
-	
+
 	public Subtraction(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);

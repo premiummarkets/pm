@@ -41,17 +41,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.finance.pms.events.operations.Operation;
 
 @XmlRootElement
-public class NativeOperationsBasic  implements NativeOperations {
-	
+public class NativeOperationsBasic implements NativeOperations {
+
 	@XmlElementWrapper(name = "operations")
 	@XmlElement(name = "operation")
 	Set<Operation> operations;
-	
+
 
 	public NativeOperationsBasic() {
 		super();
 		operations = new HashSet<Operation>();
-		
+
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class NativeOperationsBasic  implements NativeOperations {
 		}
 		return ret;
 	}
-	
+
 	public void addOperation(Operation operation) {
 		operations.add(operation);
 	}

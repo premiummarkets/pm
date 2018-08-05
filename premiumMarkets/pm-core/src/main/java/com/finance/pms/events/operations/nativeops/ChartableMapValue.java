@@ -27,60 +27,27 @@
  * You should have received a copy of the GNU Lesser General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.events.operations.conditional;
+package com.finance.pms.events.operations.nativeops;
 
+import java.util.Date;
+import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
-
-import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventValue;
-import com.finance.pms.events.operations.MapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlRootElement
-public class EventDataValue extends Value<SortedMap<EventKey, EventValue>> implements MapValue<EventKey, EventValue>, Cloneable  {
-	
-	protected static MyLogger LOGGER = MyLogger.getLogger(EventDataValue.class);
-	
-	private SortedMap<EventKey, EventValue> eventData;
+public abstract class ChartableMapValue extends Value<SortedMap<Date, Double>> implements Cloneable {
 
+	protected static MyLogger LOGGER = MyLogger.getLogger(ChartableMapValue.class);
 
-	public EventDataValue() {
-		super();
-		eventData = new TreeMap<EventKey, EventValue>();
-	}
+	public abstract SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo);
 
-	public EventDataValue(SortedMap<EventKey, EventValue> eventData) {
-		super();
-		this.eventData = eventData;
-	}
-
+	public abstract List<Date> getDateKeys();
 
 	@Override
-	public SortedMap<EventKey, EventValue> getValue(TargetStockInfo targetStock) {
-		return eventData;
-	}
-	
-	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() +" : size is "+eventData.size() + ((eventData.size() > 0)?", first key "+eventData.firstKey()+ ", last key "+eventData.lastKey():"");
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public Object clone() {
-		try {
-			EventDataValue clone = (EventDataValue) super.clone();
-			clone.eventData = (SortedMap<EventKey, EventValue>) ((TreeMap<EventKey, EventValue>)this.eventData).clone();
-			return clone;
-		} catch (Exception e) {
-			LOGGER.error(e,e);
-		}
-		return null;
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
 }

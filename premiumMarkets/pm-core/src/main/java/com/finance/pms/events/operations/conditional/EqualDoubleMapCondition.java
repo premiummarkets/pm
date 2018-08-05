@@ -35,12 +35,11 @@ import com.finance.pms.events.operations.Operation;
 
 
 public class EqualDoubleMapCondition extends CmpDoubleMapCondition {
-	
 
 	private EqualDoubleMapCondition() {
 		super("historical equality comparison", "True when the first time series value is equal the second one.");
 	}
-	
+
 	public EqualDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);

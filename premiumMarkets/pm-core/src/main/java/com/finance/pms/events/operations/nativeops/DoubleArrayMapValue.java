@@ -3,15 +3,18 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.TimedMapValue;
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.conditional.MultiMapValue;
 
-public class DoubleArrayMapValue extends Value<java.util.SortedMap<Date, double[]>> implements TimedMapValue<double[]>, Cloneable {
+public class DoubleArrayMapValue extends ChartableMapValue implements MultiMapValue {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleArrayMapValue.class);
 
@@ -31,8 +34,34 @@ public class DoubleArrayMapValue extends Value<java.util.SortedMap<Date, double[
 	}
 
 	@Override
-	public SortedMap<Date, double[]> getValue(TargetStockInfo targetStock) {
+	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
+		//return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[0], (a,b) -> a, TreeMap::new));
+		return new TreeMap<>();
+	}
+
+	public SortedMap<Date, double[]> getDoubleArrayValue() {
 		return map;
+	}
+	
+	@Override
+	public Map<String, Type> getAdditionalOutputsTypes() {
+		return IntStream.range(0, this.columnsReferences.size())
+				.boxed()
+				.collect(Collectors.toMap(i -> columnsReferences.get(i), c -> Type.MULTI));
+	}
+
+	@Override
+	public Map<String, ChartableMapValue> getAdditionalOutputs() {
+		return IntStream.range(0, this.columnsReferences.size())
+				.boxed()
+				.collect(Collectors.toMap(
+						i -> columnsReferences.get(i),
+						i -> {
+							TreeMap<Date, Double> collect = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[i], (a,b) -> a, TreeMap::new));
+							return new DoubleMapValue(collect);
+						}
+						)
+				);
 	}
 
 	//The peculiarity of DoubleArrayMaps is that the column amount and refs is known only at runtime.
@@ -51,12 +80,18 @@ public class DoubleArrayMapValue extends Value<java.util.SortedMap<Date, double[
 	public Object clone() {
 		try {
 			DoubleArrayMapValue clone = (DoubleArrayMapValue) super.clone();
+			clone.columnsReferences = new ArrayList<>(this.columnsReferences);
 			clone.map = (SortedMap<Date, double[]>) ((TreeMap<Date, double[]>)this.map).clone();
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
 		return null;
+	}
+
+	@Override
+	public List<Date> getDateKeys() {
+		return new ArrayList<>(map.keySet());
 	}
 
 }

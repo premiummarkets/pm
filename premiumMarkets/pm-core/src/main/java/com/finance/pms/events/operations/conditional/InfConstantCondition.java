@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import com.finance.pms.events.operations.Operation;
 
 public class InfConstantCondition extends CmpConstantCondition {
-	
 
 	private InfConstantCondition() {
 		super("below threshold comparison", "True when a time series value is below the constant.");

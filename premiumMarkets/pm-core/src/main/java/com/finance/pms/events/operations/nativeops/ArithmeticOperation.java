@@ -44,7 +44,7 @@ import com.finance.pms.events.operations.Value;
 
 @XmlSeeAlso({Product.class, Sum.class, Division.class, Subtraction.class})
 public abstract class ArithmeticOperation extends DoubleMapOperation {
-	
+
 	protected ArithmeticOperation() {
 		super();
 	}
@@ -58,18 +58,18 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
 		if (inputs.size() == 0) return new DoubleMapValue();
-		if (inputs.size() == 1) return (DoubleMapValue) inputs.get(0);
+		if (inputs.size() == 1) return (ChartableMapValue) inputs.get(0);
 		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Double>>> checkedInputs = (List<Value<SortedMap<Date, Double>>>) inputs;
-		
+
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		for (Value<SortedMap<Date, Double>> input : checkedInputs) {
 			fullKeySet.addAll(input.getValue(targetStock).keySet());
 		}
-		
-		DoubleMapValue outputs = new  DoubleMapValue();
+
+		ChartableMapValue outputs = new DoubleMapValue();
 		for (Date date : fullKeySet) {
 			Double leftOperand = checkedInputs.get(0).getValue(targetStock).get(date);
 			for (int i=1; i < checkedInputs.size(); i++) {
@@ -79,10 +79,10 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 			}
 			outputs.getValue(targetStock).put(date, leftOperand);
 		}
-		
+
 		return outputs;
 	}
-	
+
 	public abstract Double twoOperandsOp(Double op0, Double op1);
 
 }

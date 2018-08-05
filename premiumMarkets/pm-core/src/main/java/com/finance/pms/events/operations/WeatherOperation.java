@@ -6,7 +6,7 @@ import java.util.SortedMap;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.operations.conditional.EventDataValue;
+import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.weather.WeatherChecker;
 
 public class WeatherOperation extends EventMapOperation {
@@ -18,14 +18,14 @@ public class WeatherOperation extends EventMapOperation {
 	}
 
 	@Override
-	public EventDataValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		EventDataValue buySellEvents = new EventDataValue();
+		EventMapValue buySellEvents = new EventMapValue();
 		try {
 
 			WeatherChecker calculator = new WeatherChecker(getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate());
 			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(null, "inMem"+this.getClass().getSimpleName()+"Operation");
-			buySellEvents = new EventDataValue(eventsFor);
+			buySellEvents = new EventMapValue(eventsFor);
 
 		}
 		catch (Exception e) {

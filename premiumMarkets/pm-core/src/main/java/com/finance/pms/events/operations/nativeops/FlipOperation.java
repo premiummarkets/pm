@@ -55,14 +55,14 @@ public class FlipOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Double flipAxe = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(1)).getValue(targetStock);
 		
 		//Calc
-		DoubleMapValue ret = new DoubleMapValue();
+		ChartableMapValue ret = new DoubleMapValue();
 		try {
 			
 			CurveFlip curveFlip = new CurveFlip();

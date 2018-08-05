@@ -43,7 +43,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -83,8 +83,8 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 
 		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> firstOp = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
-		SortedMap<Date, Double> secondOp = ((DoubleMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> firstOp = ((ChartableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> secondOp = ((ChartableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		fullKeySet.addAll(firstOp.keySet());

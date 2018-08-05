@@ -52,6 +52,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -103,10 +104,13 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		Double minimunNbDaysBetweenExtrs = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Integer lookBackNbdays = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
-		if (minimunNbDaysBetweenExtrs < 4) return new BooleanMultiMapValue(data.keySet(), false); //We need a least 3 days to draw one of these
+		if (minimunNbDaysBetweenExtrs < 4) {
+			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days span to draw one of these.");
+			return new BooleanMultiMapValue(data.keySet(), false);
+		}
 
 		if (lookBackNbdays == -1) {
 			lookBackNbdays = (int) (minimunNbDaysBetweenExtrs*4);
@@ -122,7 +126,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		SortedMap<Date, Double> reglines = new TreeMap<Date, Double>();
 
-		BooleanMultiMapValue outputs = new  BooleanMultiMapValue();
+		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : data.keySet()) {
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(date);
@@ -131,7 +135,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			if ( lookBackPeriodStart.after(dataFirstKey) && lookBackPeriodStart.after(sSmoothFirstKey) ) {
 
 				SortedMap<Date, Double> quotationLookBackP = data.subMap(lookBackPeriodStart, date);
-				if (quotationLookBackP.size() < 4) continue; //We need a least 3 days to draw one of these
+				if (quotationLookBackP.size() < 4) continue;
 
 				SortedMap<Date, Double> thresholdLookBackP = new TreeMap<Date, Double>();
 				if (!sSmooth.isEmpty()) {

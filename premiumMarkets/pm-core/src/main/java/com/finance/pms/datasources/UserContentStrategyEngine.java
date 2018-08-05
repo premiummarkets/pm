@@ -251,19 +251,23 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end) {
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		for (Stock stock : passOutput.keySet()) {
-			Map<EventInfo, SortedMap<Date, double[]>> map4Stock = passOutput.get(stock);
-			if (map4Stock != null) {
-				ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
-				for (EventInfo evtDef : map4Stock.keySet()) {
-					SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
-					if (map4EvtDef != null) {
-						ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false)));
-					} else {
-						ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true)));
+		if (passOutput != null) {
+			for (Stock stock : passOutput.keySet()) {
+				Map<EventInfo, SortedMap<Date, double[]>> map4Stock = passOutput.get(stock);
+				if (map4Stock != null) {
+					ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
+					for (EventInfo evtDef : map4Stock.keySet()) {
+						SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
+						if (map4EvtDef != null) {
+							ret.get(stock).put(evtDef,
+									new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false)));
+						} else {
+							ret.get(stock).put(evtDef,
+									new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true)));
+						}
 					}
 				}
-			}
+			} 
 		}
 		return ret;
 

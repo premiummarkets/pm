@@ -65,10 +65,10 @@ public abstract class TalibOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 
-		DoubleMapValue ret = new DoubleMapValue();
+		ChartableMapValue ret = new DoubleMapValue();
 		MInteger outBegIdx = new MInteger();
 		MInteger outNBElement = new MInteger();
 		

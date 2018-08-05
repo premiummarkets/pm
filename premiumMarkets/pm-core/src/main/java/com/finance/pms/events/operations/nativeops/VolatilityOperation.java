@@ -46,7 +46,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 		int basicPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		int returnCalculationNbPeriods = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 		int yearNbPeriods = ((NumberValue)inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(3)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(3)).getValue(targetStock);
 
 		//Calc
 		try {
@@ -66,7 +66,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 					.getAsDouble();
 			TreeMap<Date, Double> averageLine = keys.stream().collect(Collectors.toMap(k -> k, k -> averageAnnualisedVolatility, (v1, v2) -> v1, TreeMap::new));
 
-			Map<String, DoubleMapValue> selectorOutputs = new HashMap<String, DoubleMapValue>();
+			Map<String, ChartableMapValue> selectorOutputs = new HashMap<String, ChartableMapValue>();
 			for (String outputSelector : getAvailableOutputSelectors()) {
 				if (outputSelector != null && outputSelector.equalsIgnoreCase("annualisedAtDate")) {
 					selectorOutputs.put("annualisedAtDate", new DoubleMapValue(collectedAnnulisedVolatilties));

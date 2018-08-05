@@ -32,14 +32,11 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
-@XmlRootElement
 public class AndDoubleMapCondition extends BooleanDoubleMapCondition {
 
 	private Boolean exactDataSet;

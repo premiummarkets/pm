@@ -36,25 +36,25 @@ import java.util.Set;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 
 public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapValue {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 
-	private Map<String, DoubleMapValue> additionalOutputs;
+	private Map<String, ChartableMapValue> additionalOutputs;
 	private Map<String, Type> additionalOutputsTypes;
 	
 	public BooleanMultiMapValue() {
 		super();
-		additionalOutputs = new HashMap<String, DoubleMapValue>();
+		additionalOutputs = new HashMap<String, ChartableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 
 	public BooleanMultiMapValue(Set<Date> keySet, boolean initValue) {
 		super(keySet, initValue);
-		additionalOutputs = new HashMap<String, DoubleMapValue>();
+		additionalOutputs = new HashMap<String, ChartableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
@@ -67,9 +67,9 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 	public Object clone() {
 		try {
 			BooleanMultiMapValue clone = (BooleanMultiMapValue) super.clone();
-			clone.additionalOutputs = new HashMap<String, DoubleMapValue>();
+			clone.additionalOutputs = new HashMap<String, ChartableMapValue>();
 			for (String outputKey : additionalOutputs.keySet()) {
-				DoubleMapValue  addOutputClone = (DoubleMapValue) (additionalOutputs.get(outputKey)).clone();
+				ChartableMapValue  addOutputClone = (ChartableMapValue) (additionalOutputs.get(outputKey)).clone();
 				clone.additionalOutputs.put(outputKey, addOutputClone);
 				clone.additionalOutputsTypes.put(outputKey, additionalOutputsTypes.get(outputKey));
 			}
@@ -81,7 +81,7 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 	}
 	
 	@Override
-	public Map<String, DoubleMapValue> getAdditionalOutputs() {
+	public Map<String, ChartableMapValue> getAdditionalOutputs() {
 		return additionalOutputs;
 	}
 

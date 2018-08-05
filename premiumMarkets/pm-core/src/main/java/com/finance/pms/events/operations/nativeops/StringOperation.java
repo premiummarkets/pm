@@ -41,7 +41,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
-public class StringOperation extends Operation  implements LeafOperation {
+public class StringOperation extends Operation implements LeafOperation {
 	
 	public StringOperation() {
 		super("string of letters","String of letters as a parameter");

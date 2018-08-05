@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
+import com.finance.pms.MainGui;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
@@ -173,7 +174,7 @@ public abstract class ChartDisplayStrategy {
 					popupDialog.open();
 				} else {
 					if (!popupDialog.sameDialog(errorMessage, addMessage, buttonTxt)) {
-						popupDialog.updateDialog("Warning", errorMessage, addMessage, buttonTxt, fAction);
+						popupDialog.updateDialog(MainGui.APP_NAME + " - Warning", errorMessage, addMessage, buttonTxt, fAction);
 					}
 				}
 			}

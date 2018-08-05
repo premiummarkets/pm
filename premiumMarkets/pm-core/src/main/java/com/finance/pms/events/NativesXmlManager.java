@@ -61,23 +61,23 @@ import com.finance.pms.events.operations.nativeops.VolatilityOperation;
 
 
 public class NativesXmlManager {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(NativesXmlManager.class);
-	
+
 	protected String xmlfile; //= System.getProperty("installdir")+File.separator+"nativeops.xml";
-	
+
 	public NativesXmlManager(String xmlfile) {
 		super();
 		this.xmlfile = System.getProperty("installdir")+File.separator+xmlfile+".xml";
 	}
 
 	public NativeOperations initNativeOperations () {
-		
+
 		NativeOperations nativeOperations = initNativeOperationInstance();
-		
-		//Arithm //=> Arithm are added here so that they show in ui only (indeed they are not parameterised but not in the operation grammar either)
+
+		//Arithm //=> Arithm are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)
-		//TODO match the same dynamic as operations in indicators?. This requires more work as the grammar rules are different from on condition to another.
+		//TODO match the same dynamic as operations in indicators?. This requires more work as the grammar rules are different from one condition to another.
 		Sum sum = new Sum();
 		nativeOperations.addOperation(sum);
 		Product product = new Product();
@@ -86,7 +86,7 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(division);
 		Subtraction subtraction = new Subtraction();
 		nativeOperations.addOperation(subtraction);
-		
+
 		UnarySum unarySum = new UnarySum();
 		nativeOperations.addOperation(unarySum);
 		UnaryProduct unaryProduct = new UnaryProduct();
@@ -96,13 +96,13 @@ public class NativesXmlManager {
 
 		StockOperation stockOperation = new StockOperation();
 		nativeOperations.addOperation(stockOperation);
-		
+
 		//Talib
 		TalibMacdOperation talibMacdOperation = new TalibMacdOperation();
 		nativeOperations.addOperation(talibMacdOperation);
 		TalibSmaOperation talibSmaOperation = new TalibSmaOperation();
 		nativeOperations.addOperation(talibSmaOperation);
-		
+
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();
 		nativeOperations.addOperation(pmMacdOperation);
@@ -114,7 +114,7 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmAroonOperation);
 		PMMightyChaikinOperation pmMChaikinOperation = new PMMightyChaikinOperation();
 		nativeOperations.addOperation(pmMChaikinOperation);
-		
+
 		//Other
 		FlipOperation flipOperation = new FlipOperation();
 		nativeOperations.addOperation(flipOperation);
@@ -124,7 +124,7 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(bandNormalizerOperation);
 		VolatilityOperation volatilityOperation = new VolatilityOperation();
 		nativeOperations.addOperation(volatilityOperation);
-		
+
 		return nativeOperations;
 	}
 
@@ -139,7 +139,7 @@ public class NativesXmlManager {
 			LOGGER.error(e,e);
 		}
 	}
-	
+
 	protected NativeOperations initNativeOperationInstance() {
 		return new NativeOperationsBasic();
 	}

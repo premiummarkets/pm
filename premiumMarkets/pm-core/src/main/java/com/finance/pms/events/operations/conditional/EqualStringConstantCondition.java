@@ -1,50 +1,53 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 
-import com.finance.pms.events.operations.MapValue;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
-public abstract class EqualStringConstantCondition<X, Y> extends Condition<String> {
+@XmlRootElement
+public class EqualStringConstantCondition extends Condition<String> {
 
-    @SuppressWarnings("unused")
     private EqualStringConstantCondition() {
-        super();
+        super(
+                "trend string constant",  "True when the events time series render a string equals the trend string constant.",
+                new StringOperation("trend"),
+                new EventMapOperation("historical data input"));
     }
 
-    public EqualStringConstantCondition(String reference, String description, Operation... operands) {
-        super(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
+    public EqualStringConstantCondition(ArrayList<Operation> operands, String outputSelector) {
+        this();
+        setOperands(operands);
     }
-    
+
     @Override
     public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         String constant = ((StringValue) inputs.get(0)).getValue(targetStock);
-        @SuppressWarnings("unchecked") MapValue<X, Y> value = (MapValue<X, Y>) inputs.get(1);
-        SortedMap<X,Y> data = (SortedMap<X,Y>) value.getValue(targetStock);
+        StringableMapValue value = (StringableMapValue) inputs.get(1);
+        SortedMap<Date, String> data = value.getValueAsStringMap();
 
         BooleanMapValue outputs = new  BooleanMapValue();
 
-        for (X key : data.keySet()) {
-            Y current = data.get(key);
+        for (Date key : data.keySet()) {
+            String current = data.get(key);
             @SuppressWarnings("unchecked")
-            Boolean conditionCheck = conditionCheck(mapValueToString(current), constant);
-            outputs.getValue(targetStock).put(mapKeyToDate(key), conditionCheck);
+            Boolean conditionCheck = conditionCheck(current, constant);
+            outputs.getValue(targetStock).put(key, conditionCheck);
         }
 
         return outputs;
     }
-
-    protected abstract Date mapKeyToDate(X key);
-
-    protected abstract Comparable<String> mapValueToString(Y value);
 
     @Override
     public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<String> ... ops) {

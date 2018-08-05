@@ -56,9 +56,9 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.conditional.EventDataValue;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.conditional.EventMapValue;
+import com.finance.pms.events.operations.nativeops.ChartableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.Quotations;
@@ -116,9 +116,9 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
 
 			eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
-			EventDataValue run = (EventDataValue) eventInfoOpsCompoOperationHolder.run(targetStock, 0);
+			EventMapValue eventMapValue = (EventMapValue) eventInfoOpsCompoOperationHolder.run(targetStock, 0);
 
-			SortedMap<EventKey, EventValue> returnedEvents = run.getValue(targetStock);
+			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
 			//Finding duplicates
 			EventKey previousKey = null;
@@ -179,7 +179,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			for (Output output : gatheredOutputs) {
 				Value<?> outputData = output.getOutputData();
 				if (outputData != null) {
-					SortedMap<Date, Double> data = ((DoubleMapValue) outputData).getValue(targetStock);
+					SortedMap<Date, Double> data = ((ChartableMapValue) outputData).getValue(targetStock);
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());
 				}

@@ -64,7 +64,6 @@ public class StockOperation extends DoubleMapOperation {
 			"stock", "Time series of real stock historical data (close, low, high and volume))",
 			new StringOperation("string", "stockReference", "Optional stock reference in format SYMBOL_ISIN", null)
 		);
-		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 		setAvailableOutputSelectors(new ArrayList<>( Arrays.asList(new String[]{"close","open","high","low","volume"}) ));
 	}
 
@@ -75,14 +74,22 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		Stock stock;
-		if (inputs != null && inputs.size() > 0) {
-			String[] symbolIsinReference = ((StringValue) inputs.get(0)).getValue(targetStock).split("_");
-			stock = DataSource.getInstance().getShareDAO().loadStockBy(symbolIsinReference[0], symbolIsinReference[1]);
-		} else {
+		Stock stock = null;
+			String value = ((StringValue) inputs.get(0)).getValue(targetStock);
+		if (value.equals("THIS")) {
 			stock = targetStock.getStock();
+		}
+		else {
+			try {
+				String[] symbolIsinReference = value.split("_");
+				stock = DataSource.getInstance().getShareDAO().loadStockBy(symbolIsinReference[0], symbolIsinReference[1]);
+			} catch (Exception e) {
+				LOGGER.warn(value + " is not in the required format SYMBOL_ISIN");
+				throw e;
+			}
+			if (stock == null) throw new RuntimeException(value + " not found in the data base.");
 		}
 
 		String outputSelector = getOutputSelector();

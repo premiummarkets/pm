@@ -31,12 +31,10 @@ package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
-@XmlRootElement
+
 public class CrossUpConstantCondition extends CrossConstantCondition implements OnThresholdCondition {
 
 

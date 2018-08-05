@@ -56,14 +56,14 @@ public class LeftShifterOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public ChartableMapValue calculate(TargetStockInfo targetStock, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int leftShiftSpan = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((DoubleMapValue) inputs.get(1)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((ChartableMapValue) inputs.get(1)).getValue(targetStock);
 
 		//Calc
-		DoubleMapValue ret = new DoubleMapValue();
+		ChartableMapValue ret = new DoubleMapValue();
 		try {
 
 			LeftShifter<Double> leftShifter = new LeftShifter<Double>(leftShiftSpan, false, true);
