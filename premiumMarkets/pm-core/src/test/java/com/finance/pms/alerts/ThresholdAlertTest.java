@@ -139,7 +139,7 @@ public class ThresholdAlertTest {
 //		System.out.println("Alerts : Up "+portfolioShare.getAlertsUp()+" Down "+portfolioShare.getAlertsDown());
 //		Alert alertup = portfolioShare.getAlerts(ThresholdType.UP).getAlerts().iterator().next();
 //		Assert.assertEquals(AlertType.ABOVE_PRICE_LIMIT,alertup.getAlertType());
-//		Assert.assertEquals(new BigDecimal(14).add(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getStopLossRate().multiply(new BigDecimal(14))),alertup.getValue());
+//		Assert.assertEquals(new BigDecimal(14).add(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getStopLossRate().multiply(new BigDecimal(14))),alertup.getConstant());
 //		
 //		//Down Trend
 //		//reset(quotationData, quotations, portfolioShare);
@@ -164,7 +164,7 @@ public class ThresholdAlertTest {
 //		System.out.println("Alerts : Up "+portfolioShare.getAlertsUp()+" Down "+portfolioShare.getAlertsDown());
 //		alertup = portfolioShare.getAlerts(ThresholdType.UP).getAlerts().iterator().next();
 //		Assert.assertEquals(AlertType.AVG_BUY_PRICE,alertup.getAlertType());
-//		Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getValue());
+//		Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getConstant());
 //		
 //		//Up and down
 //		//reset(quotationData, quotations, portfolioShare);
@@ -185,7 +185,7 @@ public class ThresholdAlertTest {
 //						.contains(ThresholdType.UP.getMsgHint()+"10.00 : "+AlertType.AVG_BUY_PRICE.getText()));
 //				alertup = portfolioShare.getAlerts(ThresholdType.UP).getAlerts().iterator().next();
 //				Assert.assertEquals(AlertType.ABOVE_PRICE_LIMIT,alertup.getAlertType());
-//				Assert.assertEquals(new BigDecimal(12).add(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getStopLossRate().multiply(new BigDecimal(12))),alertup.getValue());
+//				Assert.assertEquals(new BigDecimal(12).add(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getStopLossRate().multiply(new BigDecimal(12))),alertup.getConstant());
 //			}
 //			if (i == 2) {//Down 10
 //				EventValue eventValue = map.values().iterator().next();
@@ -193,7 +193,7 @@ public class ThresholdAlertTest {
 //						.contains(ThresholdType.DOWN.getMsgHint()+"10.00 : "+AlertType.AVG_BUY_PRICE.getText()));
 //				alertup = portfolioShare.getAlerts(ThresholdType.UP).getAlerts().iterator().next();
 //				Assert.assertEquals(AlertType.AVG_BUY_PRICE,alertup.getAlertType());
-//				Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getValue());
+//				Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getConstant());
 //			}
 //			if (i == 4) {//Up 10
 //				EventValue eventValue = map.values().iterator().next();
@@ -205,11 +205,11 @@ public class ThresholdAlertTest {
 //		System.out.println("Alerts : Up "+portfolioShare.getAlertsUp()+" Down "+portfolioShare.getAlertsDown());
 //		alertup = portfolioShare.getAlerts(ThresholdType.UP).getAlerts().iterator().next();
 //		Assert.assertEquals(AlertType.ABOVE_PRICE_LIMIT,alertup.getAlertType());
-//		Assert.assertEquals(new BigDecimal(11).add(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getStopLossRate().multiply(new BigDecimal(11))),alertup.getValue());
+//		Assert.assertEquals(new BigDecimal(11).add(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getStopLossRate().multiply(new BigDecimal(11))),alertup.getConstant());
 //		
 //		alertup = portfolioShare.getAlerts(ThresholdType.DOWN).getAlerts().iterator().next();
 //		Assert.assertEquals(AlertType.AVG_BUY_PRICE,alertup.getAlertType());
-//		Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getValue());
+//		Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getConstant());
 //		
 //		//Down Trend And stop loss
 //		//reset(quotationData, quotations, portfolioShare);
@@ -236,7 +236,7 @@ public class ThresholdAlertTest {
 //		System.out.println("Alerts : Up "+portfolioShare.getAlertsUp()+" Down "+portfolioShare.getAlertsDown());
 //		alertup = portfolioShare.getAlerts(ThresholdType.UP).getAlerts().iterator().next();
 //		Assert.assertEquals(AlertType.AVG_BUY_PRICE,alertup.getAlertType());
-//		Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getValue());
+//		Assert.assertEquals(new BigDecimal(10).setScale(2),alertup.getConstant());
 		
 	}
 

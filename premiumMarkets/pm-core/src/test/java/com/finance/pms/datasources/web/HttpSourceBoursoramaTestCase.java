@@ -133,7 +133,7 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 //			assertTrue(connexionGetResponseCookies.containsKey("STORAGE_COOKIE"));
 //			
 ////			InputStream in;
-////			if (connexionGet.getResponseHeader("Content-Encoding") != null && "gzip".equals(connexionGet.getResponseHeader("Content-Encoding").getValue())) {
+////			if (connexionGet.getResponseHeader("Content-Encoding") != null && "gzip".equals(connexionGet.getResponseHeader("Content-Encoding").getConstant())) {
 ////				in = new GZIPInputStream(connexionGet.getResponseBodyAsStream());
 ////			}
 ////			else {
@@ -147,7 +147,7 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 ////				System.out.println(line);
 ////			}
 //
-////			connexionGetRedirectLocation = connexionGet.getResponseHeader("Location").getValue();
+////			connexionGetRedirectLocation = connexionGet.getResponseHeader("Location").getConstant();
 ////			assertEquals("https://www.boursorama.com/connexion.phtml?noorg=1", connexionGetRedirectLocation);
 //
 //		}
@@ -234,7 +234,7 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 //			assertEquals(connexionGetResponseCookies.get("STORAGE_COOKIE"), "deleted");
 //			assertEquals(connexionGetResponseCookies.get("LOGKEY"), "Z3VpdG91bg%3D%3Dad4666329c52ae5d22cd9865c965831c");
 //
-//			connexionPostRedirectLocation = connectionPost.getResponseHeader("Location").getValue();
+//			connexionPostRedirectLocation = connectionPost.getResponseHeader("Location").getConstant();
 //			assertEquals("http://www.boursorama.com/index.phtml", connexionPostRedirectLocation);
 //
 //		}
@@ -266,7 +266,7 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 //			assertEquals(0, indexRedirectResponseCookies.size());
 //
 //			InputStream in;
-//			if (indexRedirect.getResponseHeader("Content-Encoding") != null && "gzip".equals(indexRedirect.getResponseHeader("Content-Encoding").getValue())) {
+//			if (indexRedirect.getResponseHeader("Content-Encoding") != null && "gzip".equals(indexRedirect.getResponseHeader("Content-Encoding").getConstant())) {
 //				in = new GZIPInputStream(indexRedirect.getResponseBodyAsStream());
 //			}
 //			else {
@@ -358,7 +358,7 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 //			int getRes = httpclient.executeMethod(httpget);
 //
 //			InputStream in;
-//			if (httpget.getResponseHeader("Content-Encoding") != null && "gzip".equals(httpget.getResponseHeader("Content-Encoding").getValue())) {
+//			if (httpget.getResponseHeader("Content-Encoding") != null && "gzip".equals(httpget.getResponseHeader("Content-Encoding").getConstant())) {
 //				in = new GZIPInputStream(httpget.getResponseBodyAsStream());
 //			}
 //			else {

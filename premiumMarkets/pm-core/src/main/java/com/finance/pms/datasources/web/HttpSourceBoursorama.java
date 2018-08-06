@@ -204,7 +204,7 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 //			}
 //			if (LOGGER.isTraceEnabled()) {
 //				InputStream in;
-//				if (httppost.getResponseHeader("Content-Encoding") != null && "gzip".equals(httppost.getResponseHeader("Content-Encoding").getValue())) {
+//				if (httppost.getResponseHeader("Content-Encoding") != null && "gzip".equals(httppost.getResponseHeader("Content-Encoding").getConstant())) {
 //					in = new GZIPInputStream(httppost.getResponseBodyAsStream());
 //				}
 //				else {
@@ -231,7 +231,7 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 //		String redirectLocation;
 //		Header locationHeader = httppost.getResponseHeader("location");
 //		if (locationHeader != null) {
-//			redirectLocation = locationHeader.getValue();
+//			redirectLocation = locationHeader.getConstant();
 //			
 //			//Execute redirect
 //			HttpGet httpget = new HttpGet(redirectLocation);

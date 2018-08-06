@@ -45,6 +45,9 @@ import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 
+/**
+ * Describe an event info. Its content as to be linked to the event info as defined by the formulae and should not contain calculated information.
+ */
 public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorDynamic.class);
@@ -267,7 +270,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	public Set<OutputDescr> displayedOutputs() {
 
 		Set<OutputDescr> ret = new TreeSet<>();
-		for (final OutputDescr  outputDescr: allOutputs()) {
+		for (final OutputDescr outputDescr: allOutputs()) {
 			if (outputDescr.getDisplayOnChart()) ret.add(outputDescr);
 		}
 		return ret;

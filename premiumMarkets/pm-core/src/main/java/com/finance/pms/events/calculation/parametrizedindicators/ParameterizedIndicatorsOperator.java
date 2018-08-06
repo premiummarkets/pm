@@ -172,8 +172,8 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 			List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
 
-			List<Object> normOutputs = new ArrayList<Object>();
-			SortedSet<Date> fullDateSet = new TreeSet<Date>();
+			List<Object> normOutputs = new ArrayList<>();
+			SortedSet<Date> fullDateSet = new TreeSet<>();
 
 			//Add Double outputs
 			for (Output output : gatheredOutputs) {
@@ -191,7 +191,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();
 				for (OutputDescr outputDescr : values) {
 					if (outputDescr.getType().equals(Type.CONSTANT)) {
-						normOutputs.add(outputDescr.getValue().getValue(targetStock));
+						normOutputs.add(outputDescr.getConstant().getValue(targetStock));
 						outputDescr.setOutputIndex(normOutputs.size()-1);
 					}
 				}
@@ -216,11 +216,11 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			LOGGER.warn(e,e);
 		}
 
-		return new TreeMap<Date, double[]>();
+		return new TreeMap<>();
 	}
 
 	private SortedMap<Date, double[]> buildSortedMap(List<Object> normOutputs, SortedSet<Date> fullDateSet) {
-		SortedMap<Date, double[]> calculationOutput = new TreeMap<Date, double[]>();
+		SortedMap<Date, double[]> calculationOutput = new TreeMap<>();
 		for (Date date : fullDateSet) {
 
 			double[] retOutput = new double[normOutputs.size()];

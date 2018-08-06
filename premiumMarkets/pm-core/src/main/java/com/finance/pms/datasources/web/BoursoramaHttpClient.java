@@ -62,7 +62,7 @@ public class BoursoramaHttpClient {
 //		Header[] receivedCookies = httpget.getResponseHeaders("Set-Cookie");
 //		for (Header header:  receivedCookies) {
 //			
-//			String headerCookie = header.getValue();
+//			String headerCookie = header.getConstant();
 //			if (!headerCookie.contains("OBJECT_BOURSORAMA")) {
 //				splitCookie(headerCookie);
 //			}
@@ -102,7 +102,7 @@ public class BoursoramaHttpClient {
 //
 //		Collection<Cookie> cookieValues = httpclient.getCookies().values();
 //		for (Cookie cookie : cookieValues) {
-//			String cookedCookie = cookie.getName()+"="+cookie.getValue();
+//			String cookedCookie = cookie.getName()+"="+cookie.getConstant();
 //			httpMethod.addRequestHeader("Cookie",cookedCookie);
 //		}
 //		

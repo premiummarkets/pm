@@ -35,7 +35,7 @@ public class DoubleArrayMapValue extends ChartableMapValue implements MultiMapVa
 
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
-		//return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[0], (a,b) -> a, TreeMap::new));
+		//return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getConstant()[0], (a,b) -> a, TreeMap::new));
 		return new TreeMap<>();
 	}
 

@@ -31,7 +31,7 @@ public class HttpSource1818 extends HttpSourceQuotation {
 		
 	    ArrayList<NameValuePair> postParameters = new ArrayList<NameValuePair>();
 		//List<NameValuePair> httpParams = url.getHttpParams();
-	    //List<BasicNameValuePair> postParams = postParameters.stream().map(param -> new BasicNameValuePair(param.getName(), param.getValue())).collect(Collectors.toList());
+	    //List<BasicNameValuePair> postParams = postParameters.stream().map(param -> new BasicNameValuePair(param.getName(), param.getConstant())).collect(Collectors.toList());
 		//postParameters.addAll(postParams);
 	    postParameters.addAll(url.getHttpParams());
 	    
