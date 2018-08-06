@@ -80,6 +80,8 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			throws WarningException  {
 
 		super(observers);
+		//XXX TODO should the event info be cloned here or this would assume that only one calculation can run at a time for a given event info??
+		//XXX or made stateless??
 		this.eventInfoOpsCompoOperationHolder = (EventInfoOpsCompoOperation) eventInfo;
 
 		//Adjust start
@@ -111,7 +113,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	@Override
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
 
-		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> eData = new TreeMap<>();
 
 		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
 
@@ -135,7 +137,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 				previousKey = currentKey;
 			}
-			LOGGER.warn("Indeterministic events for customised calculator '"+this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
+			LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
 
 			//Removing duplicates
 			for (EventKey eventKey : toRemove) {
@@ -147,11 +149,11 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				returnedEvents.put(noneEventKey, eventValue);
 			}
 
-			edata.putAll(returnedEvents);
+			eData.putAll(returnedEvents);
 
 		}
 
-		return edata;
+		return eData;
 	}
 
 	/**

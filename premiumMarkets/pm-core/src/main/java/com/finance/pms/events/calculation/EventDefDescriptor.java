@@ -59,9 +59,9 @@ public interface EventDefDescriptor {
 
 	String getMainLabelForGroup(int groupIdx);
 
-	public abstract Set<OutputDescr> displayedOutputs();
+	Set<OutputDescr> displayedOutputs();
 
-	public abstract Set<OutputDescr> allOutputs();
+	Set<OutputDescr> allOutputs();
 
 	boolean isDisplayed(int outputIdx);
 
