@@ -202,7 +202,7 @@ public class ChartedOutputGroup {
 		uuid = UUID.randomUUID();
 		thisDescription = new OutputDescr(outputReference, this, Type.INVISIBLE, outputIndex, null);
 		thisReference = outputReference;
-		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
+		components = new HashMap<>();
 	}
 
 	//Adding a main
@@ -211,7 +211,7 @@ public class ChartedOutputGroup {
 		OutputReference outputReference = new OutputReference(operation);
 		thisDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
 		thisReference = outputReference;
-		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
+		components = new HashMap<>();
 	}
 
 	public OutputDescr addSignal(Operation operation, int outputIndex) {
@@ -227,14 +227,14 @@ public class ChartedOutputGroup {
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
 	}
 
-	public void addAdditonalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
+	public void addAdditionalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
 		OutputReference outputReference = new OutputReference(operation, outputKey);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null));
 	}
 
 	public OutputDescr mvComponentInThisGrp(OutputReference outputRef, OutputDescr outputDescr) {
 		outputDescr.setContainer(this);
-		this.components.put(outputRef,outputDescr);
+		this.components.put(outputRef, outputDescr);
 		return outputDescr;
 	}
 

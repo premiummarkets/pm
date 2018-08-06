@@ -31,11 +31,7 @@ package com.finance.pms.events.calculation;
 
 import java.awt.Color;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -98,9 +94,9 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
         initLists();
     }
 
-
-    public String[] descriptionArray() {
-        return descriptionMap().keySet().toArray(new String[0]);
+    @Override
+    public String getDescriptionFor(int outputIdx) throws NoSuchElementException {
+        return new ArrayList<>(descriptionMap().keySet()).get(outputIdx);
     }
 
     public LinkedHashMap<String, Type> descriptionMap() {
@@ -113,7 +109,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
     protected void initLists() {
         descriptionMap = new LinkedHashMap<>();
-        colors = new ArrayList<Color>();
+        colors = new ArrayList<>();
         int i = 0;
         if (mainIndicator != null) {
             descriptionMap.put(mainIndicator, Type.MAIN);
@@ -186,9 +182,8 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
     @Override
     public Integer[] getOutputIndexesForGroup(int j) {
-        String[] descriptionArray = descriptionArray();
-        List<Integer> ret = new ArrayList<Integer>();
-        for (int i = 0; i < descriptionArray.length; i++) {
+        List<Integer> ret = new ArrayList<>();
+        for (int i = 0; i < descriptionMap().size(); i++) {
             ret.add(i);
         }
         return ret.toArray(new Integer[0]);
@@ -252,12 +247,12 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
 
     public Set<OutputDescr> displayedOutputs() {
-        return new HashSet<ChartedOutputGroup.OutputDescr>();
+        return new HashSet<>();
     }
 
 
     public Set<OutputDescr> allOutputs() {
-        return new HashSet<ChartedOutputGroup.OutputDescr>();
+        return new HashSet<>();
     }
 
 

@@ -37,7 +37,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 
 public interface EventDefDescriptor {
 
-	String[] descriptionArray() throws NoSuchElementException;
+	String getDescriptionFor(int outputIdx) throws NoSuchElementException;
 
 	String getHtmlBullishDescription();
 

@@ -59,17 +59,11 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {
 
 				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
-				String[] eventDefDescriptorArray = new String[0];
-				if (eventDefDescriptor != null) {
-					eventDefDescriptorArray = eventDefDescriptor.descriptionArray();
-				}
-
 				int eventDefNbOfGroupsDisplayed = 0;
 
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {
 
 					LOGGER.debug("Group description : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
-
 					Boolean groupIsDisplayed = false;
 
 					//Renderer
@@ -82,12 +76,12 @@ public class ChartIndicLineSeriesDataSetBuilder {
 					}
 
 					//Build data set adding data series and tool tips for each output of the group
-					TimeSeriesCollection dataset = new TimeSeriesCollection();
+					TimeSeriesCollection dataSet = new TimeSeriesCollection();
 					Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
-					int serieIdx = 0;
+					int seriesIdx = 0;
 					double groupMaxY = Double.MIN_VALUE;
 					double groupMinY = Double.MAX_VALUE;
-					SortedSet<Date> fullDateSet = new TreeSet<Date>();
+					SortedSet<Date> fullDateSet = new TreeSet<>();
 					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
 						fullDateSet.addAll(output.keySet());
 					}
@@ -99,8 +93,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							groupIsDisplayed = true;
 
 							//Build the timeSeries for the output
-							final String domain = eventDefDescriptorArray[outputIdx];
-							TimeSeries timeSerie = new TimeSeries(domain);
+							final String domain = eventDefDescriptor.getDescriptionFor(outputIdx);
+							TimeSeries timeSeries = new TimeSeries(domain);
 							for (Date date : fullDateSet) {
 								double[] ds = eventsSeries.get(chartedEvtDef).get(date);
 								Number value;
@@ -109,32 +103,32 @@ public class ChartIndicLineSeriesDataSetBuilder {
 									if (value != null && !Double.isInfinite(value.doubleValue())) {//Negative Infinity means we should ignore the entry. NaN means not wanted for display and breaks the line so it needs to be keep
 										RegularTimePeriod period = new Day(date);
 										TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-										timeSerie.add(item, false);
+										timeSeries.add(item, false);
 									}
 								}
 							}
 
-							//                    if (Double.isNaN(timeSerie.getMaxY()) && Double.isNaN(timeSerie.getMinY())) { {//Series has no value to display we fill in two NaN values
+							//                    if (Double.isNaN(timeSeries.getMaxY()) && Double.isNaN(timeSeries.getMinY())) { {//Series has no value to display we fill in two NaN values
 							//                    		RegularTimePeriod periodStart = new Day(series.firstKey());
 							//                    		TimeSeriesDataItem firstItem = new TimeSeriesDataItem(periodStart, Double.NaN);
-							//                    		timeSerie.add(firstItem, false);
+							//                    		timeSeries.add(firstItem, false);
 							//                    		RegularTimePeriod periodEnd = new Day(series.lastKey());
 							//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
-							//                    		timeSerie.add(lastItem, false);
+							//                    		timeSeries.add(lastItem, false);
 							//                    	}
 							//or
-							//						if (Double.isNaN(timeSerie.getMaxY()) && Double.isNaN(timeSerie.getMinY())) {
-							//							timeSerie.clear();
+							//						if (Double.isNaN(timeSeries.getMaxY()) && Double.isNaN(timeSeries.getMinY())) {
+							//							timeSeries.clear();
 							//						}
 
 							//Data Set
-							groupMaxY = (timeSerie.getMaxY() > groupMaxY)?timeSerie.getMaxY():groupMaxY;
-							groupMinY = (timeSerie.getMinY() < groupMinY)?timeSerie.getMinY():groupMinY;
+							groupMaxY = (timeSeries.getMaxY() > groupMaxY)?timeSeries.getMaxY():groupMaxY;
+							groupMinY = (timeSeries.getMinY() < groupMinY)?timeSeries.getMinY():groupMinY;
 
-							dataset.addSeries(timeSerie);
+							dataSet.addSeries(timeSeries);
 
-							renderer.setSeriesPaint(serieIdx, eventDefDescriptor.getColor(outputIdx));
-							renderer.setSeriesShape(serieIdx, new Rectangle(new Dimension(100, 100)));
+							renderer.setSeriesPaint(seriesIdx, eventDefDescriptor.getColor(outputIdx));
+							renderer.setSeriesShape(seriesIdx, new Rectangle(new Dimension(100, 100)));
 
 							XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
@@ -160,8 +154,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 								}
 							};
 
-							renderer.setSeriesToolTipGenerator(serieIdx, xyToolTpGen);
-							serieIdx++;
+							renderer.setSeriesToolTipGenerator(seriesIdx, xyToolTpGen);
+							seriesIdx++;
 
 						}
 					}
@@ -197,7 +191,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						}
 
 						//Set group dateSet
-						indicPlot.setDataset(rendererIdx, dataset);
+						indicPlot.setDataset(rendererIdx, dataSet);
 						if ( rendererIdx != 0 ) indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
 					} else {

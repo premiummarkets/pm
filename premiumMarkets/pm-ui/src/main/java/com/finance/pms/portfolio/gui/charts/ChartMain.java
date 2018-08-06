@@ -1,4 +1,4 @@
-/**
+ /**
  * Premium Markets is an automated stock market analysis system.
  * It implements a graphical environment for monitoring stock markets technical analysis
  * major indicators, for portfolio management and historical data charting.
