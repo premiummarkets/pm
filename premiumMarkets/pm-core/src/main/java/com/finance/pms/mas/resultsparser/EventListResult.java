@@ -78,7 +78,7 @@ public class EventListResult implements Result {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.finance.pms.mas.resultsparser.Result#getValue()
+	 * @see com.finance.pms.mas.resultsparser.Result#getConstant()
 	 */
 	public Object getValue() {
 		return value;

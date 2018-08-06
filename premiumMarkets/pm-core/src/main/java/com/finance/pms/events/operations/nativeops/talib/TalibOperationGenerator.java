@@ -48,12 +48,12 @@ import com.tictactec.ta.lib.RetCode;
 
 @Service("talibOperationGenerator")
 public class TalibOperationGenerator {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibOperationGenerator.class);
-	
+
 	Map<String,String> talibDescription;
 	Map<String,List<String>> talibSignatures;
-	
+
 	public TalibOperationGenerator() {
 		super();
 		//initSynoData();
@@ -62,11 +62,11 @@ public class TalibOperationGenerator {
 	public Map<String, TalibGenericOperation> generate() {
 
 		Map<String, TalibGenericOperation> genericOperations = new HashMap<String, TalibGenericOperation>();
-		
+
 		Method[] methods = Core.class.getMethods();
 
 		for (Method method : methods) {
-			
+
 			//Filter out
 			if (method.getName().matches("TA_INT_.*")) continue;
 
@@ -78,13 +78,13 @@ public class TalibOperationGenerator {
 					List<String> inConstantsNames = new ArrayList<String>();
 					List<String> inDataNames =new ArrayList<String>();
 					ArrayList<String> outDataNames = new ArrayList<String>();
-					
+
 					List<String> params = talibSignatures.get(method.getName());
-					
+
 					int paramShift = 0;
 					Class<?>[] parameterTypes = method.getParameterTypes();
 					if (parameterTypes[paramShift++].equals(Integer.TYPE) && parameterTypes[paramShift++].equals(Integer.TYPE) ) {
-						
+
 						//inData
 						while (paramShift < parameterTypes.length) {
 							if (parameterTypes[paramShift].isArray() && parameterTypes[paramShift].getComponentType().equals(Double.TYPE)) {
@@ -103,7 +103,7 @@ public class TalibOperationGenerator {
 							}
 							paramShift++;
 						}
-						
+
 						//inConstants
 						while (paramShift < parameterTypes.length) {
 							if (parameterTypes[paramShift].equals(Integer.TYPE)  || parameterTypes[paramShift].equals(Double.TYPE) || parameterTypes[paramShift].equals(MAType.class)) {
@@ -118,9 +118,9 @@ public class TalibOperationGenerator {
 							}
 							paramShift++;
 						}
-						
+
 						if (parameterTypes[paramShift++].equals(MInteger.class) && parameterTypes[paramShift++].equals(MInteger.class)) {//We skip Two MIntegers (outBegIdx and outNBElement)
-							
+
 							while (paramShift < parameterTypes.length) {
 								if (parameterTypes[paramShift].isArray() && parameterTypes[paramShift].getComponentType().equals(Double.TYPE)) { //Double output
 									String addParam = addParam(params, paramShift, "outData");
@@ -137,9 +137,9 @@ public class TalibOperationGenerator {
 								}
 								paramShift++;
 							}
-							
+
 						}
-						
+
 						String desrc = method.getName();
 						if (talibDescription.containsKey(method.getName().toLowerCase())) {
 							desrc = talibDescription.get(method.getName().toLowerCase());
@@ -148,11 +148,11 @@ public class TalibOperationGenerator {
 						}
 						TalibGenericOperation genericOperation = new TalibGenericOperation(method.getName(), desrc , method, inConstantsNames, inDataNames, outDataNames);
 						genericOperations.put(method.getName(), genericOperation);
-						
+
 					}
 
 				}
-				
+
 			} catch (UnsupportedOperationException e) {
 				if (!e.getMessage().contains("class [F is neither")) {
 					LOGGER.warn("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
@@ -161,7 +161,7 @@ public class TalibOperationGenerator {
 				}
 			}
 		}
-		
+
 		return genericOperations;
 	}
 
@@ -172,15 +172,15 @@ public class TalibOperationGenerator {
 			return fallBack+paramShift;
 		}
 	}
-	
+
 
 	public void initSynoData() {
-		
+
 		talibDescription = new HashMap<String, String>();
 		talibSignatures = new HashMap<String, List<String>>();
-		
+
 		try {
-			
+
 			{
 				BufferedReader descriptionBR = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/talibdescriptions.txt")));
 				String dline = null;
@@ -190,7 +190,7 @@ public class TalibOperationGenerator {
 					if (lineSplit.length >= 2) talibDescription.put(lineSplit[0].toLowerCase(), dline.substring(dline.indexOf(" ")).trim());
 				}
 			}
-			
+
 			{
 				BufferedReader signaturesBR = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/talibsignatures.txt")));
 				String sline = null;
@@ -232,19 +232,19 @@ public class TalibOperationGenerator {
 								}
 								paramShift++;
 							}
-							
+
 							if (methodName != null && !methodName.isEmpty() && !signatureArray.isEmpty()) talibSignatures.put(methodName, signatureArray);
 						}
-						
+
 					}
 				}
 			}
-			
+
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
-		
-		
+
+
 	}
 
 }

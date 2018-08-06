@@ -236,10 +236,10 @@ public class QuotationUpdateTest extends TestCase {
 //		
 //		System.out.println("Results :");
 //		for (int i = 0; i < filteredTable.getRowCount(); i++) {
-//			System.out.println(filteredTable.getValue(i, "symbol")+" ; "+
-//					filteredTable.getValue(i, "isin")+" ; "+
-//					filteredTable.getValue(i, "name")+" ; "+
-//					filteredTable.getValue(i, "lastquote"));
+//			System.out.println(filteredTable.getConstant(i, "symbol")+" ; "+
+//					filteredTable.getConstant(i, "isin")+" ; "+
+//					filteredTable.getConstant(i, "name")+" ; "+
+//					filteredTable.getConstant(i, "lastquote"));
 //		}
 //		
 //		Assertion.assertEquals(expectedTable, filteredTable);

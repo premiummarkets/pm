@@ -316,7 +316,7 @@ public class TargetStockInfo {
 			ChartedOutputGroup mainChartedGroup = chartedDesrc.getContainer();
 			for (String outputKey : outputTypes.keySet()) {
 				Integer indexOfOutput = getIndexOfChartableOutput(new OutputReference(operand, outputKey));
-				mainChartedGroup.addAdditonalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
+				mainChartedGroup.addAdditionalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
 			}
 		} else {
 			throw new RuntimeException("Multi Output Main group (at index "+indexOfMain+") not found not found for " + operand);

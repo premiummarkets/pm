@@ -793,13 +793,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		try {
 
 			boolean isIndicatorSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
-//			boolean isEmptyOutputIndicator = false;
-//			boolean isClearInProgress = false;
 
 			if ( isIndicatorSelected ) {
 
-				final Set<OutputDescr> availableOutputs = new TreeSet<OutputDescr>();
-				final Set<OutputDescr> displayedOutputs = new TreeSet<OutputDescr>();
+				final Set<OutputDescr> availableOutputs = new TreeSet<>();
+				final Set<OutputDescr> displayedOutputs = new TreeSet<>();
 
 				try {
 					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
@@ -807,13 +805,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						displayedOutputs.addAll(t.getEventDefDescriptor().displayedOutputs());
 					});
 				} catch (NoSuchElementException e) {
-//					isClearInProgress = true;
 					LOGGER.warn(e);
 				} 
 
 				if (!availableOutputs.isEmpty()) {
 
-					ActionDialogAction disactivateAction =  new ActionDialogAction() {
+					ActionDialogAction deactivateAction =  new ActionDialogAction() {
 
 						@Override
 						public void action() {
@@ -832,12 +829,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					};
 
 					if (calculatorSettingsPopupMenu == null || calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayedOutputs, false, true, SWT.CHECK, null, disactivateAction, true);
+						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayedOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
 						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
 						calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
 					} 
 					else {
-						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayedOutputs, null, disactivateAction, true);
+						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayedOutputs, null, deactivateAction, true);
 						calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
 						if (activatePopup) {
 							calculatorSettingsPopupMenu.getSelectionShell().setActive();
@@ -850,20 +847,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
 						calculatorSettingsPopupMenu.getSelectionShell().dispose();
 					}
-//					isEmptyOutputIndicator = true;
 
 				}
 
 			}
-
-//			boolean isPopupActive = calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed() && calculatorSettingsPopupMenu.getSelectionShell().isVisible();
-//			boolean hasEmptyResults = isClearInProgress || isEmptyOutputIndicator;
-//			if (!isPopupActive && (!isIndicatorSelected || hasEmptyResults)) {
-//			String errorMessage = 
-//				"Select one of your user defined calculators in '"+TRENDBUTTXT + "'\n" +
-//				"New calculators can be defined using the menu Events -> Customise and create calculators ...";
-//				showPopupDialog("No calculator is selected or no results is available.", "Ok", errorMessage, null);
-//			}
 
 		} catch (Exception e) {
 			LOGGER.warn(e,e);

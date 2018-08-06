@@ -45,6 +45,9 @@ import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 
+/**
+ * Describe an event info. Its content as to be linked to the event info as defined by the formulae and should not contain calculated information.
+ */
 public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorDynamic.class);
@@ -62,10 +65,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	private String bearishDescription;
 	private String alsoDisplayDescription;
 
-	List<ChartedOutputGroup> chartedOutputGroups;
-	private String[] descripitonArrays;
-	private List<OutputDescr> descripitonList;
-	private int groupsCount = 0;
+	private List<ChartedOutputGroup> chartedOutputGroups;
+	private List<OutputDescr> outputDescrFlatList;
 
 	private Optional<String> exportBaseFileName;
 
@@ -76,29 +77,26 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		Arrays.setAll(randoms, i -> Math.random());
 	}
 
-	@Override
-	public String[] descriptionArray() throws NoSuchElementException {
-		if (descripitonArrays == null) {
+	private List<OutputDescr> getOutputDescrFlatList() {
+		if (outputDescrFlatList == null) {
 			initLists();
 		}
-		return descripitonArrays;
+		return outputDescrFlatList;
+	}
+
+	@Override
+	public String getDescriptionFor(int outputIdx) throws NoSuchElementException {
+		return getOutputDescrFlatList().get(outputIdx).fullQualifiedName();
 	}
 
 	protected void initLists() throws NoSuchElementException {
-
 		initDescriptionsList();
-
-		descripitonArrays = new String[descripitonList.size()];
-		for (int i = 0; i < descripitonList.size(); i++) {
-			descripitonArrays[i] = descripitonList.get(i).fullQualifiedName();
-		}
-
 	}
 
 	protected void initDescriptionsList() {
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("No group to be found for the dynamic description of " + descriptorReference+ ". There may be a clear in progress?");
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("No group to be found for the dynamic description of " + descriptorReference+ ". Its calculation may be in progress?");
 
-		SortedSet<OutputDescr> descriptionSet = new TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
+		SortedSet<OutputDescr> descriptionSet = new TreeSet<>(new Comparator<OutputDescr>() {
 			@Override
 			public int compare(OutputDescr o1, OutputDescr o2) {
 				return o1.getOutputIndex().compareTo(o2.getOutputIndex());
@@ -109,8 +107,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 			descriptionSet.add(chartedOutputGroup.getThisDescription());
 			descriptionSet.addAll(chartedOutputGroup.getComponents().values());
 		}
-		descripitonList = new ArrayList<ChartedOutputGroup.OutputDescr>();
-		descripitonList.addAll(descriptionSet);
+		outputDescrFlatList = new ArrayList<>();
+		outputDescrFlatList.addAll(descriptionSet);
 	}
 
 	@Override
@@ -125,7 +123,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	public void setChartedOutputGroups(List<ChartedOutputGroup> chartedOutputGroups, ChartedOutputGroup invisibleGroup) {
 
-		SortedSet<ChartedOutputGroup> sortedGroups = new TreeSet<ChartedOutputGroup>(new Comparator<ChartedOutputGroup>() {
+		SortedSet<ChartedOutputGroup> sortedGroups = new TreeSet<>(new Comparator<ChartedOutputGroup>() {
 			@Override
 			public int compare(ChartedOutputGroup o1, ChartedOutputGroup o2) {
 				int comparator = o2.getComponents().size() - o1.getComponents().size();
@@ -135,8 +133,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		});
 		sortedGroups.addAll(chartedOutputGroups);
 
-		this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>(sortedGroups);
-		groupsCount = chartedOutputGroups.size();
+		this.chartedOutputGroups = new ArrayList<>(sortedGroups);
 
 		if (invisibleGroup != null) {
 			this.chartedOutputGroups.add(invisibleGroup);
@@ -152,17 +149,13 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public Color getColor(int outputIdx) throws NoSuchElementException {
 
-		if (descripitonList == null) {
-			initLists();
-		}
-
 		int groupIdx = getGroupIndexFor(outputIdx);
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
 		int alpha = (int) (255 - 128*((double)groupIdx)/getGroupsCount());
 		Color[] grpColors = COLORS[groupIdx % COLORS.length];
 
-		switch (descripitonList.get(outputIdx).getType()) {
+		switch (getOutputDescrFlatList().get(outputIdx).getType()) {
 		case CONSTANT :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/2);
 		case SIGNAL :
@@ -195,13 +188,13 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public int getGroupIndexFor(int outputIdx) {
-		ChartedOutputGroup container = descripitonList.get(outputIdx).getContainer();
+		ChartedOutputGroup container = getOutputDescrFlatList().get(outputIdx).getContainer();
 		return chartedOutputGroups.indexOf(container);
 	}
 
 	@Override
 	public int getGroupsCount() {
-		return groupsCount;
+		return chartedOutputGroups.size();
 	}
 
 	@Override
@@ -266,13 +259,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public Set<OutputDescr> allOutputs() {
-
-		if (descripitonList == null) {
-			initLists();
-		}
-
-		Set<OutputDescr> ret = new TreeSet<OutputDescr>();
-		for (final OutputDescr  outputDescr: descripitonList) {
+		Set<OutputDescr> ret = new TreeSet<>();
+		for (final OutputDescr  outputDescr: getOutputDescrFlatList()) {
 			if (!outputDescr.getType().equals(Type.INVISIBLE)) ret.add(outputDescr);
 		}
 		return ret;
@@ -281,8 +269,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public Set<OutputDescr> displayedOutputs() {
 
-		Set<OutputDescr> ret = new TreeSet<OutputDescr>();
-		for (final OutputDescr  outputDescr: allOutputs()) {
+		Set<OutputDescr> ret = new TreeSet<>();
+		for (final OutputDescr outputDescr: allOutputs()) {
 			if (outputDescr.getDisplayOnChart()) ret.add(outputDescr);
 		}
 		return ret;
@@ -291,12 +279,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public boolean isDisplayed(int outputIdx) {
-
-		if (descripitonList == null) {
-			initLists();
-		}
-
-		return descripitonList.get(outputIdx).getDisplayOnChart();
+		return getOutputDescrFlatList().get(outputIdx).getDisplayOnChart();
 	}
 
 	public String getAlsoDisplayDescription() {

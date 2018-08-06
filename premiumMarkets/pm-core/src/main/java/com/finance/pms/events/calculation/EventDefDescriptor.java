@@ -37,7 +37,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 
 public interface EventDefDescriptor {
 
-	String[] descriptionArray() throws NoSuchElementException;
+	String getDescriptionFor(int outputIdx) throws NoSuchElementException;
 
 	String getHtmlBullishDescription();
 
@@ -59,9 +59,9 @@ public interface EventDefDescriptor {
 
 	String getMainLabelForGroup(int groupIdx);
 
-	public abstract Set<OutputDescr> displayedOutputs();
+	Set<OutputDescr> displayedOutputs();
 
-	public abstract Set<OutputDescr> allOutputs();
+	Set<OutputDescr> allOutputs();
 
 	boolean isDisplayed(int outputIdx);
 

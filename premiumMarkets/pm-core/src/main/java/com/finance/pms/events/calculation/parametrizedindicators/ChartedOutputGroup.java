@@ -51,18 +51,18 @@ public class ChartedOutputGroup {
 		private ChartedOutputGroup container;
 		private Type type;
 		private Integer outputIndex;
-		private Value<?> value;
+		private StringableValue constant;
 
 		private Boolean displayOnChart;
 
-		public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, Value<?> value) {
+		public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue constant) {
 			super();
 			this.uuid = UUID.randomUUID();
 			this.outputReference = outputReference;
 			this.container = container;
 			this.type = type;
 			this.outputIndex = outputIndex;
-			this.value = value;
+			this.constant = constant;
 
 			this.displayOnChart = true;
 		}
@@ -75,8 +75,8 @@ public class ChartedOutputGroup {
 			return outputIndex;
 		}
 
-		public Value<?> getValue() {
-			return value;
+		public StringableValue getConstant() {
+			return constant;
 		}
 
 		public void setOutputIndex(Integer outputIndex) {
@@ -84,12 +84,12 @@ public class ChartedOutputGroup {
 		}
 
 		public String fullQualifiedName() {
-			String discriminentReference = outputReference.getReference();
+			String discriminantReference = outputReference.getReference();
 			if (outputReference.getIsLeaf()) {
-				discriminentReference = ((StringableValue) value).getValueAsString();
+				discriminantReference = constant.getValueAsString();
 			}
 
-			String famillyName = outputReference.getOperationReference() +
+			String familyName = outputReference.getOperationReference() +
 					((outputReference.getOutputSelector() != null)?":" + outputReference.getOutputSelector():"");
 
 			//			String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
@@ -104,12 +104,12 @@ public class ChartedOutputGroup {
 					outputReference.getReferenceAsOperand():
 						((outputReference.getOutputSelector() != null)?outputReference.getOutputSelector():outputReference.getOperationReference());
 
-					return discriminentReference + " (" + famillyName + ") on graph as " + displayedAs;
+					return discriminantReference + " (" + familyName + ") on graph as " + displayedAs;
 		}
 
 		@Override
 		public String toString() {
-			return "OutputDescr [type=" + type + ", outputIndex=" + outputIndex + ", value=" + value + ", displayed="+displayOnChart+"]";
+			return "OutputDescr [type=" + type + ", outputIndex=" + outputIndex + ", constant=" + constant + ", displayed=" + displayOnChart + "]";
 		}
 
 		public ChartedOutputGroup getContainer() {
@@ -202,7 +202,7 @@ public class ChartedOutputGroup {
 		uuid = UUID.randomUUID();
 		thisDescription = new OutputDescr(outputReference, this, Type.INVISIBLE, outputIndex, null);
 		thisReference = outputReference;
-		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
+		components = new HashMap<>();
 	}
 
 	//Adding a main
@@ -211,7 +211,7 @@ public class ChartedOutputGroup {
 		OutputReference outputReference = new OutputReference(operation);
 		thisDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
 		thisReference = outputReference;
-		components = new HashMap<OutputReference, ChartedOutputGroup.OutputDescr>();
+		components = new HashMap<>();
 	}
 
 	public OutputDescr addSignal(Operation operation, int outputIndex) {
@@ -227,14 +227,14 @@ public class ChartedOutputGroup {
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
 	}
 
-	public void addAdditonalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
+	public void addAdditionalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
 		OutputReference outputReference = new OutputReference(operation, outputKey);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null));
 	}
 
 	public OutputDescr mvComponentInThisGrp(OutputReference outputRef, OutputDescr outputDescr) {
 		outputDescr.setContainer(this);
-		this.components.put(outputRef,outputDescr);
+		this.components.put(outputRef, outputDescr);
 		return outputDescr;
 	}
 

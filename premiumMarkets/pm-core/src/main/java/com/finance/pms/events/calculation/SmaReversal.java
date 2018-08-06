@@ -53,30 +53,30 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class SmaReversal extends TalibIndicatorsOperator {
-	
+
 	private static final int DAYS_SPAN = 15;
 
 	private SMA sma;
-	
+
 	private EventType previousTrend;
 
 	public SmaReversal(Integer smaPeriod, Observer[] observers) {
 		super(EventDefinition.PMSMAREVERSAL, observers);
 		init(smaPeriod);
 	}
-	
+
 	public SmaReversal(EventInfo reference) {
-	    //Reflective ops generator
+		//Reflective ops generator
 		super(reference);
 	}
 
 	protected void init(Integer smaPeriod) {
-	    this.sma = new SMA(smaPeriod);
+		this.sma = new SMA(smaPeriod);
 	}
 
 	@Override
 	public void genericInit(Integer... constants) {
-	    init(constants[0]);
+		init(constants[0]);
 	}
 
 
@@ -85,14 +85,14 @@ public class SmaReversal extends TalibIndicatorsOperator {
 		return DAYS_SPAN;
 	}
 
-	
+
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
-		
+
 		FormulatRes res = new FormulatRes(getEventDefinition());
-		
+
 		Integer smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
-		
+
 		//BULL : Quote above SMA and SMA up over n days after a BEAR trend  
 		{	
 			boolean isAboveSMA = this.sma.getSma()[smaIndex] < qU.getClose().doubleValue(); //  sma <  close
@@ -103,7 +103,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 				previousTrend = EventType.BULLISH;
 			} 
 		}
-		
+
 		//BEAR : Quote below SMA and down over n days after a BULL trend
 		{
 			boolean isBelowSMA = this.sma.getSma()[smaIndex] > qU.getClose().doubleValue(); //  sma >  close
@@ -114,26 +114,26 @@ public class SmaReversal extends TalibIndicatorsOperator {
 				previousTrend = EventType.BEARISH;
 			} 
 		}
-			
+
 		return res;
 	}
-	
+
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
 		return getDaysSpan() <= index && index < (this.sma.getSma().length);
 	}
-	
+
 	@Override
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
 		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSMAREVERSAL,EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMSMAREVERSAL,EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
-//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
+		//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
-//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," + this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
-			+ this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, calculatorIndex)]; 		
+				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
+				//			+ this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getDate() + "," + this.sma.getIndicatorQuotationData().get(smaQuotationIndex).getClose() + "," 
+				+ this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, calculatorIndex)]; 		
 		if (bearsihEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
@@ -141,26 +141,26 @@ public class SmaReversal extends TalibIndicatorsOperator {
 		} else {
 			line = line + ",0,0,";
 		}
-		
+
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
+
 		return line;
 	}
-	
+
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
-			
+
 		return new double[]
 				{
-				quotationUnit.getClose().doubleValue(),
-				this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, idx)]
+						quotationUnit.getClose().doubleValue(),
+						this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, idx)]
 				};
 	}
 
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		String head =  "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
+		//		String head =  "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
 		String head =  "CALCULATOR DATE, CALCULATOR QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -182,7 +182,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
 		this.sma.calculateIndicator(quotations);
-		
+
 	}
 
 
