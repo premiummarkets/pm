@@ -31,13 +31,17 @@ package com.finance.pms.events.calculation;
 
 import java.awt.Color;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -95,7 +99,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     }
 
     @Override
-    public String getDescriptionFor(int outputIdx) throws NoSuchElementException {
+    public String getFullNameFor(int outputIdx) throws NoSuchElementException {
         return new ArrayList<>(descriptionMap().keySet()).get(outputIdx);
     }
 
@@ -245,13 +249,12 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
         return (mainIndicator != null) ? mainIndicator : "";
     }
 
+	@Override
+	public Set<OutputDescr> allOutputDesrc() {
+		return new HashSet<>();
+	}
 
-    public Set<OutputDescr> displayedOutputs() {
-        return new HashSet<>();
-    }
-
-
-    public Set<OutputDescr> allOutputs() {
+    public Set<OutputDescr> displayedOutputsDescr() {
         return new HashSet<>();
     }
 

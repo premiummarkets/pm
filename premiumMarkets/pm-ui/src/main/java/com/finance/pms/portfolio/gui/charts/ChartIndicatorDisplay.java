@@ -801,8 +801,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				try {
 					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
-						availableOutputs.addAll(t.getEventDefDescriptor().allOutputs());
-						displayedOutputs.addAll(t.getEventDefDescriptor().displayedOutputs());
+						availableOutputs.addAll(t.getEventDefDescriptor().allOutputDesrc());
+						displayedOutputs.addAll(t.getEventDefDescriptor().displayedOutputsDescr());
 					});
 				} catch (NoSuchElementException e) {
 					LOGGER.warn(e);

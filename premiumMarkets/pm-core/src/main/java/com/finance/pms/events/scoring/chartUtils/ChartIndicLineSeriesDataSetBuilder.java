@@ -93,14 +93,14 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							groupIsDisplayed = true;
 
 							//Build the timeSeries for the output
-							final String domain = eventDefDescriptor.getDescriptionFor(outputIdx);
+							final String domain = eventDefDescriptor.getFullNameFor(outputIdx);
 							TimeSeries timeSeries = new TimeSeries(domain);
 							for (Date date : fullDateSet) {
 								double[] ds = eventsSeries.get(chartedEvtDef).get(date);
 								Number value;
 								if (ds != null) {
 									value = ds[outputIdx];
-									if (value != null && !Double.isInfinite(value.doubleValue())) {//Negative Infinity means we should ignore the entry. NaN means not wanted for display and breaks the line so it needs to be keep
+									if (value != null && !Double.isInfinite(value.doubleValue())) {//Negative Infinity means we should ignore the entry. NaN means not wanted for display and should breaks the line (//FIXME) so it needs to be keep...
 										RegularTimePeriod period = new Day(date);
 										TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
 										timeSeries.add(item, false);

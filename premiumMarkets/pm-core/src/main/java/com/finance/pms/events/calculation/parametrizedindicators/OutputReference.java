@@ -62,19 +62,22 @@ public class OutputReference implements Comparable<OutputReference> {
 	}
 
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
+
+		//These are just names edited and don't discriminate the calculation
 		this.reference = operation.getReference();
+		this.referenceAsOperand = operation.getReferenceAsOperand();
+
+		//Discriminating fields
+		this.operationReference = operation.getOperationReference();
 		this.outputSelector = multiOutputDiscriminator;
 		this.formula = operation.getFormulae();
-		this.referenceAsOperand = operation.getReferenceAsOperand();
 		this.isLeaf = (operation instanceof LeafOperation);
-
-		this.operationReference = operation.getOperationReference();
 	}
 
 	@Override
 	public int hashCode() {
 
-		if (isLeaf) return super.hashCode();
+		if (isLeaf) return super.hashCode(); //see equals
 
 		final int prime = 31;
 		int result = 1;
@@ -86,7 +89,7 @@ public class OutputReference implements Comparable<OutputReference> {
 	@Override
 	public boolean equals(Object obj) {
 
-		if (isLeaf) return super.equals(obj); //Leaf (like number threshold) don't have specific description so they have to be considered different.
+		if (isLeaf) return super.equals(obj); //Leaf (like number threshold) don't have specific description so they have to be considered different. Only their Parameter will differ
 
 		if (this == obj)
 			return true;

@@ -58,9 +58,9 @@ import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.EventMapValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 /**
@@ -197,17 +197,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				}
 			}
 
-			//Fill up outputs not attached
-			ChartedOutputGroup invisibleGroup = null;
-			for (int i = 0; i < gatheredOutputs.size(); i++) {
-				if (gatheredOutputs.get(i).getChartedDescription() == null) {
-					OutputReference outputReference = gatheredOutputs.get(i).getOutputReference();
-					if (invisibleGroup == null ) invisibleGroup = new ChartedOutputGroup(outputReference, i);
-					invisibleGroup.getComponents().put(outputReference, invisibleGroup. new OutputDescr(outputReference, invisibleGroup, Type.INVISIBLE, i, null));
-				}
-			}
-
-			((EventDefDescriptorDynamic) eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, invisibleGroup);
+			((EventDefDescriptorDynamic) eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setChartedOutputGroups(chartedOutputGroups, null);
 
 			//Build
 			return buildSortedMap(normOutputs, fullDateSet);

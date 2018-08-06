@@ -145,7 +145,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			if (chartedOutputGroups.isEmpty()) {
 				LOGGER.warn("No charted group found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
 			} else {
-				EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(chartedOutputGroups.get(0).getThisReference());
+				EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(chartedOutputGroups.get(0).getThisGroupMainOutputReference());
 				if (eventsAnalyser != null) this.eventDefDescriptor.setExportBaseFileName(eventsAnalyser.getEgFileBaseName());
 			}
 		} catch (Exception e) {

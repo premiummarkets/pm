@@ -49,9 +49,9 @@ import com.finance.pms.events.calculation.parametrizedindicators.OutputReference
 import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 public class TargetStockInfo {
 
@@ -242,7 +242,7 @@ public class TargetStockInfo {
 			} else {
 				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, indexOfOutput);
 				chartedOutputGroups.add(chartedOutputGroup);
-				chartedDesrc = chartedOutputGroup.getThisDescription();
+				chartedDesrc = chartedOutputGroup.getThisGroupMainOutputDescription();
 				output.setChartedDescription(chartedDesrc);
 			}
 			return chartedDesrc.getContainer();
@@ -276,9 +276,9 @@ public class TargetStockInfo {
 				if (existingChartedGrp.equals(mainChartedGrp)) {
 					chartedDescr.maskType(Type.SIGNAL);
 				} else {
-					OutputDescr existingChartedDesrc = existingChartedGrp.getThisDescription();
+					OutputDescr existingChartedDesrc = existingChartedGrp.getThisGroupMainOutputDescription();
 					existingChartedDesrc.maskType(Type.BOTH);
-					mainChartedGrp.mvComponentInThisGrp(existingChartedGrp.getThisReference(), existingChartedDesrc);
+					mainChartedGrp.mvComponentInThisGrp(existingChartedGrp.getThisGroupMainOutputReference(), existingChartedDesrc);
 					for (OutputReference oldContentRef : existingChartedGrp.getComponents().keySet()) {
 						OutputDescr oldOutputDescr = existingChartedGrp.getComponents().get(oldContentRef);
 						mainChartedGrp.mvComponentInThisGrp(oldContentRef, oldOutputDescr);

@@ -52,13 +52,13 @@ import com.finance.pms.events.operations.conditional.MultiMapValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -297,7 +297,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	//This operation operands are either set in the default constructor or unknown before usage.
-	//In this setter, either all the operands (with no already set parameters) are overridden or none at all. 
+	//In this setter, either all the operands (with no already set parameters) are overridden or none at all.
 	//Hence an empty ArrayList as overriding operands means that no change will be made to this.operands
 	//A subset of operand will be rejected if it is not complementary of the parameters pre set to this.
 	//The case when this.operands is empty means that the operands and their amount are unknown a priory before usage. In that case, we blindly add all the operands.

@@ -50,11 +50,11 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 

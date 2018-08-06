@@ -37,10 +37,10 @@ import java.util.SortedMap;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 
