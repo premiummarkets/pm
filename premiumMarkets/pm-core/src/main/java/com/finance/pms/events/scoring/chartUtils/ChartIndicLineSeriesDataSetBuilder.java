@@ -79,7 +79,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 					TimeSeriesCollection dataSet = new TimeSeriesCollection();
 					Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
 					int seriesIdx = 0;
-					double groupMaxY = Double.MIN_VALUE;
+					double groupMaxY = -Double.MAX_VALUE;
 					double groupMinY = Double.MAX_VALUE;
 					SortedSet<Date> fullDateSet = new TreeSet<>();
 					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
@@ -194,8 +194,12 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						indicPlot.setDataset(rendererIdx, dataSet);
 						if ( rendererIdx != 0 ) indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
+						LOGGER.info("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+
 					} else {
-						LOGGER.warn("Group not displayed: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx) + ((groupIsDisplayed && !hasData)?".\n Group has no data.":""));
+						if (groupIsDisplayed && !hasData) {
+							LOGGER.warn("Group has no data (not displayed): \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						}
 					}
 
 				}

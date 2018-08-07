@@ -80,7 +80,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
+import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;

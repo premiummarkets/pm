@@ -31,7 +31,6 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
-import com.finance.pms.events.operations.nativeops.LeafOperation;
 
 public class OutputReference implements Comparable<OutputReference> {
 
@@ -42,36 +41,40 @@ public class OutputReference implements Comparable<OutputReference> {
 	private String referenceAsOperand;
 	private StringableValue constant;
 
-	public OutputReference(String reference, String outputSelector, String formula,
-						   String referenceAsOperand, StringableValue constant, String operationReference) {
+	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, StringableValue constant, String operationReference) {
+
+		//These are just names edited and don't discriminate the calculation
 		this.reference = reference;
+		this.referenceAsOperand = referenceAsOperand;
+
+		//Discriminating fields
+		this.operationReference = operationReference;
 		this.outputSelector = outputSelector;
 		this.formula = formula;
-		this.referenceAsOperand = referenceAsOperand;
 		this.constant = constant;
 
-		this.operationReference = operationReference;
 	}
 
 	public OutputReference(Operation operation) {
+
 		this.reference = operation.getReference();
-		this.outputSelector  = operation.getOutputSelector();
-		this.formula = operation.getFormulae();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 
+		this.outputSelector  = operation.getOutputSelector();
+		this.formula = operation.getFormulae();
 		this.operationReference = operation.getOperationReference();
+		//this.constant = null;
 	}
 
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
 
-		//These are just names edited and don't discriminate the calculation
 		this.reference = operation.getReference();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 
-		//Discriminating fields
 		this.operationReference = operation.getOperationReference();
 		this.outputSelector = multiOutputDiscriminator;
 		this.formula = operation.getFormulae();
+		//this.constant = null;
 	}
 
 	@Override
@@ -81,7 +84,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		result = prime * result + ((formula == null) ? 0 : formula.replaceAll("\\s+","").hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
-		result = prime * result + ((constant == null) ? 0 : constant.hashCode());
+		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
 		return result;
 	}
 	@Override

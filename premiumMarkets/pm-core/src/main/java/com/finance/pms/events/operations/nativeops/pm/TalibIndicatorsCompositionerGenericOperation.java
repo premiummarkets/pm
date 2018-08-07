@@ -145,7 +145,8 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
 				i++;
 			}
-
+			
+			//TODO add the buySellEvents as main instead of the get and review to match FileOperation.calculate?? Also notes in gnumeric.
 			buildChartable(targetStock, outputQualifiers);
 
 		}

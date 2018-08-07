@@ -33,7 +33,7 @@ import java.awt.Color;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
+import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 
 public interface EventDefDescriptor {
 

@@ -51,7 +51,6 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.WarningException;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
@@ -175,7 +174,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			List<Object> normOutputs = new ArrayList<>();
 			SortedSet<Date> fullDateSet = new TreeSet<>();
 
-			//Add Double outputs
+			//Add UnarableMapValue outputs
 			for (Output output : gatheredOutputs) {
 				Value<?> outputData = output.getOutputData();
 				if (outputData != null) {
@@ -185,7 +184,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				}
 			}
 
-			//Add Constants
+			//Add Constants outputs
 			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
 			for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
 				Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();

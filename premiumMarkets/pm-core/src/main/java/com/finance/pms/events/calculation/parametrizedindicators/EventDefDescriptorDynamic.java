@@ -45,7 +45,6 @@ import java.util.TreeSet;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.EventDefDescriptor;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 
 /**
@@ -202,14 +201,27 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public Integer[] getOutputIndexesForGroup(int groupIndex) {
+		return getOutputIndexesForGroupSans(groupIndex);
+	}
+
+	private Integer[] getOutputIndexesForGroupSans(int groupIndex, Type... filter) {
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
+
 		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(groupIndex);
-		List<Integer> retSet = new ArrayList<>();
+		List<Integer> outputIdxs = new ArrayList<>();
+		List<Type> sansList = new ArrayList<>((filter == null || filter.length == 0)?Arrays.asList(Type.values()):Arrays.asList(filter));
+		sansList.remove(Type.INVISIBLE);
 		OutputDescr thisGroupMainOutputDescription = chartedOutputGroup.getThisGroupMainOutputDescription();
-		if (thisGroupMainOutputDescription.getType() != Type.INVISIBLE) retSet.add(thisGroupMainOutputDescription.getOutputIndex());
+		if (sansList.contains(thisGroupMainOutputDescription.getType())) outputIdxs.add(thisGroupMainOutputDescription.getOutputIndex());
 		for (OutputDescr outputDescr : chartedOutputGroup.getComponents().values()) {
-			if (outputDescr.getType() != Type.INVISIBLE) retSet.add(outputDescr.getOutputIndex());
+			if (sansList.contains(outputDescr.getType())) outputIdxs.add(outputDescr.getOutputIndex());
 		}
-		return retSet.toArray(new Integer[retSet.size()]);
+		return outputIdxs.toArray(new Integer[outputIdxs.size()]);
+	}
+
+	@Override
+	public Integer[] getThresholdsIdx(int groupIndex) {
+		return getOutputIndexesForGroupSans(groupIndex, Type.CONSTANT);
 	}
 
 	public void setBullishDescription(String bullishDescription) {
@@ -226,31 +238,6 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	public String getBearishDescription() {
 		return bearishDescription;
-	}
-
-	@Override
-	public Integer[] getThresholdsIdx(int grpIdx) {
-
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
-		SortedSet<OutputDescr> groupOutputDescrs = new  TreeSet<>(new Comparator<OutputDescr>() {
-			@Override
-			public int compare(OutputDescr o1, OutputDescr o2) {
-				return o1.getOutputIndex().compareTo(o2.getOutputIndex());
-			}
-		});
-
-		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(grpIdx);
-		groupOutputDescrs.add(chartedOutputGroup.getThisGroupMainOutputDescription());
-		groupOutputDescrs.addAll(chartedOutputGroup.getComponents().values());
-
-		List<Integer> thresholdsIdxs = new ArrayList<>();
-		for (OutputDescr outputDescr : groupOutputDescrs) {
-			if (outputDescr.getType().equals(Type.CONSTANT)) {
-				thresholdsIdxs.add(outputDescr.getOutputIndex());
-			}
-		}
-
-		return thresholdsIdxs.toArray(new Integer[0]);
 	}
 
 	@Override

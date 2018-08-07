@@ -29,7 +29,7 @@
  */
 package com.finance.pms.events.operations.conditional;
 
-public interface OnThresholdCondition  extends ChartableWithMain {
+public interface OnThresholdCondition extends ChartableWithMain {
 
 	int inputThresholdPosition();
 

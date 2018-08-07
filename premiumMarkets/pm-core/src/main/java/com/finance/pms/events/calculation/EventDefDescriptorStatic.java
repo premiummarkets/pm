@@ -42,8 +42,8 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 
