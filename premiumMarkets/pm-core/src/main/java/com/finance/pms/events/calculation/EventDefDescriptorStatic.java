@@ -250,7 +250,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     }
 
 	@Override
-	public Set<OutputDescr> allOutputDesrc() {
+	public Set<OutputDescr> allOutputDescr() {
 		return new HashSet<>();
 	}
 

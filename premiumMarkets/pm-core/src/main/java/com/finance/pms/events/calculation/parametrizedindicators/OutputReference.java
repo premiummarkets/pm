@@ -30,23 +30,25 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 
 public class OutputReference implements Comparable<OutputReference> {
 
-	String reference;
-	String operationReference;
-	String outputSelector;
-	String formula;
-	String referenceAsOperand;
-	Boolean isLeaf;
+	private String reference;
+	private String operationReference;
+	private String outputSelector;
+	private String formula;
+	private String referenceAsOperand;
+	private StringableValue constant;
 
-	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, Boolean isLeaf, String operationReference) {
+	public OutputReference(String reference, String outputSelector, String formula,
+						   String referenceAsOperand, StringableValue constant, String operationReference) {
 		this.reference = reference;
 		this.outputSelector = outputSelector;
 		this.formula = formula;
 		this.referenceAsOperand = referenceAsOperand;
-		this.isLeaf = isLeaf;
+		this.constant = constant;
 
 		this.operationReference = operationReference;
 	}
@@ -56,7 +58,6 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.outputSelector  = operation.getOutputSelector();
 		this.formula = operation.getFormulae();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
-		this.isLeaf = (operation instanceof LeafOperation);
 
 		this.operationReference = operation.getOperationReference();
 	}
@@ -71,25 +72,20 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.operationReference = operation.getOperationReference();
 		this.outputSelector = multiOutputDiscriminator;
 		this.formula = operation.getFormulae();
-		this.isLeaf = (operation instanceof LeafOperation);
 	}
 
 	@Override
 	public int hashCode() {
-
-		if (isLeaf) return super.hashCode(); //see equals
-
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((formula == null) ? 0 : formula.replaceAll("\\s+","").hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
+		result = prime * result + ((constant == null) ? 0 : constant.hashCode());
 		return result;
 	}
 	@Override
 	public boolean equals(Object obj) {
-
-		if (isLeaf) return super.equals(obj); //Leaf (like number threshold) don't have specific description so they have to be considered different. Only their Parameter will differ
 
 		if (this == obj)
 			return true;
@@ -118,6 +114,12 @@ public class OutputReference implements Comparable<OutputReference> {
 			if (other.operationReference != null)
 				return false;
 		} else if (!operationReference.equals(other.operationReference))
+			return false;
+
+		if (constant == null) {
+			if (other.constant != null)
+				return false;
+		} else if (!constant.getValueAsString().equals(other.constant.getValueAsString()))
 			return false;
 
 		return true;
@@ -155,8 +157,19 @@ public class OutputReference implements Comparable<OutputReference> {
 				compareTo = this.formula.replaceAll("\\s+","").compareTo(o.formula.replaceAll("\\s+",""));
 			}
 		}
-		if (compareTo == 0 && isLeaf) {
-			compareTo = this.hashCode() - o.hashCode();
+		if (compareTo == 0) {
+			if (this.constant == null && o.constant == null) {
+				compareTo = 0;
+			}
+			else if (this.constant == null) {
+				compareTo = 1;
+			}
+			else if (o.constant == null) {
+				compareTo = -1;
+			}
+			else {
+				compareTo = this.constant.getValueAsString().compareTo(o.constant.getValueAsString());
+			}
 		}
 
 		return compareTo;
@@ -168,7 +181,7 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	@Override
 	public String toString() {
-		return "OutputReference [hash=" + hashCode() + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", operationReference=" + operationReference + ", outputSelector="+ outputSelector + ", formula=" + formula + "]";
+		return "OutputReference [constant=" + constant + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", operationReference=" + operationReference + ", outputSelector=" + outputSelector + ", formula=" + formula + "]";
 	}
 
 	public String getOperationReference() {
@@ -188,7 +201,7 @@ public class OutputReference implements Comparable<OutputReference> {
 	}
 
 	public Boolean getIsLeaf() {
-		return isLeaf;
+		return constant != null;
 	}
 
 }

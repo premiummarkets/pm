@@ -66,7 +66,7 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : value "+numberValue;
+		return this.getClass().getSimpleName() + " : value " + numberValue;
 	}
 
 	public Double getNumberValue() {

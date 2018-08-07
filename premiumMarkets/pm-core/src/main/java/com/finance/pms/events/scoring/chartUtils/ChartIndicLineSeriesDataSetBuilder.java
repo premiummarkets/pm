@@ -214,13 +214,13 @@ public class ChartIndicLineSeriesDataSetBuilder {
 		double thresholdCenter = Double.NaN;
 		Integer[] thresholdsIdxs = eventDefDescriptor.getThresholdsIdx(groupIdx);
 		if (thresholdsIdxs.length != 0) {
-			double[] thesholdValues = new double[thresholdsIdxs.length];
+			double[] thresholdValues = new double[thresholdsIdxs.length];
 			for (int j = 0; j < thresholdsIdxs.length; j++) {
 				double thresholdValue = serie.get(serie.firstKey())[thresholdsIdxs[j]];
-				thesholdValues[j] = thresholdValue;
+				thresholdValues[j] = thresholdValue;
 			}
 			Median median = new Median();
-			thresholdCenter = median.evaluate(thesholdValues);
+			thresholdCenter = median.evaluate(thresholdValues);
 		}
 		return thresholdCenter;
 	}

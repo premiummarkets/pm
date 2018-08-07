@@ -56,7 +56,7 @@ public class BooleanValue extends Value<Boolean> implements StringableValue, Clo
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : value "+value;
+		return this.getClass().getSimpleName() + " : value " + value;
 	}
 
 	@Override

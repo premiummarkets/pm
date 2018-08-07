@@ -201,8 +201,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Integer[] getOutputIndexesForGroup(int j) {
-		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(j);
+	public Integer[] getOutputIndexesForGroup(int groupIndex) {
+		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(groupIndex);
 		List<Integer> retSet = new ArrayList<>();
 		OutputDescr thisGroupMainOutputDescription = chartedOutputGroup.getThisGroupMainOutputDescription();
 		if (thisGroupMainOutputDescription.getType() != Type.INVISIBLE) retSet.add(thisGroupMainOutputDescription.getOutputIndex());
@@ -232,9 +232,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	public Integer[] getThresholdsIdx(int grpIdx) {
 
 		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
-
-		List<Integer> thresholdsIdxs = new ArrayList<Integer>();
-		SortedSet<OutputDescr> descriptionSet = new  TreeSet<OutputDescr>(new Comparator<OutputDescr>() {
+		SortedSet<OutputDescr> groupOutputDescrs = new  TreeSet<>(new Comparator<OutputDescr>() {
 			@Override
 			public int compare(OutputDescr o1, OutputDescr o2) {
 				return o1.getOutputIndex().compareTo(o2.getOutputIndex());
@@ -242,10 +240,11 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		});
 
 		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(grpIdx);
-		descriptionSet.add(chartedOutputGroup.getThisGroupMainOutputDescription());
-		descriptionSet.addAll(chartedOutputGroup.getComponents().values());
+		groupOutputDescrs.add(chartedOutputGroup.getThisGroupMainOutputDescription());
+		groupOutputDescrs.addAll(chartedOutputGroup.getComponents().values());
 
-		for (OutputDescr outputDescr : descriptionSet) {
+		List<Integer> thresholdsIdxs = new ArrayList<>();
+		for (OutputDescr outputDescr : groupOutputDescrs) {
 			if (outputDescr.getType().equals(Type.CONSTANT)) {
 				thresholdsIdxs.add(outputDescr.getOutputIndex());
 			}
@@ -260,7 +259,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Set<OutputDescr> allOutputDesrc() {
+	public Set<OutputDescr> allOutputDescr() {
 		return new HashSet<>(getOutputDescrFlatList().values());
 	}
 

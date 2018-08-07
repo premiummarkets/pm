@@ -63,7 +63,7 @@ public class StringValue extends Value<String> implements StringableValue, Clone
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : value \""+stringValue+"\"";
+		return this.getClass().getSimpleName() + " : value \"" + stringValue + "\"";
 	}
 	
 	@Override

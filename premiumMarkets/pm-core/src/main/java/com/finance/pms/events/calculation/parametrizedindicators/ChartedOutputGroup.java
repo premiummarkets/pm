@@ -215,7 +215,7 @@ public class ChartedOutputGroup {
 
 	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue) {
 		String referenceAsOperandOverride = parentReference+" "+operation.getReferenceAsOperand();
-		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, true, operation.getOperationReference()); 
+		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, doubleValue, operation.getOperationReference());
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
 	}
 

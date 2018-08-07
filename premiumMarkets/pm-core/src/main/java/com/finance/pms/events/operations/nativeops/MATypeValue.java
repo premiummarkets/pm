@@ -64,7 +64,7 @@ public class MATypeValue extends Value<MAType> implements StringableValue, Clone
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : value "+maTypeValue;
+		return this.getClass().getSimpleName() + " : value " + maTypeValue;
 	}
 
 	@Override
