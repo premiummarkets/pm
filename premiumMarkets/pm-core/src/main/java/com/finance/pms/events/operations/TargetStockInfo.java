@@ -191,7 +191,7 @@ public class TargetStockInfo {
 	/**
 	 * This method also calls setMain for MultiSelectorsValue
 	 */
-	public void addOutput(Operation operation, Value<?> output) {
+	public void addOutput(Operation operation, Value<?> outputValue) {
 
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
 		if (alreadyCalculated != null) {
@@ -201,19 +201,19 @@ public class TargetStockInfo {
 			return;
 		}
 
-		if (output instanceof MultiSelectorsValue) {
-			for (String selector : ((MultiSelectorsValue) output).getSelectors()) {
+		if (outputValue instanceof MultiSelectorsValue) {
+			for (String selector : ((MultiSelectorsValue) outputValue).getSelectors()) {
 				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
 				String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("); //encogPlus:xxxxx(... => encogPlus:selector(...
 				//constant = null as the selector output as to be an UnarableMapValue and hence can't be a constant.
 				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference());
-				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) output).getValue(selector)));
+				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector)));
 			}
-			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), ((MultiSelectorsValue) output).getValue(((MultiSelectorsValue) output).getCalculationSelector())));
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector())));
 		} else {
-			Output outputDescr = new Output(new OutputReference(operation), output);
-			this.calculatedOutputsCache.add(outputDescr);
-			this.gatheredChartableOutputs.add(outputDescr);
+			Output outputHolder = new Output(new OutputReference(operation), outputValue);
+			this.calculatedOutputsCache.add(outputHolder);
+			this.gatheredChartableOutputs.add(outputHolder);
 		}
 
 	}

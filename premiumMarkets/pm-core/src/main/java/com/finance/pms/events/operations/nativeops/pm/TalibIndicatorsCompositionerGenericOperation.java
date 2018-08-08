@@ -38,6 +38,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.SpringContext;
@@ -113,7 +114,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 					this.getReference() + " is not defined as an indicator. Make sure operation and indicator have the same name.");
 			TalibIndicatorsOperator calculator = calculatorClass.getConstructor(EventInfo.class).newInstance(thisEventInfoOpsCompoOperation);
 
-			List<Integer> inputConstants = inputs.stream().map( i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
+			List<Integer> inputConstants = inputs.stream().map(i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
 			calculator.genericInit(inputConstants.toArray(new Integer[0]));
 
 			Date shiftedStartDate =  getStartDate(targetStock.getStartDate(), thisStartShift);
@@ -132,22 +133,36 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 			if (eventDefDescriptor == null) {
 				throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
 			}
-			LinkedHashMap<String, Type> outputQualifiers = eventDefDescriptor.descriptionMap();
+
+
+			LinkedHashMap<String, Type> outputQualifiers =
+					eventDefDescriptor.descriptionMap().entrySet().stream()
+							.collect(Collectors.toMap(e -> e.getKey(), e -> (e.getValue().equals(Type.CONSTANT))?Type.MULTISIGNAL:e.getValue(), (a, b) -> a, LinkedHashMap::new));
+//			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
+// 			LinkedHashMap<String, SortedMap<Date, Double>> results = outputQualifiers.keySet().stream()
+//					.collect(Collectors.toMap(e -> e, e -> {
+//						SortedMap<Date, Double> output = new TreeMap<>();
+//						transOutput(calculationOutput, output, i);
+//						return calculationOutput;
+//					}, (a, b) -> a, LinkedHashMap::new));
 
 			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
+			LinkedHashMap<String, SortedMap<Date, Double>> results = new LinkedHashMap<>();
 			int i = 0;
 			for (String outputName : outputQualifiers.keySet()) {
-				SortedMap<Date, Double> output = new TreeMap<Date, Double>();
+				SortedMap<Date, Double> output = new TreeMap<>();
 				transOutput(calculationOutput, output, i);
-
-				//addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput)
-				targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(output), outputName);
-
+				results.put(outputName, output);
 				i++;
 			}
-			
-			//TODO add the buySellEvents as main instead of the get and review to match FileOperation.calculate?? Also notes in gnumeric.
-			buildChartable(targetStock, outputQualifiers);
+
+			targetStock.addOutput(this, buySellEvents);
+			for (String k : results.keySet()) {
+					targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(results.get(k)), k);
+					outputQualifiers.put(k, Type.BOTH);
+			}
+			targetStock.setMain(this);
+			targetStock.addChartInfoForAdditonalOutputs(this, outputQualifiers);
 
 		}
 		catch (TalibException | NoQuotationsException e) {
@@ -167,16 +182,16 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 		targetStock.setMain(this, mainOutputQualifier);
 
 		//addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) tail
-		LinkedHashMap<String, Type> filteredOuputQualifiers = new LinkedHashMap<>();
+		LinkedHashMap<String, Type> filteredOutputQualifiers = new LinkedHashMap<>();
 		outputQualifiers.entrySet().stream().forEach(e ->  {
 			if (e.getValue().equals(Type.CONSTANT)) {
-				filteredOuputQualifiers.put(e.getKey(), Type.MULTISIGNAL);
+				filteredOutputQualifiers.put(e.getKey(), Type.MULTISIGNAL);
 			} 
 			else {
-				filteredOuputQualifiers.put(e.getKey(), e.getValue());
+				filteredOutputQualifiers.put(e.getKey(), e.getValue());
 			}
 		});
-		targetStock.addChartInfoForAdditonalOutputs(this, filteredOuputQualifiers, mainOutputQualifier);
+		targetStock.addChartInfoForAdditonalOutputs(this, filteredOutputQualifiers, mainOutputQualifier);
 
 	}
 

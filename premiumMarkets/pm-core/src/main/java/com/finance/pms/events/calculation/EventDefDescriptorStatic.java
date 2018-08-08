@@ -69,8 +69,8 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     private String[] bearishParamsMethods;
     private String[] bullishParamsMethods;
 
-    String formatedBearishDescription;
-    String formatedBullishDescription;
+    String formattedBearishDescription;
+    String formattedBullishDescription;
 
     private String htmlBearishDescription;
     private String htmlBullishDescription;
@@ -110,8 +110,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
         return descriptionMap;
     }
 
-
-    protected void initLists() {
+    private void initLists() {
         descriptionMap = new LinkedHashMap<>();
         colors = new ArrayList<>();
         int i = 0;
@@ -146,12 +145,13 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
         }
     }
 
-
+    @Override
     public String getHtmlBearishDescription() {
         if (htmlBearishDescription == null) htmlBearishDescription = initHtmlDescription(getBearishDescription());
         return htmlBearishDescription;
     }
 
+    @Override
     public String getHtmlBullishDescription() {
         if (htmlBullishDescription == null) htmlBullishDescription = initHtmlDescription(getBullishDescription());
         return htmlBullishDescription;
@@ -161,7 +161,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
         return StringEscapeUtils.escapeHtml(description).replace("\n", "<br>");
     }
 
-
+    @Override
     public Color getColor(int i) {
         return colors.get(i);
     }
@@ -200,7 +200,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 
         Config config;
         try {
-            config = (Config) ConfigThreadLocal.get(paramsMethods[0]);
+            config = ConfigThreadLocal.get(paramsMethods[0]);
 
             Object[] paramsValues =  new Object[paramsMethods.length-1];
             for (int i = 1; i < paramsMethods.length; i++) {
@@ -220,18 +220,18 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
     }
 
     public String getBearishDescription() {
-        if (formatedBearishDescription == null) formatedBearishDescription = initDesrciption(bearishDescription, bearishParamsMethods);
-        return formatedBearishDescription;
+        if (formattedBearishDescription == null) formattedBearishDescription = initDescription(bearishDescription, bearishParamsMethods);
+        return formattedBearishDescription;
     }
 
 
     public String getBullishDescription() {
-        if (formatedBullishDescription == null) formatedBullishDescription = initDesrciption(bullishDescription, bullishParamsMethods);
-        return formatedBullishDescription;
+        if (formattedBullishDescription == null) formattedBullishDescription = initDescription(bullishDescription, bullishParamsMethods);
+        return formattedBullishDescription;
     }
 
 
-    private String initDesrciption(String description, String[] paramsMethods) {
+    private String initDescription(String description, String[] paramsMethods) {
         Object[] paramsValues = (paramsMethods != null)?configParams(paramsMethods):new Object[0];
         if (paramsValues != null) return String.format(description, paramsValues);
         return description;
@@ -254,6 +254,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 		return new HashSet<>();
 	}
 
+    @Override
     public Set<OutputDescr> displayedOutputsDescr() {
         return new HashSet<>();
     }
