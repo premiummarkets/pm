@@ -103,7 +103,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	@Override
 	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		EventMapValue buySellEvents = new EventMapValue();
+		EventMapValue buySellEventsMainOutput = new EventMapValue();
 		try {
 
 			//XXX getting back the eponym EventInfoOpsCompoOperation indicator from the operation name (@see TalibIndicatorsCompositionerGenericOperation.class above)
@@ -125,7 +125,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
 			//Events is the only functional output for this operation => boolean
 			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(quotations, targetStock.getAnalysisName());
-			buySellEvents = new EventMapValue(eventsFor);
+			buySellEventsMainOutput = new EventMapValue(eventsFor);
 
 			//Adding indicator outputs for charting
 			EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();
@@ -134,32 +134,26 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 				throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
 			}
 
-
 			LinkedHashMap<String, Type> outputQualifiers =
 					eventDefDescriptor.descriptionMap().entrySet().stream()
-							.collect(Collectors.toMap(e -> e.getKey(), e -> (e.getValue().equals(Type.CONSTANT))?Type.MULTISIGNAL:e.getValue(), (a, b) -> a, LinkedHashMap::new));
-//			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
-// 			LinkedHashMap<String, SortedMap<Date, Double>> results = outputQualifiers.keySet().stream()
-//					.collect(Collectors.toMap(e -> e, e -> {
-//						SortedMap<Date, Double> output = new TreeMap<>();
-//						transOutput(calculationOutput, output, i);
-//						return calculationOutput;
-//					}, (a, b) -> a, LinkedHashMap::new));
-
+							.collect(Collectors.toMap(
+									e -> e.getKey(),
+									e -> (e.getValue().equals(Type.CONSTANT))?Type.MULTISIGNAL:e.getValue(),
+									(a, b) -> a, LinkedHashMap::new));
 			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
-			LinkedHashMap<String, SortedMap<Date, Double>> results = new LinkedHashMap<>();
+
+			LinkedHashMap<String, SortedMap<Date, Double>> calculationResults = new LinkedHashMap<>();
 			int i = 0;
 			for (String outputName : outputQualifiers.keySet()) {
 				SortedMap<Date, Double> output = new TreeMap<>();
 				transOutput(calculationOutput, output, i);
-				results.put(outputName, output);
+				calculationResults.put(outputName, output);
 				i++;
 			}
 
-			targetStock.addOutput(this, buySellEvents);
-			for (String k : results.keySet()) {
-					targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(results.get(k)), k);
-					outputQualifiers.put(k, Type.BOTH);
+			targetStock.addOutput(this, buySellEventsMainOutput);
+			for (String outputName : calculationResults.keySet()) {
+					targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(calculationResults.get(outputName)), outputName);
 			}
 			targetStock.setMain(this);
 			targetStock.addChartInfoForAdditonalOutputs(this, outputQualifiers);
@@ -172,7 +166,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}
 
-		return buySellEvents;
+		return buySellEventsMainOutput;
 	}
 
 	private void buildChartable(TargetStockInfo targetStock, LinkedHashMap<String, Type> outputQualifiers) {
