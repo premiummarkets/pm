@@ -32,6 +32,7 @@ package com.finance.pms.events.operations;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,12 +50,14 @@ import com.finance.pms.events.calculation.parametrizedindicators.OutputReference
 import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
+import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 public class TargetStockInfo {
 
-//	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
+	//	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
 
 	public class Output {
 
@@ -154,7 +157,7 @@ public class TargetStockInfo {
 	public Stock getStock() {
 		return stock;
 	}
-	
+
 	public Date getStartDate() {
 		return startDate;
 	}
@@ -222,10 +225,10 @@ public class TargetStockInfo {
 		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
 	}
 
-	public ChartedOutputGroup setMain(Operation operation, String mainOperationQualifier) {
-		int indexOfOutput = gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, mainOperationQualifier)));
-		return setMain(operation, indexOfOutput);
-	}
+	//	public ChartedOutputGroup setMain(Operation operation, String mainOperationQualifier) {
+	//		int indexOfOutput = gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, mainOperationQualifier)));
+	//		return setMain(operation, indexOfOutput);
+	//	}
 
 	public ChartedOutputGroup setMain(Operation operation) {
 		Integer indexOfOutput = getIndexOfChartableOutput(operation);
@@ -296,15 +299,24 @@ public class TargetStockInfo {
 	}
 
 
-	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, String outputQualifier) {
-		Integer indexOfMain = getIndexOfChartableOutput(new OutputReference(operand, outputQualifier));
-		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
-	}
+//	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, String outputQualifier) {
+//		Integer indexOfMain = getIndexOfChartableOutput(new OutputReference(operand, outputQualifier));
+//		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
+//	}
 
 	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
-		Integer indexOfMain = 0;
+//		Integer indexOfMain = chartedOutputGroups.stream().map(cg -> cg.getComponents().size()+1).reduce(0, (a, b) -> a+b);
+//		if (operand instanceof ChartableWithMain) {
+//			indexOfMain = indexOfMain + getIndexOfChartableOutput(operand.getOperands().get(((ChartableWithMain)operand).mainInputPosition()));
+//		} else {
+//			indexOfMain--;
+//		}
+		Integer indexOfMain;
 		if (operand instanceof ChartableWithMain) {
 			indexOfMain = getIndexOfChartableOutput(operand.getOperands().get(((ChartableWithMain)operand).mainInputPosition()));
+		} else {
+			Operation firstMapOperation = operand.getOperands().stream().filter(o -> o instanceof MapOperation).findFirst().orElse(null);
+			indexOfMain = (firstMapOperation != null)?getIndexOfChartableOutput(firstMapOperation):chartedOutputGroups.stream().map(cg -> ((int)cg.getComponents().values().stream().filter(c -> !c.getType().equals(Type.CONSTANT)).count())+1).reduce(0, (a, b) -> a+b)-1;
 		}
 		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
 	}
@@ -319,8 +331,19 @@ public class TargetStockInfo {
 				mainChartedGroup.addAdditionalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
 			}
 		} else {
-			throw new RuntimeException("Multi Output Main group (at index "+indexOfMain+") not found not found for " + operand);
+			throw new RuntimeException("Multi Output Main group (at index " + indexOfMain + ") not found not found for " + operand);
 		}
+	}
+
+	public void addAdHocGroup(
+			Operation operation, Value<?> buySellEventsMainOutput,
+			LinkedHashMap<String, Type> outputQualifiers, LinkedHashMap<String, SortedMap<Date, Double>> calculationResults) {
+		addOutput(operation, buySellEventsMainOutput);
+		for (String outputName : calculationResults.keySet()) {
+			addExtraneousChartableOutput(operation, new DoubleMapValue(calculationResults.get(outputName)), outputName);
+		}
+		setMain(operation);
+		addChartInfoForAdditonalOutputs(operation, outputQualifiers);
 	}
 
 	@Override

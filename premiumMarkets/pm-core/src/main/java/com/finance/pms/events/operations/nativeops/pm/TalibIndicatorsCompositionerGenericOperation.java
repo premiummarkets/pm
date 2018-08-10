@@ -38,7 +38,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.SpringContext;
@@ -57,7 +56,6 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -151,12 +149,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 				i++;
 			}
 
-			targetStock.addOutput(this, buySellEventsMainOutput);
-			for (String outputName : calculationResults.keySet()) {
-					targetStock.addExtraneousChartableOutput(this, new DoubleMapValue(calculationResults.get(outputName)), outputName);
-			}
-			targetStock.setMain(this);
-			targetStock.addChartInfoForAdditonalOutputs(this, outputQualifiers);
+			targetStock.addAdHocGroup(this, buySellEventsMainOutput, outputQualifiers, calculationResults);
 
 		}
 		catch (TalibException | NoQuotationsException e) {
@@ -167,26 +160,6 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 		}
 
 		return buySellEventsMainOutput;
-	}
-
-	private void buildChartable(TargetStockInfo targetStock, LinkedHashMap<String, Type> outputQualifiers) {
-
-		//createChartedOutputGroups(targetStock, operandsOutputs)
-		String mainOutputQualifier = outputQualifiers.keySet().stream().findFirst().get(); //first element ..
-		targetStock.setMain(this, mainOutputQualifier);
-
-		//addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) tail
-		LinkedHashMap<String, Type> filteredOutputQualifiers = new LinkedHashMap<>();
-		outputQualifiers.entrySet().stream().forEach(e ->  {
-			if (e.getValue().equals(Type.CONSTANT)) {
-				filteredOutputQualifiers.put(e.getKey(), Type.MULTISIGNAL);
-			} 
-			else {
-				filteredOutputQualifiers.put(e.getKey(), e.getValue());
-			}
-		});
-		targetStock.addChartInfoForAdditonalOutputs(this, filteredOutputQualifiers, mainOutputQualifier);
-
 	}
 
 	protected void transOutput(SortedMap<Date, double[]> origin, SortedMap<Date, Double> dest, int originIdx) {

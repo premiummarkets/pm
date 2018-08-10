@@ -79,8 +79,6 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			throws WarningException  {
 
 		super(observers);
-		//XXX TODO should the event info be cloned here or this would assume that only one calculation can run at a time for a given event info??
-		//XXX or made stateless??
 		this.eventInfoOpsCompoOperationHolder = (EventInfoOpsCompoOperation) eventInfo;
 
 		//Adjust start

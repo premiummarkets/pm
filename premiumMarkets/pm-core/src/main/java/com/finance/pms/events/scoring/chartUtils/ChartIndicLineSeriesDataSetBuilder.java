@@ -55,6 +55,11 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 			indicPlot.clearRangeAxes();
 
+			SortedSet<Date> fullDateSet = new TreeSet<>();
+			for (SortedMap<Date, double[]> output : eventsSeries.values()) {
+				fullDateSet.addAll(output.keySet());
+			}
+
 			int eventDefStartIdx = 0;
 			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {
 
@@ -81,16 +86,10 @@ public class ChartIndicLineSeriesDataSetBuilder {
 					int seriesIdx = 0;
 					double groupMaxY = -Double.MAX_VALUE;
 					double groupMinY = Double.MAX_VALUE;
-					SortedSet<Date> fullDateSet = new TreeSet<>();
-					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
-						fullDateSet.addAll(output.keySet());
-					}
 					for (int k = 0; k < outputIndexes.length; k++) {
 
 						int outputIdx = outputIndexes[k];
 						if (eventDefDescriptor.isDisplayed(outputIdx)) {
-
-							groupIsDisplayed = true;
 
 							//Build the timeSeries for the output
 							final String domain = eventDefDescriptor.getFullNameFor(outputIdx);
@@ -116,14 +115,16 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
 							//                    		timeSeries.add(lastItem, false);
 							//                    	}
-							//or
-							if (Double.isNaN(timeSeries.getMaxY()) && Double.isNaN(timeSeries.getMinY())) {
-								continue;
-							}
 
 							//Data Set
 							groupMaxY = (timeSeries.getMaxY() > groupMaxY)?timeSeries.getMaxY():groupMaxY;
 							groupMinY = (timeSeries.getMinY() < groupMinY)?timeSeries.getMinY():groupMinY;
+
+							if ((groupMinY == 0 && groupMaxY == 0) || (timeSeries.getMaxY() == -Double.MAX_VALUE && timeSeries.getMinY() == Double.MAX_VALUE)) {
+								continue;
+							} else {
+								groupIsDisplayed = true;
+							}
 
 							dataSet.addSeries(timeSeries);
 
@@ -161,7 +162,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 					}
 
 					//Y Axe for group. Finalizing the Group.
-					boolean hasData = groupMinY != Double.MAX_VALUE && groupMaxY != Double.MIN_VALUE;
+					boolean hasData = (groupMinY != Double.MAX_VALUE && groupMaxY != -Double.MAX_VALUE);
 					if (groupIsDisplayed && hasData) {
 
 						ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
@@ -176,18 +177,16 @@ public class ChartIndicLineSeriesDataSetBuilder {
 								AxisLocation location = AxisLocation.TOP_OR_LEFT;
 								indicPlot.setRangeAxisLocation(rendererIdx, location);
 								rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-							}
-							else if (eventDefNbOfGroupsDisplayed <= 2) {
+							} else if (eventDefNbOfGroupsDisplayed <= 2) {
 								AxisLocation location = AxisLocation.TOP_OR_RIGHT;
 								indicPlot.setRangeAxisLocation(rendererIdx, location);
 								rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-							}
-							else {
+							} else {
 								rangeAxis.setVisible(false);
 							}
-
-							indicPlot.setRangeAxis(rendererIdx, rangeAxis, true);
 							eventDefNbOfGroupsDisplayed++;
+							indicPlot.setRangeAxis(rendererIdx, rangeAxis, true);
+
 						}
 
 						//Set group dateSet

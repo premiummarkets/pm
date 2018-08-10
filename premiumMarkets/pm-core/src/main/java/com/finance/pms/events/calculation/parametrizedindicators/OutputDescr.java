@@ -118,12 +118,12 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	public int compareTo(OutputDescr o) {
 		int compareTo = this.outputReference.compareTo(o.outputReference);
 		if (compareTo == 0) {
+			compareTo = this.container.compareTo(o.container);
+		}
+		if (compareTo == 0) {
 			if ( this.constant == null && o.constant == null) return 0;
 			if (this.constant != null && o.constant == null) return 1;
 			compareTo = this.constant.getValueAsString().compareTo(o.constant.getValueAsString());
-			if (compareTo == 0) {
-				compareTo = this.container.compareTo(o.container);
-			}
 		}
 		return compareTo;
 	}
@@ -133,8 +133,8 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((outputReference == null) ? 0 : outputReference.hashCode());
-		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
 		result = prime * result + ((container == null) ? 0 : container.hashCode());
+		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
 		return result;
 	}
 
@@ -152,15 +152,15 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 				return false;
 		} else if (!outputReference.equals(other.outputReference))
 			return false;
-		if (constant == null) {
-			if (other.constant != null)
-				return false;
-		} else if (!constant.equals(other.constant))
-			return false;
 		if (container == null) {
 			if (other.container != null)
 				return false;
 		} else if (!container.equals(other.container))
+			return false;
+		if (constant == null) {
+			if (other.constant != null)
+				return false;
+		} else if (!constant.equals(other.constant))
 			return false;
 		return true;
 	}

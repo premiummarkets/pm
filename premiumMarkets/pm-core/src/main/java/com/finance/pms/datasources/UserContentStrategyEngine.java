@@ -237,18 +237,20 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> run(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
 
 		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
+		Boolean hasFailed = false;
 		try {
 			passOneOutput = actionThread.runIndicatorsCalculation();
 		} catch (IncompleteDataSetException e1) {
 			passOneOutput = e1.getCalculatedOutputs();
+			hasFailed = true;
 		}
 
-		return finalising(actionThread, passOneOutput, start, end);
+		return finalising(actionThread, passOneOutput, start, end, hasFailed);
 	}
 
 	protected abstract String passOneOverwriteMode();
 
-	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end) {
+	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end, Boolean hasFailed) {
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 		if (passOutput != null) {
@@ -258,7 +260,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
 					for (EventInfo evtDef : map4Stock.keySet()) {
 						SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
-						if (map4EvtDef != null) {
+						if (map4EvtDef != null && !hasFailed) {
 							ret.get(stock).put(evtDef,
 									new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false)));
 						} else {
