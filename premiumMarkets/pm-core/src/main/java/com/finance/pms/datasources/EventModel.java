@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -109,12 +110,14 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
         private Date start;
         private Date end;
         private OutStampState outputState;
+        private Optional<String> cause;
 
-        public UpdateStamp(Date start, Date end, Boolean isFailing) {
+        public UpdateStamp(Date start, Date end, Boolean isFailing, String cause) {
             super();
             this.start = start;
             this.end = end;
             this.outputState = (isFailing)?OutStampState.FAILING:OutStampState.OK;
+            this.cause = Optional.ofNullable(cause);
         }
 
         @Override
@@ -162,6 +165,11 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
         public OutStampState getOutputState() {
             return outputState;
         }
+
+		public String getCause() {
+			return cause.orElse("None");
+		}
+
     }
 
     public static Date DEFAULT_DATE;
