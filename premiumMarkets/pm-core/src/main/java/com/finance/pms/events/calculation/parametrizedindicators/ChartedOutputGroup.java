@@ -46,18 +46,9 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 
 	private UUID uuid;
 
-	//Non displayed group
-	public ChartedOutputGroup(OutputReference thisGroupMainOutputReference, int groupMainOutputIndex) {
+	public ChartedOutputGroup(Operation mainOperation, int outputIndex) {
 		uuid = UUID.randomUUID();
-		this.thisGroupMainOutputDescription = new OutputDescr(thisGroupMainOutputReference, this, Type.INVISIBLE, groupMainOutputIndex, null);
-		this.thisGroupMainOutputReference = thisGroupMainOutputReference;
-		this.components = new HashMap<>();
-	}
-
-	//Adding a main
-	public ChartedOutputGroup(Operation operation, int outputIndex) {
-		uuid = UUID.randomUUID();
-		OutputReference outputReference = new OutputReference(operation);
+		OutputReference outputReference = new OutputReference(mainOperation);
 		thisGroupMainOutputDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
 		thisGroupMainOutputReference = outputReference;
 		components = new HashMap<>();

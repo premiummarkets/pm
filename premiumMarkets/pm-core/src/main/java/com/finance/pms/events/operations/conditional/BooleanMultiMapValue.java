@@ -36,15 +36,16 @@ import java.util.Set;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapValue {
-	
-	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
+
+	private static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 
 	private Map<String, UnarableMapValue> additionalOutputs;
 	private Map<String, Type> additionalOutputsTypes;
-	
+
 	public BooleanMultiMapValue() {
 		super();
 		additionalOutputs = new HashMap<String, UnarableMapValue>();
@@ -79,7 +80,7 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Map<String, UnarableMapValue> getAdditionalOutputs() {
 		return additionalOutputs;
@@ -89,5 +90,5 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 	public Map<String, Type> getAdditionalOutputsTypes() {
 		return additionalOutputsTypes;
 	}
-	
+
 }

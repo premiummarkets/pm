@@ -11,18 +11,18 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	private Type type;
 	private Integer outputIndex;
-	private StringableValue constant;
+	private StringableValue discriminentConstant;
 
 	private Boolean displayOnChart;
 
-	public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue constant) {
+	public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue disciminentConstant) {
 		super();
 		this.outputReference = outputReference;
 		this.container = container;
 
 		this.type = type;
 		this.outputIndex = outputIndex;
-		this.constant = constant;
+		this.discriminentConstant = disciminentConstant;
 
 		this.displayOnChart = true;
 	}
@@ -36,7 +36,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	}
 
 	public StringableValue getConstant() {
-		return constant;
+		return discriminentConstant;
 	}
 
 	public void setOutputIndex(Integer outputIndex) {
@@ -46,7 +46,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	public String fullQualifiedName() {
 		String discriminantReference = outputReference.getReference();
 		if (outputReference.getIsLeaf()) {
-			discriminantReference = constant.getValueAsString();
+			discriminantReference = discriminentConstant.getValueAsString();
 		}
 
 		String familyName = outputReference.getOperationReference() +
@@ -111,7 +111,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	@Override
 	public String toString() {
 		return "OutputDescr [ outputReference= \n\t\t" + outputReference + ", \n\t\t container=" + container.getThisGroupMainOutputReference().getReference()
-				+ ", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + constant + ", displayOnChart="+ displayOnChart + "]";
+				+ ", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + discriminentConstant + ", displayOnChart="+ displayOnChart + "]";
 	}
 
 	@Override
@@ -121,9 +121,9 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 			compareTo = this.container.compareTo(o.container);
 		}
 		if (compareTo == 0) {
-			if ( this.constant == null && o.constant == null) return 0;
-			if (this.constant != null && o.constant == null) return 1;
-			compareTo = this.constant.getValueAsString().compareTo(o.constant.getValueAsString());
+			if ( this.discriminentConstant == null && o.discriminentConstant == null) return 0;
+			if (this.discriminentConstant != null && o.discriminentConstant == null) return 1;
+			compareTo = this.discriminentConstant.getValueAsString().compareTo(o.discriminentConstant.getValueAsString());
 		}
 		return compareTo;
 	}
@@ -134,7 +134,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		int result = 1;
 		result = prime * result + ((outputReference == null) ? 0 : outputReference.hashCode());
 		result = prime * result + ((container == null) ? 0 : container.hashCode());
-		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
+		result = prime * result + ((discriminentConstant == null) ? 0 : discriminentConstant.getValueAsString().hashCode());
 		return result;
 	}
 
@@ -157,10 +157,10 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 				return false;
 		} else if (!container.equals(other.container))
 			return false;
-		if (constant == null) {
-			if (other.constant != null)
+		if (discriminentConstant == null) {
+			if (other.discriminentConstant != null)
 				return false;
-		} else if (!constant.equals(other.constant))
+		} else if (!discriminentConstant.equals(other.discriminentConstant))
 			return false;
 		return true;
 	}

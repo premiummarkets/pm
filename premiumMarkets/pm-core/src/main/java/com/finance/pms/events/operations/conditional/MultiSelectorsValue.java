@@ -43,10 +43,10 @@ import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 //Used as a cache for GraphableMapValue to avoid multiple recalculations when several outputs are available (via selectors) for the same operation.
 public class MultiSelectorsValue extends DoubleMapValue {
-	
+
 	private Map<String, UnarableMapValue> selectorOutputs;
 	private String calculationSelector;
-	
+
 	public MultiSelectorsValue(List<String> availableOutputSelectors, String outputSelector) {
 		super(new TreeMap<>());
 		this.selectorOutputs = availableOutputSelectors.stream().collect(Collectors.toMap(s -> s, s -> new DoubleMapValue()));
@@ -62,7 +62,7 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	public UnarableMapValue getValue(String selector) {
 		return selectorOutputs.get(selector);
 	}
-	
+
 	public Set<String> getSelectors() {
 		return selectorOutputs.keySet();
 	}
@@ -96,6 +96,5 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	public String getCalculationSelector() {
 		return calculationSelector;
 	}
-	
 
 }

@@ -29,52 +29,91 @@
  */
 package com.finance.pms.events.operations.conditional;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.math3.stat.descriptive.rank.Max;
+import org.apache.commons.math3.stat.descriptive.rank.Min;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.scoring.functions.ApacheStats;
 
 @XmlRootElement
-public class EventMapValue extends UnarableMapValue implements StringableMapValue {
+public class EventMapValue extends UnarableMapValue implements StringableMapValue, MultiMapValue {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventMapValue.class);
 
 	private SortedMap<EventKey, EventValue> eventData;
+	private Map<String, UnarableMapValue> additionalOutputs;
+	private Map<String, Type> additionalOutputsTypes;
 
 	public EventMapValue() {
 		super();
 		eventData = new TreeMap<EventKey, EventValue>();
+		additionalOutputs = new HashMap<String, UnarableMapValue>();
+		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 	public EventMapValue(SortedMap<EventKey, EventValue> eventData) {
 		super();
 		this.eventData = eventData;
+		additionalOutputs = new HashMap<String, UnarableMapValue>();
+		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 
+		double fMax = 1d;
+		double fMin = -1d;
 		return eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> {
 			EventType t = e.getEventType();
 			switch(t) {
-			case BULLISH : return 1d;
-			case BEARISH : return -1d;
-			default : return 0d;
+			case BULLISH : return fMax;
+			case BEARISH : return fMin;
+			default : return fMin + (fMax-fMin)/2;
 			}
 		}, (a,b) -> a + b, TreeMap::new)); //XXX there may be merge conflicts as Date is not a unique key in SortedMap<EventKey, EventValue>
 
+	}
+
+	public SortedMap<Date, Double> getNormalizedValue(TargetStockInfo targetStockInfo) {
+		double max = 1d;
+		double min = -1d;
+		if (!additionalOutputs.values().isEmpty()) {
+			Collection<Double> values = additionalOutputs.values().iterator().next().getValue(null).subMap(targetStockInfo.getStartDate(), targetStockInfo.getEndDate()).values();
+			ApacheStats maxStats = new ApacheStats(new Max());
+			max = maxStats.sEvaluate(values);
+			ApacheStats minStats = new ApacheStats(new Min());
+			min = minStats.sEvaluate(values);
+		}
+		double fMax =  max;
+		double fMin = min;
+		return eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> {
+			EventType t = e.getEventType();
+			switch(t) {
+			case BULLISH : return fMax;
+			case BEARISH : return fMin;
+			default : return fMin + (fMax-fMin)/2;
+			}
+		}, (a,b) -> a + b, TreeMap::new));
 	}
 
 	public SortedMap<EventKey, EventValue> getEventMap() {
@@ -97,6 +136,12 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 		try {
 			EventMapValue clone = (EventMapValue) super.clone();
 			clone.eventData = (SortedMap<EventKey, EventValue>) ((TreeMap<EventKey, EventValue>)this.eventData).clone();
+			clone.additionalOutputs = new HashMap<String, UnarableMapValue>();
+			for (String outputKey : additionalOutputs.keySet()) {
+				UnarableMapValue  addOutputClone = (UnarableMapValue) (additionalOutputs.get(outputKey)).clone();
+				clone.additionalOutputs.put(outputKey, addOutputClone);
+				clone.additionalOutputsTypes.put(outputKey, additionalOutputsTypes.get(outputKey));
+			}
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
@@ -107,6 +152,16 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	@Override
 	public List<Date> getDateKeys() {
 		return eventData.keySet().stream().map(k -> k.getDate()).collect(Collectors.toList());
+	}
+
+	@Override
+	public Map<String, UnarableMapValue> getAdditionalOutputs() {
+		return additionalOutputs;
+	}
+
+	@Override
+	public Map<String, Type> getAdditionalOutputsTypes() {
+		return additionalOutputsTypes;
 	}
 
 }

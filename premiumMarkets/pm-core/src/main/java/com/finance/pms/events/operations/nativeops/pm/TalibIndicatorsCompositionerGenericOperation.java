@@ -31,7 +31,6 @@ package com.finance.pms.events.operations.nativeops.pm;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -56,6 +55,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
+import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -80,7 +80,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	private final Class<? extends TalibIndicatorsOperator> calculatorClass;
 
 	public TalibIndicatorsCompositionerGenericOperation(
-			String reference, String description, 
+			String reference, String description,
 			Class<? extends TalibIndicatorsOperator> calculatorClass, List<String> inConstantsNames) throws Exception {
 		super(reference, description);
 
@@ -108,8 +108,8 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 			EventInfo thisEventInfoOpsCompoOperation = (EventInfo) ((ParameterizedIndicatorsBuilder) SpringContext.getSingleton().getBean("parameterizedIndicatorsBuilder")).getUserEnabledOperations().get(this.getReference());
 			if (thisEventInfoOpsCompoOperation == null) 
 				throw new Exception(this.getReference() + " is a paremterized operation wich outputs events (like an indicator) and has for input the generic indicator composionner: " + this.getOperationReference() +
-					". However, it needs to be backed up by your own EPONYM indicator as the latter can't be paramterized through the editor. " +
-					this.getReference() + " is not defined as an indicator. Make sure operation and indicator have the same name.");
+						". However, it needs to be backed up by your own EPONYM indicator as the latter can't be paramterized through the editor. " +
+						this.getReference() + " is not defined as an indicator. Make sure operation and indicator have the same name.");
 			TalibIndicatorsOperator calculator = calculatorClass.getConstructor(EventInfo.class).newInstance(thisEventInfoOpsCompoOperation);
 
 			List<Integer> inputConstants = inputs.stream().map(i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
@@ -132,24 +132,19 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 				throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
 			}
 
-			LinkedHashMap<String, Type> outputQualifiers =
-					eventDefDescriptor.descriptionMap().entrySet().stream()
-							.collect(Collectors.toMap(
-									e -> e.getKey(),
-									e -> (e.getValue().equals(Type.CONSTANT))?Type.MULTISIGNAL:e.getValue(),
-									(a, b) -> a, LinkedHashMap::new));
 			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();
 
-			LinkedHashMap<String, SortedMap<Date, Double>> calculationResults = new LinkedHashMap<>();
 			int i = 0;
-			for (String outputName : outputQualifiers.keySet()) {
+			for (String outputName : eventDefDescriptor.descriptionMap().keySet()) {
 				SortedMap<Date, Double> output = new TreeMap<>();
 				transOutput(calculationOutput, output, i);
-				calculationResults.put(outputName, output);
+
+				Type outputType = eventDefDescriptor.descriptionMap().get(outputName);
+				buySellEventsMainOutput.getAdditionalOutputs().put(outputName, new DoubleMapValue(output));
+				buySellEventsMainOutput.getAdditionalOutputsTypes().put(outputName, (outputType.equals(Type.CONSTANT))?Type.MULTISIGNAL:outputType);
+
 				i++;
 			}
-
-			targetStock.addAdHocGroup(this, buySellEventsMainOutput, outputQualifiers, calculationResults);
 
 		}
 		catch (TalibException | NoQuotationsException e) {

@@ -12,11 +12,10 @@ import java.util.stream.IntStream;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.conditional.MultiMapValue;
 
 public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapValue {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(DoubleArrayMapValue.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(DoubleArrayMapValue.class);
 
 	private SortedMap<Date, double[]> map;
 	private List<String> columnsReferences;
@@ -60,7 +59,7 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 							TreeMap<Date, Double> collect = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[i], (a,b) -> a, TreeMap::new));
 							return new DoubleMapValue(collect);
 						}
-						)
+					)
 				);
 	}
 

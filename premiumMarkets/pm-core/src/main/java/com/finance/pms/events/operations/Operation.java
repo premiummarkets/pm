@@ -46,16 +46,11 @@ import javax.xml.bind.annotation.XmlType;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.operations.conditional.Condition;
-import com.finance.pms.events.operations.conditional.MultiMapValue;
-import com.finance.pms.events.operations.conditional.OnSignalCondition;
-import com.finance.pms.events.operations.conditional.OnThresholdCondition;
-import com.finance.pms.events.operations.conditional.UnaryCondition;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
-import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
@@ -160,14 +155,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}
 			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this)) != null) {
 				return alreadyCalculated;
-			} 
+			}
 			else {
 
 				List<Value<?>> operandsOutputs = new ArrayList<Value<?>>();
 				for (int i = 0; i < operands.size(); i++) {
 
 					Operation operand = operands.get(i);
-
 					Value<?> output = operand.run(targetStock, thisStartShift);
 					operandsOutputs.add(output);
 
@@ -175,7 +169,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 				}
 
-				createChartedOutputGroups(targetStock, operandsOutputs);
+				targetStock.populateChartedOutputGroups(this, operandsOutputs);
 
 				Value<?> operationOutput = calculate(targetStock, thisStartShift, operandsOutputs);
 
@@ -196,54 +190,23 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		//We gather only outputs for StockOperation and User formulas.
 		if ( (output instanceof UnarableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
-			targetStock.addOutput(operand, output);
+			targetStock.gatherOneOutput(operand, output);
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
-			addAdditionalOutputs(targetStock, operand, (MultiMapValue) output);
+			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output);
 		}
 
 	}
 
-	private ChartedOutputGroup createChartedOutputGroups(TargetStockInfo targetStock, List<Value<?>> operandsOutputs) {
-
-		ChartedOutputGroup chartedOutputGroup = null;
-		if (this instanceof OnSignalCondition) {//Operands outputs are grouped
-			//pick up or create the group
-			int mainOpPosition = ((OnSignalCondition) this).mainInputPosition();
-			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
-			//add the signal
-			int signalOpPosition = ((OnSignalCondition) this).inputSignalPosition();
-			targetStock.addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition));
-
-		} else if (this instanceof OnThresholdCondition) {
-			//pick up or create the group
-			int mainOpPosition = ((OnThresholdCondition) this).mainInputPosition();
-			Operation mainOp = operands.get(mainOpPosition);
-			chartedOutputGroup = targetStock.setMain(mainOp);
-			//add the constant
-			int thresholdOpPosition = ((OnThresholdCondition)this).inputThresholdPosition();
-			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
-
-		} else if (this instanceof UnaryCondition) {
-			//pick up or create the group
-			int mainOpPosition = ((UnaryCondition) this).mainInputPosition();
-			chartedOutputGroup = targetStock.setMain(operands.get(mainOpPosition));
-		}
-
-		return chartedOutputGroup;
-	}
-
-	private void addAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) {
+	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) {
 
 		//add to gathered
 		Map<String, UnarableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
-			targetStock.addExtraneousChartableOutput(operand, extraneousOutputs.get(extOutKey), extOutKey);
+			targetStock.gatherExtraneousChartableOutput(operand, extraneousOutputs.get(extOutKey), extOutKey);
 		}
 
-		//add to chart info
-		targetStock.addChartInfoForAdditonalOutputs(operand, operandsOutput.getAdditionalOutputsTypes());
 	}
 
 	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
@@ -574,20 +537,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		LOGGER.info(this.getReference()+" start date shift to : "+startShift+". Requested start : "+startDate+", calculated start : "+startCal.getTime());
 		return startCal.getTime();
 	}
-
-//	public List<Operation> collectOperandsOfType(Class<? extends DoubleMapOperation> operationType) {
-//		if (operands.isEmpty()) return new ArrayList<>();
-//		ArrayList<Operation> result = new ArrayList<>();
-//		operands.stream().forEach(
-//				o -> {
-//					if (operationType.isAssignableFrom(o.getClass())) {
-//						result.add(o);
-//					} else {
-//						result.addAll(o.collectOperandsOfType(operationType));
-//					}
-//				});
-//		return result;
-//	}
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
 	//This can be overridden by making this operation itself not idempotent

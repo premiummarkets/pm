@@ -176,7 +176,12 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			for (Output output : gatheredOutputs) {
 				Value<?> outputData = output.getOutputData();
 				if (outputData != null) {
-					SortedMap<Date, Double> data = ((UnarableMapValue) outputData).getValue(targetStock);
+					SortedMap<Date, Double> data;
+					if (outputData instanceof EventMapValue) {
+						data = ((EventMapValue) outputData).getNormalizedValue(targetStock);
+					} else {
+						data = ((UnarableMapValue) outputData).getValue(targetStock);
+					}
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());
 				}

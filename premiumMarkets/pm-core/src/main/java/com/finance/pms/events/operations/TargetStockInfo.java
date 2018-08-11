@@ -32,13 +32,13 @@ package com.finance.pms.events.operations;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
@@ -47,23 +47,25 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
-import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.conditional.OnSignalCondition;
+import com.finance.pms.events.operations.conditional.OnThresholdCondition;
+import com.finance.pms.events.operations.conditional.UnaryCondition;
+import com.finance.pms.events.operations.nativeops.MultiMapValue;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 
 public class TargetStockInfo {
 
-	//	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
 
 	public class Output {
 
-		OutputReference outputReference;
-		Value<?> outputData;
-		OutputDescr chartedDescription;
+		private OutputReference outputReference;
+		private Value<?> outputData;
+		private OutputDescr chartedDescription;
 
 		public Output(OutputReference outputReference) {
 			super();
@@ -188,13 +190,13 @@ public class TargetStockInfo {
 		if (indexOf == -1) {
 			return null;
 		}
-		return calculatedOutputsCache.get(indexOf).outputData ;
+		return calculatedOutputsCache.get(indexOf).outputData;
 	}
 
 	/**
 	 * This method also calls setMain for MultiSelectorsValue
 	 */
-	public void addOutput(Operation operation, Value<?> outputValue) {
+	public void gatherOneOutput(Operation operation, Value<?> outputValue) {
 
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
 		if (alreadyCalculated != null) {
@@ -221,14 +223,9 @@ public class TargetStockInfo {
 
 	}
 
-	public void addExtraneousChartableOutput(Operation operation, UnarableMapValue output, String multiOutputDiscriminator) {
+	public void gatherExtraneousChartableOutput(Operation operation, UnarableMapValue output, String multiOutputDiscriminator) {
 		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
 	}
-
-	//	public ChartedOutputGroup setMain(Operation operation, String mainOperationQualifier) {
-	//		int indexOfOutput = gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, mainOperationQualifier)));
-	//		return setMain(operation, indexOfOutput);
-	//	}
 
 	public ChartedOutputGroup setMain(Operation operation) {
 		Integer indexOfOutput = getIndexOfChartableOutput(operation);
@@ -238,7 +235,7 @@ public class TargetStockInfo {
 	private ChartedOutputGroup setMain(Operation operation, Integer indexOfOutput) {
 		if (indexOfOutput != -1) {
 
-			Output output = gatheredChartableOutputs.get(indexOfOutput);
+			Output output = getGatheredChartableOutput(indexOfOutput);
 			OutputDescr chartedDesrc = output.getChartedDescription();
 			if (chartedDesrc != null) {
 				chartedDesrc.maskType(Type.MAIN);
@@ -267,11 +264,11 @@ public class TargetStockInfo {
 		return chartedOutputGroups;
 	}
 
-	public void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
+	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
 
 		Integer indexOfOutput = getIndexOfChartableOutput(operation);
 		if (indexOfOutput != -1) {
-			Output output = gatheredChartableOutputs.get(indexOfOutput);
+			Output output = getGatheredChartableOutput(indexOfOutput);
 			OutputDescr chartedDescr = output.getChartedDescription();
 			if (chartedDescr != null) {
 				//Merge mainChartedGrp and existingChartedGrp if <> + maskType
@@ -298,32 +295,10 @@ public class TargetStockInfo {
 		}
 	}
 
-
-//	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, String outputQualifier) {
-//		Integer indexOfMain = getIndexOfChartableOutput(new OutputReference(operand, outputQualifier));
-//		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
-//	}
-
-	public void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes) {
-//		Integer indexOfMain = chartedOutputGroups.stream().map(cg -> cg.getComponents().size()+1).reduce(0, (a, b) -> a+b);
-//		if (operand instanceof ChartableWithMain) {
-//			indexOfMain = indexOfMain + getIndexOfChartableOutput(operand.getOperands().get(((ChartableWithMain)operand).mainInputPosition()));
-//		} else {
-//			indexOfMain--;
-//		}
-		Integer indexOfMain;
-		if (operand instanceof ChartableWithMain) {
-			indexOfMain = getIndexOfChartableOutput(operand.getOperands().get(((ChartableWithMain)operand).mainInputPosition()));
-		} else {
-			Operation firstMapOperation = operand.getOperands().stream().filter(o -> o instanceof MapOperation).findFirst().orElse(null);
-			indexOfMain = (firstMapOperation != null)?getIndexOfChartableOutput(firstMapOperation):chartedOutputGroups.stream().map(cg -> ((int)cg.getComponents().values().stream().filter(c -> !c.getType().equals(Type.CONSTANT)).count())+1).reduce(0, (a, b) -> a+b)-1;
-		}
-		addChartInfoForAdditonalOutputs(operand, outputTypes, indexOfMain);
-	}
-
 	private void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, Integer indexOfMain) {
-		Output output = gatheredChartableOutputs.get(indexOfMain);
-		OutputDescr chartedDesrc = output.getChartedDescription();
+		if (outputTypes.isEmpty()) return;
+		Output mainOutput = getGatheredChartableOutput(indexOfMain);
+		OutputDescr chartedDesrc = mainOutput.getChartedDescription();
 		if (chartedDesrc != null) {
 			ChartedOutputGroup mainChartedGroup = chartedDesrc.getContainer();
 			for (String outputKey : outputTypes.keySet()) {
@@ -335,15 +310,13 @@ public class TargetStockInfo {
 		}
 	}
 
-	public void addAdHocGroup(
-			Operation operation, Value<?> buySellEventsMainOutput,
-			LinkedHashMap<String, Type> outputQualifiers, LinkedHashMap<String, SortedMap<Date, Double>> calculationResults) {
-		addOutput(operation, buySellEventsMainOutput);
-		for (String outputName : calculationResults.keySet()) {
-			addExtraneousChartableOutput(operation, new DoubleMapValue(calculationResults.get(outputName)), outputName);
+	private Output getGatheredChartableOutput(Integer indexOfMain) {
+		try {
+			return gatheredChartableOutputs.get(indexOfMain);
+		} catch (Exception e) {
+			LOGGER.error("No gathered output for "+indexOfMain, e);
+			throw e;
 		}
-		setMain(operation);
-		addChartInfoForAdditonalOutputs(operation, outputQualifiers);
 	}
 
 	@Override
@@ -389,6 +362,61 @@ public class TargetStockInfo {
 
 	public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {
 		return outputAnalysers;
+	}
+
+	public void populateChartedOutputGroups(Operation operation, List<Value<?>> operandsOutputs) {
+
+		ChartedOutputGroup chartedOutputGroup = null;
+		List<Operation> operands = operation.getOperands();
+		if (operation instanceof OnSignalCondition) {//Operands outputs are grouped
+			//pick up or create the group
+			int mainOpPosition = ((OnSignalCondition) operation).mainInputPosition();
+			chartedOutputGroup = setMain(operands.get(mainOpPosition));
+			//add the signal
+			int signalOpPosition = ((OnSignalCondition) operation).inputSignalPosition();
+			addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition));
+
+		} else if (operation instanceof OnThresholdCondition) {
+			//pick up or create the group
+			int mainOpPosition = ((OnThresholdCondition) operation).mainInputPosition();
+			Operation mainOp = operands.get(mainOpPosition);
+			chartedOutputGroup = setMain(mainOp);
+			//add the constant
+			int thresholdOpPosition = ((OnThresholdCondition)operation).inputThresholdPosition();
+			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
+
+		} else if (operation instanceof UnaryCondition) {
+			//pick up or create the group
+			int mainOpPosition = ((UnaryCondition) operation).mainInputPosition();
+			chartedOutputGroup = setMain(operands.get(mainOpPosition));
+
+		} else { //adHoc will rely on the operands only
+			for(int i = 0; i < operands.size(); i++) {
+				Value<?> ov = operandsOutputs.get(i);
+				Operation operand = operands.get(i);
+				if (ov instanceof UnarableMapValue && operand.getFormulae() != null) {
+					if (chartedOutputGroup == null) {
+						chartedOutputGroup = setMain(operand);
+					} else {
+						Map<String, Type> additionalOutputsTypes = new HashMap<>();
+						additionalOutputsTypes.put(operand.getReference(), Type.MULTI);
+						addChartInfoForAdditonalOutputs(operand, additionalOutputsTypes, getIndexOfChartableOutput(operand));
+					}
+				}
+			}
+		}
+
+		//MutliValues (Sub Groups)
+		for(int i = 0; i < operands.size(); i++) {
+			Value<?> ov = operandsOutputs.get(i);
+			Operation operand = operands.get(i);
+			if (ov instanceof MultiMapValue && operand.getFormulae() != null) {
+				Map<String, Type> multiMapValueOutputTypes = ((MultiMapValue) ov).getAdditionalOutputsTypes();
+				setMain(operand);
+				addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand));
+			}
+		}
+
 	}
 
 }

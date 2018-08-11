@@ -226,6 +226,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					//Update chart content if needed (this subsequently will trigger charts updates calls)
 					if (outputDataNeedsUpdate) {
 						eventsRecalculationAck(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), notUpToDateEventInfos, minDate);
+					} else {
+						disableRecalculationButton();
 					}
 
 				} catch (Exception e) {
