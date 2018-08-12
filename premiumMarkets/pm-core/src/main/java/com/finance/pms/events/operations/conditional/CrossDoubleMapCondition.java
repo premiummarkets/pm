@@ -30,7 +30,6 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
@@ -46,7 +45,6 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 /**
@@ -112,16 +110,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 						outputs.getValue(targetStock).put(date, conditionCheck);
 					}
 
-					if (conditionCheck && overPeriod > 0) {
-						Calendar endOverPeriodCal = Calendar.getInstance();
-						endOverPeriodCal.setTime(date);
-						QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);
-						Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))?fullKeySet.last():endOverPeriodCal.getTime();
-						SortedSet<Date> overPeriodData = fullKeySet.subSet(date, endOverPeriod);
-						for (Date overPeriodDate : overPeriodData) {
-							outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
-						}
-					}
+					fillInOverPeriod(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
 				}
 			}
 		}

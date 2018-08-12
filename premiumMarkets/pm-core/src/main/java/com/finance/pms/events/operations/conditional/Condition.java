@@ -31,8 +31,12 @@ package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -40,41 +44,45 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 /**
  * 
  * @author Guillaume Thoreton
  * Some conditions can (when it makes sense) be followed by key words changing the result :
  * 'over n days' : means that the condition happened once over the past n days. It could as well not be fulfilled a the date.
- * 	If the condition happened within n days ago, it will still be true today.
- * 'for n days' : means that the condition was true for n days in a row.
- * 'spanning n days' : will be used for condition involving events happening over time like when comparing two status of the data at two point in time t and t-n.
+ * 	For a status A to be true, we need that the status was at least once of value A over the past n days.
+ * 	For an event (change of status) B to A to be true, we need that the status changed at least once from value B to value A over the past n days.
+ * 'for n days' : means that the condition was true for the n previous n days at the day we check. 
+ * 	This makes sense only for a check on status value not a change of status.
+ * 	In case there be missing values over the last n days, this will still be true if all present values are true.
+ * 'spanning n days' : will be used for condition involving events happening over time like when comparing two status of the data at two point in time t and t-n (change of status).
  * 	For instance 'close crosses up 10 spanning 3 days' means that close was below 10 three days ago and close is now above 10. So basically we ignore what happened in between.
  * 	These can be combined like for instance :
  *  	close is above 10 over 30 days for 2 days
  *   	close is above 10 over 10 days for 10 days
  *   	goes up for 10 days spanning 2 days
- *   ...
+ *		...
  * Note 'days' here mean days calendar open days not quotation days.
  */
 
 @XmlSeeAlso({
-    BooleanDoubleMapCondition.class,
-    CmpConstantCondition.class,
-    CmpDoubleMapCondition.class,
-    CmpDoubleMapCondition.class,
-    CrossConstantCondition.class,
-    CrossDoubleMapCondition.class,
-    EqualStringConstantCondition.class,
-    HighsAndLowsCondition.class, 
-    NullCondition.class,
-    ReverseCondition.class})
+	BooleanDoubleMapCondition.class,
+	CmpConstantCondition.class,
+	CmpDoubleMapCondition.class,
+	CmpDoubleMapCondition.class,
+	CrossConstantCondition.class,
+	CrossDoubleMapCondition.class,
+	EqualStringConstantCondition.class,
+	HighsAndLowsCondition.class, 
+	NullCondition.class,
+	ReverseCondition.class})
 public class Condition<T> extends Operation {	
-	
+
 	protected Condition() {
 		super();
 	}
-	
+
 	public Condition(String reference) {
 		super(reference, reference);
 	}
@@ -86,7 +94,7 @@ public class Condition<T> extends Operation {
 	public Condition(String reference, String description, Operation... operands) {
 		this(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
 	}
-	
+
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<T> ... ops) {
 		return false;
 	}
@@ -104,5 +112,58 @@ public class Condition<T> extends Operation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
 		//Nothing
+	}
+
+	/**
+	 * We fill in ahead a period a of 'overPeriod' length with the actual condition status if it is true.
+	 * @param targetStock
+	 * @param overPeriod
+	 * @param fullKeySet data full date set
+	 * @param actualDate
+	 * @param conditionCheck
+	 * @param outputs
+	 */
+	protected void fillInOverPeriod(TargetStockInfo targetStock, Integer overPeriod, SortedSet<Date> fullKeySet, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
+		if (conditionCheck != null && conditionCheck && overPeriod > 0) {
+			Calendar endOverPeriodCal = Calendar.getInstance();
+			endOverPeriodCal.setTime(actualDate);
+			QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);
+			Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))? fullKeySet.last():endOverPeriodCal.getTime();
+			SortedSet<Date> overPeriodData = fullKeySet.subSet(actualDate, endOverPeriod);
+			for (Date overPeriodDate : overPeriodData) {
+				outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * @param targetStock
+	 * @param forPeriod
+	 * @param fullKeySet
+	 * @param realRowOutputs
+	 * @param actualDate
+	 * @param conditionCheck
+	 * @return
+	 */
+	protected Boolean checkRawOutputAgainstForPeriod(TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date actualDate, Boolean conditionCheck) {
+		if (conditionCheck && forPeriod > 0) {
+
+			Calendar startForPeriodCal = Calendar.getInstance();
+			startForPeriodCal.setTime(actualDate);
+			QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
+			Date startForPeriod = startForPeriodCal.getTime();
+
+			SortedMap<Date, Boolean> forPeriodData = realRowOutputs.getValue(targetStock).subMap(startForPeriod, actualDate);
+			if (startForPeriod.before(fullKeySet.first())) {
+				conditionCheck = null;
+			} else {
+				for (Boolean previousValue : forPeriodData.values()) {
+					conditionCheck = conditionCheck && previousValue;
+					if (!previousValue) break;
+				}
+			}
+		}
+		return conditionCheck;
 	}
 }

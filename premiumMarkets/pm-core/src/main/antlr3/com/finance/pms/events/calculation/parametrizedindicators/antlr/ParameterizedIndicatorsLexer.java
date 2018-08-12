@@ -1,20 +1,15 @@
-// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-08-04 17:48:01
+// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-08-12 13:35:22
  //lexer
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.IndsLexerDelegate;
 
-import com.finance.pms.events.calculation.antlr.IndsLexerDelegate;
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedIndicatorsLexer extends Lexer {
@@ -966,8 +961,8 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = Operation;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:7: ({...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+ )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:9: {...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:267:7: ({...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+ )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:267:9: {...}? => ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
 			{
 			if ( !((runtimeOpAhead())) ) {
 				throw new FailedPredicateException(input, "Operation", "runtimeOpAhead()");
@@ -980,7 +975,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 				recover(mse);
 				throw mse;
 			}
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:60: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:267:60: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )+
 			int cnt1=0;
 			loop1:
 			while (true) {
@@ -1029,10 +1024,10 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = NumberToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:7: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:10: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )?
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:7: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:10: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )?
 			{
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:10: ( '-' )?
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:10: ( '-' )?
 			int alt2=2;
 			int LA2_0 = input.LA(1);
 			if ( (LA2_0=='-') ) {
@@ -1040,7 +1035,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 			}
 			switch (alt2) {
 				case 1 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:11: '-'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:11: '-'
 					{
 					match('-'); 
 					}
@@ -1048,7 +1043,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 
 			}
 
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:17: ( '0' .. '9' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:17: ( '0' .. '9' )+
 			int cnt3=0;
 			loop3:
 			while (true) {
@@ -1081,7 +1076,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 				cnt3++;
 			}
 
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:29: ( '.' ( '0' .. '9' )+ )?
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:29: ( '.' ( '0' .. '9' )+ )?
 			int alt5=2;
 			int LA5_0 = input.LA(1);
 			if ( (LA5_0=='.') ) {
@@ -1089,10 +1084,10 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 			}
 			switch (alt5) {
 				case 1 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:30: '.' ( '0' .. '9' )+
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:30: '.' ( '0' .. '9' )+
 					{
 					match('.'); 
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:34: ( '0' .. '9' )+
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:34: ( '0' .. '9' )+
 					int cnt4=0;
 					loop4:
 					while (true) {
@@ -1146,11 +1141,11 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = StringToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:274:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )* '\"' )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:274:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )* '\"'
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:275:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )* '\"' )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:275:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )* '\"'
 			{
 			match('\"'); 
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:274:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )*
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:275:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' )*
 			loop6:
 			while (true) {
 				int alt6=2;
@@ -1196,13 +1191,13 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = HistoricalData;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:4: ({...}? => ( 'open' | 'close' | 'high' | 'low' | 'volume' ) )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:6: {...}? => ( 'open' | 'close' | 'high' | 'low' | 'volume' )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:4: ({...}? => ( 'open' | 'close' | 'high' | 'low' | 'volume' ) )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:6: {...}? => ( 'open' | 'close' | 'high' | 'low' | 'volume' )
 			{
 			if ( !((runtimeHistoryOpAhead())) ) {
 				throw new FailedPredicateException(input, "HistoricalData", "runtimeHistoryOpAhead()");
 			}
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:36: ( 'open' | 'close' | 'high' | 'low' | 'volume' )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:36: ( 'open' | 'close' | 'high' | 'low' | 'volume' )
 			int alt7=5;
 			switch ( input.LA(1) ) {
 			case 'o':
@@ -1237,35 +1232,35 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 			}
 			switch (alt7) {
 				case 1 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:38: 'open'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:38: 'open'
 					{
 					match("open"); 
 
 					}
 					break;
 				case 2 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:47: 'close'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:47: 'close'
 					{
 					match("close"); 
 
 					}
 					break;
 				case 3 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:57: 'high'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:57: 'high'
 					{
 					match("high"); 
 
 					}
 					break;
 				case 4 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:66: 'low'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:66: 'low'
 					{
 					match("low"); 
 
 					}
 					break;
 				case 5 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:75: 'volume'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:75: 'volume'
 					{
 					match("volume"); 
 
@@ -1290,13 +1285,13 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = WhiteChar;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:282:7: ( ( ( ' ' )+ ) )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:282:9: ( ( ' ' )+ )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:283:7: ( ( ( ' ' )+ ) )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:283:9: ( ( ' ' )+ )
 			{
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:282:9: ( ( ' ' )+ )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:282:10: ( ' ' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:283:9: ( ( ' ' )+ )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:283:10: ( ' ' )+
 			{
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:282:10: ( ' ' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:283:10: ( ' ' )+
 			int cnt8=0;
 			loop8:
 			while (true) {
@@ -1308,7 +1303,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 
 				switch (alt8) {
 				case 1 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:282:10: ' '
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:283:10: ' '
 					{
 					match(' '); 
 					}
@@ -1340,10 +1335,10 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = Tcheat;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:286:6: ( ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )+ )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:286:8: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:287:6: ( ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )+ )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:287:8: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )+
 			{
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:286:8: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )+
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:287:8: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )+
 			int cnt9=0;
 			loop9:
 			while (true) {
@@ -1392,8 +1387,8 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = WS;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:291:5: ( ( '\\r' | '\\t' | '\\u000C' | '\\n' ) )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:291:7: ( '\\r' | '\\t' | '\\u000C' | '\\n' )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:292:5: ( ( '\\r' | '\\t' | '\\u000C' | '\\n' ) )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:292:7: ( '\\r' | '\\t' | '\\u000C' | '\\n' )
 			{
 			if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||(input.LA(1) >= '\f' && input.LA(1) <= '\r') ) {
 				input.consume();
@@ -1420,12 +1415,12 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = COMMENT;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:294:5: ( '/*' ( . )* '*/' )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:294:7: '/*' ( . )* '*/'
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:295:5: ( '/*' ( . )* '*/' )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:295:7: '/*' ( . )* '*/'
 			{
 			match("/*"); 
 
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:294:12: ( . )*
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:295:12: ( . )*
 			loop10:
 			while (true) {
 				int alt10=2;
@@ -1446,7 +1441,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 
 				switch (alt10) {
 				case 1 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:294:12: .
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:295:12: .
 					{
 					matchAny(); 
 					}
@@ -1476,12 +1471,12 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		try {
 			int _type = LINE_COMMENT;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:297:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' )
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:297:7: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:298:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:298:7: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
 			{
 			match("//"); 
 
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:297:12: (~ ( '\\n' | '\\r' ) )*
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:298:12: (~ ( '\\n' | '\\r' ) )*
 			loop11:
 			while (true) {
 				int alt11=2;
@@ -1510,7 +1505,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 				}
 			}
 
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:297:26: ( '\\r' )?
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:298:26: ( '\\r' )?
 			int alt12=2;
 			int LA12_0 = input.LA(1);
 			if ( (LA12_0=='\r') ) {
@@ -1518,7 +1513,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 			}
 			switch (alt12) {
 				case 1 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:297:26: '\\r'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:298:26: '\\r'
 					{
 					match('\r'); 
 					}
@@ -1962,22 +1957,22 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 		"\3\uffff\1\u00b6\1\133\4\uffff\1\5\1\137\1\u00bc\1\uffff\1\6\1\125\1\u0092"+
 		"\1\132\1\u00bd\1\u0098\1\u0086\1\147\1\160\1\u009f\1\u008a\1\u00a5\1\u009b"+
 		"\1\165\1\4\1\u0087\1\134\1\u00a4\1\170\1\u008e\1\u0093\2\uffff\1\u00b4"+
-		"\1\11\1\140\1\31\1\10\1\7\1\56\1\126\1\57\1\u0082\1\61\1\u00bb\1\65\1"+
-		"\uffff\1\u0099\1\66\1\u0088\1\104\1\151\1\14\1\161\1\32\1\u00a0\1\103"+
-		"\1\u008b\1\36\1\u00a8\1\74\1\u0097\1\62\1\166\1\75\1\uffff\1\15\1\u0089"+
-		"\1\37\1\135\1\51\1\u00a6\1\55\1\171\1\22\1\u008f\1\53\1\u0094\1\33\1\uffff"+
-		"\1\141\1\77\1\u00b7\1\70\1\127\1\116\1\142\1\uffff\1\u00b2\1\30\1\176"+
-		"\1\25\1\153\1\124\1\162\1\35\1\u00a2\1\12\1\u008c\1\122\1\u00ac\1\45\1"+
-		"\uffff\1\167\1\115\2\uffff\1\u008d\1\105\1\136\1\50\1\u00a9\1\27\1\172"+
-		"\1\110\1\u0081\1\20\1\u0095\1\76\1\uffff\1\41\1\uffff\1\130\1\16\1\uffff"+
-		"\1\150\1\uffff\1\143\1\155\1\64\1\163\1\67\1\u00a3\1\46\1\u0080\1\42\1"+
-		"\u00ae\1\43\1\uffff\1\63\3\uffff\1\u0090\1\44\1\uffff\1\111\1\u00aa\1"+
-		"\72\1\173\1\114\1\144\1\u0096\1\117\1\131\1\34\1\152\1\121\1\157\1\120"+
-		"\1\164\1\26\1\u00a7\1\101\1\145\1\u00b1\1\13\6\uffff\1\112\1\u00ad\1\17"+
-		"\1\174\1\40\1\u0083\1\106\1\u00ba\1\54\1\154\1\102\1\2\1\107\1\3\1\47"+
-		"\1\u00ab\1\71\1\uffff\1\113\4\uffff\1\u00af\1\23\1\175\1\21\1\146\1\uffff"+
-		"\1\156\1\123\3\uffff\1\24\6\uffff\1\u00b0\1\52\1\u009c\1\60\1\uffff\1"+
-		"\73\12\uffff\1\100\44\uffff}>";
+		"\1\10\1\140\1\11\1\12\1\7\1\50\1\126\1\75\1\u0082\1\76\1\u00bb\1\77\1"+
+		"\uffff\1\u0099\1\106\1\u0088\1\115\1\151\1\62\1\161\1\74\1\u00a0\1\112"+
+		"\1\u008b\1\71\1\u00a8\1\63\1\u0097\1\33\1\166\1\101\1\uffff\1\13\1\u0089"+
+		"\1\123\1\135\1\65\1\u00a6\1\37\1\171\1\116\1\u008f\1\23\1\u0094\1\40\1"+
+		"\uffff\1\141\1\24\1\u00b7\1\54\1\127\1\27\1\142\1\uffff\1\u00b2\1\42\1"+
+		"\176\1\66\1\153\1\120\1\162\1\107\1\u00a2\1\17\1\u008c\1\67\1\u00ac\1"+
+		"\35\1\uffff\1\167\1\117\2\uffff\1\u008d\1\43\1\136\1\41\1\u00a9\1\20\1"+
+		"\172\1\51\1\u0081\1\53\1\u0095\1\44\1\uffff\1\122\1\uffff\1\130\1\110"+
+		"\1\uffff\1\150\1\uffff\1\143\1\155\1\121\1\163\1\21\1\u00a3\1\15\1\u0080"+
+		"\1\73\1\u00ae\1\56\1\uffff\1\25\3\uffff\1\u0090\1\61\1\uffff\1\22\1\u00aa"+
+		"\1\45\1\173\1\36\1\144\1\u0096\1\64\1\131\1\26\1\152\1\105\1\157\1\102"+
+		"\1\164\1\46\1\u00a7\1\14\1\145\1\u00b1\1\72\6\uffff\1\114\1\u00ad\1\111"+
+		"\1\174\1\34\1\u0083\1\60\1\u00ba\1\57\1\154\1\31\1\2\1\16\1\3\1\52\1\u00ab"+
+		"\1\104\1\uffff\1\100\4\uffff\1\u00af\1\124\1\175\1\113\1\146\1\uffff\1"+
+		"\156\1\32\3\uffff\1\103\6\uffff\1\u00b0\1\47\1\u009c\1\55\1\uffff\1\70"+
+		"\12\uffff\1\30\44\uffff}>";
 	static final String[] DFA13_transitionS = {
 			"\2\33\1\uffff\2\33\22\uffff\1\31\1\uffff\1\26\2\uffff\1\11\2\uffff\1"+
 			"\7\1\2\3\uffff\1\24\1\uffff\1\34\12\25\1\uffff\1\3\5\uffff\32\30\4\uffff"+
@@ -2434,19 +2429,6 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						break;
 
 					case 8 : 
-						int LA13_60 = input.LA(1);
-						 
-						int index13_60 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_60);
-						if ( s>=0 ) return s;
-						break;
-
-					case 9 : 
 						int LA13_57 = input.LA(1);
 						 
 						int index13_57 = input.index();
@@ -2459,202 +2441,7 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 10 : 
-						int LA13_120 = input.LA(1);
-						 
-						int index13_120 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_120);
-						if ( s>=0 ) return s;
-						break;
-
-					case 11 : 
-						int LA13_189 = input.LA(1);
-						 
-						int index13_189 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_189);
-						if ( s>=0 ) return s;
-						break;
-
-					case 12 : 
-						int LA13_75 = input.LA(1);
-						 
-						int index13_75 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_75);
-						if ( s>=0 ) return s;
-						break;
-
-					case 13 : 
-						int LA13_89 = input.LA(1);
-						 
-						int index13_89 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_89);
-						if ( s>=0 ) return s;
-						break;
-
-					case 14 : 
-						int LA13_146 = input.LA(1);
-						 
-						int index13_146 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_146);
-						if ( s>=0 ) return s;
-						break;
-
-					case 15 : 
-						int LA13_198 = input.LA(1);
-						 
-						int index13_198 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_198);
-						if ( s>=0 ) return s;
-						break;
-
-					case 16 : 
-						int LA13_139 = input.LA(1);
-						 
-						int index13_139 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_139);
-						if ( s>=0 ) return s;
-						break;
-
-					case 17 : 
-						int LA13_222 = input.LA(1);
-						 
-						int index13_222 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_222);
-						if ( s>=0 ) return s;
-						break;
-
-					case 18 : 
-						int LA13_97 = input.LA(1);
-						 
-						int index13_97 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_97);
-						if ( s>=0 ) return s;
-						break;
-
-					case 19 : 
-						int LA13_220 = input.LA(1);
-						 
-						int index13_220 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_220);
-						if ( s>=0 ) return s;
-						break;
-
-					case 20 : 
-						int LA13_230 = input.LA(1);
-						 
-						int index13_230 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_230);
-						if ( s>=0 ) return s;
-						break;
-
-					case 21 : 
-						int LA13_114 = input.LA(1);
-						 
-						int index13_114 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_114);
-						if ( s>=0 ) return s;
-						break;
-
-					case 22 : 
-						int LA13_184 = input.LA(1);
-						 
-						int index13_184 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_184);
-						if ( s>=0 ) return s;
-						break;
-
-					case 23 : 
-						int LA13_135 = input.LA(1);
-						 
-						int index13_135 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_135);
-						if ( s>=0 ) return s;
-						break;
-
-					case 24 : 
-						int LA13_112 = input.LA(1);
-						 
-						int index13_112 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_112);
-						if ( s>=0 ) return s;
-						break;
-
-					case 25 : 
+					case 9 : 
 						int LA13_59 = input.LA(1);
 						 
 						int index13_59 = input.index();
@@ -2667,514 +2454,33 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 26 : 
-						int LA13_77 = input.LA(1);
+					case 10 : 
+						int LA13_60 = input.LA(1);
 						 
-						int index13_77 = input.index();
+						int index13_60 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_77);
+						input.seek(index13_60);
 						if ( s>=0 ) return s;
 						break;
 
-					case 27 : 
-						int LA13_101 = input.LA(1);
+					case 11 : 
+						int LA13_89 = input.LA(1);
 						 
-						int index13_101 = input.index();
+						int index13_89 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_101);
+						input.seek(index13_89);
 						if ( s>=0 ) return s;
 						break;
 
-					case 28 : 
-						int LA13_178 = input.LA(1);
-						 
-						int index13_178 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_178);
-						if ( s>=0 ) return s;
-						break;
-
-					case 29 : 
-						int LA13_118 = input.LA(1);
-						 
-						int index13_118 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_118);
-						if ( s>=0 ) return s;
-						break;
-
-					case 30 : 
-						int LA13_81 = input.LA(1);
-						 
-						int index13_81 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_81);
-						if ( s>=0 ) return s;
-						break;
-
-					case 31 : 
-						int LA13_91 = input.LA(1);
-						 
-						int index13_91 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_91);
-						if ( s>=0 ) return s;
-						break;
-
-					case 32 : 
-						int LA13_200 = input.LA(1);
-						 
-						int index13_200 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_200);
-						if ( s>=0 ) return s;
-						break;
-
-					case 33 : 
-						int LA13_143 = input.LA(1);
-						 
-						int index13_143 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_143);
-						if ( s>=0 ) return s;
-						break;
-
-					case 34 : 
-						int LA13_158 = input.LA(1);
-						 
-						int index13_158 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_158);
-						if ( s>=0 ) return s;
-						break;
-
-					case 35 : 
-						int LA13_160 = input.LA(1);
-						 
-						int index13_160 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_160);
-						if ( s>=0 ) return s;
-						break;
-
-					case 36 : 
-						int LA13_167 = input.LA(1);
-						 
-						int index13_167 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_167);
-						if ( s>=0 ) return s;
-						break;
-
-					case 37 : 
-						int LA13_124 = input.LA(1);
-						 
-						int index13_124 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_124);
-						if ( s>=0 ) return s;
-						break;
-
-					case 38 : 
-						int LA13_156 = input.LA(1);
-						 
-						int index13_156 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_156);
-						if ( s>=0 ) return s;
-						break;
-
-					case 39 : 
-						int LA13_210 = input.LA(1);
-						 
-						int index13_210 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_210);
-						if ( s>=0 ) return s;
-						break;
-
-					case 40 : 
-						int LA13_133 = input.LA(1);
-						 
-						int index13_133 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_133);
-						if ( s>=0 ) return s;
-						break;
-
-					case 41 : 
-						int LA13_93 = input.LA(1);
-						 
-						int index13_93 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_93);
-						if ( s>=0 ) return s;
-						break;
-
-					case 42 : 
-						int LA13_238 = input.LA(1);
-						 
-						int index13_238 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_238);
-						if ( s>=0 ) return s;
-						break;
-
-					case 43 : 
-						int LA13_99 = input.LA(1);
-						 
-						int index13_99 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_99);
-						if ( s>=0 ) return s;
-						break;
-
-					case 44 : 
-						int LA13_204 = input.LA(1);
-						 
-						int index13_204 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_204);
-						if ( s>=0 ) return s;
-						break;
-
-					case 45 : 
-						int LA13_95 = input.LA(1);
-						 
-						int index13_95 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_95);
-						if ( s>=0 ) return s;
-						break;
-
-					case 46 : 
-						int LA13_62 = input.LA(1);
-						 
-						int index13_62 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_62);
-						if ( s>=0 ) return s;
-						break;
-
-					case 47 : 
-						int LA13_64 = input.LA(1);
-						 
-						int index13_64 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_64);
-						if ( s>=0 ) return s;
-						break;
-
-					case 48 : 
-						int LA13_240 = input.LA(1);
-						 
-						int index13_240 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_240);
-						if ( s>=0 ) return s;
-						break;
-
-					case 49 : 
-						int LA13_66 = input.LA(1);
-						 
-						int index13_66 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_66);
-						if ( s>=0 ) return s;
-						break;
-
-					case 50 : 
-						int LA13_85 = input.LA(1);
-						 
-						int index13_85 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_85);
-						if ( s>=0 ) return s;
-						break;
-
-					case 51 : 
-						int LA13_162 = input.LA(1);
-						 
-						int index13_162 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_162);
-						if ( s>=0 ) return s;
-						break;
-
-					case 52 : 
-						int LA13_152 = input.LA(1);
-						 
-						int index13_152 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_152);
-						if ( s>=0 ) return s;
-						break;
-
-					case 53 : 
-						int LA13_68 = input.LA(1);
-						 
-						int index13_68 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_68);
-						if ( s>=0 ) return s;
-						break;
-
-					case 54 : 
-						int LA13_71 = input.LA(1);
-						 
-						int index13_71 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_71);
-						if ( s>=0 ) return s;
-						break;
-
-					case 55 : 
-						int LA13_154 = input.LA(1);
-						 
-						int index13_154 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_154);
-						if ( s>=0 ) return s;
-						break;
-
-					case 56 : 
-						int LA13_106 = input.LA(1);
-						 
-						int index13_106 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_106);
-						if ( s>=0 ) return s;
-						break;
-
-					case 57 : 
-						int LA13_212 = input.LA(1);
-						 
-						int index13_212 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_212);
-						if ( s>=0 ) return s;
-						break;
-
-					case 58 : 
-						int LA13_171 = input.LA(1);
-						 
-						int index13_171 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_171);
-						if ( s>=0 ) return s;
-						break;
-
-					case 59 : 
-						int LA13_242 = input.LA(1);
-						 
-						int index13_242 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_242);
-						if ( s>=0 ) return s;
-						break;
-
-					case 60 : 
-						int LA13_83 = input.LA(1);
-						 
-						int index13_83 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_83);
-						if ( s>=0 ) return s;
-						break;
-
-					case 61 : 
-						int LA13_87 = input.LA(1);
-						 
-						int index13_87 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_87);
-						if ( s>=0 ) return s;
-						break;
-
-					case 62 : 
-						int LA13_141 = input.LA(1);
-						 
-						int index13_141 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_141);
-						if ( s>=0 ) return s;
-						break;
-
-					case 63 : 
-						int LA13_104 = input.LA(1);
-						 
-						int index13_104 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_104);
-						if ( s>=0 ) return s;
-						break;
-
-					case 64 : 
-						int LA13_253 = input.LA(1);
-						 
-						int index13_253 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_253);
-						if ( s>=0 ) return s;
-						break;
-
-					case 65 : 
+					case 12 : 
 						int LA13_186 = input.LA(1);
 						 
 						int index13_186 = input.index();
@@ -3187,72 +2493,20 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 66 : 
-						int LA13_206 = input.LA(1);
+					case 13 : 
+						int LA13_156 = input.LA(1);
 						 
-						int index13_206 = input.index();
+						int index13_156 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_206);
+						input.seek(index13_156);
 						if ( s>=0 ) return s;
 						break;
 
-					case 67 : 
-						int LA13_79 = input.LA(1);
-						 
-						int index13_79 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_79);
-						if ( s>=0 ) return s;
-						break;
-
-					case 68 : 
-						int LA13_73 = input.LA(1);
-						 
-						int index13_73 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_73);
-						if ( s>=0 ) return s;
-						break;
-
-					case 69 : 
-						int LA13_131 = input.LA(1);
-						 
-						int index13_131 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_131);
-						if ( s>=0 ) return s;
-						break;
-
-					case 70 : 
-						int LA13_202 = input.LA(1);
-						 
-						int index13_202 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_202);
-						if ( s>=0 ) return s;
-						break;
-
-					case 71 : 
+					case 14 : 
 						int LA13_208 = input.LA(1);
 						 
 						int index13_208 = input.index();
@@ -3265,20 +2519,46 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 72 : 
-						int LA13_137 = input.LA(1);
+					case 15 : 
+						int LA13_120 = input.LA(1);
 						 
-						int index13_137 = input.index();
+						int index13_120 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_137);
+						input.seek(index13_120);
 						if ( s>=0 ) return s;
 						break;
 
-					case 73 : 
+					case 16 : 
+						int LA13_135 = input.LA(1);
+						 
+						int index13_135 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_135);
+						if ( s>=0 ) return s;
+						break;
+
+					case 17 : 
+						int LA13_154 = input.LA(1);
+						 
+						int index13_154 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_154);
+						if ( s>=0 ) return s;
+						break;
+
+					case 18 : 
 						int LA13_169 = input.LA(1);
 						 
 						int index13_169 = input.index();
@@ -3291,59 +2571,59 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 74 : 
-						int LA13_196 = input.LA(1);
+					case 19 : 
+						int LA13_99 = input.LA(1);
 						 
-						int index13_196 = input.index();
+						int index13_99 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_196);
+						input.seek(index13_99);
 						if ( s>=0 ) return s;
 						break;
 
-					case 75 : 
-						int LA13_214 = input.LA(1);
+					case 20 : 
+						int LA13_104 = input.LA(1);
 						 
-						int index13_214 = input.index();
+						int index13_104 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_214);
+						input.seek(index13_104);
 						if ( s>=0 ) return s;
 						break;
 
-					case 76 : 
-						int LA13_173 = input.LA(1);
+					case 21 : 
+						int LA13_162 = input.LA(1);
 						 
-						int index13_173 = input.index();
+						int index13_162 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_173);
+						input.seek(index13_162);
 						if ( s>=0 ) return s;
 						break;
 
-					case 77 : 
-						int LA13_127 = input.LA(1);
+					case 22 : 
+						int LA13_178 = input.LA(1);
 						 
-						int index13_127 = input.index();
+						int index13_178 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_127);
+						input.seek(index13_178);
 						if ( s>=0 ) return s;
 						break;
 
-					case 78 : 
+					case 23 : 
 						int LA13_108 = input.LA(1);
 						 
 						int index13_108 = input.index();
@@ -3356,59 +2636,33 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 79 : 
-						int LA13_176 = input.LA(1);
+					case 24 : 
+						int LA13_253 = input.LA(1);
 						 
-						int index13_176 = input.index();
+						int index13_253 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_176);
+						input.seek(index13_253);
 						if ( s>=0 ) return s;
 						break;
 
-					case 80 : 
-						int LA13_182 = input.LA(1);
+					case 25 : 
+						int LA13_206 = input.LA(1);
 						 
-						int index13_182 = input.index();
+						int index13_206 = input.index();
 						input.rewind();
 						s = -1;
 						if ( ((runtimeOpAhead())) ) {s = 26;}
 						else if ( (true) ) {s = 32;}
 						 
-						input.seek(index13_182);
+						input.seek(index13_206);
 						if ( s>=0 ) return s;
 						break;
 
-					case 81 : 
-						int LA13_180 = input.LA(1);
-						 
-						int index13_180 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_180);
-						if ( s>=0 ) return s;
-						break;
-
-					case 82 : 
-						int LA13_122 = input.LA(1);
-						 
-						int index13_122 = input.index();
-						input.rewind();
-						s = -1;
-						if ( ((runtimeOpAhead())) ) {s = 26;}
-						else if ( (true) ) {s = 32;}
-						 
-						input.seek(index13_122);
-						if ( s>=0 ) return s;
-						break;
-
-					case 83 : 
+					case 26 : 
 						int LA13_226 = input.LA(1);
 						 
 						int index13_226 = input.index();
@@ -3421,7 +2675,696 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						if ( s>=0 ) return s;
 						break;
 
-					case 84 : 
+					case 27 : 
+						int LA13_85 = input.LA(1);
+						 
+						int index13_85 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_85);
+						if ( s>=0 ) return s;
+						break;
+
+					case 28 : 
+						int LA13_200 = input.LA(1);
+						 
+						int index13_200 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_200);
+						if ( s>=0 ) return s;
+						break;
+
+					case 29 : 
+						int LA13_124 = input.LA(1);
+						 
+						int index13_124 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_124);
+						if ( s>=0 ) return s;
+						break;
+
+					case 30 : 
+						int LA13_173 = input.LA(1);
+						 
+						int index13_173 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_173);
+						if ( s>=0 ) return s;
+						break;
+
+					case 31 : 
+						int LA13_95 = input.LA(1);
+						 
+						int index13_95 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_95);
+						if ( s>=0 ) return s;
+						break;
+
+					case 32 : 
+						int LA13_101 = input.LA(1);
+						 
+						int index13_101 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_101);
+						if ( s>=0 ) return s;
+						break;
+
+					case 33 : 
+						int LA13_133 = input.LA(1);
+						 
+						int index13_133 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_133);
+						if ( s>=0 ) return s;
+						break;
+
+					case 34 : 
+						int LA13_112 = input.LA(1);
+						 
+						int index13_112 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_112);
+						if ( s>=0 ) return s;
+						break;
+
+					case 35 : 
+						int LA13_131 = input.LA(1);
+						 
+						int index13_131 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_131);
+						if ( s>=0 ) return s;
+						break;
+
+					case 36 : 
+						int LA13_141 = input.LA(1);
+						 
+						int index13_141 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_141);
+						if ( s>=0 ) return s;
+						break;
+
+					case 37 : 
+						int LA13_171 = input.LA(1);
+						 
+						int index13_171 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_171);
+						if ( s>=0 ) return s;
+						break;
+
+					case 38 : 
+						int LA13_184 = input.LA(1);
+						 
+						int index13_184 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_184);
+						if ( s>=0 ) return s;
+						break;
+
+					case 39 : 
+						int LA13_238 = input.LA(1);
+						 
+						int index13_238 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_238);
+						if ( s>=0 ) return s;
+						break;
+
+					case 40 : 
+						int LA13_62 = input.LA(1);
+						 
+						int index13_62 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_62);
+						if ( s>=0 ) return s;
+						break;
+
+					case 41 : 
+						int LA13_137 = input.LA(1);
+						 
+						int index13_137 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_137);
+						if ( s>=0 ) return s;
+						break;
+
+					case 42 : 
+						int LA13_210 = input.LA(1);
+						 
+						int index13_210 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_210);
+						if ( s>=0 ) return s;
+						break;
+
+					case 43 : 
+						int LA13_139 = input.LA(1);
+						 
+						int index13_139 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_139);
+						if ( s>=0 ) return s;
+						break;
+
+					case 44 : 
+						int LA13_106 = input.LA(1);
+						 
+						int index13_106 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_106);
+						if ( s>=0 ) return s;
+						break;
+
+					case 45 : 
+						int LA13_240 = input.LA(1);
+						 
+						int index13_240 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_240);
+						if ( s>=0 ) return s;
+						break;
+
+					case 46 : 
+						int LA13_160 = input.LA(1);
+						 
+						int index13_160 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_160);
+						if ( s>=0 ) return s;
+						break;
+
+					case 47 : 
+						int LA13_204 = input.LA(1);
+						 
+						int index13_204 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_204);
+						if ( s>=0 ) return s;
+						break;
+
+					case 48 : 
+						int LA13_202 = input.LA(1);
+						 
+						int index13_202 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_202);
+						if ( s>=0 ) return s;
+						break;
+
+					case 49 : 
+						int LA13_167 = input.LA(1);
+						 
+						int index13_167 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_167);
+						if ( s>=0 ) return s;
+						break;
+
+					case 50 : 
+						int LA13_75 = input.LA(1);
+						 
+						int index13_75 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_75);
+						if ( s>=0 ) return s;
+						break;
+
+					case 51 : 
+						int LA13_83 = input.LA(1);
+						 
+						int index13_83 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_83);
+						if ( s>=0 ) return s;
+						break;
+
+					case 52 : 
+						int LA13_176 = input.LA(1);
+						 
+						int index13_176 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_176);
+						if ( s>=0 ) return s;
+						break;
+
+					case 53 : 
+						int LA13_93 = input.LA(1);
+						 
+						int index13_93 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_93);
+						if ( s>=0 ) return s;
+						break;
+
+					case 54 : 
+						int LA13_114 = input.LA(1);
+						 
+						int index13_114 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_114);
+						if ( s>=0 ) return s;
+						break;
+
+					case 55 : 
+						int LA13_122 = input.LA(1);
+						 
+						int index13_122 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_122);
+						if ( s>=0 ) return s;
+						break;
+
+					case 56 : 
+						int LA13_242 = input.LA(1);
+						 
+						int index13_242 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_242);
+						if ( s>=0 ) return s;
+						break;
+
+					case 57 : 
+						int LA13_81 = input.LA(1);
+						 
+						int index13_81 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_81);
+						if ( s>=0 ) return s;
+						break;
+
+					case 58 : 
+						int LA13_189 = input.LA(1);
+						 
+						int index13_189 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_189);
+						if ( s>=0 ) return s;
+						break;
+
+					case 59 : 
+						int LA13_158 = input.LA(1);
+						 
+						int index13_158 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_158);
+						if ( s>=0 ) return s;
+						break;
+
+					case 60 : 
+						int LA13_77 = input.LA(1);
+						 
+						int index13_77 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_77);
+						if ( s>=0 ) return s;
+						break;
+
+					case 61 : 
+						int LA13_64 = input.LA(1);
+						 
+						int index13_64 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_64);
+						if ( s>=0 ) return s;
+						break;
+
+					case 62 : 
+						int LA13_66 = input.LA(1);
+						 
+						int index13_66 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_66);
+						if ( s>=0 ) return s;
+						break;
+
+					case 63 : 
+						int LA13_68 = input.LA(1);
+						 
+						int index13_68 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_68);
+						if ( s>=0 ) return s;
+						break;
+
+					case 64 : 
+						int LA13_214 = input.LA(1);
+						 
+						int index13_214 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_214);
+						if ( s>=0 ) return s;
+						break;
+
+					case 65 : 
+						int LA13_87 = input.LA(1);
+						 
+						int index13_87 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_87);
+						if ( s>=0 ) return s;
+						break;
+
+					case 66 : 
+						int LA13_182 = input.LA(1);
+						 
+						int index13_182 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_182);
+						if ( s>=0 ) return s;
+						break;
+
+					case 67 : 
+						int LA13_230 = input.LA(1);
+						 
+						int index13_230 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_230);
+						if ( s>=0 ) return s;
+						break;
+
+					case 68 : 
+						int LA13_212 = input.LA(1);
+						 
+						int index13_212 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_212);
+						if ( s>=0 ) return s;
+						break;
+
+					case 69 : 
+						int LA13_180 = input.LA(1);
+						 
+						int index13_180 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_180);
+						if ( s>=0 ) return s;
+						break;
+
+					case 70 : 
+						int LA13_71 = input.LA(1);
+						 
+						int index13_71 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_71);
+						if ( s>=0 ) return s;
+						break;
+
+					case 71 : 
+						int LA13_118 = input.LA(1);
+						 
+						int index13_118 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_118);
+						if ( s>=0 ) return s;
+						break;
+
+					case 72 : 
+						int LA13_146 = input.LA(1);
+						 
+						int index13_146 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_146);
+						if ( s>=0 ) return s;
+						break;
+
+					case 73 : 
+						int LA13_198 = input.LA(1);
+						 
+						int index13_198 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_198);
+						if ( s>=0 ) return s;
+						break;
+
+					case 74 : 
+						int LA13_79 = input.LA(1);
+						 
+						int index13_79 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_79);
+						if ( s>=0 ) return s;
+						break;
+
+					case 75 : 
+						int LA13_222 = input.LA(1);
+						 
+						int index13_222 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_222);
+						if ( s>=0 ) return s;
+						break;
+
+					case 76 : 
+						int LA13_196 = input.LA(1);
+						 
+						int index13_196 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_196);
+						if ( s>=0 ) return s;
+						break;
+
+					case 77 : 
+						int LA13_73 = input.LA(1);
+						 
+						int index13_73 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_73);
+						if ( s>=0 ) return s;
+						break;
+
+					case 78 : 
+						int LA13_97 = input.LA(1);
+						 
+						int index13_97 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_97);
+						if ( s>=0 ) return s;
+						break;
+
+					case 79 : 
+						int LA13_127 = input.LA(1);
+						 
+						int index13_127 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_127);
+						if ( s>=0 ) return s;
+						break;
+
+					case 80 : 
 						int LA13_116 = input.LA(1);
 						 
 						int index13_116 = input.index();
@@ -3431,6 +3374,58 @@ public class ParameterizedIndicatorsLexer extends Lexer {
 						else if ( (true) ) {s = 32;}
 						 
 						input.seek(index13_116);
+						if ( s>=0 ) return s;
+						break;
+
+					case 81 : 
+						int LA13_152 = input.LA(1);
+						 
+						int index13_152 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_152);
+						if ( s>=0 ) return s;
+						break;
+
+					case 82 : 
+						int LA13_143 = input.LA(1);
+						 
+						int index13_143 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_143);
+						if ( s>=0 ) return s;
+						break;
+
+					case 83 : 
+						int LA13_91 = input.LA(1);
+						 
+						int index13_91 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_91);
+						if ( s>=0 ) return s;
+						break;
+
+					case 84 : 
+						int LA13_220 = input.LA(1);
+						 
+						int index13_220 = input.index();
+						input.rewind();
+						s = -1;
+						if ( ((runtimeOpAhead())) ) {s = 26;}
+						else if ( (true) ) {s = 32;}
+						 
+						input.seek(index13_220);
 						if ( s>=0 ) return s;
 						break;
 

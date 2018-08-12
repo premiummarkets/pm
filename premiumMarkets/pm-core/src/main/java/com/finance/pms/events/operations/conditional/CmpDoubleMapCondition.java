@@ -30,7 +30,6 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
@@ -46,7 +45,6 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 
 /**
@@ -89,7 +87,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 		fullKeySet.addAll(secondOp.keySet());
 
 		BooleanMapValue outputs = new  BooleanMapValue();
-		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
+		BooleanMapValue realRowOutputs = new BooleanMapValue();
 
 		for (Date date : fullKeySet) {
 			Double firstV = firstOp.get(date);
@@ -99,25 +97,9 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(firstV, secondV);
 
-				underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
+				realRowOutputs.getValue(targetStock).put(date, conditionCheck);
 
-				if (conditionCheck && forPeriod > 0) {
-
-					Calendar startForPeriodCal = Calendar.getInstance();
-					startForPeriodCal.setTime(date);
-					QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
-					Date startForPeriod = startForPeriodCal.getTime();
-
-					SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
-					if (startForPeriod.before(fullKeySet.first())) {
-						conditionCheck = null;
-					} else {
-						for (Boolean previousValue : forPeriodData.values()) {
-							conditionCheck = conditionCheck && previousValue;
-							if (!previousValue) break;
-						}
-					}
-				}
+				conditionCheck = checkRawOutputAgainstForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
 
 				if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
 			}

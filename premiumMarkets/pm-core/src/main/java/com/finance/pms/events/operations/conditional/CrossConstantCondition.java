@@ -31,10 +31,11 @@ package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -43,7 +44,6 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 /**
@@ -79,16 +79,19 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
+		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
+
 		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 
+		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
 		BooleanMapValue outputs = new  BooleanMapValue();
 		if (Double.isNaN(constant)) return outputs;
 
-		BooleanMapValue underLyingRealOuts = new BooleanMapValue();
+		BooleanMapValue realRowOutputs = new BooleanMapValue();
 
-		for (Date date : data.keySet()) {
+		for (Date date : fullKeySet) {
 			Double current = data.get(date);
 			Double previous = rightShiftedData.get(date);
 			if (previous != null && !previous.isNaN() && !current.isNaN()) {
@@ -98,40 +101,15 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 
 					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
 
-						underLyingRealOuts.getValue(targetStock).put(date, conditionCheck);
+						realRowOutputs.getValue(targetStock).put(date, conditionCheck);
 
-						if (conditionCheck && forPeriod > 0) {
-
-							Calendar startForPeriodCal = Calendar.getInstance();
-							startForPeriodCal.setTime(date);
-							QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
-							Date startForPeriod = startForPeriodCal.getTime();
-
-							SortedMap<Date, Boolean> forPeriodData = underLyingRealOuts.getValue(targetStock).subMap(startForPeriod, date);
-							if (startForPeriod.before(data.firstKey())) {
-								conditionCheck = null;
-							} else {
-								for (Boolean previousValue : forPeriodData.values()) {
-									conditionCheck = conditionCheck && previousValue;
-									if (!previousValue) break;
-								}
-							}
-						}
+						conditionCheck = checkRawOutputAgainstForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
 
 						if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
 
 					}
 
-					if (conditionCheck != null && conditionCheck && overPeriod > 0) {
-						Calendar endOverPeriodCal = Calendar.getInstance();
-						endOverPeriodCal.setTime(date);
-						QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);
-						Date endOverPeriod = (endOverPeriodCal.after(data.lastKey()))?data.lastKey():endOverPeriodCal.getTime();
-						SortedMap<Date, Double> overPeriodData = data.subMap(date, endOverPeriod);
-						for (Date overPeriodDate : overPeriodData.keySet()) {
-							outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
-						}
-					}
+					fillInOverPeriod(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
 
 				}
 			}

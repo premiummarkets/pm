@@ -191,8 +191,8 @@ atom :
 booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree] -> presetcondition | opcmpcondition[$firstOp.tree] -> opcmpcondition| constantcmp[$firstOp.tree] -> constantcmp );
 operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""])) | opName = Operation {checkOperationValidity($opName);} -> Operation;
 constant :  NumberToken -> ^(Number NumberToken) ;
-trendconstant : 'bullish' | 'bearish' ;
-lenient : (WhiteChar LENIENT  -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
+trendconstant : 'bullish' -> ^(String StringToken["\"bullish\""]) | 'bearish' -> ^(String StringToken["\"bearish\""]);
+lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
 
 opcmpcondition [CommonTree firstOp] :
 
@@ -216,9 +216,10 @@ opcmpcondition [CommonTree firstOp] :
 
 constantcmp [CommonTree firstOp] :
 
-  ('equals trend' WhiteChar trendSignal=trendconstant -> ^(EqualStringConstantCondition ^(String trendconstant) {$firstOp}) ) |
+  ('equals trend' WhiteChar trendSignal=trendconstant -> ^(EqualStringConstantCondition trendconstant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
+    ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualStringConstantCondition {$trendSignal.tree} {$overNbDays.tree} {$forNbDays.tree} {$firstOp}) )?|
     
-  ('equals threshold' WhiteChar threshold=constant -> ^(EqualConstantCondition constant ^(Number NumberToken["0"])  ^(Number NumberToken["0"]) {$firstOp}) )
+  ('equals threshold' WhiteChar threshold=constant -> ^(EqualConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS -> ^(EqualConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$firstOp}) )? |
     
   ('is above threshold' WhiteChar threshold=constant -> ^(SupConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )

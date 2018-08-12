@@ -102,7 +102,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	protected void initDescriptionsList() {
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("No group to be found for the dynamic description of " + descriptorReference+ ". Its calculation may be in progress?");
+		List<ChartedOutputGroup> chartedOutputGroups = getChartedOutputGroups();
 
 		outputDescrFlatList = new HashMap<>();
 		for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
@@ -111,6 +111,11 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 			chartedOutputGroup.getComponents().values().stream().filter(c -> c.getType() != Type.INVISIBLE).forEach(c -> outputDescrFlatList.put(c.getOutputIndex(), c));
 		}
 
+	}
+
+	private List<ChartedOutputGroup> getChartedOutputGroups() {
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("No group to be found for the dynamic description of " + descriptorReference+ ". Its calculation may be in progress?");
+		return chartedOutputGroups;
 	}
 
 	@Override
@@ -180,6 +185,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String toString() {
+		String chartedOutputGroups;
+		try {
+			chartedOutputGroups = getChartedOutputGroups().toString();
+		} catch (Exception e) {
+			chartedOutputGroups = e.getMessage();
+		}
 		return "EventDefDescriptorDynamic [descriptorReference=" + descriptorReference + ", outputRefSet=" + chartedOutputGroups + "]";
 	}
 
@@ -191,12 +202,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public int getGroupIndexFor(int outputIdx) {
 		ChartedOutputGroup container = getOutputDescr(outputIdx).getContainer();
-		return chartedOutputGroups.indexOf(container);
+		return getChartedOutputGroups().indexOf(container);
 	}
 
 	@Override
 	public int getGroupsCount() {
-		return chartedOutputGroups.size();
+		return getChartedOutputGroups().size();
 	}
 
 	@Override
@@ -242,7 +253,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String getMainLabelForGroup(int groupIdx) {
-		return chartedOutputGroups.get(groupIdx).getThisGroupMainOutputReference().getReference();
+		return getChartedOutputGroups().get(groupIdx).getThisGroupMainOutputReference().getReference();
 	}
 
 	@Override
@@ -289,7 +300,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String getGroupFullDescriptionFor(int groupIndex) {
-		return chartedOutputGroups.get(groupIndex).toString();
+		return getChartedOutputGroups().get(groupIndex).toString();
 	}
 
 }
