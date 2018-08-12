@@ -10,33 +10,39 @@
                     <description>bullishCondition</description>
                     <operands/>
                     <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="condition">
                     <reference>bearishCondition</reference>
                     <description>bearishCondition</description>
                     <operands/>
                     <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="condition">
                     <reference>alsoDisplay</reference>
                     <description>alsoDisplay</description>
                     <operands/>
                     <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>startShiftOverride</reference>
                     <description>startShiftOverride</description>
                     <operands/>
                     <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>eventListName</reference>
                     <description>eventListName</description>
                     <operands/>
                     <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
         </calculator>
     </calculators>
 </nativeParametrizedIndicators>
