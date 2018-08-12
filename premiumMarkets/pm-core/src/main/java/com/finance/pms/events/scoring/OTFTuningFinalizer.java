@@ -49,6 +49,7 @@ import org.springframework.stereotype.Service;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
@@ -69,19 +70,26 @@ public class OTFTuningFinalizer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(OTFTuningFinalizer.class);
 
-	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, Observer observer) throws NotEnoughDataException {
+	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, SortedMap<EventKey, EventValue> evtDefEvents, Observer observer) throws NotEnoughDataException {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
 		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
 		try {
 
 			//Grab calculated events and make sure they are ordered by date
-			HashSet<EventInfo> eventDefinitions = new HashSet<EventInfo>();
-			eventDefinitions.add(evtDef);
-			SymbolEvents eventsCalculated = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endDate, eventDefinitions, analyseName);
+			Collection<EventValue> eventsValues;
+			if (evtDefEvents == null) {
+				HashSet<EventInfo> eventDefinitions = new HashSet<EventInfo>();
+				eventDefinitions.add(evtDef);
+				SymbolEvents eventsCalculated = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endDate, eventDefinitions, analyseName);
+				eventsValues = eventsCalculated.getDataResultMap().values();
+			} else {
+				eventsValues = evtDefEvents.values();
+			}
+			if (eventsValues.isEmpty()) throw new NotEnoughDataException(stock, startDate, endDate, "", new RuntimeException());
 
 			//Build res
-			return buildTuningRes(stock, startDate, endDate, analyseName, eventsCalculated.getDataResultMap().values(), noResMsg, evtDef.info(), observer);
+			return buildTuningRes(stock, startDate, endDate, analyseName, eventsValues, noResMsg, evtDef.info(), observer);
 
 
 		} catch (NoQuotationsException e) {
@@ -299,30 +307,34 @@ public class OTFTuningFinalizer {
 
 		List<PeriodRatingDTO> periods = validPeriods(quotations, stock, startDate, endDate, eventListForEvtDef, noResMsg);
 
-		LOGGER.info(export(periods));
+		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, evtDefInfo, observer);
 
-		return buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, evtDefInfo, observer);
+		LOGGER.info(export(buildResOnValidPeriods));
+
+		return buildResOnValidPeriods;
 
 	}
 
-	private String export(List<PeriodRatingDTO> periods) {
-		String print = "\nbuy date, buy price, sell date, sell price, price Rate Of Change\n";
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-		for (PeriodRatingDTO period : periods) {
-			if (period.getTrend().equals("BULLISH")) {
-				print = print + dateFormat.format(period.getFrom()) + "," + period.getPriceAtFrom() + ",";
-				if (period.isRealised()) {
-					print = print + dateFormat.format(period.getTo())+ "," + period.getPriceAtTo() + ",";
-				}
-				print = print + period.getPriceRateOfChange() + "\n";
-			}
-		}
+	private String export(TuningResDTO buildResOnValidPeriods) {
+		String print = "No coumpound available. Empty results";
+		List<PeriodRatingDTO> periods = buildResOnValidPeriods.getPeriods();
 		if (!periods.isEmpty()) {
+			print = "\nbuy date, buy price, sell date, sell price, price Rate Of Change\n";
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+			for (PeriodRatingDTO period : periods) {
+				if (period.getTrend().equals("BULLISH")) {
+					print = print + dateFormat.format(period.getFrom()) + "," + period.getPriceAtFrom() + ",";
+					if (period.isRealised()) {
+						print = print + dateFormat.format(period.getTo())+ "," + period.getPriceAtTo() + ",";
+					}
+					print = print + period.getPriceRateOfChange() + "\n";
+				}
+			}
 			PeriodRatingDTO firstP = periods.get(0);
 			PeriodRatingDTO lastP = periods.get(periods.size() - 1);
 			print = print + "\nb&h:\n" +
 					dateFormat.format(firstP.getFrom()) + "," + firstP.getPriceAtFrom() + "," + 
-					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + ",";
+					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + "," + buildResOnValidPeriods.getStockPriceChange();
 		}
 		return print;
 	}

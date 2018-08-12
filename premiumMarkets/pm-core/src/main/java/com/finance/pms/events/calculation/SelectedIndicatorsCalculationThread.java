@@ -178,7 +178,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 				}
 
-				//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
+			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
 				LOGGER.error(

@@ -46,9 +46,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -108,7 +106,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	}
 
 	@Override
-	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws WarningException {
 
 		SortedMap<EventKey, EventValue> eData = new TreeMap<>();
 
@@ -134,17 +132,18 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 				previousKey = currentKey;
 			}
-			LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
-
-			//Removing duplicates
-			for (EventKey eventKey : toRemove) {
-				EventValue eventValue = returnedEvents.get(eventKey);
-				returnedEvents.remove(eventKey);
-
-				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
-				eventValue.setEventType(EventType.NONE);
-				returnedEvents.put(noneEventKey, eventValue);
-			}
+			if (!toRemove.isEmpty()) throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
+//			LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
+//
+//			//Removing duplicates
+//			for (EventKey eventKey : toRemove) {
+//				EventValue eventValue = returnedEvents.get(eventKey);
+//				returnedEvents.remove(eventKey);
+//
+//				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
+//				eventValue.setEventType(EventType.NONE);
+//				returnedEvents.put(noneEventKey, eventValue);
+//			}
 
 			eData.putAll(returnedEvents);
 

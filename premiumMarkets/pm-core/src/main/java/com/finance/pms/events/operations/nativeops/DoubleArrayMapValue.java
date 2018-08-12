@@ -20,6 +20,10 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 	private SortedMap<Date, double[]> map;
 	private List<String> columnsReferences;
 
+	//Cache
+	private SortedMap<Date, Double> collectedUnaryMapValue;
+	private Map<String, UnarableMapValue> collectAdditionalOutputs;
+
 	public DoubleArrayMapValue(SortedMap<Date, double[]> map, List<String> columnsReferences) {
 		super();
 		this.map = map;
@@ -34,8 +38,9 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
-		//return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[0], (a,b) -> a, TreeMap::new));
-		return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> Double.NaN, (a,b) -> a, TreeMap::new));
+		if (collectedUnaryMapValue == null) collectedUnaryMapValue = //Collections.<Date, Double>unmodifiableSortedMap(
+				map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> Double.NaN, (a,b) -> a, TreeMap::new)); //);
+		return collectedUnaryMapValue;
 	}
 
 	public SortedMap<Date, double[]> getDoubleArrayValue() {
@@ -51,7 +56,8 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 
 	@Override
 	public Map<String, UnarableMapValue> getAdditionalOutputs() {
-		return IntStream.range(0, this.columnsReferences.size())
+		if (collectAdditionalOutputs == null) {
+			collectAdditionalOutputs = IntStream.range(0, this.columnsReferences.size())
 				.boxed()
 				.collect(Collectors.toMap(
 						i -> columnsReferences.get(i),
@@ -61,6 +67,8 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 						}
 					)
 				);
+		}
+		return collectAdditionalOutputs;
 	}
 
 	//The peculiarity of DoubleArrayMaps is that the column amount and refs is known only at runtime.

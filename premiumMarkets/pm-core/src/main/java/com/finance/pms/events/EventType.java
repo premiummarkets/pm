@@ -38,12 +38,12 @@ import java.io.Serializable;
  * @author Guillaume Thoreton
  */
 public enum EventType implements Serializable {
-	
+
 	BEARISH("bearish", -1, 's'),
 	NONE("neutral", 0, 'n'),
 	BULLISH("bullish", 1, 'b'),
 	INFO("info", 3, 'i');
-	
+
 	//Mas
 	//public static final char[] eventTypes = {'b','s','n','o'}; 
 	//"b": buy signal; "s": sell signal; "n": neutral signal; "o": other
@@ -67,7 +67,7 @@ public enum EventType implements Serializable {
 		EventType eValues[] = EventType.values();
 		for (int i=0; i < eValues.length; i++) {
 			if (eValues[i].getEventTypeChar().equals(et)) 
-					return eValues[i];
+				return eValues[i];
 		}
 		throw new IllegalArgumentException("No enum const EventType." + et);
 	}
@@ -79,10 +79,12 @@ public enum EventType implements Serializable {
 	public Character getEventTypeChar() {
 		return eventTypeChar;
 	}
-	
+
 	public Integer getEventTypeIndex() {
 		return eventTypeIndex;
 	}
-	
-	
+
+	public static Boolean consistencyCheck() {
+		return (BEARISH.ordinal() == 0 && NONE.ordinal() == 1 && BULLISH.ordinal() == 2);
+	}
 }

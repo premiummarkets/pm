@@ -54,6 +54,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
+import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
@@ -448,10 +450,10 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
         return null;
     }
 
-    public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, Date start, Date end) {
+    public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, SortedMap<EventKey, EventValue> evtDefEvents, Date start, Date end) {
         try {
 
-            TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefinition, tuningResObs);
+            TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefinition, evtDefEvents, tuningResObs);
             if (LOGGER.isDebugEnabled()) {
                 try {
                     tuningFinalizer.exportConfigRating(IndicatorCalculationServiceMain.UI_ANALYSIS, tuningRes, start, end, tuningFinalizer.calculateRating(tuningRes));

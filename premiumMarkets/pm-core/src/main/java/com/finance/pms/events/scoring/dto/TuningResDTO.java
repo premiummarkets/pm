@@ -35,10 +35,10 @@ import java.util.Date;
 import java.util.List;
 
 public class TuningResDTO implements Serializable {
-	
+
 	private static final long serialVersionUID = 6537421829385394184L;
-	
-	
+
+
 	private List<PeriodRatingDTO> periods;
 	private String csvLink;
 	private String chartLink;
@@ -46,15 +46,15 @@ public class TuningResDTO implements Serializable {
 	private Double followProfit;
 	private Double stopLossProfit;
 	private Double stockPriceChange;
-	
+
 	private String configRatingFile;
 	private String footNote;
-	
+
 	private Date calculatedStart;
 	private Date calculatedEnd;
-	
+
 	public TuningResDTO() {
-		
+
 		periods = new ArrayList<PeriodRatingDTO>();
 		csvLink = "NA";
 		chartLink = "NA";
@@ -62,13 +62,13 @@ public class TuningResDTO implements Serializable {
 		followProfit = 0.0;
 		stopLossProfit = 0.0;
 		stockPriceChange = 0.0;
-		
+
 		configRatingFile = "";
 		footNote = "";
-		
+
 		calculatedStart = new Date(0);
 		calculatedEnd = new Date(0);
-	
+
 	}
 
 	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, String lastTrend, Double followProfit, Double stopLossProfit, Double stockPriceChange, Date calculatedStart, Date calculatedEnd) {
@@ -84,7 +84,7 @@ public class TuningResDTO implements Serializable {
 		this.stockPriceChange = stockPriceChange;
 		this.footNote = toString();
 	}
-	
+
 	public Double getStockPriceChange() {
 		return stockPriceChange;
 	}
@@ -104,7 +104,7 @@ public class TuningResDTO implements Serializable {
 	public String getCsvLink() {
 		return csvLink;
 	}	
-	
+
 	public String getLastTrend() {
 		return lastTrend;
 	}
@@ -124,11 +124,11 @@ public class TuningResDTO implements Serializable {
 	public void setFootNote(String footNote) {
 		this.footNote = footNote;
 	}
-	
+
 	public Boolean isInitialized() {
 		return this.periods != null;
 	}
-	
+
 	public Boolean hasCvsLink() {
 		return !this.csvLink.equals("noOutputAvailable");
 	}
@@ -164,6 +164,6 @@ public class TuningResDTO implements Serializable {
 		this.chartLink = chartLink;
 	}
 
-	
+
 
 }

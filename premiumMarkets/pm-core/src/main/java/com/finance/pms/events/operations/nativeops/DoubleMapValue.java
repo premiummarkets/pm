@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -34,10 +33,6 @@ public class DoubleMapValue extends UnarableMapValue implements MultiMapValue {
 
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 		return map;
-	}
-
-	public SortedMap<Date, double[]> getDoubleArrayValue() {
-		return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a,b) -> a, TreeMap::new));
 	}
 
 	@Override

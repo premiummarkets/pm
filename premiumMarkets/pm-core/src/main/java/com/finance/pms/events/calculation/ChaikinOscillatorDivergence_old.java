@@ -57,50 +57,50 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 	private ChaikinOscillator chaikinOscillator;
-	private SMA sma;	
-	
+	private SMA sma;
+
 	private Quotations quotationsCopy;
-	
+
 	public ChaikinOscillatorDivergence_old(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(EventDefinition.PMMIGHTYCHAIKIN, observers);
 		init(chkInfastPeriod, chkInslowPeriod, 2);
 	}
-	
+
 	public ChaikinOscillatorDivergence_old(EventInfo reference) {
-	  //Reflective ops generator
+		//Reflective ops generator
 		super(reference);
 	}
-	
-    protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod, Integer signalSmaPeriod) {
-        this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
-        this.sma = new SMA(signalSmaPeriod);
-    }
-    
-    @Override
-    public void genericInit(Integer... constants) {
-        init(constants[0], constants[1], constants[2]);
-    }
+
+	protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod, Integer signalSmaPeriod) {
+		this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
+		this.sma = new SMA(signalSmaPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+		init(constants[0], constants[1], constants[2]);
+	}
 
 	@Override
 	protected  FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 
 		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
-		
+
 		int chaikinIdx = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, quotationIdx);
 		double[] chaikinLookBackP = Arrays.copyOfRange(this.chaikinOscillator.getChaikinOsc(), chaikinIdx - getDaysSpan(), chaikinIdx);
 		double[] quotationLookBackP = Arrays.copyOfRange(quotationsCopy.getCloseValues(), quotationIdx - getDaysSpan(), quotationIdx);
-		
+
 		int smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
-		
+
 		double[] chaikinThreshCurve = new double[chaikinLookBackP.length];
-		
+
 		{
 			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinUp = higherLow(chaikinLookBackP, chaikinThreshCurve);
 			res.setBullishCrossOver(isPriceDown && isChaikinUp); 
-			
+
 			if (res.getBullishCrossOver()) return res;
 
 		}
@@ -108,10 +108,10 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinDown = lowerHigh(chaikinLookBackP,  chaikinThreshCurve);
 			res.setBearishCrossBellow(isPriceUp && isChaikinDown);
-		
+
 			return res;
 		}
-		
+
 	}
 
 	@Override
@@ -128,17 +128,17 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 	@Override
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
-		
+
 		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
-		
+
 		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, calculatorIndex);
-		
+
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," + this.chaikinOscillator.getChaikinOsc()[chaikinIndex];
-		
+				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," + this.chaikinOscillator.getChaikinOsc()[chaikinIndex];
+
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
@@ -146,19 +146,19 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 		} else {
 			line = line + ",0,0,";
 		}
-		
+
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
+
 		return line;
 	}
-	
+
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
-		
+
 		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, idx);
 		return new double[]
 				{
-				this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex]
+						this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex]
 				};
 	}
 
@@ -174,9 +174,9 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
-		
+
 		this.quotationsCopy = quotations;
-		
+
 		this.chaikinOscillator.calculateIndicator(quotations);
 		this.sma.calculateIndicator(quotations);
 	}

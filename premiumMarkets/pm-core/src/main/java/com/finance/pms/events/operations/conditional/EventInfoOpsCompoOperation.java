@@ -35,7 +35,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -108,27 +110,42 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		//			return new EventMapValue();
 		//		}
 
-		BooleanMapValue bullishMap = ((BooleanMapValue)inputs.get(0));
-		BooleanMapValue bearishMap = ((BooleanMapValue)inputs.get(1));
+		BooleanMapValue bullishMapValue = ((BooleanMapValue)inputs.get(0));
+		BooleanMapValue bearishMapValue = ((BooleanMapValue)inputs.get(1));
 		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2)); //not used for calculation
 		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));  //not implemented
 		StringValue eventListName = ((StringValue) inputs.get(4));
 
+		SortedMap<Date, Boolean> bullishMap = bullishMapValue.getValue(targetStock);
+		SortedMap<Date, Boolean> bearishMap = bearishMapValue.getValue(targetStock);
+
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
-		for (Date date : bullishMap.getValue(targetStock).keySet()) {
-			if (bullishMap.getValue(targetStock).get(date)) {
-				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BULLISH);
-				EventValue iev = new StandardEventValue(date, this, EventType.BULLISH, eventListName.getValue(targetStock));
-				edata.put(iek, iev);
+
+		String eventListNameValue = eventListName.getValue(targetStock);
+		List<Date> inconsistent = new ArrayList<>();
+		SortedSet<Date> fullKeySet = new TreeSet<Date>();
+		fullKeySet.addAll(bullishMap.keySet());
+		fullKeySet.addAll(bearishMap.keySet());
+
+		for (Date date : bullishMap.keySet()) {
+
+			EventType dateEventType = EventType.NONE;
+			Boolean isBullish = bullishMap.get(date);
+			Boolean isBearish = bearishMap.get(date);
+
+			if (isBullish != null && isBullish && isBearish != null && isBearish) {
+				inconsistent.add(date);
 			}
+			if (isBullish != null && isBullish) dateEventType = EventType.BULLISH;
+			if (isBearish != null && isBearish) dateEventType = EventType.BEARISH; //Bearish prevails in case of inconsistency.
+
+			ParameterizedEventKey iek = new ParameterizedEventKey(date, this, dateEventType);
+			EventValue iev = new StandardEventValue(date, this, dateEventType, eventListNameValue);
+			edata.put(iek, iev);
+
 		}
-		for (Date date : bearishMap.getValue(targetStock).keySet()) {
-			if (bearishMap.getValue(targetStock).get(date)) {
-				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, EventType.BEARISH);
-				EventValue iev = new StandardEventValue(date, this, EventType.BEARISH, eventListName.getValue(targetStock));
-				edata.put(iek, iev);
-			}
-		}
+
+		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference()+"' at : "+inconsistent);
 
 		///Finalizing this IndicatorOperator using its operands calculations
 		try {

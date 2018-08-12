@@ -46,17 +46,15 @@ public class LatestEventsAllIndDefsSignal extends LatestEventsSignal {
 
 	@Override
 	protected Boolean isFilteredEvent(EventValue eventValue) {
-		
+
 		if (eventValue.getEventType().equals(EventType.INFO)) return false;
 		if (eventValue.getEventType().equals(EventType.NONE)) return false;
 		if (isAlert(eventValue)) return false;
 
 		if (maxPassPrefsEventDefinitions.contains(eventValue.getEventDef())) return true;
-		
+
 		return false;
 	}
-	
-	
-	
+
 
 }

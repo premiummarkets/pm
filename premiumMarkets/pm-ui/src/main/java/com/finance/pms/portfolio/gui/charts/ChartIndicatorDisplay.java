@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
@@ -78,6 +79,8 @@ import com.finance.pms.datasources.TaskId;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
+import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
@@ -131,13 +134,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private Button chartedTrendsButton;
 	private PopupMenu<EventInfo> chartedTrendsPopupMenu;
 
-	//private Button trendSettingsButton
 	private BarSettings trendSettings;
 	private BarSettingsDialog trendSettingsDialog;
 
 	private Button recalculationButton;
-
-	private Map<EventInfo, TuningResDTO> tuningRessCache = new HashMap<>();
 
 
 	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
@@ -338,6 +338,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			public void update(Observable o, final Object arg) {
 
 				final Set<EventInfo> noDataTrends = new HashSet<EventInfo>();
+				SymbolEvents ses = (SymbolEvents) arg;
 
 				if (arg == null || ((SymbolEvents) arg).getDataResultMap().isEmpty()) {//No events found
 
@@ -349,22 +350,20 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				} else {//That's all or partially good, we display if needsUpdate
 
+					Map<EventInfo, TuningResDTO> tuningRessCache = new HashMap<>();
 					for (final EventInfo eventDefinition : chartTarget.getChartedEvtDefsTrends()) {
 
 						TuningResDTO tuningResDTO = null;
 						try {
-							if (outputDataNeedsUpdate || tuningRessCache == null || tuningRessCache.get(eventDefinition) == null) {
-								tuningResDTO = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
-							} else {
-								tuningResDTO = tuningRessCache.get(eventDefinition);
-							}
+							SortedMap<EventKey, EventValue> evtDefEvents = ses.getDataResultMap().entrySet().stream().filter(e -> e.getKey().getEventInfo().equals(eventDefinition)).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> b, TreeMap::new));
+							tuningResDTO = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, evtDefEvents, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
 						} catch (Exception e) {
 							LOGGER.warn("No event results were found for "+eventDefinition+". Calculation needed. " + e);
 						}
-						if (tuningResDTO != null) {
-							tuningRessCache.put(eventDefinition, tuningResDTO);
-						} else {
+						if (tuningResDTO == null) {
 							noDataTrends.add(eventDefinition);
+						} else {
+							tuningRessCache.put(eventDefinition, tuningResDTO);
 						}
 
 					}
@@ -372,7 +371,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					Runnable runnable = new Runnable() {
 						public void run() {
 							try {
-								SymbolEvents ses = (SymbolEvents) arg;
 								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = 
 										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, trendSettings);
 								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());

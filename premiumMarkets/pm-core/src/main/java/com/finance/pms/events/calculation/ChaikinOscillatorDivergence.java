@@ -44,29 +44,29 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 
 	private ChaikinOscillator chaikinOscillator;
 	private Integer chaikinQuotationStartDateIdx;
-	
+
 	public ChaikinOscillatorDivergence(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(EventDefinition.PMCHAIKINOSCDIVERGENCE, observers);
 		init(chkInfastPeriod, chkInslowPeriod);
 	}
-	
-    public ChaikinOscillatorDivergence(EventInfo reference) {
-        //Reflective ops generator
-    	super(reference);
-    }
-    
-    protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod) {
-        this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
-    }
-    
-    @Override
-    public void genericInit(Integer... constants) {
-        init(constants[0], constants[1]);
-    }
+
+	public ChaikinOscillatorDivergence(EventInfo reference) {
+		//Reflective ops generator
+		super(reference);
+	}
+
+	protected void init(Integer chkInFastPeriod, Integer chkInSlowPeriod) {
+		this.chaikinOscillator = new ChaikinOscillator(chkInFastPeriod, chkInSlowPeriod);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+		init(constants[0], constants[1]);
+	}
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
+		//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";
@@ -76,14 +76,14 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	protected String printThresholdsCSV() {
 		return "";
 	}
-	
+
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		return new double[]
 				{
-					getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
-					translateOutputForCharting(this.higherLows.get(idx)),
-					translateOutputForCharting(this.lowerHighs.get(idx))
+						getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
+						translateOutputForCharting(this.higherLows.get(idx)),
+						translateOutputForCharting(this.lowerHighs.get(idx))
 				};
 	}
 
@@ -101,7 +101,7 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMCHAIKINOSCDIVERGENCE;
 	}
-	
+
 	@Override
 	protected Integer getOscillatorQuotationStartDateIdx() {
 		return chaikinQuotationStartDateIdx;
@@ -116,7 +116,7 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	protected TalibIndicator getOscillator() {
 		return chaikinOscillator;
 	}
-	
+
 	@Override
 	protected Boolean isOcsAboveUpperThreshold(int idxSpan, int mfiIdx) {
 		return true;
@@ -142,5 +142,5 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 		return (double) (getDaysSpan()/2);
 	}
 
-	
+
 }

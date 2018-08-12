@@ -63,6 +63,11 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	private Map<String, UnarableMapValue> additionalOutputs;
 	private Map<String, Type> additionalOutputsTypes;
 
+	//Cache
+	private SortedMap<Date, Double> collectedUnaryMapValue;
+	private TreeMap<Date, Double> collectedAdditionalOutputs;
+	private TreeMap<Date, String> collectedValueAsStringMap;
+
 	public EventMapValue() {
 		super();
 		eventData = new TreeMap<EventKey, EventValue>();
@@ -81,39 +86,50 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 
-		double fMax = 1d;
-		double fMin = -1d;
-		return eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> {
-			EventType t = e.getEventType();
-			switch(t) {
-			case BULLISH : return fMax;
-			case BEARISH : return fMin;
-			default : return fMin + (fMax-fMin)/2;
-			}
-		}, (a,b) -> a + b, TreeMap::new)); //XXX there may be merge conflicts as Date is not a unique key in SortedMap<EventKey, EventValue>
+		if (collectedUnaryMapValue == null) {
+			double fMax = 1d;
+			double fMin = -1d;
+			collectedUnaryMapValue = //Collections.<Date, Double>unmodifiableSortedMap(
+					eventData.keySet().stream()
+					.collect(Collectors.toMap(e -> e.getDate(), e -> {
+						EventType t = e.getEventType();
+						switch(t) {
+						case BULLISH : return fMax;
+						case BEARISH : return fMin;
+						default : return fMin + (fMax-fMin)/2;
+						}
+					}, (a,b) -> a + b, TreeMap::new)); //);
+		}
+		return collectedUnaryMapValue; //XXX there may be merge conflicts as Date is not a unique key in SortedMap<EventKey, EventValue>
 
 	}
 
 	public SortedMap<Date, Double> getNormalizedValue(TargetStockInfo targetStockInfo) {
-		double max = 1d;
-		double min = -1d;
-		if (!additionalOutputs.values().isEmpty()) {
-			Collection<Double> values = additionalOutputs.values().iterator().next().getValue(null).subMap(targetStockInfo.getStartDate(), targetStockInfo.getEndDate()).values();
-			ApacheStats maxStats = new ApacheStats(new Max());
-			max = maxStats.sEvaluate(values);
-			ApacheStats minStats = new ApacheStats(new Min());
-			min = minStats.sEvaluate(values);
-		}
-		double fMax =  max;
-		double fMin = min;
-		return eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> {
-			EventType t = e.getEventType();
-			switch(t) {
-			case BULLISH : return fMax;
-			case BEARISH : return fMin;
-			default : return fMin + (fMax-fMin)/2;
+		if (collectedAdditionalOutputs == null) {
+			double max = 1d;
+			double min = -1d;
+			if (!additionalOutputs.values().isEmpty()) {
+				Collection<Double> values = additionalOutputs.values().iterator().next().getValue(null).subMap(targetStockInfo.getStartDate(), targetStockInfo.getEndDate()).values();
+				ApacheStats maxStats = new ApacheStats(new Max());
+				max = maxStats.sEvaluate(values);
+				ApacheStats minStats = new ApacheStats(new Min());
+				min = minStats.sEvaluate(values);
 			}
-		}, (a,b) -> a + b, TreeMap::new));
+			double fMax = max;
+			double fMin = min;
+			collectedAdditionalOutputs = eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> {
+				EventType t = e.getEventType();
+				switch (t) {
+				case BULLISH:
+					return fMax;
+				case BEARISH:
+					return fMin;
+				default:
+					return fMin + (fMax - fMin) / 2;
+				}
+			}, (a, b) -> a + b, TreeMap::new));
+		}
+		return collectedAdditionalOutputs;
 	}
 
 	public SortedMap<EventKey, EventValue> getEventMap() {
@@ -122,7 +138,11 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 
 	@Override
 	public SortedMap<Date, String> getValueAsStringMap() {
-		return eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> e.getEventType().toString(), (a,b) -> EventType.NONE.toString(), TreeMap::new));
+		if (collectedValueAsStringMap == null) {
+			collectedValueAsStringMap = eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(),
+					e -> e.getEventType().toString(), (a, b) -> EventType.NONE.toString(), TreeMap::new));
+		}
+		return collectedValueAsStringMap;
 	}
 
 	@Override

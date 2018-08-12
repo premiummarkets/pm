@@ -814,6 +814,8 @@ public class EventsResources {
 			Map<EventKey, EventValue> dataResultList = se.getDataResultMap();
 			for (final EventKey eventKey : dataResultList.keySet()) {
 
+				if (eventKey.getEventType().equals(EventType.NONE)) continue; //We don't store None events!
+
 				final EventValue eventValue = dataResultList.get(eventKey);
 
 				//update
@@ -859,6 +861,7 @@ public class EventsResources {
 
 				//insertion
 				addInsertQuery(lqinsert, se, eventValue, eventKey);
+
 			}
 		}
 	}

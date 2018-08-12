@@ -61,17 +61,17 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOperator {
-	
-//	private static MyLogger LOGGER = MyLogger.getLogger(OscillatorDivergenceCalculator.class);
-	
+
+	//	private static MyLogger LOGGER = MyLogger.getLogger(OscillatorDivergenceCalculator.class);
+
 	protected SortedMap<Integer,Double> higherLows;
 	protected SortedMap<Integer,Double> lowerHighs;
 	private HighLowSolver highLowSolver;
 	private Quotations quotationsCopy;
-	
+
 	public OscillatorDivergenceCalculator(EventInfo eventInfo, Observer ...observers) {
 		super(eventInfo, observers);
-		
+
 		highLowSolver = new HighLowSolver();
 		higherLows = new TreeMap<Integer, Double>();
 		lowerHighs = new TreeMap<Integer, Double>();
@@ -80,29 +80,29 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
-		
+
 		FormulatRes res = new FormulatRes((EventDefinition) getEventDefinition());
 		res.setCurrentDate(qU.getDate());
-		
+
 		Calendar currentDateCal = Calendar.getInstance();
 		currentDateCal.setTime(res.getCurrentDate());
 		Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDateCal, -getDaysSpan()).getTime();
 		int lookBackPeriodStartIdx = quotationsCopy.getClosestIndexBeforeOrAtDateOrIndexZero(0, lookBackPeriodStart);
 		int idxSpan = quotationIdx - lookBackPeriodStartIdx;
-		
+
 		if (idxSpan < 4) return res; //We need a least 3 days to draw higher low or lower high
-		
+
 		int mfiIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
 		int lookBackSpan = mfiIdx - idxSpan;
 		if (lookBackSpan < 0) {//No enough data
 			throw new InvalidAlgorithmParameterException("Negative look back span for "+quotationsCopy.getStock()+" and "+this.getEventDefinition()+". LookBackPeriodStart : "+lookBackPeriodStart+", days span "+getDaysSpan()+", first date available : "+quotationsCopy.get(0));
 		}
-		
+
 		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), lookBackSpan, mfiIdx));
-	
+
 		{
 			Boolean isPriceDown = false;
-			
+
 			Boolean isMfiUp = false;
 			Boolean isMfiDownThreshold = false;
 			isMfiDownThreshold = isOscBelowLowerThreshold(idxSpan, mfiIdx);
@@ -115,7 +115,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 				isMfiUp = highLowSolver.higherLow(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstPeakIdx, lastPeakIdx);
 
 				if (isMfiUp) {
-					
+
 					//int coveredSpan = regline.size();
 					int firstPeakLeftShifted = (int) (Math.max(firstPeakIdx.intValue() - ((double)mfiLookBackP.length)*.1, 0));
 					int lastPeakRightShifted = (int) (Math.min(lastPeakIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1)); //lastPeakIdx.intValue();
@@ -124,7 +124,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 					int lastPeakCalculatorIdx = quotationIdx - (regline.size() - lastPeakRightShifted);
 					for (int i = lastPeakCalculatorIdx - coveredSpan; i <= lastPeakCalculatorIdx - coveredSpan/2; i++) {
 						leftSigma = leftSigma + quotationsCopy.get(i).getClose().doubleValue();
-					}	
+					}
 					Double rightSigma=0d;
 					for (int i = lastPeakCalculatorIdx - coveredSpan/2; i <= lastPeakCalculatorIdx; i++) {
 						rightSigma = rightSigma +  quotationsCopy.get(i).getClose().doubleValue();
@@ -134,17 +134,17 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 					if (isPriceDown) addReglineOutput(higherLows, lastPeakCalculatorIdx, regline, coveredSpan, firstPeakLeftShifted, lastPeakRightShifted);
 				}
 			}
-			
-			res.setBullishCrossOver(isPriceDown && isMfiDownThreshold && isMfiUp); 
+
+			res.setBullishCrossOver(isPriceDown && isMfiDownThreshold && isMfiUp);
 			if (res.getBullishCrossOver()) {
 				return res;
 			}
-			
+
 		}
 		{
 
 			Boolean isPriceUp = false;
-			
+
 			Boolean isMfiUpThreshold = false;
 			Boolean isMfiDown = false;
 
@@ -178,9 +178,9 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 				}
 
 			}
-			
+
 			res.setBearishCrossBellow(isPriceUp && isMfiDown && isMfiUpThreshold);
-		
+
 			return res;
 		}
 	}
@@ -202,7 +202,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		}
 		return false;
 	}
-	
+
 	protected abstract double getOscillatorLowerThreshold();
 	protected abstract double getOscillatorUpperThreshold();
 
@@ -218,16 +218,16 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
 		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
-//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, getOscillatorQuotationStartDateIdx());
+		//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, getOscillatorQuotationStartDateIdx());
 		double mfiV = getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), calculatorIndex)];
 		String thresholdString = printThresholdsCSV();
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," + calculatorClose + "," + 
-//			getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," + getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," + 
-//			((this.higherLows.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + 
-			((this.higherLows.get(calculatorIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(calculatorIndex)!=null)?mfiV:"") + "," + 
-			thresholdString + "," + mfiV;
-		
+				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," + calculatorClose + "," + 
+						//			getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," + getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," + 
+						//			((this.higherLows.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + 
+						((this.higherLows.get(calculatorIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(calculatorIndex)!=null)?mfiV:"") + "," + 
+						thresholdString + "," + mfiV;
+
 		if (bearishEventValue != null) {
 			line = line + "," + calculatorClose +",0,";
 		} else if (bullishEventValue != null){
@@ -235,18 +235,18 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		} else {
 			line = line + ",0,0,";
 		}
-		
+
 		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
-		
+
 		return line;
 	}
 
 	protected String printThresholdsCSV() {
 		return getOscillatorLowerThreshold() + "," + getOscillatorUpperThreshold();
 	}
-	
+
 	protected void addReglineOutput(SortedMap<Integer, Double> reglines, Integer calculatorIndex, ArrayList<Double> regline, Integer idxSpan, Integer firstExtIdx, Integer lastExtIdx) {
-		
+
 		int gap = 0;
 		int overlapFromKey = calculatorIndex-idxSpan;
 		if (!reglines.isEmpty()) {
@@ -262,16 +262,16 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 				reglines.put(i, Double.NaN);
 			}
 		}
-			
+
 	}
-	
+
 	protected abstract Double getAlphaBalance();
-	
+
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
-		
+
 		this.quotationsCopy = quotations;
-		
+
 		getOscillator().calculateIndicator(quotations);
 	}
 
@@ -284,7 +284,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 	public ValidityFilter quotationsValidity() {
 		return getOscillator().quotationValidity();
 	}
-	
+
 	@Override
 	public Integer getOutputBeginIdx() {
 		return getOscillator().getOutBegIdx().value + getDaysSpan();

@@ -74,6 +74,8 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	@Override
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws TalibException {
 
+		if (!EventType.consistencyCheck()) throw new RuntimeException();
+
 		initIndicators(quotations);
 
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
@@ -87,13 +89,13 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 				res = eventFormulaCalculation(qU, quotationIndex);
 				res.setCurrentDate(qU.getDate());
 
-				if (res.formulaTrend() != 0) {
-					Date current = res.getCurrentDate();
-					EventType eventType = EventType.valueOf(res.formulaTrend() + 1);
-					StandardEventKey iek = new StandardEventKey(current, eventInfoOpsCompoOperation, eventType);
-					EventValue iev = new StandardEventValue(current, eventInfoOpsCompoOperation, eventType, eventListName);
-					edata.put(iek, iev);
-				}
+				//if (res.formulaTrend() != 0) {
+				Date current = res.getCurrentDate();
+				EventType eventType = EventType.valueOf(res.formulaTrend() + 1);
+				StandardEventKey iek = new StandardEventKey(current, eventInfoOpsCompoOperation, eventType);
+				EventValue iev = new StandardEventValue(current, eventInfoOpsCompoOperation, eventType, eventListName);
+				edata.put(iek, iev);
+				//}
 
 			}
 
