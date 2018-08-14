@@ -63,7 +63,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsOperator.class);
 
 	private EventInfo eventInfoOpsCompoOperation;
-	SortedMap<Date, double[]> calculationOutput;
+	private SortedMap<Date, double[]> calculationOutput;
 
 	public TalibIndicatorsOperator(EventInfo eventInfoOpsCompoOperation, Observer... observers) {
 		super(observers);

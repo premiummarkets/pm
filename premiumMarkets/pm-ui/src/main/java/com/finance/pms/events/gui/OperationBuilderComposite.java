@@ -782,8 +782,8 @@ public class OperationBuilderComposite extends Composite {
 
 	private void openDialog(String errorMsg, Object e) {
 		String addMessage = (e == null)?null:e.toString();
-		boolean firstDialog = dialog == null;
-		boolean differentDialog = !dialog.sameDialog(errorMsg, addMessage);
+		boolean firstDialog = (dialog == null);
+		boolean differentDialog = (dialog != null) && !dialog.sameDialog(errorMsg, addMessage);
 		if (firstDialog || differentDialog) {
 			if (e instanceof Exception) LOGGER.warn(e, (Exception) e);
 			if (firstDialog || dialog.getParent().isDisposed()) {

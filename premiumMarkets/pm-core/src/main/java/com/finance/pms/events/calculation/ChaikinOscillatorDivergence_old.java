@@ -58,8 +58,9 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 	private ChaikinOscillator chaikinOscillator;
 	private SMA sma;
+	private Double[] priceHLs;
 
-	private Quotations quotationsCopy;
+	private double[] quotationsCopy;
 
 	public ChaikinOscillatorDivergence_old(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(EventDefinition.PMMIGHTYCHAIKIN, observers);
@@ -89,7 +90,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 		int chaikinIdx = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, quotationIdx);
 		double[] chaikinLookBackP = Arrays.copyOfRange(this.chaikinOscillator.getChaikinOsc(), chaikinIdx - getDaysSpan(), chaikinIdx);
-		double[] quotationLookBackP = Arrays.copyOfRange(quotationsCopy.getCloseValues(), quotationIdx - getDaysSpan(), quotationIdx);
+		double[] quotationLookBackP = Arrays.copyOfRange(quotationsCopy, quotationIdx - getDaysSpan(), quotationIdx);
 
 		int smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
@@ -99,16 +100,20 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 		{
 			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinUp = higherLow(chaikinLookBackP, chaikinThreshCurve);
-			res.setBullishCrossOver(isPriceDown && isChaikinUp); 
+			res.setBullishCrossOver(isPriceDown && isChaikinUp);
 
-			if (res.getBullishCrossOver()) return res;
+			if (res.getBullishCrossOver()) {
+				priceHLs[quotationIdx - getDaysSpan()] = quotationsCopy[quotationIdx - getDaysSpan()];
+				//priceHLs[quotationIdx] = quotationsCopy[quotationIdx - getDaysSpan()] + dataSlope*getDaysSpan();
+				priceHLs[quotationIdx] = quotationsCopy[quotationIdx];
+				return res;
+			}
 
 		}
 		{
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinDown = lowerHigh(chaikinLookBackP,  chaikinThreshCurve);
 			res.setBearishCrossBellow(isPriceUp && isChaikinDown);
-
 			return res;
 		}
 
@@ -123,7 +128,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 	protected String getHeader(List<Integer> scoringSmas) {
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
+		return head+"\n";
 	}
 
 	@Override
@@ -158,7 +163,8 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 		Integer indicatorIndexFromCalculatorQuotationIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, idx);
 		return new double[]
 				{
-						this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex]
+						this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex],
+						translateOutputForCharting(this.priceHLs[idx])
 				};
 	}
 
@@ -175,10 +181,12 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
 
-		this.quotationsCopy = quotations;
+		this.quotationsCopy = quotations.getCloseValues();
+		this.priceHLs = new Double[quotationsCopy.length];
 
 		this.chaikinOscillator.calculateIndicator(quotations);
 		this.sma.calculateIndicator(quotations);
+
 	}
 
 

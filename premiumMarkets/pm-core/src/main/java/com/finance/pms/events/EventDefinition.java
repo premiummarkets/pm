@@ -124,7 +124,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Price is up and Chaikin makes a lower high over 60 days",null, 
 					"Price is down and Chaikin makes a higher low over 60 days", null), 10), //
 
-	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic("Mighty Chaikin",null,null,null,null,null,"Bearish",null, "Bullish", null), 1),
+	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic("Mighty Chaikin","Chaikin higher low",null,null,null,null,"Bearish",null, "Bullish", null), 1),
 
 	//PM not used
 	PMOBVDIVERGENCE (151,"OBV Divergence", false, null, 0),

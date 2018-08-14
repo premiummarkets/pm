@@ -63,13 +63,13 @@ import com.finance.pms.admin.install.logging.MyLogger;
 public class HighLowSolver {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HighLowSolver.class);
-	
+
 	private static final double HIGHPOSMIN = .8;
 	private static final double LOWPOSMAX = .2;
-	
+
 	private static final double REGLINE_TOLERANCE = 0.01;
 	private static final double REGLINE_SLOPEMIN = 0.0; //0.03;
-	
+
 	public Boolean higherHigh(Double[] periodData, Double[] periodSmoothedCeiling, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstPeakIdx, MutableInt lastPeakIdx) {
 
 		MutableDouble amountBelowSmoothingCeiling = new MutableDouble(0);
@@ -83,11 +83,11 @@ public class HighLowSolver {
 		if (goesDownOrFlat(slopeCoef)) return false;
 
 		boolean isTrue = isDataBelowRegLine(periodData, firstPeakIdx.intValue(), slopeCoef, regLine);
-		
+
 		if (isTrue) {
 			printRes("hh",periodData, periodSmoothedCeiling, highPeaks, slopeCoef, regLine);
 		}
-		
+
 		return isTrue;
 
 	}
@@ -118,9 +118,9 @@ public class HighLowSolver {
 	protected boolean goesDownOrFlat(Double slopeCoef) {
 		return slopeCoef <= REGLINE_SLOPEMIN || slopeCoef.isInfinite() || slopeCoef.isNaN();
 	}
-	
+
 	private void printRes(String source, Double[] periodData, Double[] periodSmoothedThresh, Double[] extrems, double slopeCoef, ArrayList<Double> regLine) {
-		
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("source : "+ source+ ", regLine coefficient "+slopeCoef);
 			LOGGER.debug("periodData,periodThreshCurve,extremes,dataSlope");
@@ -142,28 +142,28 @@ public class HighLowSolver {
 		if (goesUpOrFlat(slopeCoef)) return false;
 
 		boolean isTrue = isDataBelowRegLine(periodData, firstPeakIdx.intValue(), slopeCoef, regLine);
-		
+
 		if (isTrue) {
 			printRes("lh",periodData, periodSmoothedCeiling, highPeaks, slopeCoef, regLine);
 		}
-		
+
 		return isTrue;
 
 	}
 
 	private Map<Integer, Double> highPeaks(MutableInt firstPeakIdx, MutableInt lastPeakIdx, MutableDouble amountBelowSmoothingCeiling, Double[] periodData, Double[] periodSmoothedCeiling) {
-		
+
 		boolean noSmoothedConstraint = periodSmoothedCeiling.length == 0;
-		
+
 		Double max = -1d;
 		SortedMap<Integer, Double> highPeaks = new TreeMap<Integer, Double>();
 		highPeaks.put(0, 0d);
 		for (int i = 1 ; i < periodData.length -1; i++) {
-			
+
 			if (noSmoothedConstraint || periodSmoothedCeiling[i] > periodData[i]) {
 				amountBelowSmoothingCeiling.increment();
 			}
-			
+
 			boolean isIdxAbovePrev = periodData[i-1] < periodData[i];
 			boolean isIdxAboveSucc = periodData[i+1] < periodData[i];
 			boolean isIdxAboveSmoothed = noSmoothedConstraint || periodSmoothedCeiling[i] <= periodData[i];
@@ -175,35 +175,35 @@ public class HighLowSolver {
 			} else {
 				highPeaks.put(i,0d);
 			}
-			
+
 			if (periodData[i]  > max) max = periodData[i];
 		}
-		
+
 		if (periodData[periodData.length-1] >= max && (noSmoothedConstraint || periodSmoothedCeiling[periodData.length-1] <= periodData[periodData.length-1])) {
 			highPeaks.put(periodData.length-1, periodData[periodData.length-1]);
 			lastPeakIdx.setValue(periodData.length-1);
 		} else {
 			highPeaks.put(periodData.length-1, 0d);
 		}
-		
+
 		amountBelowSmoothingCeiling.setValue(amountBelowSmoothingCeiling.doubleValue()/periodData.length);
 
 		return highPeaks;
 	}
-	
+
 	private Map<Integer, Double> simpleHighPeaks(Double[] periodData, Double[] periodSmoothedCeiling, MutableDouble amountBelowSmoothingCeiling) {
-		
+
 		boolean noSmoothedConstraint = periodSmoothedCeiling.length == 0;
-		
+
 		Double max = -1d;
 		SortedMap<Integer, Double> highPeaks = new TreeMap<Integer, Double>();
 		highPeaks.put(0, 0d);
 		for (int i = 1 ; i < periodData.length -1; i++) {
-			
+
 			if (noSmoothedConstraint || periodSmoothedCeiling[i] > periodData[i]) {
 				amountBelowSmoothingCeiling.increment();
 			}
-			
+
 			boolean isIdxAbovePrev = periodData[i-1] < periodData[i];
 			boolean isIdxAboveSucc = periodData[i+1] < periodData[i];
 			boolean isIdxAboveSmoothed = noSmoothedConstraint || periodSmoothedCeiling[i] <= periodData[i];
@@ -212,45 +212,45 @@ public class HighLowSolver {
 			} else {
 				highPeaks.put(i,0d);
 			}
-			
+
 			if (periodData[i]  > max) max = periodData[i];
 		}
-		
+
 		if (periodData[periodData.length-1] >= max && (noSmoothedConstraint || periodSmoothedCeiling[periodData.length-1] <= periodData[periodData.length-1])) {
 			highPeaks.put(periodData.length-1, periodData[periodData.length-1]);
 		} else {
 			highPeaks.put(periodData.length-1, 0d);
 		}
-		
+
 		amountBelowSmoothingCeiling.setValue(amountBelowSmoothingCeiling.doubleValue()/periodData.length);
 
 		return highPeaks;
 	}
 
-	
+
 	public Boolean higherLow(Double[] periodData, Double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx) {
-		
+
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
-		
-		Double[] lowTroughs =  bestLowTangente(periodData,  periodSmoothedFloor,  firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
+
+		Double[] lowTroughs =  bestLowTangente(periodData,  periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		if (firstTroughIdx.intValue() == -1) return false;
 		if (isNotBalanced(amountAboveSmoothingFloor,firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), periodData.length, alphaBalance)) return false;
-		
+
 		Double slopeCoef = dataSlope(firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), lowTroughs);
 		if (goesDownOrFlat(slopeCoef)) return false;
 
 		boolean isTrue = isDataAboveRegLine(periodData, firstTroughIdx.intValue(), slopeCoef, regLine);
-		
+
 		if (isTrue) {
 			printRes("hl",periodData, periodSmoothedFloor, lowTroughs, slopeCoef, regLine);
 		}
-		
+
 		return isTrue;
 
 	}
-	
+
 	public Boolean lowerLow(Double[] periodData, Double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx) {
-		
+
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
 		Double[] lowTroughs =  bestLowTangente(periodData, periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
@@ -259,13 +259,13 @@ public class HighLowSolver {
 
 		Double slopeCoef = dataSlope(firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), lowTroughs);
 		if (goesUpOrFlat(slopeCoef)) return false;
-		
+
 		boolean isTrue = isDataAboveRegLine(periodData, firstTroughIdx.intValue(), slopeCoef, regLine);
-		
+
 		if (isTrue) {
 			printRes("ll",periodData, periodSmoothedFloor, lowTroughs, slopeCoef, regLine);
 		}
-		
+
 		return isTrue;
 
 
@@ -280,7 +280,7 @@ public class HighLowSolver {
 	protected boolean isDataAboveRegLine(Double[] periodData, int firstIntersctionIdx, Double slopeCoef, ArrayList<Double> regLine) {
 		boolean isTrue = true;
 		int regLineStartIdx = (int) (Math.max(firstIntersctionIdx - ((double)periodData.length)*.2, 0));
-		
+
 		int x1 = firstIntersctionIdx;
 		Double y1 = periodData[(int) x1];
 		int x0 = regLineStartIdx;
@@ -303,20 +303,20 @@ public class HighLowSolver {
 	protected boolean goesUpOrFlat(Double slopeCoef) {
 		return slopeCoef >= -REGLINE_SLOPEMIN || slopeCoef.isInfinite() || slopeCoef.isNaN();
 	}
-	
+
 	private Map<Integer, Double> lowTroughs(Double[] pData, Double[] periodSmoothedFloor, MutableInt fTrouIdx, MutableInt lTrouIdx, MutableDouble amountAboveSmoothingFloor) {
-		
+
 		boolean noSmoothedConstraint = periodSmoothedFloor.length == 0;
-		
+
 		Double min = Double.MAX_VALUE;
 		SortedMap<Integer, Double> lowTroughs = new TreeMap<Integer, Double>();
 		lowTroughs.put(0,0d);
 		for (int i = 1 ; i < pData.length-1; i++) {
-			
+
 			if (noSmoothedConstraint || periodSmoothedFloor[i] < pData[i]) {
 				amountAboveSmoothingFloor.increment();
 			}
-			
+
 			boolean isIdxBelowPrev = pData[i-1] > pData[i];
 			boolean isIdxBelowSucc = pData[i+1] > pData[i];
 			boolean isIdxBelowSmothed = noSmoothedConstraint || periodSmoothedFloor[i] >= pData[i];
@@ -328,7 +328,7 @@ public class HighLowSolver {
 			} else {
 				lowTroughs.put(i,0d);
 			}
-			
+
 			if (pData[i] < min) min = pData[i];
 		}
 
@@ -338,12 +338,12 @@ public class HighLowSolver {
 		} else {
 			lowTroughs.put(pData.length-1,0d);
 		}
-		
+
 		amountAboveSmoothingFloor.setValue(amountAboveSmoothingFloor.doubleValue()/pData.length);
-		
+
 		return lowTroughs;
 	}
-	
+
 	private Map<Integer, Double> simpleLowTroughs(Double[] pData, Double[] periodSmoothedFloor, MutableDouble amountAboveSmoothingFloor) {
 
 		boolean noSmoothedConstraint = periodSmoothedFloor.length == 0;
@@ -379,19 +379,19 @@ public class HighLowSolver {
 
 		return lowTroughs;
 	}
-	
+
 	private Map<Integer, Double> bestLowTangente(Double[] pData, Double[] periodSmoothedFloor, MutableInt fTrouIdx, MutableInt lTrouIdx, MutableDouble amountAboveSmoothingFloor) {
-		
+
 		Map<Integer, Double> lowTroughsMap = simpleLowTroughs(pData, periodSmoothedFloor, amountAboveSmoothingFloor);
 		Double[] troughs = lowTroughsMap.values().toArray(new Double[0]);
-		
+
 		Double previousLeftTrough = null;
 		int previousLeftTroughIdx = -1;
 		double previousSlope = 0;
-		
+
 		Double rightTrough = null;
 		int rightTroughIdx = troughs.length-1;
-		
+
 		for (; rightTroughIdx >=0 ; rightTroughIdx--) {
 			if (troughs[rightTroughIdx] != 0) {
 				rightTrough = troughs[rightTroughIdx];
@@ -399,7 +399,7 @@ public class HighLowSolver {
 			} 
 		}
 		if (rightTrough == null) return lowTroughsMap;
-		
+
 		for (int leftTroughIdx = rightTroughIdx-1; leftTroughIdx >=0 ; leftTroughIdx--) {
 			if (troughs[leftTroughIdx] != 0) {
 				if (previousLeftTrough == null) {
@@ -419,25 +419,25 @@ public class HighLowSolver {
 				}
 			}
 		}
-		
+
 		fTrouIdx.setValue(previousLeftTroughIdx);
 		lTrouIdx.setValue(rightTroughIdx);
-		
+
 		return lowTroughsMap;
 	}
-	
+
 	private Map<Integer, Double> bestHighTangente(Double[] pData, Double[] periodSmoothedFloor, MutableInt fPeakIdx, MutableInt lPeakIdx, MutableDouble amountBelowSmoothingCeiling) {
-		
+
 		Map<Integer, Double> highPeaksMap = simpleHighPeaks(pData, periodSmoothedFloor, amountBelowSmoothingCeiling);
 		Double[] peaks = highPeaksMap.values().toArray(new Double[0]);
-		
+
 		Double previousLeftPeak = null;
 		int previousLeftPeakIdx = -1;
 		double previousSlope = 0;
-		
+
 		Double rightPeak = null;
 		int rightPeakIdx = peaks.length-1;
-		
+
 		for (; rightPeakIdx >=0 ; rightPeakIdx--) {
 			if (peaks[rightPeakIdx] != 0) {
 				rightPeak = peaks[rightPeakIdx];
@@ -445,7 +445,7 @@ public class HighLowSolver {
 			} 
 		}
 		if (rightPeak == null) return highPeaksMap;
-		
+
 		for (int leftPeakIdx = rightPeakIdx-1; leftPeakIdx >=0 ; leftPeakIdx--) {
 			if (peaks[leftPeakIdx] != 0) {
 				if (previousLeftPeak == null) {
@@ -465,19 +465,19 @@ public class HighLowSolver {
 				}
 			}
 		}
-		
+
 		fPeakIdx.setValue(previousLeftPeakIdx);
 		lPeakIdx.setValue(rightPeakIdx);
-		
+
 		return highPeaksMap;
 	}
-	
+
 	private double dataSlope(Double firstExtIdx, Double lastExtIdx, Double[] extrems) {
 		double slope = (extrems[lastExtIdx.intValue()]-extrems[firstExtIdx.intValue()])/(lastExtIdx-firstExtIdx);
 		return slope;
 	}
-	
-	
+
+
 	private double dataRegressionSlope(Double[] extrems) {
 
 		List<double[]> regInput = new ArrayList<double[]>();
