@@ -140,10 +140,10 @@ public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
 		Date calculatorDate = qU.getDate();
-		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BULLISH));
+		EventValue bearsihEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BEARISH));
+		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
 //		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 //		int stddevQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,stddevQuotationStartDateIdx);

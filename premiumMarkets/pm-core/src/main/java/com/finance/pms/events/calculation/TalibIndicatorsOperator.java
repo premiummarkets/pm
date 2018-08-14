@@ -68,7 +68,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	public TalibIndicatorsOperator(EventInfo eventInfoOpsCompoOperation, Observer... observers) {
 		super(observers);
 		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperation;
-		this.calculationOutput = new TreeMap<Date, double[]>();
+		this.calculationOutput = new TreeMap<>();
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 		initIndicators(quotations);
 
-		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
+		SortedMap<EventKey, EventValue> eData = new TreeMap<>();
 		FormulatRes res;
 
 		try {
@@ -94,7 +94,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 				EventType eventType = EventType.valueOf(res.formulaTrend() + 1);
 				StandardEventKey iek = new StandardEventKey(current, eventInfoOpsCompoOperation, eventType);
 				EventValue iev = new StandardEventValue(current, eventInfoOpsCompoOperation, eventType, eventListName);
-				edata.put(iek, iev);
+				eData.put(iek, iev);
 				//}
 
 			}
@@ -105,13 +105,13 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 			throw new TalibException(message, e);
 		} finally {
 			if (LOGGER.isTraceEnabled()) {
-				exportToCSV(edata, quotations, eventListName);
+				exportToCSV(eData, quotations, eventListName);
 			}
 		}
 
 		calculationOutput = buildOutput(quotations); //Here because divergences output can't be calculated in the loop
 
-		return edata;
+		return eData;
 
 	}
 
@@ -158,7 +158,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	protected String addScoringHeader(String head, List<Integer> scoringSmas) {
 		if (scoringSmas == null) return head;
 		for (Integer integer : scoringSmas) {
-			head = head + ", sma "+integer;
+			head = head + ", sma " + integer;
 		}
 		return head;
 	}
@@ -182,7 +182,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 	protected  abstract String getHeader(List<Integer> scoringSmas);
 
-	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects);
+	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects);
 
 
 	protected Boolean lowerLow(double[] data, double[] threshCurve) {
@@ -198,7 +198,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	}
 
 	private List<Double> lowThrough(double[] data, double[] threshCurve) {
-		List<Double> lowThrough = new ArrayList<Double>();
+		List<Double> lowThrough = new ArrayList();
 		for (int i = 1 ; i < data.length-1; i++) {
 			if (data[i-1] > data[i] && data[i] < data[i+1] && data[i] < threshCurve[i]) {// low through
 				lowThrough.add(data[i]);
@@ -221,7 +221,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	}
 
 	private List<Double> highPeaks(double[] data, double[] threshCurve) {
-		List<Double> highPeaks = new ArrayList<Double>();
+		List<Double> highPeaks = new ArrayList();
 		for (int i = 1 ; i < data.length-1; i++) {
 			if (data[i-1] < data[i] && data[i] > data[i+1] && data[i] > threshCurve[i]) {
 				highPeaks.add(data[i]);
@@ -231,7 +231,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	}
 
 
-	protected Boolean higherLow(double[] data, double[] threshCurve) {
+	protected double higherLow(double[] data, double[] threshCurve) {
 
 		//build low through array
 		List<Double> lowThrough = lowThrough(data, threshCurve);
@@ -239,7 +239,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 		//linear reg of the curve
 		double dataSlope = dataSlope(lowThrough);
 
-		return dataSlope > 0;
+		return dataSlope;
 
 
 	}
@@ -288,7 +288,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 		Boolean returnOutput = Boolean.valueOf(MainPMScmd.getMyPrefs().get("indicators.returnoutput", "false"));
 
-		SortedMap<Date, double[]> outputMap = new TreeMap<Date, double[]>();
+		SortedMap<Date, double[]> outputMap = new TreeMap<>();
 		if (returnOutput) {
 			for (int i = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); i <= quotations.getLastDateIdx(); i++) {
 				QuotationUnit quotationUnit = quotations.get(i);

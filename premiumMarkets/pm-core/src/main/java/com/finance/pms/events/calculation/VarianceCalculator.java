@@ -254,7 +254,7 @@ public class VarianceCalculator extends TalibIndicatorsOperator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
 		// TODO Auto-generated method stub
 		return null;
 	}

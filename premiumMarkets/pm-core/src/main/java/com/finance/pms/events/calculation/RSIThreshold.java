@@ -124,10 +124,10 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
 		Date calculatorDate = qU.getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BULLISH));
+		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BEARISH));
+		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
 		//int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =
@@ -145,7 +145,7 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 			line = line + ",0,0,";
 		}
 		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
 		
 		return line;
 	}

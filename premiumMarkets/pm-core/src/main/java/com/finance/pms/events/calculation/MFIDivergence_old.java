@@ -137,10 +137,10 @@ public class MFIDivergence_old extends TalibIndicatorsOperator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects){
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects){
 		Date calculatorDate = qU.getDate();
-		EventValue bearsihEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
+		EventValue bearsihEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
+		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
 //		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =
@@ -158,7 +158,7 @@ public class MFIDivergence_old extends TalibIndicatorsOperator {
 			line = line + ",0,0,";
 		}
 		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
 		
 		return line;
 	}
