@@ -52,7 +52,7 @@ public class ChaikinOscillator extends TalibIndicator {
 		double inLow[] = quotations.getLowValues();
 		double inHigh[] = quotations.getHighValues();
 		double inVolume[] = quotations.getVolumes();
-		
+
 		double[][] ret = new double[4][Math.max(Math.max(Math.max(closeValues.length, inHigh.length), inLow.length), inVolume.length)];
 		ret[0]= closeValues;
 		ret[1]= inLow;

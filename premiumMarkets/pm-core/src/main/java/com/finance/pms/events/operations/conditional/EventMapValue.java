@@ -68,18 +68,22 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	private TreeMap<Date, Double> collectedAdditionalOutputs;
 	private TreeMap<Date, String> collectedValueAsStringMap;
 
+	private Boolean isLooseCoupled;
+
 	public EventMapValue() {
 		super();
 		eventData = new TreeMap<EventKey, EventValue>();
 		additionalOutputs = new HashMap<String, UnarableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
+		this.isLooseCoupled = false;
 	}
 
-	public EventMapValue(SortedMap<EventKey, EventValue> eventData) {
+	public EventMapValue(SortedMap<EventKey, EventValue> eventData, Boolean isLooseCoupled) {
 		super();
 		this.eventData = eventData;
-		additionalOutputs = new HashMap<String, UnarableMapValue>();
-		additionalOutputsTypes = new HashMap<String, Type>();
+		this.additionalOutputs = new HashMap<String, UnarableMapValue>();
+		this.additionalOutputsTypes = new HashMap<String, Type>();
+		this.isLooseCoupled = isLooseCoupled;
 	}
 
 
@@ -182,6 +186,11 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	@Override
 	public Map<String, Type> getAdditionalOutputsTypes() {
 		return additionalOutputsTypes;
+	}
+
+	@Override
+	public Boolean isLooseCoupled() {
+		return isLooseCoupled;
 	}
 
 }

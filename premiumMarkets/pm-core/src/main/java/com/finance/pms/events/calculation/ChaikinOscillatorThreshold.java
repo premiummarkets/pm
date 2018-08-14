@@ -76,7 +76,7 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
     }
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) {
 
 		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
@@ -92,7 +92,7 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 		} 
 		{
 			//BEAR : Chaikin cross below zero
-			boolean isCrossingBelow = this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1]  > 0 && 0 > this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
+			boolean isCrossingBelow = this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1] > 0 && 0 > this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
 			res.setBearishCrossBellow(isCrossingBelow);
 			
 			return res;
@@ -113,11 +113,11 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
 		
 		Date calculatorDate = qU.getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMCHAIKINOSCTHRESHOLD, EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMCHAIKINOSCTHRESHOLD, EventType.BULLISH));
+		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMCHAIKINOSCTHRESHOLD, EventType.BEARISH));
+		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMCHAIKINOSCTHRESHOLD, EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
 		
 		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, calculatorIndex);
@@ -136,7 +136,7 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 			line = line + ",0,0,";
 		}
 		
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
 		
 		return line;
 	}

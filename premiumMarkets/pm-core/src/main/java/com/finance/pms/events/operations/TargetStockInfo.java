@@ -412,8 +412,18 @@ public class TargetStockInfo {
 			Operation operand = operands.get(i);
 			if (ov instanceof MultiMapValue && operand.getFormulae() != null) {
 				Map<String, Type> multiMapValueOutputTypes = ((MultiMapValue) ov).getAdditionalOutputsTypes();
-				setMain(operand);
-				addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand));
+//				if (((MultiMapValue)ov).isLooseCoupled()) {
+//					multiMapValueOutputTypes.entrySet().forEach(e -> {
+//						Map<String, Type> singleOutputType = new HashMap<>();
+//						singleOutputType.put(e.getKey(), e.getValue());
+//						Integer indexOfSingleOutput = getIndexOfChartableOutput(new OutputReference(operand, e.getKey()));
+//						setMain(operand, indexOfSingleOutput);
+//						addChartInfoForAdditonalOutputs(operand, singleOutputType, indexOfSingleOutput);
+//					});
+//				} else {
+					setMain(operand);
+					addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand));
+//				}
 			}
 		}
 

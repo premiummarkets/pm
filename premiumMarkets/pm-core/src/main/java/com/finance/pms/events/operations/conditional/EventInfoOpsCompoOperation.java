@@ -169,7 +169,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			LOGGER.warn(e, e);
 		}
 
-		return new EventMapValue(edata);
+		return new EventMapValue(edata, false);
 	}
 
 	@Override

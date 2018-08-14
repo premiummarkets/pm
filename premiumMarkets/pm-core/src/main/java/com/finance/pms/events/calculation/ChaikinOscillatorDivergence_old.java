@@ -58,7 +58,9 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 	private ChaikinOscillator chaikinOscillator;
 	private SMA sma;
-	private Double[] priceHLs;
+
+	private Double[] priceLowerLow;
+	private Double[] oscillatorHigherLow;
 
 	private double[] quotationsCopy;
 
@@ -99,13 +101,22 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 
 		{
 			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
-			Boolean isChaikinUp = higherLow(chaikinLookBackP, chaikinThreshCurve);
-			res.setBullishCrossOver(isPriceDown && isChaikinUp);
+			double chaikinSlope = higherLow(chaikinLookBackP, chaikinThreshCurve);
+			res.setBullishCrossOver(isPriceDown && (chaikinSlope > 0));
 
 			if (res.getBullishCrossOver()) {
-				priceHLs[quotationIdx - getDaysSpan()] = quotationsCopy[quotationIdx - getDaysSpan()];
+
+				int closeSlopePointsStartIdx = quotationIdx - getDaysSpan();
+				for (; closeSlopePointsStartIdx < quotationIdx; closeSlopePointsStartIdx++) if (oscillatorHigherLow[closeSlopePointsStartIdx] == null) break;
+				priceLowerLow[closeSlopePointsStartIdx] = quotationsCopy[closeSlopePointsStartIdx];
 				//priceHLs[quotationIdx] = quotationsCopy[quotationIdx - getDaysSpan()] + dataSlope*getDaysSpan();
-				priceHLs[quotationIdx] = quotationsCopy[quotationIdx];
+				priceLowerLow[quotationIdx] = quotationsCopy[quotationIdx];
+
+				int oscSlopePointsStartIdx = chaikinIdx - getDaysSpan();
+				for (; oscSlopePointsStartIdx < chaikinIdx; oscSlopePointsStartIdx++) if (oscillatorHigherLow[oscSlopePointsStartIdx] == null) break;
+				oscillatorHigherLow[oscSlopePointsStartIdx] = this.chaikinOscillator.getChaikinOsc()[oscSlopePointsStartIdx];
+				oscillatorHigherLow[chaikinIdx] = oscillatorHigherLow[oscSlopePointsStartIdx]  + chaikinSlope * (getDaysSpan() - (oscSlopePointsStartIdx - chaikinIdx));
+
 				return res;
 			}
 
@@ -132,11 +143,11 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 	}
 
 	@Override
-	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
 
 		Date calculatorDate = qU.getDate();
-		EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BEARISH));
-		EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BULLISH));
+		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BEARISH));
+		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
 
 		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, calculatorIndex);
@@ -152,7 +163,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 			line = line + ",0,0,";
 		}
 
-		line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
 
 		return line;
 	}
@@ -164,7 +175,9 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 		return new double[]
 				{
 						this.chaikinOscillator.getChaikinOsc()[indicatorIndexFromCalculatorQuotationIndex],
-						translateOutputForCharting(this.priceHLs[idx])
+						this.quotationsCopy[idx],
+						translateOutputForCharting(this.priceLowerLow[idx]),
+						translateOutputForCharting(this.oscillatorHigherLow[indicatorIndexFromCalculatorQuotationIndex])
 				};
 	}
 
@@ -182,10 +195,11 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 	protected void initIndicators(Quotations quotations) throws TalibException {
 
 		this.quotationsCopy = quotations.getCloseValues();
-		this.priceHLs = new Double[quotationsCopy.length];
+		this.priceLowerLow = new Double[quotationsCopy.length];
+		this.sma.calculateIndicator(quotations);
 
 		this.chaikinOscillator.calculateIndicator(quotations);
-		this.sma.calculateIndicator(quotations);
+		this.oscillatorHigherLow = new Double[chaikinOscillator.getChaikinOsc().length];
 
 	}
 

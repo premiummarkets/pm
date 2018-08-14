@@ -49,227 +49,237 @@ import com.finance.pms.threads.ConfigThreadLocal;
 
 public class EventDefDescriptorStatic implements EventDefDescriptor {
 
-    public static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorStatic.class);
+	public static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorStatic.class);
 
-    public static Color[] STATIC_COLORS = new Color[] {Color.BLACK,Color.ORANGE,Color.GREEN,Color.RED,Color.YELLOW,Color.BLUE};
+	public static Color[] STATIC_COLORS = new Color[] {Color.BLACK, Color.ORANGE, Color.GREEN, Color.RED, Color.YELLOW, Color.BLUE};
 
-    String mainIndicator;
-    String secondIndicator;
-    String thirdIndicator;
-    String signalLine;
-    String lowerThreshold;
-    String upperThreshold;
+	String mainIndicator;
+	String secondIndicator;
+	String thirdIndicator;
+	String signalLine;
+	String lowerThreshold;
+	String upperThreshold;
 
-    private List<Color> colors;
-    private LinkedHashMap<String, Type> descriptionMap;
-
-
-    String bearishDescription;
-    String bullishDescription;
-    private String[] bearishParamsMethods;
-    private String[] bullishParamsMethods;
-
-    String formattedBearishDescription;
-    String formattedBullishDescription;
-
-    private String htmlBearishDescription;
-    private String htmlBullishDescription;
+	private List<Color> colors;
+	private LinkedHashMap<String, Type> descriptionMap;
 
 
+	String bearishDescription;
+	String bullishDescription;
+	private String[] bearishParamsMethods;
+	private String[] bullishParamsMethods;
 
-    public EventDefDescriptorStatic(
-            String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold, 
-            String bearishDescription, String[] bearishParamsMethods, String bullishDescription,  String[] bullishParamsMethods) {
-        super();
+	String formattedBearishDescription;
+	String formattedBullishDescription;
 
-        this.mainIndicator = mainIndicator;
-        this.secondIndicator = secondIndicator;
-        this.thirdIndicator = thirdIndicator;
-        this.signalLine = signalLine;
-        this.lowerThreshold = lowerThreshold;
-        this.upperThreshold = upperThreshold;
+	private String htmlBearishDescription;
+	private String htmlBullishDescription;
 
-        this.bearishDescription = bearishDescription;
-        this.bearishParamsMethods = bearishParamsMethods;
-
-        this.bullishDescription = bullishDescription;
-        this.bullishParamsMethods = bullishParamsMethods;
-
-        initLists();
-    }
-
-    @Override
-    public String getFullNameFor(int outputIdx) throws NoSuchElementException {
-        return new ArrayList<>(descriptionMap().keySet()).get(outputIdx);
-    }
-
-    public LinkedHashMap<String, Type> descriptionMap() {
-        if (descriptionMap == null) {
-            initLists();
-        }
-        return descriptionMap;
-    }
-
-    private void initLists() {
-        descriptionMap = new LinkedHashMap<>();
-        colors = new ArrayList<>();
-        int i = 0;
-        if (mainIndicator != null) {
-            descriptionMap.put(mainIndicator, Type.MAIN);
-            colors.add(STATIC_COLORS[i]);
-        }
-        i++;
-        if (secondIndicator != null) {
-            descriptionMap.put(secondIndicator, Type.MULTI);
-            colors.add(STATIC_COLORS[i]);
-        }
-        i++;
-        if (thirdIndicator != null) {
-            descriptionMap.put(thirdIndicator, Type.MULTI);
-            colors.add(STATIC_COLORS[i]);
-        }
-        i++;
-        if (signalLine != null) {
-            descriptionMap.put(signalLine, Type.SIGNAL);
-            colors.add(STATIC_COLORS[i]);
-        }
-        i++;
-        if (lowerThreshold != null) {
-            descriptionMap.put(lowerThreshold, Type.CONSTANT);
-            colors.add(STATIC_COLORS[i]);
-        }
-        i++;
-        if (upperThreshold != null) {
-            descriptionMap.put(upperThreshold, Type.CONSTANT);
-            colors.add(STATIC_COLORS[i]);
-        }
-    }
-
-    @Override
-    public String getHtmlBearishDescription() {
-        if (htmlBearishDescription == null) htmlBearishDescription = initHtmlDescription(getBearishDescription());
-        return htmlBearishDescription;
-    }
-
-    @Override
-    public String getHtmlBullishDescription() {
-        if (htmlBullishDescription == null) htmlBullishDescription = initHtmlDescription(getBullishDescription());
-        return htmlBullishDescription;
-    }
-
-    private String initHtmlDescription(String description) {
-        return StringEscapeUtils.escapeHtml(description).replace("\n", "<br>");
-    }
-
-    @Override
-    public Color getColor(int i) {
-        return colors.get(i);
-    }
-
-    @Override
-    public Boolean displayValues() {
-        return true;
-    }
+	private String[] otherIndicators;
 
 
-    @Override
-    public int getGroupIndexFor(int i) {
-        return 0;
-    }
+	public EventDefDescriptorStatic(
+			String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold, 
+			String bearishDescription, String[] bearishParamsMethods, String bullishDescription,  String[] bullishParamsMethods, String... otherIndicators) {
+		super();
+
+		this.mainIndicator = mainIndicator;
+		this.secondIndicator = secondIndicator;
+		this.thirdIndicator = thirdIndicator;
+		this.signalLine = signalLine;
+		this.lowerThreshold = lowerThreshold;
+		this.upperThreshold = upperThreshold;
+
+		this.bearishDescription = bearishDescription;
+		this.bearishParamsMethods = bearishParamsMethods;
+
+		this.bullishDescription = bullishDescription;
+		this.bullishParamsMethods = bullishParamsMethods;
+
+		this.otherIndicators = otherIndicators;
+
+		initLists();
+	}
+
+	@Override
+	public String getFullNameFor(int outputIdx) throws NoSuchElementException {
+		return new ArrayList<>(descriptionMap().keySet()).get(outputIdx);
+	}
+
+	public LinkedHashMap<String, Type> descriptionMap() {
+		if (descriptionMap == null) {
+			initLists();
+		}
+		return descriptionMap;
+	}
+
+	private void initLists() {
+		descriptionMap = new LinkedHashMap<>();
+		colors = new ArrayList<>();
+		int i = 0;
+		if (mainIndicator != null) {
+			descriptionMap.put(mainIndicator, Type.MAIN);
+			colors.add(STATIC_COLORS[i]);
+		}
+		i++;
+		if (secondIndicator != null) {
+			descriptionMap.put(secondIndicator, Type.MULTI);
+			colors.add(STATIC_COLORS[i]);
+		}
+		i++;
+		if (thirdIndicator != null) {
+			descriptionMap.put(thirdIndicator, Type.MULTI);
+			colors.add(STATIC_COLORS[i]);
+		}
+		i++;
+		if (signalLine != null) {
+			descriptionMap.put(signalLine, Type.SIGNAL);
+			colors.add(STATIC_COLORS[i]);
+		}
+		i++;
+		if (lowerThreshold != null) {
+			descriptionMap.put(lowerThreshold, Type.CONSTANT);
+			colors.add(STATIC_COLORS[i]);
+		}
+		i++;
+		if (upperThreshold != null) {
+			descriptionMap.put(upperThreshold, Type.CONSTANT);
+			colors.add(STATIC_COLORS[i]);
+		}
+
+		if (otherIndicators != null) {
+			for (int j = 0; j <  otherIndicators.length; j++) {
+				descriptionMap.put(otherIndicators[j], Type.MULTISIGNAL);
+				colors.add(STATIC_COLORS[3]);
+			}
+		}
+	}
+
+	@Override
+	public String getHtmlBearishDescription() {
+		if (htmlBearishDescription == null) htmlBearishDescription = initHtmlDescription(getBearishDescription());
+		return htmlBearishDescription;
+	}
+
+	@Override
+	public String getHtmlBullishDescription() {
+		if (htmlBullishDescription == null) htmlBullishDescription = initHtmlDescription(getBullishDescription());
+		return htmlBullishDescription;
+	}
+
+	private String initHtmlDescription(String description) {
+		return StringEscapeUtils.escapeHtml(description).replace("\n", "<br>");
+	}
+
+	@Override
+	public Color getColor(int i) {
+		return colors.get(i);
+	}
+
+	@Override
+	public Boolean displayValues() {
+		return true;
+	}
 
 
-    @Override
-    public int getGroupsCount() {
-        return 1;
-    }
+	@Override
+	public int getGroupIndexFor(int i) {
+		return 0;
+	}
 
 
-    @Override
-    public Integer[] getOutputIndexesForGroup(int j) {
-        List<Integer> ret = new ArrayList<>();
-        for (int i = 0; i < descriptionMap().size(); i++) {
-            ret.add(i);
-        }
-        return ret.toArray(new Integer[0]);
-    }
+	@Override
+	public int getGroupsCount() {
+		return 1;
+	}
 
 
-    private Object[] configParams(String[] paramsMethods) {
-
-        if (paramsMethods == null || paramsMethods.length < 2 ) return new Object[0];
-
-        Config config;
-        try {
-            config = ConfigThreadLocal.get(paramsMethods[0]);
-
-            Object[] paramsValues =  new Object[paramsMethods.length-1];
-            for (int i = 1; i < paramsMethods.length; i++) {
-                try {
-                    Method method = config.getClass().getMethod("get"+paramsMethods[i]);
-                    paramsValues[i-1] = method.invoke(config);
-                } catch (Exception e) {
-                    LOGGER.error(e,e);
-                }
-            }
-            return paramsValues;
-        } catch (Exception e1) {
-            LOGGER.error(e1);
-        }
-        return null;
-
-    }
-
-    public String getBearishDescription() {
-        if (formattedBearishDescription == null) formattedBearishDescription = initDescription(bearishDescription, bearishParamsMethods);
-        return formattedBearishDescription;
-    }
+	@Override
+	public Integer[] getOutputIndexesForGroup(int j) {
+		List<Integer> ret = new ArrayList<>();
+		for (int i = 0; i < descriptionMap().size(); i++) {
+			ret.add(i);
+		}
+		return ret.toArray(new Integer[0]);
+	}
 
 
-    public String getBullishDescription() {
-        if (formattedBullishDescription == null) formattedBullishDescription = initDescription(bullishDescription, bullishParamsMethods);
-        return formattedBullishDescription;
-    }
+	private Object[] configParams(String[] paramsMethods) {
+
+		if (paramsMethods == null || paramsMethods.length < 2 ) return new Object[0];
+
+		Config config;
+		try {
+			config = ConfigThreadLocal.get(paramsMethods[0]);
+
+			Object[] paramsValues =  new Object[paramsMethods.length-1];
+			for (int i = 1; i < paramsMethods.length; i++) {
+				try {
+					Method method = config.getClass().getMethod("get"+paramsMethods[i]);
+					paramsValues[i-1] = method.invoke(config);
+				} catch (Exception e) {
+					LOGGER.error(e,e);
+				}
+			}
+			return paramsValues;
+		} catch (Exception e1) {
+			LOGGER.error(e1);
+		}
+		return null;
+
+	}
+
+	public String getBearishDescription() {
+		if (formattedBearishDescription == null) formattedBearishDescription = initDescription(bearishDescription, bearishParamsMethods);
+		return formattedBearishDescription;
+	}
 
 
-    private String initDescription(String description, String[] paramsMethods) {
-        Object[] paramsValues = (paramsMethods != null)?configParams(paramsMethods):new Object[0];
-        if (paramsValues != null) return String.format(description, paramsValues);
-        return description;
-    }
+	public String getBullishDescription() {
+		if (formattedBullishDescription == null) formattedBullishDescription = initDescription(bullishDescription, bullishParamsMethods);
+		return formattedBullishDescription;
+	}
 
 
-    @Override
-    public Integer[] getThresholdsIdx(int groupIdx) {
-        return new Integer[0];
-    }
+	private String initDescription(String description, String[] paramsMethods) {
+		Object[] paramsValues = (paramsMethods != null)?configParams(paramsMethods):new Object[0];
+		if (paramsValues != null) return String.format(description, paramsValues);
+		return description;
+	}
 
 
-    @Override
-    public String getMainLabelForGroup(int groupIdx) {
-        return (mainIndicator != null) ? mainIndicator : "";
-    }
+	@Override
+	public Integer[] getThresholdsIdx(int groupIdx) {
+		return new Integer[0];
+	}
+
+
+	@Override
+	public String getMainLabelForGroup(int groupIdx) {
+		return (mainIndicator != null) ? mainIndicator : "";
+	}
 
 	@Override
 	public Set<OutputDescr> allOutputDescr() {
 		return new HashSet<>();
 	}
 
-    @Override
-    public Set<OutputDescr> displayedOutputsDescr() {
-        return new HashSet<>();
-    }
+	@Override
+	public Set<OutputDescr> displayedOutputsDescr() {
+		return new HashSet<>();
+	}
 
 
-    @Override
-    public boolean isDisplayed(int outputIdx) {
-        return true;
-    }
+	@Override
+	public boolean isDisplayed(int outputIdx) {
+		return true;
+	}
 
 
-    @Override
-    public String getExportBaseFileName() {
-        return "static";
-    }
+	@Override
+	public String getExportBaseFileName() {
+		return "static";
+	}
 
 
 	@Override

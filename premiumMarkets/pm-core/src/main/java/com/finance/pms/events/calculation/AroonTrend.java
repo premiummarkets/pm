@@ -134,11 +134,11 @@ public class AroonTrend extends TalibIndicatorsOperator {
     }
 
     @Override
-    protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> edata, QuotationUnit qU, List<SortedMap<Date, double[]>> linearsExpects) {
+    protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
 
         Date calculatorDate = qU.getDate();
-        EventValue bearishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BEARISH));
-        EventValue bullishEventValue = edata.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BULLISH));
+        EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BEARISH));
+        EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BULLISH));
         BigDecimal calculatorClose = qU.getClose();
 
         int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, calculatorIndex);
@@ -155,7 +155,7 @@ public class AroonTrend extends TalibIndicatorsOperator {
             line = line + ",0,0,";
         }
 
-        line = addScoringLinesElement(line, calculatorDate, linearsExpects)+"\n";
+        line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
 
         return line;
     }

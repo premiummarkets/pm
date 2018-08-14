@@ -10,4 +10,8 @@ public interface MultiMapValue {
 
 	Map<String, UnarableMapValue> getAdditionalOutputs();
 
+	default Boolean isLooseCoupled() {
+		return false;
+	}
+
 }

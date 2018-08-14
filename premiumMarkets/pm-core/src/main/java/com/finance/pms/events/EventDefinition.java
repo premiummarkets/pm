@@ -52,149 +52,151 @@ import com.finance.pms.threads.ConfigThreadLocal;
 public enum EventDefinition implements Serializable, EventInfo {
 
 	//Start
-	ZERO(0,"Zero", false, null, 0),
+	ZERO(0,"Zero", false, null),
 
 	//Mas
-	MACDBUY(2, "MAS MACD Crossover (Buy)", false, null, 0),
-	MACDSELL (3,"MAS MACD Crossover (Sell)", false, null, 0),
-	STOCHASTICBUY(4,"MAS Stochastic %D Crossover (Buy)", false, null, 0),
-	STOCHASTICSELL (5,"MAS Stochastic %D Crossover (Sell)", false, null, 0),
-	SLOPEMACDBUY (6,"MAS Slope of MACD Signal Line Cross Above 0 (Buy)", false, null, 0),
-	SLOPEMACDSELL (7,"MAS Slope of MACD Signal Line Cross Above 0 (Sell)", false, null, 0),
-	SLOPESLOPEMACDBUY (8,"MAS Slope of Slope of MACD Signal Line Cross Above 0 (Buy)", false, null, 0),
-	SLOPESLOPEMACDSELL (9,"MAS Slope of Slope of MACD Signal Line Cross Below 0 (Sell)", false, null, 0),
-	VOLUMEINCREASE (10,"MAS Volume > Yesterday's Volume EMA (5) * 3.5", false, null, 0),
-	MACDCROSSOVERSTOCHBUY (11,"MAS MACD Crossover and Stochastic %D Crossover (Buy)", false, null, 0),
-	MACDCROSSOVERSTOCHSELL (12,"MAS MACD Crossover and Stochastic %D Crossover (Sell)", false, null, 0),
-	SLOPEMACDDOWNTREND (13,"MAS Slope of MACD Signal Line Downtrend", false, null, 0),
-	SLOPEMACDUPTREND (14,"MAS Slope of MACD Signal Line Uptrend", false, null, 0),
-	SLOPEMACDSIDEWAYSPOS (15,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0", false, null, 0),
-	SLOPEMACDSIDEWAYSNEG (16,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0", false, null, 0),
-	CCIABOVE (17,"MAS CCI Crossed above x", false, null, 0),
-	CCIBELOW (18,"MAS CCI Crossed below -x", false, null, 0),
-	UNKNOWN99 (99,"Miscellaneous", false, null, 0),
+	MACDBUY(2, "MAS MACD Crossover (Buy)", false, null),
+	MACDSELL (3,"MAS MACD Crossover (Sell)", false, null),
+	STOCHASTICBUY(4,"MAS Stochastic %D Crossover (Buy)", false, null),
+	STOCHASTICSELL (5,"MAS Stochastic %D Crossover (Sell)", false, null),
+	SLOPEMACDBUY (6,"MAS Slope of MACD Signal Line Cross Above 0 (Buy)", false, null),
+	SLOPEMACDSELL (7,"MAS Slope of MACD Signal Line Cross Above 0 (Sell)", false, null),
+	SLOPESLOPEMACDBUY (8,"MAS Slope of Slope of MACD Signal Line Cross Above 0 (Buy)", false, null),
+	SLOPESLOPEMACDSELL (9,"MAS Slope of Slope of MACD Signal Line Cross Below 0 (Sell)", false, null),
+	VOLUMEINCREASE (10,"MAS Volume > Yesterday's Volume EMA (5) * 3.5", false, null),
+	MACDCROSSOVERSTOCHBUY (11,"MAS MACD Crossover and Stochastic %D Crossover (Buy)", false, null),
+	MACDCROSSOVERSTOCHSELL (12,"MAS MACD Crossover and Stochastic %D Crossover (Sell)", false, null),
+	SLOPEMACDDOWNTREND (13,"MAS Slope of MACD Signal Line Downtrend", false, null),
+	SLOPEMACDUPTREND (14,"MAS Slope of MACD Signal Line Uptrend", false, null),
+	SLOPEMACDSIDEWAYSPOS (15,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0", false, null),
+	SLOPEMACDSIDEWAYSNEG (16,"MAS Slope of MACD Signal Line Trend Sideways: 1 to 0", false, null),
+	CCIABOVE (17,"MAS CCI Crossed above x", false, null),
+	CCIBELOW (18,"MAS CCI Crossed below -x", false, null),
+	UNKNOWN99 (99,"Miscellaneous", false, null),
 
 	//PM (mostly Talib) 
 	PMSMAREVERSAL (101,"SMA Reversal", false,  
 			new EventDefDescriptorStatic("Close", null, null, "Sma", null, null, 
 					"Sma%d is down over a 15 days span and Close < Sma", new String[]{Config.INDICATOR_PARAMS_NAME,"SmaReversalSmaPeriod"}, 
-					"Sma%d is up over a 15 days span and Close > Sma", new String[]{Config.INDICATOR_PARAMS_NAME,"SmaReversalSmaPeriod"}), 37),//
+					"Sma%d is up over a 15 days span and Close > Sma", new String[]{Config.INDICATOR_PARAMS_NAME,"SmaReversalSmaPeriod"})),//
 	PMMACDZEROCROSS (102,"MACD Cross Zero", false, 
 			new  EventDefDescriptorStatic("Macd", null, null, "Signal line", "Zero line", null,
 					"Macd(%d,%d,%d) < Signal and Macd crosses below 0", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}, 
-					"Macd(%d,%d,%d) > Signal and Macd crosses above 0", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}), 18), //
+					"Macd(%d,%d,%d) > Signal and Macd crosses above 0", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"})), //
 	PMMACDSIGNALCROSS (103,"MACD Signal Cross", false, 
 			new  EventDefDescriptorStatic("Macd", null, null, "Signal line", null, null,
 					"Macd(%d,%d,%d) > 0  and Macd crosses below Signal",new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}, 
-					"Macd(%d,%d,%d) < 0  and Macd crosses above Signal", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"}), 10),//
+					"Macd(%d,%d,%d) < 0  and Macd crosses above Signal", new String[]{Config.INDICATOR_PARAMS_NAME,"MacdFastPeriod","MacdSignal","MacdSlowPeriod"})),//
 	PMAROONTREND (104,"Aroon Oscillator", false,
 			new EventDefDescriptorStatic("Oscillator", "Down", "Up", "Middle line", "Lower threshold", "Upper threshold",
 					//"Aroon down crosses above Aroon up and Aroon down > 90 and Aroon up < 30",null,
 					//"Aroon up crosses above Aroon down and Aroon up > 90 and Aroon down < 30",null), 
 					"Aroon oscillator (Up-Down) is above 90", null,
-					"Aroon oscillator (Up-Down) is below -90", null), 4), //
+					"Aroon oscillator (Up-Down) is below -90", null)), //
 
 	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  
 			new  EventDefDescriptorStatic("Rsi",null,null,null,"Lower threshold","Upper threshold",
-					"Rsi crosses above Upper threshold",null, "Rsi crosses below Lower threshold", null), 20),//
+					"Rsi crosses above Upper threshold",null, "Rsi crosses below Lower threshold", null)),//
 	PMMFITHRESHOLD (111,"MFI Threshold Cross", false, 
 			new  EventDefDescriptorStatic("Mfi",null,null,null,"Lower threshold","Upper threshold", 
-					"Mfi14 crosses above 80", null, "Mfi14 crosses below 20", null), 30),//
+					"Mfi14 crosses above 80", null, "Mfi14 crosses below 20", null)),//
 	PMSSTOCHTHRESHOLD (112,"Stochastic Threshold Cross", false, 
 			new  EventDefDescriptorStatic("Slow K",null,null,"Slow D","Lower threshold","Upper threshold", 
-					"Stoch 14 Slow D (Sma 3) crosses above 80",null, "Stoch 14 Slow D (Sma 3) crosses below 20", null), 9),//
+					"Stoch 14 Slow D (Sma 3) crosses above 80",null, "Stoch 14 Slow D (Sma 3) crosses below 20", null)),//
 	PMCHAIKINOSCTHRESHOLD (113,"Chaikin Oscillator Threshold", false, 
 			new  EventDefDescriptorStatic("Oscillator",null,null,"Zero line",null,null,
-					"Chaikin crosses below 0", null, "Chaikin crosses above 0", null), 5),//
+					"Chaikin crosses below 0", null, "Chaikin crosses above 0", null)),//
 
 	PMRSIDIVERGENCE (120,"RSI Divergence", false, 
 			new  EventDefDescriptorStatic("Rsi","Rsi higher low","Rsi lower high",null,"Lower threshold","Upper threshold",
-					"Price is up and Rsi%d makes a lower high over 60 days and above %d", new String[]{Config.INDICATOR_PARAMS_NAME,"RsiTimePeriod", "RsiUpperThreshold"},
-					"Price is down and Rsi%d makes a higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME,"RsiTimePeriod", "RsiLowerThreshold"}), 30), //
+					"Price is up and Rsi%d makes a lower high over 60 days and above %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiUpperThreshold"},
+					"Price is down and Rsi%d makes a higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiLowerThreshold"})), //
 	PMMFIDIVERGENCE (121,"MFI Divergence", false, 
 			new  EventDefDescriptorStatic("Mfi","Mfi higher low","Mfi lower high", null,"Lower threshold","Upper threshold",
 					"Price is up and Mfi makes a lower high over 40 days and above 80", null, 
-					"Price is down and Mfi makes a higher low over 40 days and below 20", null), 35), //
+					"Price is down and Mfi makes a higher low over 40 days and below 20", null)), //
 	PMSSTOCHDIVERGENCE (122,"Stochastic Divergence", false,
 			new  EventDefDescriptorStatic("Slow K","Stoch higher low","Stoch lower high", "Slow D","Lower threshold","Upper threshold",
 					"Price is up and Stochastic(14,3,3) makes a lower high over 60 days and above 80", null, 
-					"Price is down and Stochastic(14,3,3) makes a higher low over 60 days and below 20",null), 20), // 
+					"Price is down and Stochastic(14,3,3) makes a higher low over 60 days and below 20",null)), // 
 	PMCHAIKINOSCDIVERGENCE (123,"Chaikin Oscillator Divergence", false, 
 			new  EventDefDescriptorStatic("Chaikin","Chaikin higher low","Chaikin lower high",null,null,null,
 					"Price is up and Chaikin makes a lower high over 60 days",null, 
-					"Price is down and Chaikin makes a higher low over 60 days", null), 10), //
+					"Price is down and Chaikin makes a higher low over 60 days", null)), //
 
-	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic("Mighty Chaikin","Chaikin higher low",null,null,null,null,"Bearish",null, "Bullish", null), 1),
+	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic(
+			"Mighty Chaikin","Close",null,null,null,null,"Bearish",null, "Bullish", null,
+			"Close lower low", "Chaikin higher low")),
 
 	//PM not used
-	PMOBVDIVERGENCE (151,"OBV Divergence", false, null, 0),
-	PMACCDISTDIVERGENCE (152,"Acc Dist Divergence", false, null, 0),
-	STDDEV (154,"Standard Deviation", false, null, 0),
-	PMZLAGMACDZCROSS(155,"Zero Lag MACD Signal Cross", false,  null, 0),
+	PMOBVDIVERGENCE (151,"OBV Divergence", false, null),
+	PMACCDISTDIVERGENCE (152,"Acc Dist Divergence", false, null),
+	STDDEV (154,"Standard Deviation", false, null),
+	PMZLAGMACDZCROSS(155,"Zero Lag MACD Signal Cross", false,  null),
 
 	//Alert
 	//Attention!! Event of type threshold crossing or Forced Sell must be cleaned (or invalidated) after each signal check?? ToTest.
-	ALERTTHRESHOLD (201,"Alert on Threshold cross", false, null, 0),//Not discardable??
+	ALERTTHRESHOLD (201,"Alert on Threshold cross", false, null),//Not discardable??
 
 	//Screener
-	SCREENER (302,"Screener Alert", false, null, 0), //Not discardable
+	SCREENER (302,"Screener Alert", false, null), //Not discardable
 
 	//Indeps
-	WEATHER (401,"Temperature", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish Temperature reversal",null, "Bullish Temperature reversal", null), 0),  //Not discardable
+	WEATHER (401,"Temperature", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish Temperature reversal",null, "Bullish Temperature reversal", null)),  //Not discardable
 
-	CRASHGUARD (502,"Crash", false, null, 0),
+	CRASHGUARD (502,"Crash", false, null),
 
 	//Neural related
 	NEURALNEUROPH (503,"Neural", true, 
 			new  EventDefDescriptorStatic("Second Neural output", "First Neural output", "Row output", null, null, null,
 					"Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
-					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}), 0),
-	VARIATION (504,"Variation", false, null, 0),
-	VARIANCE (505,"Variance", false, null, 0),
+					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"})),
+	VARIATION (504,"Variation", false, null),
+	VARIANCE (505,"Variance", false, null),
 	HOUSETREND (506,"Logarithmic ROC", false, 
 			new  EventDefDescriptorStatic("Logarithmic ROC",null,null,null,null,null,
 					"Logarithmic ROC(%d,%d) crosses below 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}, 
-					"Logarithmic ROC(%d,%d) crosses above 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
+					"Logarithmic ROC(%d,%d) crosses above 0", new String[]{Config.EVENT_SIGNAL_NAME, "RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"})),
 	SECTOR(507,"Sector Ranks Trend", true, 
-			new  EventDefDescriptorStatic("Sector trend analysed prediction", "Sector row prediction", "Stock close", "Stock sma 100 lag fixed", null, null, "Sector trend is down", null, "Sector trend is up", null), 0),
+			new  EventDefDescriptorStatic("Sector trend analysed prediction", "Sector row prediction", "Stock close", "Stock sma 100 lag fixed", null, null, "Sector trend is down", null, "Sector trend is up", null)),
 	ROCANDNEURAL (508,"Roc 'n' Neural", false, 
 			new  EventDefDescriptorStatic("First Neural output","Short Logarithmic ROC" , "Long Logarithmic ROC", "Second Neural output", "Short Roc Zero line", "Long Roc Zero line",
 					"First Neural(%d,%d) reverses down and Roc(%d,%d) crosses below 0\nOr Neural is down and Roc < 0", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"},
-					"First Neural(%d,%d) reverses up and Roc(%d,%d) crosses above 0\nOr Neural is up and Roc > 0", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"}), 0),
+					"First Neural(%d,%d) reverses up and Roc(%d,%d) crosses above 0\nOr Neural is up and Roc > 0", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod","RocNNeuralHouseTrendPeriod", "RocNNeuralQuoteSmthPeriod"})),
 	NEURALRONE (509,"Neural Reverse One", true, 
 			new  EventDefDescriptorStatic("First Neural Smth output","First Neural output", "Row output", null, null, null,
 					"First Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
-					"First Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}), 0),
+					"First Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"})),
 
-	ENCOG(520, "Encog Neural", true, new  EventDefDescriptorStatic("predictions","inversed",null,null,null,null,"Bearish",null, "Bullish", null), 0),
+	ENCOG(520, "Encog Neural", true, new  EventDefDescriptorStatic("predictions","inversed",null,null,null,null,"Bearish",null, "Bullish", null)),
 
 	//TODO dynamic event descriptor
 	NEURALMIX (550,"Neural Mix", false, 
 			new  EventDefDescriptorStatic("First output", "Second output", null, null, null, null, 
 					"See source code. TODO : dynamic description", null, 
-					"See source code. TODO : dynamic description", null), 0),
+					"See source code. TODO : dynamic description", null)),
 
 
-	PMTHRESHOLDTEST (600,"Threshold Test", false, new EventDefDescriptorStatic("Threshold Test", null, null, null, null, null, "Bearish", null, "Bullish", null), 1),
+	PMTHRESHOLDTEST (600,"Threshold Test", false, new EventDefDescriptorStatic("Threshold Test", null, null, null, null, null, "Bearish", null, "Bullish", null)),
 
 
 	//Parameterised
 	PARAMETERIZED (900, "Parameterised Events", false, 
-			new EventDefDescriptorStatic(null,null,null,null,null,null,"PARAMETERIZED",null,"PARAMETERIZED",null), 0),
+			new EventDefDescriptorStatic(null,null,null,null,null,null,"PARAMETERIZED",null,"PARAMETERIZED",null)),
 
 	//End
-	INFINITE (999,"All", false, null, 0), 
+	INFINITE (999,"All", false, null), 
 
 
-	PMRSIDIVERGENCEOLD (620,"Old RSI Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null), 0), 
-	PMMFIDIVERGENCEOLD (621,"Old MFI Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null), 0), 
-	PMSSTOCHDIVERGENCEOLD (622,"Old Stochastic Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null), 0), 
+	PMRSIDIVERGENCEOLD (620,"Old RSI Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)), 
+	PMMFIDIVERGENCEOLD (621,"Old MFI Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)), 
+	PMSSTOCHDIVERGENCEOLD (622,"Old Stochastic Divergence", false, new EventDefDescriptorStatic(null,null,null,null,null,null,"Bearish",null, "Bullish", null)), 
 	//Moved to 130 PMCHAIKINOSCDIVERGENCEOLD (623,"Old Chaikin Divergence", false, new EventDefDescriptorStatic("Chaikin Osc",null,null,null,null,null,"Bearish",null, "Bullish", null)),
 
 	NEURALNEUROPHOLD (703,"Old Neuroph Neural", true, 
 			new  EventDefDescriptorStatic("Old Neuroph Neural output", null, null, null, null, null,
 					"Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
-					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}), 0);
+					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}));
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefinition.class);
@@ -211,17 +213,13 @@ public enum EventDefinition implements Serializable, EventInfo {
 	private Boolean isContinous;
 	private EventDefDescriptorStatic eventDefDescriptor;
 
-	private Integer eventOccWeight;
-
-
-	private EventDefinition(Integer eventDefId, String eventDef, Boolean isContinous, EventDefDescriptorStatic eventDefDescriptor, Integer eventOccWeight) {
+	private EventDefinition(Integer eventDefId, String eventDef, Boolean isContinous, EventDefDescriptorStatic eventDefDescriptor) {
 
 		this.eventReadableDef = eventDef;
 		this.eventDefId = eventDefId;
 		this.isContinous = isContinous;
 		this.eventDefDescriptor = eventDefDescriptor;
 
-		this.eventOccWeight = eventOccWeight;
 	}
 
 	public static EventDefinition valueOf(Integer evDefId){

@@ -123,7 +123,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
 			//Events is the only functional output for this operation => boolean
 			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(quotations, targetStock.getAnalysisName());
-			buySellEventsMainOutput = new EventMapValue(eventsFor);
+			buySellEventsMainOutput = new EventMapValue(eventsFor, true);
 
 			//Adding indicator outputs for charting
 			EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();

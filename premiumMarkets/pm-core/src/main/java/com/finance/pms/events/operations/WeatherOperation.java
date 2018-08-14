@@ -25,7 +25,7 @@ public class WeatherOperation extends EventMapOperation {
 
 			WeatherChecker calculator = new WeatherChecker(getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate());
 			SortedMap<EventKey, EventValue> eventsFor = calculator.calculateEventsFor(null, "inMem"+this.getClass().getSimpleName()+"Operation");
-			buySellEvents = new EventMapValue(eventsFor);
+			buySellEvents = new EventMapValue(eventsFor, false);
 
 		}
 		catch (Exception e) {
