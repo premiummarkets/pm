@@ -60,7 +60,7 @@ import com.finance.pms.events.operations.nativeops.MapOperation;
 public abstract class ParameterizedBuilder extends Observable {
 
 	public static final String userParameterizedPath = System.getProperty("installdir") + File.separator + "userParameterized";
-	public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES};
+	public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES, CREATE_INDICTOR};
 
 	protected class ObsMsg {
 		private ObsMsgType type;

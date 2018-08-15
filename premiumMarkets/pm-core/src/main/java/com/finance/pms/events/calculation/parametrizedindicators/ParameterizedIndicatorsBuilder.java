@@ -113,6 +113,15 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 					}
 					break;
 				}
+				case CREATE_INDICTOR :				//Create a default indicator
+					if (operation == null || getCurrentOperations().containsKey(operation.getReference())) return;
+					String formula = "is bullish when " + operation.getReference() + " equals trend bullish;\nis bearish when " + operation.getReference() + " equals trend bearish;";
+					try {
+						addFormula(operation.getReference(), formula);
+					} catch (IOException e) {
+						LOGGER.error("Could not create default indicator for " + operation.getReference() + " with formula " + formula);
+					}
+					break;
 				case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
 					if (operation != null) actualReplaceInUse(getCurrentOperations().values(), operation);
 					break;

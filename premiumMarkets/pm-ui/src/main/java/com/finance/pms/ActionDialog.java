@@ -151,6 +151,10 @@ public class ActionDialog extends UserDialog {
 
     }
 
+    public void updateDialog(String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action, Boolean async) {
+    	this.runASync = async;
+    	updateDialog(title, erreur, addMessage, actionTxt, action);
+    }
 
     public void updateDialog(String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
 

@@ -93,12 +93,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	}
 
 	@Override
-	protected void addExtratButtons() {
+	protected void addThisCompositeExtratButtons() {
 		
 		{
 			Button duplicate = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.LEAD,SWT.TOP,true,false);
-			layoutData.horizontalSpan = 2;
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
+			layoutData.horizontalSpan = 1;
 			duplicate.setLayoutData(layoutData);
 			duplicate.setText("Duplicate");
 			duplicate.setFont(MainGui.DEFAULTFONT);
@@ -127,7 +127,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		
 		{
 			disableFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END,SWT.TOP,true,false);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			layoutData.horizontalSpan = 1;
 			disableFormula.setLayoutData(layoutData);
 			disableFormula.setText("Enable ...");

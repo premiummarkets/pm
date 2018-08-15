@@ -53,6 +53,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
@@ -113,6 +114,7 @@ public class OperationBuilderComposite extends Composite {
 	public static MyLogger LOGGER = MyLogger.getLogger(OperationBuilderComposite.class);
 
 	private UserDialog dialog;
+	private ActionDialog actionDialog;
 
 	protected ParameterizedBuilder parameterizedBuilder;
 	protected RefreshableView mainGuiParent;
@@ -121,7 +123,7 @@ public class OperationBuilderComposite extends Composite {
 	protected Combo formulaReference;
 	protected StyledText editor;
 	protected Boolean isSaved;
-	//private Boolean savingAttemptStarted;
+	private boolean createDefaultIndicatorOnSave;
 
 	private Table tokenAltsTable;
 	private Shell popupShell;
@@ -269,7 +271,6 @@ public class OperationBuilderComposite extends Composite {
 
 				@Override
 				public void mouseDown(MouseEvent e) {
-					//if (!savingAttemptStarted)
 					handleSaveAndSelection();
 				}
 
@@ -351,7 +352,6 @@ public class OperationBuilderComposite extends Composite {
 				initPopup();
 
 				editor.addModifyListener(new ModifyListener() {
-
 					@Override
 					public void modifyText(ModifyEvent e) {
 						if (!editor.getText().isEmpty()) {
@@ -363,11 +363,13 @@ public class OperationBuilderComposite extends Composite {
 			}
 		}
 
-		addExtratButtons();
+		addThisCompositeExtratButtons();
+
 		{
 
 			Button deleteFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.LEAD, SWT.TOP, false, false);
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			layoutData.horizontalSpan = 3;
 			deleteFormula.setLayoutData(layoutData);
 			deleteFormula.setText("Delete " + builderLabel());
 			deleteFormula.setFont(MainGui.DEFAULTFONT);
@@ -391,7 +393,6 @@ public class OperationBuilderComposite extends Composite {
 
 					formulaReference.removeAll();
 					isSaved = true;
-					//savingAttemptStarted = false;
 					updateCombo(true);
 					if (formulaReference.getItemCount() > 0) {
 						forceSelection(selectionIndex % formulaReference.getItemCount());
@@ -404,61 +405,14 @@ public class OperationBuilderComposite extends Composite {
 					handleDeleteOp();
 				}
 			});
-		}
-		{
 
-			Button deleteUnused = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.LEAD, SWT.TOP, false, false);
-			deleteUnused.setLayoutData(layoutData);
-			deleteUnused.setText("Delete unused/disabled");
-			deleteUnused.setToolTipText("Disabled operations will be moved to the disabled folder.");
-			deleteUnused.setFont(MainGui.DEFAULTFONT);
-			deleteUnused.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handleDeleteUnused();
-				}
-
-				private void handleDeleteUnused() {
-
-					ActionDialog errorDialog = 
-							new ActionDialog(
-									getShell(),"Warning", null, null, "Please, confirm the deletion of all unused/disabled "+builderLabel()+".", 
-									new ActionDialogAction() {	
-										@Override
-										public void action() {
-											try {
-												OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-												int selectionIndex = formulaReference.getSelectionIndex();
-												deleteAllDisabledOrUnused();
-												formulaReference.removeAll();
-												isSaved = true;
-												//savingAttemptStarted = false;
-												updateCombo(true);
-												if (formulaReference.getItemCount() > 0) {
-													forceSelection(selectionIndex % formulaReference.getItemCount());
-												}
-											} finally {
-												OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-											}
-										}
-									}
-									);
-					errorDialog.open();
-
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleDeleteUnused();
-				}
-			});
 		}
 		{
 
 			Button saveFormula = new Button(this, SWT.NONE);
-			saveFormula.setLayoutData(new GridData(SWT.END, SWT.TOP, true, false));
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
+			layoutData.horizontalSpan = 3;
+			saveFormula.setLayoutData(layoutData);
 			saveFormula.setText(saveButtonTxt());
 			saveFormula.setFont(MainGui.DEFAULTFONT);
 			saveFormula.addSelectionListener(new SelectionListener() {
@@ -477,10 +431,10 @@ public class OperationBuilderComposite extends Composite {
 					handle();
 				}
 			});
+
 		}
 
 		isSaved = true;
-		//savingAttemptStarted = false;
 		updateCombo(false);
 
 		this.layout();
@@ -678,7 +632,6 @@ public class OperationBuilderComposite extends Composite {
 	}
 
 	protected void clearEditor() {
-		//editor.setText("");
 		setEditorText("");
 		setErrorLabel("");
 	}
@@ -721,15 +674,61 @@ public class OperationBuilderComposite extends Composite {
 
 	}
 
-	protected void addExtratButtons() {
+	protected void addThisCompositeExtratButtons() {
 
 		{
 
+			Button deleteUnused = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
+			deleteUnused.setLayoutData(layoutData);
+			deleteUnused.setText("Delete all unused and disabled");
+			deleteUnused.setToolTipText("Disabled operations will be moved to the disabled folder.");
+			deleteUnused.setFont(MainGui.DEFAULTFONT);
+			deleteUnused.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handleDeleteUnused();
+				}
+
+				private void handleDeleteUnused() {
+
+					openActionDialog(
+							null, null, null, "Please, confirm the deletion of all unused/disabled " + builderLabel()+".", 
+							new ActionDialogAction() {	
+								@Override
+								public void action() {
+									try {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+										int selectionIndex = formulaReference.getSelectionIndex();
+										deleteAllDisabledOrUnused();
+										formulaReference.removeAll();
+										isSaved = true;
+										updateCombo(true);
+										if (formulaReference.getItemCount() > 0) {
+											forceSelection(selectionIndex % formulaReference.getItemCount());
+										}
+									} finally {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
+								}
+							},
+							false);
+
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handleDeleteUnused();
+				}
+			});
+		}
+		{
+
 			Button freshReload = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END,SWT.TOP,true,false);
-			layoutData.horizontalSpan = 3;
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			freshReload.setLayoutData(layoutData);
-			freshReload.setText("Reload");
+			freshReload.setText("Reload all formulas");
 			freshReload.setFont(MainGui.DEFAULTFONT);
 			freshReload.addSelectionListener(new SelectionListener() {
 
@@ -754,6 +753,21 @@ public class OperationBuilderComposite extends Composite {
 				}
 
 			});
+		}
+		{
+
+			Button createDefaultIndicator = new Button(this, SWT.CHECK);
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
+			createDefaultIndicator.setLayoutData(layoutData);
+			createDefaultIndicator.setText("Create Trend Calculator on Save");
+			createDefaultIndicator.setFont(MainGui.DEFAULTFONT);
+			createDefaultIndicator.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					createDefaultIndicatorOnSave = createDefaultIndicator.getSelection();
+				}
+			});
+
 		}
 
 	}
@@ -791,6 +805,22 @@ public class OperationBuilderComposite extends Composite {
 				dialog.open();
 			} else {
 				dialog.updateDialog(MainGui.APP_NAME + " - Warning", errorMsg, addMessage);
+			}
+		}
+	}
+	
+	private void openActionDialog(String title, String errorMsg, Object e, String actionTxt, ActionDialogAction action, Boolean async) {
+		String addMessage = (e == null)?null:e.toString();
+		boolean firstDialog = (actionDialog == null);
+		boolean differentDialog = (actionDialog != null) && !actionDialog.sameDialog(errorMsg, addMessage);
+		if (firstDialog || differentDialog) {
+			if (e instanceof Exception) LOGGER.warn(e, (Exception) e);
+			title = (title == null)?MainGui.APP_NAME + " - Warning":title;
+			if (firstDialog || actionDialog.getParent().isDisposed()) {
+				actionDialog = new ActionDialog(getShell(), title, errorMsg, addMessage, actionTxt, action, async);
+				actionDialog.open();
+			} else {
+				actionDialog.updateDialog(title, errorMsg, addMessage, actionTxt, action, async);
 			}
 		}
 	}
@@ -896,16 +926,14 @@ public class OperationBuilderComposite extends Composite {
 							LOGGER.info("Updated and saved "+identifier+". Is saved :"+isSaved);
 						}
 					};
-
-					ActionDialog dialog = new ActionDialog(getShell(), "Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action, false);
-					dialog.open();
+					openActionDialog("Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action, false);
 				}
 
 			} else {
-				LOGGER.info("Is new "+identifier+". Is saved :"+isSaved);
+				LOGGER.info("Is new "+identifier+". Is saved :" + isSaved);
 				doSaveFormula(identifier, formula);
 				updateComboAndSelect(identifier, true);
-				LOGGER.info("New saved "+identifier+". Is saved :"+isSaved);
+				LOGGER.info("New saved "+identifier+". Is saved :" + isSaved);
 			}
 		}
 
@@ -913,7 +941,7 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void doSaveFormula(final String identifier, String formula) {
 
-		LOGGER.info("Actually persistence of "+identifier+". Is saved :"+isSaved);
+		LOGGER.info("Actually persistence of "+identifier+". Is saved :" + isSaved);
 
 		// Save formula
 		try {
@@ -942,6 +970,9 @@ public class OperationBuilderComposite extends Composite {
 
 		LOGGER.info("Refresh for : "+identifier+", if is saved :"+isSaved);
 		if (isSaved) {
+			if (createDefaultIndicatorOnSave) {
+				parameterizedBuilder.notifyChanged(parameterizedBuilder.getCurrentOperations().get(identifier), ObsMsgType.CREATE_INDICTOR);
+			}
 			previousCalcsAsDirty(identifier);
 			refreshViews();
 			LOGGER.info("Refresh done/running : "+identifier+". Is saved :"+isSaved);
@@ -1003,8 +1034,7 @@ public class OperationBuilderComposite extends Composite {
 	}
 
 	protected String format(String string) {
-		// TODO indent return FormulaUtils.indentOperationFormula(formula,
-		// previousCaretPosition);
+		// TODO indent return FormulaUtils.indentOperationFormula(formula, previousCaretPosition);
 		return string.replaceAll("\n", "").replaceAll(" +", " ").replace(";", ";\n").trim();
 	}
 

@@ -146,7 +146,6 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
         List<Operation> actualCheckInUse = new ArrayList<Operation>();
         if (!isNewOp) {
             updateEditableOperationLists();
-
             try {
                 this.setChanged();
                 this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation));
