@@ -38,45 +38,55 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.RSI;
 import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibIndicator;
-
+/**
+ * @author Gheeyom Thor
+ * Bearish divergence occurs when price makes a new high but the RSI makes a lower high, thus failing to confirm. Bullish divergence occurs when price makes a new low but RSI makes a higher low.
+ * This is implemented in the inherited @see OscillatorDivergenceCalculator
+ * TODO, https://en.wikipedia.org/wiki/Relative_strength_index :
+ * RSI Uptrends and downtrends :
+ * 	uptrends generally traded between RSI 40 and 80, while downtrends usually traded between RSI 60 and 20. //TODO needs a second set of thresholds
+ * 	bearish divergence is a sign confirming an uptrend. Similarly, bullish divergence is a sign confirming a downtrend. //TODO Divergence
+ * RSI Reversal :
+ * 	For example, a positive reversal occurs when an uptrend price correction results in a higher low compared to the last price correction, while RSI results in a lower low compared to the prior correction
+ */
 public class RSIDivergence extends OscillatorDivergenceCalculator {
-	
+
 	RSI rsi;
 	private Integer rsiQuotationStartDateIdx;
-	
-	public RSIDivergence(Integer rsiTimePeriod, Integer rsiUpperThreshold, Integer rsiLowerThreshold, Observer... observers) {
+
+	public RSIDivergence(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer... observers) {
 		super(EventDefinition.PMRSIDIVERGENCE, observers);
-		this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+		this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
 	}
-	
-    public RSIDivergence(EventInfo reference) {
-        //Reflective ops generator
-    	super(reference);
-    }
-    
-    protected void init(Integer rsiTimePeriod, Integer rsiUpperThreshold, Integer rsiLowerThreshold) {
-        this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
-    }
-    
-    @Override
-    public void genericInit(Integer... constants) {
-        init(constants[0], constants[1], constants[2]);
-    }
+
+	public RSIDivergence(EventInfo reference) {
+		//Reflective ops generator
+		super(reference);
+	}
+
+	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold) {
+		this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
+	}
+
+	@Override
+	public void genericInit(Integer... constants) {
+		init(constants[0], constants[1], constants[2]);
+	}
 
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
 		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, index);
 		if (indicator instanceof RSI) return this.isInDataRange((RSI)indicator, index);
 		throw new RuntimeException("Booo",new Throwable());
 	}
-	
+
 	private boolean isInDataRange(SMA sma, Integer index) {
 		return (getDaysSpan() <= index && index < sma.getSma().length);
 	}
-	
+
 	public Boolean isInDataRange(RSI rsi, Integer index) {
 		return (getDaysSpan() <= index && index < rsi.getRsi().length);
 	}
-	
+
 	@Override
 	protected int getDaysSpan() {
 		return 42;
@@ -84,22 +94,21 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
-		String head = "CALCULATOR DATE, CALCULATOR QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
+		String head = "CALCULATOR DATE, CALCULATOR QUOTE, LOW TH, UP TH, RSI, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
+		return head+"\n";
 	}
 
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
-			
+
 		return new double[]
 				{
-				this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
-				translateOutputForCharting(this.higherLows.get(idx)),
-				translateOutputForCharting(this.lowerHighs.get(idx)),
-				this.rsi.getLowerThreshold(),
-				this.rsi.getUpperThreshold(),
+						this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
+						translateOutputForCharting(this.higherLows.get(idx)),
+						translateOutputForCharting(this.lowerHighs.get(idx)),
+						this.rsi.getLowerThreshold(),
+						this.rsi.getUpperThreshold(),
 				};
 	}
 

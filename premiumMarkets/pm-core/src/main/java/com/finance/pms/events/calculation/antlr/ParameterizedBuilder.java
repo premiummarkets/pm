@@ -60,7 +60,7 @@ import com.finance.pms.events.operations.nativeops.MapOperation;
 public abstract class ParameterizedBuilder extends Observable {
 
 	public static final String userParameterizedPath = System.getProperty("installdir") + File.separator + "userParameterized";
-	public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES, CREATE_INDICTOR};
+	public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, OPERATION_cRud_IgnoreDisabled, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES, CREATE_INDICTOR};
 
 	protected class ObsMsg {
 		private ObsMsgType type;
@@ -224,13 +224,13 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	public void removeFormula(String identifier) throws IOException {
+	public void removeFormula(String identifier, Boolean keepDisabled) throws IOException {
 
 		try {
 
 			Operation operation = getCurrentOperations().get(identifier);
 
-			List<Operation> checkInUse = checkInUse(operation);
+			List<Operation> checkInUse = checkInUse(operation, keepDisabled);
 			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
 
 			//Delete pre existing trashed
@@ -242,9 +242,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 			getCurrentOperations().remove(identifier);
 
-
 			updateCaches(operation, true); //true because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
-
 
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -292,7 +290,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	public abstract List<Operation> checkInUse(Operation operation);
+	public abstract List<Operation> checkInUse(Operation operation, Boolean checkDisabled);
 
 	public abstract void replaceInUse(Operation operation);
 
@@ -319,7 +317,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 		for (Operation operation : operations) {
 
-			if (operation instanceof MapOperation && operationToCheck.getReference().equals(operation.getReference())) {
+			if (operation instanceof MapOperation && operationToCheck.equals(operation)) {
 				throw new RuntimeException("'"+ operationToCheck.getReference() +"' is used by some other operations. Please delete these first.");
 			}
 			if (operation.getOperands() != null) {
@@ -368,7 +366,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		if (operation == null) return;
 
 		try {
-			List<Operation> checkInUse = checkInUse(operation);
+			List<Operation> checkInUse = checkInUse(operation, true);
 			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
 
 			moveToDisabled(identifier);

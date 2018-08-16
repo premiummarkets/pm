@@ -40,24 +40,23 @@ import com.tictactec.ta.lib.RetCode;
 public class RSI extends TalibIndicator {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(RSI.class);
-	
+
 	private Integer timePeriod;
-    private Integer upperThreshold;
-    private Integer lowerThreshold;
+	private Integer upperThreshold;
+	private Integer lowerThreshold;
 
 	private double[] rsi;
 
-	public RSI(Integer timePeriod,Integer upperThreshold, Integer lowerThreshold) {
-		super(timePeriod, upperThreshold, lowerThreshold);
+	public RSI(Integer timePeriod, Integer lowerThreshold, Integer upperThreshold) {
+		super(timePeriod, lowerThreshold, upperThreshold);
 		this.timePeriod = timePeriod;
 		this.upperThreshold = upperThreshold;
-		this.lowerThreshold = lowerThreshold;	
+		this.lowerThreshold = lowerThreshold;
 	}
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inClose, Number...indicatorParams) {
-		
-		RetCode rc = TalibCoreService.getCore().rsi(startIdx, endIdx,inClose[0],(Integer) indicatorParams[0], outBegIdx, outNBElement, this.rsi);
+		RetCode rc = TalibCoreService.getCore().rsi(startIdx, endIdx, inClose[0],(Integer) indicatorParams[0], outBegIdx, outNBElement, this.rsi);
 		return rc;
 	}
 
@@ -73,7 +72,7 @@ public class RSI extends TalibIndicator {
 
 	@Override
 	protected String getLine(Integer indicator, QuotationUnit qU) {
-		String line = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss").format(qU.getDate()) + "," + qU.getClose() + "," + rsi[indicator] + "\n";
+		String line = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(qU.getDate()) + "," + qU.getClose() + "," + rsi[indicator] + "\n";
 		return line;
 	}
 
@@ -98,7 +97,7 @@ public class RSI extends TalibIndicator {
 		double[] closeValues = quotations.getCloseValues();
 		double[][] ret = new double[1][closeValues.length];
 		ret[0]= closeValues;
-		return 	ret;
+		return ret;
 	}
 
 
@@ -116,5 +115,5 @@ public class RSI extends TalibIndicator {
 	public ValidityFilter quotationValidity() {
 		return ValidityFilter.CLOSE;
 	}
-	
+
 }

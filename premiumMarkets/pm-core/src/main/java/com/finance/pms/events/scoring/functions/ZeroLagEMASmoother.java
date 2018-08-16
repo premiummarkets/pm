@@ -42,12 +42,12 @@ import com.finance.pms.talib.indicators.TalibCoreService;
 import com.tictactec.ta.lib.MInteger;
 
 public class ZeroLagEMASmoother extends Smoother {
-	
+
 	int period;
 	private MInteger doubleEmaOutBegIdx;
 	private MInteger doubleEmaOutNBElement;
-	
-	
+
+
 	public ZeroLagEMASmoother(int period) {
 		super();
 		this.period = period;
@@ -56,45 +56,45 @@ public class ZeroLagEMASmoother extends Smoother {
 
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixLag) {
-		
+
 		if (this.period <= 1) return data;
-		
+
 		double[][] inReal = new double[data.size()][];
 		int i=0;
 		for (double[] dv : data.values()) {
-			
+
 			double[] inRealV = new double[dv.length];
 			for (int k = 0; k < dv.length; k++) {
 				inRealV[k] = dv[k];
 			}
 			inReal[i] = inRealV;
-			
+
 			i++;
 		}
-		
+
 		double[][] zeroLagEmas = smooth(inReal);
-		
+
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		int j = 0;
 		for (Date date : data.keySet()){
 			if (j >= 2*period  && (j- (2*period)) < zeroLagEmas.length) {
-				
+
 				double[] retV = new double[zeroLagEmas[j - (2*period)].length];
 				for (int k = 0; k < zeroLagEmas[j - (2*period)].length; k++) {
 					retV[k] = zeroLagEmas[j - (2*period)][k];
 				}
 				ret.put(date,retV);
-				
+
 			}
 			j++;
 		}
 		return ret;
-		
+
 	}
 
 
 	private double[][] smooth(double[][] inReal) {
-		
+
 		List<double[]> inRealDecomp = new ArrayList<double[]>();
 		double[] ds0 = inReal[0];
 		for (@SuppressWarnings("unused") double d : ds0) {
@@ -106,18 +106,18 @@ public class ZeroLagEMASmoother extends Smoother {
 				inRealDecomp.get(k)[i] = ds[k];
 			}
 		}
-		
+
 		double[][] zeroLagEmas = null;
 		for (int k = 0; k < inRealDecomp.size(); k++) {
 			double[] oneInReal = inRealDecomp.get(k);
-			
+
 			MInteger emaOutBegIdx = new MInteger();
 			MInteger emaOutNBElement = new MInteger();
 			int endIdx = oneInReal.length-1;
 			int startIdx = 0;
 			double[] ema = new double[oneInReal.length - period +1];
 			TalibCoreService.getCore().ema(startIdx, endIdx, oneInReal, period, emaOutBegIdx, emaOutNBElement, ema);
-			
+
 			doubleEmaOutBegIdx = new MInteger();
 			doubleEmaOutNBElement = new MInteger();
 			double[] doubleEma = new double[ema.length - period +1];
@@ -129,13 +129,13 @@ public class ZeroLagEMASmoother extends Smoother {
 
 				if (zeroLagEmas[j] == null) zeroLagEmas[j] = new double[inRealDecomp.size()];
 				zeroLagEmas[j][k] = zeroLagEmaData;
-				
+
 			}
 		}
-		
-		
+
+
 		return zeroLagEmas;
-		
+
 	}
 
 

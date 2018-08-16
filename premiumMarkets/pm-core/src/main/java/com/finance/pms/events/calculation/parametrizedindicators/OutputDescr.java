@@ -121,7 +121,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 			compareTo = this.container.compareTo(o.container);
 		}
 		if (compareTo == 0) {
-			if ( this.discriminentConstant == null && o.discriminentConstant == null) return 0;
+			if (this.discriminentConstant == null && o.discriminentConstant == null) return 0;
 			if (this.discriminentConstant != null && o.discriminentConstant == null) return 1;
 			compareTo = this.discriminentConstant.getValueAsString().compareTo(o.discriminentConstant.getValueAsString());
 		}

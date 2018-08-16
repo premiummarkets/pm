@@ -66,7 +66,6 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-		//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc DATE, Chainkin Osc, bearish, bullish";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Chainkin Osc, bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";

@@ -193,7 +193,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		}
 		
 		if (rsiDivergenceWanted) {
-			RSIDivergence rSIDivergence = new RSIDivergence(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold, observers);
+			RSIDivergence rSIDivergence = new RSIDivergence(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold, observers);
 			startDateShift =  Math.max(startDateShift, rSIDivergence.getStartShift());
 			eventCalculations.add(rSIDivergence);	
 		}

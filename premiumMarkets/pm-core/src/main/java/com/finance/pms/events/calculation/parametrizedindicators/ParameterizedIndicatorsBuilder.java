@@ -96,24 +96,24 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 				Operation operation = msg.getOperation();
 				switch(msg.getType()) {
-				case OPERATION_cRud :				//This is when we want to check if an operation is used by indicators (nothing to delete here)
+				case OPERATION_cRud :					//This is when we want to check if an operation is used by indicators (nothing to delete here)
 				{
-					if (operation != null) {
-						List<Operation> impactedIndicators = actualCheckInUse(getCurrentOperations().values(), operation);
-						if (!impactedIndicators.isEmpty()) {
-							throw new InUseException(impactedIndicators);
-						}
-					}
+					checkInUsed(operation, getUserCurrentOperations());
 					break;
 				}
-				case OPERATION_CrUD :				//Any Operation change or status change
+				case OPERATION_cRud_IgnoreDisabled :	//Idem but ignoring disabled in the check
+				{
+					checkInUsed(operation, getUserEnabledOperations());
+					break;
+				}
+				case OPERATION_CrUD :					//Any Operation change or status change
 				{
 					if (operation != null) {
 						clearPreviousCalculations(operation);
 					}
 					break;
 				}
-				case CREATE_INDICTOR :				//Create a default indicator
+				case CREATE_INDICTOR :					//Create a default indicator
 					if (operation == null || getCurrentOperations().containsKey(operation.getReference())) return;
 					String formula = "is bullish when " + operation.getReference() + " equals trend bullish;\nis bearish when " + operation.getReference() + " equals trend bearish;";
 					try {
@@ -122,14 +122,23 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 						LOGGER.error("Could not create default indicator for " + operation.getReference() + " with formula " + formula);
 					}
 					break;
-				case UPDATE_OPS_INMEM_INSTANCES :	//This is just updating the ops lists after an ops crud so no need to delete events.
+				case UPDATE_OPS_INMEM_INSTANCES :		//This is just updating the ops lists after an ops crud so no need to delete events.
 					if (operation != null) actualReplaceInUse(getCurrentOperations().values(), operation);
 					break;
-				case RESET_OPS_INMEM_INSTANCES :	//Reset ops list from scratch
+				case RESET_OPS_INMEM_INSTANCES :		//Reset ops list from scratch
 					resetCaches();
 					resetUserOperations();
 					updateEditableOperationLists();
 					break;
+				}
+			}
+
+			private void checkInUsed(Operation operation, Map<String, Operation> userOperations) {
+				if (operation != null) {
+					List<Operation> impactedIndicators = actualCheckInUse(userOperations.values(), operation);
+					if (!impactedIndicators.isEmpty()) {
+						throw new InUseException(impactedIndicators);
+					}
 				}
 			}
 
@@ -198,7 +207,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	//Is called when Indicators are changed
 	@Override
-	public List<Operation> checkInUse(Operation operation) {
+	public List<Operation> checkInUse(Operation operation, Boolean checkDisabled) {
 		//We don't check root indicator operations as they can't be reused
 		return new ArrayList<Operation>(); //FIXME this is not true any more with the iterative operation or Encog operation?
 	}

@@ -302,13 +302,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
 		for (Operation indicator: allOps.values()) {
 			try {
-				if (indicator.getDisabled()) parameterizedBuilder.removeFormula(indicator.getReference());
+				if (indicator.getDisabled()) parameterizedBuilder.removeFormula(indicator.getReference(), false);
 			} catch (IOException e) {
 				LOGGER.error(e,e);
 			}
 		}
 	}
-	
 
 	protected void duplicateFormula(String identifier) {
 		

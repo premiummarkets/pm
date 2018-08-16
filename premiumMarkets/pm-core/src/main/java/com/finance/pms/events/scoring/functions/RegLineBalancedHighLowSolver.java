@@ -60,9 +60,9 @@ import com.finance.pms.admin.install.logging.MyLogger;
  *
  */
 
-public class HighLowSolver {
+public class RegLineBalancedHighLowSolver {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(HighLowSolver.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(RegLineBalancedHighLowSolver.class);
 
 	private static final double HIGHPOSMIN = .8;
 	private static final double LOWPOSMAX = .2;
@@ -232,7 +232,7 @@ public class HighLowSolver {
 
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
-		Double[] lowTroughs =  bestLowTangente(periodData,  periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
+		Double[] lowTroughs =  bestLowTangent(periodData,  periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		if (firstTroughIdx.intValue() == -1) return false;
 		if (isNotBalanced(amountAboveSmoothingFloor,firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), periodData.length, alphaBalance)) return false;
 
@@ -253,7 +253,7 @@ public class HighLowSolver {
 
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
-		Double[] lowTroughs =  bestLowTangente(periodData, periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
+		Double[] lowTroughs =  bestLowTangent(periodData, periodSmoothedFloor, firstTroughIdx, lastTroughIdx, amountAboveSmoothingFloor).values().toArray(new Double[0]);
 		if (firstTroughIdx.intValue() == -1) return false;
 		if (isNotBalanced(amountAboveSmoothingFloor, firstTroughIdx.doubleValue(), lastTroughIdx.doubleValue(), periodData.length, alphaBalance)) return false;
 
@@ -380,7 +380,7 @@ public class HighLowSolver {
 		return lowTroughs;
 	}
 
-	private Map<Integer, Double> bestLowTangente(Double[] pData, Double[] periodSmoothedFloor, MutableInt fTrouIdx, MutableInt lTrouIdx, MutableDouble amountAboveSmoothingFloor) {
+	private Map<Integer, Double> bestLowTangent(Double[] pData, Double[] periodSmoothedFloor, MutableInt fTrouIdx, MutableInt lTrouIdx, MutableDouble amountAboveSmoothingFloor) {
 
 		Map<Integer, Double> lowTroughsMap = simpleLowTroughs(pData, periodSmoothedFloor, amountAboveSmoothingFloor);
 		Double[] troughs = lowTroughsMap.values().toArray(new Double[0]);

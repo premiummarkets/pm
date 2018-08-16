@@ -362,9 +362,54 @@ public class OperationBuilderComposite extends Composite {
 
 			}
 		}
+		{
 
+			Button deleteUnused = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
+			deleteUnused.setLayoutData(layoutData);
+			deleteUnused.setText("Delete all unused and disabled");
+			deleteUnused.setToolTipText("Unused and disabled formulas will be moved to the trashed folder.");
+			deleteUnused.setFont(MainGui.DEFAULTFONT);
+			deleteUnused.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handleDeleteUnused();
+				}
+
+				private void handleDeleteUnused() {
+
+					openActionDialog(
+							true, null, null, null, "Please, confirm the deletion of all unused/disabled " + builderLabel()+".",
+							new ActionDialogAction() {
+								@Override
+								public void action() {
+									try {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+										int selectionIndex = formulaReference.getSelectionIndex();
+										deleteAllDisabledOrUnused();
+										formulaReference.removeAll();
+										isSaved = true;
+										updateCombo(true);
+										if (formulaReference.getItemCount() > 0) {
+											forceSelection(selectionIndex % formulaReference.getItemCount());
+										}
+									} finally {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
+								}
+							},
+							false);
+
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handleDeleteUnused();
+				}
+			});
+		}
 		addThisCompositeExtratButtons();
-
 		{
 
 			Button deleteFormula = new Button(this, SWT.NONE);
@@ -445,7 +490,7 @@ public class OperationBuilderComposite extends Composite {
 		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
 		for (String opId : allOps.keySet()) {
 			try {
-				parameterizedBuilder.removeFormula(opId);
+				parameterizedBuilder.removeFormula(opId, true);
 			} catch (IOException e) {
 				LOGGER.info(opId + " is used and won't be disabled");
 			}
@@ -675,54 +720,6 @@ public class OperationBuilderComposite extends Composite {
 	}
 
 	protected void addThisCompositeExtratButtons() {
-
-		{
-
-			Button deleteUnused = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
-			deleteUnused.setLayoutData(layoutData);
-			deleteUnused.setText("Delete all unused and disabled");
-			deleteUnused.setToolTipText("Disabled operations will be moved to the disabled folder.");
-			deleteUnused.setFont(MainGui.DEFAULTFONT);
-			deleteUnused.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handleDeleteUnused();
-				}
-
-				private void handleDeleteUnused() {
-
-					openActionDialog(
-							null, null, null, "Please, confirm the deletion of all unused/disabled " + builderLabel()+".", 
-							new ActionDialogAction() {	
-								@Override
-								public void action() {
-									try {
-										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-										int selectionIndex = formulaReference.getSelectionIndex();
-										deleteAllDisabledOrUnused();
-										formulaReference.removeAll();
-										isSaved = true;
-										updateCombo(true);
-										if (formulaReference.getItemCount() > 0) {
-											forceSelection(selectionIndex % formulaReference.getItemCount());
-										}
-									} finally {
-										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-									}
-								}
-							},
-							false);
-
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleDeleteUnused();
-				}
-			});
-		}
 		{
 
 			Button freshReload = new Button(this, SWT.NONE);
@@ -781,12 +778,12 @@ public class OperationBuilderComposite extends Composite {
 			return;
 
 		try {
-			parameterizedBuilder.removeFormula(identifier);
+			parameterizedBuilder.removeFormula(identifier, true);
 		} catch (IOException e) {
-			openDialog("Formula can't be deleted.", e);
+			openDialog(true, "Formula can't be deleted.", e);
 			return;
 		} catch (Exception e) {
-			openDialog("Found invalid formulas while storing data.", e);
+			openDialog(true, "Found invalid formulas while storing data.", e);
 		}
 
 		previousCalcsAsDirty(identifier);
@@ -794,11 +791,11 @@ public class OperationBuilderComposite extends Composite {
 
 	}
 
-	private void openDialog(String errorMsg, Object e) {
+	private void openDialog(Boolean forceOpening, String errorMsg, Object e) {
 		String addMessage = (e == null)?null:e.toString();
 		boolean firstDialog = (dialog == null);
 		boolean differentDialog = (dialog != null) && !dialog.sameDialog(errorMsg, addMessage);
-		if (firstDialog || differentDialog) {
+		if (firstDialog || differentDialog || forceOpening) {
 			if (e instanceof Exception) LOGGER.warn(e, (Exception) e);
 			if (firstDialog || dialog.getParent().isDisposed()) {
 				dialog = new UserDialog(getShell(), errorMsg, addMessage);
@@ -809,13 +806,13 @@ public class OperationBuilderComposite extends Composite {
 		}
 	}
 	
-	private void openActionDialog(String title, String errorMsg, Object e, String actionTxt, ActionDialogAction action, Boolean async) {
+	private void openActionDialog(Boolean forceOpening, String title, String errorMsg, Object e, String actionTxt, ActionDialogAction action, Boolean async) {
 		String addMessage = (e == null)?null:e.toString();
 		boolean firstDialog = (actionDialog == null);
 		boolean differentDialog = (actionDialog != null) && !actionDialog.sameDialog(errorMsg, addMessage);
-		if (firstDialog || differentDialog) {
+		if (firstDialog || differentDialog || forceOpening) {
 			if (e instanceof Exception) LOGGER.warn(e, (Exception) e);
-			title = (title == null)?MainGui.APP_NAME + " - Warning":title;
+			title = MainGui.APP_NAME + " - " + ((title == null)?"Warning":title);
 			if (firstDialog || actionDialog.getParent().isDisposed()) {
 				actionDialog = new ActionDialog(getShell(), title, errorMsg, addMessage, actionTxt, action, async);
 				actionDialog.open();
@@ -901,7 +898,7 @@ public class OperationBuilderComposite extends Composite {
 
 		final String formula = formatedEditorTxt();
 		if (formula == null || formula.isEmpty()) {//Is valid?
-			openDialog("Please fill in a valid formula", null);
+			openDialog(false, "Please fill in a valid formula", null);
 			isSaved=false;
 			LOGGER.info("Is invalid "+identifier+". Is saved :"+isSaved);
 		} else if (!hasChanged(identifier)) {//Has not Changed?
@@ -926,7 +923,7 @@ public class OperationBuilderComposite extends Composite {
 							LOGGER.info("Updated and saved "+identifier+". Is saved :"+isSaved);
 						}
 					};
-					openActionDialog("Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action, false);
+					openActionDialog(true, "Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action, false);
 				}
 
 			} else {
@@ -949,7 +946,7 @@ public class OperationBuilderComposite extends Composite {
 			NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
 			if (checkNextToken != null) {
 				LOGGER.info("Invalid "+identifier+". Is saved :"+isSaved);
-				openDialog("Formula " + formula + " can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
+				openDialog(false, "Formula " + formula + " can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
 				isSaved=false;
 			} else {
 				LOGGER.info("Adding formula to operation list : "+identifier+". Is saved :"+isSaved);
@@ -959,12 +956,12 @@ public class OperationBuilderComposite extends Composite {
 
 		} catch (IOException e) {
 			LOGGER.info("An error occurred "+identifier+". Is saved :"+isSaved);
-			openDialog("Formula can't be saved.\n Please fill in a valid formula", e);
+			openDialog(false, "Formula can't be saved.\n Please fill in a valid formula", e);
 			isSaved=false;
 
 		} catch (Exception e) {
 			LOGGER.info("An error occurred "+identifier+". Is saved :"+isSaved);
-			openDialog("Found invalid formulas while storing data.", e);
+			openDialog(true, "Found invalid formulas while storing data.", e);
 			isSaved=false;
 		}
 
@@ -983,7 +980,7 @@ public class OperationBuilderComposite extends Composite {
 	protected Boolean isNativeOp(String identifier, Operation existingOp) {
 		Boolean isNativeOp = false;
 		if ((existingOp != null && existingOp.isNative()) || (existingOp = parameterizedBuilder.getNativeOperations().get(identifier)) != null) {
-			openDialog("The identifier you have chosen clashes with a native identifier :\n" + existingOp.getReference() + ", " + existingOp.getDescription()+ ".\n" +
+			openDialog(true, "The identifier you have chosen clashes with a native identifier :\n" + existingOp.getReference() + ", " + existingOp.getDescription()+ ".\n" +
 					"Use an other one, for instance " + identifier + "1 or my" + identifier + " and save again.", null);
 			isNativeOp = true;
 		}
@@ -1001,7 +998,7 @@ public class OperationBuilderComposite extends Composite {
 
 		if (identifier == null || identifier.length() < 2 || EditorLexerDelegate.HISTORICALDATA_TOKENS.contains(identifier)
 				|| EditorLexerDelegate.MATYPES_TOKENS.contains(identifier)) {
-			openDialog("Please fill in a valid identifier", addMessage);
+			openDialog(true, "Please fill in a valid identifier", addMessage);
 			isIdEmpty = true;
 
 		} else {
@@ -1022,7 +1019,7 @@ public class OperationBuilderComposite extends Composite {
 	protected Boolean checkIdCharacters(String identifier, String addMessage) {
 		for (int i = 0; i < identifier.length(); i++) {
 			if (!Character.isLetterOrDigit(identifier.charAt(i)) && identifier.charAt(i) != '_') {
-				openDialog("Please fill in a valid identifier", addMessage + "Must not contain white spaces.\n");
+				openDialog(true, "Please fill in a valid identifier", addMessage + "Must not contain white spaces.\n");
 				return false;
 			}
 		}

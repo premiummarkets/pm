@@ -373,6 +373,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((formulae == null) ? 0 : formulae.hashCode());
 		result = prime * result + ((reference == null) ? 0 : reference.hashCode());
 		return result;
 	}
@@ -386,12 +387,28 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (getClass() != obj.getClass())
 			return false;
 		Operation other = (Operation) obj;
+		if (formulae == null) {
+			if (other.formulae != null)
+				return false;
+		} else if (!formulae.equals(other.formulae))
+			return false;
 		if (reference == null) {
 			if (other.reference != null)
 				return false;
 		} else if (!reference.equals(other.reference))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(Operation o) {
+		int compareTo = this.reference.compareTo(o.reference);
+		if (compareTo == 0) {
+			if (this.formulae == null && o.formulae == null) return 0;
+			if (this.formulae != null && o.formulae == null) return 1;
+			compareTo = this.formulae.compareTo(o.formulae);
+		}
+		return compareTo;
 	}
 
 	@Override
@@ -413,11 +430,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			LOGGER.error(e,e);
 		}
 		return null;
-	}
-
-	@Override
-	public int compareTo(Operation o) {
-		return this.reference.compareTo(o.reference);
 	}
 
 	public String getOutputSelector() {

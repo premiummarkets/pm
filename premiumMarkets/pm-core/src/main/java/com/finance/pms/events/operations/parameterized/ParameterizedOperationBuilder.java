@@ -47,156 +47,158 @@ import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator
 
 public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 
-    private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedOperationBuilder.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedOperationBuilder.class);
 
-    NativesXmlManager nativesXmlManager;
+	NativesXmlManager nativesXmlManager;
 
-    public ParameterizedOperationBuilder(NativesXmlManager nativesXmlManager) {
-        super();
-        operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
-        antlrParser = new ANTLROperationsParserHelper();
+	public ParameterizedOperationBuilder(NativesXmlManager nativesXmlManager) {
+		super();
+		operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
+		antlrParser = new ANTLROperationsParserHelper();
 
-        userOperationsDir = new File(userParameterizedPath + File.separator + "operations");
-        if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
+		userOperationsDir = new File(userParameterizedPath + File.separator + "operations");
+		if(!userOperationsDir.exists()) userOperationsDir.mkdirs();
 
-        disabledUserOperationsDir = new File(userParameterizedPath + File.separator + "disabledOperations");
-        if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
+		disabledUserOperationsDir = new File(userParameterizedPath + File.separator + "disabledOperations");
+		if(!disabledUserOperationsDir.exists()) disabledUserOperationsDir.mkdirs();
 
-        trashUserOperationsDir = new File(userParameterizedPath + File.separator + "trashedOperations");
-        if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
+		trashUserOperationsDir = new File(userParameterizedPath + File.separator + "trashedOperations");
+		if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
 
-        this.nativesXmlManager = nativesXmlManager;
+		this.nativesXmlManager = nativesXmlManager;
 
-    }
+	}
 
-    public void init(
-    		TalibOperationGenerator talibOperationGenerator, 
-    		TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator,
-    		OperationReflectiveGenerator... otherOperationReflectiveGenerator) throws Exception {
+	public void init(
+			TalibOperationGenerator talibOperationGenerator, 
+			TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator,
+			OperationReflectiveGenerator... otherOperationReflectiveGenerator) throws Exception {
 
-    	//Xml operations based on NativesXmlManager impl
-        NativeOperations nativeOperationsContainer = nativesXmlManager.loadNativeOperations();
-        nativeOperations = nativeOperationsContainer.getOperations();
-        currentOperations.putAll(nativeOperations);
+		//Xml operations based on NativesXmlManager impl
+		NativeOperations nativeOperationsContainer = nativesXmlManager.loadNativeOperations();
+		nativeOperations = nativeOperationsContainer.getOperations();
+		currentOperations.putAll(nativeOperations);
 
-        //Talib based operations (DoubleMapOperation)
-        talibOperationGenerator.initSynoData();
-        nativeOperations.putAll(talibOperationGenerator.generate());
+		//Talib based operations (DoubleMapOperation)
+		talibOperationGenerator.initSynoData();
+		nativeOperations.putAll(talibOperationGenerator.generate());
 
-        //Talib indicators based EventDefinition operations (EventMapOperation)
-        nativeOperations.putAll(talibIndicatorsCompositionerOperationReflectiveGenerator.generate());
+		//Talib indicators based EventDefinition operations (EventMapOperation)
+		nativeOperations.putAll(talibIndicatorsCompositionerOperationReflectiveGenerator.generate());
 
-        //Other operations generator
-        Arrays.stream(otherOperationReflectiveGenerator).forEach(opsGen -> nativeOperations.putAll(opsGen.generate()));
+		//Other operations generator
+		Arrays.stream(otherOperationReflectiveGenerator).forEach(opsGen -> nativeOperations.putAll(opsGen.generate()));
 
-        resetUserOperations();
-    }
+		resetUserOperations();
+	}
 
-    public void setNativesXmlManager(NativesXmlManager nativesXmlManager) {
-        this.nativesXmlManager = nativesXmlManager;
-    }
+	public void setNativesXmlManager(NativesXmlManager nativesXmlManager) {
+		this.nativesXmlManager = nativesXmlManager;
+	}
 
-    @Override
-    public List<Operation> checkInUse(Operation operation) {
+	@Override
+	public List<Operation> checkInUse(Operation operation, Boolean checkDisabled) {
 
-        List<Operation> values = new ArrayList<Operation>(getCurrentOperations().values());
-        values.remove(values.indexOf(operation));
+		Map<String, Operation> currentOperationsMap =(checkDisabled)?getCurrentOperations():getUserEnabledOperations();
+		List<Operation> values = new ArrayList<Operation>(currentOperationsMap.values());
+		values.remove(values.indexOf(operation));
 
-        List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
-        actualCheckInUse.addAll(notifyChanged(operation, ObsMsgType.OPERATION_cRud));
+		List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
+		actualCheckInUse.addAll(notifyChanged(operation, (checkDisabled)?ObsMsgType.OPERATION_cRud:ObsMsgType.OPERATION_cRud_IgnoreDisabled));
 
-        return actualCheckInUse;
-    }
+		return actualCheckInUse;
 
-    @Override
-    public void replaceInUse(Operation replacementOp) throws StackOverflowError {
+	}
 
-        List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
-        LOGGER.info("Operations using " + replacementOp.getReference() + " : " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+	@Override
+	public void replaceInUse(Operation replacementOp) throws StackOverflowError {
 
-        List<Operation> usingIndicators = notifyChanged(replacementOp, ObsMsgType.OPERATION_cRud);
+		List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
+		LOGGER.info("Operations using " + replacementOp.getReference() + " : " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
 
-        LOGGER.info("Indicators using " + replacementOp.getReference() + " : " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
-        actualReplaceInUse(usingIndicators, replacementOp);
+		List<Operation> usingIndicators = notifyChanged(replacementOp, ObsMsgType.OPERATION_cRud);
 
-    }
+		LOGGER.info("Indicators using " + replacementOp.getReference() + " : " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+		actualReplaceInUse(usingIndicators, replacementOp);
 
-
-    /**
-     * For notifying the indicators builder and access the user indicators list.
-     */
-    @Override
-    public List<Operation> notifyChanged(Operation operation, ObsMsgType msgType) {
-
-        List<Operation> actualCheckInUse = new ArrayList<Operation>();
-        try {
-            this.setChanged();
-            this.notifyObservers(new ObsMsg(msgType, operation));
-        } catch (InUseException e) {
-            actualCheckInUse.addAll(e.getInUse());
-        }
-
-        return actualCheckInUse;
-    }
+	}
 
 
-    @Override
-    protected List<Operation> updateCaches(Operation operation, Boolean isNewOp) {
+	/**
+	 * For notifying the indicators builder and access the user indicators list.
+	 */
+	@Override
+	public List<Operation> notifyChanged(Operation operation, ObsMsgType msgType) {
 
-        List<Operation> actualCheckInUse = new ArrayList<Operation>();
-        if (!isNewOp) {
-            updateEditableOperationLists();
-            try {
-                this.setChanged();
-                this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation));
-            } catch (InUseException e) {
-                actualCheckInUse.addAll(e.getInUse());
-            }
-        }
-        return actualCheckInUse;
-    }
+		List<Operation> actualCheckInUse = new ArrayList<Operation>();
+		try {
+			this.setChanged();
+			this.notifyObservers(new ObsMsg(msgType, operation));
+		} catch (InUseException e) {
+			actualCheckInUse.addAll(e.getInUse());
+		}
+
+		return actualCheckInUse;
+	}
 
 
-    private List<String> resetUserOperations() {
+	@Override
+	protected List<Operation> updateCaches(Operation operation, Boolean isNewOp) {
 
-        List<String> crippled = new ArrayList<String>(); 
+		List<Operation> actualCheckInUse = new ArrayList<Operation>();
+		if (!isNewOp) {
+			updateEditableOperationLists();
+			try {
+				this.setChanged();
+				this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation));
+			} catch (InUseException e) {
+				actualCheckInUse.addAll(e.getInUse());
+			}
+		}
+		return actualCheckInUse;
+	}
 
-        try {
-            reloadUserOperations(userOperationsDir, false);
-        } catch (Exception e) {
-            LOGGER.error(e,e);
-        }
 
-        return crippled;
-    }
+	private List<String> resetUserOperations() {
 
-    @Override
-    public void resetCaches() {
+		List<String> crippled = new ArrayList<String>(); 
 
-        List<String> crippled = resetUserOperations();
-        if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : "+crippled);
+		try {
+			reloadUserOperations(userOperationsDir, false);
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
 
-        //TODO Remove update here and in observer as they are done in combo update?
-        updateEditableOperationLists();
-        this.setChanged();
-        this.notifyObservers(new ObsMsg(ObsMsgType.RESET_OPS_INMEM_INSTANCES, null));
+		return crippled;
+	}
 
-    }
+	@Override
+	public void resetCaches() {
 
-    @Override
-    protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
+		List<String> crippled = resetUserOperations();
+		if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : "+crippled);
 
-        String destFormula = sourceFormula;
-        for (String sourceOpRef : duplOperands.keySet()) {
-            destFormula = destFormula.replaceAll("(\\(|,)"+sourceOpRef+"\\(\\)", "$1"+duplOperands.get(sourceOpRef).getReference()+"()");
-        }
+		//TODO Remove update here and in observer as they are done in combo update?
+		updateEditableOperationLists();
+		this.setChanged();
+		this.notifyObservers(new ObsMsg(ObsMsgType.RESET_OPS_INMEM_INSTANCES, null));
 
-        return destFormula;
-    }
+	}
 
-    @Override
-    protected ParameterizedBuilder subjacentDuplicator() {
-        return this;
-    }
+	@Override
+	protected String infererNewFormula(Map<String, Operation> duplOperands, String sourceFormula) {
+
+		String destFormula = sourceFormula;
+		for (String sourceOpRef : duplOperands.keySet()) {
+			destFormula = destFormula.replaceAll("(\\(|,)"+sourceOpRef+"\\(\\)", "$1"+duplOperands.get(sourceOpRef).getReference()+"()");
+		}
+
+		return destFormula;
+	}
+
+	@Override
+	protected ParameterizedBuilder subjacentDuplicator() {
+		return this;
+	}
 
 }

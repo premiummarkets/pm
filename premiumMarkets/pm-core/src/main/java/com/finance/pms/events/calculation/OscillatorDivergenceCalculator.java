@@ -54,7 +54,7 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.RegLineBalancedHighLowSolver;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
@@ -66,13 +66,12 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 	protected SortedMap<Integer,Double> higherLows;
 	protected SortedMap<Integer,Double> lowerHighs;
-	private HighLowSolver highLowSolver;
+	private RegLineBalancedHighLowSolver highLowSolver;
 	private Quotations quotationsCopy;
 
 	public OscillatorDivergenceCalculator(EventInfo eventInfo, Observer ...observers) {
 		super(eventInfo, observers);
-
-		highLowSolver = new HighLowSolver();
+		highLowSolver = new RegLineBalancedHighLowSolver();
 		higherLows = new TreeMap<Integer, Double>();
 		lowerHighs = new TreeMap<Integer, Double>();
 	}
@@ -92,36 +91,36 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 		if (idxSpan < 4) return res; //We need a least 3 days to draw higher low or lower high
 
-		int mfiIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
-		int lookBackSpan = mfiIdx - idxSpan;
+		int oscIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
+		int lookBackSpan = oscIdx - idxSpan;
 		if (lookBackSpan < 0) {//No enough data
 			throw new InvalidAlgorithmParameterException("Negative look back span for "+quotationsCopy.getStock()+" and "+this.getEventDefinition()+". LookBackPeriodStart : "+lookBackPeriodStart+", days span "+getDaysSpan()+", first date available : "+quotationsCopy.get(0));
 		}
 
-		Double[] mfiLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), lookBackSpan, mfiIdx));
+		Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), lookBackSpan, oscIdx));
 
 		{
 			Boolean isPriceDown = false;
 
-			Boolean isMfiUp = false;
-			Boolean isMfiDownThreshold = false;
-			isMfiDownThreshold = isOscBelowLowerThreshold(idxSpan, mfiIdx);
+			Boolean isOscillatorUp = false;
+			Boolean isOscillatorBelowThreshold = false;
+			isOscillatorBelowThreshold = isOscBelowLowerThreshold(idxSpan, oscIdx);
 
-			if (isMfiDownThreshold) {
+			if (isOscillatorBelowThreshold) {
 
-				ArrayList<Double> regline = new ArrayList<Double>();
+				ArrayList<Double> regLine = new ArrayList<Double>();
 				MutableInt firstPeakIdx = new MutableInt(-1);
 				MutableInt lastPeakIdx = new MutableInt(-1);
-				isMfiUp = highLowSolver.higherLow(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstPeakIdx, lastPeakIdx);
+				isOscillatorUp = highLowSolver.higherLow(oscLookBackP, new Double[0], getAlphaBalance(), regLine, firstPeakIdx, lastPeakIdx);
 
-				if (isMfiUp) {
+				if (isOscillatorUp) {
 
 					//int coveredSpan = regline.size();
-					int firstPeakLeftShifted = (int) (Math.max(firstPeakIdx.intValue() - ((double)mfiLookBackP.length)*.1, 0));
-					int lastPeakRightShifted = (int) (Math.min(lastPeakIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1)); //lastPeakIdx.intValue();
+					int firstPeakLeftShifted = (int) (Math.max(firstPeakIdx.intValue() - ((double)oscLookBackP.length)*.1, 0));
+					int lastPeakRightShifted = (int) (Math.min(lastPeakIdx.intValue() + ((double)oscLookBackP.length)*.1, regLine.size()-1)); //lastPeakIdx.intValue();
 					int coveredSpan = lastPeakRightShifted - firstPeakLeftShifted;
 					Double leftSigma = 0d;
-					int lastPeakCalculatorIdx = quotationIdx - (regline.size() - lastPeakRightShifted);
+					int lastPeakCalculatorIdx = quotationIdx - (regLine.size() - lastPeakRightShifted);
 					for (int i = lastPeakCalculatorIdx - coveredSpan; i <= lastPeakCalculatorIdx - coveredSpan/2; i++) {
 						leftSigma = leftSigma + quotationsCopy.get(i).getClose().doubleValue();
 					}
@@ -131,11 +130,11 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 					}
 					isPriceDown = leftSigma/(coveredSpan - coveredSpan/2) > rightSigma/(coveredSpan/2);
 
-					if (isPriceDown) addReglineOutput(higherLows, lastPeakCalculatorIdx, regline, coveredSpan, firstPeakLeftShifted, lastPeakRightShifted);
+					if (isPriceDown) addReglineOutput(higherLows, lastPeakCalculatorIdx, regLine, coveredSpan, firstPeakLeftShifted, lastPeakRightShifted);
 				}
 			}
 
-			res.setBullishCrossOver(isPriceDown && isMfiDownThreshold && isMfiUp);
+			res.setBullishCrossOver(isPriceDown && isOscillatorBelowThreshold && isOscillatorUp);
 			if (res.getBullishCrossOver()) {
 				return res;
 			}
@@ -145,23 +144,23 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 			Boolean isPriceUp = false;
 
-			Boolean isMfiUpThreshold = false;
-			Boolean isMfiDown = false;
+			Boolean isOscillatorAboveThreshold = false;
+			Boolean isOscillatorDown = false;
 
-			isMfiUpThreshold = isOcsAboveUpperThreshold(idxSpan, mfiIdx);
+			isOscillatorAboveThreshold = isOcsAboveUpperThreshold(idxSpan, oscIdx);
 
-			if (isMfiUpThreshold) {
+			if (isOscillatorAboveThreshold) {
 
 				ArrayList<Double> regline = new ArrayList<Double>();
 				MutableInt firstTroughIdx = new MutableInt(-1);
 				MutableInt lastTroughIdx = new MutableInt(-1);
-				isMfiDown = highLowSolver.lowerHigh(mfiLookBackP, new Double[0], getAlphaBalance(), regline, firstTroughIdx, lastTroughIdx);
+				isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, new Double[0], getAlphaBalance(), regline, firstTroughIdx, lastTroughIdx);
 
-				if (isMfiDown) {
+				if (isOscillatorDown) {
 
 					//int coveredSpan = regline.size();
-					int firstTroughLeftShifted = (int) (Math.max(firstTroughIdx.intValue() - ((double)mfiLookBackP.length)*.1, 0));
-					int lastTroughRightShifted = (int) (Math.min(lastTroughIdx.intValue() + ((double)mfiLookBackP.length)*.1, regline.size()-1));
+					int firstTroughLeftShifted = (int) (Math.max(firstTroughIdx.intValue() - ((double)oscLookBackP.length)*.1, 0));
+					int lastTroughRightShifted = (int) (Math.min(lastTroughIdx.intValue() + ((double)oscLookBackP.length)*.1, regline.size()-1));
 					int coveredSpan = lastTroughRightShifted - firstTroughLeftShifted;
 					Double leftSigma = 0d;
 					int lastTroughCalculatorIdx = quotationIdx - (regline.size() -lastTroughRightShifted);
@@ -179,14 +178,14 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 			}
 
-			res.setBearishCrossBellow(isPriceUp && isMfiDown && isMfiUpThreshold);
+			res.setBearishCrossBellow(isPriceUp && isOscillatorDown && isOscillatorAboveThreshold);
 
 			return res;
 		}
 	}
 
-	protected Boolean isOcsAboveUpperThreshold(int idxSpan, int mfiIdx) {
-		for (int i = mfiIdx - idxSpan; i < mfiIdx; i++) {
+	protected Boolean isOcsAboveUpperThreshold(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
 			if (getOscillatorOutput()[i] >= getOscillatorUpperThreshold()) {
 				return true;
 			}
@@ -194,8 +193,8 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		return false;
 	}
 
-	protected Boolean isOscBelowLowerThreshold(int idxSpan, int mfiIdx) {
-		for (int i = mfiIdx - idxSpan; i < mfiIdx; i++) {
+	protected Boolean isOscBelowLowerThreshold(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
 			if (getOscillatorOutput()[i] <= getOscillatorLowerThreshold()) {
 				return true;
 			}
@@ -269,9 +268,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
-
 		this.quotationsCopy = quotations;
-
 		getOscillator().calculateIndicator(quotations);
 	}
 

@@ -34,11 +34,11 @@ import java.util.ArrayList;
 import org.apache.commons.lang.mutable.MutableInt;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.RegLineBalancedHighLowSolver;
 
 public class LowerHighCondition extends HighsAndLowsCondition {
-	
-	HighLowSolver highLowSolver = new HighLowSolver();
+
+	RegLineBalancedHighLowSolver highLowSolver = new RegLineBalancedHighLowSolver();
 
 	public LowerHighCondition() {
 		super("lower high",  "True when the time series is making a lower high.");
@@ -54,5 +54,5 @@ public class LowerHighCondition extends HighsAndLowsCondition {
 	public Boolean conditionCheck(Comparable ... ops) {
 		return highLowSolver.lowerHigh(((ArrayList<Double>)ops[0]).toArray(new Double[0]),((ArrayList<Double>)ops[1]).toArray(new Double[0]), (Double) ops[2], (ArrayList<Double>)ops[3], (MutableInt) ops[4], (MutableInt) ops[5]);
 	}
-	
+
 }

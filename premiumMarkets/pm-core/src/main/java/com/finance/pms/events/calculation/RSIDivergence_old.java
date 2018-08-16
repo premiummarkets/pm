@@ -99,7 +99,7 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 	}
 
 	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Integer signalSMAPeriod) {
-	    this.rsi = new RSI(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold);
+	    this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
         this.sma = new SMA(signalSMAPeriod);
 	}
 
