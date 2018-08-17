@@ -72,8 +72,8 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 	public OscillatorDivergenceCalculator(EventInfo eventInfo, Observer ...observers) {
 		super(eventInfo, observers);
 		highLowSolver = new RegLineBalancedHighLowSolver();
-		higherLows = new TreeMap<Integer, Double>();
-		lowerHighs = new TreeMap<Integer, Double>();
+		higherLows = new TreeMap<>();
+		lowerHighs = new TreeMap<>();
 	}
 
 
@@ -101,14 +101,12 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 		{
 			Boolean isPriceDown = false;
-
 			Boolean isOscillatorUp = false;
-			Boolean isOscillatorBelowThreshold = false;
-			isOscillatorBelowThreshold = isOscBelowLowerThreshold(idxSpan, oscIdx);
+			Boolean isOscillatorBelowThreshold = isOscBelowLowerThreshold(idxSpan, oscIdx);
 
 			if (isOscillatorBelowThreshold) {
 
-				ArrayList<Double> regLine = new ArrayList<Double>();
+				ArrayList<Double> regLine = new ArrayList<>();
 				MutableInt firstPeakIdx = new MutableInt(-1);
 				MutableInt lastPeakIdx = new MutableInt(-1);
 				isOscillatorUp = highLowSolver.higherLow(oscLookBackP, new Double[0], getAlphaBalance(), regLine, firstPeakIdx, lastPeakIdx);

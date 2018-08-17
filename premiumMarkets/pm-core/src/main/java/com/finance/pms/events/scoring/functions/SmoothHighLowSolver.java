@@ -29,11 +29,52 @@
  */
 package com.finance.pms.events.scoring.functions;
 
-import java.util.Date;
-import java.util.SortedMap;
+import com.finance.pms.admin.install.logging.MyLogger;
+import org.apache.commons.lang.mutable.MutableDouble;
+import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
-public interface SSmoother {
-	
-	SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag);
+import java.util.*;
+
+
+/**
+ * 
+ * @author Guillaume Thoreton
+ *
+ */
+
+public class SmoothHighLowSolver {
+
+	private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
+
+	private int smoothingPeriod;
+
+	public Boolean higherHigh(double[][] data, Map<Integer, double[]> higherHighs) {
+
+		ZeroLagEMASmoother zeroLagEMASmoother = new ZeroLagEMASmoother(smoothingPeriod);
+		double[][] zEMASmoothed = zeroLagEMASmoother.smooth(data);
+
+		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
+		double[][] htSmoothed = houseTrendSmoother.smooth(zEMASmoothed);
+
+		SortedMap<Integer, double[]> peaks =  new TreeMap<>();
+		for(int i = 1; i < htSmoothed.length; i++) {
+			if (htSmoothed[i-1][0] > 0 && htSmoothed[i][0] == 0) {
+				int peakKeyInDataIdx = i + smoothingPeriod/2 + 1;
+				peaks.put(peakKeyInDataIdx, data[peakKeyInDataIdx]);
+			}
+		}
+
+		for(int pk = 1; pk < peaks.size(); pk++) {
+			if (peaks.get(pk-1)[0] < peaks.get(pk)[0]) {
+				higherHighs.put(pk, peaks.get(pk-1));
+				higherHighs.put(pk, peaks.get(pk));
+			}
+		}
+
+		return higherHighs.size() > 0;
+
+	}
+
 
 }

@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -71,46 +72,50 @@ public class HouseTrendSmoother extends Smoother implements SSmoother {
     @Override
     public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixLag) {
 
-        SortedMap<Date, double[]> ys = new TreeMap<Date, double[]>();
+        double[][] smoothedArray = smooth(data.values().toArray(new double[data.size()][]));
 
-        List<double[]> xs = new ArrayList<double[]>(data.values());
-        List<Date> keys = new ArrayList<Date>(data.keySet());
-        for (int i = period; i < xs.size(); i++) {
-            double yi = function(xs, i);
-            if (!Double.isNaN(yi)) {
-                ys.put(keys.get(i), new double[]{yi});
-            } else if (i >= ynCount*period) {
-                String message = "NaN at "+keys.get(i)+", with "+xs.subList(i-ynCount*period, i+1).stream().map(Arrays::toString).reduce((r, e) -> r+e);
-                throw new RuntimeException(message);
-            }
+        SortedMap<Date, double[]> ys = new TreeMap<>();
+        List<Date> keys = new ArrayList<>(data.keySet());
+        for (int i = period; i < keys.size(); i++) {
+            if (smoothedArray[i-period] != null)  ys.put(keys.get(i), smoothedArray[i-period]);
         }
 
         return ys;
-
     }
 
-    protected double function(List<double[]> values, int i) {
-        double xi = values.get(i)[0];
-        double xi_1 = values.get(i-period)[0];
+    public double[][] smooth(double[][] xs) {
+        double[][] ysArray = new double[xs.length-period][];
+        for (int i = period; i < xs.length; i++) {
+            double yi = function(xs, i);
+            if (!Double.isNaN(yi)) {
+                ysArray[i] = new double[]{yi};
+            } else if (i >= ynCount*period) {
+                String message = "NaN at index " + i + ", with " + Arrays.asList(xs).subList(i-ynCount*period, i+1).stream().map(Arrays::toString).reduce((r, e) -> r+e);
+                throw new RuntimeException(message);
+            }
+        }
+        return ysArray;
+    }
 
-        if (xi <= 0 || xi_1 <= 0 ) throw new NotImplementedException("currentValue : "+xi+", previousValue "+xi_1);
-
+    protected double function(double[][] values, int i) {
+        double xi = values[i][0];
+        double xi_1 = values[i-period][0];
+        if (xi <= 0 || xi_1 <= 0 ) throw new NotImplementedException("currentValue : " + xi + ", previousValue " + xi_1);
         return Math.log10(xi/xi_1);
-
     }
 
     @Override
     public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
 
-        SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
+        SortedMap<Date, Double> ret = new TreeMap<>();
 
-        List<Double> values = new ArrayList<Double>(data.values());
-        List<Date> keys = new ArrayList<Date>(data.keySet());
+        List<Double> values = new ArrayList<>(data.values());
+        List<Date> keys = new ArrayList<>(data.keySet());
         for (int i = period; i < values.size(); i++) {
             double currentValue = values.get(i);
             double previousValue = values.get(i-period);
 
-            if (currentValue <= 0 || previousValue <= 0 ) throw new NotImplementedException("currentValue : "+currentValue+", previousValue "+previousValue);
+            if (currentValue <= 0 || previousValue <= 0 ) throw new NotImplementedException("currentValue : " + currentValue + ", previousValue " + previousValue);
 
             double value = Math.log10(currentValue/previousValue);
             ret.put(keys.get(i), value);

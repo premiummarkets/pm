@@ -74,7 +74,7 @@ public class ZeroLagEMASmoother extends Smoother {
 
 		double[][] zeroLagEmas = smooth(inReal);
 
-		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
+		SortedMap<Date, double[]> ret = new TreeMap<>();
 		int j = 0;
 		for (Date date : data.keySet()){
 			if (j >= 2*period  && (j- (2*period)) < zeroLagEmas.length) {
@@ -93,9 +93,9 @@ public class ZeroLagEMASmoother extends Smoother {
 	}
 
 
-	private double[][] smooth(double[][] inReal) {
+	public double[][] smooth(double[][] inReal) {
 
-		List<double[]> inRealDecomp = new ArrayList<double[]>();
+		List<double[]> inRealDecomp = new ArrayList<>();
 		double[] ds0 = inReal[0];
 		for (@SuppressWarnings("unused") double d : ds0) {
 			inRealDecomp.add(new double[inReal.length]);
@@ -132,7 +132,6 @@ public class ZeroLagEMASmoother extends Smoother {
 
 			}
 		}
-
 
 		return zeroLagEmas;
 
