@@ -83,7 +83,7 @@ public class ZeroLagEMASmoother extends Smoother {
 				for (int k = 0; k < zeroLagEmas[j - (2*period)].length; k++) {
 					retV[k] = zeroLagEmas[j - (2*period)][k];
 				}
-				ret.put(date,retV);
+				ret.put(date, retV);
 
 			}
 			j++;

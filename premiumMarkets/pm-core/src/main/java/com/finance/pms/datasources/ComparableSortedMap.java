@@ -27,31 +27,43 @@
  * You should have received a copy of the GNU Lesser General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.events.operations.conditional;
+package com.finance.pms.datasources;
 
-import java.util.ArrayList;
+import java.util.TreeMap;
 
-import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.scoring.functions.RegLineBalancedHighLowSolver;
+public class ComparableSortedMap<K extends Comparable<K>, V extends Comparable<V> > extends TreeMap<K,V> implements Comparable<TreeMap<K,V>> {
 
-public class HigherLowCondition extends HighsAndLowsCondition {
+	private static final long serialVersionUID = -363699288012620328L;
 
-	RegLineBalancedHighLowSolver highLowSolver = new RegLineBalancedHighLowSolver();
-
-	public HigherLowCondition() {
-		super("higher low",  "True when the time series is making a higher low.");
+	public ComparableSortedMap(TreeMap<K,V> values) {
+		super(values);
 	}
 
-	public HigherLowCondition(ArrayList<Operation> operands, String outputSelector) {
-		this();
-		setOperands(operands);
+	public ComparableSortedMap() {
+		super();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public Boolean conditionCheck(Comparable... ops) {
-		//return highLowSolver.higherLow(((ArrayList<Double>)ops[0]).toArray(new Double[0]),((ArrayList<Double>)ops[1]).toArray(new Double[0]), (Double) ops[2], (ArrayList<Double>)ops[3], (MutableInt) ops[4], (MutableInt) ops[5]);
-		return false;
+	//XXX
+	public int compareTo(TreeMap<K,V> o) {
+		int size = new Integer(this.size()).compareTo(new Integer(o.size()));
+		if (size != 0) {
+			return size;
+		} else {
+			boolean equals = this.equals(o);
+			if (equals) {
+				return 0;
+			} else {
+				TreeMap<K,V> left = new TreeMap<K,V>(this);
+				TreeMap<K,V> right = new TreeMap<K,V>(o);
+				for(K k : left.keySet()) {
+					V ov = right.get(k);
+					if (ov == null) return 1;
+					int compareTo = left.get(k).compareTo(ov);
+					if (compareTo != 0) return compareTo;
+				}
+				return 0;
+			}
+		}
 	}
-
 }

@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -84,7 +83,7 @@ public class HouseTrendSmoother extends Smoother implements SSmoother {
     }
 
     public double[][] smooth(double[][] xs) {
-        double[][] ysArray = new double[xs.length-period][];
+        double[][] ysArray = new double[xs.length-period +1][];
         for (int i = period; i < xs.length; i++) {
             double yi = function(xs, i);
             if (!Double.isNaN(yi)) {

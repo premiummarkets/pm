@@ -153,7 +153,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			if (parameter != null) {
 				return parameter;
 			}
-			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this)) != null) {
+			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector())) != null) {
 				return alreadyCalculated;
 			}
 			else {
@@ -190,7 +190,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		//We gather only outputs for StockOperation and User formulas.
 		if ( (output instanceof UnarableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
-			targetStock.gatherOneOutput(operand, output);
+			targetStock.gatherOneOutput(operand, output, Optional.empty());
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
@@ -204,7 +204,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		//add to gathered
 		Map<String, UnarableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
-			targetStock.gatherExtraneousChartableOutput(operand, extraneousOutputs.get(extOutKey), extOutKey);
+			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey));
 		}
 
 	}

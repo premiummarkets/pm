@@ -215,8 +215,9 @@ public class ChartMain extends Chart {
 									closeForDate = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date));
 								} catch (Exception e) {
 									LOGGER.warn(e);
-									closeForDate = new QuotationUnit(slPShare.getStock(), slPShare.getTransactionCurrency(), date, BigDecimal.ZERO,
-											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER);
+									closeForDate = new QuotationUnit(
+											slPShare.getStock(), slPShare.getTransactionCurrency(), date,
+											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER);
 								}
 
 								String variationAddInfo = "";
@@ -225,7 +226,8 @@ public class ChartMain extends Chart {
 									variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip() + ")";
 								}
 
-								String origin = (closeForDate.getOrigin().equals(ORIGIN.USER)) ? ORIGIN.USER.name().toLowerCase()
+								String origin = (closeForDate.getOrigin().equals(ORIGIN.USER)) ?
+										ORIGIN.USER.name().toLowerCase()
 										: slPShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
 								String trCurrency = slPShare.getTransactionCurrency().name();
 								String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();

@@ -55,17 +55,6 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	}
 
-	public OutputReference(Operation operation) {
-
-		this.reference = operation.getReference();
-		this.referenceAsOperand = operation.getReferenceAsOperand();
-
-		this.outputSelector  = operation.getOutputSelector();
-		this.formula = operation.getFormulae();
-		this.operationReference = operation.getOperationReference();
-		//this.constant = null;
-	}
-
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
 
 		this.reference = operation.getReference();

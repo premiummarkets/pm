@@ -42,10 +42,9 @@ import java.util.TreeMap;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import org.apache.commons.lang.mutable.MutableInt;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.ComparableArray;
+import com.finance.pms.datasources.ComparableSortedMap;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -56,7 +55,6 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.UnarableMapValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 
 
 /**
@@ -79,12 +77,13 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 	private HighsAndLowsCondition() {
 	}
 
+	//makes a higher high over n days spanning x days smoothed for y days
 	public HighsAndLowsCondition(String reference, String description) {
-		super(reference, description, 
-				new NumberOperation("minimum days span between two extremes"),
-				new NumberOperation("look back period in days"),
-				new NumberOperation("smoothing period for extremes inclusion edge (unused?)"),//UnUsed
-				new DoubleMapOperation("historical data input"));
+		super(reference, description,
+				new NumberOperation("Look back over period in days"),
+				new NumberOperation("Minimum days spanning between two extremes"),
+				new NumberOperation("Smoothing period for extremes inclusion"),
+				new DoubleMapOperation("Historical data input"));
 	}
 
 	public HighsAndLowsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -101,88 +100,64 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 	@Override
 	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
 
-		Double minimunNbDaysBetweenExtrs = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		Integer lookBackNbdays = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer lookBackNbdays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
-		if (minimunNbDaysBetweenExtrs < 4) {
+		if (minimumNbDaysBetweenExtremes < 4) {
 			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days span to draw one of these.");
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
-		if (lookBackNbdays == -1) {
-			lookBackNbdays = (int) (minimunNbDaysBetweenExtrs*4);
+		if (lookBackNbdays < 4) {
+			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days over period to draw one of these.");
+			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
-		SortedMap<Date, Double> sSmooth = new TreeMap<Date, Double>();
-		Date sSmoothFirstKey= new Date(0);
-		if (lookBackSmoothedThreshPeriod != -1) {
-			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(lookBackSmoothedThreshPeriod);
-			sSmooth = smaSmoother.sSmooth(data, false);
-			sSmoothFirstKey = sSmooth.firstKey();
-		}
-
-		SortedMap<Date, Double> reglines = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> expertTangentsResult = new TreeMap<Date, Double>();
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : data.keySet()) {
+
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(date);
 			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -lookBackNbdays).getTime();
 
-			if ( lookBackPeriodStart.after(dataFirstKey) && lookBackPeriodStart.after(sSmoothFirstKey) ) {
+			if ( lookBackPeriodStart.after(dataFirstKey) ) {
 
-				SortedMap<Date, Double> quotationLookBackP = data.subMap(lookBackPeriodStart, date);
-				if (quotationLookBackP.size() < 4) continue;
+				SortedMap<Date, Double> dataLookBackMap = data.subMap(lookBackPeriodStart, date);
+				if (dataLookBackMap.size() < 4) continue;
 
-				SortedMap<Date, Double> thresholdLookBackP = new TreeMap<Date, Double>();
-				if (!sSmooth.isEmpty()) {
-					thresholdLookBackP = sSmooth.subMap(lookBackPeriodStart, date);
-				}
+				Comparable periodDataOps = new ComparableArray<Double>(dataLookBackMap.values());
+				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
+				Comparable minimumNbDaysBetweenExtremesCmp = minimumNbDaysBetweenExtremes;
+				Comparable higherHighsCmp = new ComparableSortedMap<Integer, Double>();
+				Comparable expertTangentCmp = new ComparableArray<Double>();
 
-				ComparableArray<Double> regline = new ComparableArray<Double>();
-				MutableInt firstExtremeIdx = new MutableInt(-1);
-				MutableInt lastExtremeIdx = new MutableInt(-1);
-
-				Comparable periodDataOps = (Comparable)new ComparableArray<Double>(quotationLookBackP.values());
-				Comparable periodSmootherEdgeOps = (Comparable) new ComparableArray<Double>(thresholdLookBackP.values());
-				Comparable alphaBalanceOps = minimunNbDaysBetweenExtrs;
-				Comparable reglineOps = regline;
-				Comparable firstExtremeIdxOps = firstExtremeIdx;
-				Comparable lastExtremeIdxOps = lastExtremeIdx;
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(periodDataOps, periodSmootherEdgeOps, alphaBalanceOps, reglineOps, firstExtremeIdxOps, lastExtremeIdxOps);
+				//Boolean higherHigh(double[][] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, Map<Integer, double[]> higherHighs, ArrayList<Double> expertTangent);
+				Boolean conditionCheck = conditionCheck(periodDataOps, lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, higherHighsCmp, expertTangentCmp);
 
 				if (conditionCheck != null) {
 
 					outputs.getValue(targetStock).put(date, conditionCheck);
 
-					if ( conditionCheck ) {
-						//Add Printable
+					if ( conditionCheck ) { //map expertTangent to Date Map
 						try {
 
-							SortedMap<Date, Double> datesSubMap = data.subMap(lookBackPeriodStart, date);
-							ArrayList<Date> lbDates = new ArrayList<Date>(datesSubMap.keySet());
-							List<Date> regLineDates = lbDates.subList(lbDates.size() - regline.size(), lbDates.size());
+							@SuppressWarnings("unchecked")
+							ArrayList<Double> expertTangent = (ArrayList<Double>) expertTangentCmp;
+							@SuppressWarnings("unchecked")
+							SortedMap<Integer, Double> higherHighs = (SortedMap<Integer, Double>) higherHighsCmp; 
 
-							int gap = 0;
-							if (!reglines.isEmpty()) {
-								SortedMap<Date,Double> roomAvail = data.subMap(reglines.lastKey(), date);
-								int reglineSize = regLineDates.size();
-								while (roomAvail.size() <= reglineSize + 2 && gap + 1 < regLineDates.size()) {
-									gap++;
-									reglineSize = data.subMap(regLineDates.get(gap), date).size();
+							if (!expertTangent.isEmpty()) {
+								ArrayList<Date> lookBackDateList = new ArrayList<Date>(dataLookBackMap.keySet());
+								List<Date> expertTangentDateList = lookBackDateList.subList(higherHighs.firstKey(), higherHighs.lastKey());
+								for (int i = 0; i < expertTangentDateList.size(); i++) {
+									expertTangentsResult.put(expertTangentDateList.get(i), expertTangent.get(i));
 								}
-							}
-
-							if (gap < regLineDates.size()) {
-								reglines.put(regLineDates.get(gap), regline.get(gap));
-								for (int i = gap+1; i < regLineDates.size()-1; i++) {
-									reglines.put(regLineDates.get(i), Double.NaN);
-								}
-								reglines.put(regLineDates.get(regLineDates.size()-1), regline.get(regline.size()-1));
 							}
 
 						} catch (Exception e) {
@@ -195,32 +170,28 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		}
 
-		if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothedThreshPeriod, data, sSmooth, reglines); 
+		if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothingPeriod, data, expertTangentsResult);
 
-		if (!reglines.isEmpty()) {
-			String smaKey = "SMA "+lookBackSmoothedThreshPeriod;
-			outputs.getAdditionalOutputs().put(smaKey, new DoubleMapValue(sSmooth));
-			outputs.getAdditionalOutputsTypes().put(smaKey, Type.MULTISIGNAL);
-			String tangentKey = lookBackNbdays+" days tangent";
-			outputs.getAdditionalOutputs().put(tangentKey, new DoubleMapValue(reglines));
+		if (!expertTangentsResult.isEmpty()) {
+			String tangentKey = lookBackNbdays+" days tangent of "+ this.getOperands().get(MAIN_POSITION).getReference();
+			outputs.getAdditionalOutputs().put(tangentKey, new DoubleMapValue(expertTangentsResult));
 			outputs.getAdditionalOutputsTypes().put(tangentKey, Type.MULTI);
 		}
 
 		return outputs;
 	}
 
-	private void exportReglines(TargetStockInfo targetStock, Integer lookBackNbdays, Integer lookBackSmoothedThreshPeriod, SortedMap<Date, Double> data,
-			SortedMap<Date, Double> sSmooth, SortedMap<Date, Double> reglines) {
+	private void exportReglines(TargetStockInfo targetStock, Integer lookBackNbdays, Integer lookBackSmoothedThreshPeriod, SortedMap<Date, Double> data, SortedMap<Date, Double> reglines) {
 		try {
 			File reglineFile = new File(
 					System.getProperty("installdir") + File.separator + "tmp" + File.separator +
 					targetStock.getStock().getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_") + "_"+ this.getClass().getSimpleName() + "_" + this.getReference()+ "_" + data.hashCode() +".csv");
 			BufferedWriter regLineBuff = new BufferedWriter(new FileWriter(reglineFile));
-			String header = "date, input, smoothed "+lookBackSmoothedThreshPeriod+", regline "+lookBackNbdays;
+			String header = "date, input, regline "+lookBackNbdays;
 			regLineBuff.write(header);
 			regLineBuff.newLine();
 			for (Date date : data.keySet()) {
-				String line = date + "," + data.get(date) + "," + sSmooth.get(date) + ",";
+				String line = date + "," + data.get(date) + ",";
 				Double regV = reglines.get(date);
 				if (regV != null) {
 					line = line + regV;

@@ -29,12 +29,10 @@
  */
 package com.finance.pms.events.scoring.functions;
 
-import com.finance.pms.admin.install.logging.MyLogger;
-import org.apache.commons.lang.mutable.MutableDouble;
-import org.apache.commons.lang.mutable.MutableInt;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 
 /**
@@ -43,21 +41,21 @@ import java.util.*;
  *
  */
 
-public class SmoothHighLowSolver {
+public class SmoothHighLowSolver implements HighLowSolver {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
+	//private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
 
-	private int smoothingPeriod;
-
-	public Boolean higherHigh(double[][] data, Map<Integer, double[]> higherHighs) {
+	@Override
+	public Boolean higherHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
 
 		ZeroLagEMASmoother zeroLagEMASmoother = new ZeroLagEMASmoother(smoothingPeriod);
-		double[][] zEMASmoothed = zeroLagEMASmoother.smooth(data);
+		double[][] arrayArrayData = Arrays.stream(data).map(d -> new double[]{d}).toArray(double[][]::new);
+		double[][] zEMASmoothed = zeroLagEMASmoother.smooth(arrayArrayData);
 
 		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
 		double[][] htSmoothed = houseTrendSmoother.smooth(zEMASmoothed);
 
-		SortedMap<Integer, double[]> peaks =  new TreeMap<>();
+		SortedMap<Integer, Double> peaks =  new TreeMap<>();
 		for(int i = 1; i < htSmoothed.length; i++) {
 			if (htSmoothed[i-1][0] > 0 && htSmoothed[i][0] == 0) {
 				int peakKeyInDataIdx = i + smoothingPeriod/2 + 1;
@@ -66,7 +64,7 @@ public class SmoothHighLowSolver {
 		}
 
 		for(int pk = 1; pk < peaks.size(); pk++) {
-			if (peaks.get(pk-1)[0] < peaks.get(pk)[0]) {
+			if (peaks.get(pk-1) < peaks.get(pk)) {
 				higherHighs.put(pk, peaks.get(pk-1));
 				higherHighs.put(pk, peaks.get(pk));
 			}

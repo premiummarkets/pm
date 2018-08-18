@@ -31,6 +31,7 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.finance.pms.events.operations.Operation;
@@ -46,16 +47,16 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 
 	private UUID uuid;
 
-	public ChartedOutputGroup(Operation mainOperation, int outputIndex) {
+	public ChartedOutputGroup(Operation mainOperation, Optional<String> outputSelector, int outputIndex) {
 		uuid = UUID.randomUUID();
-		OutputReference outputReference = new OutputReference(mainOperation);
+		OutputReference outputReference = new OutputReference(mainOperation, outputSelector.orElse(mainOperation.getOutputSelector()));
 		thisGroupMainOutputDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
 		thisGroupMainOutputReference = outputReference;
 		components = new HashMap<>();
 	}
 
 	public OutputDescr addSignal(Operation operation, int outputIndex) {
-		OutputReference outputReference = new OutputReference(operation);
+		OutputReference outputReference = new OutputReference(operation, operation.getOutputSelector());
 		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null);
 		this.components.put(outputReference, outputDescr);
 		return outputDescr;

@@ -133,17 +133,6 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				previousKey = currentKey;
 			}
 			if (!toRemove.isEmpty()) throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
-//			LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
-//
-//			//Removing duplicates
-//			for (EventKey eventKey : toRemove) {
-//				EventValue eventValue = returnedEvents.get(eventKey);
-//				returnedEvents.remove(eventKey);
-//
-//				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
-//				eventValue.setEventType(EventType.NONE);
-//				returnedEvents.put(noneEventKey, eventValue);
-//			}
 
 			eData.putAll(returnedEvents);
 

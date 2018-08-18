@@ -257,8 +257,11 @@ presetcondition [CommonTree firstOp]  :
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       -> ^(CrossDownConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree} ^(Number NumberToken["0.0"]) {$firstOp}) )? |
-      
-  ('makes a higher high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherHighCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp})) |
+
+  ('makes a higher high over' WhiteChar lookBack=constant WhiteChar DAYS 
+  		WhiteChar 'spanning' WhiteChar extremesSpan=constant WhiteChar DAYS 
+  		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
+  	-> ^(HigherHighCondition {$lookBack.tree} {$extremesSpan.tree} {$smoothP.tree} {$firstOp}) ) |
   ('makes a higher low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(HigherLowCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp})) |
   ('makes a lower high spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerHighCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp})) |
   ('makes a lower low spanning' WhiteChar nbDays=constant WhiteChar DAYS -> ^(LowerLowCondition {$nbDays.tree} ^(Number NumberToken["-1"]) ^(Number NumberToken["-1"]) {$firstOp}));

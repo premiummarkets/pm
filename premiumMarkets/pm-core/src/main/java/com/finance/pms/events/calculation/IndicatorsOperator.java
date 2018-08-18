@@ -109,6 +109,9 @@ public abstract class IndicatorsOperator {
      * If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
      * We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
      * Bear in mind, these double arrays are only used for display as calculation uses Value.getValue()
+     * Double output -> Double chart
+     * null 		-> Double.NaN
+     * Double.NaN 	-> Double.NEGATIVE_INFINITY
      * @return
      */
     protected Double translateOutputForCharting(Double ds2) {

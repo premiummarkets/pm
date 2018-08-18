@@ -29,7 +29,6 @@
  */
 package com.finance.pms.datasources;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +48,6 @@ public class ComparableArray<T extends Comparable<T>> extends ArrayList<T> imple
 	@Override
 	//XXX
 	public int compareTo(ArrayList<T> o) {
-		//return this.hashCode() - o.hashCode();
 		int size = new Integer(this.size()).compareTo(new Integer(o.size()));
 		if (size != 0) {
 			return size;
@@ -66,7 +64,7 @@ public class ComparableArray<T extends Comparable<T>> extends ArrayList<T> imple
 					int compareTo = left.get(i).compareTo(right.get(i));
 					if (compareTo != 0) return compareTo;
 				}
-				throw new InvalidParameterException();
+				return 0;
 			}
 		}
 	}
