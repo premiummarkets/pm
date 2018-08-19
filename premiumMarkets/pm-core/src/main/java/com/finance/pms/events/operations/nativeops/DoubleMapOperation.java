@@ -65,8 +65,8 @@ public class DoubleMapOperation extends MapOperation {
 	}
 
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return ((UnarableMapValue)inputs.get(0));
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return ((NumericableMapValue)inputs.get(0));
 	}
 
 	@Override

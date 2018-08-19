@@ -8,3 +8,4 @@
 /pmserror.log*
 /pmsjava.log*
 /*.png
+/build/

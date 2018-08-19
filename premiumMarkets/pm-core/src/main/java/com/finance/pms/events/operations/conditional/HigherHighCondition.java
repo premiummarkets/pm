@@ -33,11 +33,12 @@ import java.util.ArrayList;
 import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.scoring.functions.RegLineBalancedHighLowSolver;
+import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
 public class HigherHighCondition extends HighsAndLowsCondition {
 
-	RegLineBalancedHighLowSolver highLowSolver = new RegLineBalancedHighLowSolver();
+	HighLowSolver highLowSolver = new SmoothHighLowSolver();
 
 	public HigherHighCondition() {
 		super("higher high",  "True when the time series is making a higher high.");

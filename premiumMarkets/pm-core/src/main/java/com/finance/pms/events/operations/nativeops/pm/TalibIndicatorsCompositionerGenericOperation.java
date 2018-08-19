@@ -140,8 +140,9 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 				transOutput(calculationOutput, output, i);
 
 				Type outputType = eventDefDescriptor.descriptionMap().get(outputName);
-				buySellEventsMainOutput.getAdditionalOutputs().put(outputName, new DoubleMapValue(output));
-				buySellEventsMainOutput.getAdditionalOutputsTypes().put(outputName, (outputType.equals(Type.CONSTANT))?Type.MULTISIGNAL:outputType);
+				String fullOutputName = outputName + " of " + targetStock.getStock().getFriendlyName();
+				buySellEventsMainOutput.getAdditionalOutputs().put(fullOutputName, new DoubleMapValue(output));
+				buySellEventsMainOutput.getAdditionalOutputsTypes().put(fullOutputName, (outputType.equals(Type.CONSTANT))?Type.MULTISIGNAL:outputType);
 
 				i++;
 			}

@@ -81,14 +81,14 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		} catch (ExitParsingException e) {
 			interrupt();
 			LOGGER.warn(this + "." + e.toString());
-			parameterizedBuilder.moveToDisabled(operationName);
+			parameterizedBuilder.moveToTrash(operationName);
 		} catch (InterruptedException e) {
 			interrupt();
 			LOGGER.debug(this + " has been shutdown.");
 		} catch (Exception e) {
 			interrupt();
 			LOGGER.warn(this + "." + e.toString(), e);
-			parameterizedBuilder.moveToDisabled(operationName);
+			parameterizedBuilder.moveToTrash(operationName);
 		}
 
 	}

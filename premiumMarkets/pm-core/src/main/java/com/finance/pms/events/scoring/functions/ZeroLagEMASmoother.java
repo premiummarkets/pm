@@ -53,6 +53,23 @@ public class ZeroLagEMASmoother extends Smoother {
 		this.period = period;
 	}
 
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, boolean b) {
+
+		double[][] inReal = data.values().stream().map(v -> new double[] {v}).toArray(s -> new double[s][]);
+		double[][] zeroLagEmas = smooth(inReal);
+
+		SortedMap<Date, Double> ret = new TreeMap<>();
+		int j = 0;
+		for (Date date : data.keySet()){
+			if (j >= 2*period  && (j- (2*period)) < zeroLagEmas.length) {
+				ret.put(date, zeroLagEmas[j - (2*period)][0]);
+			}
+			j++;
+		}
+
+		return ret;
+	}
+
 
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixLag) {
@@ -95,21 +112,23 @@ public class ZeroLagEMASmoother extends Smoother {
 
 	public double[][] smooth(double[][] inReal) {
 
-		List<double[]> inRealDecomp = new ArrayList<>();
+		if (this.period <= 1) return inReal;
+
+		List<double[]> inRealTransposed = new ArrayList<>();
 		double[] ds0 = inReal[0];
 		for (@SuppressWarnings("unused") double d : ds0) {
-			inRealDecomp.add(new double[inReal.length]);
+			inRealTransposed.add(new double[inReal.length]);
 		}
 		for (int i = 0; i < inReal.length; i++) {
 			double[] ds = inReal[i];
 			for (int k = 0; k < ds.length; k++) {
-				inRealDecomp.get(k)[i] = ds[k];
+				inRealTransposed.get(k)[i] = ds[k];
 			}
 		}
 
 		double[][] zeroLagEmas = null;
-		for (int k = 0; k < inRealDecomp.size(); k++) {
-			double[] oneInReal = inRealDecomp.get(k);
+		for (int k = 0; k < inRealTransposed.size(); k++) {
+			double[] oneInReal = inRealTransposed.get(k);
 
 			MInteger emaOutBegIdx = new MInteger();
 			MInteger emaOutNBElement = new MInteger();
@@ -127,7 +146,7 @@ public class ZeroLagEMASmoother extends Smoother {
 			for (int j = 0; j < doubleEmaOutNBElement.value; j++) {
 				double zeroLagEmaData = 2*ema[j+period-1] - doubleEma[j];
 
-				if (zeroLagEmas[j] == null) zeroLagEmas[j] = new double[inRealDecomp.size()];
+				if (zeroLagEmas[j] == null) zeroLagEmas[j] = new double[inRealTransposed.size()];
 				zeroLagEmas[j][k] = zeroLagEmaData;
 
 			}

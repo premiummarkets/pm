@@ -8,7 +8,7 @@ public interface MultiMapValue {
 
 	Map<String, Type> getAdditionalOutputsTypes();
 
-	Map<String, UnarableMapValue> getAdditionalOutputs();
+	Map<String, NumericableMapValue> getAdditionalOutputs();
 
 	default Boolean isLooseCoupled() {
 		return false;

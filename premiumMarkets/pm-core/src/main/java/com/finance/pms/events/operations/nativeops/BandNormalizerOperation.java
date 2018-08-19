@@ -59,16 +59,16 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		int upperThreshold = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 		Boolean keepZero = Boolean.valueOf(((StringValue)inputs.get(2)).getValue(targetStock));
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
 		//Calc
-		UnarableMapValue ret = new DoubleMapValue();
+		NumericableMapValue ret = new DoubleMapValue();
 		try {
 
 			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, data.firstKey(), data.lastKey(), lowerThreshold, upperThreshold, keepZero);

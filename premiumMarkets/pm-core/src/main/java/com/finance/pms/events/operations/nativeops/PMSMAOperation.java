@@ -59,12 +59,12 @@ public class PMSMAOperation extends PMDataFreeOperation {
 	
 	
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		Integer period = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 
-		UnarableMapValue ret = new DoubleMapValue();
+		NumericableMapValue ret = new DoubleMapValue();
 		try {
 			SMA sma = new SMA(period);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(

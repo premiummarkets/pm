@@ -55,14 +55,14 @@ public class FlipOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Double flipAxe = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(1)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 		
 		//Calc
-		UnarableMapValue ret = new DoubleMapValue();
+		NumericableMapValue ret = new DoubleMapValue();
 		try {
 			
 			CurveFlip curveFlip = new CurveFlip();

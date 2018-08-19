@@ -53,7 +53,7 @@ import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -189,7 +189,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output) {
 
 		//We gather only outputs for StockOperation and User formulas.
-		if ( (output instanceof UnarableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
+		if ( (output instanceof NumericableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
 			targetStock.gatherOneOutput(operand, output, Optional.empty());
 		}
 		//We also gather extraneous chartable outputs from conditions.
@@ -202,7 +202,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) {
 
 		//add to gathered
-		Map<String, UnarableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
+		Map<String, NumericableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
 			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey));
 		}

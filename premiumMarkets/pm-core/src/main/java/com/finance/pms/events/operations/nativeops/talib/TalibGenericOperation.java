@@ -47,7 +47,7 @@ import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.TalibOperation;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.talib.indicators.TalibCoreService;
 import com.finance.pms.talib.indicators.TalibException;
 import com.tictactec.ta.lib.MAType;
@@ -124,7 +124,7 @@ public class TalibGenericOperation extends TalibOperation {
 		Set<Date> dateKeySet = new TreeSet<Date>();
 		List<double[]> inDatas = new ArrayList<double[]>();
 		for (int i = 0; i < inDataNames.size(); i++) {
-			SortedMap<Date, Double> inData = ((UnarableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
+			SortedMap<Date, Double> inData = ((NumericableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
 			endIdx  = Math.min(endIdx, inData.size()-1);
 			dateKeySet.addAll(inData.keySet());
 			inDatas.add(mapToArray(inData));

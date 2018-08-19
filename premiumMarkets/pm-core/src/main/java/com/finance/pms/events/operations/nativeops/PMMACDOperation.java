@@ -66,14 +66,14 @@ public class PMMACDOperation extends PMDataFreeOperation {
 	
 	
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer fastPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer slowPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer signalPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		
-		UnarableMapValue ret = new DoubleMapValue();
+		NumericableMapValue ret = new DoubleMapValue();
 		try {
 			MACD macd = new MACD(fastPeriod, slowPeriod, signalPeriod);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(

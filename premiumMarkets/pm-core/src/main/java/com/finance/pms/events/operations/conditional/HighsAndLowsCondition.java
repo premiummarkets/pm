@@ -29,14 +29,13 @@
  */
 package com.finance.pms.events.operations.conditional;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -46,6 +45,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.datasources.ComparableSortedMap;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -53,7 +53,7 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 
@@ -103,7 +103,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		Integer lookBackNbdays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
 		if (minimumNbDaysBetweenExtremes < 4) {
@@ -115,8 +115,11 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days over period to draw one of these.");
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
-
-		SortedMap<Date, Double> expertTangentsResult = new TreeMap<Date, Double>();
+		
+		String expertTangentLabel = lookBackNbdays+" days tangent of "+ this.getOperands().get(MAIN_POSITION).getReference() + " at ";
+		Map<String, SortedMap<Date, Double>> expertTangentsResult = new HashMap<>();
+		String previousLibel = null;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : data.keySet()) {
@@ -127,7 +130,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 			if ( lookBackPeriodStart.after(dataFirstKey) ) {
 
-				SortedMap<Date, Double> dataLookBackMap = data.subMap(lookBackPeriodStart, date);
+				SortedMap<Date, Double> dataLookBackMap = MapUtils.subMapInclusive(data, lookBackPeriodStart, date);
 				if (dataLookBackMap.size() < 4) continue;
 
 				Comparable periodDataOps = new ComparableArray<Double>(dataLookBackMap.values());
@@ -146,17 +149,21 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 					if ( conditionCheck ) { //map expertTangent to Date Map
 						try {
-
 							@SuppressWarnings("unchecked")
 							ArrayList<Double> expertTangent = (ArrayList<Double>) expertTangentCmp;
-							@SuppressWarnings("unchecked")
-							SortedMap<Integer, Double> higherHighs = (SortedMap<Integer, Double>) higherHighsCmp; 
-
 							if (!expertTangent.isEmpty()) {
 								ArrayList<Date> lookBackDateList = new ArrayList<Date>(dataLookBackMap.keySet());
-								List<Date> expertTangentDateList = lookBackDateList.subList(higherHighs.firstKey(), higherHighs.lastKey());
-								for (int i = 0; i < expertTangentDateList.size(); i++) {
-									expertTangentsResult.put(expertTangentDateList.get(i), expertTangent.get(i));
+								SortedMap<Date, Double> expertTangentsResultAtDate = new TreeMap<>();
+								for (int i = 0; i < lookBackDateList.size(); i++) {
+									if (!expertTangent.get(i).isNaN()) {
+										expertTangentsResultAtDate.put(lookBackDateList.get(i), expertTangent.get(i));
+									}
+								}
+								SortedMap<Date, Double> previousExpertTangent = expertTangentsResult.get(previousLibel);
+								if (previousLibel == null || expertTangentsResultAtDate.entrySet().stream().anyMatch(e -> !previousExpertTangent.containsKey(e.getKey()) || !previousExpertTangent.get(e.getKey()).equals(e.getValue()))) {
+									String currentLibel = expertTangentLabel+dateFormat.format(date);
+									expertTangentsResult.put(currentLibel, expertTangentsResultAtDate);
+									previousLibel = currentLibel;
 								}
 							}
 
@@ -170,39 +177,16 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		}
 
-		if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothingPeriod, data, expertTangentsResult);
+		//if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothingPeriod, data, expertTangentsResult);
 
 		if (!expertTangentsResult.isEmpty()) {
-			String tangentKey = lookBackNbdays+" days tangent of "+ this.getOperands().get(MAIN_POSITION).getReference();
-			outputs.getAdditionalOutputs().put(tangentKey, new DoubleMapValue(expertTangentsResult));
-			outputs.getAdditionalOutputsTypes().put(tangentKey, Type.MULTI);
+			expertTangentsResult.entrySet().stream().forEach(e -> {
+				outputs.getAdditionalOutputs().put(e.getKey(), new DoubleMapValue(e.getValue()));
+				outputs.getAdditionalOutputsTypes().put(e.getKey(), Type.MULTI);
+			});
 		}
 
 		return outputs;
-	}
-
-	private void exportReglines(TargetStockInfo targetStock, Integer lookBackNbdays, Integer lookBackSmoothedThreshPeriod, SortedMap<Date, Double> data, SortedMap<Date, Double> reglines) {
-		try {
-			File reglineFile = new File(
-					System.getProperty("installdir") + File.separator + "tmp" + File.separator +
-					targetStock.getStock().getName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) ]", "_") + "_"+ this.getClass().getSimpleName() + "_" + this.getReference()+ "_" + data.hashCode() +".csv");
-			BufferedWriter regLineBuff = new BufferedWriter(new FileWriter(reglineFile));
-			String header = "date, input, regline "+lookBackNbdays;
-			regLineBuff.write(header);
-			regLineBuff.newLine();
-			for (Date date : data.keySet()) {
-				String line = date + "," + data.get(date) + ",";
-				Double regV = reglines.get(date);
-				if (regV != null) {
-					line = line + regV;
-				} 
-				regLineBuff.write(line);
-				regLineBuff.newLine();
-			}
-			regLineBuff.close();
-		} catch (IOException e) {
-			LOGGER.error(e,e);
-		}
 	}
 
 	@Override

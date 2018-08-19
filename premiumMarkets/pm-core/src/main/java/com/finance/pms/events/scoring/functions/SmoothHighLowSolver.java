@@ -31,6 +31,9 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -48,30 +51,66 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	@Override
 	public Boolean higherHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
 
+		//Smooth
 		ZeroLagEMASmoother zeroLagEMASmoother = new ZeroLagEMASmoother(smoothingPeriod);
 		double[][] arrayArrayData = Arrays.stream(data).map(d -> new double[]{d}).toArray(double[][]::new);
 		double[][] zEMASmoothed = zeroLagEMASmoother.smooth(arrayArrayData);
 
-		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
-		double[][] htSmoothed = houseTrendSmoother.smooth(zEMASmoothed);
-
+		//Peaks
 		SortedMap<Integer, Double> peaks =  new TreeMap<>();
-		for(int i = 1; i < htSmoothed.length; i++) {
-			if (htSmoothed[i-1][0] > 0 && htSmoothed[i][0] == 0) {
-				int peakKeyInDataIdx = i + smoothingPeriod/2 + 1;
+		for(int i = 1; i < zEMASmoothed.length-1; i++) {
+			if (zEMASmoothed[i-1][0] < zEMASmoothed[i][0] && zEMASmoothed[i][0] >= zEMASmoothed[i+1][0]) {
+				int peakKeyInDataIdx = i + smoothingPeriod/2;
 				peaks.put(peakKeyInDataIdx, data[peakKeyInDataIdx]);
 			}
 		}
 
-		for(int pk = 1; pk < peaks.size(); pk++) {
-			if (peaks.get(pk-1) < peaks.get(pk)) {
-				higherHighs.put(pk, peaks.get(pk-1));
-				higherHighs.put(pk, peaks.get(pk));
+		//HigherHighs
+		if (peaks.isEmpty()) return false;
+
+		//check the last peak not the last data point
+		//check check that all previous peaks are strictly lower
+		//check the second highest happens minimumNbDaysBetweenExtremes before
+		List<Integer> peaksKnots = new ArrayList<>(peaks.keySet());
+		ListIterator<Integer> peaksKnotsIterator = peaksKnots.listIterator(peaksKnots.size());
+		Integer lastPeakKnot = peaksKnotsIterator.previous();
+		Integer secondHighestPeakKnot = null;
+		while (peaksKnotsIterator.hasPrevious()) {
+			Integer previousPeaksKnot = peaksKnotsIterator.previous();
+			if (peaks.get(lastPeakKnot) <= peaks.get(previousPeaksKnot)) return false;
+			if ( (secondHighestPeakKnot == null || peaks.get(previousPeaksKnot) >= peaks.get(secondHighestPeakKnot)) && (lastPeakKnot - previousPeaksKnot) >= minimumNbDaysBetweenExtremes ) secondHighestPeakKnot = previousPeaksKnot;
+		}
+		if (secondHighestPeakKnot == null) return false;
+		higherHighs.put(secondHighestPeakKnot, peaks.get(secondHighestPeakKnot));
+		higherHighs.put(lastPeakKnot, peaks.get(lastPeakKnot));
+
+		//Slope
+		if (higherHighs.size() >= 2) {
+
+			int start = higherHighs.firstKey();
+			double startPeak = data[start];
+			int end = higherHighs.lastKey();
+			double endPeak = data[end];
+			double slope = (endPeak - startPeak)/(double)(end - start);
+			boolean crossed = false;
+			for(double i = data.length-1; i >= 0; i--) {
+
+				if (i <= end && !crossed) {
+					double lineY = startPeak + slope*(i - start);
+					expertTangent.add(lineY);
+					if (lineY < data[(int)i]) {
+						crossed = true;
+					}
+				}
+				else expertTangent.add(Double.NaN);
+
 			}
+			Collections.reverse(expertTangent);
+			return true;
+
 		}
 
-		return higherHighs.size() > 0;
-
+		return false;
 	}
 
 

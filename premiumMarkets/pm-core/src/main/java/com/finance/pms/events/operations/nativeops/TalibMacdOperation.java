@@ -73,7 +73,7 @@ public class TalibMacdOperation extends TalibOperation {
 		Integer fastPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer slowPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer signalPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(3)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(3)).getValue(targetStock);
 
 		//Calc
 		int endIdx = data.size()-1;

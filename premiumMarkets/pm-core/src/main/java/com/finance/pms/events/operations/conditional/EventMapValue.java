@@ -51,16 +51,16 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.scoring.functions.ApacheStats;
 
 @XmlRootElement
-public class EventMapValue extends UnarableMapValue implements StringableMapValue, MultiMapValue {
+public class EventMapValue extends NumericableMapValue implements StringableMapValue, MultiMapValue {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventMapValue.class);
 
 	private SortedMap<EventKey, EventValue> eventData;
-	private Map<String, UnarableMapValue> additionalOutputs;
+	private Map<String, NumericableMapValue> additionalOutputs;
 	private Map<String, Type> additionalOutputsTypes;
 
 	//Cache
@@ -73,7 +73,7 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	public EventMapValue() {
 		super();
 		eventData = new TreeMap<EventKey, EventValue>();
-		additionalOutputs = new HashMap<String, UnarableMapValue>();
+		additionalOutputs = new HashMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 		this.isLooseCoupled = false;
 	}
@@ -81,7 +81,7 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	public EventMapValue(SortedMap<EventKey, EventValue> eventData, Boolean isLooseCoupled) {
 		super();
 		this.eventData = eventData;
-		this.additionalOutputs = new HashMap<String, UnarableMapValue>();
+		this.additionalOutputs = new HashMap<String, NumericableMapValue>();
 		this.additionalOutputsTypes = new HashMap<String, Type>();
 		this.isLooseCoupled = isLooseCoupled;
 	}
@@ -160,9 +160,9 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 		try {
 			EventMapValue clone = (EventMapValue) super.clone();
 			clone.eventData = (SortedMap<EventKey, EventValue>) ((TreeMap<EventKey, EventValue>)this.eventData).clone();
-			clone.additionalOutputs = new HashMap<String, UnarableMapValue>();
+			clone.additionalOutputs = new HashMap<String, NumericableMapValue>();
 			for (String outputKey : additionalOutputs.keySet()) {
-				UnarableMapValue  addOutputClone = (UnarableMapValue) (additionalOutputs.get(outputKey)).clone();
+				NumericableMapValue  addOutputClone = (NumericableMapValue) (additionalOutputs.get(outputKey)).clone();
 				clone.additionalOutputs.put(outputKey, addOutputClone);
 				clone.additionalOutputsTypes.put(outputKey, additionalOutputsTypes.get(outputKey));
 			}
@@ -179,7 +179,7 @@ public class EventMapValue extends UnarableMapValue implements StringableMapValu
 	}
 
 	@Override
-	public Map<String, UnarableMapValue> getAdditionalOutputs() {
+	public Map<String, NumericableMapValue> getAdditionalOutputs() {
 		return additionalOutputs;
 	}
 

@@ -40,7 +40,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 
@@ -75,7 +75,7 @@ public class ReverseCondition extends Condition<Boolean>  implements UnaryCondit
 		Double direction = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Double changeRatio = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (spanningShift == 0) spanningShift = 1;
 		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);

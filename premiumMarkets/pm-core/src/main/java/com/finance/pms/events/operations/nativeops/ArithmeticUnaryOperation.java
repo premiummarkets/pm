@@ -57,12 +57,12 @@ public abstract class ArithmeticUnaryOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(0)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
 		Double unaryOperand = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
 		
-		UnarableMapValue outputs = new DoubleMapValue();
+		NumericableMapValue outputs = new DoubleMapValue();
 		for (Date date : data.keySet()) {
 			Double leftOperand = data.get(date);
 			outputs.getValue(targetStock).put(date, (leftOperand == null || leftOperand.isNaN())?Double.NaN:twoOperandsOp(leftOperand, unaryOperand));

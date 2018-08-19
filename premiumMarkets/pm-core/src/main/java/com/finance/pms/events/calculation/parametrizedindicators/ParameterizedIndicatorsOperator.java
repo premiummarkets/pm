@@ -57,7 +57,7 @@ import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 /**
@@ -168,7 +168,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 					if (outputData instanceof EventMapValue) {
 						data = ((EventMapValue) outputData).getNormalizedValue(targetStock);
 					} else {
-						data = ((UnarableMapValue) outputData).getValue(targetStock);
+						data = ((NumericableMapValue) outputData).getValue(targetStock);
 					}
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());

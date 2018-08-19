@@ -27,63 +27,81 @@
  * You should have received a copy of the GNU Lesser General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.events.operations.nativeops;
+package com.finance.pms.events.operations.nativeops.pm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
-import com.finance.pms.talib.indicators.TalibException;
-import com.tictactec.ta.lib.MInteger;
+import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
+import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.operations.nativeops.PMWithDataOperation;
+import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.scoring.functions.ZeroLagEMASmoother;
 
-@XmlRootElement
-public class TalibSmaOperation extends TalibOperation {
+public class ZeroLagEMAOperation extends PMWithDataOperation {
+
+	private static MyLogger LOGGER = MyLogger.getLogger(ZeroLagEMAOperation.class);
 
 	private static final int DATAINPUTIDX = 2;
 
-	public TalibSmaOperation() {
-		super("sma__", "SMA on any on any historical data series.",
-				new NumberOperation("number","smaPeriod","SMA period", new NumberValue(200.0)),
+	public ZeroLagEMAOperation() {
+		super("zeroLagEMA", "Zero Lag EMA",
+				new NumberOperation("number", "period", "EMA period", new NumberValue(14.0)),
 				new StringOperation("boolean","doFixlag","artificially fix the SMA lag", new StringValue("FALSE")),
-				new DoubleMapOperation());
+				new DoubleMapOperation("input data"));
 	}
 
-	public TalibSmaOperation(ArrayList<Operation> operands, String outputSelector) {
+	public ZeroLagEMAOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
 	}
 
+	public ZeroLagEMAOperation(String reference, String description, Operation ... operands) {
+		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+	}
+
 	@Override
-	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		Boolean fixLag = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
-		SortedMap<Date, Double> smoothed = null;
-		if (data.size() > period) {
-			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
-			smoothed = smaSmoother.sSmooth(data, fixLag);
-		} else {
-			smoothed = new TreeMap<Date, Double>();
+		//Calc
+		NumericableMapValue ret = new DoubleMapValue();
+		try {
+
+			if (data.size() < period) throw new NotEnoughDataException(targetStock.getStock(), data.size() + "<" + period, null);
+
+			ZeroLagEMASmoother smaSmoother = new ZeroLagEMASmoother(period);
+			return new DoubleMapValue(smaSmoother.sSmooth(data, fixLag));
+
+		} catch (NotEnoughDataException e) {
+			LOGGER.warn(e);
+			throw new RuntimeException(e);
+		} catch (Exception e) {
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
 		}
 
-		return smoothed;
+		return ret;
 	}
 
 	@Override
 	public int operationStartDateShift() {
 		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue()*7/5;
 	}
-
 }
