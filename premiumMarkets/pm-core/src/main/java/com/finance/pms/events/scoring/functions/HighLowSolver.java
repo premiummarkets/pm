@@ -13,5 +13,4 @@ public interface HighLowSolver {
 
 	Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent);
 
-
 }
