@@ -64,68 +64,71 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  */
 public abstract class IndicatorsOperator {
 
-    protected Observer[] observers;
+	protected Observer[] observers;
 
-    public IndicatorsOperator(Observer... observers) {
-        this.observers = observers;
-    }
+	public IndicatorsOperator(Observer... observers) {
+		this.observers = observers;
+	}
 
-    /**
-     * Number of days of input (quotation) needed before for the first output calculation
-     * It usually as to be relative to the moving average smoothing period when the data is lagged fixed.
-     */
-    public abstract Integer getStartShift();
+	/**
+	 * Number of days of input (quotation) needed before for the first output calculation
+	 * It usually as to be relative to the moving average smoothing period when the data is lagged fixed.
+	 */
+	public abstract Integer getStartShift();
 
-    public abstract SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws Exception;
+	public abstract SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws Exception;
 
-    protected void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventDefinition eventDefinition, EventType eventType, String message, String eventListName) {
-        StandardEventKey iek = new StandardEventKey(currentDate, eventDefinition, eventType);
-        EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
-        eventData.put(iek, iev);
-    }
+	protected void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventDefinition eventDefinition, EventType eventType, String message, String eventListName) {
+		StandardEventKey iek = new StandardEventKey(currentDate, eventDefinition, eventType);
+		EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
+		eventData.put(iek, iev);
+	}
 
-    /**
-     * Period of the calculator. Usually a period number of days of input is needed before the first output calculation.
-     * This is usually used in the calculation of the {@link #getStartShift()}.
-     */
-    protected abstract int getDaysSpan();
+	/**
+	 * Period of the calculator. Usually a period number of days of input is needed before the first output calculation.
+	 * This is usually used in the calculation of the {@link #getStartShift()}.
+	 */
+	protected abstract int getDaysSpan();
 
-    /**
-     * Used for charting when using static {@link EventDefinition}.
-     * Each index in the returned arrays corresponds to a matching entry in the static description of the EventDefinition associated here via {@link #getEventDefinition()}.
-     * The exhaustive supported list includes : String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold.
-     * PARAMERIZED Events have a special implementation : {@link ParameterizedIndicatorsOperator}
-     */
-    public abstract SortedMap<Date, double[]> calculationOutput();
+	/**
+	 * Used for charting when using static {@link EventDefinition}.
+	 * Each index in the returned arrays corresponds to a matching entry in the static description of the EventDefinition associated here via {@link #getEventDefinition()}.
+	 * The exhaustive supported list includes : String mainIndicator, String secondIndicator, String thirdIndicator, String signalLine, String lowerThreshold, String upperThreshold.
+	 * PARAMERIZED Events have a special implementation : {@link ParameterizedIndicatorsOperator}
+	 */
+	public abstract SortedMap<Date, double[]> calculationOutput();
 
-    public abstract EventInfo getEventDefinition();
+	public abstract EventInfo getEventDefinition();
 
-    public abstract EmailFilterEventSource getSource();
+	public abstract EmailFilterEventSource getSource();
 
-    public abstract ValidityFilter quotationsValidity();
+	public abstract ValidityFilter quotationsValidity();
 
-    /**
-     * If output is NaN this means that the output is not available and should not be displayed at that date on chart.
-     * If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
-     * We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
-     * Bear in mind, these double arrays are only used for display as calculation uses Value.getValue()
-     * @return
-     */
-    protected Double translateOutputForCharting(Double ds2) {
-        if (ds2 != null) {
-            if (!ds2.isNaN()) {
-                return ds2;
-            } else {
-                return Double.NEGATIVE_INFINITY;
-            }
-        } else {
-            return Double.NaN;
-        }
-    }
+	/**
+	 * If output is NaN this means that the output is not available and should not be displayed at that date on chart.
+	 * If output is null this means that there is no data for that date but points should still be drawn on chart at that date.
+	 * We put Double.NEGATIVE_INFINITY as a marker. This should be 'null' but would need a conversion from double[] to Double[] => impact too big
+	 * Bear in mind, these double arrays are only used for display as calculation uses Value.getValue()
+	 * Double output -> Double chart
+	 * null 		-> Double.NaN 					(WILL break the chart line)
+	 * Double.NaN 	-> Double.NEGATIVE_INFINITY 	(WON'T break the chart line)
+	 * @return
+	 */
+	protected Double translateOutputForCharting(Double ds2) {
+		if (ds2 == null) {
+			return Double.NaN;
+		} else {
+			if (ds2.isNaN()) {
+				return Double.NEGATIVE_INFINITY;
+			} else {
+				return ds2;
+			}
+		}
+	}
 
-    //FIXME temporary fix before getting rid of First and Second pass
-    public Boolean isIdemPotent() {
-        return true;
-    }
+	//FIXME temporary fix before getting rid of First and Second pass
+	public Boolean isIdemPotent() {
+		return true;
+	}
 
 }

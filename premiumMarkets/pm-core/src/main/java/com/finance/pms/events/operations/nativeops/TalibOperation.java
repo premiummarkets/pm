@@ -48,9 +48,9 @@ import com.tictactec.ta.lib.MInteger;
 
 @XmlSeeAlso({TalibMacdOperation.class, TalibSmaOperation.class})
 public abstract class TalibOperation extends DoubleMapOperation {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(TalibOperation.class);
-	
+
 	@SuppressWarnings("unused")
 	private TalibOperation() {
 		super();
@@ -65,13 +65,12 @@ public abstract class TalibOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public UnarableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		UnarableMapValue ret = new DoubleMapValue();
+		NumericableMapValue ret = new DoubleMapValue();
 		MInteger outBegIdx = new MInteger();
 		MInteger outNBElement = new MInteger();
-		
+
 		try {
 
 			SortedMap<Date, Double> outputMap = innerCalculation(targetStock, outBegIdx, outNBElement, inputs);
@@ -79,7 +78,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 			return ret;
 
 		} catch (TalibException e) {
-			LOGGER.warn("Talib Operation calculation error "+this+" for "+targetStock.getStock().getFriendlyName(), e);
+			LOGGER.warn("Talib Operation calculation error " + this + " for " + targetStock.getStock().getFriendlyName(), e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -97,7 +96,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		}
 		return map;
 	}
-	
+
 	protected SortedMap<Date, Double> arrayToMap(Set<Date> dateKeySet, int[] array, int shift) {
 		int j = 0;
 		SortedMap<Date, Double> map = new TreeMap<Date, Double>();
@@ -119,7 +118,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		}
 		return array;
 	}
-	
-	
+
+
 
 }

@@ -237,8 +237,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			File formulaFile = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
 			formulaFile.delete();
 			//Move
-			Boolean moved = move(identifier, userOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
-			if (!moved) move(identifier, disabledUserOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
+			moveToTrash(identifier);
 
 			getCurrentOperations().remove(identifier);
 
@@ -400,23 +399,23 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	protected abstract List<Operation> updateCaches(Operation operation, Boolean isNewOp);
 
-	protected void moveToDisabled(String identifier) {
-		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
-		File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
-		formulaFile.renameTo(disabledFormulaFile);
+	protected void moveToTrash(String identifier) {
+		Boolean moved = move(identifier, userOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
+		if (!moved) move(identifier, disabledUserOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
 	}
 
-	protected Boolean move(String identifier, String from, String to) {
-		File origFile = new File(from + File.separator + identifier+ ".txt");
-		File destFile = new File(to + File.separator + identifier+ ".txt");
-
-		return origFile.renameTo(destFile);
+	protected void moveToDisabled(String identifier) {
+		move(identifier, userOperationsDir.getAbsolutePath(), disabledUserOperationsDir.getAbsolutePath());
 	}
 
 	private void moveToEnabled(String identifier) {
-		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
-		File disabledFormulaFile = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
-		disabledFormulaFile.renameTo(formulaFile);
+		move(identifier, disabledUserOperationsDir.getAbsolutePath(), userOperationsDir.getAbsolutePath());
+	}
+
+	private Boolean move(String identifier, String from, String to) {
+		File origFile = new File(from + File.separator + identifier+ ".txt");
+		File destFile = new File(to + File.separator + identifier+ ".txt");
+		return origFile.renameTo(destFile);
 	}
 
 	private void saveUserOperation(String identifier, String formula) throws IOException {
@@ -447,7 +446,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 			} catch (Exception e) {
 				LOGGER.warn(e);
-				moveToDisabled(opName);
+				moveToTrash(opName);
 			}
 		}
 
@@ -468,7 +467,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				Operation parsedOp = formulaParser.getBuiltOperation();
 				if (parsedOp != null) {//Operation is complete
 
-					LOGGER.info(this.getClass().getSimpleName() + ", Solved : "+parsedOp.getReference() + ", Disabled : "+disabled);
+					LOGGER.info(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + disabled + ", Formulae : " +parsedOp.getFormulae());
 					parsedOp.setDisabled(disabled);
 					currentOperations.put(parsedOp.getReference(), parsedOp);
 
@@ -477,7 +476,7 @@ public abstract class ParameterizedBuilder extends Observable {
 					if (!unresolvedStuff.contains(formulaParser.getMissingReference())) {
 						LOGGER.info(this.getClass().getSimpleName() + ", Can't solve : "+formulaParser+". Disabling.");
 						formulaParser.shutdown();
-						moveToDisabled(formulaParser.getOperationName());
+						moveToTrash(formulaParser.getOperationName());
 					} else {
 						parsingQueue.offer(formulaParser);
 					}
@@ -487,7 +486,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			} catch (Exception e) {
 				LOGGER.info(this.getClass().getSimpleName() + ", Error solving : "+formulaParser+". Disabling. Cause : "+e);
 				formulaParser.shutdown();
-				moveToDisabled(formulaParser.getOperationName());
+				moveToTrash(formulaParser.getOperationName());
 			}
 
 		}

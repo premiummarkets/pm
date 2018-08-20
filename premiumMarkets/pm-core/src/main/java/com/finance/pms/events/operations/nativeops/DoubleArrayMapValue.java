@@ -13,7 +13,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
 
-public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapValue {
+public class DoubleArrayMapValue extends NumericableMapValue implements MultiMapValue {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(DoubleArrayMapValue.class);
 
@@ -22,7 +22,7 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 
 	//Cache
 	private SortedMap<Date, Double> collectedUnaryMapValue;
-	private Map<String, UnarableMapValue> collectAdditionalOutputs;
+	private Map<String, NumericableMapValue> collectAdditionalOutputs;
 
 	public DoubleArrayMapValue(SortedMap<Date, double[]> map, List<String> columnsReferences) {
 		super();
@@ -55,7 +55,7 @@ public class DoubleArrayMapValue extends UnarableMapValue implements MultiMapVal
 	}
 
 	@Override
-	public Map<String, UnarableMapValue> getAdditionalOutputs() {
+	public Map<String, NumericableMapValue> getAdditionalOutputs() {
 		if (collectAdditionalOutputs == null) {
 			collectAdditionalOutputs = IntStream.range(0, this.columnsReferences.size())
 				.boxed()

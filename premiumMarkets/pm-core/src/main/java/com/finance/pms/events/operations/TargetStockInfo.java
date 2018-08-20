@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
@@ -47,6 +48,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
+import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
@@ -55,7 +57,7 @@ import com.finance.pms.events.operations.conditional.UnaryCondition;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
 public class TargetStockInfo {
 
@@ -181,12 +183,16 @@ public class TargetStockInfo {
 	}
 
 	public void addEventAnalyser(Operation operation, EventsAnalyser eventAnalyser) {
-		outputAnalysers.put(new OutputReference(operation), eventAnalyser);
+		outputAnalysers.put(new OutputReference(operation, operation.getOutputSelector()), eventAnalyser);
 	}
 
-	public Value<?> checkAlreadyCalculated(Operation operation) {
-		if (operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
-		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation)));
+	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector) {
+		//!(
+		//((output instanceof UnarableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation))
+		//|| (output instanceof MultiMapValue)
+		//)
+		if (outputSelector == null && operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
+		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation, outputSelector)));
 		if (indexOf == -1) {
 			return null;
 		}
@@ -195,13 +201,14 @@ public class TargetStockInfo {
 
 	/**
 	 * This method also calls setMain for MultiSelectorsValue
+	 * @param outputDiscriminator
 	 */
-	public void gatherOneOutput(Operation operation, Value<?> outputValue) {
+	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator) {
 
-		Value<?> alreadyCalculated = checkAlreadyCalculated(operation);
+		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()));
 		if (alreadyCalculated != null) {
-			if (getIndexOfChartableOutput(operation) == -1) {
-				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), alreadyCalculated));
+			if (getIndexOfChartableOutput(operation, outputDiscriminator.orElse(operation.getOutputSelector())) == -1) {
+				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated));
 			}
 			return;
 		}
@@ -214,25 +221,21 @@ public class TargetStockInfo {
 				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference());
 				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector)));
 			}
-			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation), ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector())));
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector())));
 		} else {
-			Output outputHolder = new Output(new OutputReference(operation), outputValue);
+			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue);
 			this.calculatedOutputsCache.add(outputHolder);
 			this.gatheredChartableOutputs.add(outputHolder);
 		}
 
 	}
 
-	public void gatherExtraneousChartableOutput(Operation operation, UnarableMapValue output, String multiOutputDiscriminator) {
-		this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, multiOutputDiscriminator), output));
+	public ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector) {
+		Integer indexOfOutput = getIndexOfChartableOutput(operation, outputSelector.orElse(operation.getOutputSelector()));
+		return setMain(operation, outputSelector, indexOfOutput);
 	}
 
-	public ChartedOutputGroup setMain(Operation operation) {
-		Integer indexOfOutput = getIndexOfChartableOutput(operation);
-		return setMain(operation, indexOfOutput);
-	}
-
-	private ChartedOutputGroup setMain(Operation operation, Integer indexOfOutput) {
+	private ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Integer indexOfOutput) {
 		if (indexOfOutput != -1) {
 
 			Output output = getGatheredChartableOutput(indexOfOutput);
@@ -240,7 +243,7 @@ public class TargetStockInfo {
 			if (chartedDesrc != null) {
 				chartedDesrc.maskType(Type.MAIN);
 			} else {
-				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, indexOfOutput);
+				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, outputSelector, indexOfOutput);
 				chartedOutputGroups.add(chartedOutputGroup);
 				chartedDesrc = chartedOutputGroup.getThisGroupMainOutputDescription();
 				output.setChartedDescription(chartedDesrc);
@@ -252,8 +255,8 @@ public class TargetStockInfo {
 		}
 	}
 
-	public Integer getIndexOfChartableOutput(Operation operation) {
-		return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation)));
+	public Integer getIndexOfChartableOutput(Operation operation, String outputSelector) {
+		return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, outputSelector)));
 	}
 
 	public Integer getIndexOfChartableOutput(OutputReference outputRef) {
@@ -266,7 +269,7 @@ public class TargetStockInfo {
 
 	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
 
-		Integer indexOfOutput = getIndexOfChartableOutput(operation);
+		Integer indexOfOutput = getIndexOfChartableOutput(operation, operation.getOutputSelector());
 		if (indexOfOutput != -1) {
 			Output output = getGatheredChartableOutput(indexOfOutput);
 			OutputDescr chartedDescr = output.getChartedDescription();
@@ -335,9 +338,9 @@ public class TargetStockInfo {
 
 		for (Output output : gatheredChartableOutputs) {
 			Value<?> outputData = output.getOutputData();
-			if (outputData instanceof UnarableMapValue) {
+			if (outputData instanceof NumericableMapValue) {
 				header = header + output.getOutputReference().getReference()+",";
-				Set<Date> keySet = ((UnarableMapValue)outputData).getValue(this).keySet();
+				Set<Date> keySet = ((NumericableMapValue)outputData).getValue(this).keySet();
 				allKeys.addAll(keySet);
 			}
 		}
@@ -347,8 +350,8 @@ public class TargetStockInfo {
 			String line = date + ",";
 			for (Output output : gatheredChartableOutputs) {
 				Value<?> outputData = output.getOutputData();
-				if (outputData instanceof UnarableMapValue) {
-					line = line + ((UnarableMapValue)outputData).getValue(this).get(date) + ",";
+				if (outputData instanceof NumericableMapValue) {
+					line = line + ((NumericableMapValue)outputData).getValue(this).get(date) + ",";
 				}
 			}
 			System.out.println(line);
@@ -371,7 +374,7 @@ public class TargetStockInfo {
 		if (operation instanceof OnSignalCondition) {//Operands outputs are grouped
 			//pick up or create the group
 			int mainOpPosition = ((OnSignalCondition) operation).mainInputPosition();
-			chartedOutputGroup = setMain(operands.get(mainOpPosition));
+			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty());
 			//add the signal
 			int signalOpPosition = ((OnSignalCondition) operation).inputSignalPosition();
 			addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition));
@@ -380,7 +383,7 @@ public class TargetStockInfo {
 			//pick up or create the group
 			int mainOpPosition = ((OnThresholdCondition) operation).mainInputPosition();
 			Operation mainOp = operands.get(mainOpPosition);
-			chartedOutputGroup = setMain(mainOp);
+			chartedOutputGroup = setMain(mainOp, Optional.empty());
 			//add the constant
 			int thresholdOpPosition = ((OnThresholdCondition)operation).inputThresholdPosition();
 			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
@@ -388,42 +391,54 @@ public class TargetStockInfo {
 		} else if (operation instanceof UnaryCondition) {
 			//pick up or create the group
 			int mainOpPosition = ((UnaryCondition) operation).mainInputPosition();
-			chartedOutputGroup = setMain(operands.get(mainOpPosition));
+			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty());
 
-		} else { //adHoc will rely on the operands only
+		} else { //adHoc will rely on the operands only the first operand being pickup as main
 			for(int i = 0; i < operands.size(); i++) {
 				Value<?> ov = operandsOutputs.get(i);
 				Operation operand = operands.get(i);
-				if (ov instanceof UnarableMapValue && operand.getFormulae() != null) {
+				if (ov instanceof NumericableMapValue && operand.getFormulae() != null) {
 					if (chartedOutputGroup == null) {
-						chartedOutputGroup = setMain(operand);
+						chartedOutputGroup = setMain(operand, Optional.empty());
 					} else {
 						Map<String, Type> additionalOutputsTypes = new HashMap<>();
 						additionalOutputsTypes.put(operand.getReference(), Type.MULTI);
-						addChartInfoForAdditonalOutputs(operand, additionalOutputsTypes, getIndexOfChartableOutput(operand));
+						addChartInfoForAdditonalOutputs(operand, additionalOutputsTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
 					}
 				}
 			}
 		}
 
-		//MutliValues (Sub Groups)
+		//Operations with MutliMapValues outputs (Generates 'Sub' Groups). The problem is that MutliMapValues have to be displayed as if operands outputs.
+		//However, the charted info not being added when calculating operands we need to add it here when we now have the output.
+		//Some of this code could also be moved/called in the Operation.gatherAdditionalOutputs?
 		for(int i = 0; i < operands.size(); i++) {
 			Value<?> ov = operandsOutputs.get(i);
 			Operation operand = operands.get(i);
-			if (ov instanceof MultiMapValue && operand.getFormulae() != null) {
+			if (ov instanceof MultiMapValue) {
 				Map<String, Type> multiMapValueOutputTypes = ((MultiMapValue) ov).getAdditionalOutputsTypes();
-//				if (((MultiMapValue)ov).isLooseCoupled()) {
-//					multiMapValueOutputTypes.entrySet().forEach(e -> {
-//						Map<String, Type> singleOutputType = new HashMap<>();
-//						singleOutputType.put(e.getKey(), e.getValue());
-//						Integer indexOfSingleOutput = getIndexOfChartableOutput(new OutputReference(operand, e.getKey()));
-//						setMain(operand, indexOfSingleOutput);
-//						addChartInfoForAdditonalOutputs(operand, singleOutputType, indexOfSingleOutput);
-//					});
-//				} else {
-					setMain(operand);
-					addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand));
-//				}
+				if (operand.getFormulae() != null) { //User defined operand. Itself being a NumericableMapValue, as all user defined operations are, the operand also has a principal output and can be set as main
+					setMain(operand, Optional.ofNullable(operand.getOutputSelector()));
+					addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
+				}
+				else if (!multiMapValueOutputTypes.isEmpty()) { //Anonymous operand with effective MultiValueMap output.
+					if (chartedOutputGroup == null) { //No main has been set for potential other operands in witch group the multi output of this operand could reflect.
+						Operation mainOperandOfOperand;
+						Optional<String> outputSelector;
+						if (operand instanceof ChartableWithMain) { //This operand itself has main though, among its own operands. We use this main and group.
+							mainOperandOfOperand = operand.getOperands().get(((ChartableWithMain) operand).mainInputPosition());
+							outputSelector = Optional.ofNullable(mainOperandOfOperand.getOutputSelector());
+						} else { //This operand has no main and no main is defined by other operands. We create a new group picking up the first multi output as main.
+							mainOperandOfOperand = operand;
+							outputSelector = Optional.of(multiMapValueOutputTypes.keySet().iterator().next());
+						}
+						setMain(mainOperandOfOperand, outputSelector);
+						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.orElse(null)));
+					//FIXME?? remove this case as it may cause scaling issues linking operands of this operand to other operands in this operation.
+					} else { //A main and group is set by other operands. We use theses.
+						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
+					}
+				}
 			}
 		}
 

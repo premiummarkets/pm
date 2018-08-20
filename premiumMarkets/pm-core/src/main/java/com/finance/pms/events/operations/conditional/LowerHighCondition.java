@@ -30,15 +30,15 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
-
-import org.apache.commons.lang.mutable.MutableInt;
+import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.scoring.functions.RegLineBalancedHighLowSolver;
+import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
 public class LowerHighCondition extends HighsAndLowsCondition {
 
-	RegLineBalancedHighLowSolver highLowSolver = new RegLineBalancedHighLowSolver();
+	HighLowSolver highLowSolver = new SmoothHighLowSolver();
 
 	public LowerHighCondition() {
 		super("lower high",  "True when the time series is making a lower high.");
@@ -52,7 +52,9 @@ public class LowerHighCondition extends HighsAndLowsCondition {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Boolean conditionCheck(Comparable ... ops) {
-		return highLowSolver.lowerHigh(((ArrayList<Double>)ops[0]).toArray(new Double[0]),((ArrayList<Double>)ops[1]).toArray(new Double[0]), (Double) ops[2], (ArrayList<Double>)ops[3], (MutableInt) ops[4], (MutableInt) ops[5]);
+		//return highLowSolver.lowerHigh(((ArrayList<Double>)ops[0]).toArray(new Double[0]),((ArrayList<Double>)ops[1]).toArray(new Double[0]), (Double) ops[2], (ArrayList<Double>)ops[3], (MutableInt) ops[4], (MutableInt) ops[5]);
+		return highLowSolver.lowerHigh(((ArrayList<Double>) ops[0]).toArray(new Double[0]), (Integer) ops[1], (Integer) ops[2], (SortedMap<Integer, Double>) ops[3], ((ArrayList<Double>) ops[4]));
+
 	}
 
 }

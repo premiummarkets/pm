@@ -43,7 +43,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
 /**
@@ -77,7 +77,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
 

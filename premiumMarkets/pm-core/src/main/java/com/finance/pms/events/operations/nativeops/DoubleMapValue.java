@@ -11,23 +11,23 @@ import java.util.TreeMap;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
 
-public class DoubleMapValue extends UnarableMapValue implements MultiMapValue {
+public class DoubleMapValue extends NumericableMapValue implements MultiMapValue {
 
 	private SortedMap<Date, Double> map;
-	private Map<String, UnarableMapValue> additionalOutputs;
+	private Map<String, NumericableMapValue> additionalOutputs;
 	private Map<String, Type> additionalOutputsTypes;
 
 	public DoubleMapValue(SortedMap<Date, Double> map) {
 		super();
 		this.map = map;
-		additionalOutputs = new HashMap<String, UnarableMapValue>();
+		additionalOutputs = new HashMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 	public DoubleMapValue() {
 		super();
 		this.map = new TreeMap<Date, Double>();
-		additionalOutputs = new HashMap<String, UnarableMapValue>();
+		additionalOutputs = new HashMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
@@ -46,9 +46,9 @@ public class DoubleMapValue extends UnarableMapValue implements MultiMapValue {
 		try {
 			DoubleMapValue clone = (DoubleMapValue) super.clone();
 			clone.map = (SortedMap<Date, Double>) ((TreeMap<Date, Double>)this.map).clone();
-			clone.additionalOutputs = new HashMap<String, UnarableMapValue>();
+			clone.additionalOutputs = new HashMap<String, NumericableMapValue>();
 			for (String outputKey : additionalOutputs.keySet()) {
-				UnarableMapValue  addOutputClone = (UnarableMapValue) (additionalOutputs.get(outputKey)).clone();
+				NumericableMapValue  addOutputClone = (NumericableMapValue) (additionalOutputs.get(outputKey)).clone();
 				clone.additionalOutputs.put(outputKey, addOutputClone);
 				clone.additionalOutputsTypes.put(outputKey, additionalOutputsTypes.get(outputKey));
 			}
@@ -65,7 +65,7 @@ public class DoubleMapValue extends UnarableMapValue implements MultiMapValue {
 	}
 
 	@Override
-	public Map<String, UnarableMapValue> getAdditionalOutputs() {
+	public Map<String, NumericableMapValue> getAdditionalOutputs() {
 		return additionalOutputs;
 	}
 

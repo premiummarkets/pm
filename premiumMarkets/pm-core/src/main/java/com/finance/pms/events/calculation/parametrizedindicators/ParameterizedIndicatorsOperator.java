@@ -57,7 +57,7 @@ import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
-import com.finance.pms.events.operations.nativeops.UnarableMapValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 /**
@@ -133,17 +133,6 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				previousKey = currentKey;
 			}
 			if (!toRemove.isEmpty()) throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
-//			LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
-//
-//			//Removing duplicates
-//			for (EventKey eventKey : toRemove) {
-//				EventValue eventValue = returnedEvents.get(eventKey);
-//				returnedEvents.remove(eventKey);
-//
-//				EventKey noneEventKey = new ParameterizedEventKey(eventKey.getDate(), eventKey.getEventInfo(), EventType.NONE);
-//				eventValue.setEventType(EventType.NONE);
-//				returnedEvents.put(noneEventKey, eventValue);
-//			}
 
 			eData.putAll(returnedEvents);
 
@@ -179,7 +168,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 					if (outputData instanceof EventMapValue) {
 						data = ((EventMapValue) outputData).getNormalizedValue(targetStock);
 					} else {
-						data = ((UnarableMapValue) outputData).getValue(targetStock);
+						data = ((NumericableMapValue) outputData).getValue(targetStock);
 					}
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());

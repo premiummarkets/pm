@@ -109,7 +109,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 				ArrayList<Double> regLine = new ArrayList<>();
 				MutableInt firstPeakIdx = new MutableInt(-1);
 				MutableInt lastPeakIdx = new MutableInt(-1);
-				isOscillatorUp = highLowSolver.higherLow(oscLookBackP, new Double[0], getAlphaBalance(), regLine, firstPeakIdx, lastPeakIdx);
+				isOscillatorUp = false; //highLowSolver.higherLow(oscLookBackP, new Double[0], getAlphaBalance(), regLine, firstPeakIdx, lastPeakIdx);
 
 				if (isOscillatorUp) {
 
@@ -139,7 +139,6 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 		}
 		{
-
 			Boolean isPriceUp = false;
 
 			Boolean isOscillatorAboveThreshold = false;
@@ -149,29 +148,29 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 
 			if (isOscillatorAboveThreshold) {
 
-				ArrayList<Double> regline = new ArrayList<Double>();
+				ArrayList<Double> regLine = new ArrayList<Double>();
 				MutableInt firstTroughIdx = new MutableInt(-1);
 				MutableInt lastTroughIdx = new MutableInt(-1);
-				isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, new Double[0], getAlphaBalance(), regline, firstTroughIdx, lastTroughIdx);
+				isOscillatorDown = false; //highLowSolver.lowerHigh(oscLookBackP, new Double[0], getAlphaBalance(), regLine, firstTroughIdx, lastTroughIdx);
 
 				if (isOscillatorDown) {
 
 					//int coveredSpan = regline.size();
-					int firstTroughLeftShifted = (int) (Math.max(firstTroughIdx.intValue() - ((double)oscLookBackP.length)*.1, 0));
-					int lastTroughRightShifted = (int) (Math.min(lastTroughIdx.intValue() + ((double)oscLookBackP.length)*.1, regline.size()-1));
+					int firstTroughLeftShifted = (int) (Math.max(firstTroughIdx.intValue() - ((double) oscLookBackP.length)*.1, 0));
+					int lastTroughRightShifted = (int) (Math.min(lastTroughIdx.intValue() + ((double) oscLookBackP.length)*.1, regLine.size()-1));
 					int coveredSpan = lastTroughRightShifted - firstTroughLeftShifted;
 					Double leftSigma = 0d;
-					int lastTroughCalculatorIdx = quotationIdx - (regline.size() -lastTroughRightShifted);
+					int lastTroughCalculatorIdx = quotationIdx - (regLine.size() -lastTroughRightShifted);
 					for (int i = lastTroughCalculatorIdx - coveredSpan; i <= lastTroughCalculatorIdx - coveredSpan/2; i++) {
 						leftSigma = leftSigma + quotationsCopy.get(i).getClose().doubleValue();
-					}	
+					}
 					Double rightSigma=0d;
 					for (int i = lastTroughCalculatorIdx - coveredSpan/2; i <= lastTroughCalculatorIdx; i++) {
 						rightSigma = rightSigma + quotationsCopy.get(i).getClose().doubleValue();
 					}
 					isPriceUp = leftSigma/(coveredSpan - coveredSpan/2) < rightSigma/(coveredSpan/2);
 
-					if (isPriceUp) addReglineOutput(lowerHighs, lastTroughCalculatorIdx, regline, coveredSpan, firstTroughLeftShifted, lastTroughRightShifted);
+					if (isPriceUp) addReglineOutput(lowerHighs, lastTroughCalculatorIdx, regLine, coveredSpan, firstTroughLeftShifted, lastTroughRightShifted);
 				}
 
 			}

@@ -29,55 +29,25 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.scoring.functions.CurveFlip;
 
-public class FlipOperation extends PMWithDataOperation {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(FlipOperation.class);
-	
-	public FlipOperation() {
-		super("flipAround", "Flip the input upside down", new NumberOperation("flip axe"), new DoubleMapOperation("Data to flip around"));
-	}
-	
-	public FlipOperation(ArrayList<Operation> operands, String outputSelector) {
-		this();
-		this.setOperands(operands);
-		this.setOutputSelector(outputSelector);
-	}
+public abstract class NumericableMapValue extends Value<SortedMap<Date, Double>> implements Cloneable {
+
+	protected static MyLogger LOGGER = MyLogger.getLogger(NumericableMapValue.class);
+
+	public abstract SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo);
+
+	public abstract List<Date> getDateKeys();
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
-		//Param check
-		Double flipAxe = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
-		
-		//Calc
-		NumericableMapValue ret = new DoubleMapValue();
-		try {
-			
-			CurveFlip curveFlip = new CurveFlip();
-			SortedMap<Date, Double> fliped = curveFlip.sOperate(data, flipAxe);
-			
-			ret.getValue(targetStock).putAll(fliped);
-			
-		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
-		}
-		return ret;
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
-	@Override
-	public int operationStartDateShift() {
-		return 0;
-	}
 }

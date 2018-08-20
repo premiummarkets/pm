@@ -44,11 +44,11 @@ import com.tictactec.ta.lib.RetCode;
 
 //XXX sma 1 == shift 1 for convenience and backward compatibility in this implementation sma 1 == sma 0.
 public class TalibSmaSmoother extends Smoother implements SSmoother {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibSmaSmoother.class);
 
 	private int period;
-	
+
 
 	public TalibSmaSmoother(int period) {
 		super();
@@ -58,42 +58,13 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data , Boolean fixLag) {
-		
+
+		double[][] dataArray = data.values().toArray(new double[data.size()][]);
+
+		double[] sma = smooth(dataArray);
+
+		//Lag fix and return
 		int lag = lagCalc(fixLag, period); 
-		
-		MInteger outBegIdx = new MInteger();
-		MInteger outNBElement = new MInteger();
-		int endIdx = data.size()-1;
-		int startIdx = 0;
-		
-		double[] sma = new double[data.size() - period +1];
-		
-		double[] inReal = new double[data.size()];
-		int i=0;
-		for (double[] dv : data.values()) {
-			inReal[i] = dv[0];
-			i++;
-		}
-		
-		RetCode rc;
-		if (period <= 1) {
-			
-			period = 0; //XXX
-			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
-			outBegIdx = new MInteger();
-			outBegIdx.value = startIdx;
-			outNBElement = new MInteger();
-			outNBElement.value = endIdx - outBegIdx.value;
-			rc = RetCode.Success;
-			
-			
-		} else {
-			
-			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
-			
-		}
-		LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
-		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		int j = 0;
 		for (Date date : data.keySet()){
@@ -102,34 +73,31 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 			}
 			j++;
 		}
-		
-		
+
 		return ret;
 	}
 
 
-	@Override
-	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
-		
-		int lag = lagCalc(fixLag, period);
-		
+	public double[] smooth(double[][] dataArray) {
+
+		double[] sma = new double[dataArray.length - period +1];
+
+
 		MInteger outBegIdx = new MInteger();
 		MInteger outNBElement = new MInteger();
-		int endIdx = data.size()-1;
+		int endIdx = dataArray.length-1;
 		int startIdx = 0;
-		
-		double[] sma = new double[data.size() - period +1];
-		
-		double[] inReal = new double[data.size()];
+
+		double[] inReal = new double[dataArray.length];
 		int i=0;
-		for (Double dv : data.values()) {
-			inReal[i] = dv;
+		for (double[] dv : dataArray) {
+			inReal[i] = dv[0];
 			i++;
 		}
-		
+
 		RetCode rc;
 		if (period <= 1) {
-			
+
 			period = 0; //XXX
 			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
 			outBegIdx = new MInteger();
@@ -137,13 +105,51 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 			outNBElement = new MInteger();
 			outNBElement.value = endIdx - outBegIdx.value;
 			rc = RetCode.Success;
-			
-			
+
+		} else {
+			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
+		}
+		LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		return sma;
+	}
+
+
+	@Override
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
+
+		int lag = lagCalc(fixLag, period);
+
+		MInteger outBegIdx = new MInteger();
+		MInteger outNBElement = new MInteger();
+		int endIdx = data.size()-1;
+		int startIdx = 0;
+
+		double[] sma = new double[data.size() - period +1];
+
+		double[] inReal = new double[data.size()];
+		int i=0;
+		for (Double dv : data.values()) {
+			inReal[i] = dv;
+			i++;
+		}
+
+		RetCode rc;
+		if (period <= 1) {
+
+			period = 0; //XXX
+			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
+			outBegIdx = new MInteger();
+			outBegIdx.value = startIdx;
+			outNBElement = new MInteger();
+			outNBElement.value = endIdx - outBegIdx.value;
+			rc = RetCode.Success;
+
+
 		} else {
 			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
 		}
 		LOGGER.debug("smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
-		
+
 		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
 		int j = 0;
 		for (Date date : data.keySet()){
@@ -152,8 +158,8 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 			}
 			j++;
 		}
-		
-		
+
+
 		return ret;
 	}
 

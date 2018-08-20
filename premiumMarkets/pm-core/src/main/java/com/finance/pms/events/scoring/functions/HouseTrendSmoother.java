@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -84,11 +83,11 @@ public class HouseTrendSmoother extends Smoother implements SSmoother {
     }
 
     public double[][] smooth(double[][] xs) {
-        double[][] ysArray = new double[xs.length-period][];
+        double[][] ysArray = new double[xs.length - period][];
         for (int i = period; i < xs.length; i++) {
             double yi = function(xs, i);
             if (!Double.isNaN(yi)) {
-                ysArray[i] = new double[]{yi};
+                ysArray[i-period] = new double[]{yi};
             } else if (i >= ynCount*period) {
                 String message = "NaN at index " + i + ", with " + Arrays.asList(xs).subList(i-ynCount*period, i+1).stream().map(Arrays::toString).reduce((r, e) -> r+e);
                 throw new RuntimeException(message);

@@ -94,12 +94,16 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							//Build the timeSeries for the output
 							final String domain = eventDefDescriptor.getFullNameFor(outputIdx);
 							TimeSeries timeSeries = new TimeSeries(domain);
+							Boolean allNaN = true;
 							for (Date date : fullDateSet) {
 								double[] ds = eventsSeries.get(chartedEvtDef).get(date);
 								Number value;
 								if (ds != null) {
 									value = ds[outputIdx];
-									if (value != null && !Double.isInfinite(value.doubleValue())) {//Negative Infinity means we should ignore the entry. NaN means not wanted for display and should breaks the line (//FIXME) so it needs to be keep...
+									//Negative Infinity means we should ignore the entry (won't break the line).
+									//NaN means not wanted for display and should breaks the line so it needs to be kept... except all is NaN
+									if (value != null && !Double.isNaN(value.doubleValue())) allNaN = false;
+									if (value != null && !Double.isInfinite(value.doubleValue())) {
 										RegularTimePeriod period = new Day(date);
 										TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
 										timeSeries.add(item, false);
@@ -107,20 +111,11 @@ public class ChartIndicLineSeriesDataSetBuilder {
 								}
 							}
 
-							//                    if (Double.isNaN(timeSeries.getMaxY()) && Double.isNaN(timeSeries.getMinY())) { {//Series has no value to display we fill in two NaN values
-							//                    		RegularTimePeriod periodStart = new Day(series.firstKey());
-							//                    		TimeSeriesDataItem firstItem = new TimeSeriesDataItem(periodStart, Double.NaN);
-							//                    		timeSeries.add(firstItem, false);
-							//                    		RegularTimePeriod periodEnd = new Day(series.lastKey());
-							//                    		TimeSeriesDataItem lastItem = new TimeSeriesDataItem(periodEnd, Double.NaN);
-							//                    		timeSeries.add(lastItem, false);
-							//                    	}
-
 							//Data Set
 							groupMaxY = (timeSeries.getMaxY() > groupMaxY)?timeSeries.getMaxY():groupMaxY;
 							groupMinY = (timeSeries.getMinY() < groupMinY)?timeSeries.getMinY():groupMinY;
 
-							if ((groupMinY == 0 && groupMaxY == 0) || (timeSeries.getMaxY() == -Double.MAX_VALUE && timeSeries.getMinY() == Double.MAX_VALUE)) {
+							if (allNaN || (groupMinY == 0 && groupMaxY == 0) || (timeSeries.getMaxY() == -Double.MAX_VALUE && timeSeries.getMinY() == Double.MAX_VALUE)) {
 								continue;
 							} else {
 								groupIsDisplayed = true;

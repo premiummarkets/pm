@@ -363,7 +363,6 @@ public class OperationBuilderComposite extends Composite {
 			}
 		}
 		{
-
 			Button deleteUnused = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			deleteUnused.setLayoutData(layoutData);

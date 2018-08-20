@@ -39,12 +39,13 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.nativeops.pm.ZeroLagEMAOperation;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 @XmlSeeAlso({
     PMAroonOperation.class, PMMACDOperation.class, PMSMAOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class,
-    FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class, VolatilityOperation.class
+    FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class, VolatilityOperation.class, ZeroLagEMAOperation.class
 })
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 
@@ -60,9 +61,9 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
         this(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
     }
 
-    protected UnarableMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
+    protected NumericableMapValue doubleArrayMapToDoubleMap(Quotations quotations, TargetStockInfo targetStock, TalibIndicator talibIndicator, double[] outputs) {
 
-        UnarableMapValue dateDoubleMap = new DoubleMapValue();
+        NumericableMapValue dateDoubleMap = new DoubleMapValue();
         for (int i = 0; i < talibIndicator.getOutNBElement().value; i++) {
             Date calculatorDate = quotations.getDate(i + talibIndicator.getOutBegIdx().value);
             Double output = outputs[i];
@@ -73,7 +74,7 @@ public abstract class PMIndicatorOperation extends DoubleMapOperation {
 
     }
 
-    protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, UnarableMapValue input) {
+    protected SortedMap<Date, double[]> doubleMapToDoubleArrayMap(TargetStockInfo targetStock, NumericableMapValue input) {
 
         SortedMap<Date, double[]> doubleArrayMap = new TreeMap<Date, double[]>();
         SortedMap<Date, Double> inputValue = input.getValue(targetStock);
