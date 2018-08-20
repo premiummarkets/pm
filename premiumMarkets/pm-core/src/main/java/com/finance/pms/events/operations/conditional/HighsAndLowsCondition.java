@@ -81,10 +81,10 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 	public HighsAndLowsCondition(String reference, String description) {
 		super(reference, description, 
-				new NumberOperation("minimum days span between two extremes"),
-				new NumberOperation("look back period in days"),
-				new NumberOperation("smoothing period for extremes inclusion edge (unused?)"),//UnUsed
-				new DoubleMapOperation("historical data input"));
+				new NumberOperation("Minimum days span between two extremes"),
+				new NumberOperation("Look back over period in days"),
+				new NumberOperation("Smoothing period for peaks and troughs inclusion"),
+				new DoubleMapOperation("Historical data input"));
 	}
 
 	public HighsAndLowsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -97,63 +97,63 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		return MAIN_POSITION;
 	}
 
-
 	@Override
 	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
 
-		Double minimunNbDaysBetweenExtrs = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		Integer lookBackNbdays = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer lookBackSmoothedThreshPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Double minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Integer lookBackNbDays = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((UnarableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
-		if (minimunNbDaysBetweenExtrs < 4) {
-			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days span to draw one of these.");
+		if (minimumNbDaysBetweenExtremes == null || minimumNbDaysBetweenExtremes < 4) {
+			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days span to draw an HL condition check.");
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
-		if (lookBackNbdays == -1) {
-			lookBackNbdays = (int) (minimunNbDaysBetweenExtrs*4);
+		if (lookBackNbDays == null || lookBackNbDays < 6) {
+			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 5 days over period to draw an HL condition check.");
+			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
-		SortedMap<Date, Double> sSmooth = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> sSmooth = new TreeMap<>();
 		Date sSmoothFirstKey= new Date(0);
-		if (lookBackSmoothedThreshPeriod != -1) {
-			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(lookBackSmoothedThreshPeriod);
+		if (lookBackSmoothingPeriod != -1) {
+			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(lookBackSmoothingPeriod);
 			sSmooth = smaSmoother.sSmooth(data, false);
 			sSmoothFirstKey = sSmooth.firstKey();
 		}
 
-		SortedMap<Date, Double> reglines = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> regLines = new TreeMap<>();
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : data.keySet()) {
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(date);
-			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -lookBackNbdays).getTime();
+			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -lookBackNbDays).getTime();
 
 			if ( lookBackPeriodStart.after(dataFirstKey) && lookBackPeriodStart.after(sSmoothFirstKey) ) {
 
 				SortedMap<Date, Double> quotationLookBackP = data.subMap(lookBackPeriodStart, date);
 				if (quotationLookBackP.size() < 4) continue;
 
-				SortedMap<Date, Double> thresholdLookBackP = new TreeMap<Date, Double>();
+				SortedMap<Date, Double> thresholdLookBackP = new TreeMap<>();
 				if (!sSmooth.isEmpty()) {
 					thresholdLookBackP = sSmooth.subMap(lookBackPeriodStart, date);
 				}
 
-				ComparableArray<Double> regline = new ComparableArray<Double>();
+				ComparableArray<Double> regLine = new ComparableArray<>();
 				MutableInt firstExtremeIdx = new MutableInt(-1);
 				MutableInt lastExtremeIdx = new MutableInt(-1);
 
-				Comparable periodDataOps = (Comparable)new ComparableArray<Double>(quotationLookBackP.values());
-				Comparable periodSmootherEdgeOps = (Comparable) new ComparableArray<Double>(thresholdLookBackP.values());
-				Comparable alphaBalanceOps = minimunNbDaysBetweenExtrs;
-				Comparable reglineOps = regline;
+				Comparable periodDataOps = new ComparableArray<>(quotationLookBackP.values());
+				Comparable periodSmootherEdgeOps = new ComparableArray<>(thresholdLookBackP.values());
+				Comparable alphaBalanceOps = minimumNbDaysBetweenExtremes;
+				Comparable regLineOps = regLine;
 				Comparable firstExtremeIdxOps = firstExtremeIdx;
 				Comparable lastExtremeIdxOps = lastExtremeIdx;
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(periodDataOps, periodSmootherEdgeOps, alphaBalanceOps, reglineOps, firstExtremeIdxOps, lastExtremeIdxOps);
+				Boolean conditionCheck = conditionCheck(periodDataOps, periodSmootherEdgeOps, alphaBalanceOps, regLineOps, firstExtremeIdxOps, lastExtremeIdxOps);
 
 				if (conditionCheck != null) {
 
@@ -164,12 +164,12 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 						try {
 
 							SortedMap<Date, Double> datesSubMap = data.subMap(lookBackPeriodStart, date);
-							ArrayList<Date> lbDates = new ArrayList<Date>(datesSubMap.keySet());
-							List<Date> regLineDates = lbDates.subList(lbDates.size() - regline.size(), lbDates.size());
+							ArrayList<Date> lbDates = new ArrayList<>(datesSubMap.keySet());
+							List<Date> regLineDates = lbDates.subList(lbDates.size() - regLine.size(), lbDates.size());
 
 							int gap = 0;
-							if (!reglines.isEmpty()) {
-								SortedMap<Date,Double> roomAvail = data.subMap(reglines.lastKey(), date);
+							if (!regLines.isEmpty()) {
+								SortedMap<Date,Double> roomAvail = data.subMap(regLines.lastKey(), date);
 								int reglineSize = regLineDates.size();
 								while (roomAvail.size() <= reglineSize + 2 && gap + 1 < regLineDates.size()) {
 									gap++;
@@ -178,11 +178,11 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 							}
 
 							if (gap < regLineDates.size()) {
-								reglines.put(regLineDates.get(gap), regline.get(gap));
+								regLines.put(regLineDates.get(gap), regLine.get(gap));
 								for (int i = gap+1; i < regLineDates.size()-1; i++) {
-									reglines.put(regLineDates.get(i), Double.NaN);
+									regLines.put(regLineDates.get(i), Double.NaN);
 								}
-								reglines.put(regLineDates.get(regLineDates.size()-1), regline.get(regline.size()-1));
+								regLines.put(regLineDates.get(regLineDates.size()-1), regLine.get(regLine.size()-1));
 							}
 
 						} catch (Exception e) {
@@ -195,14 +195,14 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		}
 
-		if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothedThreshPeriod, data, sSmooth, reglines); 
+		if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbDays, lookBackSmoothingPeriod, data, sSmooth, regLines);
 
-		if (!reglines.isEmpty()) {
-			String smaKey = "SMA "+lookBackSmoothedThreshPeriod;
+		if (!regLines.isEmpty()) {
+			String smaKey = "SMA "+lookBackSmoothingPeriod;
 			outputs.getAdditionalOutputs().put(smaKey, new DoubleMapValue(sSmooth));
 			outputs.getAdditionalOutputsTypes().put(smaKey, Type.MULTISIGNAL);
-			String tangentKey = lookBackNbdays+" days tangent";
-			outputs.getAdditionalOutputs().put(tangentKey, new DoubleMapValue(reglines));
+			String tangentKey = lookBackNbDays+" days tangent";
+			outputs.getAdditionalOutputs().put(tangentKey, new DoubleMapValue(regLines));
 			outputs.getAdditionalOutputsTypes().put(tangentKey, Type.MULTI);
 		}
 

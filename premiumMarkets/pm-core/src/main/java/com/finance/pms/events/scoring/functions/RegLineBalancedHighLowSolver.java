@@ -70,7 +70,10 @@ public class RegLineBalancedHighLowSolver {
 	private static final double REGLINE_TOLERANCE = 0.01;
 	private static final double REGLINE_SLOPEMIN = 0.0; //0.03;
 
-	public Boolean higherHigh(Double[] periodData, Double[] periodSmoothedCeiling, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstPeakIdx, MutableInt lastPeakIdx) {
+	public Boolean higherHigh(
+			Double[] periodData, Double[] periodSmoothedCeiling,
+			Double alphaBalance, ArrayList<Double> regLine,
+			MutableInt firstPeakIdx, MutableInt lastPeakIdx) {
 
 		MutableDouble amountBelowSmoothingCeiling = new MutableDouble(0);
 

@@ -49,32 +49,61 @@ public class SmoothHighLowSolver {
 
 	private int smoothingPeriod;
 
+	public SmoothHighLowSolver(int smoothingPeriod) {
+		this.smoothingPeriod = smoothingPeriod;
+	}
+
 	public Boolean higherHigh(double[][] data, Map<Integer, double[]> higherHighs) {
 
+		//Calculating Ht(ZeroEMA(data))
 		ZeroLagEMASmoother zeroLagEMASmoother = new ZeroLagEMASmoother(smoothingPeriod);
 		double[][] zEMASmoothed = zeroLagEMASmoother.smooth(data);
 
 		HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
 		double[][] htSmoothed = houseTrendSmoother.smooth(zEMASmoothed);
 
+		int shift = smoothingPeriod / 2 + 1;
+
+		//Find peaks
 		SortedMap<Integer, double[]> peaks =  new TreeMap<>();
 		for(int i = 1; i < htSmoothed.length; i++) {
 			if (htSmoothed[i-1][0] > 0 && htSmoothed[i][0] == 0) {
-				int peakKeyInDataIdx = i + smoothingPeriod/2 + 1;
+				int peakKeyInDataIdx = i + shift;
 				peaks.put(peakKeyInDataIdx, data[peakKeyInDataIdx]);
 			}
 		}
 
-		for(int pk = 1; pk < peaks.size(); pk++) {
-			if (peaks.get(pk-1)[0] < peaks.get(pk)[0]) {
-				higherHighs.put(pk, peaks.get(pk-1));
-				higherHighs.put(pk, peaks.get(pk));
+		//Finding HigherHighs
+		List<Integer> pksXs = new ArrayList<>(peaks.keySet());
+		for (int searchStart = 0; searchStart < pksXs.size();) {
+			for (int pkXsIdx = searchStart + 1; pkXsIdx < pksXs.size(); pkXsIdx++) {
+				Integer previousPkX = pksXs.get(pkXsIdx - 1);
+				Integer currentPkX = pksXs.get(pkXsIdx);
+				double[] previousPkY = peaks.get(previousPkX);
+				double[] currentPkY = peaks.get(currentPkX);
+				if (previousPkY[0] < currentPkY[0]) {
+					higherHighs.put(previousPkX, previousPkY);
+					higherHighs.put(currentPkX, currentPkY);
+					searchStart = pkXsIdx;
+				}
 			}
 		}
 
 		return higherHighs.size() > 0;
-
 	}
 
+	public Boolean higherLow(double[][] data, Map<Integer, double[]> higherLows) {
+		//TODO
+		return false;
+	}
 
+	public Boolean lowerHigh(double[][] data, Map<Integer, double[]> higherLows) {
+		//TODO
+		return false;
+	}
+
+	public Boolean lowerLow(double[][] data, Map<Integer, double[]> higherLows) {
+		//TODO
+		return false;
+	}
 }
