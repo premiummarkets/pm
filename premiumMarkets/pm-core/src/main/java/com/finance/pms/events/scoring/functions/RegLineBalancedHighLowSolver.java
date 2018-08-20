@@ -509,4 +509,22 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 
 	}
 
+	@Override
+	public Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+		// FIXME
+		return null;
+	}
+
+	@Override
+	public Boolean higherLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+		// FIXME
+		return null;
+	}
+
+	@Override
+	public Boolean lowerHigh(Double[] array, int integer, int integer2, SortedMap<Integer, Double> sortedMap, ArrayList<Double> arrayList) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

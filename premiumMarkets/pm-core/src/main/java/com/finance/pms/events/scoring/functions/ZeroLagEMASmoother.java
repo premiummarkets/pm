@@ -53,7 +53,7 @@ public class ZeroLagEMASmoother extends Smoother {
 		this.period = period;
 	}
 
-	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, boolean b) {
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, boolean fixLag) {
 
 		double[][] inReal = data.values().stream().map(v -> new double[] {v}).toArray(s -> new double[s][]);
 		double[][] zeroLagEmas = smooth(inReal);

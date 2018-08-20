@@ -41,7 +41,7 @@ public class HigherHighCondition extends HighsAndLowsCondition {
 	HighLowSolver highLowSolver = new SmoothHighLowSolver();
 
 	public HigherHighCondition() {
-		super("higher high",  "True when the time series is making a higher high.");
+		super("higher high", "True when the time series is making a higher high.");
 	}
 
 	public HigherHighCondition(ArrayList<Operation> operands, String outputSelector) {

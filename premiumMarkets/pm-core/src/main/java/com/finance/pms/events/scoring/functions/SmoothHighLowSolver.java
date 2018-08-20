@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 
 /**
@@ -48,8 +50,49 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	//private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
 
+	Function<Double, Function<Double, Function<Double, Boolean>>> peak = l -> e -> r -> l < e && e >= r;
+	Function<Double, Function<Double, Function<Double, Boolean>>> trough = l -> e -> r -> l > e && e <= r;
+	BiFunction<Double, Double, Boolean> inferiorOrEqual = (a, b) -> a <= b;
+	BiFunction<Double, Double, Boolean> superiorOrEqual = (a, b) -> a >= b;
+	BiFunction<Double, Double, Boolean> inferior = (a, b) -> a < b;
+	BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
+
 	@Override
 	public Boolean higherHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+		return hls(
+				peak, inferiorOrEqual, superiorOrEqual, inferior,
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+	}
+	
+	@Override
+	public Boolean lowerHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+		return hls(
+				peak, superiorOrEqual, superiorOrEqual, inferior,
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+	}
+
+	@Override
+	public Boolean higherLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+		return hls(
+				trough, inferiorOrEqual, inferiorOrEqual, superior,
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+	}
+
+	@Override
+	public Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+		return hls(
+				trough, superiorOrEqual, inferiorOrEqual, superior,
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+	}
+
+	private Boolean hls(
+			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
+			BiFunction<Double,Double, Boolean> rightMostKnotIsNotToLefts,
+			BiFunction<Double,Double, Boolean> leftMostKnotIsToInners,
+			BiFunction<Double,Double, Boolean> tangentIsNotToKnots,
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+
+		int lookBackSize = data.length;
 
 		//Smooth
 		ZeroLagEMASmoother zeroLagEMASmoother = new ZeroLagEMASmoother(smoothingPeriod);
@@ -59,9 +102,11 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		//Peaks
 		SortedMap<Integer, Double> peaks =  new TreeMap<>();
 		for(int i = 1; i < zEMASmoothed.length-1; i++) {
-			if (zEMASmoothed[i-1][0] < zEMASmoothed[i][0] && zEMASmoothed[i][0] >= zEMASmoothed[i+1][0]) {
-				int peakKeyInDataIdx = i + smoothingPeriod/2;
-				peaks.put(peakKeyInDataIdx, data[peakKeyInDataIdx]);
+			//if (zEMASmoothed[i-1][0] < zEMASmoothed[i][0] && zEMASmoothed[i][0] >= zEMASmoothed[i+1][0]) { HigherHigh && LowerHigh <= i is high to i-1 strict and i+1 loose	A:peak
+			//if (zEMASmoothed[i-1][0] > zEMASmoothed[i][0] && zEMASmoothed[i][0] <= zEMASmoothed[i+1][0]) { HigherLow && LowerLow <= i is low to i-1 strict and i+1 loose		A':trough
+			if ( aKnotIsA.apply(zEMASmoothed[i-1][0]).apply(zEMASmoothed[i][0]).apply(zEMASmoothed[i+1][0]) ) {
+				int peakKeyInDataIdx = i; //+ smoothingPeriod/2;
+				peaks.put(peakKeyInDataIdx, zEMASmoothed[peakKeyInDataIdx][0]);
 			}
 		}
 
@@ -74,37 +119,61 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		List<Integer> peaksKnots = new ArrayList<>(peaks.keySet());
 		ListIterator<Integer> peaksKnotsIterator = peaksKnots.listIterator(peaksKnots.size());
 		Integer lastPeakKnot = peaksKnotsIterator.previous();
-		Integer secondHighestPeakKnot = null;
+		Integer leftMostKnot = null;
+		Integer validLeftMostKnot = null;
 		while (peaksKnotsIterator.hasPrevious()) {
 			Integer previousPeaksKnot = peaksKnotsIterator.previous();
-			if (peaks.get(lastPeakKnot) <= peaks.get(previousPeaksKnot)) return false;
-			if ( (secondHighestPeakKnot == null || peaks.get(previousPeaksKnot) >= peaks.get(secondHighestPeakKnot)) && (lastPeakKnot - previousPeaksKnot) >= minimumNbDaysBetweenExtremes ) secondHighestPeakKnot = previousPeaksKnot;
+			//if (peaks.get(lastPeakKnot) <= peaks.get(previousPeaksKnot)) return false; HigherHigh && HigherLow => last is below left peaks (exit)		B:smallerThanOrEqual
+			//if (peaks.get(lastPeakKnot) >= peaks.get(previousPeaksKnot)) return false; LowerHigh && LowerLow => last is above left peaks (exit)		B':greaterThanOrEqual
+			if (rightMostKnotIsNotToLefts.apply(peaks.get(lastPeakKnot), peaks.get(previousPeaksKnot))) return false;
+			//peaks.get(previousPeaksKnot) >= peaks.get(leftMostExtrem)) HigherHigh && LowerHigh => left peak is above leftMostExtrem		C:greaterThanOrEqual
+			//peaks.get(previousPeaksKnot) <= peaks.get(leftMostExtrem)) HigherLow && LowerLow => left peak is below leftMostExtrem			C':smallerThanOrEqual
+			if ( leftMostKnot == null || leftMostKnotIsToInners.apply(peaks.get(previousPeaksKnot), peaks.get(leftMostKnot)) ) {
+				if ((lastPeakKnot - previousPeaksKnot) >= minimumNbDaysBetweenExtremes) {
+					validLeftMostKnot = previousPeaksKnot;
+					//leftMostKnot = previousPeaksKnot; //Uncomment for test
+				}
+				leftMostKnot = previousPeaksKnot;
+			}
 		}
-		if (secondHighestPeakKnot == null) return false;
-		higherHighs.put(secondHighestPeakKnot, peaks.get(secondHighestPeakKnot));
+		if (validLeftMostKnot == null) return false;
+		higherHighs.put(validLeftMostKnot, peaks.get(validLeftMostKnot));
 		higherHighs.put(lastPeakKnot, peaks.get(lastPeakKnot));
 
 		//Slope
 		if (higherHighs.size() >= 2) {
 
+			for(int i = (smoothingPeriod/2); i >= 0; i--) {
+				expertTangent.add(Double.NaN);
+			}
+
 			int start = higherHighs.firstKey();
-			double startPeak = data[start];
+			double startPeak = zEMASmoothed[start][0];
 			int end = higherHighs.lastKey();
-			double endPeak = data[end];
+			double endPeak = zEMASmoothed[end][0];
 			double slope = (endPeak - startPeak)/(double)(end - start);
 			boolean crossed = false;
-			for(double i = data.length-1; i >= 0; i--) {
+			for(double i = zEMASmoothed.length-1; i >= 0; i--) {
 
 				if (i <= end && !crossed) {
 					double lineY = startPeak + slope*(i - start);
 					expertTangent.add(lineY);
-					if (lineY < data[(int)i]) {
-						crossed = true;
+					//if (lineY < zEMASmoothed[(int)i][0]) { HigherHigh && LowerHigh => line is below peak strict (exit)		D:smallerThan
+					//if (lineY > zEMASmoothed[(int)i][0]) { HigherLow && LowerLow => line is above peak strict	 (exit)			D':greaterThan
+					if (tangentIsNotToKnots.apply(lineY, zEMASmoothed[(int)i][0])) {
+						if (start < i) return false;
+						crossed = true; //Comment for test
 					}
 				}
 				else expertTangent.add(Double.NaN);
 
 			}
+
+			int epxertTangentSize = expertTangent.size();
+			for(int i = lookBackSize - epxertTangentSize; i >= 0; i--) {
+				expertTangent.add(Double.NaN);
+			}
+
 			Collections.reverse(expertTangent);
 			return true;
 

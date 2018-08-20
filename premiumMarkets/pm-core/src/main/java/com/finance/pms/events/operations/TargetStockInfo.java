@@ -433,7 +433,7 @@ public class TargetStockInfo {
 							outputSelector = Optional.of(multiMapValueOutputTypes.keySet().iterator().next());
 						}
 						setMain(mainOperandOfOperand, outputSelector);
-						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.get()));
+						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.orElse(null)));
 					//FIXME?? remove this case as it may cause scaling issues linking operands of this operand to other operands in this operation.
 					} else { //A main and group is set by other operands. We use theses.
 						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));

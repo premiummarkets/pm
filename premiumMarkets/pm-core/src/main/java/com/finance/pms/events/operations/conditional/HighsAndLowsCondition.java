@@ -115,7 +115,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days over period to draw one of these.");
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
-		
+
 		String expertTangentLabel = lookBackNbdays+" days tangent of "+ this.getOperands().get(MAIN_POSITION).getReference() + " at ";
 		Map<String, SortedMap<Date, Double>> expertTangentsResult = new HashMap<>();
 		String previousLibel = null;
@@ -176,8 +176,6 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			}
 
 		}
-
-		//if (LOGGER.isTraceEnabled()) exportReglines(targetStock, lookBackNbdays, lookBackSmoothingPeriod, data, expertTangentsResult);
 
 		if (!expertTangentsResult.isEmpty()) {
 			expertTangentsResult.entrySet().stream().forEach(e -> {
