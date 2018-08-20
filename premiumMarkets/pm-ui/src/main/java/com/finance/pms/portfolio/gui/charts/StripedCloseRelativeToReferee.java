@@ -76,15 +76,15 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 		
 		Date endDate = getEndDate(stockQuotations);
-		Integer endDateRelativceIndex = this.relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(startDateRelativeIndex, endDate);
+		Integer endDateRelativeIndex = this.relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(startDateRelativeIndex, endDate);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
-		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, startDateRelativeIndex, endDateRelativceIndex);
+		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, startDateRelativeIndex, endDateRelativeIndex);
 	}
 
 	private BigDecimal[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex, int startDateRelativeIndex, int endDateRelativceIndex) {
 
-		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
+		ArrayList<BigDecimal>  retA = new ArrayList<>();
 
 		BigDecimal relativeQuotationsRoot =  relativeQuotationsFull.get(startDateRelativeIndex).getClose();
 		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getClose();
