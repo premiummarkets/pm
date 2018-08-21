@@ -102,8 +102,6 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 		return new double[]
 				{
 				this.stochOsc.getSlowK()[stochIndex],
-				translateOutputForCharting(this.higherLows.get(idx)),
-				translateOutputForCharting(this.lowerHighs.get(idx)),
 				this.stochOsc.getSlowD()[stochIndex],
 				this.stochOsc.getLowerThreshold(),
 				this.stochOsc.getUpperThreshold(),

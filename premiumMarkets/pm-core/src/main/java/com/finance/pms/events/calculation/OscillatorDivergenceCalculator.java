@@ -97,17 +97,17 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 							", first date available : " + quotationsCopy.get(0));
 		}
 
+		Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), oscLookBackStartIdx, oscIdx));
+		Double[] stockLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(closeValues, lookBackStartIdx, quotationIdx));
+
 		{
 			Boolean isPriceDown = false;
 			Boolean isOscillatorUp = false;
 			Boolean isOscillatorBelowThreshold = isOscBelowLowerThreshold(idxSpan, oscIdx);
 
 			if (isOscillatorBelowThreshold) {
-				Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), oscLookBackStartIdx, oscIdx));
 				isOscillatorUp = highLowSolver.higherLow(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
-
 				if (isOscillatorUp) {
-					Double[] stockLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(closeValues, lookBackStartIdx, quotationIdx));
 					isPriceDown = highLowSolver.higherLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
 				}
 			}
@@ -125,11 +125,8 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 			Boolean isOscillatorAboveThreshold = isOcsAboveUpperThreshold(idxSpan, oscIdx);
 
 			if (isOscillatorAboveThreshold) {
-				Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), oscLookBackStartIdx, oscIdx));
 				isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
-
 				if (isOscillatorDown) {
-					Double[] stockLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(closeValues, lookBackStartIdx, quotationIdx));
 					isPriceUp = highLowSolver.lowerHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
 				}
 			}
