@@ -78,7 +78,6 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 		
 		try {
 			
-//			if (!stock.getSymbol().equals(SYMBOL) || !stock.getIsin().equals(SYMBOL)) {
 			if (!stock.equals(ProvidersInflation.inflationStock())) {
 				String message = "Error : This should be used to retrieve inflation historical only, not : " + stock.toString();
 				LOGGER.error(message);

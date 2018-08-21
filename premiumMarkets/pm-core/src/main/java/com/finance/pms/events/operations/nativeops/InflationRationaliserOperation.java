@@ -43,7 +43,8 @@ public class InflationRationaliserOperation extends PMWithDataOperation {
             SortedMap<Date, Double> retMap = new TreeMap<>();
             Date prevDate = data.firstKey();
             for (Date date : data.keySet()) { 
-            	//FIXME inflation is monthly so this can't work or will work by hops => implement a new rate finder in InflationProvider smoothing the result (inflation per period)
+            	//FIXME inflation is monthly so this can't work or will work by hops
+                // => implement a new rate finder in InflationProvider smoothing the result (inflation per period)
                 Double inflationAtFirst = inflationQuotations.getClosestCloseForDate(prevDate).doubleValue();
                 Double inflationAtSecond = inflationQuotations.getClosestCloseForDate(date).doubleValue();
                 Double inflationRate = (inflationAtSecond - inflationAtFirst) /100;

@@ -47,7 +47,7 @@ public class InflationUpdateObserver implements Observer {
 		List<Portfolio> visiblePortfolios = PortfolioMgr.getInstance().getVisiblePortfolios();
 		for (Portfolio portfolio : visiblePortfolios) {
 			for (PortfolioShare ps : portfolio.getListShares().values()) {
-				Set<AlertOnThreshold> alertsOnThreshold = new HashSet<AlertOnThreshold>(ps.getAlertsOnThreshold());
+				Set<AlertOnThreshold> alertsOnThreshold = new HashSet<>(ps.getAlertsOnThreshold());
 				for (AlertOnThreshold alertOnThr : alertsOnThreshold) {
 					if (alertOnThr.getAlertType().equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) {
 						new AlertsMgrDelegate(ps)
