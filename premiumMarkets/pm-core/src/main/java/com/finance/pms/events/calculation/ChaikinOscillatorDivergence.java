@@ -80,9 +80,7 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		return new double[]
 				{
-						getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
-						translateOutputForCharting(this.higherLows.get(idx)),
-						translateOutputForCharting(this.lowerHighs.get(idx))
+						getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)]
 				};
 	}
 

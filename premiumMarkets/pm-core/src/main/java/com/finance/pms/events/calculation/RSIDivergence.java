@@ -105,8 +105,6 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 		return new double[]
 				{
 						this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
-						translateOutputForCharting(this.higherLows.get(idx)),
-						translateOutputForCharting(this.lowerHighs.get(idx)),
 						this.rsi.getLowerThreshold(),
 						this.rsi.getUpperThreshold(),
 				};

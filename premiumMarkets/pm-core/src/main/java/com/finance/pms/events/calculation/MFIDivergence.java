@@ -99,8 +99,6 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 		return new double[]
 				{
 					getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
-					translateOutputForCharting(this.higherLows.get(idx)),
-					translateOutputForCharting(this.lowerHighs.get(idx)),
 					getOscillatorLowerThreshold(),
 					getOscillatorUpperThreshold()
 				};
