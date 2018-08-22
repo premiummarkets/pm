@@ -538,22 +538,22 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return compoundRate;
 	}
 
-	private BigDecimal getInflationRateBetweenDates(Date fisrtDate, Date secondDate) {
+	private BigDecimal getInflationRateBetweenDates(Date firstDate, Date secondDate) {
 
 		BigDecimal inflationRate = BigDecimal.ZERO;
 		try {
 			BigDecimal inflatAtFirst;
 			BigDecimal inflatAtSecond;
 			Stock inflationStock = ProvidersInflation.inflationStock();
-			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(inflationStock, fisrtDate, secondDate, true, Currency.USD, 1, ValidityFilter.CLOSE);
-			inflatAtFirst = inflationQuotations.getClosestCloseForDate(fisrtDate);
+			Quotations inflationQuotations = QuotationsFactories.getFactory().getQuotationsInstance(inflationStock, firstDate, secondDate, true, Currency.USD, 1, ValidityFilter.CLOSE);
+			inflatAtFirst = inflationQuotations.getClosestCloseForDate(firstDate);
 			inflatAtSecond = inflationQuotations.getClosestCloseForDate(secondDate);
 			inflationRate = inflatAtSecond.subtract(inflatAtFirst).divide(new BigDecimal(100), 10, BigDecimal.ROUND_HALF_EVEN);
 		} catch (Exception e) {
 			LOGGER.warn(e,e); 
 		}
 
-		LOGGER.debug("Inflation rate between "+fisrtDate+" and "+secondDate+" is : "+inflationRate);
+		LOGGER.debug("Inflation rate between "+firstDate+" and "+secondDate+" is : "+inflationRate);
 		return inflationRate;
 
 	}

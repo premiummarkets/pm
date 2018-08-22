@@ -52,7 +52,6 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 public class RSIDivergence extends OscillatorDivergenceCalculator {
 
 	RSI rsi;
-	private Integer rsiQuotationStartDateIdx;
 
 	public RSIDivergence(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer... observers) {
 		super(EventDefinition.PMRSIDIVERGENCE, observers);
@@ -110,12 +109,10 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 				};
 	}
 
-
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMRSIDIVERGENCE;
 	}
-
 
 	@Override
 	protected double getOscillatorLowerThreshold() {
@@ -125,12 +122,6 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected double getOscillatorUpperThreshold() {
 		return this.rsi.getUpperThreshold();
-	}
-
-
-	@Override
-	protected Integer getOscillatorQuotationStartDateIdx() {
-		return rsiQuotationStartDateIdx;
 	}
 
 	@Override

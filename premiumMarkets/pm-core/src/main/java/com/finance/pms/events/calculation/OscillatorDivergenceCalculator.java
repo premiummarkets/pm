@@ -100,7 +100,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), oscLookBackStartIdx, oscIdx));
 		Double[] stockLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(closeValues, lookBackStartIdx, quotationIdx));
 
-		{
+		{//Bullish
 			Boolean isPriceDown = false;
 			Boolean isOscillatorUp = false;
 			Boolean isOscillatorBelowThreshold = isOscBelowLowerThreshold(idxSpan, oscIdx);
@@ -118,8 +118,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 			}
 
 		}
-
-		{
+		{//Bearish
 			Boolean isPriceUp = false;
 			Boolean isOscillatorDown = false;
 			Boolean isOscillatorAboveThreshold = isOcsAboveUpperThreshold(idxSpan, oscIdx);
@@ -155,9 +154,8 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 	}
 
 	protected abstract double getOscillatorLowerThreshold();
-	protected abstract double getOscillatorUpperThreshold();
 
-	protected abstract Integer getOscillatorQuotationStartDateIdx();
+	protected abstract double getOscillatorUpperThreshold();
 
 	protected abstract double[] getOscillatorOutput();
 
