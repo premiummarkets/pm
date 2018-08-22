@@ -44,27 +44,26 @@ import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class StochasticDivergence extends OscillatorDivergenceCalculator {
-	
+
 	private StochasticOscillator stochOsc;
-	private Integer stochQuotationStartDateIdx;
-	
+
 	public StochasticDivergence(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
 		super(EventDefinition.PMSSTOCHDIVERGENCE, observers);
 		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 	}
-	
+
 	public StochasticDivergence(EventInfo reference) {
-	    //Reflective ops generator
+		//Reflective ops generator
 		super(reference);
 	}
 
 	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
-	    this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
 	}
 
 	@Override
 	public void genericInit(Integer... constants) {
-	    init(constants[0], constants[1], constants[2]);
+		init(constants[0], constants[1], constants[2]);
 	}
 
 	@Override
@@ -77,13 +76,13 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 
 	private Boolean isInDataRange(StochasticOscillator indicator, Integer indicatorIndex) {
 		return (getDaysSpan() < indicatorIndex) && (indicatorIndex < this.stochOsc.getSlowK().length);
-		
+
 	}
-	
+
 	private boolean isInDataRange(SMA sma, Integer index) {
 		return (getDaysSpan() < index && index < sma.getSma().length);
 	}
-	
+
 	private boolean isInDataRange(HouseAroon aroon, Integer index) {
 		return (0 < index && index < aroon.getOutAroonUp().length);
 	}
@@ -94,17 +93,17 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
 	}
-	
+
 	@Override
 	protected  double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx)  {
-			
+
 		int stochIndex = getIndicatorIndexFromQuotationIndex(this.stochOsc, idx);
 		return new double[]
 				{
-				this.stochOsc.getSlowK()[stochIndex],
-				this.stochOsc.getSlowD()[stochIndex],
-				this.stochOsc.getLowerThreshold(),
-				this.stochOsc.getUpperThreshold(),
+						this.stochOsc.getSlowK()[stochIndex],
+						this.stochOsc.getSlowD()[stochIndex],
+						this.stochOsc.getLowerThreshold(),
+						this.stochOsc.getUpperThreshold(),
 				};
 	}
 
@@ -126,11 +125,6 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected double getOscillatorUpperThreshold() {
 		return this.stochOsc.getUpperThreshold();
-	}
-
-	@Override
-	protected Integer getOscillatorQuotationStartDateIdx() {
-		return stochQuotationStartDateIdx;
 	}
 
 	@Override

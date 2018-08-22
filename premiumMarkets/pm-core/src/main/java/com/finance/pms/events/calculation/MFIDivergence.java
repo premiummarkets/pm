@@ -41,7 +41,6 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 public class MFIDivergence extends OscillatorDivergenceCalculator {
 	
 	MFI mfi;
-	private Integer mfiQuotationStartDateIdx;
 
 	public MFIDivergence(Integer timePeriod, Integer lowerThres, Integer upperThres, Observer... observers) {
 		super(EventDefinition.PMMFIDIVERGENCE, observers);
@@ -74,11 +73,6 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected double[] getOscillatorOutput() {
 		return mfi.getMfi();
-	}
-
-	@Override
-	protected Integer getOscillatorQuotationStartDateIdx() {
-		return mfiQuotationStartDateIdx;
 	}
 
 	@Override

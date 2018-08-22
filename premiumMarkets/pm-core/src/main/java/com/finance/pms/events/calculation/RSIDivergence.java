@@ -52,7 +52,6 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 public class RSIDivergence extends OscillatorDivergenceCalculator {
 
 	RSI rsi;
-	private Integer rsiQuotationStartDateIdx;
 
 	private int upperBullishBand; //= 80;
 	private int lowerBullishBand; //= 40;
@@ -135,11 +134,6 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected double getOscillatorUpperThreshold() {
 		return this.upperBullishBand;
-	}
-
-	@Override
-	protected Integer getOscillatorQuotationStartDateIdx() {
-		return rsiQuotationStartDateIdx;
 	}
 
 	@Override

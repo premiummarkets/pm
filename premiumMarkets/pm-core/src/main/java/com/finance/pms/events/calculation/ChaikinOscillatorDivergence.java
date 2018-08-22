@@ -43,7 +43,6 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator {
 
 	private ChaikinOscillator chaikinOscillator;
-	private Integer chaikinQuotationStartDateIdx;
 
 	public ChaikinOscillatorDivergence(Integer chkInfastPeriod, Integer chkInslowPeriod, Observer... observers) {
 		super(EventDefinition.PMCHAIKINOSCDIVERGENCE, observers);
@@ -97,11 +96,6 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMCHAIKINOSCDIVERGENCE;
-	}
-
-	@Override
-	protected Integer getOscillatorQuotationStartDateIdx() {
-		return chaikinQuotationStartDateIdx;
 	}
 
 	@Override
