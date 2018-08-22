@@ -50,9 +50,9 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationThread {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(FirstPassIndicatorCalculationThread.class);
-	
+
 	private Integer macdFastPeriod;
 	private Integer macdSlowPeriod;
 	private Integer macdSignal;
@@ -70,7 +70,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	private Integer varianceTimePeriod;
 	private Integer varianceSpanDiff;
 	private Integer varianceMinValid;
-	
+
 	private Integer fastKLookBackPeriod;
 	private Integer slowKSmaPeriod;
 	private Integer slowDSmaPeriod;
@@ -78,7 +78,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	private List<EventInfo> firstPassWantedCalculations;
 
 	private Integer smaReversalPeriod;
-	
+
 	/**
 	 * 
 	 * @param stock
@@ -88,9 +88,9 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	 * @param eventListName
 	 * @param observers
 	 * @param passOneCalcMode : "auto", "reset" or "force". </br>
-     * "auto" will be incremental base on the last calculation in the configuration (associated with the config file currently used) status, </br>
-     * "reset" will calculate from startDate to endDate updating the configuration status,</br>
-     * "force" (default) will also calculate form startDate to endDate but not updating the configuration status of with these calculation dates.
+	 * "auto" will be incremental base on the last calculation in the configuration (associated with the config file currently used) status, </br>
+	 * "reset" will calculate from startDate to endDate updating the configuration status,</br>
+	 * "force" (default) will also calculate form startDate to endDate but not updating the configuration status of with these calculation dates.
 	 * @param keepCache
 	 * @param queue
 	 * @param jmsTemplate
@@ -98,51 +98,51 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	 * @throws NotEnoughDataException
 	 */
 	public FirstPassIndicatorCalculationThread(
-				Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Set<Observer> observers, 
-				String passOneCalcMode, Queue queue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
-		
+			Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String eventListName, Set<Observer> observers, 
+			String passOneCalcMode, Queue queue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
+
 		super(stock, startDate, endDate, eventListName, calculationCurrency, observers, passOneCalcMode, queue, jmsTemplate);
-		
+
 	}
 
 	@Override
 	protected void setCalculationParameters() {
-		
+
 		firstPassWantedCalculations = ((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getIndicators();
-		
+
 		variationTimePeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVariationPeriod();
 		variationSpanDiff = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVariationSpanDiff();
-		
+
 		varianceTimePeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVariancePeriod();
 		varianceSpanDiff = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVarianceSpanDiff();
 		varianceMinValid = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getVarianceMinValid();
-		
+
 		macdFastPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getMacdFastPeriod();
 		macdSlowPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getMacdSlowPeriod();
 		macdSignal = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getMacdSignal();
-		
+
 		rsiLowerThreshold = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getRsiLowerThreshold();
 		rsiUpperThreshold = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getRsiUpperThreshold();
 		rsiTimePeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getRsiTimePeriod();
-		
+
 		mfiTimePeriod = 14;
 		mfiLowerThres = 20;
 		mfiUpperThres = 80;
-		
+
 		fastKLookBackPeriod = 14;
 		slowKSmaPeriod = 3;
 		slowDSmaPeriod = 3;
-		
+
 		smaReversalPeriod = ((IndicatorsConfig) ConfigThreadLocal.get("indicatorParams")).getSmaReversalSmaPeriod();
 
 	}
 
 	@Override
 	protected Set<IndicatorsOperator> initIndicatorsAndCalculators(SymbolEvents symbolEventsForStock, Observer... observers) {
-		
+
 		LOGGER.info("First pass wanted events : "+getWantedEventCalculations());
 		Set<IndicatorsOperator> eventCalculations = new HashSet<IndicatorsOperator>();
-		
+
 		//Which EventCompositions have been found and wanted in the EventConfig (indicators field)
 		boolean zeroCrossMACDWanted = checkWanted(EventDefinition.PMMACDZEROCROSS);
 		boolean signalCrossMACDWanted = checkWanted(EventDefinition.PMMACDSIGNALCROSS);
@@ -161,146 +161,146 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		boolean chaikinOscDivergenceWanted =  checkWanted(EventDefinition.PMCHAIKINOSCDIVERGENCE);
 		boolean chaikinOscThresholdWanted =  checkWanted(EventDefinition.PMCHAIKINOSCTHRESHOLD);
 		boolean stochThresholdWanted = checkWanted(EventDefinition.PMSSTOCHTHRESHOLD);
-		
+
 		boolean mighyChaikinWanted = checkWanted(EventDefinition.PMMIGHTYCHAIKIN);
 		boolean mfiDivergenceOldWanted = checkWanted(EventDefinition.PMMFIDIVERGENCEOLD);
 		boolean rsiDivergenceOldWanted = checkWanted(EventDefinition.PMRSIDIVERGENCEOLD);
 		boolean stochDivergenceOldWanted = checkWanted(EventDefinition.PMSSTOCHDIVERGENCEOLD);
-		
+
 		Integer startDateShift = 0;
 		if (zeroCrossMACDWanted) {
-				ZeroCrossMACDEventCalculator zeroCrossMACDEventCalculator = new ZeroCrossMACDEventCalculator(macdFastPeriod, macdSlowPeriod, macdSignal, observers);
-				startDateShift = Math.max(startDateShift, zeroCrossMACDEventCalculator.getStartShift());
-				eventCalculations.add(zeroCrossMACDEventCalculator);
+			ZeroCrossMACDEventCalculator zeroCrossMACDEventCalculator = new ZeroCrossMACDEventCalculator(macdFastPeriod, macdSlowPeriod, macdSignal, observers);
+			startDateShift = Math.max(startDateShift, zeroCrossMACDEventCalculator.getStartShift());
+			eventCalculations.add(zeroCrossMACDEventCalculator);
 		}
-		
+
 		if (signalCrossMACDWanted) {
-				SignalCrossMACDEventCalculator signalCrossMACDEventCalculator = new SignalCrossMACDEventCalculator(macdFastPeriod, macdSlowPeriod, macdSignal, observers);
-				startDateShift =  Math.max(startDateShift, signalCrossMACDEventCalculator.getStartShift());
-				eventCalculations.add(signalCrossMACDEventCalculator);
+			SignalCrossMACDEventCalculator signalCrossMACDEventCalculator = new SignalCrossMACDEventCalculator(macdFastPeriod, macdSlowPeriod, macdSignal, observers);
+			startDateShift =  Math.max(startDateShift, signalCrossMACDEventCalculator.getStartShift());
+			eventCalculations.add(signalCrossMACDEventCalculator);
 		}
-		
+
 		if (smaReversalWanted) {
 			SmaReversal smaReversal = new SmaReversal(smaReversalPeriod, observers);
 			startDateShift =  Math.max(startDateShift, smaReversal.getStartShift());
 			eventCalculations.add(smaReversal);
 		}
-	
+
 		if (rsiThresholdCrossWanted) {
 			RSIThreshold rSIThreshold = new RSIThreshold(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold, observers);
 			startDateShift =  Math.max(startDateShift, rSIThreshold.getStartShift());
 			eventCalculations.add(rSIThreshold);
 		}
-		
+
 		if (rsiDivergenceWanted) {
-			RSIDivergence rSIDivergence = new RSIDivergence(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold, observers);
+			RSIDivergence rSIDivergence = new RSIDivergence(rsiTimePeriod, 40, 80, 20, 60, observers);
 			startDateShift =  Math.max(startDateShift, rSIDivergence.getStartShift());
 			eventCalculations.add(rSIDivergence);	
 		}
-		
+
 		if (obvDivergenceWanted) {
 			ObvDivergence obvDivergence = new ObvDivergence(observers);
 			startDateShift =  Math.max(startDateShift, obvDivergence.getStartShift());
 			eventCalculations.add(obvDivergence);
 		}
-		
+
 		if (mfiDivergenceWanted) {
 			MFIDivergence mfiDivergence = new MFIDivergence(mfiTimePeriod, mfiLowerThres, mfiUpperThres, observers);
 			startDateShift =  Math.max(startDateShift, mfiDivergence.getStartShift());
 			eventCalculations.add(mfiDivergence);
-			
+
 		}
-		
+
 		if (mfiThresholdWanted) {
 			MFIThreshold mfiThreshold = new MFIThreshold(mfiTimePeriod, mfiLowerThres, mfiUpperThres, observers);
 			startDateShift =  Math.max(startDateShift, mfiThreshold.getStartShift());
 			eventCalculations.add(mfiThreshold);
-			
+
 		}
-		
+
 		if (stochThresholdWanted) {
 			StochasticThreshold stochThreshold = new StochasticThreshold(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, observers);
 			startDateShift =  Math.max(startDateShift, stochThreshold.getStartShift());
 			eventCalculations.add(stochThreshold);
 		}
-		
+
 
 		if (stochDivergenceWanted) {
 			StochasticDivergence stochDiv = new StochasticDivergence(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, observers);
 			startDateShift =  Math.max(startDateShift, stochDiv.getStartShift());
 			eventCalculations.add(stochDiv);
 		}
-		
+
 		if (accDistDivergenceWanted) {
 			AccumulationDistributionDivergence accDistDiv = new AccumulationDistributionDivergence(observers);
 			startDateShift =  Math.max(startDateShift, accDistDiv.getStartShift());
 			eventCalculations.add(accDistDiv);
-			
+
 		}
-		
+
 		if (chaikinOscDivergenceWanted) {
 			ChaikinOscillatorDivergence chaikinOscDiv = new ChaikinOscillatorDivergence(3, 10, observers);
 			startDateShift =  Math.max(startDateShift, chaikinOscDiv.getStartShift());
 			eventCalculations.add(chaikinOscDiv);
 		}
-		
+
 		if (chaikinOscThresholdWanted) {
 			ChaikinOscillatorThreshold chaikinOscThreshold = new ChaikinOscillatorThreshold(3, 10, observers);
 			startDateShift =  Math.max(startDateShift, chaikinOscThreshold.getStartShift());
 			eventCalculations.add(chaikinOscThreshold);
 		}
-		
+
 		if (aroonTrendWanted) {
 			AroonTrend aroonTrend = new AroonTrend(observers);
 			startDateShift =  Math.max(startDateShift, aroonTrend.getStartShift());
 			eventCalculations.add(aroonTrend);
 		}
-		
+
 		//Variation
 		if (variationWanted) {
-				VariationCalculator variationCalc = new VariationCalculator(stock, variationTimePeriod, variationSpanDiff, eventListName, observers);
-				startDateShift =  Math.max(startDateShift, variationCalc.getStartShift());
-				eventCalculations.add(variationCalc);
+			VariationCalculator variationCalc = new VariationCalculator(stock, variationTimePeriod, variationSpanDiff, eventListName, observers);
+			startDateShift =  Math.max(startDateShift, variationCalc.getStartShift());
+			eventCalculations.add(variationCalc);
 		}
-		
+
 		//Variance
 		if (varianceWanted) {
 			VarianceCalculator varianceCalc = new VarianceCalculator(stock, varianceTimePeriod, varianceSpanDiff, varianceMinValid, varianceTimePeriod,eventListName, observers);
 			startDateShift =  Math.max(startDateShift, varianceCalc.getStartShift());
 			eventCalculations.add(varianceCalc);
 		}
-		
+
 		//stdDev
 		if (stddevCrossWanted ) {
 			StandardDeviationCrossing stdevCross = new StandardDeviationCrossing(observers);
 			startDateShift =  Math.max(startDateShift, stdevCross.getStartShift());
 			eventCalculations.add(stdevCross);
 		}
-		
+
 		//Events old divergences (Before high and low change) !ChaikinOscillatorDivergence_old is still in use as MighyChaikin
 		if (mighyChaikinWanted) {
 			ChaikinOscillatorDivergence_old chaikinOscillDiv_old = new ChaikinOscillatorDivergence_old(3, 10, observers);
 			startDateShift =  Math.max(startDateShift, chaikinOscillDiv_old.getStartShift());
 			eventCalculations.add(chaikinOscillDiv_old);
-		
+
 		}
 		if (rsiDivergenceOldWanted) {
 			RSIDivergence_old rSIDivergence_old = new RSIDivergence_old(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold, observers);
 			startDateShift =  Math.max(startDateShift, rSIDivergence_old.getStartShift());
 			eventCalculations.add(rSIDivergence_old);
 		}
-		
+
 		if (mfiDivergenceOldWanted) {
 			MFIDivergence_old mfiDiv = new MFIDivergence_old(mfiTimePeriod, mfiLowerThres, mfiUpperThres, observers);
 			startDateShift =  Math.max(startDateShift, mfiDiv.getStartShift());
 			eventCalculations.add(mfiDiv);
 		}
-		
+
 		if (stochDivergenceOldWanted) {
 			StochasticDivergence_old stochDiv = new StochasticDivergence_old(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, observers);
 			startDateShift =  Math.max(startDateShift, stochDiv.getStartShift());
 			eventCalculations.add(stochDiv);
-			
+
 		}
 
 		return eventCalculations;
@@ -311,7 +311,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 	protected List<EventInfo> getWantedEventCalculations() {
 		return firstPassWantedCalculations;
 	}
-	
+
 	@Override
 	public void cleanEventsFor(Stock stock, EventInfo eventInfo, String eventListName) {//We don't clean first pass event (idempotent) also they can be cleaned through the ui using 'Clean all previous calculations'
 		//EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, datedeb, datefin, persist, EventDefinition.loadFirstPassPrefEventDefinitions().toArray(new EventInfo[0]));

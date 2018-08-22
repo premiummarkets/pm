@@ -42,10 +42,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.finance.pms.events.scoring.functions.HighLowSolver;
-import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.mutable.MutableInt;
 
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -56,7 +53,8 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.functions.RegLineBalancedHighLowSolver;
+import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
@@ -103,16 +101,16 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		{
 			Boolean isPriceDown = false;
 			Boolean isOscillatorUp = false;
-			Boolean isOscillatorBelowThreshold = isOscBelowLowerThreshold(idxSpan, oscIdx);
+			Boolean isOscWithinBullThresholds = isOscWithinBullThresholds(idxSpan, oscIdx);
 
-			if (isOscillatorBelowThreshold) {
-				isOscillatorUp = highLowSolver.higherLow(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
-				if (isOscillatorUp) {
-					isPriceDown = highLowSolver.higherLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+			if (isOscWithinBullThresholds) {
+				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+				if (isPriceDown) {
+					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
 				}
 			}
 
-			res.setBullishCrossOver(isPriceDown && isOscillatorBelowThreshold && isOscillatorUp);
+			res.setBullishCrossOver(isOscWithinBullThresholds && isPriceDown && isOscillatorUp);
 			if (res.getBullishCrossOver()) {
 				return res;
 			}
@@ -122,21 +120,21 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		{
 			Boolean isPriceUp = false;
 			Boolean isOscillatorDown = false;
-			Boolean isOscillatorAboveThreshold = isOcsAboveUpperThreshold(idxSpan, oscIdx);
+			Boolean isOcsWithinBearThresholds = isOcsWithinBearThresholds(idxSpan, oscIdx);
 
-			if (isOscillatorAboveThreshold) {
-				isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
-				if (isOscillatorDown) {
-					isPriceUp = highLowSolver.lowerHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+			if (isOcsWithinBearThresholds) {
+				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+				if (isPriceUp) {
+					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
 				}
 			}
 
-			res.setBearishCrossBellow(isPriceUp && isOscillatorDown && isOscillatorAboveThreshold);
+			res.setBearishCrossBellow(isOcsWithinBearThresholds && isPriceUp && isOscillatorDown);
 			return res;
 		}
 	}
 
-	protected Boolean isOcsAboveUpperThreshold(int idxSpan, int oscIdx) {
+	protected Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx) {
 		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
 			if (getOscillatorOutput()[i] >= getOscillatorUpperThreshold()) {
 				return true;
@@ -145,7 +143,7 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		return false;
 	}
 
-	protected Boolean isOscBelowLowerThreshold(int idxSpan, int oscIdx) {
+	protected Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx) {
 		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
 			if (getOscillatorOutput()[i] <= getOscillatorLowerThreshold()) {
 				return true;

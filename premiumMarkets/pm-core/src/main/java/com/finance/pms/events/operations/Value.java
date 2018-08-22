@@ -34,8 +34,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.operations.nativeops.StringValue;
 
 @XmlRootElement
 @XmlSeeAlso({NumberValue.class, NumericableMapValue.class, EventMapValue.class, StringValue.class})

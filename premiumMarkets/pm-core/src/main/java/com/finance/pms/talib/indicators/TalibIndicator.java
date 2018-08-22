@@ -45,27 +45,27 @@ import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
 public abstract class TalibIndicator extends Indicator {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicator.class);
-	
+
 	protected MInteger outBegIdx = new MInteger();
 	protected MInteger outNBElement = new MInteger();
 	protected Date outBegDate;
-	
+
 	private Number[] indicatorParams;
 
-	
+
 	protected TalibIndicator(Number...indicatorParams) {
 		this.indicatorParams = indicatorParams;
 	}
 
 	public void calculateIndicator(Quotations quotations) throws TalibException {
-		
+
 		if (!quotations.hasQuotations()) {
 			LOGGER.warn("No Quotations for :" + quotations.getStock() + " !! ");
 			return;
 		}
-		
+
 		RetCode rc = RetCode.InternalError;
 		try {
 			Integer startIdx = quotations.getFirstDateShiftedIdx();
@@ -74,7 +74,7 @@ public abstract class TalibIndicator extends Indicator {
 
 			double[][] inData = getInputData(quotations);
 			rc = talibCall(startIdx, endIdx, inData, indicatorParams);
-			
+
 		} catch (Exception e) {
 			LOGGER.error(this.getClass().getName()+" Calculation error for Quote :" + quotations.getStock(), e);
 			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + quotations.getStock(), e);
@@ -85,13 +85,13 @@ public abstract class TalibIndicator extends Indicator {
 		} else {
 			outBegDate = quotations.getDate(outBegIdx.value);
 		}
-	
+
 	}
 
 	protected abstract double[][] getInputData(Quotations quotations);
-	
+
 	protected abstract void initResArray(int length);
-	
+
 	public abstract Integer getStartShift();
 
 	protected abstract RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inData, Number... indicatorParams);
@@ -99,7 +99,7 @@ public abstract class TalibIndicator extends Indicator {
 	@Override
 	public void exportToCSV(Quotations quotations) {
 		File export = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator + quotations.getStock().getFriendlyName().replaceAll("[/\\*\\.\\?,;><|\\!\\(\\) \\&]", "_") + "_"+ this.getClass().getSimpleName() +".csv");
-		
+
 		try {
 			FileWriter fos = new FileWriter(export);
 			String header = getHeader();
@@ -112,12 +112,12 @@ public abstract class TalibIndicator extends Indicator {
 		} catch (IOException e) {
 			LOGGER.error("", e);
 		}  finally {
-			
+
 		}
 	}
 
 	protected abstract String getHeader();
-	
+
 	protected abstract String getLine(Integer indicator, QuotationUnit qU);
 
 	public MInteger getOutBegIdx() {
@@ -138,7 +138,7 @@ public abstract class TalibIndicator extends Indicator {
 	public String toString() {
 		return "TalibIndicator [outBegIdx=" + outBegIdx + ", outNBElement=" + outNBElement + ", outBegDate=" + outBegDate + ", indicatorParams="+ Arrays.toString(indicatorParams) + "]";
 	}
-	
+
 	public StripedQuotations indicatorStrip(Quotations quotations) {
 		StripedQuotations striped = new StripedQuotations(quotations.getLastDateIdx() - this.getOutBegIdx().value - quotations.getFirstDateShiftedIdx() + 1);
 		for (int i = quotations.getFirstDateShiftedIdx(); i <= quotations.getLastDateIdx() - this.getOutBegIdx().value; i++) {
@@ -146,7 +146,7 @@ public abstract class TalibIndicator extends Indicator {
 		}
 		return striped;
 	}
-	
+
 	public abstract ValidityFilter quotationValidity();
-	
+
 }

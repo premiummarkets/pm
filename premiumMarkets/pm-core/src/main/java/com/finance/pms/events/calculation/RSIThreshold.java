@@ -57,6 +57,8 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 
 
 	RSI rsi;
+	private double lowerThreshold;
+	private double upperThreshold;
 
 	public RSIThreshold(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer[] observers) {
 		super(EventDefinition.PMRSITHRESHOLD, observers);
@@ -69,7 +71,9 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 	}
 
 	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold) {
-		this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
+		this.rsi = new RSI(rsiTimePeriod);
+		this.lowerThreshold = rsiLowerThreshold;
+		this.upperThreshold = rsiUpperThreshold;
 	}
 
 	@Override
@@ -87,13 +91,13 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 
 		{
 			//BULL : RSI is below low threshold (over sold)
-			boolean isRSICrossingBelow = rsi.getLowerThreshold() > this.rsi.getRsi()[rsiIndicatorIndex]; //30 > last rsi 
+			boolean isRSICrossingBelow = getLowerThreshold() > this.rsi.getRsi()[rsiIndicatorIndex]; //30 > last rsi 
 			res.setBullishCrossOver(isRSICrossingBelow);
 			if (res.getBullishCrossOver()) return res;
 		}
 		{
 			//BEAR : RSI is above upper threshold (over bought)
-			boolean isRSICrossingAbove = rsi.getUpperThreshold() < this.rsi.getRsi()[rsiIndicatorIndex]; //70 < last rsi
+			boolean isRSICrossingAbove = getUpperThreshold() < this.rsi.getRsi()[rsiIndicatorIndex]; //70 < last rsi
 			res.setBearishCrossBellow(isRSICrossingAbove);
 		}
 
@@ -130,9 +134,9 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 		BigDecimal calculatorClose = qU.getClose();
 		String line =
 				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
-				+ this.rsi.getLowerThreshold() + ","
-				+ this.rsi.getUpperThreshold() + ","
-				+ this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, calculatorIndex)];
+						+ getLowerThreshold() + ","
+						+ getUpperThreshold() + ","
+						+ this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, calculatorIndex)];
 
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
@@ -152,8 +156,8 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 		return new double[]
 				{
 						this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
-						this.rsi.getLowerThreshold(),
-						this.rsi.getUpperThreshold()
+						getLowerThreshold(),
+						getUpperThreshold()
 				};
 	}
 
@@ -188,6 +192,15 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 	@Override
 	public Integer getOutputBeginIdx() {
 		return rsi.getOutBegIdx().value + getDaysSpan();
+	}
+
+
+	private double getUpperThreshold() {
+		return upperThreshold;
+	}
+
+	private double getLowerThreshold() {
+		return lowerThreshold;
 	}
 
 }

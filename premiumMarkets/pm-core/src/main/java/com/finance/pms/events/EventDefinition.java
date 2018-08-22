@@ -94,8 +94,8 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Aroon oscillator (Up-Down) is above 90", null,
 					"Aroon oscillator (Up-Down) is below -90", null)), //
 
-	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,  
-			new  EventDefDescriptorStatic("Rsi", null, null, null,"Lower threshold","Upper threshold",
+	PMRSITHRESHOLD (110,"RSI Threshold Cross", false,
+			new  EventDefDescriptorStatic("Rsi", null, null, null, "Lower threshold","Upper threshold",
 					"Rsi crosses above Upper threshold", null, "Rsi crosses below Lower threshold", null)),//
 	PMMFITHRESHOLD (111,"MFI Threshold Cross", false, 
 			new  EventDefDescriptorStatic("Mfi", null, null, null,"Lower threshold","Upper threshold", 
@@ -107,10 +107,11 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new  EventDefDescriptorStatic("Oscillator", null, null, "Zero line", null, null,
 					"Chaikin crosses below 0", null, "Chaikin crosses above 0", null)),//
 
-	PMRSIDIVERGENCE (120,"RSI Divergence", false, 
-			new  EventDefDescriptorStatic("Rsi", null , null, null,"Lower threshold","Upper threshold",
+	PMRSIDIVERGENCE (120,"RSI Divergence", false, //FIXME wrong bull, bear descriptions
+			new  EventDefDescriptorStatic("Rsi", null , null, null, "Lower bullish band", "Upper bullish band",
 					"Price is up and Rsi%d makes a lower high over 60 days and above %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiUpperThreshold"},
-					"Price is down and Rsi%d makes a higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiLowerThreshold"})), //
+					"Price is down and Rsi%d makes a higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiLowerThreshold"},
+					"Lower Bearish band", "Upper Bearish band")), //
 	PMMFIDIVERGENCE (121,"MFI Divergence", false, 
 			new  EventDefDescriptorStatic("Mfi", null, null, null,"Lower threshold","Upper threshold",
 					"Price is up and Mfi makes a lower high over 40 days and above 80", null, 
@@ -124,9 +125,10 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Price is up and Chaikin makes a lower high over 60 days", null,
 					"Price is down and Chaikin makes a higher low over 60 days", null)), //
 
-	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, new EventDefDescriptorStatic(
-			"Mighty Chaikin", "Close", null, null, null, null, "Bearish", null, "Bullish", null,
-			"Close lower low", "Chaikin higher low")),
+	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, 
+			new EventDefDescriptorStatic(
+					"Mighty Chaikin", "Close", null, null, null, null, "Bearish", null, "Bullish", null,
+					"Close lower low", "Chaikin higher low")),
 
 	//PM not used
 	PMOBVDIVERGENCE (151,"OBV Divergence", false, null),
@@ -188,14 +190,14 @@ public enum EventDefinition implements Serializable, EventInfo {
 	INFINITE (999,"All", false, null), 
 
 
-	PMRSIDIVERGENCEOLD (620,"Old RSI Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null,"Bearish", null, "Bullish", null)), 
-	PMMFIDIVERGENCEOLD (621,"Old MFI Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null,"Bearish", null, "Bullish", null)), 
-	PMSSTOCHDIVERGENCEOLD (622,"Old Stochastic Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null,"Bearish", null, "Bullish", null)), 
+	PMRSIDIVERGENCEOLD (620,"Old RSI Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null, "Bearish", null, "Bullish", null)),
+	PMMFIDIVERGENCEOLD (621,"Old MFI Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null, "Bearish", null, "Bullish", null)),
+	PMSSTOCHDIVERGENCEOLD (622,"Old Stochastic Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null,"Bearish", null, "Bullish", null)),
 	//Moved to 130 PMCHAIKINOSCDIVERGENCEOLD (623,"Old Chaikin Divergence", false, new EventDefDescriptorStatic("Chaikin Osc", null, null, null, null, null,"Bearish", null, "Bullish", null)),
 
 	NEURALNEUROPHOLD (703,"Old Neuroph Neural", true, 
 			new  EventDefDescriptorStatic("Old Neuroph Neural output", null, null, null, null, null,
-					"Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}, 
+					"Neural(%d,%d) signal is down", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"},
 					"Neural(%d,%d) signal is up", new String[]{Config.EVENT_SIGNAL_NAME, "PerceptronTrainingPMEventOccLowerSpan", "ExpectedSmothingSMAPeriod"}));
 
 

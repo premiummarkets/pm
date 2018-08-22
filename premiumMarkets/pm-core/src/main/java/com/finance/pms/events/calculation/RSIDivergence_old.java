@@ -55,91 +55,97 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 public class RSIDivergence_old extends TalibIndicatorsOperator {
-	
+
 	SMA sma;
 	RSI rsi;
-	
+
+	private double upperThreshold;
+	private double lowerThreshold;
+
 	private Quotations quotationsCopy;
-	
-//	public RSIDivergence_old(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
-////		private Integer rsiTimePeriod = 14;
-////		private Integer rsiUpperThreshold = 70;
-////		private Integer rsiLowerThreshold = 30;
-//		this(stock,new RSI(stock, 14, 70, 30, startDate, endDate, calculationCurrency), startDate,endDate,calculationCurrency);
-//	}
-//	
-//	public RSIDivergence_old(Stock stock, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
-//		super(stock, startDate, endDate, calculationCurrency);
-//
-//		this.rsi = rsi;
-//		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-//		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(rsiQuotationStartDateIdx, endDate);
-//		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
-//		
-//		try {
-//			this.sma = new SMA(stock, 12, startDate, endDate, calculationCurrency, Math.max(20, getDaysSpan()));
-//		} catch (TalibException e) {
-//			throw new NotEnoughDataException(stock, e.getMessage(),e);
-//		} catch (NoQuotationsException e) {
-//			throw new NotEnoughDataException(stock, e.getMessage(),e);
-//		}
-//		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-//		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
-//		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
-//	}
-	
+
+
+	//	public RSIDivergence_old(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Boolean persistTrainingEvents, Observer... observers) throws NotEnoughDataException, TalibException, NoQuotationsException {
+	////		private Integer rsiTimePeriod = 14;
+	////		private Integer rsiUpperThreshold = 70;
+	////		private Integer rsiLowerThreshold = 30;
+	//		this(stock,new RSI(stock, 14, 70, 30, startDate, endDate, calculationCurrency), startDate,endDate,calculationCurrency);
+	//	}
+	//	
+	//	public RSIDivergence_old(Stock stock, RSI rsi, Date startDate, Date endDate, Currency calculationCurrency) throws NotEnoughDataException {
+	//		super(stock, startDate, endDate, calculationCurrency);
+	//
+	//		this.rsi = rsi;
+	//		rsiQuotationStartDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+	//		Integer macdQuotationEndDateIdx = rsi.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(rsiQuotationStartDateIdx, endDate);
+	//		isValidData(stock, rsi, startDate, rsiQuotationStartDateIdx, macdQuotationEndDateIdx);
+	//		
+	//		try {
+	//			this.sma = new SMA(stock, 12, startDate, endDate, calculationCurrency, Math.max(20, getDaysSpan()));
+	//		} catch (TalibException e) {
+	//			throw new NotEnoughDataException(stock, e.getMessage(),e);
+	//		} catch (NoQuotationsException e) {
+	//			throw new NotEnoughDataException(stock, e.getMessage(),e);
+	//		}
+	//		smaQuotationStartDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+	//		Integer smaQuotationEndDateIdx = sma.getIndicatorQuotationData().getClosestIndexBeforeOrAtDateOrIndexZero(smaQuotationStartDateIdx, endDate);
+	//		isValidData(stock, sma, startDate, smaQuotationStartDateIdx, smaQuotationEndDateIdx);
+	//	}
+
 	public RSIDivergence_old(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer... observers) {
 		super(EventDefinition.PMRSIDIVERGENCEOLD, observers);
 		init(rsiTimePeriod, rsiUpperThreshold, rsiLowerThreshold, 12);
 	}
-	
+
 	public RSIDivergence_old(EventInfo reference) {
-	    //Reflective ops generator
+		//Reflective ops generator
 		super(reference);
 	}
 
 	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Integer signalSMAPeriod) {
-	    this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
-        this.sma = new SMA(signalSMAPeriod);
+		this.rsi = new RSI(rsiTimePeriod);
+		this.lowerThreshold = rsiLowerThreshold;
+		this.upperThreshold = rsiUpperThreshold;
+		this.sma = new SMA(signalSMAPeriod);
 	}
 
 	@Override
 	public void genericInit(Integer... constants) {
-	    init(constants[0], constants[1], constants[2], constants[3]);
+		init(constants[0], constants[1], constants[2], constants[3]);
 	}
 
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
-		
-		
+
+
 		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
-		
+
 		int rsiIdx = getIndicatorIndexFromQuotationIndex(this.rsi, quotationIdx);
 		double[] rsiLookBackP = Arrays.copyOfRange(this.rsi.getRsi(), rsiIdx - getDaysSpan(), rsiIdx);
 		double[] quotationLookBackP = Arrays.copyOfRange(quotationsCopy.getCloseValues(), quotationIdx - getDaysSpan(), quotationIdx);
-		
+
 		int smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 		double[] quotationLookBackPThresh = Arrays.copyOfRange(this.sma.getSma(), smaIndex - getDaysSpan(), smaIndex);
-		
+
 		double[] lowThreshLookBackP = new double[getDaysSpan()];
 		for (int i = 0; i < lowThreshLookBackP.length; i++) {
-			lowThreshLookBackP[i] = this.rsi.getLowerThreshold();
-			
+			lowThreshLookBackP[i] = getLowerThreshold();
+
 		}
-		
+
 		double[] upperThreshLookBackP = new double[getDaysSpan()];
 		for (int i = 0; i < upperThreshLookBackP.length; i++) {
-			upperThreshLookBackP[i] = this.rsi.getUpperThreshold();
-			
+			upperThreshLookBackP[i] = getUpperThreshold();
+
 		}
-		
+
 		{
 			Boolean isPriceDown = lowerLow(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isRsiUp = higherLow(rsiLookBackP, lowThreshLookBackP) > 0;
 			res.setBullishCrossOver(isPriceDown && isRsiUp); 
-			
+
 			if (res.getBullishCrossOver()) return res;
 
 		}
@@ -147,22 +153,22 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isRsiDown = lowerHigh(rsiLookBackP, upperThreshLookBackP);
 			res.setBearishCrossBellow(isPriceUp && isRsiDown);
-		
+
 			return res;
 		}
-		
+
 	}
-	
+
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
 		if (indicator instanceof SMA) return this.isInDataRange((SMA)indicator, index);
 		if (indicator instanceof RSI) return this.isInDataRange((RSI)indicator, index);
 		throw new RuntimeException("Booo",new Throwable());
 	}
-	
+
 	private boolean isInDataRange(SMA sma, Integer index) {
 		return (getDaysSpan() <= index && index < sma.getSma().length);
 	}
-	
+
 	public Boolean isInDataRange(RSI rsi, Integer index) {
 		return (getDaysSpan() <= index && index < rsi.getRsi().length);
 	}
@@ -170,7 +176,7 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
+		//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, RSI DATE, RSI QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, LOW TH, UP TH, RSI,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -182,14 +188,14 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate, getEventDefinition(),EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate, getEventDefinition(),EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
-//		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
+		//		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,rsiQuotationStartDateIdx);
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
-//			+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
-			+ this.rsi.getLowerThreshold() + ","
-			+ this.rsi.getUpperThreshold() + ","
-			+ this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, calculatorIndex)];
-		
+				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 
+				//			+ this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getDate()+ "," +this.rsi.getIndicatorQuotationData().get(macdQuotationIndex).getClose() + ","
+				+ getLowerThreshold() + ","
+				+ getUpperThreshold() + ","
+				+ this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, calculatorIndex)];
+
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
@@ -197,20 +203,20 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 		} else {
 			line = line + ",0,0,";
 		}
-		
+
 		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
-		
+
 		return line;
 	}
-	
+
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
-			
+
 		return new double[]
 				{
-				this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
-				this.rsi.getLowerThreshold(),
-				this.rsi.getUpperThreshold(),
+						this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
+						getLowerThreshold(),
+						getUpperThreshold(),
 				};
 	}
 
@@ -230,12 +236,12 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
-		
+
 		quotationsCopy = quotations;
-		
+
 		this.rsi.calculateIndicator(quotations);
 		this.sma.calculateIndicator(quotations);
-		
+
 	}
 
 
@@ -255,5 +261,14 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 	@Override
 	public Integer getOutputBeginIdx() {
 		return Math.max(rsi.getOutBegIdx().value, sma.getOutBegIdx().value) + getDaysSpan();
+	}
+
+
+	private double getUpperThreshold() {
+		return upperThreshold;
+	}
+
+	private double getLowerThreshold() {
+		return lowerThreshold;
 	}
 }

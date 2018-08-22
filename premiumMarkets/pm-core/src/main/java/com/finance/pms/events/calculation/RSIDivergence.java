@@ -54,9 +54,15 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	RSI rsi;
 	private Integer rsiQuotationStartDateIdx;
 
-	public RSIDivergence(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold, Observer... observers) {
+	private int upperBullishBand; //= 80;
+	private int lowerBullishBand; //= 40;
+
+	private int upperBearishBand; //= 60;
+	private int lowerBearishBand; //= 20;
+
+	public RSIDivergence(Integer rsiTimePeriod, Integer rsiLowerBullishBand, Integer rsiUpperBullishBand, Integer rsiLowerBearishBand, Integer rsiUpperBearishBand, Observer... observers) {
 		super(EventDefinition.PMRSIDIVERGENCE, observers);
-		this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
+		init(rsiTimePeriod, rsiLowerBullishBand, rsiUpperBullishBand, rsiLowerBearishBand, rsiUpperBearishBand);
 	}
 
 	public RSIDivergence(EventInfo reference) {
@@ -64,13 +70,17 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 		super(reference);
 	}
 
-	protected void init(Integer rsiTimePeriod, Integer rsiLowerThreshold, Integer rsiUpperThreshold) {
-		this.rsi = new RSI(rsiTimePeriod, rsiLowerThreshold, rsiUpperThreshold);
+	protected void init(Integer rsiTimePeriod, Integer rsiLowerBullishBand, Integer rsiUpperBullishBand, Integer rsiLowerBearishBand, Integer rsiUpperBearishBand) {
+		this.rsi = new RSI(rsiTimePeriod);
+		this.lowerBullishBand = rsiLowerBullishBand;
+		this.upperBullishBand = rsiUpperBullishBand;
+		this.lowerBearishBand = rsiLowerBearishBand;
+		this.upperBearishBand = rsiUpperBearishBand;
 	}
 
 	@Override
 	public void genericInit(Integer... constants) {
-		init(constants[0], constants[1], constants[2]);
+		init(constants[0], constants[1], constants[2], constants[3], constants[4]);
 	}
 
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
@@ -105,28 +115,27 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 		return new double[]
 				{
 						this.rsi.getRsi()[getIndicatorIndexFromQuotationIndex(this.rsi, idx)],
-						this.rsi.getLowerThreshold(),
-						this.rsi.getUpperThreshold(),
+						lowerBullishBand,
+						upperBullishBand,
+						lowerBearishBand,
+						upperBearishBand
 				};
 	}
-
 
 	@Override
 	public EventDefinition getEventDefinition() {
 		return EventDefinition.PMRSIDIVERGENCE;
 	}
 
-
 	@Override
 	protected double getOscillatorLowerThreshold() {
-		return this.rsi.getLowerThreshold();
+		return this.lowerBearishBand;
 	}
 
 	@Override
 	protected double getOscillatorUpperThreshold() {
-		return this.rsi.getUpperThreshold();
+		return this.upperBullishBand;
 	}
-
 
 	@Override
 	protected Integer getOscillatorQuotationStartDateIdx() {
@@ -146,6 +155,26 @@ public class RSIDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected Double getAlphaBalance() {
 		return (double) (getDaysSpan()/4);
+	}
+
+	@Override
+	protected Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (upperBullishBand >= getOscillatorOutput()[i] && getOscillatorOutput()[i] >= lowerBullishBand) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	protected Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (upperBearishBand >= getOscillatorOutput()[i] && getOscillatorOutput()[i] >= lowerBearishBand) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

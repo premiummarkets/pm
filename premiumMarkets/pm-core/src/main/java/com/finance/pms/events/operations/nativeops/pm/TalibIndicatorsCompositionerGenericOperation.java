@@ -113,7 +113,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 			TalibIndicatorsOperator calculator = calculatorClass.getConstructor(EventInfo.class).newInstance(thisEventInfoOpsCompoOperation);
 
 			List<Integer> inputConstants = inputs.stream().map(i -> ((NumberValue) i).getValue(targetStock).intValue()).collect(Collectors.toList());
-			calculator.genericInit(inputConstants.toArray(new Integer[0]));
+			calculator.genericInit(inputConstants.toArray(new Integer[inputConstants.size()]));
 
 			Date shiftedStartDate = getStartDate(targetStock.getStartDate(), thisStartShift);
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(

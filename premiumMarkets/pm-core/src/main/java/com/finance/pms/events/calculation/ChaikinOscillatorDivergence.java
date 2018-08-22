@@ -115,12 +115,12 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	}
 
 	@Override
-	protected Boolean isOcsAboveUpperThreshold(int idxSpan, int mfiIdx) {
+	protected Boolean isOcsWithinBearThresholds(int idxSpan, int mfiIdx) {
 		return true;
 	}
 
 	@Override
-	protected Boolean isOscBelowLowerThreshold(int idxSpan, int mfiIdx) {
+	protected Boolean isOscWithinBullThresholds(int idxSpan, int mfiIdx) {
 		return true;
 	}
 

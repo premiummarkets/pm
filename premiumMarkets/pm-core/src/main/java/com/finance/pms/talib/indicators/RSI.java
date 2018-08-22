@@ -42,16 +42,12 @@ public class RSI extends TalibIndicator {
 	protected static MyLogger LOGGER = MyLogger.getLogger(RSI.class);
 
 	private Integer timePeriod;
-	private Integer upperThreshold;
-	private Integer lowerThreshold;
 
 	private double[] rsi;
 
-	public RSI(Integer timePeriod, Integer lowerThreshold, Integer upperThreshold) {
-		super(timePeriod, lowerThreshold, upperThreshold);
+	public RSI(Integer timePeriod) {
+		super(timePeriod);
 		this.timePeriod = timePeriod;
-		this.upperThreshold = upperThreshold;
-		this.lowerThreshold = lowerThreshold;
 	}
 
 	@Override
@@ -80,17 +76,6 @@ public class RSI extends TalibIndicator {
 	public double[] getRsi() {
 		return rsi;
 	}
-
-
-	public Integer getUpperThreshold() {
-		return upperThreshold;
-	}
-
-
-	public Integer getLowerThreshold() {
-		return lowerThreshold;
-	}
-
 
 	@Override
 	protected double[][] getInputData(Quotations quotations) {
