@@ -149,7 +149,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		boolean smaReversalWanted = checkWanted(EventDefinition.PMSMAREVERSAL);
 		boolean rsiThresholdCrossWanted =checkWanted(EventDefinition.PMRSITHRESHOLD);
 		boolean rsiDivergenceWanted =checkWanted(EventDefinition.PMRSIDIVERGENCE);
-		boolean obvDivergenceWanted = checkWanted(EventDefinition.PMOBVDIVERGENCE);
+		boolean obvDivergenceWanted = checkWanted(EventDefinition.PMOBVDIVERGENCEOLD);
 		boolean mfiDivergenceWanted = checkWanted(EventDefinition.PMMFIDIVERGENCE);
 		boolean mfiThresholdWanted = checkWanted(EventDefinition.PMMFITHRESHOLD);
 		boolean varianceWanted = checkWanted(EventDefinition.VARIANCE);
@@ -193,7 +193,7 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		}
 
 		if (rsiDivergenceWanted) {
-			RSIDivergence rSIDivergence = new RSIDivergence(rsiTimePeriod, 40, 80, 20, 60, observers);
+			RSIDivergence rSIDivergence = new RSIDivergence(rsiTimePeriod, 30, 70, 40, 80, 20, 60, observers);
 			startDateShift =  Math.max(startDateShift, rSIDivergence.getStartShift());
 			eventCalculations.add(rSIDivergence);	
 		}
@@ -219,14 +219,14 @@ public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationTh
 		}
 
 		if (stochThresholdWanted) {
-			StochasticThreshold stochThreshold = new StochasticThreshold(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, observers);
+			StochasticThreshold stochThreshold = new StochasticThreshold(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, 20, 80, observers);
 			startDateShift =  Math.max(startDateShift, stochThreshold.getStartShift());
 			eventCalculations.add(stochThreshold);
 		}
 
 
 		if (stochDivergenceWanted) {
-			StochasticDivergence stochDiv = new StochasticDivergence(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, observers);
+			StochasticDivergence stochDiv = new StochasticDivergence(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, 20, 80, observers);
 			startDateShift =  Math.max(startDateShift, stochDiv.getStartShift());
 			eventCalculations.add(stochDiv);
 		}

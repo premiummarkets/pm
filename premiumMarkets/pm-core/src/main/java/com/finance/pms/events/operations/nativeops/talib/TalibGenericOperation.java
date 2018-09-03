@@ -119,17 +119,59 @@ public class TalibGenericOperation extends TalibOperation {
 		}
 
 		//N input data
-		int startIdx = 0;
-		int endIdx = Integer.MAX_VALUE;
-		Set<Date> dateKeySet = new TreeSet<Date>();
+		//		int startIdx = 0;
+		//		int endIdx = Integer.MAX_VALUE;
+		//		Set<Date> dateKeySet = new TreeSet<Date>();
+		//		List<double[]> inDatas = new ArrayList<double[]>();
+		//		for (int i = 0; i < inDataNames.size(); i++) {
+		//			SortedMap<Date, Double> inData = ((NumericableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
+		//			endIdx  = Math.min(endIdx, inData.size()-1);
+		//			dateKeySet.addAll(inData.keySet());
+		//			inDatas.add(mapToArray(inData));
+		//			args[i+inDataNamesArgsIdx]=inDatas.get(i);
+		//		}
+		//
+		//		args[0] = startIdx;
+		//		args[1] = endIdx;
+
+		List<SortedMap<Date, Double>> inDataMaps = new ArrayList<>();
+		List<Date> smallestDateKeySet = new ArrayList<Date>();
+		{
+			//Grab all
+			Set<Date> fullDateKeySet = new TreeSet<Date>();
+			for (int i = 0; i < inDataNames.size(); i++) {
+				SortedMap<Date, Double> inDataMap = ((NumericableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
+				fullDateKeySet.addAll(inDataMap.keySet());
+				inDataMaps.add(inDataMap);
+			}
+
+			//Smallest discriminatory
+			for(Date date : fullDateKeySet) {
+				Boolean add = true;
+				for (int i = 0; i < inDataNames.size(); i++) {
+					SortedMap<Date, Double> sortedMap = inDataMaps.get(i);
+					Double doubleAtDate = sortedMap.get(date);
+					if (doubleAtDate == null || doubleAtDate.isNaN()) {
+						add = false;
+						continue;
+					}
+				}
+				if (add) {
+					smallestDateKeySet.add(date);
+				}
+			}
+		}
+
+		//Map to double[] only the smallest date key set
 		List<double[]> inDatas = new ArrayList<double[]>();
 		for (int i = 0; i < inDataNames.size(); i++) {
-			SortedMap<Date, Double> inData = ((NumericableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
-			endIdx  = Math.min(endIdx, inData.size()-1);
-			dateKeySet.addAll(inData.keySet());
-			inDatas.add(mapToArray(inData));
-			args[i+inDataNamesArgsIdx]=inDatas.get(i);
+			SortedMap<Date, Double> inData = inDataMaps.get(i);
+			inDatas.add(mapToArray(smallestDateKeySet, inData));
+			args[i+inDataNamesArgsIdx] = inDatas.get(i);
 		}
+
+		int startIdx = 0;
+		int endIdx = smallestDateKeySet.size()-1;
 
 		args[0] = startIdx;
 		args[1] = endIdx;
@@ -170,15 +212,15 @@ public class TalibGenericOperation extends TalibOperation {
 		if (getAvailableOutputSelectors().isEmpty()) {
 
 			if (outDataNames.get(0).contains("Integer")) {
-				return arrayToMap(dateKeySet, (int[]) outDatas.get(0), outBegIdx.value);
+				return arrayToMap(smallestDateKeySet, (int[]) outDatas.get(0), outBegIdx.value);
 			} else {
-				return arrayToMap(dateKeySet, (double[]) outDatas.get(0), outBegIdx.value);
+				return arrayToMap(smallestDateKeySet, (double[]) outDatas.get(0), outBegIdx.value);
 			}
 
 		} else {
 			for (int i = 0; i < outSize; i++) {//Several outputs available (we assume double[] ...)//XXX
 				if (getOutputSelector().equals(outDataNames.get(i))){
-					return arrayToMap(dateKeySet, (double[]) outDatas.get(i), outBegIdx.value);
+					return arrayToMap(smallestDateKeySet, (double[]) outDatas.get(i), outBegIdx.value);
 				}
 			}
 		}

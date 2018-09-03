@@ -52,13 +52,13 @@ import com.finance.pms.talib.indicators.TalibException;
 public class PMMightyChaikinOperation extends PMDataFreeOperation {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PMMightyChaikinOperation.class);
-	
+
 	public PMMightyChaikinOperation() {
 		super("chaikin_", "Chaikin indicator house made", 
 				new NumberOperation("number","Fast Period","Not implemented - Chaikin fast period", new NumberValue(3.0)),
 				new NumberOperation("number","Slow Period","Not implemented - Chaikin slow period", new NumberValue(10.0)));
 	}
-	
+
 	public PMMightyChaikinOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
@@ -67,7 +67,7 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+
 		//Param check
 		Integer fastPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		Integer slowPeriod = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
@@ -75,14 +75,14 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
 			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(fastPeriod, slowPeriod);
-			
+
 			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(
 					targetStock.getStock(), getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(),
 					mChaikin.getStartShift(), mChaikin.quotationsValidity());
-			
+
 			SortedMap<EventKey, EventValue> eventsFor = mChaikin.calculateEventsFor(quotationsInstance, "inMem"+this.getClass().getSimpleName()+"Operation ");
-			
+
 			NumericableMapValue buySellEvents = new DoubleMapValue();
 			for (EventKey eventKey : eventsFor.keySet()) {
 				if (eventKey.getEventType().equals(EventType.BULLISH)) {
@@ -96,7 +96,7 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 				}
 			}
 			return buySellEvents;
-			
+
 		} catch (NoQuotationsException e) {
 			LOGGER.warn(e);
 		} catch (TalibException e) {

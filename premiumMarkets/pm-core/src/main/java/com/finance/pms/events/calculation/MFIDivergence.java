@@ -38,36 +38,27 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.MFI;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class MFIDivergence extends OscillatorDivergenceCalculator {
-	
+public class MFIDivergence extends DivergentOperator {
+
 	MFI mfi;
 
 	public MFIDivergence(Integer timePeriod, Integer lowerThres, Integer upperThres, Observer... observers) {
 		super(EventDefinition.PMMFIDIVERGENCE, observers);
 		init(timePeriod, lowerThres, upperThres);
 	}
-	
-    public MFIDivergence(EventInfo reference) {
-        //Reflective ops generator
-    	super(reference);
-    }
-    
-    protected void init(Integer timePeriod, Integer lowerThres, Integer upperThres) {
-        this.mfi = new MFI(timePeriod, lowerThres, upperThres);
-    }
-    
-    @Override
-    public void genericInit(Integer... constants) {
-        init(constants[0], constants[1], constants[2]);
-    }
+
+	public MFIDivergence(EventInfo reference) {
+		//Reflective ops generator
+		super(reference);
+	}
+
+	protected void init(Integer timePeriod, Integer lowerThres, Integer upperThres) {
+		this.mfi = new MFI(timePeriod, lowerThres, upperThres); //FIXME Threshold are not part of the indicator definition but this divergence
+	}
 
 	@Override
-	protected double getOscillatorLowerThreshold() {
-		return mfi.getLowerThreshold();
-	}
-	@Override
-	protected double getOscillatorUpperThreshold() {
-		return mfi.getUpperThreshold();
+	public void genericInit(Integer... constants) {
+		init(constants[0], constants[1], constants[2]);
 	}
 
 	@Override
@@ -85,31 +76,32 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, MFI DATE, MFI QUOTE, MFI HigherLow, MFI LowerHigh, LOW TH, UP TH, MFI ,bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
-		
+
 	}
-	
+
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		return new double[]
 				{
-					getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
-					getOscillatorLowerThreshold(),
-					getOscillatorUpperThreshold()
+						getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), idx)],
+						mfi.getLowerThreshold(),
+						mfi.getUpperThreshold()
 				};
 	}
-	
+
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer index) {
 		if (indicator instanceof MFI) return this.isInDataRange((MFI)indicator, index);
 		throw new RuntimeException("Boo",new Throwable());
 	}
-	
+
 	public Boolean isInDataRange(MFI rsi, Integer index) {
 		return getDaysSpan() <= index && index < rsi.getMfi().length;
 	}
 
 	@Override
 	protected int getDaysSpan() {
+		// TODO Auto-generated method stub
 		return 42;
 	}
 
@@ -121,6 +113,32 @@ public class MFIDivergence extends OscillatorDivergenceCalculator {
 	@Override
 	protected Double getAlphaBalance() {
 		return (double) (getDaysSpan()/4);
+	}
+
+	protected Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx) {
+		// TODO Auto-generated method stub
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (getOscillatorOutput()[i] >= mfi.getUpperThreshold()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx) {
+		// TODO Auto-generated method stub
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (getOscillatorOutput()[i] <= mfi.getLowerThreshold()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	protected int oscLookBackSmoothingPeriod() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

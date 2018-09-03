@@ -31,7 +31,20 @@
 
 
 package com.finance.pms.events.calculation;
-
+/**
+ * is bullish when close makes a lower low over 35 days spanning 5 days smoothed 0 days and 
+ *  StochOsc makes a higher low over 35 days spanning 5 days smoothed 0 days and 
+ *  StochOsc is below threshold 20 over 35 days for 0 days;
+ * is bearish when close makes a higher high over 35 days spanning 5 days smoothed 0 days and 
+ *  StochOsc makes a lower high over 35 days spanning 5 days smoothed 0 days and 
+ *  StochOsc is above threshold 80 over 35 days for 0 days;
+ *  
+ *  with StochOsc : stoch:SlowK(14,1,Sma,3,Sma,high,low,close) ~ stochF:FastK(14,3,Sma,high,low,close)
+ *  
+ * TODO : https://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:stochastic_oscillator_fast_slow_and_full
+ * Middle line cross confirmation
+ * Bull Bear Set-ups
+ */
 import java.util.List;
 import java.util.Observer;
 
@@ -43,13 +56,16 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class StochasticDivergence extends OscillatorDivergenceCalculator {
+public class StochasticDivergence extends DivergentOperator {
 
 	private StochasticOscillator stochOsc;
 
-	public StochasticDivergence(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
+	private double upperThreshold;
+	private double lowerThreshold;
+
+	public StochasticDivergence(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Integer lowerThreshold, Integer upperThreshold, Observer... observers) {
 		super(EventDefinition.PMSSTOCHDIVERGENCE, observers);
-		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, lowerThreshold, upperThreshold);
 	}
 
 	public StochasticDivergence(EventInfo reference) {
@@ -57,13 +73,15 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 		super(reference);
 	}
 
-	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
+	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Integer lowerThreshold, Integer upperThreshold) {
 		this.stochOsc = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		this.lowerThreshold = lowerThreshold;
+		this.upperThreshold = upperThreshold;
 	}
 
 	@Override
 	public void genericInit(Integer... constants) {
-		init(constants[0], constants[1], constants[2]);
+		init(constants[0], constants[1], constants[2], constants[3], constants[4]);
 	}
 
 	@Override
@@ -102,14 +120,22 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 				{
 						this.stochOsc.getSlowK()[stochIndex],
 						this.stochOsc.getSlowD()[stochIndex],
-						this.stochOsc.getLowerThreshold(),
-						this.stochOsc.getUpperThreshold(),
+						getLowerThreshold(),
+						getUpperThreshold(),
 				};
+	}
+
+	private double getUpperThreshold() {
+		return upperThreshold;
+	}
+
+	private double getLowerThreshold() {
+		return lowerThreshold;
 	}
 
 	@Override
 	protected int getDaysSpan() {
-		return 84;
+		return 35;
 	}
 
 	@Override
@@ -118,18 +144,8 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 	}
 
 	@Override
-	protected double getOscillatorLowerThreshold() {
-		return this.stochOsc.getLowerThreshold();
-	}
-
-	@Override
-	protected double getOscillatorUpperThreshold() {
-		return this.stochOsc.getUpperThreshold();
-	}
-
-	@Override
 	protected double[] getOscillatorOutput() {
-		return this.stochOsc.getSlowD();
+		return this.stochOsc.getSlowK();
 	}
 
 	@Override
@@ -139,7 +155,33 @@ public class StochasticDivergence extends OscillatorDivergenceCalculator {
 
 	@Override
 	protected Double getAlphaBalance() {
-		return (double) (getDaysSpan()/2);
+		return (double) (getDaysSpan()/7);
+	}
+
+	protected Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (getOscillatorOutput()[i] >= upperThreshold) {
+				return true;
+			}
+		}
+		//if (getOscillatorOutput()[oscIdx - idxSpan] >= stochOsc.getUpperThreshold()) return true;
+		return false;
+	}
+
+
+	protected Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (getOscillatorOutput()[i] <= lowerThreshold) {
+				return true;
+			}
+		}
+		//if (getOscillatorOutput()[oscIdx - idxSpan] <= stochOsc.getLowerThreshold()) return true;
+		return false;
+	}
+
+	@Override
+	protected int oscLookBackSmoothingPeriod() {
+		return 0;
 	}
 
 }

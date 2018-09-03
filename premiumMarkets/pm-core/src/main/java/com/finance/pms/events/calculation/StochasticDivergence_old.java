@@ -126,13 +126,13 @@ public class StochasticDivergence_old extends TalibIndicatorsOperator {
 		
 		double[] lowThreshLookBackP = new double[getDaysSpan()];
 		for (int i = 0; i < lowThreshLookBackP.length; i++) {
-			lowThreshLookBackP[i] = this.stochOsc.getLowerThreshold();
+			lowThreshLookBackP[i] = getLowerThreshold();
 			
 		}
 		
 		double[] upperThreshLookBackP = new double[getDaysSpan()];
 		for (int i = 0; i < upperThreshLookBackP.length; i++) {
-			upperThreshLookBackP[i] = this.stochOsc.getUpperThreshold();
+			upperThreshLookBackP[i] = getUpperThreshold();
 			
 		}
 		
@@ -154,6 +154,14 @@ public class StochasticDivergence_old extends TalibIndicatorsOperator {
 		
 	}
 	
+	private double getUpperThreshold() {
+		return 80;
+	}
+
+	private double getLowerThreshold() {
+		return 20;
+	}
+
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
 		if (indicator instanceof HouseAroon) return this.isInDataRange((HouseAroon)indicator, indicatorIndex);
@@ -197,8 +205,8 @@ public class StochasticDivergence_old extends TalibIndicatorsOperator {
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
 //			+ this.stochOsc.getIndicatorQuotationData().get(stochQuotationIndex).getDate() + ","
-			+ this.stochOsc.getLowerThreshold() + ","
-			+ this.stochOsc.getUpperThreshold() + ","
+			+ getLowerThreshold() + ","
+			+ getUpperThreshold() + ","
 			+ this.stochOsc.getSlowK()[stochIndex] + ","
 			+ this.stochOsc.getSlowD()[stochIndex];
 		
@@ -223,8 +231,8 @@ public class StochasticDivergence_old extends TalibIndicatorsOperator {
 				{
 				this.stochOsc.getSlowK()[stochIndex],
 				this.stochOsc.getSlowD()[stochIndex],
-				this.stochOsc.getLowerThreshold(),
-				this.stochOsc.getUpperThreshold(),
+				getLowerThreshold(),
+				getUpperThreshold(),
 				};
 	}
 

@@ -29,12 +29,9 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -43,32 +40,35 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
-import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
-import com.finance.pms.talib.dataresults.StandardEventKey;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOperator {
+/**
+ * @author Gheeyom Thor
+ * @see https://stockcharts.com/school/
+ *
+ */
+public abstract class DivergentOperator extends TalibIndicatorsOperator {
 
-	//	private static MyLogger LOGGER = MyLogger.getLogger(OscillatorDivergenceCalculator.class);
+	//private static MyLogger LOGGER = MyLogger.getLogger(OscillatorDivergenceCalculator.class);
 	private HighLowSolver highLowSolver;
 
 	private Quotations quotationsCopy;
 	private double[] closeValues;
 
-	public OscillatorDivergenceCalculator(EventInfo eventInfo, Observer ...observers) {
+	public DivergentOperator(EventInfo eventInfo, Observer ...observers) {
 		super(eventInfo, observers);
 		highLowSolver = new SmoothHighLowSolver();
 	}
@@ -80,18 +80,15 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		FormulatRes res = new FormulatRes((EventDefinition) getEventDefinition());
 		res.setCurrentDate(qU.getDate());
 
-		Calendar currentDateCal = Calendar.getInstance();
-		currentDateCal.setTime(res.getCurrentDate());
-		Date lookBackStartDate = QuotationsFactories.getFactory().incrementDate(currentDateCal, -getDaysSpan()).getTime();
-		int lookBackStartIdx = quotationsCopy.getClosestIndexBeforeOrAtDateOrIndexZero(0, lookBackStartDate);
-		int idxSpan = quotationIdx - lookBackStartIdx;
+		int idxSpan = getDaysSpan();
+		int lookBackStartIdx = quotationIdx - idxSpan;
 
 		int oscIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
 		int oscLookBackStartIdx = oscIdx - idxSpan;
-		if (oscLookBackStartIdx < 0) {//No enough data
+		if (lookBackStartIdx < 0 || oscLookBackStartIdx < 0) {//No enough data
 			throw new InvalidAlgorithmParameterException(
 					"Negative look back span for " + quotationsCopy.getStock() + " and " + this.getEventDefinition() +
-							". LookBackPeriodStart : " + lookBackStartDate + ", days span " + getDaysSpan() +
+							". Current date : " + res.getCurrentDate() + ", days span " + getDaysSpan() +
 							", first date available : " + quotationsCopy.get(0));
 		}
 
@@ -104,9 +101,9 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 			Boolean isOscWithinBullThresholds = isOscWithinBullThresholds(idxSpan, oscIdx);
 
 			if (isOscWithinBullThresholds) {
-				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
 				if (isPriceDown) {
-					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
 				}
 			}
 
@@ -122,9 +119,9 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 			Boolean isOcsWithinBearThresholds = isOcsWithinBearThresholds(idxSpan, oscIdx);
 
 			if (isOcsWithinBearThresholds) {
-				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
 				if (isPriceUp) {
-					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>());
+					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
 				}
 			}
 
@@ -133,64 +130,54 @@ public abstract class OscillatorDivergenceCalculator extends TalibIndicatorsOper
 		}
 	}
 
-	protected Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx) {
-		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
-			if (getOscillatorOutput()[i] >= getOscillatorUpperThreshold()) {
-				return true;
-			}
-		}
-		return false;
-	}
 
-	protected Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx) {
-		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
-			if (getOscillatorOutput()[i] <= getOscillatorLowerThreshold()) {
-				return true;
-			}
-		}
-		return false;
-	}
+	protected abstract int oscLookBackSmoothingPeriod();
 
-	protected abstract double getOscillatorLowerThreshold();
+	protected abstract Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx);
 
-	protected abstract double getOscillatorUpperThreshold();
+	protected abstract Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx);
 
 	protected abstract double[] getOscillatorOutput();
 
-	protected abstract TalibIndicator getOscillator();	
+	protected abstract TalibIndicator getOscillator();
 
 	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see com.finance.pms.events.calculation.TalibIndicatorsOperator#buildLine(int, java.util.Map, com.finance.pms.events.quotations.QuotationUnit, java.util.List)
+	 */
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects) {
-		Date calculatorDate = qU.getDate();
-		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
-		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
-		//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, getOscillatorQuotationStartDateIdx());
-		double mfiV = getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), calculatorIndex)];
-		String thresholdString = printThresholdsCSV();
-		String line =
-				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," + calculatorClose + "," + 
-						//			getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," + getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," + 
-						//			((this.higherLows.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + 
-						//((this.higherLows.get(calculatorIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(calculatorIndex)!=null)?mfiV:"") + "," +
-						thresholdString + "," + mfiV;
-
-		if (bearishEventValue != null) {
-			line = line + "," + calculatorClose +",0,";
-		} else if (bullishEventValue != null){
-			line = line + ",0," + calculatorClose +",";
-		} else {
-			line = line + ",0,0,";
-		}
-
-		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
-
-		return line;
+		throw new NotImplementedException("FIXME");
+//		Date calculatorDate = qU.getDate();
+//		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
+//		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
+//		BigDecimal calculatorClose = qU.getClose();
+//		//		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, getOscillatorQuotationStartDateIdx());
+//		double mfiV = getOscillatorOutput()[getIndicatorIndexFromQuotationIndex(getOscillator(), calculatorIndex)];
+//		//String thresholdString = printThresholdsCSV();
+//		String line =
+//				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," + calculatorClose + ","; //FIXME
+//						//			getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getDate() + "," + getOscillator().getIndicatorQuotationData().get(mfiQuotationIndex).getClose() + "," + 
+//						//			((this.higherLows.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(mfiQuotationIndex)!=null)?mfiV:"") + "," + 
+//						//((this.higherLows.get(calculatorIndex)!=null)?mfiV:"") + "," + ((this.lowerHighs.get(calculatorIndex)!=null)?mfiV:"") + "," +
+//						//thresholdString + "," + mfiV;
+//
+//		if (bearishEventValue != null) {
+//			line = line + "," + calculatorClose +",0,";
+//		} else if (bullishEventValue != null){
+//			line = line + ",0," + calculatorClose +",";
+//		} else {
+//			line = line + ",0,0,";
+//		}
+//
+//		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
+//
+//		return line;
 	}
 
-	protected String printThresholdsCSV() {
-		return getOscillatorLowerThreshold() + "," + getOscillatorUpperThreshold();
-	}
+//	private String printThresholdsCSV() {
+//		return getOscillatorLowerThreshold() + "," + getOscillatorUpperThreshold();
+//	}
 
 	protected abstract Double getAlphaBalance();
 

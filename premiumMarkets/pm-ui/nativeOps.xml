@@ -305,57 +305,6 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibMacdOperation">
-            <reference>macd__</reference>
-            <description>Macd on any historical data series.</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>macdFastPeriod</referenceAsOperand>
-                    <description>macd Fast period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>12.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>macdSlowPeriod</referenceAsOperand>
-                    <description>macd Slow period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>26.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>macdSignalPeriod</referenceAsOperand>
-                    <description>macd Signal period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>9.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors>
-                <availableOutputSelector>macd</availableOutputSelector>
-                <availableOutputSelector>signal</availableOutputSelector>
-            </availableOutputSelectors>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
             <description>Subtraction of two historical data series</description>

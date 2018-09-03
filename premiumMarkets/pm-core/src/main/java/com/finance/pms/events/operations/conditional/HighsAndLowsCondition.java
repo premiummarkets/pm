@@ -61,9 +61,9 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 
  * @author Guillaume Thoreton
  * Additional constraints :
- * not implemented : 'over'
- * does not make sense : 'for'. As the condition is an event in time not a status in time.
- * 'spanning'
+ * 'spanning'		:	is the period we look back into
+ * 'over' 			: 	is remanence/persistence of the tangent from its starting knot
+ * 'for' 			: 	is minimum distance between knots
  * 
  */
 @SuppressWarnings("rawtypes")
@@ -72,17 +72,21 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
 
-	private static final int MAIN_POSITION = 3;
+	private static final int MAIN_POSITION = 8;
 
 	private HighsAndLowsCondition() {
 	}
 
-	//makes a higher high over n days spanning x days smoothed for y days
 	public HighsAndLowsCondition(String reference, String description) {
 		super(reference, description,
-				new NumberOperation("Look back over period in days"),
-				new NumberOperation("Minimum days spanning between two extreme knots"),
+				new NumberOperation("Spanning period as look back period in days"),
+				new NumberOperation("Over period as remanence/persistence of the tangent from its starting knot"),
+				new NumberOperation("For period as minimum number of days between two extreme knots"),
 				new NumberOperation("Smoothing period for peaks and troughs inclusion"),
+				new NumberOperation("Lowest knot start"),
+				new NumberOperation("Highest knot start"),
+				new NumberOperation("Lowest knot end"),
+				new NumberOperation("Highest knot end"),
 				new DoubleMapOperation("Historical data input"));
 	}
 
@@ -100,8 +104,15 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
 
 		Integer lookBackNbDays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer overPeriodRemanence = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
+
+		Double lowestStart = ((NumberValue) inputs.get(4)).getValue(targetStock).doubleValue();
+		Double highestStart = ((NumberValue) inputs.get(5)).getValue(targetStock).doubleValue();
+		Double lowestEnd = ((NumberValue) inputs.get(6)).getValue(targetStock).doubleValue();
+		Double highestEnd = ((NumberValue) inputs.get(7)).getValue(targetStock).doubleValue();
+
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
@@ -115,10 +126,10 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
-		String expertTangentLabel = lookBackNbDays+" days tangent of "+ this.getOperands().get(MAIN_POSITION).getReference() + " at ";
+		String expertTangentLabel = lookBackNbDays + " days tangent of " + this.getOperands().get(MAIN_POSITION).getReference() + " at ";
 		Map<String, SortedMap<Date, Double>> expertTangentsResult = new HashMap<>();
-		String previousLibel = null;
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		List<Double> previousSelectedKnotsValues = new ArrayList<>();
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : data.keySet()) {
@@ -135,41 +146,79 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				Comparable periodDataOps = new ComparableArray<Double>(dataLookBackMap.values());
 				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
 				Comparable minimumNbDaysBetweenExtremesCmp = minimumNbDaysBetweenExtremes;
-				Comparable higherHighsCmp = new ComparableSortedMap<Integer, Double>();
+				Comparable selectedKnotsCmp = new ComparableSortedMap<Integer, Double>();
 				Comparable expertTangentCmp = new ComparableArray<Double>();
+				Comparable lowestStartCmp = lowestStart;
+				Comparable highestStartCmp = highestStart;
+				Comparable lowestEndCmp = lowestEnd;
+				Comparable highestEndCmp = highestEnd;
 
 				@SuppressWarnings("unchecked")
-				//Boolean higherHigh(double[][] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, Map<Integer, double[]> higherHighs, ArrayList<Double> expertTangent);
-				Boolean conditionCheck = conditionCheck(periodDataOps, lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, higherHighsCmp, expertTangentCmp);
+				Boolean conditionCheck = conditionCheck(
+						periodDataOps, lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, selectedKnotsCmp, expertTangentCmp,
+						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp);
 
 				if (conditionCheck != null) {
 
 					outputs.getValue(targetStock).put(date, conditionCheck);
 
-					if ( conditionCheck ) { //map expertTangent to Date Map
+					if ( conditionCheck ) { //Will Map tangent to date for return if new knots involved
+						
+						//Tangent output
 						try {
+
 							@SuppressWarnings("unchecked")
 							ArrayList<Double> expertTangent = (ArrayList<Double>) expertTangentCmp;
 							if (!expertTangent.isEmpty()) {
-								ArrayList<Date> lookBackDateList = new ArrayList<Date>(dataLookBackMap.keySet());
-								SortedMap<Date, Double> expertTangentsResultAtDate = new TreeMap<>();
-								for (int i = 0; i < lookBackDateList.size(); i++) {
-									if (!expertTangent.get(i).isNaN()) {
-										expertTangentsResultAtDate.put(lookBackDateList.get(i), expertTangent.get(i));
+
+								//Check if already printed
+								@SuppressWarnings("unchecked")
+								ArrayList<Double> selectedKnotsValues = new ArrayList<>(((SortedMap<Integer, Double>) selectedKnotsCmp).values());
+								Boolean sameKnots = previousSelectedKnotsValues.size() == selectedKnotsValues.size();
+								if (sameKnots) {
+									for (int i = 0; i < selectedKnotsValues.size(); i++) {
+										if (!previousSelectedKnotsValues.get(i).equals(selectedKnotsValues.get(i))){
+											sameKnots = false;
+										}
 									}
 								}
-								SortedMap<Date, Double> previousExpertTangent = expertTangentsResult.get(previousLibel);
-								if (previousLibel == null || expertTangentsResultAtDate.entrySet().stream().anyMatch(e -> !previousExpertTangent.containsKey(e.getKey()) || !previousExpertTangent.get(e.getKey()).equals(e.getValue()))) {
-									String currentLibel = expertTangentLabel+dateFormat.format(date);
+								//If New : We record for return
+								if (!sameKnots) {
+									String currentLibel = expertTangentLabel + dateFormat.format(date);
+
+									//Removing NaN values from tangent
+									ArrayList<Date> lookBackDateList = new ArrayList<Date>(dataLookBackMap.keySet());
+									SortedMap<Date, Double> expertTangentsResultAtDate = new TreeMap<>();
+									for (int i = 0; i < lookBackDateList.size(); i++) {
+										if (!expertTangent.get(i).isNaN()) {
+											expertTangentsResultAtDate.put(lookBackDateList.get(i), expertTangent.get(i));
+										}
+									}
+
 									expertTangentsResult.put(currentLibel, expertTangentsResultAtDate);
-									previousLibel = currentLibel;
+									previousSelectedKnotsValues = selectedKnotsValues;
 								}
+
 							}
 
 						} catch (Exception e) {
 							//Out of range wont be printed
 							LOGGER.error(e,e);
 						}
+						
+						
+						//TODO over ...
+//						if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
+//
+//							realRowOutputs.getValue(targetStock).put(date, conditionCheck);
+//
+//							conditionCheck = checkRawOutputAgainstForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
+//
+//							if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
+//
+//						}
+//
+//						fillInOverPeriod(targetStock, overPeriodRemanence, fullKeySet, date, conditionCheck, outputs);
 					}
 				}
 			}

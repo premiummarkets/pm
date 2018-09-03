@@ -240,8 +240,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			if (!areEvtDefsTrendsSelected) {
 				chartTarget.getMainChartWraper().resetIndicChart();
 				chartTarget.getMainChartWraper().resetBarChart();
-				refreshChartedTrendsPopup(false);
-				refreshCalculatorSettingsPopup(false);
+				//refreshChartedTrendsPopup(false);
+				//refreshCalculatorSettingsPopup(false);
 			}
 
 		} finally {
@@ -778,8 +778,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		} else {
 
 			chartedTrendsPopupMenu.updateAction(availEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
-			chartedTrendsPopupMenu.getSelectionShell().setVisible(true);
 			if (activate) {
+				chartedTrendsPopupMenu.getSelectionShell().setVisible(true);
 				chartedTrendsPopupMenu.getSelectionShell().setActive();
 				chartedTrendsPopupMenu.getSelectionShell().setFocus();
 			}
@@ -835,8 +835,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					} 
 					else {
 						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayedOutputs, null, deactivateAction, true);
-						calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
 						if (activatePopup) {
+							calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
 							calculatorSettingsPopupMenu.getSelectionShell().setActive();
 							calculatorSettingsPopupMenu.getSelectionShell().setFocus();
 						}

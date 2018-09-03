@@ -43,10 +43,10 @@ import com.tictactec.ta.lib.RetCode;
 public class StochasticOscillator extends TalibIndicator {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StochasticOscillator.class);
-	
+
 	private double[] slowK;
 	private double[] slowD;
-	
+
 	private int fastKLookBackPeriod;
 	private Integer slowKSmaPeriod;
 	private Integer slowDSmaPeriod;
@@ -66,7 +66,7 @@ public class StochasticOscillator extends TalibIndicator {
 						startIdx, endIdx, inData[2], inData[1], inData[0],
 						(Integer) indicatorParams[0], (Integer) indicatorParams[1], MAType.Sma, (Integer)indicatorParams[2], MAType.Sma, 
 						outBegIdx, outNBElement, slowK, slowD);
-		
+
 		return rc;
 	}
 
@@ -85,10 +85,10 @@ public class StochasticOscillator extends TalibIndicator {
 	@Override
 	protected String getLine(Integer indicator, QuotationUnit qU) {
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss").format(
-					qU.getDate()) + "," +
-					qU.getClose() + "," +
-					slowK[indicator] + "," + slowD[indicator] + "\n";
+				new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss").format(
+						qU.getDate()) + "," +
+						qU.getClose() + "," +
+						slowK[indicator] + "," + slowD[indicator] + "\n";
 		return line;
 	}
 
@@ -97,7 +97,7 @@ public class StochasticOscillator extends TalibIndicator {
 		double[] closeValues = quotations.getCloseValues();
 		double inLow[] = quotations.getLowValues();
 		double inHigh[] = quotations.getHighValues();
-		
+
 		double[][] ret = new double[3][Math.max(Math.max(closeValues.length, inHigh.length), inLow.length)];
 		ret[0]= closeValues;
 		ret[1]= inLow;
@@ -118,25 +118,14 @@ public class StochasticOscillator extends TalibIndicator {
 		return slowD;
 	}
 
-	public double getLowerThreshold() {
-		return 20;
-	}
-
-	public int getUpperThreshold() {
-		return 80;
-	}
-
-
 	@Override
 	public Integer getStartShift() {
-		//return  fastKLookBackPeriod + 200;
 		return fastKLookBackPeriod + slowKSmaPeriod + slowDSmaPeriod + 100;
 	}
-
 
 	@Override
 	public ValidityFilter quotationValidity() {
 		return ValidityFilter.OHLC;
-	}	
-	
+	}
+
 }

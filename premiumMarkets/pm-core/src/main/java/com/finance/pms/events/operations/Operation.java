@@ -153,7 +153,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			if (parameter != null) {
 				return parameter;
 			}
-			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector())) != null) {
+			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisStartShift)) != null) {
 				return alreadyCalculated;
 			}
 			else {
@@ -165,7 +165,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					Value<?> output = operand.run(targetStock, thisStartShift);
 					operandsOutputs.add(output);
 
-					gatherCalculatedOutput(targetStock, operand, output);
+					gatherCalculatedOutput(targetStock, operand, output, thisStartShift);
 
 				}
 
@@ -186,25 +186,25 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
-	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output) {
+	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int startShift) {
 
 		//We gather only outputs for StockOperation and User formulas.
 		if ( (output instanceof NumericableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
-			targetStock.gatherOneOutput(operand, output, Optional.empty());
+			targetStock.gatherOneOutput(operand, output, Optional.empty(), startShift);
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
-			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output);
+			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, startShift);
 		}
 
 	}
 
-	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput) {
+	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput, int startShit) {
 
 		//add to gathered
 		Map<String, NumericableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
-			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey));
+			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShit);
 		}
 
 	}

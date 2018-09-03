@@ -108,22 +108,26 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Chaikin crosses below 0", null, "Chaikin crosses above 0", null)),//
 
 	PMRSIDIVERGENCE (120,"RSI Divergence", false, //FIXME wrong bull, bear descriptions
-			new  EventDefDescriptorStatic("Rsi", null , null, null, "Lower bullish band", "Upper bullish band",
+			new  EventDefDescriptorStatic("Rsi", null , null, null, "Lower threshold", "Upper threshold",
 					"Price is up and Rsi%d makes a lower high over 60 days and above %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiUpperThreshold"},
 					"Price is down and Rsi%d makes a higher low over 60 days and below %d", new String[]{Config.INDICATOR_PARAMS_NAME, "RsiTimePeriod", "RsiLowerThreshold"},
-					"Lower Bearish band", "Upper Bearish band")), //
+					"Lower bullish band", "Upper bullish band", "Lower Bearish band", "Upper Bearish band")), //
 	PMMFIDIVERGENCE (121,"MFI Divergence", false, 
 			new  EventDefDescriptorStatic("Mfi", null, null, null,"Lower threshold","Upper threshold",
 					"Price is up and Mfi makes a lower high over 40 days and above 80", null, 
 					"Price is down and Mfi makes a higher low over 40 days and below 20", null)), //
 	PMSSTOCHDIVERGENCE (122,"Stochastic Divergence", false,
-			new  EventDefDescriptorStatic("Slow K", null, null, "Slow D","Lower threshold","Upper threshold",
+			new  EventDefDescriptorStatic("Slow K", null, null, "Slow D", "Lower threshold", "Upper threshold",
 					"Price is up and Stochastic(14,3,3) makes a lower high over 60 days and above 80", null, 
 					"Price is down and Stochastic(14,3,3) makes a higher low over 60 days and below 20", null)), // 
 	PMCHAIKINOSCDIVERGENCE (123,"Chaikin Oscillator Divergence", false, 
 			new  EventDefDescriptorStatic("Chaikin", null, null, null, null, null,
 					"Price is up and Chaikin makes a lower high over 60 days", null,
 					"Price is down and Chaikin makes a higher low over 60 days", null)), //
+	PMOBVDIVERGENCE (124,"OBV Divergence", false,
+			new  EventDefDescriptorStatic("Obv", null, null, null, null, null,
+					"Price is up and Obv makes a lower high", null, 
+					"Price is down and bv makes a higher low", null)),
 
 	PMMIGHTYCHAIKIN (130,"Mighty Chaikin", false, 
 			new EventDefDescriptorStatic(
@@ -131,7 +135,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 					"Close lower low", "Chaikin higher low")),
 
 	//PM not used
-	PMOBVDIVERGENCE (151,"OBV Divergence", false, null),
+	PMOBVDIVERGENCEOLD (151,"OBV Divergence", false, null),
 	PMACCDISTDIVERGENCE (152,"Acc Dist Divergence", false, null),
 	STDDEV (154,"Standard Deviation", false, null),
 	PMZLAGMACDZCROSS(155,"Zero Lag MACD Signal Cross", false,  null),

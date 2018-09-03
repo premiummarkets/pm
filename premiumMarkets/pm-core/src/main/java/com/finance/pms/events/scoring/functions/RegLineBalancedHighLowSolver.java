@@ -72,7 +72,9 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	private static final double REGLINE_SLOPEMIN = 0.0; //0.03;
 
 	@Override
-	public Boolean higherHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+	public Boolean higherHigh(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 
 		double[] sSmooth = new double[0];
 		if (smoothingPeriod != -1) {
@@ -143,7 +145,8 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 		}
 	}
 
-	public Boolean lowerHigh(Double[] periodData, double[] periodSmoothedCeiling, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstPeakIdx, MutableInt lastPeakIdx) {
+	public Boolean lowerHigh(
+			Double[] periodData, double[] periodSmoothedCeiling, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstPeakIdx, MutableInt lastPeakIdx) {
 
 		MutableDouble amountBelowSmoothingCeiling = new MutableDouble(0);
 
@@ -240,8 +243,9 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 		return highPeaks;
 	}
 
-
-	public Boolean higherLow(Double[] periodData, double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx) {
+	public Boolean higherLow(
+			Double[] periodData, double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
@@ -262,7 +266,9 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 
 	}
 
-	public Boolean lowerLow(Double[] periodData, double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx) {
+	public Boolean lowerLow(
+			Double[] periodData, double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
@@ -510,19 +516,22 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	}
 
 	@Override
-	public Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+	public Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 		// FIXME
 		return null;
 	}
 
 	@Override
-	public Boolean higherLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+	public Boolean higherLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 		// FIXME
 		return null;
 	}
 
 	@Override
-	public Boolean lowerHigh(Double[] array, int integer, int integer2, SortedMap<Integer, Double> sortedMap, ArrayList<Double> arrayList) {
+	public Boolean lowerHigh(Double[] array, int integer, int integer2, SortedMap<Integer, Double> sortedMap, ArrayList<Double> arrayList,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 		// TODO Auto-generated method stub
 		return null;
 	}

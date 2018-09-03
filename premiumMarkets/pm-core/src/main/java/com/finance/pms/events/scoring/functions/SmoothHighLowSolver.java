@@ -58,45 +58,69 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
 	@Override
-	public Boolean higherHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+	public Boolean higherHigh(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+
+		if (lowestStart.isNaN()) lowestStart = -Double.MAX_VALUE;
+		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
+		if (lowestEnd.isNaN()) lowestEnd = -Double.MAX_VALUE;
+		if (highestEnd.isNaN()) highestEnd = Double.MAX_VALUE;
+
 		Boolean hls = calculateHHAndLL(
 				peak, inferiorOrEqual, superiorOrEqual, inferior,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent, lowestStart, highestStart, lowestEnd, highestEnd);
 		Collections.reverse(expertTangent);
 		return hls;
 	}
 
 	@Override
-	public Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+	public Boolean lowerLow(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+
+		if (lowestStart.isNaN()) lowestStart = -Double.MAX_VALUE;
+		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
+		if (lowestEnd.isNaN()) lowestEnd = -Double.MAX_VALUE;
+		if (highestEnd.isNaN()) highestEnd = Double.MAX_VALUE;
+
 		Boolean hls = calculateHHAndLL(
 				trough, superiorOrEqual, inferiorOrEqual, superior,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent, lowestStart, highestStart, lowestEnd, highestEnd);
 		Collections.reverse(expertTangent);
 		return hls;
 	}
 
 	@Override
-	public Boolean lowerHigh(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
-		//		ArrayUtils.reverse(data);
-		//		return hls(
-		//				peak, inferiorOrEqual, superiorOrEqual, inferior,
-		//				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+	public Boolean lowerHigh(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+
+		if (lowestStart.isNaN()) lowestStart = -Double.MAX_VALUE;
+		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
+		if (lowestEnd.isNaN()) lowestEnd = -Double.MAX_VALUE;
+		if (highestEnd.isNaN()) highestEnd = Double.MAX_VALUE;
+
 		Boolean calculateLHAndHL = calculateLHAndHL(
 				peak, inferior, superiorOrEqual, superiorOrEqual, inferior, 3,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent, lowestStart, highestStart, lowestEnd, highestEnd);
 		Collections.reverse(expertTangent);
 		return calculateLHAndHL;
 	}
 
 	@Override
-	public Boolean higherLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
-		//		ArrayUtils.reverse(data);
-		//		return hls(
-		//				trough, superiorOrEqual, inferiorOrEqual, superior,
-		//				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+	public Boolean higherLow(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+
+		if (lowestStart.isNaN()) lowestStart = -Double.MAX_VALUE;
+		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
+		if (lowestEnd.isNaN()) lowestEnd = -Double.MAX_VALUE;
+		if (highestEnd.isNaN()) highestEnd = Double.MAX_VALUE;
+
 		Boolean calculateLHAndHL = calculateLHAndHL(
 				trough, superior, inferiorOrEqual, inferiorOrEqual, superior, 3,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent);
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, expertTangent, lowestStart, highestStart, lowestEnd, highestEnd);
 		Collections.reverse(expertTangent);
 		return calculateLHAndHL;
 	}
@@ -106,7 +130,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			BiFunction<Double,Double, Boolean> rightMostKnotIsNotToLefts,
 			BiFunction<Double,Double, Boolean> leftMostKnotIsToInners,
 			BiFunction<Double,Double, Boolean> tangentIsNotToKnots,
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 
 		int lookBackSize = data.length;
 
@@ -125,7 +150,16 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		List<Integer> peaksKnots = new ArrayList<>(peaks.keySet());
 		ListIterator<Integer> peaksKnotsIterator = peaksKnots.listIterator(peaksKnots.size());
 
-		Integer rightMostPeakKnot = peaksKnotsIterator.previous();
+		Integer rightMostPeakKnot = null;
+		while(peaksKnotsIterator.hasPrevious()) {
+			Integer previousKnotPeak = peaksKnotsIterator.previous();
+			Double previousPeak = peaks.get(previousKnotPeak);
+			if (lowestEnd <= previousPeak && previousPeak <= highestEnd) {
+				rightMostPeakKnot = previousKnotPeak;
+				break;
+			}
+		}
+		if (rightMostPeakKnot == null) return false;
 		Double rightMostPeak = peaks.get(rightMostPeakKnot);
 
 		Integer leftMostKnot = null;
@@ -142,7 +176,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			//peaks.get(previousPeaksKnot) >= peaks.get(leftMostKnot)) HigherHigh => left peak is above leftMostKnot			C:greaterThanOrEqual
 			//peaks.get(previousPeaksKnot) <= peaks.get(leftMostKnot)) LowerLow => left peak is below leftMostKnot				C':smallerThanOrEqual
 			if ( leftMostKnot == null || leftMostKnotIsToInners.apply(nextLeftPeak, peaks.get(leftMostKnot)) ) {
-				if ((rightMostPeakKnot - nextLeftPeakKnot) >= minimumNbDaysBetweenExtremes) {
+				if ((rightMostPeakKnot - nextLeftPeakKnot) >= minimumNbDaysBetweenExtremes && lowestStart <= nextLeftPeak && nextLeftPeak <= highestStart) {
 					validLeftMostKnot = nextLeftPeakKnot;
 					//leftMostKnot = previousPeaksKnot; //Uncomment for test
 				}
@@ -173,8 +207,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			BiFunction<Double,Double, Boolean> tangentIsToKnots,
 			BiFunction<Double,Double, Boolean> tangentIsNotToKnots,
 			double knotToAntiKnotRatio,
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent) {
-
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
 
 		int lookBackSize = data.length;
 
@@ -188,11 +222,20 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (peaks.isEmpty()) return false;
 
 		//Find the peak further left higher than last
-		//Check the minimumNbDaysBetweenExtremes distance and exit if not meet
+		//Check the minimumNbDaysBetweenExtremes distance and exit if not met
 		List<Integer> peaksKnots = new ArrayList<>(peaks.keySet());
 		ListIterator<Integer> peaksKnotsIterator = peaksKnots.listIterator(peaksKnots.size());
 
-		Integer rightMostPeakKnot = peaksKnotsIterator.previous();
+		Integer rightMostPeakKnot = null;
+		while(peaksKnotsIterator.hasPrevious()) {
+			Integer previousKnotPeak = peaksKnotsIterator.previous();
+			Double previousPeak = peaks.get(previousKnotPeak);
+			if (lowestEnd <= previousPeak && previousPeak <= highestEnd) {
+				rightMostPeakKnot = previousKnotPeak;
+				break;
+			}
+		}
+		if (rightMostPeakKnot == null) return false;
 		Double rightMostPeak = peaks.get(rightMostPeakKnot);
 
 		Integer leftMostPeakKnot = null;
@@ -207,7 +250,10 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 			if ( (leftMostPeakKnot == null && leftKnotIsToRight.apply(nextLeftPeak, rightMostPeak)) || (leftMostPeakKnot != null && leftKnotIsToRight.apply(nextLeftPeak, peaks.get(leftMostPeakKnot))) ) {
 				Boolean troughRatio = (nextLeftPeak-lowerPeak)/(rightMostPeak-lowerPeak) <= knotToAntiKnotRatio;
-				if ((rightMostPeakKnot - nextLeftPeakKnot) >= minimumNbDaysBetweenExtremes && troughRatio && validLine(peaks, tangentIsToKnots, rightMostPeakKnot, leftMostPeakKnot, nextLeftPeakKnot)) {
+				if ( 
+						lowestStart <= nextLeftPeak && nextLeftPeak <= highestStart && (rightMostPeakKnot - nextLeftPeakKnot) >= minimumNbDaysBetweenExtremes && troughRatio &&
+						validLine(peaks, tangentIsToKnots, rightMostPeakKnot, leftMostPeakKnot, nextLeftPeakKnot)
+				) {
 					validLeftMostPeakKnot = nextLeftPeakKnot;
 					//leftMostKnot = previousPeaksKnot; //Uncomment for test
 				}

@@ -56,7 +56,7 @@ public class NumberOperation extends Operation  implements LeafOperation {
 
 	@Override
 	public NumberValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return ((NumberValue)inputs.get(0));
+		return ((NumberValue) inputs.get(0));
 	}
 
 	@Override

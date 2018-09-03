@@ -52,7 +52,6 @@ import com.finance.pms.events.operations.nativeops.Product;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
-import com.finance.pms.events.operations.nativeops.TalibMacdOperation;
 import com.finance.pms.events.operations.nativeops.TalibSmaOperation;
 import com.finance.pms.events.operations.nativeops.UnaryDivision;
 import com.finance.pms.events.operations.nativeops.UnaryProduct;
@@ -99,8 +98,6 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(stockOperation);
 
 		//Talib
-		TalibMacdOperation talibMacdOperation = new TalibMacdOperation();
-		nativeOperations.addOperation(talibMacdOperation);
 		TalibSmaOperation talibSmaOperation = new TalibSmaOperation();
 		nativeOperations.addOperation(talibSmaOperation);
 

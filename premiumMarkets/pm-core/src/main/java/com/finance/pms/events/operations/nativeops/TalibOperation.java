@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -46,7 +45,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.talib.indicators.TalibException;
 import com.tictactec.ta.lib.MInteger;
 
-@XmlSeeAlso({TalibMacdOperation.class, TalibSmaOperation.class})
+@XmlSeeAlso({TalibSmaOperation.class})
 public abstract class TalibOperation extends DoubleMapOperation {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(TalibOperation.class);
@@ -85,7 +84,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 
 	protected abstract SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException;
 
-	protected SortedMap<Date, Double> arrayToMap(Set<Date> dateKeySet, double[] array, int shift) {
+	protected SortedMap<Date, Double> arrayToMap(List<Date> dateKeySet, double[] array, int shift) {
 		int j = 0;
 		SortedMap<Date, Double> map = new TreeMap<Date, Double>();
 		for (Date date : dateKeySet){
@@ -97,7 +96,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		return map;
 	}
 
-	protected SortedMap<Date, Double> arrayToMap(Set<Date> dateKeySet, int[] array, int shift) {
+	protected SortedMap<Date, Double> arrayToMap(List<Date> dateKeySet, int[] array, int shift) {
 		int j = 0;
 		SortedMap<Date, Double> map = new TreeMap<Date, Double>();
 		for (Date date : dateKeySet){
@@ -109,12 +108,14 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		return map;
 	}
 
-	protected double[] mapToArray(SortedMap<Date, Double> map) {
-		double[] array = new double[map.size()];
+	protected double[] mapToArray(List<Date> smallestDateKeySet, SortedMap<Date, Double> map) {
+		double[] array = new double[smallestDateKeySet.size()];
 		int i=0;
-		for (Double dv : map.values()) {
-			array[i] = dv;
-			i++;
+		for (Date date : map.keySet()) {
+			if (smallestDateKeySet.contains(date)) {
+				array[i] = map.get(date);
+				i++;
+			}
 		}
 		return array;
 	}

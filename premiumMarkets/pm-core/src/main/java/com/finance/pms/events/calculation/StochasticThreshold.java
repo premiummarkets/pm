@@ -32,6 +32,14 @@
 
 package com.finance.pms.events.calculation;
 
+/**
+ * is bullish when StochOsc crosses up threshold 20 and StochOsc is above historical StochOscD;
+ * is bearish when StochOsc crosses down threshold 80 and StochOsc is below historical StochOscD;
+ * 
+ * with : 
+ * 	StochOsc =  stoch:SlowK(14,1,Sma,3,Sma,high,low,close) ~  stochF:FastK(14,3,Sma,high,low,close) and
+ * 	StochOscD = stoch:SlowD(14,1,Sma,3,Sma,high,low,close) ~  stochF:FastD(14,3,Sma,high,low,close)
+ */
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
@@ -57,57 +65,72 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 
 
 public class StochasticThreshold extends TalibIndicatorsOperator {
-	
+
 	private StochasticOscillator stochasticOscillator;
 
-	public StochasticThreshold(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Observer... observers) {
+	private double upperThreshold;
+	private double lowerThreshold;
+
+	public StochasticThreshold(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Integer lowerThreshold, Integer upperThreshold, Observer... observers) {
 		super(EventDefinition.PMSSTOCHTHRESHOLD, observers);
-		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		init(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod, lowerThreshold, upperThreshold);
 	}
 
 	public StochasticThreshold(EventInfo reference) {
-	    //Reflective ops generator
+		//Reflective ops generator
 		super(reference);
 	}
 
-	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod) {
-	    this.stochasticOscillator = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+	protected void init(Integer fastKLookBackPeriod, Integer slowKSmaPeriod, Integer slowDSmaPeriod, Integer lowerThreshold, Integer upperThreshold) {
+		this.stochasticOscillator = new StochasticOscillator(fastKLookBackPeriod, slowKSmaPeriod, slowDSmaPeriod);
+		this.lowerThreshold = lowerThreshold;
+		this.upperThreshold = upperThreshold;
 	}
 
 	@Override
 	public void genericInit(Integer... constants) {
-	    init(constants[0], constants[1], constants[2]);
+		init(constants[0], constants[1], constants[2], constants[3], constants[4]);
 	}
 
 	@Override
 	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException  {
-		
+
 		FormulatRes res = new FormulatRes(getEventDefinition());
 		res.setCurrentDate(qU.getDate());
-		
+
 		Integer stochIndicatorIndex = getIndicatorIndexFromQuotationIndex(this.stochasticOscillator, quotationIdx);
 
-		
+
 		{
 			//BULL : Stoch cross below low threshold (over sold) with an up trend (above sma)
-			boolean isCrossingBelow = 
-					this.stochasticOscillator.getSlowD()[stochIndicatorIndex-1] > stochasticOscillator.getLowerThreshold() && 
-					stochasticOscillator.getLowerThreshold() > this.stochasticOscillator.getSlowD()[stochIndicatorIndex]; // crosses below  lower threshold
-			res.setBullishCrossOver(isCrossingBelow);
-			if (res.getBullishCrossOver()) return res;
+			boolean isCrossingLowerThreshold = 
+					this.stochasticOscillator.getSlowK()[stochIndicatorIndex-1] < getLowerThreshold() &&
+					getLowerThreshold() < this.stochasticOscillator.getSlowK()[stochIndicatorIndex]; // crosses above lower threshold
+			boolean isAboveSMA = this.stochasticOscillator.getSlowK()[stochIndicatorIndex] > this.stochasticOscillator.getSlowD()[stochIndicatorIndex];
+					res.setBullishCrossOver(isCrossingLowerThreshold && isAboveSMA);
+					if (res.getBullishCrossOver()) return res;
 		} 
 		{
 			//BEAR : RSI cross above upper threshold (over bought) with a down trend (under sma)
-			boolean isCrossingAbove = 
-					this.stochasticOscillator.getSlowD()[stochIndicatorIndex-1]  < stochasticOscillator.getUpperThreshold()  &&
-					stochasticOscillator.getUpperThreshold() < this.stochasticOscillator.getSlowD()[stochIndicatorIndex];// crosses above upper threshold
-			res.setBearishCrossBellow(isCrossingAbove);
-			
+			boolean isCrossingUpperThreshold = 
+					this.stochasticOscillator.getSlowK()[stochIndicatorIndex-1] > getUpperThreshold() &&
+					getUpperThreshold() > this.stochasticOscillator.getSlowK()[stochIndicatorIndex];// crosses below upper threshold
+			boolean isBelowSMA = this.stochasticOscillator.getSlowK()[stochIndicatorIndex] < this.stochasticOscillator.getSlowD()[stochIndicatorIndex];
+			res.setBearishCrossBellow(isCrossingUpperThreshold && isBelowSMA);
+
 			return res;
 		}
-		
+
 	}
-	
+
+	private double getUpperThreshold() {
+		return upperThreshold;
+	}
+
+	private double getLowerThreshold() {
+		return lowerThreshold;
+	}
+
 	@Override
 	protected Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex) {
 		if (indicator instanceof StochasticOscillator) return this.isInDataRange((StochasticOscillator)indicator, indicatorIndex);
@@ -116,12 +139,12 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 
 	private Boolean isInDataRange(StochasticOscillator indicator, Integer indicatorIndex) {
 		return (getDaysSpan() < indicatorIndex) && (indicatorIndex < this.stochasticOscillator.getSlowK().length);
-		
+
 	}
 
 	@Override
 	protected String getHeader(List<Integer> scoringSmas) {
-//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, Upper Th, lower Th, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
+		//		String head = "CALCULATOR DATE, CALCULATOR QUOTE, STOCH DATE, Upper Th, lower Th, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
 		String head = "CALCULATOR DATE, CALCULATOR QUOTE, Upper Th, lower Th, STOCH SLOW K, STOCH SLOW D , bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
 		return head+"\n";	
@@ -129,23 +152,23 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 
 	@Override
 	protected String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects){
-		
+
 		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMSSTOCHTHRESHOLD, EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMSSTOCHTHRESHOLD, EventType.BULLISH));
 		BigDecimal calculatorClose = qU.getClose();
-		
+
 		int stochIndex = getIndicatorIndexFromQuotationIndex(this.stochasticOscillator, calculatorIndex);
-//		int stochQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, stochQuotationStartDateIdx);
-		
+		//		int stochQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, stochQuotationStartDateIdx);
+
 		String line =
-			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
-//			+ this.stochasticOscillator.getIndicatorQuotationData().get(stochQuotationIndex).getDate() + ","
-			+ this.stochasticOscillator.getLowerThreshold() + ","
-			+ this.stochasticOscillator.getUpperThreshold() + ","
-			+ this.stochasticOscillator.getSlowK()[stochIndex] + ","
-			+ this.stochasticOscillator.getSlowD()[stochIndex];
-		
+				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","  
+				//			+ this.stochasticOscillator.getIndicatorQuotationData().get(stochQuotationIndex).getDate() + ","
+				+ getLowerThreshold() + ","
+				+ getUpperThreshold() + ","
+				+ this.stochasticOscillator.getSlowK()[stochIndex] + ","
+				+ this.stochasticOscillator.getSlowD()[stochIndex];
+
 		if (bearishEventValue != null) {
 			line = line + ","+calculatorClose+",0,";
 		} else if (bullishEventValue != null) {
@@ -153,22 +176,22 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 		} else {
 			line = line + ",0,0,";
 		}
-		
+
 		line = addScoringLinesElement(line, calculatorDate, linearExpects)+"\n";
-		
+
 		return line;
 	}
-	
+
 	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
-			
+
 		int stochIndex = getIndicatorIndexFromQuotationIndex(this.stochasticOscillator, idx);
 		return new double[]
 				{
-					this.stochasticOscillator.getSlowK()[stochIndex],
-					this.stochasticOscillator.getSlowD()[stochIndex],
-					this.stochasticOscillator.getLowerThreshold(),
-					this.stochasticOscillator.getUpperThreshold()
+						this.stochasticOscillator.getSlowK()[stochIndex],
+						this.stochasticOscillator.getSlowD()[stochIndex],
+						getLowerThreshold(),
+						getUpperThreshold()
 				};
 	}
 
@@ -185,7 +208,7 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 	@Override
 	protected void initIndicators(Quotations quotations) throws TalibException {
 		stochasticOscillator.calculateIndicator(quotations);
-		
+
 	}
 
 	@Override

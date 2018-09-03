@@ -32,15 +32,23 @@ package com.finance.pms.events.calculation;
 import java.util.List;
 import java.util.Observer;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.ChaikinOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator {
+/**
+ * is bullish when close makes a lower low over 35 days spanning 5 days smoothed 0 days 
+ * 	and Chaikin makes a higher low over 35 days spanning 5 days smoothed 0 days 
+ * 	and Chaikin is below threshold 0 over 35 days for 0 days;
+ * is bearish when close makes a higher high over 35 days spanning 5 days smoothed 0 days 
+ * 	and Chaikin makes a lower high over 35 days spanning 5 days smoothed 0 days 
+ *  and Chaikin is above threshold 0 over 35 days for 0 days;
+ *  
+ * with Chaikin : adOsc(3,10,high,low,close,volume)
+ */
+public class ChaikinOscillatorDivergence extends DivergentOperator {
 
 	private ChaikinOscillator chaikinOscillator;
 
@@ -71,11 +79,6 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 	}
 
 	@Override
-	protected String printThresholdsCSV() {
-		return "";
-	}
-
-	@Override
 	protected double[] buildOneOutput(QuotationUnit quotationUnit, Integer idx) {
 		return new double[]
 				{
@@ -90,7 +93,7 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 
 	@Override
 	protected int getDaysSpan() {
-		return 84;
+		return 35;
 	}
 
 	@Override
@@ -108,29 +111,32 @@ public class ChaikinOscillatorDivergence extends OscillatorDivergenceCalculator 
 		return chaikinOscillator;
 	}
 
-	@Override
-	protected Boolean isOcsWithinBearThresholds(int idxSpan, int mfiIdx) {
-		return true;
+	protected Boolean isOcsWithinBearThresholds(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (getOscillatorOutput()[i] >= 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	@Override
-	protected Boolean isOscWithinBullThresholds(int idxSpan, int mfiIdx) {
-		return true;
-	}
-
-	@Override
-	protected double getOscillatorLowerThreshold() {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	protected double getOscillatorUpperThreshold() {
-		throw new NotImplementedException();
+	protected Boolean isOscWithinBullThresholds(int idxSpan, int oscIdx) {
+		for (int i = oscIdx - idxSpan; i < oscIdx; i++) {
+			if (getOscillatorOutput()[i] <= 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	protected Double getAlphaBalance() {
-		return (double) (getDaysSpan()/2);
+		return (double) (getDaysSpan()/7);
+	}
+
+	@Override
+	protected int oscLookBackSmoothingPeriod() {
+		return 0;
 	}
 
 

@@ -182,6 +182,9 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 	protected  abstract String getHeader(List<Integer> scoringSmas);
 
+	/*
+	 * Build a CSV line for export
+	 */
 	protected abstract String buildLine(int calculatorIndex, Map<EventKey, EventValue> eData, QuotationUnit qU, List<SortedMap<Date, double[]>> linearExpects);
 
 

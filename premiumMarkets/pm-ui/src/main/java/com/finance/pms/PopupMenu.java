@@ -50,7 +50,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.finance.pms.portfolio.InfoObject;
 
-public class PopupMenu<T extends InfoObject>  {
+public class PopupMenu<T extends InfoObject> {
 
 	private final Composite rootParent;
 	private Control controlParent;

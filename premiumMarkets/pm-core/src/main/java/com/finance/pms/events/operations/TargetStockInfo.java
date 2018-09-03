@@ -68,16 +68,20 @@ public class TargetStockInfo {
 		private OutputReference outputReference;
 		private Value<?> outputData;
 		private OutputDescr chartedDescription;
+		private int startShift;
 
+		//For checking an entry's presence in the cache
 		public Output(OutputReference outputReference) {
 			super();
 			this.outputReference = outputReference;
 		}
 
-		public Output(OutputReference outputReference, Value<?> outputData) {
+		//For creating a new output entry in the cache
+		public Output(OutputReference outputReference, Value<?> outputData, int startShift) {
 			super();
 			this.outputReference = outputReference;
 			this.outputData = outputData;
+			this.startShift = startShift;
 		}
 
 		@Override
@@ -124,6 +128,14 @@ public class TargetStockInfo {
 
 		public OutputReference getOutputReference() {
 			return outputReference;
+		}
+
+		public int getStartShift() {
+			return startShift;
+		}
+
+		public void setStartShift(int startShift) {
+			this.startShift = startShift;
 		}
 
 	}
@@ -186,14 +198,10 @@ public class TargetStockInfo {
 		outputAnalysers.put(new OutputReference(operation, operation.getOutputSelector()), eventAnalyser);
 	}
 
-	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector) {
-		//!(
-		//((output instanceof UnarableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation))
-		//|| (output instanceof MultiMapValue)
-		//)
+	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int startShift) {
 		if (outputSelector == null && operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
 		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation, outputSelector)));
-		if (indexOf == -1) {
+		if (indexOf == -1 || (startShift > calculatedOutputsCache.get(indexOf).getStartShift())) {
 			return null;
 		}
 		return calculatedOutputsCache.get(indexOf).outputData;
@@ -202,28 +210,32 @@ public class TargetStockInfo {
 	/**
 	 * This method also calls setMain for MultiSelectorsValue
 	 * @param outputDiscriminator
+	 * @param startShift 
 	 */
-	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator) {
+	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int startShift) {
 
-		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()));
+		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), startShift);
 		if (alreadyCalculated != null) {
 			if (getIndexOfChartableOutput(operation, outputDiscriminator.orElse(operation.getOutputSelector())) == -1) {
-				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated));
+				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, startShift));
 			}
 			return;
 		}
 
 		if (outputValue instanceof MultiSelectorsValue) {
+			//Caches all the selectors outputs as the are all calculated at once.
 			for (String selector : ((MultiSelectorsValue) outputValue).getSelectors()) {
 				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
 				String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("); //encogPlus:xxxxx(... => encogPlus:selector(...
 				//constant = null as the selector output as to be an UnarableMapValue and hence can't be a constant.
 				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference());
-				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector)));
+				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), startShift));
 			}
-			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector())));
+			//Only make available for chart the specific selector
+			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, startShift));
 		} else {
-			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue);
+			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, startShift);
 			this.calculatedOutputsCache.add(outputHolder);
 			this.gatheredChartableOutputs.add(outputHolder);
 		}
@@ -257,10 +269,6 @@ public class TargetStockInfo {
 
 	public Integer getIndexOfChartableOutput(Operation operation, String outputSelector) {
 		return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, outputSelector)));
-	}
-
-	public Integer getIndexOfChartableOutput(OutputReference outputRef) {
-		return gatheredChartableOutputs.indexOf(new Output(outputRef));
 	}
 
 	public List<ChartedOutputGroup> getChartedOutputGroups() {
@@ -305,7 +313,7 @@ public class TargetStockInfo {
 		if (chartedDesrc != null) {
 			ChartedOutputGroup mainChartedGroup = chartedDesrc.getContainer();
 			for (String outputKey : outputTypes.keySet()) {
-				Integer indexOfOutput = getIndexOfChartableOutput(new OutputReference(operand, outputKey));
+				Integer indexOfOutput = getIndexOfChartableOutput(operand, outputKey);
 				mainChartedGroup.addAdditionalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
 			}
 		} else {
