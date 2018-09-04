@@ -123,14 +123,14 @@ public class Condition<T> extends Operation {
 	 * @param conditionCheck
 	 * @param outputs
 	 */
-	protected void fillInOverPeriod(TargetStockInfo targetStock, Integer overPeriod, SortedSet<Date> fullKeySet, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
+	protected void overPeriodFilling(TargetStockInfo targetStock, Integer overPeriod, SortedSet<Date> fullKeySet, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
 		if (conditionCheck != null && conditionCheck && overPeriod > 0) {
 			Calendar endOverPeriodCal = Calendar.getInstance();
 			endOverPeriodCal.setTime(actualDate);
 			QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);
 			Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))? fullKeySet.last():endOverPeriodCal.getTime();
-			SortedSet<Date> overPeriodData = fullKeySet.subSet(actualDate, endOverPeriod);
-			for (Date overPeriodDate : overPeriodData) {
+			SortedSet<Date> overPeriodDates = fullKeySet.subSet(actualDate, endOverPeriod);
+			for (Date overPeriodDate : overPeriodDates) {
 				outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
 			}
 		}
@@ -145,7 +145,7 @@ public class Condition<T> extends Operation {
 	 * @param conditionCheck
 	 * @return
 	 */
-	protected Boolean checkRawOutputAgainstForPeriod(TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date actualDate, Boolean conditionCheck) {
+	private Boolean reduceRawOutputForPeriod(TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date actualDate, Boolean conditionCheck) {
 		if (conditionCheck && forPeriod > 0) {
 
 			Calendar startForPeriodCal = Calendar.getInstance();
@@ -163,6 +163,13 @@ public class Condition<T> extends Operation {
 				}
 			}
 		}
+		return conditionCheck;
+	}
+
+	protected Boolean forPeriodReduction(TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date date, Boolean conditionCheck, BooleanMapValue outputs) {
+		realRowOutputs.getValue(targetStock).put(date, conditionCheck);
+		conditionCheck = reduceRawOutputForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
+		if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
 		return conditionCheck;
 	}
 }

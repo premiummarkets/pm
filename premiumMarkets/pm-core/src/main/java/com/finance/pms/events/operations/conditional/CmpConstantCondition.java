@@ -98,17 +98,13 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 			Boolean conditionCheck = (Double.isNaN(current))?null:conditionCheck(current, threshold);
 			if (conditionCheck != null) {
 
+				//For
 				if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-
-					realRowOutputs.getValue(targetStock).put(date, conditionCheck);
-
-					conditionCheck = checkRawOutputAgainstForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
-
-					if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
-
+					conditionCheck = forPeriodReduction(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck, realRowOutputs);
 				}
 
-				fillInOverPeriod(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
+				//Over
+				overPeriodFilling(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
 
 			}
 		}

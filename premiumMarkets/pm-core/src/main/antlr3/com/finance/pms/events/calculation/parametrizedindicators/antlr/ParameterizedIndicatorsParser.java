@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-08-30 22:18:50
+// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-09-04 19:43:12
  //parser
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
     import com.finance.pms.events.calculation.antlr.MyErrorReporter;
@@ -37,8 +37,8 @@ public class ParameterizedIndicatorsParser extends Parser {
 		"'goes down more than'", "'goes up more than'", "'is above historical'", 
 		"'is above threshold'", "'is bearish if not bullish'", "'is bearish when'", 
 		"'is below historical'", "'is below threshold'", "'is bullish when'", 
-		"'makes a higher high over'", "'makes a higher low over'", "'makes a lower high over'", 
-		"'makes a lower low over'", "'more than'", "'over'", "'override start shift with'", 
+		"'makes a higher high spanning'", "'makes a higher low spanning'", "'makes a lower high spanning'", 
+		"'makes a lower low spanning'", "'more than'", "'over'", "'override start shift with'", 
 		"'reverses down'", "'reverses up'", "'smoothed'", "'spanning'", "'starting within'"
 	};
 	public static final int EOF=-1;
@@ -4253,7 +4253,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 	// $ANTLR start "presetcondition"
-	// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:232:1: presetcondition[CommonTree firstOp] : ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) ) | ( 'makes a higher low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) ) | ( 'makes a lower high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) ) | ( 'makes a lower low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) ) );
+	// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:232:1: presetcondition[CommonTree firstOp] : ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) ) | ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) ) | ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) ) | ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) ) );
 	public final ParameterizedIndicatorsParser.presetcondition_return presetcondition(CommonTree firstOp) throws RecognitionException {
 		ParameterizedIndicatorsParser.presetcondition_return retval = new ParameterizedIndicatorsParser.presetcondition_return();
 		retval.start = input.LT(1);
@@ -4347,20 +4347,20 @@ public class ParameterizedIndicatorsParser extends Parser {
 		Token WhiteChar253=null;
 		Token string_literal254=null;
 		Token WhiteChar255=null;
-		Token char_literal256=null;
-		Token char_literal257=null;
-		Token char_literal258=null;
-		Token WhiteChar259=null;
-		Token string_literal260=null;
-		Token WhiteChar261=null;
+		Token WhiteChar256=null;
+		Token DAYS257=null;
+		Token WhiteChar258=null;
+		Token string_literal259=null;
+		Token WhiteChar260=null;
+		Token char_literal261=null;
 		Token char_literal262=null;
 		Token char_literal263=null;
-		Token char_literal264=null;
+		Token WhiteChar264=null;
 		Token string_literal265=null;
 		Token WhiteChar266=null;
-		Token WhiteChar267=null;
-		Token DAYS268=null;
-		Token WhiteChar269=null;
+		Token char_literal267=null;
+		Token char_literal268=null;
+		Token char_literal269=null;
 		Token string_literal270=null;
 		Token WhiteChar271=null;
 		Token WhiteChar272=null;
@@ -4373,25 +4373,25 @@ public class ParameterizedIndicatorsParser extends Parser {
 		Token WhiteChar279=null;
 		Token string_literal280=null;
 		Token WhiteChar281=null;
-		Token char_literal282=null;
-		Token char_literal283=null;
-		Token char_literal284=null;
-		Token WhiteChar285=null;
-		Token string_literal286=null;
+		Token WhiteChar282=null;
+		Token DAYS283=null;
+		Token WhiteChar284=null;
+		Token string_literal285=null;
+		Token WhiteChar286=null;
 		Token WhiteChar287=null;
-		Token char_literal288=null;
-		Token char_literal289=null;
-		Token char_literal290=null;
-		Token string_literal291=null;
-		Token WhiteChar292=null;
-		Token WhiteChar293=null;
-		Token DAYS294=null;
+		Token DAYS288=null;
+		Token WhiteChar289=null;
+		Token string_literal290=null;
+		Token WhiteChar291=null;
+		Token char_literal292=null;
+		Token char_literal293=null;
+		Token char_literal294=null;
 		Token WhiteChar295=null;
 		Token string_literal296=null;
 		Token WhiteChar297=null;
-		Token WhiteChar298=null;
-		Token DAYS299=null;
-		Token WhiteChar300=null;
+		Token char_literal298=null;
+		Token char_literal299=null;
+		Token char_literal300=null;
 		Token string_literal301=null;
 		Token WhiteChar302=null;
 		Token WhiteChar303=null;
@@ -4399,41 +4399,61 @@ public class ParameterizedIndicatorsParser extends Parser {
 		Token WhiteChar305=null;
 		Token string_literal306=null;
 		Token WhiteChar307=null;
-		Token char_literal308=null;
-		Token char_literal309=null;
-		Token char_literal310=null;
-		Token WhiteChar311=null;
-		Token string_literal312=null;
+		Token WhiteChar308=null;
+		Token DAYS309=null;
+		Token WhiteChar310=null;
+		Token string_literal311=null;
+		Token WhiteChar312=null;
 		Token WhiteChar313=null;
-		Token char_literal314=null;
-		Token char_literal315=null;
-		Token char_literal316=null;
-		Token string_literal317=null;
+		Token DAYS314=null;
+		Token WhiteChar315=null;
+		Token string_literal316=null;
+		Token WhiteChar317=null;
 		Token WhiteChar318=null;
-		Token WhiteChar319=null;
-		Token DAYS320=null;
-		Token WhiteChar321=null;
-		Token string_literal322=null;
-		Token WhiteChar323=null;
-		Token WhiteChar324=null;
-		Token DAYS325=null;
+		Token DAYS319=null;
+		Token WhiteChar320=null;
+		Token string_literal321=null;
+		Token WhiteChar322=null;
+		Token char_literal323=null;
+		Token char_literal324=null;
+		Token char_literal325=null;
 		Token WhiteChar326=null;
 		Token string_literal327=null;
 		Token WhiteChar328=null;
-		Token WhiteChar329=null;
-		Token DAYS330=null;
-		Token WhiteChar331=null;
+		Token char_literal329=null;
+		Token char_literal330=null;
+		Token char_literal331=null;
 		Token string_literal332=null;
 		Token WhiteChar333=null;
-		Token char_literal334=null;
-		Token char_literal335=null;
-		Token char_literal336=null;
-		Token WhiteChar337=null;
-		Token string_literal338=null;
+		Token WhiteChar334=null;
+		Token DAYS335=null;
+		Token WhiteChar336=null;
+		Token string_literal337=null;
+		Token WhiteChar338=null;
 		Token WhiteChar339=null;
-		Token char_literal340=null;
-		Token char_literal341=null;
-		Token char_literal342=null;
+		Token DAYS340=null;
+		Token WhiteChar341=null;
+		Token string_literal342=null;
+		Token WhiteChar343=null;
+		Token WhiteChar344=null;
+		Token DAYS345=null;
+		Token WhiteChar346=null;
+		Token string_literal347=null;
+		Token WhiteChar348=null;
+		Token WhiteChar349=null;
+		Token DAYS350=null;
+		Token WhiteChar351=null;
+		Token string_literal352=null;
+		Token WhiteChar353=null;
+		Token char_literal354=null;
+		Token char_literal355=null;
+		Token char_literal356=null;
+		Token WhiteChar357=null;
+		Token string_literal358=null;
+		Token WhiteChar359=null;
+		Token char_literal360=null;
+		Token char_literal361=null;
+		Token char_literal362=null;
 		ParserRuleReturnScope percentdown =null;
 		ParserRuleReturnScope spanningNbDays =null;
 		ParserRuleReturnScope percentup =null;
@@ -4441,6 +4461,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 		ParserRuleReturnScope threshold =null;
 		ParserRuleReturnScope overNbDays =null;
 		ParserRuleReturnScope lookBack =null;
+		ParserRuleReturnScope remanencePeriod =null;
 		ParserRuleReturnScope extremesSpan =null;
 		ParserRuleReturnScope smoothP =null;
 		ParserRuleReturnScope lowestStart =null;
@@ -4535,20 +4556,20 @@ public class ParameterizedIndicatorsParser extends Parser {
 		CommonTree WhiteChar253_tree=null;
 		CommonTree string_literal254_tree=null;
 		CommonTree WhiteChar255_tree=null;
-		CommonTree char_literal256_tree=null;
-		CommonTree char_literal257_tree=null;
-		CommonTree char_literal258_tree=null;
-		CommonTree WhiteChar259_tree=null;
-		CommonTree string_literal260_tree=null;
-		CommonTree WhiteChar261_tree=null;
+		CommonTree WhiteChar256_tree=null;
+		CommonTree DAYS257_tree=null;
+		CommonTree WhiteChar258_tree=null;
+		CommonTree string_literal259_tree=null;
+		CommonTree WhiteChar260_tree=null;
+		CommonTree char_literal261_tree=null;
 		CommonTree char_literal262_tree=null;
 		CommonTree char_literal263_tree=null;
-		CommonTree char_literal264_tree=null;
+		CommonTree WhiteChar264_tree=null;
 		CommonTree string_literal265_tree=null;
 		CommonTree WhiteChar266_tree=null;
-		CommonTree WhiteChar267_tree=null;
-		CommonTree DAYS268_tree=null;
-		CommonTree WhiteChar269_tree=null;
+		CommonTree char_literal267_tree=null;
+		CommonTree char_literal268_tree=null;
+		CommonTree char_literal269_tree=null;
 		CommonTree string_literal270_tree=null;
 		CommonTree WhiteChar271_tree=null;
 		CommonTree WhiteChar272_tree=null;
@@ -4561,25 +4582,25 @@ public class ParameterizedIndicatorsParser extends Parser {
 		CommonTree WhiteChar279_tree=null;
 		CommonTree string_literal280_tree=null;
 		CommonTree WhiteChar281_tree=null;
-		CommonTree char_literal282_tree=null;
-		CommonTree char_literal283_tree=null;
-		CommonTree char_literal284_tree=null;
-		CommonTree WhiteChar285_tree=null;
-		CommonTree string_literal286_tree=null;
+		CommonTree WhiteChar282_tree=null;
+		CommonTree DAYS283_tree=null;
+		CommonTree WhiteChar284_tree=null;
+		CommonTree string_literal285_tree=null;
+		CommonTree WhiteChar286_tree=null;
 		CommonTree WhiteChar287_tree=null;
-		CommonTree char_literal288_tree=null;
-		CommonTree char_literal289_tree=null;
-		CommonTree char_literal290_tree=null;
-		CommonTree string_literal291_tree=null;
-		CommonTree WhiteChar292_tree=null;
-		CommonTree WhiteChar293_tree=null;
-		CommonTree DAYS294_tree=null;
+		CommonTree DAYS288_tree=null;
+		CommonTree WhiteChar289_tree=null;
+		CommonTree string_literal290_tree=null;
+		CommonTree WhiteChar291_tree=null;
+		CommonTree char_literal292_tree=null;
+		CommonTree char_literal293_tree=null;
+		CommonTree char_literal294_tree=null;
 		CommonTree WhiteChar295_tree=null;
 		CommonTree string_literal296_tree=null;
 		CommonTree WhiteChar297_tree=null;
-		CommonTree WhiteChar298_tree=null;
-		CommonTree DAYS299_tree=null;
-		CommonTree WhiteChar300_tree=null;
+		CommonTree char_literal298_tree=null;
+		CommonTree char_literal299_tree=null;
+		CommonTree char_literal300_tree=null;
 		CommonTree string_literal301_tree=null;
 		CommonTree WhiteChar302_tree=null;
 		CommonTree WhiteChar303_tree=null;
@@ -4587,41 +4608,61 @@ public class ParameterizedIndicatorsParser extends Parser {
 		CommonTree WhiteChar305_tree=null;
 		CommonTree string_literal306_tree=null;
 		CommonTree WhiteChar307_tree=null;
-		CommonTree char_literal308_tree=null;
-		CommonTree char_literal309_tree=null;
-		CommonTree char_literal310_tree=null;
-		CommonTree WhiteChar311_tree=null;
-		CommonTree string_literal312_tree=null;
+		CommonTree WhiteChar308_tree=null;
+		CommonTree DAYS309_tree=null;
+		CommonTree WhiteChar310_tree=null;
+		CommonTree string_literal311_tree=null;
+		CommonTree WhiteChar312_tree=null;
 		CommonTree WhiteChar313_tree=null;
-		CommonTree char_literal314_tree=null;
-		CommonTree char_literal315_tree=null;
-		CommonTree char_literal316_tree=null;
-		CommonTree string_literal317_tree=null;
+		CommonTree DAYS314_tree=null;
+		CommonTree WhiteChar315_tree=null;
+		CommonTree string_literal316_tree=null;
+		CommonTree WhiteChar317_tree=null;
 		CommonTree WhiteChar318_tree=null;
-		CommonTree WhiteChar319_tree=null;
-		CommonTree DAYS320_tree=null;
-		CommonTree WhiteChar321_tree=null;
-		CommonTree string_literal322_tree=null;
-		CommonTree WhiteChar323_tree=null;
-		CommonTree WhiteChar324_tree=null;
-		CommonTree DAYS325_tree=null;
+		CommonTree DAYS319_tree=null;
+		CommonTree WhiteChar320_tree=null;
+		CommonTree string_literal321_tree=null;
+		CommonTree WhiteChar322_tree=null;
+		CommonTree char_literal323_tree=null;
+		CommonTree char_literal324_tree=null;
+		CommonTree char_literal325_tree=null;
 		CommonTree WhiteChar326_tree=null;
 		CommonTree string_literal327_tree=null;
 		CommonTree WhiteChar328_tree=null;
-		CommonTree WhiteChar329_tree=null;
-		CommonTree DAYS330_tree=null;
-		CommonTree WhiteChar331_tree=null;
+		CommonTree char_literal329_tree=null;
+		CommonTree char_literal330_tree=null;
+		CommonTree char_literal331_tree=null;
 		CommonTree string_literal332_tree=null;
 		CommonTree WhiteChar333_tree=null;
-		CommonTree char_literal334_tree=null;
-		CommonTree char_literal335_tree=null;
-		CommonTree char_literal336_tree=null;
-		CommonTree WhiteChar337_tree=null;
-		CommonTree string_literal338_tree=null;
+		CommonTree WhiteChar334_tree=null;
+		CommonTree DAYS335_tree=null;
+		CommonTree WhiteChar336_tree=null;
+		CommonTree string_literal337_tree=null;
+		CommonTree WhiteChar338_tree=null;
 		CommonTree WhiteChar339_tree=null;
-		CommonTree char_literal340_tree=null;
-		CommonTree char_literal341_tree=null;
-		CommonTree char_literal342_tree=null;
+		CommonTree DAYS340_tree=null;
+		CommonTree WhiteChar341_tree=null;
+		CommonTree string_literal342_tree=null;
+		CommonTree WhiteChar343_tree=null;
+		CommonTree WhiteChar344_tree=null;
+		CommonTree DAYS345_tree=null;
+		CommonTree WhiteChar346_tree=null;
+		CommonTree string_literal347_tree=null;
+		CommonTree WhiteChar348_tree=null;
+		CommonTree WhiteChar349_tree=null;
+		CommonTree DAYS350_tree=null;
+		CommonTree WhiteChar351_tree=null;
+		CommonTree string_literal352_tree=null;
+		CommonTree WhiteChar353_tree=null;
+		CommonTree char_literal354_tree=null;
+		CommonTree char_literal355_tree=null;
+		CommonTree char_literal356_tree=null;
+		CommonTree WhiteChar357_tree=null;
+		CommonTree string_literal358_tree=null;
+		CommonTree WhiteChar359_tree=null;
+		CommonTree char_literal360_tree=null;
+		CommonTree char_literal361_tree=null;
+		CommonTree char_literal362_tree=null;
 		RewriteRuleTokenStream stream_66=new RewriteRuleTokenStream(adaptor,"token 66");
 		RewriteRuleTokenStream stream_77=new RewriteRuleTokenStream(adaptor,"token 77");
 		RewriteRuleTokenStream stream_67=new RewriteRuleTokenStream(adaptor,"token 67");
@@ -4641,14 +4682,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 		RewriteRuleTokenStream stream_85=new RewriteRuleTokenStream(adaptor,"token 85");
 		RewriteRuleTokenStream stream_52=new RewriteRuleTokenStream(adaptor,"token 52");
 		RewriteRuleTokenStream stream_53=new RewriteRuleTokenStream(adaptor,"token 53");
-		RewriteRuleTokenStream stream_75=new RewriteRuleTokenStream(adaptor,"token 75");
 		RewriteRuleTokenStream stream_86=new RewriteRuleTokenStream(adaptor,"token 86");
+		RewriteRuleTokenStream stream_75=new RewriteRuleTokenStream(adaptor,"token 75");
 		RewriteRuleTokenStream stream_65=new RewriteRuleTokenStream(adaptor,"token 65");
 		RewriteRuleTokenStream stream_76=new RewriteRuleTokenStream(adaptor,"token 76");
 		RewriteRuleSubtreeStream stream_constant=new RewriteRuleSubtreeStream(adaptor,"rule constant");
 
 		try {
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:232:38: ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) ) | ( 'makes a higher low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) ) | ( 'makes a lower high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) ) | ( 'makes a lower low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) ) )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:232:38: ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) ) | ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) ) | ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) ) | ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) ) )
 			int alt42=10;
 			switch ( input.LA(1) ) {
 			case 82:
@@ -5690,10 +5731,10 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 7 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:261:3: ( 'makes a higher high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:261:3: ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) )
 					{
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:261:3: ( 'makes a higher high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) )
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:261:4: 'makes a higher high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:261:3: ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherHighCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:261:4: 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
 					{
 					string_literal239=(Token)match(input,75,FOLLOW_75_in_presetcondition2491);  
 					stream_75.add(string_literal239);
@@ -5715,17 +5756,17 @@ public class ParameterizedIndicatorsParser extends Parser {
 					WhiteChar243=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2508);  
 					stream_WhiteChar.add(WhiteChar243);
 
-					string_literal244=(Token)match(input,85,FOLLOW_85_in_presetcondition2510);  
-					stream_85.add(string_literal244);
+					string_literal244=(Token)match(input,80,FOLLOW_80_in_presetcondition2510);  
+					stream_80.add(string_literal244);
 
 					WhiteChar245=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2512);  
 					stream_WhiteChar.add(WhiteChar245);
 
 					pushFollow(FOLLOW_constant_in_presetcondition2516);
-					extremesSpan=constant();
+					remanencePeriod=constant();
 					state._fsp--;
 
-					stream_constant.add(extremesSpan.getTree());
+					stream_constant.add(remanencePeriod.getTree());
 					WhiteChar246=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2518);  
 					stream_WhiteChar.add(WhiteChar246);
 
@@ -5735,17 +5776,17 @@ public class ParameterizedIndicatorsParser extends Parser {
 					WhiteChar248=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2527);  
 					stream_WhiteChar.add(WhiteChar248);
 
-					string_literal249=(Token)match(input,84,FOLLOW_84_in_presetcondition2529);  
-					stream_84.add(string_literal249);
+					string_literal249=(Token)match(input,65,FOLLOW_65_in_presetcondition2529);  
+					stream_65.add(string_literal249);
 
 					WhiteChar250=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2531);  
 					stream_WhiteChar.add(WhiteChar250);
 
 					pushFollow(FOLLOW_constant_in_presetcondition2535);
-					smoothP=constant();
+					extremesSpan=constant();
 					state._fsp--;
 
-					stream_constant.add(smoothP.getTree());
+					stream_constant.add(extremesSpan.getTree());
 					WhiteChar251=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2537);  
 					stream_WhiteChar.add(WhiteChar251);
 
@@ -5755,58 +5796,78 @@ public class ParameterizedIndicatorsParser extends Parser {
 					WhiteChar253=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2546);  
 					stream_WhiteChar.add(WhiteChar253);
 
-					string_literal254=(Token)match(input,86,FOLLOW_86_in_presetcondition2548);  
-					stream_86.add(string_literal254);
+					string_literal254=(Token)match(input,84,FOLLOW_84_in_presetcondition2548);  
+					stream_84.add(string_literal254);
 
 					WhiteChar255=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2550);  
 					stream_WhiteChar.add(WhiteChar255);
 
-					char_literal256=(Token)match(input,52,FOLLOW_52_in_presetcondition2552);  
-					stream_52.add(char_literal256);
+					pushFollow(FOLLOW_constant_in_presetcondition2554);
+					smoothP=constant();
+					state._fsp--;
 
-					pushFollow(FOLLOW_constant_in_presetcondition2556);
+					stream_constant.add(smoothP.getTree());
+					WhiteChar256=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2556);  
+					stream_WhiteChar.add(WhiteChar256);
+
+					DAYS257=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2558);  
+					stream_DAYS.add(DAYS257);
+
+					WhiteChar258=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2565);  
+					stream_WhiteChar.add(WhiteChar258);
+
+					string_literal259=(Token)match(input,86,FOLLOW_86_in_presetcondition2567);  
+					stream_86.add(string_literal259);
+
+					WhiteChar260=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2569);  
+					stream_WhiteChar.add(WhiteChar260);
+
+					char_literal261=(Token)match(input,52,FOLLOW_52_in_presetcondition2571);  
+					stream_52.add(char_literal261);
+
+					pushFollow(FOLLOW_constant_in_presetcondition2575);
 					lowestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestStart.getTree());
-					char_literal257=(Token)match(input,50,FOLLOW_50_in_presetcondition2558);  
-					stream_50.add(char_literal257);
+					char_literal262=(Token)match(input,50,FOLLOW_50_in_presetcondition2577);  
+					stream_50.add(char_literal262);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2562);
+					pushFollow(FOLLOW_constant_in_presetcondition2581);
 					highestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(highestStart.getTree());
-					char_literal258=(Token)match(input,53,FOLLOW_53_in_presetcondition2564);  
-					stream_53.add(char_literal258);
+					char_literal263=(Token)match(input,53,FOLLOW_53_in_presetcondition2583);  
+					stream_53.add(char_literal263);
 
-					WhiteChar259=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2566);  
-					stream_WhiteChar.add(WhiteChar259);
+					WhiteChar264=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2585);  
+					stream_WhiteChar.add(WhiteChar264);
 
-					string_literal260=(Token)match(input,61,FOLLOW_61_in_presetcondition2568);  
-					stream_61.add(string_literal260);
+					string_literal265=(Token)match(input,61,FOLLOW_61_in_presetcondition2587);  
+					stream_61.add(string_literal265);
 
-					WhiteChar261=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2570);  
-					stream_WhiteChar.add(WhiteChar261);
+					WhiteChar266=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2589);  
+					stream_WhiteChar.add(WhiteChar266);
 
-					char_literal262=(Token)match(input,52,FOLLOW_52_in_presetcondition2572);  
-					stream_52.add(char_literal262);
+					char_literal267=(Token)match(input,52,FOLLOW_52_in_presetcondition2591);  
+					stream_52.add(char_literal267);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2576);
+					pushFollow(FOLLOW_constant_in_presetcondition2595);
 					lowestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestEnd.getTree());
-					char_literal263=(Token)match(input,50,FOLLOW_50_in_presetcondition2578);  
-					stream_50.add(char_literal263);
+					char_literal268=(Token)match(input,50,FOLLOW_50_in_presetcondition2597);  
+					stream_50.add(char_literal268);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2582);
+					pushFollow(FOLLOW_constant_in_presetcondition2601);
 					highestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(highestEnd.getTree());
-					char_literal264=(Token)match(input,53,FOLLOW_53_in_presetcondition2584);  
-					stream_53.add(char_literal264);
+					char_literal269=(Token)match(input,53,FOLLOW_53_in_presetcondition2603);  
+					stream_53.add(char_literal269);
 
 					// AST REWRITE
 					// elements: 
@@ -5819,13 +5880,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 265:4: -> ^( HigherHighCondition )
+					// 266:4: -> ^( HigherHighCondition )
 					{
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:265:7: ^( HigherHighCondition )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:7: ^( HigherHighCondition )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(HigherHighCondition, "HigherHighCondition"), root_1);
 						adaptor.addChild(root_1, (lookBack!=null?((CommonTree)lookBack.getTree()):null));
+						adaptor.addChild(root_1, (remanencePeriod!=null?((CommonTree)remanencePeriod.getTree()):null));
 						adaptor.addChild(root_1, (extremesSpan!=null?((CommonTree)extremesSpan.getTree()):null));
 						adaptor.addChild(root_1, (smoothP!=null?((CommonTree)smoothP.getTree()):null));
 						adaptor.addChild(root_1, (lowestStart!=null?((CommonTree)lowestStart.getTree()):null));
@@ -5846,123 +5908,143 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 8 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:3: ( 'makes a higher low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:267:3: ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) )
 					{
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:3: ( 'makes a higher low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) )
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:266:4: 'makes a higher low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:267:3: ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( HigherLowCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:267:4: 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
 					{
-					string_literal265=(Token)match(input,76,FOLLOW_76_in_presetcondition2618);  
-					stream_76.add(string_literal265);
+					string_literal270=(Token)match(input,76,FOLLOW_76_in_presetcondition2639);  
+					stream_76.add(string_literal270);
 
-					WhiteChar266=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2620);  
-					stream_WhiteChar.add(WhiteChar266);
+					WhiteChar271=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2641);  
+					stream_WhiteChar.add(WhiteChar271);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2624);
+					pushFollow(FOLLOW_constant_in_presetcondition2645);
 					lookBack=constant();
 					state._fsp--;
 
 					stream_constant.add(lookBack.getTree());
-					WhiteChar267=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2626);  
-					stream_WhiteChar.add(WhiteChar267);
+					WhiteChar272=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2647);  
+					stream_WhiteChar.add(WhiteChar272);
 
-					DAYS268=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2628);  
-					stream_DAYS.add(DAYS268);
+					DAYS273=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2649);  
+					stream_DAYS.add(DAYS273);
 
-					WhiteChar269=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2635);  
-					stream_WhiteChar.add(WhiteChar269);
+					WhiteChar274=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2656);  
+					stream_WhiteChar.add(WhiteChar274);
 
-					string_literal270=(Token)match(input,85,FOLLOW_85_in_presetcondition2637);  
-					stream_85.add(string_literal270);
+					string_literal275=(Token)match(input,80,FOLLOW_80_in_presetcondition2658);  
+					stream_80.add(string_literal275);
 
-					WhiteChar271=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2639);  
-					stream_WhiteChar.add(WhiteChar271);
+					WhiteChar276=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2660);  
+					stream_WhiteChar.add(WhiteChar276);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2643);
+					pushFollow(FOLLOW_constant_in_presetcondition2664);
+					remanencePeriod=constant();
+					state._fsp--;
+
+					stream_constant.add(remanencePeriod.getTree());
+					WhiteChar277=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2666);  
+					stream_WhiteChar.add(WhiteChar277);
+
+					DAYS278=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2668);  
+					stream_DAYS.add(DAYS278);
+
+					WhiteChar279=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2675);  
+					stream_WhiteChar.add(WhiteChar279);
+
+					string_literal280=(Token)match(input,65,FOLLOW_65_in_presetcondition2677);  
+					stream_65.add(string_literal280);
+
+					WhiteChar281=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2679);  
+					stream_WhiteChar.add(WhiteChar281);
+
+					pushFollow(FOLLOW_constant_in_presetcondition2683);
 					extremesSpan=constant();
 					state._fsp--;
 
 					stream_constant.add(extremesSpan.getTree());
-					WhiteChar272=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2645);  
-					stream_WhiteChar.add(WhiteChar272);
+					WhiteChar282=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2685);  
+					stream_WhiteChar.add(WhiteChar282);
 
-					DAYS273=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2647);  
-					stream_DAYS.add(DAYS273);
+					DAYS283=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2687);  
+					stream_DAYS.add(DAYS283);
 
-					WhiteChar274=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2654);  
-					stream_WhiteChar.add(WhiteChar274);
+					WhiteChar284=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2694);  
+					stream_WhiteChar.add(WhiteChar284);
 
-					string_literal275=(Token)match(input,84,FOLLOW_84_in_presetcondition2656);  
-					stream_84.add(string_literal275);
+					string_literal285=(Token)match(input,84,FOLLOW_84_in_presetcondition2696);  
+					stream_84.add(string_literal285);
 
-					WhiteChar276=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2658);  
-					stream_WhiteChar.add(WhiteChar276);
+					WhiteChar286=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2698);  
+					stream_WhiteChar.add(WhiteChar286);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2662);
+					pushFollow(FOLLOW_constant_in_presetcondition2702);
 					smoothP=constant();
 					state._fsp--;
 
 					stream_constant.add(smoothP.getTree());
-					WhiteChar277=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2664);  
-					stream_WhiteChar.add(WhiteChar277);
+					WhiteChar287=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2704);  
+					stream_WhiteChar.add(WhiteChar287);
 
-					DAYS278=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2666);  
-					stream_DAYS.add(DAYS278);
+					DAYS288=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2706);  
+					stream_DAYS.add(DAYS288);
 
-					WhiteChar279=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2673);  
-					stream_WhiteChar.add(WhiteChar279);
+					WhiteChar289=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2713);  
+					stream_WhiteChar.add(WhiteChar289);
 
-					string_literal280=(Token)match(input,86,FOLLOW_86_in_presetcondition2675);  
-					stream_86.add(string_literal280);
+					string_literal290=(Token)match(input,86,FOLLOW_86_in_presetcondition2715);  
+					stream_86.add(string_literal290);
 
-					WhiteChar281=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2677);  
-					stream_WhiteChar.add(WhiteChar281);
+					WhiteChar291=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2717);  
+					stream_WhiteChar.add(WhiteChar291);
 
-					char_literal282=(Token)match(input,52,FOLLOW_52_in_presetcondition2679);  
-					stream_52.add(char_literal282);
+					char_literal292=(Token)match(input,52,FOLLOW_52_in_presetcondition2719);  
+					stream_52.add(char_literal292);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2683);
+					pushFollow(FOLLOW_constant_in_presetcondition2723);
 					lowestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestStart.getTree());
-					char_literal283=(Token)match(input,50,FOLLOW_50_in_presetcondition2685);  
-					stream_50.add(char_literal283);
+					char_literal293=(Token)match(input,50,FOLLOW_50_in_presetcondition2725);  
+					stream_50.add(char_literal293);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2689);
+					pushFollow(FOLLOW_constant_in_presetcondition2729);
 					highestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(highestStart.getTree());
-					char_literal284=(Token)match(input,53,FOLLOW_53_in_presetcondition2691);  
-					stream_53.add(char_literal284);
+					char_literal294=(Token)match(input,53,FOLLOW_53_in_presetcondition2731);  
+					stream_53.add(char_literal294);
 
-					WhiteChar285=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2693);  
-					stream_WhiteChar.add(WhiteChar285);
+					WhiteChar295=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2733);  
+					stream_WhiteChar.add(WhiteChar295);
 
-					string_literal286=(Token)match(input,61,FOLLOW_61_in_presetcondition2695);  
-					stream_61.add(string_literal286);
+					string_literal296=(Token)match(input,61,FOLLOW_61_in_presetcondition2735);  
+					stream_61.add(string_literal296);
 
-					WhiteChar287=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2697);  
-					stream_WhiteChar.add(WhiteChar287);
+					WhiteChar297=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2737);  
+					stream_WhiteChar.add(WhiteChar297);
 
-					char_literal288=(Token)match(input,52,FOLLOW_52_in_presetcondition2699);  
-					stream_52.add(char_literal288);
+					char_literal298=(Token)match(input,52,FOLLOW_52_in_presetcondition2739);  
+					stream_52.add(char_literal298);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2703);
+					pushFollow(FOLLOW_constant_in_presetcondition2743);
 					lowestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestEnd.getTree());
-					char_literal289=(Token)match(input,50,FOLLOW_50_in_presetcondition2705);  
-					stream_50.add(char_literal289);
+					char_literal299=(Token)match(input,50,FOLLOW_50_in_presetcondition2745);  
+					stream_50.add(char_literal299);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2709);
+					pushFollow(FOLLOW_constant_in_presetcondition2749);
 					highestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(highestEnd.getTree());
-					char_literal290=(Token)match(input,53,FOLLOW_53_in_presetcondition2711);  
-					stream_53.add(char_literal290);
+					char_literal300=(Token)match(input,53,FOLLOW_53_in_presetcondition2751);  
+					stream_53.add(char_literal300);
 
 					// AST REWRITE
 					// elements: 
@@ -5975,13 +6057,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 270:4: -> ^( HigherLowCondition )
+					// 272:4: -> ^( HigherLowCondition )
 					{
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:270:7: ^( HigherLowCondition )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:272:7: ^( HigherLowCondition )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(HigherLowCondition, "HigherLowCondition"), root_1);
 						adaptor.addChild(root_1, (lookBack!=null?((CommonTree)lookBack.getTree()):null));
+						adaptor.addChild(root_1, (remanencePeriod!=null?((CommonTree)remanencePeriod.getTree()):null));
 						adaptor.addChild(root_1, (extremesSpan!=null?((CommonTree)extremesSpan.getTree()):null));
 						adaptor.addChild(root_1, (smoothP!=null?((CommonTree)smoothP.getTree()):null));
 						adaptor.addChild(root_1, (lowestStart!=null?((CommonTree)lowestStart.getTree()):null));
@@ -6002,123 +6085,143 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 9 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:3: ( 'makes a lower high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:273:3: ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) )
 					{
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:3: ( 'makes a lower high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) )
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:271:4: 'makes a lower high over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:273:3: ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerHighCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:273:4: 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
 					{
-					string_literal291=(Token)match(input,77,FOLLOW_77_in_presetcondition2745);  
-					stream_77.add(string_literal291);
+					string_literal301=(Token)match(input,77,FOLLOW_77_in_presetcondition2787);  
+					stream_77.add(string_literal301);
 
-					WhiteChar292=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2747);  
-					stream_WhiteChar.add(WhiteChar292);
+					WhiteChar302=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2789);  
+					stream_WhiteChar.add(WhiteChar302);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2751);
+					pushFollow(FOLLOW_constant_in_presetcondition2793);
 					lookBack=constant();
 					state._fsp--;
 
 					stream_constant.add(lookBack.getTree());
-					WhiteChar293=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2753);  
-					stream_WhiteChar.add(WhiteChar293);
+					WhiteChar303=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2795);  
+					stream_WhiteChar.add(WhiteChar303);
 
-					DAYS294=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2755);  
-					stream_DAYS.add(DAYS294);
+					DAYS304=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2797);  
+					stream_DAYS.add(DAYS304);
 
-					WhiteChar295=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2762);  
-					stream_WhiteChar.add(WhiteChar295);
+					WhiteChar305=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2804);  
+					stream_WhiteChar.add(WhiteChar305);
 
-					string_literal296=(Token)match(input,85,FOLLOW_85_in_presetcondition2764);  
-					stream_85.add(string_literal296);
+					string_literal306=(Token)match(input,80,FOLLOW_80_in_presetcondition2806);  
+					stream_80.add(string_literal306);
 
-					WhiteChar297=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2766);  
-					stream_WhiteChar.add(WhiteChar297);
+					WhiteChar307=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2808);  
+					stream_WhiteChar.add(WhiteChar307);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2770);
+					pushFollow(FOLLOW_constant_in_presetcondition2812);
+					remanencePeriod=constant();
+					state._fsp--;
+
+					stream_constant.add(remanencePeriod.getTree());
+					WhiteChar308=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2814);  
+					stream_WhiteChar.add(WhiteChar308);
+
+					DAYS309=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2816);  
+					stream_DAYS.add(DAYS309);
+
+					WhiteChar310=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2823);  
+					stream_WhiteChar.add(WhiteChar310);
+
+					string_literal311=(Token)match(input,65,FOLLOW_65_in_presetcondition2825);  
+					stream_65.add(string_literal311);
+
+					WhiteChar312=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2827);  
+					stream_WhiteChar.add(WhiteChar312);
+
+					pushFollow(FOLLOW_constant_in_presetcondition2831);
 					extremesSpan=constant();
 					state._fsp--;
 
 					stream_constant.add(extremesSpan.getTree());
-					WhiteChar298=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2772);  
-					stream_WhiteChar.add(WhiteChar298);
+					WhiteChar313=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2833);  
+					stream_WhiteChar.add(WhiteChar313);
 
-					DAYS299=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2774);  
-					stream_DAYS.add(DAYS299);
+					DAYS314=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2835);  
+					stream_DAYS.add(DAYS314);
 
-					WhiteChar300=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2781);  
-					stream_WhiteChar.add(WhiteChar300);
+					WhiteChar315=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2842);  
+					stream_WhiteChar.add(WhiteChar315);
 
-					string_literal301=(Token)match(input,84,FOLLOW_84_in_presetcondition2783);  
-					stream_84.add(string_literal301);
+					string_literal316=(Token)match(input,84,FOLLOW_84_in_presetcondition2844);  
+					stream_84.add(string_literal316);
 
-					WhiteChar302=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2785);  
-					stream_WhiteChar.add(WhiteChar302);
+					WhiteChar317=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2846);  
+					stream_WhiteChar.add(WhiteChar317);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2789);
+					pushFollow(FOLLOW_constant_in_presetcondition2850);
 					smoothP=constant();
 					state._fsp--;
 
 					stream_constant.add(smoothP.getTree());
-					WhiteChar303=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2791);  
-					stream_WhiteChar.add(WhiteChar303);
+					WhiteChar318=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2852);  
+					stream_WhiteChar.add(WhiteChar318);
 
-					DAYS304=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2793);  
-					stream_DAYS.add(DAYS304);
+					DAYS319=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2854);  
+					stream_DAYS.add(DAYS319);
 
-					WhiteChar305=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2800);  
-					stream_WhiteChar.add(WhiteChar305);
+					WhiteChar320=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2861);  
+					stream_WhiteChar.add(WhiteChar320);
 
-					string_literal306=(Token)match(input,86,FOLLOW_86_in_presetcondition2802);  
-					stream_86.add(string_literal306);
+					string_literal321=(Token)match(input,86,FOLLOW_86_in_presetcondition2863);  
+					stream_86.add(string_literal321);
 
-					WhiteChar307=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2804);  
-					stream_WhiteChar.add(WhiteChar307);
+					WhiteChar322=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2865);  
+					stream_WhiteChar.add(WhiteChar322);
 
-					char_literal308=(Token)match(input,52,FOLLOW_52_in_presetcondition2806);  
-					stream_52.add(char_literal308);
+					char_literal323=(Token)match(input,52,FOLLOW_52_in_presetcondition2867);  
+					stream_52.add(char_literal323);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2810);
+					pushFollow(FOLLOW_constant_in_presetcondition2871);
 					lowestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestStart.getTree());
-					char_literal309=(Token)match(input,50,FOLLOW_50_in_presetcondition2812);  
-					stream_50.add(char_literal309);
+					char_literal324=(Token)match(input,50,FOLLOW_50_in_presetcondition2873);  
+					stream_50.add(char_literal324);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2816);
+					pushFollow(FOLLOW_constant_in_presetcondition2877);
 					highestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(highestStart.getTree());
-					char_literal310=(Token)match(input,53,FOLLOW_53_in_presetcondition2818);  
-					stream_53.add(char_literal310);
+					char_literal325=(Token)match(input,53,FOLLOW_53_in_presetcondition2879);  
+					stream_53.add(char_literal325);
 
-					WhiteChar311=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2820);  
-					stream_WhiteChar.add(WhiteChar311);
+					WhiteChar326=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2881);  
+					stream_WhiteChar.add(WhiteChar326);
 
-					string_literal312=(Token)match(input,61,FOLLOW_61_in_presetcondition2822);  
-					stream_61.add(string_literal312);
+					string_literal327=(Token)match(input,61,FOLLOW_61_in_presetcondition2883);  
+					stream_61.add(string_literal327);
 
-					WhiteChar313=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2824);  
-					stream_WhiteChar.add(WhiteChar313);
+					WhiteChar328=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2885);  
+					stream_WhiteChar.add(WhiteChar328);
 
-					char_literal314=(Token)match(input,52,FOLLOW_52_in_presetcondition2826);  
-					stream_52.add(char_literal314);
+					char_literal329=(Token)match(input,52,FOLLOW_52_in_presetcondition2887);  
+					stream_52.add(char_literal329);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2830);
+					pushFollow(FOLLOW_constant_in_presetcondition2891);
 					lowestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestEnd.getTree());
-					char_literal315=(Token)match(input,50,FOLLOW_50_in_presetcondition2832);  
-					stream_50.add(char_literal315);
+					char_literal330=(Token)match(input,50,FOLLOW_50_in_presetcondition2893);  
+					stream_50.add(char_literal330);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2836);
+					pushFollow(FOLLOW_constant_in_presetcondition2897);
 					highestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(highestEnd.getTree());
-					char_literal316=(Token)match(input,53,FOLLOW_53_in_presetcondition2838);  
-					stream_53.add(char_literal316);
+					char_literal331=(Token)match(input,53,FOLLOW_53_in_presetcondition2899);  
+					stream_53.add(char_literal331);
 
 					// AST REWRITE
 					// elements: 
@@ -6131,13 +6234,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 275:4: -> ^( LowerHighCondition )
+					// 278:4: -> ^( LowerHighCondition )
 					{
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:275:7: ^( LowerHighCondition )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:278:7: ^( LowerHighCondition )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(LowerHighCondition, "LowerHighCondition"), root_1);
 						adaptor.addChild(root_1, (lookBack!=null?((CommonTree)lookBack.getTree()):null));
+						adaptor.addChild(root_1, (remanencePeriod!=null?((CommonTree)remanencePeriod.getTree()):null));
 						adaptor.addChild(root_1, (extremesSpan!=null?((CommonTree)extremesSpan.getTree()):null));
 						adaptor.addChild(root_1, (smoothP!=null?((CommonTree)smoothP.getTree()):null));
 						adaptor.addChild(root_1, (lowestStart!=null?((CommonTree)lowestStart.getTree()):null));
@@ -6158,123 +6262,143 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 10 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:276:3: ( 'makes a lower low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:3: ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) )
 					{
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:276:3: ( 'makes a lower low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) )
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:276:4: 'makes a lower low over' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'spanning' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:3: ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' -> ^( LowerLowCondition ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:279:4: 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']'
 					{
-					string_literal317=(Token)match(input,78,FOLLOW_78_in_presetcondition2872);  
-					stream_78.add(string_literal317);
+					string_literal332=(Token)match(input,78,FOLLOW_78_in_presetcondition2935);  
+					stream_78.add(string_literal332);
 
-					WhiteChar318=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2874);  
-					stream_WhiteChar.add(WhiteChar318);
+					WhiteChar333=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2937);  
+					stream_WhiteChar.add(WhiteChar333);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2878);
+					pushFollow(FOLLOW_constant_in_presetcondition2941);
 					lookBack=constant();
 					state._fsp--;
 
 					stream_constant.add(lookBack.getTree());
-					WhiteChar319=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2880);  
-					stream_WhiteChar.add(WhiteChar319);
+					WhiteChar334=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2943);  
+					stream_WhiteChar.add(WhiteChar334);
 
-					DAYS320=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2882);  
-					stream_DAYS.add(DAYS320);
+					DAYS335=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2945);  
+					stream_DAYS.add(DAYS335);
 
-					WhiteChar321=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2889);  
-					stream_WhiteChar.add(WhiteChar321);
+					WhiteChar336=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2952);  
+					stream_WhiteChar.add(WhiteChar336);
 
-					string_literal322=(Token)match(input,85,FOLLOW_85_in_presetcondition2891);  
-					stream_85.add(string_literal322);
+					string_literal337=(Token)match(input,80,FOLLOW_80_in_presetcondition2954);  
+					stream_80.add(string_literal337);
 
-					WhiteChar323=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2893);  
-					stream_WhiteChar.add(WhiteChar323);
+					WhiteChar338=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2956);  
+					stream_WhiteChar.add(WhiteChar338);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2897);
+					pushFollow(FOLLOW_constant_in_presetcondition2960);
+					remanencePeriod=constant();
+					state._fsp--;
+
+					stream_constant.add(remanencePeriod.getTree());
+					WhiteChar339=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2962);  
+					stream_WhiteChar.add(WhiteChar339);
+
+					DAYS340=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2964);  
+					stream_DAYS.add(DAYS340);
+
+					WhiteChar341=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2971);  
+					stream_WhiteChar.add(WhiteChar341);
+
+					string_literal342=(Token)match(input,65,FOLLOW_65_in_presetcondition2973);  
+					stream_65.add(string_literal342);
+
+					WhiteChar343=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2975);  
+					stream_WhiteChar.add(WhiteChar343);
+
+					pushFollow(FOLLOW_constant_in_presetcondition2979);
 					extremesSpan=constant();
 					state._fsp--;
 
 					stream_constant.add(extremesSpan.getTree());
-					WhiteChar324=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2899);  
-					stream_WhiteChar.add(WhiteChar324);
+					WhiteChar344=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2981);  
+					stream_WhiteChar.add(WhiteChar344);
 
-					DAYS325=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2901);  
-					stream_DAYS.add(DAYS325);
+					DAYS345=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2983);  
+					stream_DAYS.add(DAYS345);
 
-					WhiteChar326=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2908);  
-					stream_WhiteChar.add(WhiteChar326);
+					WhiteChar346=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2990);  
+					stream_WhiteChar.add(WhiteChar346);
 
-					string_literal327=(Token)match(input,84,FOLLOW_84_in_presetcondition2910);  
-					stream_84.add(string_literal327);
+					string_literal347=(Token)match(input,84,FOLLOW_84_in_presetcondition2992);  
+					stream_84.add(string_literal347);
 
-					WhiteChar328=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2912);  
-					stream_WhiteChar.add(WhiteChar328);
+					WhiteChar348=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2994);  
+					stream_WhiteChar.add(WhiteChar348);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2916);
+					pushFollow(FOLLOW_constant_in_presetcondition2998);
 					smoothP=constant();
 					state._fsp--;
 
 					stream_constant.add(smoothP.getTree());
-					WhiteChar329=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2918);  
-					stream_WhiteChar.add(WhiteChar329);
+					WhiteChar349=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3000);  
+					stream_WhiteChar.add(WhiteChar349);
 
-					DAYS330=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition2920);  
-					stream_DAYS.add(DAYS330);
+					DAYS350=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition3002);  
+					stream_DAYS.add(DAYS350);
 
-					WhiteChar331=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2927);  
-					stream_WhiteChar.add(WhiteChar331);
+					WhiteChar351=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3009);  
+					stream_WhiteChar.add(WhiteChar351);
 
-					string_literal332=(Token)match(input,86,FOLLOW_86_in_presetcondition2929);  
-					stream_86.add(string_literal332);
+					string_literal352=(Token)match(input,86,FOLLOW_86_in_presetcondition3011);  
+					stream_86.add(string_literal352);
 
-					WhiteChar333=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2931);  
-					stream_WhiteChar.add(WhiteChar333);
+					WhiteChar353=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3013);  
+					stream_WhiteChar.add(WhiteChar353);
 
-					char_literal334=(Token)match(input,52,FOLLOW_52_in_presetcondition2933);  
-					stream_52.add(char_literal334);
+					char_literal354=(Token)match(input,52,FOLLOW_52_in_presetcondition3015);  
+					stream_52.add(char_literal354);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2937);
+					pushFollow(FOLLOW_constant_in_presetcondition3019);
 					lowestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestStart.getTree());
-					char_literal335=(Token)match(input,50,FOLLOW_50_in_presetcondition2939);  
-					stream_50.add(char_literal335);
+					char_literal355=(Token)match(input,50,FOLLOW_50_in_presetcondition3021);  
+					stream_50.add(char_literal355);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2943);
+					pushFollow(FOLLOW_constant_in_presetcondition3025);
 					highestStart=constant();
 					state._fsp--;
 
 					stream_constant.add(highestStart.getTree());
-					char_literal336=(Token)match(input,53,FOLLOW_53_in_presetcondition2945);  
-					stream_53.add(char_literal336);
+					char_literal356=(Token)match(input,53,FOLLOW_53_in_presetcondition3027);  
+					stream_53.add(char_literal356);
 
-					WhiteChar337=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2947);  
-					stream_WhiteChar.add(WhiteChar337);
+					WhiteChar357=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3029);  
+					stream_WhiteChar.add(WhiteChar357);
 
-					string_literal338=(Token)match(input,61,FOLLOW_61_in_presetcondition2949);  
-					stream_61.add(string_literal338);
+					string_literal358=(Token)match(input,61,FOLLOW_61_in_presetcondition3031);  
+					stream_61.add(string_literal358);
 
-					WhiteChar339=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition2951);  
-					stream_WhiteChar.add(WhiteChar339);
+					WhiteChar359=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3033);  
+					stream_WhiteChar.add(WhiteChar359);
 
-					char_literal340=(Token)match(input,52,FOLLOW_52_in_presetcondition2953);  
-					stream_52.add(char_literal340);
+					char_literal360=(Token)match(input,52,FOLLOW_52_in_presetcondition3035);  
+					stream_52.add(char_literal360);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2957);
+					pushFollow(FOLLOW_constant_in_presetcondition3039);
 					lowestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(lowestEnd.getTree());
-					char_literal341=(Token)match(input,50,FOLLOW_50_in_presetcondition2959);  
-					stream_50.add(char_literal341);
+					char_literal361=(Token)match(input,50,FOLLOW_50_in_presetcondition3041);  
+					stream_50.add(char_literal361);
 
-					pushFollow(FOLLOW_constant_in_presetcondition2963);
+					pushFollow(FOLLOW_constant_in_presetcondition3045);
 					highestEnd=constant();
 					state._fsp--;
 
 					stream_constant.add(highestEnd.getTree());
-					char_literal342=(Token)match(input,53,FOLLOW_53_in_presetcondition2965);  
-					stream_53.add(char_literal342);
+					char_literal362=(Token)match(input,53,FOLLOW_53_in_presetcondition3047);  
+					stream_53.add(char_literal362);
 
 					// AST REWRITE
 					// elements: 
@@ -6287,13 +6411,14 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 280:4: -> ^( LowerLowCondition )
+					// 284:4: -> ^( LowerLowCondition )
 					{
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:280:7: ^( LowerLowCondition )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:284:7: ^( LowerLowCondition )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(LowerLowCondition, "LowerLowCondition"), root_1);
 						adaptor.addChild(root_1, (lookBack!=null?((CommonTree)lookBack.getTree()):null));
+						adaptor.addChild(root_1, (remanencePeriod!=null?((CommonTree)remanencePeriod.getTree()):null));
 						adaptor.addChild(root_1, (extremesSpan!=null?((CommonTree)extremesSpan.getTree()):null));
 						adaptor.addChild(root_1, (smoothP!=null?((CommonTree)smoothP.getTree()):null));
 						adaptor.addChild(root_1, (lowestStart!=null?((CommonTree)lowestStart.getTree()):null));
@@ -6623,131 +6748,155 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_constant_in_presetcondition2497 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2499 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2501 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2508 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
-	public static final BitSet FOLLOW_85_in_presetcondition2510 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2508 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+	public static final BitSet FOLLOW_80_in_presetcondition2510 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2512 = new BitSet(new long[]{0x0008000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2516 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2518 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2520 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2527 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
-	public static final BitSet FOLLOW_84_in_presetcondition2529 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2527 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_presetcondition2529 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2531 = new BitSet(new long[]{0x0008000100000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition2535 = new BitSet(new long[]{0x0002000000000000L});
 	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2537 = new BitSet(new long[]{0x0000000000002000L});
 	public static final BitSet FOLLOW_DAYS_in_presetcondition2539 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2546 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
-	public static final BitSet FOLLOW_86_in_presetcondition2548 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2550 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2552 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2556 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2558 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2562 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2564 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2566 = new BitSet(new long[]{0x2000000000000000L});
-	public static final BitSet FOLLOW_61_in_presetcondition2568 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2570 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2572 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2576 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2578 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2582 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2584 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_76_in_presetcondition2618 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2620 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2624 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2626 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2628 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2635 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
-	public static final BitSet FOLLOW_85_in_presetcondition2637 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2639 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2643 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2645 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2647 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2654 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
-	public static final BitSet FOLLOW_84_in_presetcondition2656 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2658 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2662 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2664 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2666 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2673 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
-	public static final BitSet FOLLOW_86_in_presetcondition2675 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2677 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2679 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2683 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2685 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2689 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2691 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2693 = new BitSet(new long[]{0x2000000000000000L});
-	public static final BitSet FOLLOW_61_in_presetcondition2695 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2697 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2699 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2703 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2705 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2709 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2711 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_77_in_presetcondition2745 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2747 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2751 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2753 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2755 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2762 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
-	public static final BitSet FOLLOW_85_in_presetcondition2764 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2766 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2770 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2772 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2774 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2781 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
-	public static final BitSet FOLLOW_84_in_presetcondition2783 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2785 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2789 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2791 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2793 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2800 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
-	public static final BitSet FOLLOW_86_in_presetcondition2802 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2804 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2806 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2810 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2812 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2816 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2818 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2820 = new BitSet(new long[]{0x2000000000000000L});
-	public static final BitSet FOLLOW_61_in_presetcondition2822 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2824 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2826 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2830 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2832 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2836 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2838 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_78_in_presetcondition2872 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2874 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2878 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2880 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2882 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2889 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
-	public static final BitSet FOLLOW_85_in_presetcondition2891 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2893 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2897 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2899 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2901 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2908 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
-	public static final BitSet FOLLOW_84_in_presetcondition2910 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2912 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2916 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2918 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition2920 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2927 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
-	public static final BitSet FOLLOW_86_in_presetcondition2929 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2931 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2933 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2937 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2939 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2943 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2945 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2947 = new BitSet(new long[]{0x2000000000000000L});
-	public static final BitSet FOLLOW_61_in_presetcondition2949 = new BitSet(new long[]{0x0002000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2951 = new BitSet(new long[]{0x0010000000000000L});
-	public static final BitSet FOLLOW_52_in_presetcondition2953 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2957 = new BitSet(new long[]{0x0004000000000000L});
-	public static final BitSet FOLLOW_50_in_presetcondition2959 = new BitSet(new long[]{0x0008000100000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition2963 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_53_in_presetcondition2965 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2546 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
+	public static final BitSet FOLLOW_84_in_presetcondition2548 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2550 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2554 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2556 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2558 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2565 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
+	public static final BitSet FOLLOW_86_in_presetcondition2567 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2569 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition2571 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2575 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition2577 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2581 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition2583 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2585 = new BitSet(new long[]{0x2000000000000000L});
+	public static final BitSet FOLLOW_61_in_presetcondition2587 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2589 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition2591 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2595 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition2597 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2601 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition2603 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_76_in_presetcondition2639 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2641 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2645 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2647 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2649 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2656 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+	public static final BitSet FOLLOW_80_in_presetcondition2658 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2660 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2664 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2666 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2668 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2675 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_presetcondition2677 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2679 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2683 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2685 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2687 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2694 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
+	public static final BitSet FOLLOW_84_in_presetcondition2696 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2698 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2702 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2704 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2706 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2713 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
+	public static final BitSet FOLLOW_86_in_presetcondition2715 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2717 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition2719 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2723 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition2725 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2729 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition2731 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2733 = new BitSet(new long[]{0x2000000000000000L});
+	public static final BitSet FOLLOW_61_in_presetcondition2735 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2737 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition2739 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2743 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition2745 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2749 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition2751 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_77_in_presetcondition2787 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2789 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2793 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2795 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2797 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2804 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+	public static final BitSet FOLLOW_80_in_presetcondition2806 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2808 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2812 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2814 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2816 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2823 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_presetcondition2825 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2827 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2831 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2833 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2835 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2842 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
+	public static final BitSet FOLLOW_84_in_presetcondition2844 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2846 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2850 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2852 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2854 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2861 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
+	public static final BitSet FOLLOW_86_in_presetcondition2863 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2865 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition2867 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2871 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition2873 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2877 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition2879 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2881 = new BitSet(new long[]{0x2000000000000000L});
+	public static final BitSet FOLLOW_61_in_presetcondition2883 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2885 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition2887 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2891 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition2893 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2897 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition2899 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_78_in_presetcondition2935 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2937 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2941 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2943 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2945 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2952 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+	public static final BitSet FOLLOW_80_in_presetcondition2954 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2956 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2960 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2962 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2964 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2971 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+	public static final BitSet FOLLOW_65_in_presetcondition2973 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2975 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2979 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2981 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition2983 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2990 = new BitSet(new long[]{0x0000000000000000L,0x0000000000100000L});
+	public static final BitSet FOLLOW_84_in_presetcondition2992 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition2994 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition2998 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3000 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition3002 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3009 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
+	public static final BitSet FOLLOW_86_in_presetcondition3011 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3013 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition3015 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3019 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition3021 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3025 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition3027 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3029 = new BitSet(new long[]{0x2000000000000000L});
+	public static final BitSet FOLLOW_61_in_presetcondition3031 = new BitSet(new long[]{0x0002000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3033 = new BitSet(new long[]{0x0010000000000000L});
+	public static final BitSet FOLLOW_52_in_presetcondition3035 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3039 = new BitSet(new long[]{0x0004000000000000L});
+	public static final BitSet FOLLOW_50_in_presetcondition3041 = new BitSet(new long[]{0x0008000100000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3045 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_53_in_presetcondition3047 = new BitSet(new long[]{0x0000000000000002L});
 }

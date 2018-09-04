@@ -37,7 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -131,6 +133,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 		List<Double> previousSelectedKnotsValues = new ArrayList<>();
 
+		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : data.keySet()) {
 
@@ -205,20 +208,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 							//Out of range wont be printed
 							LOGGER.error(e,e);
 						}
-						
-						
-						//TODO over ...
-//						if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
-//
-//							realRowOutputs.getValue(targetStock).put(date, conditionCheck);
-//
-//							conditionCheck = checkRawOutputAgainstForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
-//
-//							if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
-//
-//						}
-//
-//						fillInOverPeriod(targetStock, overPeriodRemanence, fullKeySet, date, conditionCheck, outputs);
+
+						overPeriodFilling(targetStock, overPeriodRemanence, fullKeySet, date, conditionCheck, outputs);
 					}
 				}
 			}

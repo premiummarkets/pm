@@ -110,7 +110,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 						outputs.getValue(targetStock).put(date, conditionCheck);
 					}
 
-					fillInOverPeriod(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
+					overPeriodFilling(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
 				}
 			}
 		}

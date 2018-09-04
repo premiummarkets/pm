@@ -93,15 +93,9 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 			Double firstV = firstOp.get(date);
 			Double secondV = secondOp.get(date);
 			if (firstV != null && !firstV.isNaN() && secondV != null && !secondV.isNaN()) {
-
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(firstV, secondV);
-
-				realRowOutputs.getValue(targetStock).put(date, conditionCheck);
-
-				conditionCheck = checkRawOutputAgainstForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
-
-				if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
+				conditionCheck = forPeriodReduction(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck, realRowOutputs);
 			}
 		}
 

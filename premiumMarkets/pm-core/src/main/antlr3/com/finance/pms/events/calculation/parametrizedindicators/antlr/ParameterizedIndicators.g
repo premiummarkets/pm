@@ -259,29 +259,29 @@ presetcondition [CommonTree firstOp] :
       -> ^(CrossDownConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree} ^(Number NumberToken["0.0"]) {$firstOp}) )? |
 
   ('makes a higher high spanning' WhiteChar lookBack=constant WhiteChar DAYS 
-  		WhiteChar 'over' WhiteChar extremesSpan=constant WhiteChar DAYS 
+  		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
-  	-> ^(HigherHighCondition {$lookBack.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
+  	-> ^(HigherHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
   ('makes a higher low spanning' WhiteChar lookBack=constant WhiteChar DAYS 
-  		WhiteChar 'over' WhiteChar extremesSpan=constant WhiteChar DAYS 
+  		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
-  	-> ^(HigherLowCondition {$lookBack.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
+  	-> ^(HigherLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
   ('makes a lower high spanning' WhiteChar lookBack=constant WhiteChar DAYS 
-  		WhiteChar 'over' WhiteChar extremesSpan=constant WhiteChar DAYS 
+  		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
-  	-> ^(LowerHighCondition {$lookBack.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
+  	-> ^(LowerHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
   ('makes a lower low spanning' WhiteChar lookBack=constant WhiteChar DAYS 
-  		WhiteChar 'over' WhiteChar extremesSpan=constant WhiteChar DAYS 
+  		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
-  	-> ^(LowerLowCondition {$lookBack.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) );
+  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) );
 
 Operation 
       : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
