@@ -44,6 +44,45 @@ public class EqualStringConstantCondition extends Condition<String> {
     }
 
     @Override
+    /**
+     * TODO Test these cases (also applies to other conditions using over and for) :
+     * ex1 : overPeriod == 0, forPeriod == 0
+     * 	it0 :
+     * 		outputs.get() == null && overPeriod == 0 && realRowOutputs isEmpty()
+     * 		=> reduce for
+     * 			=> realRowOutputs.put(date, dateCc);
+     * 			=> outputs.put(date, dateCc);
+     * 		overPeriod == 0
+     * 		=> no over filling
+     * 	itn : idem
+     *
+     * ex2 : overPeriod > 0, forPeriod == 0
+     * 	it0 :
+     * 		outputs.get() == null && realRowOutputs isEmpty()
+     * 		=> reduce for
+     * 			=> realRowOutputs.put(date, dateCc);
+     * 			=> outputs.put(date, dateCc);
+     * 		=> over filling if dateCc
+     * 			=> from actual date to actual + overP
+     * 	itn :
+     * 		outputs.get() != null if previous dateCc was true and hence filled in
+     * 		=> No reduce
+     * 		=> over filling if dateCc
+     * 			=> from actual date to actual + overP
+     *
+     * ex3 : overPeriod == 0, forPeriod > 0
+     * 	it0 :
+     * 		outputs.get() == null && overPeriod == 0 && realRowOutputs isEmpty()
+     * 		=> reduce for
+     * 			=> realRowOutputs.put(date, dateCc);
+     * 			=> outputs.put(date, reduceDateCc);
+     * 		overPeriod == 0
+     * 		=> no over filling
+     * 	itn: idem
+     *
+     * 	ex4 : overPeriod > 0, forPeriod > 0
+     * 	    => not implemented
+     */
     public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         String constant = ((StringValue) inputs.get(0)).getValue(targetStock);
@@ -51,7 +90,8 @@ public class EqualStringConstantCondition extends Condition<String> {
 		Integer forPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
         SortedMap<Date, String> data = ((StringableMapValue) inputs.get(3)).getValueAsStringMap();
 
-		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
+		if (overPeriod > 0 && forPeriod > 0)
+		    throw new UnsupportedOperationException("Setting both Over Period " + overPeriod + " and For Period " + forPeriod + " is not supported.");
 
 		BooleanMapValue outputs = new BooleanMapValue();
 

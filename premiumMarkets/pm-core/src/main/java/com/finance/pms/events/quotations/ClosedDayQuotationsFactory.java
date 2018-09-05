@@ -63,7 +63,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 	private int noGapsAmount(int amount) {
 		int nbWeeksBaseOnOpenDays = amount / 5;
-		int addedWeekends = 2*nbWeeksBaseOnOpenDays;
+		int addedWeekends = 2 * nbWeeksBaseOnOpenDays;
 		return amount + addedWeekends;
 	}
 

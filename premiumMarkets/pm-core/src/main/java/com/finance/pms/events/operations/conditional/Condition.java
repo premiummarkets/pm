@@ -128,10 +128,10 @@ public class Condition<T> extends Operation {
 			Calendar endOverPeriodCal = Calendar.getInstance();
 			endOverPeriodCal.setTime(actualDate);
 			QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);
-			Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))? fullKeySet.last():endOverPeriodCal.getTime();
+			Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))?fullKeySet.last():endOverPeriodCal.getTime();
 			SortedSet<Date> overPeriodDates = fullKeySet.subSet(actualDate, endOverPeriod);
 			for (Date overPeriodDate : overPeriodDates) {
-				outputs.getValue(targetStock).put(overPeriodDate, conditionCheck);
+				outputs.getValue(targetStock).put(overPeriodDate, true);
 			}
 		}
 	}
@@ -145,7 +145,9 @@ public class Condition<T> extends Operation {
 	 * @param conditionCheck
 	 * @return
 	 */
-	private Boolean reduceRawOutputForPeriod(TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date actualDate, Boolean conditionCheck) {
+	//The condition is checked FROM 'actualDate' - forPeriod -1 TO 'actualDate' -1 and against the 'actualDate' latest condition check
+	private Boolean reduceRawOutputForPeriod(
+			TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date actualDate, Boolean conditionCheck) {
 		if (conditionCheck && forPeriod > 0) {
 
 			Calendar startForPeriodCal = Calendar.getInstance();
@@ -153,11 +155,11 @@ public class Condition<T> extends Operation {
 			QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
 			Date startForPeriod = startForPeriodCal.getTime();
 
-			SortedMap<Date, Boolean> forPeriodData = realRowOutputs.getValue(targetStock).subMap(startForPeriod, actualDate);
+			SortedMap<Date, Boolean> previousForPeriodConditionChecks = realRowOutputs.getValue(targetStock).subMap(startForPeriod, actualDate);
 			if (startForPeriod.before(fullKeySet.first())) {
 				conditionCheck = null;
 			} else {
-				for (Boolean previousValue : forPeriodData.values()) {
+				for (Boolean previousValue : previousForPeriodConditionChecks.values()) {
 					conditionCheck = conditionCheck && previousValue;
 					if (!previousValue) break;
 				}
@@ -166,10 +168,12 @@ public class Condition<T> extends Operation {
 		return conditionCheck;
 	}
 
-	protected Boolean forPeriodReduction(TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date date, Boolean conditionCheck, BooleanMapValue outputs) {
-		realRowOutputs.getValue(targetStock).put(date, conditionCheck);
-		conditionCheck = reduceRawOutputForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck);
-		if (conditionCheck != null) outputs.getValue(targetStock).put(date, conditionCheck);
+	protected Boolean forPeriodReduction(
+			TargetStockInfo targetStock, Integer forPeriod, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Date actualDate, Boolean conditionCheck,
+			BooleanMapValue outputs) {
+		realRowOutputs.getValue(targetStock).put(actualDate, conditionCheck);
+		conditionCheck = reduceRawOutputForPeriod(targetStock, forPeriod, fullKeySet, realRowOutputs, actualDate, conditionCheck);
+		if (conditionCheck != null) outputs.getValue(targetStock).put(actualDate, conditionCheck);
 		return conditionCheck;
 	}
 }

@@ -64,7 +64,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * @author Guillaume Thoreton
  * Additional constraints :
  * 'spanning'		:	is the period we look back into
- * 'over' 			: 	is remanence/persistence of the tangent from its starting knot
+ * 'over' 			: 	is remanence/persistence of the tangent from its trigger date
  * 'for' 			: 	is minimum distance between knots
  * 
  */
@@ -82,9 +82,9 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 	public HighsAndLowsCondition(String reference, String description) {
 		super(reference, description,
 				new NumberOperation("Spanning period as look back period in days"),
-				new NumberOperation("Over period as remanence/persistence of the tangent from its starting knot"),
+				new NumberOperation("Over period as remanence/persistence of the divergence from its trigger date"),
 				new NumberOperation("For period as minimum number of days between two extreme knots"),
-				new NumberOperation("Smoothing period for peaks and troughs inclusion"),
+				new NumberOperation("Smoothing period for sporadic peaks and troughs mitigation"),
 				new NumberOperation("Lowest knot start"),
 				new NumberOperation("Highest knot start"),
 				new NumberOperation("Lowest knot end"),
@@ -146,7 +146,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				SortedMap<Date, Double> dataLookBackMap = MapUtils.subMapInclusive(data, lookBackPeriodStart, date);
 				if (dataLookBackMap.size() < 4) continue;
 
-				Comparable periodDataOps = new ComparableArray<Double>(dataLookBackMap.values());
+				Comparable periodDataOps = new ComparableArray<>(dataLookBackMap.values());
 				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
 				Comparable minimumNbDaysBetweenExtremesCmp = minimumNbDaysBetweenExtremes;
 				Comparable selectedKnotsCmp = new ComparableSortedMap<Integer, Double>();
@@ -158,14 +158,15 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(
-						periodDataOps, lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, selectedKnotsCmp, expertTangentCmp,
+						periodDataOps,
+						lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, selectedKnotsCmp, expertTangentCmp,
 						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp);
 
 				if (conditionCheck != null) {
 
 					outputs.getValue(targetStock).put(date, conditionCheck);
 
-					if ( conditionCheck ) { //Will Map tangent to date for return if new knots involved
+					if (conditionCheck) { //Will Map tangent to date for return if new knots involved
 						
 						//Tangent output
 						try {
@@ -190,7 +191,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 									String currentLibel = expertTangentLabel + dateFormat.format(date);
 
 									//Removing NaN values from tangent
-									ArrayList<Date> lookBackDateList = new ArrayList<Date>(dataLookBackMap.keySet());
+									ArrayList<Date> lookBackDateList = new ArrayList<>(dataLookBackMap.keySet());
 									SortedMap<Date, Double> expertTangentsResultAtDate = new TreeMap<>();
 									for (int i = 0; i < lookBackDateList.size(); i++) {
 										if (!expertTangent.get(i).isNaN()) {
@@ -208,9 +209,9 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 							//Out of range wont be printed
 							LOGGER.error(e,e);
 						}
-
-						overPeriodFilling(targetStock, overPeriodRemanence, fullKeySet, date, conditionCheck, outputs);
 					}
+
+					overPeriodFilling(targetStock, overPeriodRemanence, fullKeySet, date, conditionCheck, outputs);
 				}
 			}
 
