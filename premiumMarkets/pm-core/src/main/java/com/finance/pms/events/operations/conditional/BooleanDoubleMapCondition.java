@@ -38,12 +38,16 @@ import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.OperationValue;
 
 @XmlSeeAlso({AndDoubleMapCondition.class, OrDoubleMapCondition.class, NotDoubleMapCondition.class})
 public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
+
+	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanDoubleMapCondition.class);
 
 	protected BooleanDoubleMapCondition() {
 		super();
@@ -68,8 +72,8 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 
 		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;
 
-		List<SortedMap<Date, Boolean>> maps = new ArrayList<SortedMap<Date,Boolean>>();
-		SortedSet<Date> fullKeySet = new TreeSet<Date>();
+		List<SortedMap<Date, Boolean>> maps = new ArrayList<>();
+		SortedSet<Date> fullKeySet = new TreeSet<>();
 		for (Value<SortedMap<Date, Boolean>> input : checkedInputs) {
 			fullKeySet.addAll(input.getValue(targetStock).keySet());
 			maps.add(input.getValue(targetStock));
@@ -79,26 +83,37 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 
 		for (Date date : fullKeySet) {
 
-			Boolean gruyere = false;
-			List<Boolean> currentOps = new ArrayList<Boolean>();
+			Boolean gruyereDetected = false;
+			List<Boolean> currentOps = new ArrayList<>();
 			for (SortedMap<Date, Boolean> map : maps) {
 				Boolean currentOp = map.get(date);
 				if (currentOp != null) {
 					currentOps.add(currentOp);
 				}
 				else if (exactDataSet()) {
-					gruyere = true; //Will result in an empty output
+					gruyereDetected = true;
+					//Detection of on element in an operand being not present at date in an other operand
+					//Will result in an empty output when the comparison is required exactDataSet true.
 					break;
 				}
 			}
 
-			if (!gruyere) {
+			if (!gruyereDetected) {
+				//If the exactDataSet requirement is false (no strict comparison),
+				// we compare elements of operands even if not all are present at a given date.
 				Boolean conditionCheck = conditionCheck(currentOps.toArray(new Boolean[0]));
 				if (conditionCheck != null) {
 					outputs.getValue(targetStock).put(date, conditionCheck);
 				}
 			}
 
+		}
+
+		if (LOGGER.isDebugEnabled()) {
+			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
+			LOGGER.debug(
+					"Condition " + this.getReference() + " returns this map " +
+					outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce( (a, b) -> a + "\n" + b));
 		}
 
 		return outputs;

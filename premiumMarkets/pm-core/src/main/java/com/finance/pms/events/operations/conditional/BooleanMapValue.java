@@ -62,9 +62,8 @@ public class BooleanMapValue extends Value<SortedMap<Date, Boolean>> implements 
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : size is "+map.size() + ((map.size() > 0)?", first key "+map.firstKey()+ ", last key "+map.lastKey():"");
+		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
 	}
-
 
 	@SuppressWarnings("unchecked")
 	@Override
