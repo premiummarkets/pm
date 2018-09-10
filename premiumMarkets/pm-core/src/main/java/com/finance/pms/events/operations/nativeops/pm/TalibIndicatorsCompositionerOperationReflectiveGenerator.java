@@ -24,7 +24,7 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
 
         Set<Class<? extends TalibIndicatorsOperator>> compositionCalculatorsClasses = getClassesUsingReflexions("com.finance.pms.events.calculation");
         Map<String, TalibIndicatorsCompositionerGenericOperation> compositionCalculatorOperations = compositionCalculatorsClasses.stream()
-                .filter(calculatorClass -> !Modifier.isAbstract( calculatorClass.getModifiers()))
+                .filter(calculatorClass -> !Modifier.isAbstract(calculatorClass.getModifiers()) && calculatorClass.getAnnotation(Deprecated.class) == null)
                 .map(calculatorClass -> {
 
                     try {
@@ -34,7 +34,7 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
                                 .flatMap(m -> Arrays.stream(m.getParameters()).map(p -> p.getName()))
                                 .collect(Collectors.toList());
 
-                        LOGGER.info("Initialising TalibIndicatorsCompositionerGenericOperation : "+calculatorClass.getSimpleName());
+                        LOGGER.info("Initialising TalibIndicatorsCompositionerGenericOperation : " + calculatorClass.getSimpleName());
                         return new TalibIndicatorsCompositionerGenericOperation(
                                 "gx_"+calculatorClass.getSimpleName(), "gx_"+calculatorClass.getSimpleName(),
                                 calculatorClass, inConstantsNames);

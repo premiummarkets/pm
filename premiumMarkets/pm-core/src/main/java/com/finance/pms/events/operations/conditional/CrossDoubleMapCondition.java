@@ -51,9 +51,9 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 
  * @author Guillaume Thoreton
  * Additional constraints :
+ * 'spanning'
  * 'over'
  * does not make sense : 'for'. As the condition is an event in time not a status in time.
- * 'spanning'
  */
 
 @XmlSeeAlso({CrossUpDoubleMapCondition.class, CrossDownDoubleMapCondition.class})
@@ -110,7 +110,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 						outputs.getValue(targetStock).put(date, conditionCheck);
 					}
 
-					overPeriodFilling(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
+					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 				}
 			}
 		}

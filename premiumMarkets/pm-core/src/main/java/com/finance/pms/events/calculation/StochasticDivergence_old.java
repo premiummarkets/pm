@@ -58,6 +58,7 @@ import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated
 public class StochasticDivergence_old extends TalibIndicatorsOperator {
 	
 	private StochasticOscillator stochOsc;

@@ -64,12 +64,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	public IndicatorBuilderComposite(Composite parent, MainGui mainGui, ComboUpdateMonitor comboUpdateMonitor) {
 		super(parent, mainGui);
-		
+
 		comboUpdateMonitor.addObserver(new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
 				int comboSelectionIdx = formulaReference.getSelectionIndex();
-				
+
 				if (isSaved) {
 					updateCombo(false);
 					if (formulaReference.getItemCount() > 0) {
@@ -78,7 +78,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				} else {
 					updateEditableOperationLists();
 				}
-			
+
 			}
 		});
 	}
@@ -94,7 +94,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected void addThisCompositeExtratButtons() {
-		
+
 		{
 			Button duplicate = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
@@ -112,7 +112,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				private void handleDuplicateFormula() {
 					IndicatorBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 					try {
-						 duplicateFormula(getFormatedReferenceTxt());
+						duplicateFormula(getFormatedReferenceTxt());
 					} finally {
 						IndicatorBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 					}
@@ -124,7 +124,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				}
 			});
 		}
-		
+
 		{
 			disableFormula = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
@@ -145,9 +145,9 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 					final Set<EventInfoOpsCompoOperation> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
 					final Set<EventInfoOpsCompoOperation> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
 					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("operationscompositionner"));//XXX
-					
+
 					ActionDialogAction closeAction = new ActionDialogAction() {
-						
+
 						@Override
 						public void action() {
 							for (Operation eventInfo : availableOperations) {
@@ -170,9 +170,9 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 					handleEnableDisableFormula();
 				}
 			});
-			
+
 		}
-		
+
 	}
 
 	private void enableFormula(String identifier) {
@@ -195,7 +195,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			LOGGER.warn(e,e);
 			dialog.open();
 		} 
-		
+
 		previousCalcsAsDirty(identifier);
 
 	}
@@ -220,7 +220,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			LOGGER.warn(e,e);
 			dialog.open();
 
-		} 
+		}
 
 		previousCalcsAsDirty(identifier);
 
@@ -228,7 +228,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected void checkBoxDisabled() {
-		
+
 		if (formulaReference != null && formulaReference.getSelectionIndex() != -1 && formulaReference.getSelectionIndex() < formulaReference.getItems().length) {
 			String selectItem = formulaReference.getItem(formulaReference.getSelectionIndex());
 			Boolean disabled = parameterizedBuilder.getCurrentOperations().get(selectItem).getDisabled();
@@ -241,12 +241,12 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			}  else {
 				editor.setStyleRange(null);
 			}
-			
+
 		} else {
 			editor.setEnabled(disableFormula.getEnabled());
 			editor.setEditable(disableFormula.getEnabled());
 		}
-		
+
 	}
 
 	@Override
@@ -266,7 +266,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		editor.setEnabled(true);
 		editor.setEditable(true);
 	}
-	
+
 
 	@Override
 	protected void enableEditor() {
@@ -274,7 +274,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		editor.setEditable(true);
 		editor.setStyleRange(null);
 	}
-	
+
 	@Override
 	protected Boolean checkIdCharacters(String identifier, String addMessage) {
 		for (int i = 0; i < identifier.length(); i++) {
@@ -290,11 +290,11 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected void previousCalcsAsDirty(String identifier) {
-		
+
 		EventInfoOpsCompoOperation operation = (EventInfoOpsCompoOperation) parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		EventModel.dirtyCacheFor(operation);
 		EventModel.updateEventInfoStamp();
-		
+
 	}
 
 	@Override
@@ -310,17 +310,17 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	}
 
 	protected void duplicateFormula(String identifier) {
-		
+
 		if (!isValidId(identifier)) return;
 		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
 		if (isNativeOp(identifier, existingOp)) return;
-		
+
 		try {
-			
+
 			Operation duplicatedOperation = parameterizedBuilder.duplicateOperation(existingOp, new HashMap<String, Operation>());
 			updateComboAndSelect(duplicatedOperation.getReference(), true);
 			refreshViews();
-			
+
 		} catch (IOException e) {
 			UserDialog dialog = new UserDialog(getShell(), "Formula can't be duplicated.", e.toString());
 			LOGGER.warn(e, e);
@@ -331,7 +331,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			LOGGER.warn(e, e);
 			dialog.open();
 		}
-		
+
 	}
 
 }

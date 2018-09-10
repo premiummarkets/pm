@@ -54,6 +54,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated
 public class RSIDivergence_old extends TalibIndicatorsOperator {
 
 	SMA sma;

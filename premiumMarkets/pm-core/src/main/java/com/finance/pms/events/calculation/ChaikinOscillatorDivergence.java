@@ -48,6 +48,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
  *  
  * with Chaikin : adOsc(3,10,high,low,close,volume)
  */
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class ChaikinOscillatorDivergence extends DivergentOperator {
 
 	private ChaikinOscillator chaikinOscillator;

@@ -51,6 +51,7 @@ import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo
 public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 
 	private ChaikinOscillator chaikinOscillator;

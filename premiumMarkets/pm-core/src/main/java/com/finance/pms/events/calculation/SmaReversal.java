@@ -52,6 +52,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated
 public class SmaReversal extends TalibIndicatorsOperator {
 
 	private static final int DAYS_SPAN = 15;
@@ -93,12 +94,12 @@ public class SmaReversal extends TalibIndicatorsOperator {
 
 		Integer smaIndex = getIndicatorIndexFromQuotationIndex(this.sma, quotationIdx);
 
-		//BULL : Quote above SMA and SMA up over n days after a BEAR trend  
+		//BULL : Quote above SMA and SMA up over n days after a BEAR trend
 		{	
 			boolean isAboveSMA = this.sma.getSma()[smaIndex] < qU.getClose().doubleValue(); //  sma <  close
-			boolean isSMAUp = this.sma.getSma()[smaIndex - getDaysSpan()] <  this.sma.getSma()[smaIndex];
+			boolean isSMAUp = this.sma.getSma()[smaIndex - getDaysSpan()] < this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBearish = EventType.BEARISH.equals(previousTrend);
-			res.setBullishCrossOver(isAboveSMA && isSMAUp && isPreviouslyBearish);	
+			res.setBullishCrossOver(isAboveSMA && isSMAUp && isPreviouslyBearish);
 			if (isSMAUp && isAboveSMA) {
 				previousTrend = EventType.BULLISH;
 			} 
@@ -107,7 +108,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 		//BEAR : Quote below SMA and down over n days after a BULL trend
 		{
 			boolean isBelowSMA = this.sma.getSma()[smaIndex] > qU.getClose().doubleValue(); //  sma >  close
-			boolean isSMADown = this.sma.getSma()[smaIndex - getDaysSpan()] >  this.sma.getSma()[smaIndex];
+			boolean isSMADown = this.sma.getSma()[smaIndex - getDaysSpan()] > this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBullish = EventType.BULLISH.equals(previousTrend);
 			res.setBearishCrossBellow(isBelowSMA && isSMADown && isPreviouslyBullish);
 			if (isSMADown && isBelowSMA) {
@@ -163,7 +164,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 		//		String head =  "CALCULATOR DATE, CALCULATOR QUOTE,SMA DATE, SMA QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
 		String head =  "CALCULATOR DATE, CALCULATOR QUOTE, SMA"+sma.getPeriod()+", bearish, bullish";
 		head = addScoringHeader(head, scoringSmas);
-		return head+"\n";	
+		return head+"\n";
 	}
 
 
@@ -195,6 +196,6 @@ public class SmaReversal extends TalibIndicatorsOperator {
 	@Override
 	public Integer getOutputBeginIdx() {
 		return sma.getOutBegIdx().value + getDaysSpan();
-	}	
+	}
 
 }

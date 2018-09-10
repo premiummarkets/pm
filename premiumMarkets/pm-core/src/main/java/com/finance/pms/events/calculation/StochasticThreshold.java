@@ -32,14 +32,6 @@
 
 package com.finance.pms.events.calculation;
 
-/**
- * is bullish when StochOsc crosses up threshold 20 and StochOsc is above historical StochOscD;
- * is bearish when StochOsc crosses down threshold 80 and StochOsc is below historical StochOscD;
- * 
- * with : 
- * 	StochOsc =  stoch:SlowK(14,1,Sma,3,Sma,high,low,close) ~  stochF:FastK(14,3,Sma,high,low,close) and
- * 	StochOscD = stoch:SlowD(14,1,Sma,3,Sma,high,low,close) ~  stochF:FastD(14,3,Sma,high,low,close)
- */
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
@@ -63,7 +55,15 @@ import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-
+/**
+ * is bullish when StochOsc crosses up threshold 20 and StochOsc is above historical StochOscD;
+ * is bearish when StochOsc crosses down threshold 80 and StochOsc is below historical StochOscD;
+ * 
+ * with : 
+ * 	StochOsc =  stoch:SlowK(14,1,Sma,3,Sma,high,low,close) ~  stochF:FastK(14,3,Sma,high,low,close) and
+ * 	StochOscD = stoch:SlowD(14,1,Sma,3,Sma,high,low,close) ~  stochF:FastD(14,3,Sma,high,low,close)
+ */
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo
 public class StochasticThreshold extends TalibIndicatorsOperator {
 
 	private StochasticOscillator stochasticOscillator;

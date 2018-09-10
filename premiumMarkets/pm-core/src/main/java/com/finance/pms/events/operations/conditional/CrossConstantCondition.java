@@ -39,6 +39,7 @@ import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -50,13 +51,15 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 
  * @author Guillaume Thoreton
  * Additional constraints :
+ * 'spanning'
  * 'over'
  * 'for'. Only makes sense for Down and Up Ratios.
- * 'spanning'
  */
 
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class, DownRatioCondition.class, UpRatioCondition.class})
 public abstract class CrossConstantCondition extends Condition<Double> {
+
+	protected static MyLogger LOGGER = MyLogger.getLogger(CrossConstantCondition.class);
 
 	private static final int MAIN_POSITION = 4;
 	protected static final int CONSTANT_POSITION = 0;
@@ -100,13 +103,20 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 				if (conditionCheck != null) {
 
 					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-						conditionCheck = forPeriodReduction(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck, outputs);
+						conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
 					}
 
-					overPeriodFilling(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
+					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 
 				}
 			}
+		}
+
+		if (LOGGER.isDebugEnabled()) {
+			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
+			LOGGER.debug(
+					"Condition '" + this.getReference() + "' returns this map " +
+							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce( (a, b) -> a + "\n" + b));
 		}
 
 		return outputs;

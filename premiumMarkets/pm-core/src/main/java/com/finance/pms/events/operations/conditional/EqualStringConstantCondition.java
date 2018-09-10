@@ -106,10 +106,10 @@ public class EqualStringConstantCondition extends Condition<String> {
 			if (conditionCheck != null) {
 
 				if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-					conditionCheck = forPeriodReduction(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck, realRowOutputs);
+					conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
 				}
 
-				overPeriodFilling(targetStock, overPeriod, fullKeySet, date, conditionCheck, outputs);
+				overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 
 			}
         }

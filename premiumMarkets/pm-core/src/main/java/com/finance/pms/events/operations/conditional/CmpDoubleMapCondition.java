@@ -95,7 +95,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 			if (firstV != null && !firstV.isNaN() && secondV != null && !secondV.isNaN()) {
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(firstV, secondV);
-				conditionCheck = forPeriodReduction(targetStock, forPeriod, fullKeySet, realRowOutputs, date, conditionCheck, realRowOutputs);
+				conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
 			}
 		}
 

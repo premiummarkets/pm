@@ -59,6 +59,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
  * RSI Reversal :
  * 	For example, a positive reversal occurs when an uptrend price correction results in a higher low compared to the last price correction, while RSI results in a lower low compared to the prior correction
  */
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class RSIDivergence extends DivergentOperator {
 
 	RSI rsi;

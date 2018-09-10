@@ -56,6 +56,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.StochasticOscillator;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class StochasticDivergence extends DivergentOperator {
 
 	private StochasticOscillator stochOsc;

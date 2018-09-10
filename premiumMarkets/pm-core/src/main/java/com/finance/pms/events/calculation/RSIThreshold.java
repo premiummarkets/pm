@@ -53,8 +53,8 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class RSIThreshold extends TalibIndicatorsOperator {
-
 
 	RSI rsi;
 	private double lowerThreshold;

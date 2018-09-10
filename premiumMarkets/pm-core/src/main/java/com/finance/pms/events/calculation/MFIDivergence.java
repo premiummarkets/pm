@@ -38,6 +38,7 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.talib.indicators.MFI;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class MFIDivergence extends DivergentOperator {
 
 	MFI mfi;

@@ -42,7 +42,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.OperationValue;
 
 @XmlSeeAlso({AndDoubleMapCondition.class, OrDoubleMapCondition.class, NotDoubleMapCondition.class})
 public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
@@ -112,7 +111,7 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 		if (LOGGER.isDebugEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
 			LOGGER.debug(
-					"Condition " + this.getReference() + " returns this map " +
+					"Condition '" + this.getReference() + "' returns this map " +
 					outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce( (a, b) -> a + "\n" + b));
 		}
 

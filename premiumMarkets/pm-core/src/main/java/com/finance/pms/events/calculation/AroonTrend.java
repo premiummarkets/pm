@@ -57,6 +57,7 @@ import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 //TODO this is not a TalibComposition if we use HouseAroon. Add an extra layer under EventCompositionCalulator to deal with house indicators
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class AroonTrend extends TalibIndicatorsOperator {
 
     private int lowerThreshold;

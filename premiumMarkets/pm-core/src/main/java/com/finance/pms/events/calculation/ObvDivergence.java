@@ -49,6 +49,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
  * @author Gheeyom Thor
  *
  */
+@Deprecated //Rewrite to match corresponding edited EventInfoOpsCompo 
 public class ObvDivergence extends DivergentOperator {
 
 	private OBV obv;
