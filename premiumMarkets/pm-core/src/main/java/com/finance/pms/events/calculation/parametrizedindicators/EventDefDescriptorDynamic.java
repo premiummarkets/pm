@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -262,10 +263,23 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
+	public Set<OutputDescr> all100OutputDescr() {
+		HashSet<OutputDescr> all100OutputDescr = new HashSet<>();
+		Iterator<OutputDescr> iterator = getOutputDescrFlatList().values().iterator();
+		int i = 0;
+		while(iterator.hasNext() && i < 100) {
+			i++;
+			all100OutputDescr.add(iterator.next());
+		}
+		return all100OutputDescr;
+	}
+
+	@Override
 	public Set<OutputDescr> displayedOutputsDescr() {
 
 		Set<OutputDescr> ret = new TreeSet<>();
-		for (final OutputDescr outputDescr: getOutputDescrFlatList().values()) {
+		Set<OutputDescr> all100OutputDescr = all100OutputDescr();
+		for (final OutputDescr outputDescr: all100OutputDescr) {
 			if (outputDescr.getDisplayOnChart()) ret.add(outputDescr);
 		}
 		return ret;
@@ -275,7 +289,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public boolean isDisplayed(int outputIdx) {
 		try {
-			return getOutputDescr(outputIdx).getDisplayOnChart();
+			OutputDescr outputDescr = getOutputDescr(outputIdx);
+			return displayedOutputsDescr().contains(outputDescr);
 		} catch (Exception e) {
 			return false;
 		}

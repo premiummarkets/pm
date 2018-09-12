@@ -50,12 +50,17 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 
  * @author Guillaume Thoreton
  * Some conditions can (when it makes sense) be followed by key words changing the result (Spanning Over For) :
+ * 
  * 'spanning n days' : will be used for condition involving events happening over time like when comparing two status of the data at two point in time t and t-n (change of status).
  * 	For instance 'close crosses up 10 spanning 3 days' means that close was below 10 three days ago and close is now above 10. So basically we ignore what happened in between.
- * 'over n days' : means that the condition happened once over the past n days. It could as well not be fulfilled a the date.
+ * 
+ * 'over n days' : Time OVER which the condition will remain true.
+ * 	Means that the condition happened once over the past n days. It could as well not be fulfilled a the date.
  * 	For a status A to be true, we need that the status was at least once of value A over the past n days.
  * 	For an event (change of status) B to A to be true, we need that the status changed at least once from value B to value A over the past n days.
- * 'for n days' : means that the condition was true for the n previous n days at the day we check. 
+ *
+ * 'for n days' : Look back period FOR which the condition has to be true.
+ * 	Means that the condition was true for the n previous n days at the day we check.
  * 	This makes sense only for a check on status value not a change of status.
  * 	In case there be missing values over the last n days, this will still be true if all present values are true.
  * 	These can be combined like for instance :
@@ -63,6 +68,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  *   	close is above 10 over 10 days for 10 days
  *   	goes up for 10 days spanning 2 days
  *		...
+ *
  * Note 'days' here mean days calendar open days not quotation days.
  */
 
@@ -76,8 +82,9 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	EqualStringConstantCondition.class,
 	HighsAndLowsCondition.class, 
 	NullCondition.class,
-	ReverseCondition.class})
-public class Condition<T> extends Operation {	
+	ReverseCondition.class,
+	LinearTrendsCondition.class})
+public class Condition<T> extends Operation {
 
 	protected Condition() {
 		super();

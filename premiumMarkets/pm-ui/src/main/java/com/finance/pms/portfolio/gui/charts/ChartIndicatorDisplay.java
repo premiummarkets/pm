@@ -240,8 +240,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			if (!areEvtDefsTrendsSelected) {
 				chartTarget.getMainChartWraper().resetIndicChart();
 				chartTarget.getMainChartWraper().resetBarChart();
-				//refreshChartedTrendsPopup(false);
-				//refreshCalculatorSettingsPopup(false);
 			}
 
 		} finally {
@@ -797,12 +795,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			if ( isIndicatorSelected ) {
 
 				final Set<OutputDescr> availableOutputs = new TreeSet<>();
-				final Set<OutputDescr> displayedOutputs = new TreeSet<>();
+				final Set<OutputDescr> displayableOutputs = new TreeSet<>();
 
 				try {
 					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
-						availableOutputs.addAll(t.getEventDefDescriptor().allOutputDescr());
-						displayedOutputs.addAll(t.getEventDefDescriptor().displayedOutputsDescr());
+						availableOutputs.addAll(t.getEventDefDescriptor().all100OutputDescr());
+						displayableOutputs.addAll(t.getEventDefDescriptor().displayedOutputsDescr());
 					});
 				} catch (NoSuchElementException e) {
 					LOGGER.warn(e);
@@ -810,12 +808,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				if (!availableOutputs.isEmpty()) {
 
-					ActionDialogAction deactivateAction =  new ActionDialogAction() {
+					ActionDialogAction deactivateAction = new ActionDialogAction() {
 
 						@Override
 						public void action() {
 							for (OutputDescr outputDescr : availableOutputs) {
-								if (displayedOutputs.contains(outputDescr)) {
+								if (displayableOutputs.contains(outputDescr)) {
 									outputDescr.setDisplayOnChart(true);
 								} else {
 									outputDescr.setDisplayOnChart(false);
@@ -829,12 +827,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					};
 
 					if (calculatorSettingsPopupMenu == null || calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayedOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
+						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayableOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
 						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
 						calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
-					} 
+					}
 					else {
-						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayedOutputs, null, deactivateAction, true);
+						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayableOutputs, null, deactivateAction, true);
 						if (activatePopup) {
 							calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
 							calculatorSettingsPopupMenu.getSelectionShell().setActive();

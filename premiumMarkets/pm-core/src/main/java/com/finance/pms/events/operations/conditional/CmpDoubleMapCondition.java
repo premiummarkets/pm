@@ -67,7 +67,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	protected CmpDoubleMapCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("length of time over which it is true"), new DoubleMapOperation("'"+reference+ "' left operand"), new DoubleMapOperation("'"+reference+ "' right operand"));
+		super(reference, description, new NumberOperation("length of time over which it is true"), new DoubleMapOperation("'" + reference + "' left operand"), new DoubleMapOperation("'" + reference + "' right operand"));
 	}
 
 	public CmpDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {

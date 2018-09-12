@@ -36,6 +36,7 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
+//FIXME period is not initialized in the context of TaLib generic reflection.
 public class LinearRegression extends TalibIndicator {
 
 	private double[] linearRegression;
@@ -45,8 +46,8 @@ public class LinearRegression extends TalibIndicator {
 		super(0);
 		this.timePeriod = 0;
 	}
-	
-	
+
+
 	public LinearRegression(Integer period) throws TalibException {
 		super(period);
 		this.timePeriod = period;
@@ -67,7 +68,7 @@ public class LinearRegression extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inReal, Number... indicatorParams) {
-		
+
 		RetCode rc = RetCode.Success;
 		Integer period = (Integer) indicatorParams[0];
 		if (period == 0) {

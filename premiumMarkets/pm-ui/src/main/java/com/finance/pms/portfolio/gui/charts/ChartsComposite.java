@@ -177,7 +177,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.sliderSelection = false;
 
-		//this.stripedCloseFunction = new StripedCloseRelativeToStart(slidingStartDate, slidingEndDate);
 		this.stripedCloseFunction = new StripedCloseRelativeToInvested(true, slidingStartDate, slidingEndDate);
 		this.initGUI();
 		chartDisplayStrategy = new ChartPerfDisplay(this);
@@ -1016,14 +1015,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		return slidingEndDate;
 	}
 
-
 	@Override
 	public void initRefreshAction() {
 		logComposite.initRefresh(this);
 		getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 		chartDisplayStrategy.initRefreshAction();
 	}
-
 
 	@Override
 	public void endRefreshAction(List<Exception> exceptions) {
@@ -1035,7 +1032,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}	
 	}
-
 
 	@Override
 	public void refreshView(List<Exception> exceptions) {
@@ -1059,7 +1055,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	}
 
-
 	protected void checkChartSelectionValidity() {
 
 		SortedSet<EventInfo> updatedChartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
@@ -1073,18 +1068,15 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartedEvtDefsTrends = updatedChartedEvtDefsTrends;
 	}
 
-
 	@Override
 	public Date getAnalysisStartDate() {
 		return this.slidingStartDate;
 	}
 
-
 	@Override
 	public Date getAnalysisEndDate() {
 		return this.slidingEndDate;
 	}
-
 
 	private void sliderChangesApply() {
 		if (sliderSelection) {

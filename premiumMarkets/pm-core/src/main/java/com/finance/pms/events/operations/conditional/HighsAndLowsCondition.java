@@ -61,33 +61,20 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 
 
 /**
- * 
  * @author Guillaume Thoreton
  * Additional constraints :
  * 'spanning'		:	is the period we look back into
  * 'over' 			: 	is remanence/persistence of the tangent from its trigger date
  * 'for' 			: 	is minimum distance between knots
- * 
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
 public abstract class HighsAndLowsCondition extends Condition<Comparable> implements UnaryCondition {
 
-	public class TangentElement {
-		private SortedMap<Date, Double> tangent;
-		private Date closingDate;
-		private TangentElement(SortedMap<Date, Double> tangent, Date closingDate) {
-			super();
-			this.tangent = tangent;
-			this.closingDate = closingDate;
-		}
-	}
-
 	private static final int THRESHOLDS_IDX = 4;
 	private static final int MAIN_POSITION = 8;
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
-
 
 	private HighsAndLowsCondition() {
 	}
@@ -217,7 +204,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 									previousSelectedKnotsValues = selectedKnotsKeys.stream().map(kIdx -> dataLookBackArray.get(kIdx)).collect(Collectors.toList());
 
 								} else {
-									expertTangentsResult.get(currentLabel).closingDate = date;
+									expertTangentsResult.get(currentLabel).setClosingDate(date);
 								}
 
 							}
@@ -228,26 +215,25 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 						}
 					}
 
-				}
+					if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
+						outputs.getValue(targetStock).put(date, conditionCheck); //We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
+					}
 
-				if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
-					outputs.getValue(targetStock).put(date, conditionCheck); //We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
-				}
+					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, conditionCheck, outputs);
 
-				overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, conditionCheck, outputs);
+				}
 
 			}
 
 		}
 
-//		if (!expertTangentsResult.isEmpty()) {
-//			expertTangentsResult.entrySet().stream().forEach(e -> {
-//				String key = e.getKey() + "-" + dateFormat.format(e.getValue().closingDate);
-//				outputs.getAdditionalOutputs().put(key, new DoubleMapValue(e.getValue().tangent));
-//				outputs.getAdditionalOutputsTypes().put(key, Type.MULTI);
-//			});
-//
-//		}
+		if (true && !expertTangentsResult.isEmpty()) {
+			expertTangentsResult.entrySet().stream().forEach(e -> {
+				String key = e.getKey() + "-" + dateFormat.format(e.getValue().getClosingDate());
+				outputs.getAdditionalOutputs().put(key, new DoubleMapValue(e.getValue().getTangent()));
+				outputs.getAdditionalOutputsTypes().put(key, Type.MULTI);
+			});
+		}
 
 		if (LOGGER.isInfoEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);

@@ -258,6 +258,11 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	public String getMainLabelForGroup(int groupIdx) {
 		return (mainIndicator != null) ? mainIndicator : "";
 	}
+	
+	@Override
+	public Set<OutputDescr> all100OutputDescr() {
+		return allOutputDescr();
+	}
 
 	@Override
 	public Set<OutputDescr> allOutputDescr() {

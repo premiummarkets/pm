@@ -387,7 +387,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								}
 							}
 						};
-						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, availShares , displayedShares, true, true, SWT.CHECK, action);
+						PopupMenu<SlidingPortfolioShare> popupMenu =  new PopupMenu<SlidingPortfolioShare>(chartTarget, hideStock, availShares, displayedShares, true, true, SWT.CHECK, action);
 						popupMenu.open();
 
 					}

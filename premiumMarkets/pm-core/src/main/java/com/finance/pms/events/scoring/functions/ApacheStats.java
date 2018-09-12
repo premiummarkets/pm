@@ -35,14 +35,14 @@ import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 public class ApacheStats {
-	
+
 	AbstractUnivariateStatistic statistic;
 
 	public ApacheStats(AbstractUnivariateStatistic statistic) {
 		super();
 		this.statistic = statistic;
 	}
-	
+
 	public double evaluate(Collection<double[]> subMap) {
 		double[] values = new double[subMap.size()];
 		int i = 0;
@@ -50,10 +50,10 @@ public class ApacheStats {
 			values[i] = element[0];
 			i++;
 		}
-		
+
 		return statistic.evaluate(values);
 	}
-	
+
 	public double sEvaluate(Collection<Double> subMap) {
 		double[] values = new double[subMap.size()];
 		int i = 0;
@@ -61,10 +61,10 @@ public class ApacheStats {
 			values[i] = element;
 			i++;
 		}
-		
+
 		return statistic.evaluate(values);
 	}
-	
+
 	public double sEvaluateStdev(Collection<Double> subMap, double mean) {
 		double[] values = new double[subMap.size()];
 		int i = 0;
@@ -72,7 +72,7 @@ public class ApacheStats {
 			values[i] = element;
 			i++;
 		}
-		
+
 		return ((StandardDeviation)statistic).evaluate(values, mean);
 	}
 

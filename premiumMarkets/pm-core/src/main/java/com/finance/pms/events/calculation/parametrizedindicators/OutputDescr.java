@@ -44,27 +44,21 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	}
 
 	public String fullQualifiedName() {
+
 		String discriminantReference = outputReference.getReference();
 		if (outputReference.getIsLeaf()) {
 			discriminantReference = discriminentConstant.getValueAsString();
 		}
 
-		String familyName = outputReference.getOperationReference() +
-				((outputReference.getOutputSelector() != null)?":" + outputReference.getOutputSelector():"");
-
-		//			String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
-		//			if (type.equals(Type.MAIN)) {
-		//				displayedAs = "indicator";
-		//			}
-		//			if (type.equals(Type.MULTISIGNAL) || type.equals(Type.SIGNAL)) {
-		//				displayedAs = "signal";
-		//			}
-
-		String displayedAs = (outputReference.getReferenceAsOperand() != null)?
-				outputReference.getReferenceAsOperand():
-					((outputReference.getOutputSelector() != null)?outputReference.getOutputSelector():outputReference.getOperationReference());
-
-				return discriminantReference + " (" + familyName + ") on graph as " + displayedAs;
+		//(OperationReference)? + ( ":" + OutputSelector)?
+		String familyName = 
+				(!(outputReference.getOperationReference().equals(discriminantReference))?outputReference.getOperationReference() :"") +
+				((outputReference.getOutputSelector() != null)? ":" + outputReference.getOutputSelector():"");
+		//ReferenceAsOperand?
+		String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
+		
+		//discriminantReference + ( "(" + familyName + ")")? + (" on chart as " + displayedAs)?
+		return discriminantReference + ((!familyName.isEmpty())?" (" + familyName + ")":"") + ((!displayedAs.isEmpty())?" as " + displayedAs:"");
 	}
 
 	public ChartedOutputGroup getContainer() {

@@ -55,11 +55,10 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  */
 public class ReverseCondition extends Condition<Boolean>  implements UnaryCondition {
 
-
 	private static final int MAIN_POSITION = 3;
 
 	private ReverseCondition() {
-		super("historical data reverse", "True when a time series reverses up or down", 
+		super("historical data reverse", "True when a time series reverses up or down",
 				new NumberOperation("direction"), new NumberOperation("change ratio"), new NumberOperation("dates comparison span"), new DoubleMapOperation("historical data input"));
 	}
 

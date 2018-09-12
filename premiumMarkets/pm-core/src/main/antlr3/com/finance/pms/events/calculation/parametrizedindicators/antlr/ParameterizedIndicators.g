@@ -38,6 +38,7 @@ tokens {
   HigherLowCondition ;
   LowerHighCondition ;
   LowerLowCondition ;
+  LinearTrendsCondition ;
   
   EqualStringConstantCondition ;
   
@@ -211,8 +212,22 @@ opcmpcondition [CommonTree firstOp] :
   ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
        ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
          WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS 
-         -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$firstOp} operand) )?;
+         -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$firstOp} operand) )? |
 
+  ('trends like' WhiteChar secondOp=operand
+      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"TRUE\""]) ^(String StringToken["\"TRUE\""]) {$firstOp} {$secondOp.tree})) |
+      
+  ('trends up like' WhiteChar secondOp=operand
+      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"TRUE\""]) ^(String StringToken["\"FALSE\""]) {$firstOp} {$secondOp.tree})) |
+      
+  ('trends down like' WhiteChar secondOp=operand
+      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"FALSE\""]) ^(String StringToken["\"TRUE\""]) {$firstOp} {$secondOp.tree}));
 
 constantcmp [CommonTree firstOp] :
 

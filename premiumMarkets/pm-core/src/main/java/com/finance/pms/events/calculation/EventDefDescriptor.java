@@ -61,6 +61,8 @@ public interface EventDefDescriptor {
 
 	Set<OutputDescr> displayedOutputsDescr();
 
+	Set<OutputDescr> all100OutputDescr();
+
 	Set<OutputDescr> allOutputDescr();
 
 	boolean isDisplayed(int outputIdx);

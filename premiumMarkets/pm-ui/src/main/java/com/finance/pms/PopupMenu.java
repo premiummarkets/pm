@@ -31,6 +31,7 @@ package com.finance.pms;
 
 import java.util.Comparator;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
@@ -58,7 +59,7 @@ public class PopupMenu<T extends InfoObject> {
 	private Shell selectionShell;
 
 
-	private Set<T> availableOptSet;
+	private SortedSet<T> availableOptSet;
 	private Set<T> selectionSet;
 
 	private Boolean unableSelectAll;
@@ -85,13 +86,8 @@ public class PopupMenu<T extends InfoObject> {
 
 		this.style = style;
 
-		this.availableOptSet = new TreeSet<T>(new Comparator<T>() {
-			@Override
-			public int compare(T o1, T o2) {
-				return o1.info().compareTo(o2.info());
-			}
-		});
-		this.availableOptSet.addAll(availableOptSet);
+		addAvailableOpts(availableOptSet);
+
 		this.selectionSet = selectionList;
 
 		this.unableSelectAll = unableSelectAll;
@@ -107,6 +103,19 @@ public class PopupMenu<T extends InfoObject> {
 		}
 
 		hasChanged = false;
+
+	}
+
+	private void addAvailableOpts(Set<T> availableOptSet) {
+
+		this.availableOptSet = new TreeSet<T>(new Comparator<T>() {
+			@Override
+			public int compare(T o1, T o2) {
+				return o1.info().compareTo(o2.info());
+			}
+		});
+
+		this.availableOptSet.addAll(availableOptSet);
 
 	}
 
@@ -233,7 +242,7 @@ public class PopupMenu<T extends InfoObject> {
 
 				private void handleSelectAllTicks() {
 
-					hasChanged=true;
+					hasChanged = true;
 
 					if (selectAllBut.getSelection()) {
 						for (Control button : selectionShell.getChildren()) {
@@ -309,12 +318,11 @@ public class PopupMenu<T extends InfoObject> {
 		this.closeAction = closeAction;
 		this.actionateOnDeactivate = actionOnDeactivate;
 		updatePopup(availEventDefs, selectionSet);
-
 	}
 
 	private void updatePopup(Set<T> availEventDefs, Set<T> selectionSet) {
 		this.availableOptSet.clear();
-		this.availableOptSet.addAll(availEventDefs);
+		addAvailableOpts(availEventDefs);
 		this.selectionSet = selectionSet;
 
 		Control[] children = selectionShell.getChildren();
