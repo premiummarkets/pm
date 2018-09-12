@@ -127,6 +127,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	protected static final String TRENDBUTTXT = "Charted Trends ...";
 	private static final String INDICATORSBUTTXT = "Charted Calculator ...";
+	private static final String CALCULATOR_SETTINGS_TITLE = "Calculator settings ...";
 
 	private Button calculatorSettingsButton;
 	private PopupMenu<OutputDescr> calculatorSettingsPopupMenu;
@@ -489,7 +490,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			{
 				calculatorSettingsButton = new Button(chartedCalculatorGroup, SWT.NONE);
 				calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
-				calculatorSettingsButton.setText("Calculator settings ...");
+				calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
 				calculatorSettingsButton.setToolTipText(
 						"Only user defined calculators can be customised.\n" +
 								"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
@@ -800,6 +801,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				try {
 					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
 						availableOutputs.addAll(t.getEventDefDescriptor().all100OutputDescr());
+						if (t.getEventDefDescriptor().allOutputDescr().size() > 100) {
+							calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE+" TOP 100 only.");
+						} else {
+							calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
+						}
 						displayableOutputs.addAll(t.getEventDefDescriptor().displayedOutputsDescr());
 					});
 				} catch (NoSuchElementException e) {

@@ -39,6 +39,7 @@ tokens {
   LowerHighCondition ;
   LowerLowCondition ;
   LinearTrendsCondition ;
+  LinearOppositeTrendsCondition ;
   
   EqualStringConstantCondition ;
   
@@ -145,7 +146,7 @@ tokens {
 
 complete_expression :
    //TODO : common optional statement condition for also_display and fixed_start_shift
-   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation) 
+   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation)
    ;
 
 bullish_condition :
@@ -196,6 +197,7 @@ stringconstant : StringToken -> ^(String StringToken);
 trendconstant : 'bullish' -> ^(String StringToken["\"bullish\""]) | 'bearish' -> ^(String StringToken["\"bearish\""]);
 lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
 
+
 opcmpcondition [CommonTree firstOp] :
 
   ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) {$firstOp} operand) )
@@ -221,16 +223,13 @@ opcmpcondition [CommonTree firstOp] :
       WhiteChar 'direction' WhiteChar direction=stringconstant
       WhiteChar 'epsilon' WhiteChar epsilon=constant
       -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})) |
-      
-  ('trends up like' WhiteChar secondOp=operand
+
+  ('trends unlike' WhiteChar secondOp=operand
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"TRUE\""]) ^(String StringToken["\"FALSE\""]) {$firstOp} {$secondOp.tree})) |
-      
-  ('trends down like' WhiteChar secondOp=operand
-      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"FALSE\""]) ^(String StringToken["\"TRUE\""]) {$firstOp} {$secondOp.tree}));
+      WhiteChar 'direction' WhiteChar direction=stringconstant
+      -> ^(LinearOppositeTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} ^(Number NumberToken["NaN"]) {$firstOp} {$secondOp.tree}));
+
 
 constantcmp [CommonTree firstOp] :
 
