@@ -192,6 +192,7 @@ atom :
 booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree] -> presetcondition | opcmpcondition[$firstOp.tree] -> opcmpcondition| constantcmp[$firstOp.tree] -> constantcmp );
 operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""])) | opName = Operation {checkOperationValidity($opName);} -> Operation;
 constant :  NumberToken -> ^(Number NumberToken) | 'NaN' -> ^(Number NumberToken["NaN"]);
+stringconstant : StringToken -> ^(String StringToken);
 trendconstant : 'bullish' -> ^(String StringToken["\"bullish\""]) | 'bearish' -> ^(String StringToken["\"bearish\""]);
 lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
 
@@ -217,7 +218,9 @@ opcmpcondition [CommonTree firstOp] :
   ('trends like' WhiteChar secondOp=operand
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"TRUE\""]) ^(String StringToken["\"TRUE\""]) {$firstOp} {$secondOp.tree})) |
+      WhiteChar 'direction' WhiteChar direction=stringconstant
+      WhiteChar 'epsilon' WhiteChar epsilon=constant
+      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})) |
       
   ('trends up like' WhiteChar secondOp=operand
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
