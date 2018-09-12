@@ -41,7 +41,7 @@ public class DownRatioCondition extends CrossConstantCondition implements UnaryC
 		super(
 				"down", "True when a time series is down more than the ratio in %",
 				new NumberOperation("threshold"), 
-				new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"),  new NumberOperation("length of time over which it is true"), 
+				new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"),  new NumberOperation("length of time for which it is true"),
 				new DoubleMapOperation("historical data input"));
 	}
 

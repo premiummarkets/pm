@@ -239,7 +239,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
 			LOGGER.info(
 					"Condition '" + this.getReference() + "' returns this map " +
-							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce( (a, b) -> a + "\n" + b));
+							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b));
 		}
 
 		return outputs;
