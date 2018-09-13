@@ -38,8 +38,10 @@ tokens {
   HigherLowCondition ;
   LowerHighCondition ;
   LowerLowCondition ;
-  LinearTrendsCondition ;
+
+  LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
+  LinearFlatTrendsCondition
   
   EqualStringConstantCondition ;
   
@@ -222,13 +224,13 @@ opcmpcondition [CommonTree firstOp] :
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
       WhiteChar 'direction' WhiteChar direction=stringconstant
       WhiteChar 'epsilon' WhiteChar epsilon=constant
-      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})) |
+      -> ^(LinearSimilarTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})) |
 
   ('trends unlike' WhiteChar secondOp=operand
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
       WhiteChar 'direction' WhiteChar direction=stringconstant
-      -> ^(LinearOppositeTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} ^(Number NumberToken["NaN"]) {$firstOp} {$secondOp.tree}));
+      -> ^(LinearOppositeTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$direction.tree} {$firstOp} {$secondOp.tree}));
 
 
 constantcmp [CommonTree firstOp] :
@@ -304,10 +306,10 @@ presetcondition [CommonTree firstOp] :
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
       WhiteChar 'epsilon' WhiteChar epsilon=constant
-      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"flat\""])) {epsilon.tree} {$firstOp} {$firstOp}));
+      -> ^(LinearFlatTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {epsilon.tree} {$firstOp}));
 
 
-Operation 
+Operation
       : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
       ;
 
