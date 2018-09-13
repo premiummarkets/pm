@@ -1,25 +1,17 @@
 package com.finance.pms.events.operations.conditional;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.NumberOperation;
-import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.operations.nativeops.StringOperation;
-import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 'spanning' : does not make sense. As this condition is a status check in time not an event check (change of status) in time.
@@ -27,55 +19,23 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 'for'
  */
 @SuppressWarnings("rawtypes")
-public class LinearTrendsCondition extends Condition<Comparable> implements OnSignalCondition {
+public abstract class LinearTrendsCondition extends Condition<Comparable> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(LinearTrendsCondition.class);
 
-	private static final int MAIN_POSITION = 4;
-	private static final int SIGNAL_POSITION = 5;
-
-
 	protected enum Direction {up, down, both, flat}
-
-	public LinearTrendsCondition() {
-		this("like trend regression", "Similar linear regression of two inputs for a defined period.");
-	}
-
-	public LinearTrendsCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("Time OVER which the condition will remain true"),
-				new NumberOperation("Look back period FOR which the condition has to be true"),
-				new StringOperation("Direction of the trend"),
-				new NumberOperation("Max slope epsilon when comparing two trend lines"),
-				new DoubleMapOperation("'trend regression' left operand (normed data)"),
-				new DoubleMapOperation("'trend regression' right operand (normed data)"));
-	}
 
 	protected LinearTrendsCondition(String reference, String description, Operation... operands) {
 		super(reference, description, new ArrayList<>(Arrays.asList(operands)));
 	}
 
-	public LinearTrendsCondition(ArrayList<Operation> operands, String outputSelector) {
-		this();
-		setOperands(operands);
-	}
-
-	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
-
-		Integer overPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer forPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Direction direction = Direction.valueOf(((StringValue)inputs.get(2)).getValue(targetStock));
-		Double epsilon = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
-		SortedMap<Date, Double> firstOp = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
-		SortedMap<Date, Double> secondOp = ((NumericableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
-
-		SortedSet<Date> fullKeySet = new TreeSet<Date>();
+	protected BooleanMultiMapValue getBooleanMultiMapValue(TargetStockInfo targetStock, Integer overPeriod, Integer forPeriod, Direction direction, Double epsilon, List<SortedMap<Date, Double>> inputsOps) {
+		SortedSet<Date> fullKeySet = new TreeSet<>();
 		if (forPeriod == null || forPeriod < 2) {
 			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 2 days for period to draw a linear regression.");
 			return new BooleanMultiMapValue(fullKeySet, false);
 		}
-		fullKeySet.addAll(firstOp.keySet());
-		fullKeySet.addAll(secondOp.keySet());
+		inputsOps.stream().forEach(in -> fullKeySet.addAll(in.keySet()));
 
 		String expertTangentLabel = forPeriod + " days regression";
 		Map<String, TangentElement> expertTangentsResult = new HashMap<>();
@@ -89,24 +49,27 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 			currentDate.setTime(date);
 			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -forPeriod).getTime();
 
-			if ( lookBackPeriodStart.after(firstOp.firstKey()) && lookBackPeriodStart.after(secondOp.firstKey()) ) {
+			if (inputsOps.stream().allMatch(in -> lookBackPeriodStart.after(in.firstKey()))) {
 
-				SortedMap<Date, Double> firstOpLookBackMap = MapUtils.subMapInclusive(firstOp, lookBackPeriodStart, date);
-				Double[] firstOpSlopeAIntersect = linearReg(firstOpLookBackMap);
+				List<SortedMap<Date, Double>> opLookBackMaps = inputsOps.stream()
+						.map(in -> MapUtils.subMapInclusive(in, lookBackPeriodStart, date))
+						.collect(Collectors.toList());
+				List<Double[]> slopesAIntersects = opLookBackMaps.stream()
+						.map(lkBkMap -> linearReg(lkBkMap))
+						.collect(Collectors.toList());
 
-				SortedMap<Date, Double> secondOpLookBackMap = MapUtils.subMapInclusive(secondOp, lookBackPeriodStart, date);
-				Double[] secondOpSlopeAIntersect = linearReg(secondOpLookBackMap);
-
-				Boolean conditionCheck = conditionCheck(firstOpSlopeAIntersect[0], secondOpSlopeAIntersect[0], direction, epsilon);
-
+				List<Comparable> conditionCheckParams = slopesAIntersects.stream().map(sAi -> sAi[0]).collect(Collectors.toList());
+				conditionCheckParams.add(direction);
+				conditionCheckParams.add(epsilon);
+				Boolean conditionCheck = conditionCheck((Comparable[]) conditionCheckParams.toArray());
 				if (conditionCheck != null) {
 
 					if (conditionCheck) {
 						currentLabel = expertTangentLabel + " at " + dateFormat.format(date);
-						SortedMap<Date, Double> firstOpLinearAtDate = buildLineFor(firstOpLookBackMap, firstOpSlopeAIntersect);
-						expertTangentsResult.put(currentLabel + " of " + getOperands().get(MAIN_POSITION).getReference() + " - slope " + firstOpSlopeAIntersect[0], new TangentElement(firstOpLinearAtDate, date));
-						SortedMap<Date, Double> secondOpLinearAtDate = buildLineFor(secondOpLookBackMap, secondOpSlopeAIntersect);
-						expertTangentsResult.put(currentLabel + " of " + getOperands().get(SIGNAL_POSITION).getReference() + " - slope " + secondOpSlopeAIntersect[0], new TangentElement(secondOpLinearAtDate, date));
+						for (int i = 0; i < opLookBackMaps.size(); i++) {
+							SortedMap<Date, Double> opLinearAtDate = buildLineFor(opLookBackMaps.get(i), slopesAIntersects.get(i));
+							expertTangentsResult.put(currentLabel + " of " + getOperands().get(getFirstDataInputIndex()+i).getReference() + " - slope " + slopesAIntersects.get(i)[0], new TangentElement(opLinearAtDate, date));
+						}
 					}
 
 					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
@@ -137,34 +100,6 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 		return result;
 	}
 
-	@Override
-	public Boolean conditionCheck(Comparable... ops) {
-
-		Double firstSlope = (Double) ops[0];
-		Double secondSlope = (Double) ops[1];
-		Direction direction = (Direction) ops[2];
-		Double epsilon = (Double) ops[3];
-
-		switch (direction) {
-		case up :
-			if (firstSlope < 0) return false;
-			break;
-		case down :
-			if (firstSlope > 0) return false;
-			break;
-		case both :
-			break;
-		case flat :
-			secondSlope = 0d;
-			break;
-		}
-
-		Double diff = Math.abs(firstSlope-secondSlope);
-		Double largest = Math.max(Math.abs(firstSlope), Math.abs(secondSlope));
-		return (diff <= largest*epsilon);
-
-	}
-
 	private Double[] linearReg(SortedMap<Date, Double> lookBack) {
 		SimpleRegression simpleRegression = new SimpleRegression(true);
 		long firstX = lookBack.firstKey().getTime();
@@ -177,19 +112,14 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 	@Override
 	public int operationStartDateShift() {
 		int maxDateShift = 0;
-		for (int i = 0; i < MAIN_POSITION; i++) {
+		for (int i = 0; i <= getLastPeriodsIndex(); i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;
 	}
 
-	@Override
-	public int mainInputPosition() {
-		return MAIN_POSITION;
-	}
+	protected abstract int getLastPeriodsIndex();
 
-	@Override
-	public int inputSignalPosition() {
-		return SIGNAL_POSITION;
-	}
+	protected abstract int getFirstDataInputIndex();
+
 }
