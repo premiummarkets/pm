@@ -100,7 +100,7 @@ public class Condition<T> extends Operation {
 	}
 
 	public Condition(String reference, String description, Operation... operands) {
-		this(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
+		this(reference, description, new ArrayList<>(Arrays.asList(operands)));
 	}
 
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<T> ... ops) {

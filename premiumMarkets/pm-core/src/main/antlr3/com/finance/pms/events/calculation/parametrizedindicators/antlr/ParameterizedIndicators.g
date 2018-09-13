@@ -298,7 +298,14 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
-  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) );
+  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$firstOp}) ) |
+
+  ('trends flat'
+      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      WhiteChar 'epsilon' WhiteChar epsilon=constant
+      -> ^(LinearTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"flat\""])) {epsilon.tree} {$firstOp} {$firstOp}));
+
 
 Operation 
       : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+

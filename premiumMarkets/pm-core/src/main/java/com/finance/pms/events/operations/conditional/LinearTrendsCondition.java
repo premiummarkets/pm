@@ -1,16 +1,7 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.math3.stat.regression.SimpleRegression;
@@ -44,7 +35,7 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 	private static final int SIGNAL_POSITION = 5;
 
 
-	protected enum Direction {up, down, both};
+	protected enum Direction {up, down, both, flat}
 
 	public LinearTrendsCondition() {
 		this("like trend regression", "Similar linear regression of two inputs for a defined period.");
@@ -57,6 +48,10 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 				new NumberOperation("Max slope epsilon when comparing two trend lines"),
 				new DoubleMapOperation("'trend regression' left operand (normed data)"),
 				new DoubleMapOperation("'trend regression' right operand (normed data)"));
+	}
+
+	protected LinearTrendsCondition(String reference, String description, Operation... operands) {
+		super(reference, description, new ArrayList<>(Arrays.asList(operands)));
 	}
 
 	public LinearTrendsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -85,7 +80,7 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 		String expertTangentLabel = forPeriod + " days regression";
 		Map<String, TangentElement> expertTangentsResult = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		String currentLabel = null;
+		String currentLabel;
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : fullKeySet) {
@@ -159,11 +154,15 @@ public class LinearTrendsCondition extends Condition<Comparable> implements OnSi
 			break;
 		case both :
 			break;
+		case flat :
+			secondSlope = 0d;
+			break;
 		}
 
 		Double diff = Math.abs(firstSlope-secondSlope);
 		Double largest = Math.max(Math.abs(firstSlope), Math.abs(secondSlope));
 		return (diff <= largest*epsilon);
+
 	}
 
 	private Double[] linearReg(SortedMap<Date, Double> lookBack) {
