@@ -1,13 +1,15 @@
 package com.finance.pms.events.scoring.functions;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeSet;
+import java.util.*;
 
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.Quotations;
 import com.google.common.util.concurrent.AtomicDouble;
 
-public class CurvesSignComparator extends CurvesComparator {
+import static com.finance.pms.events.calculation.EventDefDescriptorStatic.LOGGER;
+
+//This is not extracting any best fit but just does a row calculation see CurvesSignComparatorExtended for iterative fit.
+public class CurvesSignComparator extends CurvesComparatorOldBase {
 
 	public CurvesSignComparator(Date start, Date end, int maxShift) {
 		super(start, end, maxShift);
@@ -34,7 +36,7 @@ public class CurvesSignComparator extends CurvesComparator {
 
 	@Override
 	public CurveErr compare(SortedMap<Date, double[]> data, SortedMap<Date, double[]> refData) {
-		double compareNormalised = this.compareNormalised(data.firstKey(),data.lastKey(), data, refData);
+		double compareNormalised = this.compareNormalised(data.firstKey(), data.lastKey(), data, refData);
 		return new CurveErr(0, compareNormalised, compareNormalised, new TreeSet<>());
 	}
 	

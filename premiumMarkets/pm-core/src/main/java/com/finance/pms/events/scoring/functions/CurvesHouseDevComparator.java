@@ -35,7 +35,7 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Date;
 import java.util.SortedMap;
 
-public class CurvesHouseDevComparator extends CurvesComparator {
+public class CurvesHouseDevComparator extends CurvesComparatorOldBase {
 
 	public CurvesHouseDevComparator(Date start, Date end, int maxShift) {
 		super(start, end, maxShift);
