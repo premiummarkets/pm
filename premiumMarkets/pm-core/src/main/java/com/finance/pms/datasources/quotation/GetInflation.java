@@ -1,5 +1,11 @@
 package com.finance.pms.datasources.quotation;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.stereotype.Service;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -7,11 +13,6 @@ import com.finance.pms.datasources.web.ProvidersInflation;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class GetInflation {
