@@ -35,7 +35,7 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Date;
 import java.util.SortedMap;
 
-public class CurvesExpTrenLineComparator extends CurvesComparator {
+public class CurvesExpTrenLineComparator extends CurvesComparatorOldBase {
 
 	private double alpha;
 	private double beta;

@@ -7,7 +7,7 @@ import java.util.TreeSet;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
-public class CurvesSignComparator extends CurvesComparator {
+public class CurvesSignComparator extends CurvesComparatorOldBase {
 
 	public CurvesSignComparator(Date start, Date end, int maxShift) {
 		super(start, end, maxShift);
