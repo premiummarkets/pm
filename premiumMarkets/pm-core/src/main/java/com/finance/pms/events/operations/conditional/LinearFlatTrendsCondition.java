@@ -1,20 +1,25 @@
 package com.finance.pms.events.operations.conditional;
 
-import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.*;
-
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
+
+import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
 public class LinearFlatTrendsCondition extends LinearTrendsCondition  implements UnaryCondition {
 
     private static final int LAST_PERIODS_IDX = 1;
     private static final int MAIN_POSITION = 3;
 
-    public LinearFlatTrendsCondition() {
+	private LinearFlatTrendsCondition() {
         this("flat trend regression", "Flat linear regression of an input for a defined period.");
     }
 
@@ -26,8 +31,13 @@ public class LinearFlatTrendsCondition extends LinearTrendsCondition  implements
                 new DoubleMapOperation("'flat trend regression' left operand (normed data)"));
     }
 
+	public LinearFlatTrendsCondition(ArrayList<Operation> operands, String outputSelector) {
+		this();
+		setOperands(operands);
+	}
+
     @Override
-    public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
+    public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         Integer overPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
         Integer forPeriod = ((NumberValue) inputs.get(getLastPeriodsIndex())).getValue(targetStock).intValue();
@@ -38,13 +48,14 @@ public class LinearFlatTrendsCondition extends LinearTrendsCondition  implements
     }
 
     @Override
-    public Boolean conditionCheck(Comparable... ops) {
+    public Boolean conditionCheck(@SuppressWarnings("rawtypes") Comparable... ops) {
 
         Double firstSlope = (Double) ops[0];
-        Double epsilon = (Double) ops[1];
+		//Direction direction = (Direction) ops[1];
+		Double epsilon = (Double) ops[2];
 
-        Double diff = Math.abs(firstSlope - 0d);
-        return (diff <= firstSlope*epsilon);
+        Double diff = Math.abs(firstSlope);
+        return diff <= epsilon;
 
     }
 

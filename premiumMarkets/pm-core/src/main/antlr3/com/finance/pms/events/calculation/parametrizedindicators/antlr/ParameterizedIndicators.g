@@ -41,7 +41,7 @@ tokens {
 
   LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
-  LinearFlatTrendsCondition
+  LinearFlatTrendsCondition ;
   
   EqualStringConstantCondition ;
   
@@ -306,7 +306,7 @@ presetcondition [CommonTree firstOp] :
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
       WhiteChar 'epsilon' WhiteChar epsilon=constant
-      -> ^(LinearFlatTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {epsilon.tree} {$firstOp}));
+      -> ^(LinearFlatTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$epsilon.tree} {$firstOp}));
 
 
 Operation

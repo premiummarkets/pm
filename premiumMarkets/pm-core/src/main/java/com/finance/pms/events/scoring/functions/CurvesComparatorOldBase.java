@@ -54,7 +54,6 @@ public abstract class CurvesComparatorOldBase implements  CurvesComparator {
 	private Date end;
 	protected Date cmpStart;
 	protected Date cmpEnd;
-	
 
 	/**
 	 * Compare two input and gives the stdev

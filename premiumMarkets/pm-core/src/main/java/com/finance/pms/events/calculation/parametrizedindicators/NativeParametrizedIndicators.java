@@ -50,11 +50,11 @@ import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 
 @XmlRootElement
 public class NativeParametrizedIndicators {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(NativeOperationsBasic.class);
 	private static final String XMLFILE = System.getProperty("installdir")+File.separator+"nativeIndicators.xml";
-	
-	
+
+
 	@XmlElementWrapper(name = "calculators")
 	@XmlElement(name = "calculator")
 	private List<Operation> calculators;
@@ -63,14 +63,14 @@ public class NativeParametrizedIndicators {
 		super();
 		calculators = new ArrayList<Operation>();
 	}
-	
+
 	public static void initNativeIndicators() {
-		
+
 		NativeParametrizedIndicators nativeParametrizedIndicators = new NativeParametrizedIndicators();
-		
+
 		EventInfoOpsCompoOperation baseEventInfoOpsCompoOperation = new EventInfoOpsCompoOperation();
 		nativeParametrizedIndicators.calculators.add(baseEventInfoOpsCompoOperation);
-		
+
 		try {
 			JAXBContext context = JAXBContext.newInstance(NativeParametrizedIndicators.class);
 			Marshaller m = context.createMarshaller();
@@ -81,7 +81,7 @@ public class NativeParametrizedIndicators {
 			LOGGER.error(e,e);
 		}
 	}
-	
+
 	public static NativeParametrizedIndicators loadNativeIndicators () {
 
 		try {

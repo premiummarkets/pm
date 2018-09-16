@@ -235,9 +235,9 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			});
 		}
 
-		if (LOGGER.isInfoEnabled()) {
+		if (LOGGER.isDebugEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
-			LOGGER.info(
+			LOGGER.debug(
 					"Condition '" + this.getReference() + "' returns this map " +
 							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b));
 		}

@@ -83,9 +83,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	HighsAndLowsCondition.class, 
 	NullCondition.class,
 	ReverseCondition.class,
-	LinearFlatTrendsCondition.class,
-	LinearSimilarTrendsCondition.class,
-	LinearOppositeTrendsCondition.class})
+	LinearTrendsCondition.class})
 public class Condition<T> extends Operation {
 
 	protected Condition() {
@@ -144,7 +142,7 @@ public class Condition<T> extends Operation {
 			}
 		}
 	}
-	
+
 	/**
 	 * @param targetStock
 	 * @param fullKeySet

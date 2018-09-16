@@ -52,7 +52,7 @@ public class RSI extends TalibIndicator {
 
 	@Override
 	protected RetCode talibCall(Integer startIdx, Integer endIdx, double[][] inClose, Number...indicatorParams) {
-		RetCode rc = TalibCoreService.getCore().rsi(startIdx, endIdx, inClose[0],(Integer) indicatorParams[0], outBegIdx, outNBElement, this.rsi);
+		RetCode rc = TalibCoreService.getCore().rsi(startIdx, endIdx, inClose[0], (Integer) indicatorParams[0], outBegIdx, outNBElement, this.rsi);
 		return rc;
 	}
 
@@ -88,7 +88,7 @@ public class RSI extends TalibIndicator {
 
 	@Override
 	public double[] getOutputData() {
-		return null;
+		return getRsi();
 	}
 
 	@Override

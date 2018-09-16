@@ -1,13 +1,17 @@
 package com.finance.pms.events.operations.conditional;
 
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
+
+import javax.transaction.NotSupportedException;
 
 public class LinearOppositeTrendsCondition extends LinearTrendsCondition implements OnSignalCondition  {
 
@@ -15,7 +19,7 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 	private static final int MAIN_POSITION = 3;
 	private static final int SIGNAL_POSITION = 4;
 
-	public LinearOppositeTrendsCondition() {
+	private LinearOppositeTrendsCondition() {
 		super("unlike trend regression", "Opposite linear regression of two inputs for a defined period.");
 	}
 
@@ -28,8 +32,13 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 				new DoubleMapOperation("'trend regression' right operand (normed data)"));
 	}
 
+	public LinearOppositeTrendsCondition(ArrayList<Operation> operands, String outputSelector) {
+		this();
+		setOperands(operands);
+	}
+
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer overPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(getLastPeriodsIndex())).getValue(targetStock).intValue();
@@ -56,9 +65,11 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 			break;
 		case both :
 			break;
+		default:
+			throw new RuntimeException(new NotSupportedException(direction.name()));
 		}
 
-		Double diff = Math.abs(firstSlope-secondSlope);
+		Double diff = Math.abs(firstSlope - secondSlope);
 		return (diff >= Math.abs(firstSlope));
 
 	}

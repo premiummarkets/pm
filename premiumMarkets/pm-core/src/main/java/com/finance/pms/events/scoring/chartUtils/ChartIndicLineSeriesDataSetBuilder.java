@@ -188,7 +188,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						indicPlot.setDataset(rendererIdx, dataSet);
 						if ( rendererIdx != 0 ) indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
-						LOGGER.info("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						LOGGER.debug("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 
 					} else {
 						if (groupIsDisplayed && !hasData) {

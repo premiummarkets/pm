@@ -56,7 +56,6 @@ public class TalibOperationGenerator {
 
 	public TalibOperationGenerator() {
 		super();
-		//initSynoData();
 	}
 
 	public Map<String, TalibGenericOperation> generate() {

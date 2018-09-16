@@ -14,6 +14,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -30,9 +32,12 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 'for'
  */
 @SuppressWarnings("rawtypes")
+@XmlSeeAlso({LinearFlatTrendsCondition.class, LinearOppositeTrendsCondition.class, LinearSimilarTrendsCondition.class})
 public abstract class LinearTrendsCondition extends Condition<Comparable> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(LinearTrendsCondition.class);
+
+	private static double DAY_IN_MILLI = 24*60*60*1000;
 
 	protected enum Direction {up, down, both, flat}
 
@@ -46,8 +51,15 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 2 days for period to draw a linear regression.");
 			return new BooleanMultiMapValue(fullKeySet, false);
 		}
+
 		inputsOps.stream().forEach(in -> fullKeySet.addAll(in.keySet()));
 
+		//		//Normalizing of Y to X //FIXME auto normalizing would require putting the inputs in different groups for charting as the may have different magnitude
+		//		Normalizer<Double> normalizer = new Normalizer<>(Double.class, fullKeySet.first(), fullKeySet.last(), 0, forPeriod);
+		//		List<SortedMap<Date, Double>> normInputsOps = inputsOps.stream().map(in -> normalizer.normalised(in)).collect(Collectors.toList());
+		List<SortedMap<Date, Double>> normInputsOps = inputsOps;
+
+		//Main loop
 		String expertTangentLabel = forPeriod + " days regression";
 		Map<String, TangentElement> expertTangentsResult = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
@@ -60,9 +72,9 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 			currentDate.setTime(date);
 			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -forPeriod).getTime();
 
-			if (inputsOps.stream().allMatch(in -> lookBackPeriodStart.after(in.firstKey()))) {
+			if (normInputsOps.stream().allMatch(in -> lookBackPeriodStart.after(in.firstKey()))) {
 
-				List<SortedMap<Date, Double>> opLookBackMaps = inputsOps.stream()
+				List<SortedMap<Date, Double>> opLookBackMaps = normInputsOps.stream()
 						.map(in -> MapUtils.subMapInclusive(in, lookBackPeriodStart, date))
 						.collect(Collectors.toList());
 				List<Double[]> slopesAIntersects = opLookBackMaps.stream()
@@ -73,7 +85,7 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 				conditionCheckParams.add(direction);
 				conditionCheckParams.add(epsilon);
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck((Comparable[]) conditionCheckParams.toArray());
+				Boolean conditionCheck = conditionCheck((Comparable[]) conditionCheckParams.toArray(new Comparable[conditionCheckParams.size()]));
 				if (conditionCheck != null) {
 
 					if (conditionCheck) {
@@ -108,15 +120,15 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 
 	private SortedMap<Date, Double> buildLineFor(SortedMap<Date, Double> lookBack, Double[] slopeAIntercept) {
 		SortedMap<Date, Double> result = lookBack.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> slopeAIntercept[1] + slopeAIntercept[0] * (double) (e.getKey().getTime() - lookBack.firstKey().getTime()), (a, b) -> a, TreeMap::new));
+				.collect(Collectors.toMap(e -> e.getKey(), e -> slopeAIntercept[1] + slopeAIntercept[0] * (double) (e.getKey().getTime()/DAY_IN_MILLI - lookBack.firstKey().getTime()/DAY_IN_MILLI), (a, b) -> a, TreeMap::new));
 		return result;
 	}
 
 	private Double[] linearReg(SortedMap<Date, Double> lookBack) {
 		SimpleRegression simpleRegression = new SimpleRegression(true);
-		long firstX = lookBack.firstKey().getTime();
+		double firstX = lookBack.firstKey().getTime()/DAY_IN_MILLI;
 		lookBack.keySet().stream().forEach(k -> {
-			simpleRegression.addData( k.getTime() - firstX, lookBack.get(k));
+			simpleRegression.addData(k.getTime()/DAY_IN_MILLI - firstX, lookBack.get(k));
 		});
 		return new Double[] {simpleRegression.getSlope(), simpleRegression.getIntercept()};
 	}

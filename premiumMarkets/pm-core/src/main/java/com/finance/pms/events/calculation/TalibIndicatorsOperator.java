@@ -122,8 +122,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 	protected abstract Boolean isInDataRange(TalibIndicator indicator, Integer indicatorIndex);
 
 	protected Integer getIndicatorIndexFromQuotationIndex(TalibIndicator indicator, Integer quotationIndex) {
-		Integer indicatorIndex = quotationIndex - indicator.getOutBegIdx().value;
-		return indicatorIndex;
+		return quotationIndex - indicator.getOutBegIdx().value;
 	}
 
 	public void exportToCSV(Map<EventKey, EventValue> edata, Quotations quotations, String eventListName) {

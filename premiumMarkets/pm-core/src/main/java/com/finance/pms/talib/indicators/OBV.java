@@ -37,8 +37,8 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
 public class OBV extends TalibIndicator {
-	
-	
+
+
 	private double[] obv;
 
 	public OBV() {
