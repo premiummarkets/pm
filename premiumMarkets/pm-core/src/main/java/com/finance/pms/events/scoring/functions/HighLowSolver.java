@@ -7,18 +7,22 @@ public interface HighLowSolver {
 
 	Boolean higherHigh(
 			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd);
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope);
 
 	Boolean lowerHigh(
 			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd);
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope);
 
 	Boolean higherLow(
 			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd);
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope);
 
 	Boolean lowerLow(
 			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd);
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope);
 
 }

@@ -74,7 +74,8 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	@Override
 	public Boolean higherHigh(
 			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope) {
 
 		double[] sSmooth = new double[0];
 		if (smoothingPeriod != -1) {
@@ -245,7 +246,8 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 
 	public Boolean higherLow(
 			Double[] periodData, double[] periodSmoothedFloor, Double alphaBalance, ArrayList<Double> regLine, MutableInt firstTroughIdx, MutableInt lastTroughIdx,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope) {
 
 		MutableDouble amountAboveSmoothingFloor = new MutableDouble(0);
 
@@ -516,23 +518,29 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	}
 
 	@Override
-	public Boolean lowerLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+	public Boolean lowerLow(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope) {
 		// FIXME
 		return null;
 	}
 
 	@Override
-	public Boolean higherLow(Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
+	public Boolean higherLow(
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope) {
 		// FIXME
 		return null;
 	}
 
 	@Override
-	public Boolean lowerHigh(Double[] array, int integer, int integer2, SortedMap<Integer, Double> sortedMap, ArrayList<Double> arrayList,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd) {
-		// TODO Auto-generated method stub
+	public Boolean lowerHigh(
+			Double[] array, int integer, int integer2, SortedMap<Integer, Double> sortedMap, ArrayList<Double> arrayList,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double minSlope, Double maxSlope) {
+		// FIXME
 		return null;
 	}
 

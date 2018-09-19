@@ -89,6 +89,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				new NumberOperation("Highest knot start"),
 				new NumberOperation("Lowest knot end"),
 				new NumberOperation("Highest knot end"),
+				new NumberOperation("Minimum slope"),
+				new NumberOperation("Maximum slope"),
 				new DoubleMapOperation("Historical data input"));
 	}
 
@@ -114,6 +116,9 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		Double highestStart = ((NumberValue) inputs.get(5)).getValue(targetStock).doubleValue();
 		Double lowestEnd = ((NumberValue) inputs.get(6)).getValue(targetStock).doubleValue();
 		Double highestEnd = ((NumberValue) inputs.get(7)).getValue(targetStock).doubleValue();
+
+		Double minSlope = ((NumberValue) inputs.get(8)).getValue(targetStock).doubleValue();
+		Double maxSlope = ((NumberValue) inputs.get(9)).getValue(targetStock).doubleValue();
 
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
@@ -156,12 +161,15 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				Comparable highestStartCmp = highestStart;
 				Comparable lowestEndCmp = lowestEnd;
 				Comparable highestEndCmp = highestEnd;
+				Comparable minSlopeCmp = minSlope;
+				Comparable maxSlopeCmp = maxSlope;
 
 				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(
 						dataLookBackCmp,
 						lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, selectedKnotsCmp, expertTangentCmp,
-						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp);
+						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp,
+						minSlopeCmp, maxSlopeCmp);
 
 				if (conditionCheck != null) {
 
