@@ -31,7 +31,7 @@ public class SupportBreakDown extends HighsAndLowsCondition {
                 (Double) ops[9], (Double) ops[10]);
 
         Boolean isBreakingDown = false;
-        for(int i = higherHighs.lastKey(); i < lookBackData.length; i ++) {
+        for(int i = higherHighs.lastKey(); i < lookBackData.length; i++) {
             isBreakingDown = lookBackData[i] < tangent.get(i);
             if (isBreakingDown) break;
         }
