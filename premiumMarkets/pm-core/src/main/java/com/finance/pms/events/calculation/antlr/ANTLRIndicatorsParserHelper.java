@@ -71,9 +71,9 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					"reverses up" ,"reverses down" ,
 					"goes up more than" ,"goes down more than" ,
 					"crosses up threshold" ,"crosses down threshold", "equals trend", "equals threshold", "is above threshold", "is below threshold",
-					"makes a higher high over", "makes a higher low over","makes a lower high over", "makes a lower low over",
+					"makes a higher high spanning", "makes a higher low spanning","makes a lower high spanning", "makes a lower low spanning", "makes a support break down spanning",
 					"crosses up historical" , "crosses down historical", "equals historical", "is above historical" ,"is below historical",
-					"trends like", "trends unlike"
+					"trends like", "trends unlike", "trends flat"
 					));
 	public static final List<String> HISTORICALDATA_TOKENS = new ArrayList<String>(Arrays.asList("close","open","high","low","volume"));
 	//TODO name tokens should be an enum and have a TokenType for each value.

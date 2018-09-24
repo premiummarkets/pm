@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -33,11 +32,9 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({LinearFlatTrendsCondition.class, LinearOppositeTrendsCondition.class, LinearSimilarTrendsCondition.class})
-public abstract class LinearTrendsCondition extends Condition<Comparable> {
+public abstract class LinearTrendsCondition extends Condition<Comparable> implements LinearOutputs {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(LinearTrendsCondition.class);
-
-	private static double DAY_IN_MILLI = 24*60*60*1000;
 
 	protected enum Direction {up, down, both, flat}
 
@@ -72,6 +69,7 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 			currentDate.setTime(date);
 			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -forPeriod).getTime();
 
+			//Calculating trends for each inputs
 			if (normInputsOps.stream().allMatch(in -> lookBackPeriodStart.after(in.firstKey()))) {
 
 				List<SortedMap<Date, Double>> opLookBackMaps = normInputsOps.stream()
@@ -92,7 +90,7 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 						currentLabel = expertTangentLabel + " at " + dateFormat.format(date);
 						for (int i = 0; i < opLookBackMaps.size(); i++) {
 							SortedMap<Date, Double> opLinearAtDate = buildLineFor(opLookBackMaps.get(i), slopesAIntersects.get(i));
-							expertTangentsResult.put(currentLabel + " of " + getOperands().get(getFirstDataInputIndex()+i).getReference() + " - slope " + slopesAIntersects.get(i)[0], new TangentElement(opLinearAtDate, date));
+							expertTangentsResult.put(currentLabel + " of " + getOperands().get(getFirstDataInputIndex()+i).getReference() + " / slope " + slopesAIntersects.get(i)[0], new TangentElement(opLinearAtDate, date));
 						}
 					}
 
@@ -116,12 +114,6 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> {
 		}
 
 		return outputs;
-	}
-
-	private SortedMap<Date, Double> buildLineFor(SortedMap<Date, Double> lookBack, Double[] slopeAIntercept) {
-		SortedMap<Date, Double> result = lookBack.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> slopeAIntercept[1] + slopeAIntercept[0] * (double) (e.getKey().getTime()/DAY_IN_MILLI - lookBack.firstKey().getTime()/DAY_IN_MILLI), (a, b) -> a, TreeMap::new));
-		return result;
 	}
 
 	private Double[] linearReg(SortedMap<Date, Double> lookBack) {

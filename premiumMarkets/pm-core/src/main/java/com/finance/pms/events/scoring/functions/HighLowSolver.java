@@ -1,28 +1,35 @@
 package com.finance.pms.events.scoring.functions;
 
-import java.util.ArrayList;
 import java.util.SortedMap;
 
 public interface HighLowSolver {
 
 	Boolean higherHigh(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope);
 
 	Boolean lowerHigh(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope);
 
 	Boolean higherLow(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope);
 
 	Boolean lowerLow(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope);
+
+	Boolean flatHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double tolerance);
+
+	Boolean flatLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
+			Double tolerance);
 
 }

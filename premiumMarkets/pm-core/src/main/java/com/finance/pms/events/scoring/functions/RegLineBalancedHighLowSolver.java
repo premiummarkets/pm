@@ -30,7 +30,6 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -71,40 +70,42 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	private static final double REGLINE_TOLERANCE = 0.01;
 	private static final double REGLINE_SLOPEMIN = 0.0; //0.03;
 
-	@Override
 	public Boolean higherHigh(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
+			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Long, Double> _higherHighs, Line<Long, Double> __expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
-		double[] sSmooth = new double[0];
-		if (smoothingPeriod != -1) {
-			double[][] arrayArrayData = Arrays.stream(data).map(d -> new double[]{d}).toArray(double[][]::new);
-			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(smoothingPeriod);
-			sSmooth = smaSmoother.smooth(arrayArrayData);
-		} //FIXME java.lang.ArrayIndexOutOfBoundsException on sSmooth array
+		//		double[] sSmooth = new double[0];
+		//		if (smoothingPeriod != -1) {
+		//			double[][] arrayArrayData = Arrays.stream(data).map(d -> new double[]{d}).toArray(double[][]::new);
+		//			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(smoothingPeriod);
+		//			sSmooth = smaSmoother.smooth(arrayArrayData);
+		//		} //FIXME java.lang.ArrayIndexOutOfBoundsException on sSmooth array
+		//
+		//		MutableDouble amountBelowSmoothingCeiling = new MutableDouble(0);
+		//		MutableInt firstPeakIdx = new MutableInt(-1);
+		//		MutableInt lastPeakIdx = new MutableInt(-1);
+		//
+		//		//Double[] highPeaks = highPeaks(firstPeakIdx, lastPeakIdx, amountBelowSmoothingCeiling, periodData, periodSmoothedCeiling).values().toArray(new Double[0]);
+		//		Double[] highPeaks = bestHighTangente(data, sSmooth, firstPeakIdx, lastPeakIdx, amountBelowSmoothingCeiling).values().toArray(new Double[0]);
+		//		if (firstPeakIdx.intValue() == -1) return false;
+		//		if (isNotBalanced(amountBelowSmoothingCeiling, firstPeakIdx.doubleValue(), lastPeakIdx.doubleValue(), data.length, minimumNbDaysBetweenExtremes)) return false;
+		//
+		//		Double slopeCoef = dataSlope(firstPeakIdx.doubleValue(), lastPeakIdx.doubleValue(), highPeaks);
+		//		if (goesDownOrFlat(slopeCoef)) return false;
+		//
+		//		boolean isTrue = isDataBelowRegLine(data, firstPeakIdx.intValue(), slopeCoef, _expertTangent);
+		//
+		//		if (isTrue) {
+		//			printRes("hh", data, sSmooth, highPeaks, slopeCoef, _expertTangent);
+		//		}
+		//
+		//		higherHighs.put(firstPeakIdx.toInteger(),_expertTangent.get(0));
+		//		higherHighs.put(lastPeakIdx.toInteger(), _expertTangent.get(_expertTangent.size()-1));
+		//		return isTrue;
 
-		MutableDouble amountBelowSmoothingCeiling = new MutableDouble(0);
-		MutableInt firstPeakIdx = new MutableInt(-1);
-		MutableInt lastPeakIdx = new MutableInt(-1);
-
-		//Double[] highPeaks = highPeaks(firstPeakIdx, lastPeakIdx, amountBelowSmoothingCeiling, periodData, periodSmoothedCeiling).values().toArray(new Double[0]);
-		Double[] highPeaks = bestHighTangente(data, sSmooth, firstPeakIdx, lastPeakIdx, amountBelowSmoothingCeiling).values().toArray(new Double[0]);
-		if (firstPeakIdx.intValue() == -1) return false;
-		if (isNotBalanced(amountBelowSmoothingCeiling, firstPeakIdx.doubleValue(), lastPeakIdx.doubleValue(), data.length, minimumNbDaysBetweenExtremes)) return false;
-
-		Double slopeCoef = dataSlope(firstPeakIdx.doubleValue(), lastPeakIdx.doubleValue(), highPeaks);
-		if (goesDownOrFlat(slopeCoef)) return false;
-
-		boolean isTrue = isDataBelowRegLine(data, firstPeakIdx.intValue(), slopeCoef, expertTangent);
-
-		if (isTrue) {
-			printRes("hh", data, sSmooth, highPeaks, slopeCoef, expertTangent);
-		}
-
-		higherHighs.put(firstPeakIdx.toInteger(),expertTangent.get(0));
-		higherHighs.put(lastPeakIdx.toInteger(), expertTangent.get(expertTangent.size()-1));
-		return isTrue;
+		//FIXME
+		return null;
 
 	}
 
@@ -518,29 +519,50 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	}
 
 	@Override
-	public Boolean lowerLow(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
-			Double minSlope, Double maxSlope) {
-		// FIXME
+	public Boolean higherHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Boolean higherLow(
-			Double[] data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, ArrayList<Double> expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
-			Double minSlope, Double maxSlope) {
-		// FIXME
+	public Boolean lowerHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Boolean lowerHigh(
-			Double[] array, int integer, int integer2, SortedMap<Integer, Double> sortedMap, ArrayList<Double> arrayList,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
-			Double minSlope, Double maxSlope) {
-		// FIXME
+	public Boolean higherLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean lowerLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean flatHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double tolerance) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean flatLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double tolerance) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

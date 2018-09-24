@@ -29,13 +29,14 @@
  */
 package com.finance.pms.datasources;
 
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class ComparableSortedMap<K extends Comparable<K>, V extends Comparable<V> > extends TreeMap<K,V> implements Comparable<TreeMap<K,V>> {
 
 	private static final long serialVersionUID = -363699288012620328L;
 
-	public ComparableSortedMap(TreeMap<K,V> values) {
+	public ComparableSortedMap(SortedMap<K,V> values) {
 		super(values);
 	}
 

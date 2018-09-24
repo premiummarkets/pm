@@ -34,6 +34,7 @@ import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.Line;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
 public class LowerLowCondition extends HighsAndLowsCondition {
@@ -53,7 +54,7 @@ public class LowerLowCondition extends HighsAndLowsCondition {
 	@Override
 	public Boolean conditionCheck(Comparable... ops) {
 		return highLowSolver.lowerLow(
-				((ArrayList<Double>) ops[0]).toArray(new Double[0]), (Integer) ops[1], (Integer) ops[2], (SortedMap<Integer, Double>) ops[3], ((ArrayList<Double>) ops[4]),
+				(SortedMap<Integer, Double>) ops[0], (Integer) ops[1], (Integer) ops[2], (SortedMap<Integer, Double>) ops[3], ((Line<Integer, Double>) ops[4]),
 				(Double) ops[5], (Double) ops[6], (Double) ops[7], (Double) ops[8],
 				(Double) ops[9], (Double) ops[10]);
 	}

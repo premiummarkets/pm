@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.datasources.ComparableSortedMap;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.util.MapUtils;
@@ -58,6 +57,7 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.functions.Line;
 
 
 /**
@@ -69,10 +69,10 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
-public abstract class HighsAndLowsCondition extends Condition<Comparable> implements UnaryCondition {
+public abstract class HighsAndLowsCondition extends Condition<Comparable> implements UnaryCondition, LinearOutputs {
 
 	private static final int THRESHOLDS_IDX = 4;
-	private static final int MAIN_POSITION = 8;
+	private static final int MAIN_POSITION = 11;
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
 
@@ -85,12 +85,13 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				new NumberOperation("Over period as remanence/persistence of the divergence from its trigger date"),
 				new NumberOperation("For period as minimum number of days between two extreme knots"),
 				new NumberOperation("Smoothing period for sporadic peaks and troughs mitigation"),
-				new NumberOperation("Lowest knot start"),
-				new NumberOperation("Highest knot start"),
-				new NumberOperation("Lowest knot end"),
-				new NumberOperation("Highest knot end"),
-				new NumberOperation("Minimum slope"),
-				new NumberOperation("Maximum slope"),
+				new NumberOperation("Lowest knot start (can be NaN)"),
+				new NumberOperation("Highest knot start (can be NaN)"),
+				new NumberOperation("Lowest knot end (can be NaN)"),
+				new NumberOperation("Highest knot end (can be NaN)"),
+				new NumberOperation("Minimum slope (can be NaN)"),
+				new NumberOperation("Maximum slope (can be NaN)"),
+				new NumberOperation("Knots Tolerance (can be NaN)"),
 				new DoubleMapOperation("Historical data input"));
 	}
 
@@ -104,12 +105,13 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		return MAIN_POSITION;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
 
-		Integer lookBackNbDays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		Integer overPeriodRemanence = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Integer lookBackNbDays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue(); //s
+		Integer overPeriodRemanence = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue(); //o
+		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue(); //f
 		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
 
 		Double lowestStart = ((NumberValue) inputs.get(THRESHOLDS_IDX)).getValue(targetStock).doubleValue();
@@ -119,6 +121,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		Double minSlope = ((NumberValue) inputs.get(8)).getValue(targetStock).doubleValue();
 		Double maxSlope = ((NumberValue) inputs.get(9)).getValue(targetStock).doubleValue();
+		
+		Double tolerance = ((NumberValue) inputs.get(10)).getValue(targetStock).doubleValue();
 
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
@@ -133,15 +137,19 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
-		String expertTangentLabel = lookBackNbDays + " days tangent of " + this.getOperands().get(MAIN_POSITION).getReference() + " at ";
+		String expertTangentLabel = lookBackNbDays + " days tangent";
 		Map<String, TangentElement> expertTangentsResult = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		List<Double> previousSelectedKnotsValues = new ArrayList<>();
 		String currentLabel = null;
 
 		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
+		ArrayList<Date> fullKeyArray = new ArrayList<>(data.keySet());
+		SortedMap<Integer, Double> dataTimeMap = fullKeySet.stream().collect(Collectors.toMap(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI)), d -> data.get(d), (a, b) -> b, TreeMap::new));
+		ArrayList<Integer> dateTimeKeys = new ArrayList<Integer>(dataTimeMap.keySet());
+		
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
-		for (Date date : data.keySet()) {
+		SortedMap<Date, Line<Integer, Double>> realRowTangents = new TreeMap<>();
+		for (Date date : fullKeySet) {
 
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(date);
@@ -149,85 +157,75 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 			if ( lookBackPeriodStart.after(dataFirstKey) ) {
 
-				SortedMap<Date, Double> dataLookBackMap = MapUtils.subMapInclusive(data, lookBackPeriodStart, date);
-				if (dataLookBackMap.size() < 4) continue;
+				if (MapUtils.subMapInclusive(data, lookBackPeriodStart, date).size() < 4) continue;
 
-				Comparable dataLookBackCmp = new ComparableArray<>(dataLookBackMap.values());
+				Comparable dataLookBackTimeCmp = 
+						new ComparableSortedMap<Integer, Double>(MapUtils
+								.subMapInclusive(dataTimeMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI))));
 				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
 				Comparable minimumNbDaysBetweenExtremesCmp = minimumNbDaysBetweenExtremes;
-				Comparable selectedKnotsCmp = new ComparableSortedMap<Integer, Double>();
-				Comparable expertTangentCmp = new ComparableArray<Double>();
+				Comparable _higherHighsCmp = new ComparableSortedMap<Integer, Double>();
+				Comparable _expertTangentCmp = new Line<Integer, Double>();
 				Comparable lowestStartCmp = lowestStart;
 				Comparable highestStartCmp = highestStart;
 				Comparable lowestEndCmp = lowestEnd;
 				Comparable highestEndCmp = highestEnd;
 				Comparable minSlopeCmp = minSlope;
 				Comparable maxSlopeCmp = maxSlope;
+				Comparable toleranceCmp = tolerance;
 
-				@SuppressWarnings("unchecked")
 				Boolean conditionCheck = conditionCheck(
-						dataLookBackCmp,
-						lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, selectedKnotsCmp, expertTangentCmp,
+						dataLookBackTimeCmp,
+						lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, _higherHighsCmp, _expertTangentCmp,
 						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp,
-						minSlopeCmp, maxSlopeCmp);
+						minSlopeCmp, maxSlopeCmp, toleranceCmp);
 
 				if (conditionCheck != null) {
 
-					if (conditionCheck) { //Will Map tangent to date for return if new knots involved
+					Line<Integer, Double> expertTangent = (Line<Integer, Double>) _expertTangentCmp;
+					boolean sameKnots = !realRowTangents.isEmpty() && realRowTangents.get(realRowTangents.lastKey()).equals(expertTangent);
+					if (expertTangent.isSet()) realRowTangents.put(date, expertTangent);
 
-						//Tangent output
-						try {
+					//We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
+					//However we may want a confirmation reduction
+					if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
+						expertTangent = confirmationReduction(targetStock, realRowTangents, overPeriodRemanence, date, data.get(date), expertTangent, outputs);
+					}
 
-							@SuppressWarnings("unchecked")
-							ArrayList<Double> expertTangent = (ArrayList<Double>) expertTangentCmp;
-							if (!expertTangent.isEmpty()) {
+					//Tangent output
+					try {
 
-								ArrayList<Double> dataLookBackArray = new ArrayList<>(dataLookBackMap.values());
+						if (expertTangent.isSet()) { //Will Map tangent to date for return if new knots involved
 
-								//Check if already charted
-								@SuppressWarnings("unchecked")
-								ArrayList<Integer> selectedKnotsKeys = new ArrayList<>(((SortedMap<Integer, Double>) selectedKnotsCmp).keySet());
-								Boolean sameKnots = previousSelectedKnotsValues.size() == selectedKnotsKeys.size();
-								if (sameKnots) {
-									for (int i = 0; i < selectedKnotsKeys.size(); i++) {
-										if (!previousSelectedKnotsValues.get(i).equals(dataLookBackArray.get(selectedKnotsKeys.get(i)))) {
-											sameKnots = false;
-										}
-									}
-								}
-								//If New : We record for return
-								if (!sameKnots) {
+							//If New : We record for return
+							if (!sameKnots) {
 
-									//Tangent for charting
-									ArrayList<Date> dataLookBackDatesArray = new ArrayList<>(dataLookBackMap.keySet());
-									SortedMap<Date, Double> expertTangentsResultAtDate = new TreeMap<>();
-									for (int i = 0; i < dataLookBackDatesArray.size(); i++) {
-										if (!expertTangent.get(i).isNaN()) {
-											expertTangentsResultAtDate.put(dataLookBackDatesArray.get(i), expertTangent.get(i));
-										}
-									}
+								//Tangent for charting
+								//ArrayList<Integer> lookBackKnots = new ArrayList<Integer>(dataLookBackTimeMap.keySet());
+								SortedMap<Date, Double> expertTangentsResultAtDate =
+										buildLineFor(
+												MapUtils.subMapInclusive(data, fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxStart())), fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxEnd()))),
+												new Double[] {expertTangent.getSlope(), expertTangent.getIntersect()});
 
-									currentLabel = expertTangentLabel + dateFormat.format(date);
-									expertTangentsResult.put(currentLabel, new TangentElement(expertTangentsResultAtDate, date));
-									previousSelectedKnotsValues = selectedKnotsKeys.stream().map(kIdx -> dataLookBackArray.get(kIdx)).collect(Collectors.toList());
+								//currentLabel = expertTangentLabel + " at " + dateFormat.format(date);
+								//currentLabel + " of " + getOperands().get(getFirstDataInputIndex()+i).getReference() + " - slope " + slopesAIntersects.get(i)[0]
+								currentLabel =
+										expertTangentLabel + " at " + dateFormat.format(date) +
+										" of " + this.getOperands().get(MAIN_POSITION).getReference() + " / slope " + expertTangent.getSlope();
+								expertTangentsResult.put(currentLabel, new TangentElement(expertTangentsResultAtDate, date));
 
-								} else {
-									expertTangentsResult.get(currentLabel).setClosingDate(date);
-								}
-
+							} else {
+								expertTangentsResult.get(currentLabel).setClosingDate(date);
 							}
 
-						} catch (Exception e) {
-							//Out of range wont be printed
-							LOGGER.error(e,e);
 						}
+
+					} catch (Exception e) {
+						//Out of range wont be printed
+						LOGGER.error(e,e);
 					}
 
-					if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
-						outputs.getValue(targetStock).put(date, conditionCheck); //We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
-					}
-
-					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, conditionCheck, outputs);
+					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, expertTangent.isSet(), outputs);
 
 				}
 
@@ -237,7 +235,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		if (true && !expertTangentsResult.isEmpty()) {
 			expertTangentsResult.entrySet().stream().forEach(e -> {
-				String key = e.getKey() + "-" + dateFormat.format(e.getValue().getClosingDate());
+				String key = e.getKey() + " / ends " + dateFormat.format(e.getValue().getClosingDate());
 				outputs.getAdditionalOutputs().put(key, new DoubleMapValue(e.getValue().getTangent()));
 				outputs.getAdditionalOutputsTypes().put(key, Type.MULTI);
 			});
@@ -251,6 +249,15 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		}
 
 		return outputs;
+	}
+
+	protected Line<Integer, Double> confirmationReduction(
+			TargetStockInfo targetStock,
+			SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
+			Date actualDate, Double actualData, Line<Integer, Double> actualTangent,
+			BooleanMultiMapValue outputs) {
+		outputs.getValue(targetStock).put(actualDate, actualTangent.isSet());
+		return actualTangent;
 	}
 
 	@Override

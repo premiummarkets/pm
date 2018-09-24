@@ -30,8 +30,6 @@
 package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +37,6 @@ import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.events.EventDefinition;
@@ -50,6 +47,7 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.Line;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
@@ -92,8 +90,11 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 							", first date available : " + quotationsCopy.get(0));
 		}
 
-		Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), oscLookBackStartIdx, oscIdx));
-		Double[] stockLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(closeValues, lookBackStartIdx, quotationIdx));
+		//Double[] oscLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(getOscillatorOutput(), oscLookBackStartIdx, oscIdx));
+		//Double[] stockLookBackP = ArrayUtils.toObject(Arrays.copyOfRange(closeValues, lookBackStartIdx, quotationIdx));
+		//FIXME
+		SortedMap<Integer, Double> stockLookBackP = null;
+		SortedMap<Integer, Double> oscLookBackP = null;
 
 		{//Bullish
 			Boolean isPriceDown = false;
@@ -101,9 +102,9 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 			Boolean isOscWithinBullThresholds = isOscWithinBullThresholds(idxSpan, oscIdx);
 
 			if (isOscWithinBullThresholds) {
-				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
+				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				if (isPriceDown) {
-					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
+					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				}
 			}
 
@@ -119,9 +120,9 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 			Boolean isOcsWithinBearThresholds = isOcsWithinBearThresholds(idxSpan, oscIdx);
 
 			if (isOcsWithinBearThresholds) {
-				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
+				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				if (isPriceUp) {
-					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN); //TODO highLow
+					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				}
 			}
 
