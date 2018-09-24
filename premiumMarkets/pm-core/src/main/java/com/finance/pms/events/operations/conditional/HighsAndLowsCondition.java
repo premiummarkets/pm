@@ -160,8 +160,10 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				if (MapUtils.subMapInclusive(data, lookBackPeriodStart, date).size() < 4) continue;
 
 				Comparable dataLookBackTimeCmp = 
-						new ComparableSortedMap<Integer, Double>(MapUtils
-								.subMapInclusive(dataTimeMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI))));
+						new ComparableSortedMap<>(
+								MapUtils
+								.subMapInclusive(dataTimeMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI)))
+						);
 				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
 				Comparable minimumNbDaysBetweenExtremesCmp = minimumNbDaysBetweenExtremes;
 				Comparable _higherHighsCmp = new ComparableSortedMap<Integer, Double>();
@@ -195,13 +197,11 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 					//Tangent output
 					try {
 
-						if (expertTangent.isSet()) { //Will Map tangent to date for return if new knots involved
+						if (expertTangent.isSet()) { //Will Map tangent to date for return if new knots are involved
 
-							//If New : We record for return
-							if (!sameKnots) {
+							if (!sameKnots) { //If New : We record for return
 
 								//Tangent for charting
-								//ArrayList<Integer> lookBackKnots = new ArrayList<Integer>(dataLookBackTimeMap.keySet());
 								SortedMap<Date, Double> expertTangentsResultAtDate =
 										buildLineFor(
 												MapUtils.subMapInclusive(data, fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxStart())), fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxEnd()))),
