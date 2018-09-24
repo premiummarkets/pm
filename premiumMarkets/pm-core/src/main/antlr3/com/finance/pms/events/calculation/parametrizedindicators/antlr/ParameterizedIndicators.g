@@ -311,9 +311,9 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
-  		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
+  		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
   		WhiteChar 'tolerance' WhiteChar tolerance=constant
-  	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
+  	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
   	
 
   ('trends flat'

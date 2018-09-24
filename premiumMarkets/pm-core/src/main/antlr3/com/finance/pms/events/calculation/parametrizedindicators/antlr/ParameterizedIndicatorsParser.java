@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-09-23 20:29:12
+// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2018-09-24 22:23:55
  //parser
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
     import com.finance.pms.events.calculation.antlr.MyErrorReporter;
@@ -4655,7 +4655,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 
 	// $ANTLR start "presetcondition"
-	// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:252:1: presetcondition[CommonTree firstOp] : ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'trends flat' WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon= constant -> ^( LinearFlatTrendsCondition ) ) );
+	// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:252:1: presetcondition[CommonTree firstOp] : ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'trends flat' WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon= constant -> ^( LinearFlatTrendsCondition ) ) );
 	public final ParameterizedIndicatorsParser.presetcondition_return presetcondition(CommonTree firstOp) throws RecognitionException {
 		ParameterizedIndicatorsParser.presetcondition_return retval = new ParameterizedIndicatorsParser.presetcondition_return();
 		retval.start = input.LT(1);
@@ -4908,26 +4908,20 @@ public class ParameterizedIndicatorsParser extends Parser {
 		Token WhiteChar446=null;
 		Token string_literal447=null;
 		Token WhiteChar448=null;
-		Token char_literal449=null;
-		Token char_literal450=null;
-		Token char_literal451=null;
+		Token string_literal449=null;
+		Token WhiteChar450=null;
+		Token string_literal451=null;
 		Token WhiteChar452=null;
-		Token string_literal453=null;
-		Token WhiteChar454=null;
-		Token string_literal455=null;
-		Token WhiteChar456=null;
-		Token string_literal457=null;
+		Token WhiteChar453=null;
+		Token DAYS454=null;
+		Token WhiteChar455=null;
+		Token string_literal456=null;
+		Token WhiteChar457=null;
 		Token WhiteChar458=null;
-		Token WhiteChar459=null;
-		Token DAYS460=null;
-		Token WhiteChar461=null;
-		Token string_literal462=null;
-		Token WhiteChar463=null;
-		Token WhiteChar464=null;
-		Token DAYS465=null;
-		Token WhiteChar466=null;
-		Token string_literal467=null;
-		Token WhiteChar468=null;
+		Token DAYS459=null;
+		Token WhiteChar460=null;
+		Token string_literal461=null;
+		Token WhiteChar462=null;
 		ParserRuleReturnScope percentdown =null;
 		ParserRuleReturnScope spanningNbDays =null;
 		ParserRuleReturnScope percentup =null;
@@ -5193,26 +5187,20 @@ public class ParameterizedIndicatorsParser extends Parser {
 		CommonTree WhiteChar446_tree=null;
 		CommonTree string_literal447_tree=null;
 		CommonTree WhiteChar448_tree=null;
-		CommonTree char_literal449_tree=null;
-		CommonTree char_literal450_tree=null;
-		CommonTree char_literal451_tree=null;
+		CommonTree string_literal449_tree=null;
+		CommonTree WhiteChar450_tree=null;
+		CommonTree string_literal451_tree=null;
 		CommonTree WhiteChar452_tree=null;
-		CommonTree string_literal453_tree=null;
-		CommonTree WhiteChar454_tree=null;
-		CommonTree string_literal455_tree=null;
-		CommonTree WhiteChar456_tree=null;
-		CommonTree string_literal457_tree=null;
+		CommonTree WhiteChar453_tree=null;
+		CommonTree DAYS454_tree=null;
+		CommonTree WhiteChar455_tree=null;
+		CommonTree string_literal456_tree=null;
+		CommonTree WhiteChar457_tree=null;
 		CommonTree WhiteChar458_tree=null;
-		CommonTree WhiteChar459_tree=null;
-		CommonTree DAYS460_tree=null;
-		CommonTree WhiteChar461_tree=null;
-		CommonTree string_literal462_tree=null;
-		CommonTree WhiteChar463_tree=null;
-		CommonTree WhiteChar464_tree=null;
-		CommonTree DAYS465_tree=null;
-		CommonTree WhiteChar466_tree=null;
-		CommonTree string_literal467_tree=null;
-		CommonTree WhiteChar468_tree=null;
+		CommonTree DAYS459_tree=null;
+		CommonTree WhiteChar460_tree=null;
+		CommonTree string_literal461_tree=null;
+		CommonTree WhiteChar462_tree=null;
 		RewriteRuleTokenStream stream_66=new RewriteRuleTokenStream(adaptor,"token 66");
 		RewriteRuleTokenStream stream_89=new RewriteRuleTokenStream(adaptor,"token 89");
 		RewriteRuleTokenStream stream_67=new RewriteRuleTokenStream(adaptor,"token 67");
@@ -5244,7 +5232,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 		RewriteRuleSubtreeStream stream_constant=new RewriteRuleSubtreeStream(adaptor,"rule constant");
 
 		try {
-			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:252:38: ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'trends flat' WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon= constant -> ^( LinearFlatTrendsCondition ) ) )
+			// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:252:38: ( ( 'reverses down' -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentdown= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"-1\"] ) ) )? | ( 'reverses up' -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"1.0\"] ) ) ) ( WhiteChar 'more than' WhiteChar percentup= constant PERCENT WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS -> ^( ReverseCondition ^( Number NumberToken[\"1\"] ) ) )? | ( 'goes down more than' WhiteChar percentdown= constant PERCENT -> ^( DownRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( DownRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'goes up more than' WhiteChar percentup= constant PERCENT -> ^( UpRatioCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS -> ^( UpRatioCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses up threshold' WhiteChar threshold= constant -> ^( CrossUpConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossUpConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'crosses down threshold' WhiteChar threshold= constant -> ^( CrossDownConstantCondition constant ^( Number NumberToken[\"1.0\"] ) ^( Number NumberToken[\"0.0\"] ) ^( Number NumberToken[\"0.0\"] ) ) ) ( WhiteChar 'spanning' WhiteChar spanningNbDays= constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS -> ^( CrossDownConstantCondition ^( Number NumberToken[\"0.0\"] ) ) )? | ( 'makes a higher high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a higher low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( HigherLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower high spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerHighCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a lower low spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'slope within' WhiteChar '[' minSlope= constant ',' maxSlope= constant ']' -> ^( LowerLowCondition ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) ) | ( 'trends flat' WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon= constant -> ^( LinearFlatTrendsCondition ) ) )
 			int alt42=12;
 			switch ( input.LA(1) ) {
 			case 89:
@@ -7156,10 +7144,10 @@ public class ParameterizedIndicatorsParser extends Parser {
 					}
 					break;
 				case 11 :
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:310:4: ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:310:4: ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) )
 					{
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:310:4: ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) )
-					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:310:5: 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd= constant ',' highestEnd= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:310:4: ( 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ) )
+					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:310:5: 'makes a support break down spanning' WhiteChar lookBack= constant WhiteChar DAYS WhiteChar 'over' WhiteChar remanencePeriod= constant WhiteChar DAYS WhiteChar 'for' WhiteChar extremesSpan= constant WhiteChar DAYS WhiteChar 'smoothed' WhiteChar smoothP= constant WhiteChar DAYS WhiteChar 'starting within' WhiteChar '[' lowestStart= constant ',' highestStart= constant ']' WhiteChar 'tolerance' WhiteChar tolerance= constant
 					{
 					string_literal421=(Token)match(input,85,FOLLOW_85_in_presetcondition3474);  
 					stream_85.add(string_literal421);
@@ -7266,44 +7254,16 @@ public class ParameterizedIndicatorsParser extends Parser {
 					char_literal445=(Token)match(input,57,FOLLOW_57_in_presetcondition3566);  
 					stream_57.add(char_literal445);
 
-					WhiteChar446=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3568);  
+					WhiteChar446=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3572);  
 					stream_WhiteChar.add(WhiteChar446);
 
-					string_literal447=(Token)match(input,66,FOLLOW_66_in_presetcondition3570);  
-					stream_66.add(string_literal447);
+					string_literal447=(Token)match(input,95,FOLLOW_95_in_presetcondition3574);  
+					stream_95.add(string_literal447);
 
-					WhiteChar448=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3572);  
+					WhiteChar448=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3576);  
 					stream_WhiteChar.add(WhiteChar448);
 
-					char_literal449=(Token)match(input,56,FOLLOW_56_in_presetcondition3574);  
-					stream_56.add(char_literal449);
-
-					pushFollow(FOLLOW_constant_in_presetcondition3578);
-					lowestEnd=constant();
-					state._fsp--;
-
-					stream_constant.add(lowestEnd.getTree());
-					char_literal450=(Token)match(input,54,FOLLOW_54_in_presetcondition3580);  
-					stream_54.add(char_literal450);
-
-					pushFollow(FOLLOW_constant_in_presetcondition3584);
-					highestEnd=constant();
-					state._fsp--;
-
-					stream_constant.add(highestEnd.getTree());
-					char_literal451=(Token)match(input,57,FOLLOW_57_in_presetcondition3586);  
-					stream_57.add(char_literal451);
-
-					WhiteChar452=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3592);  
-					stream_WhiteChar.add(WhiteChar452);
-
-					string_literal453=(Token)match(input,95,FOLLOW_95_in_presetcondition3594);  
-					stream_95.add(string_literal453);
-
-					WhiteChar454=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3596);  
-					stream_WhiteChar.add(WhiteChar454);
-
-					pushFollow(FOLLOW_constant_in_presetcondition3600);
+					pushFollow(FOLLOW_constant_in_presetcondition3580);
 					tolerance=constant();
 					state._fsp--;
 
@@ -7319,9 +7279,9 @@ public class ParameterizedIndicatorsParser extends Parser {
 					RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.getTree():null);
 
 					root_0 = (CommonTree)adaptor.nil();
-					// 316:4: -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) )
+					// 316:4: -> ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) )
 					{
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:7: ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:7: ^( SupportBreakDown ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) ^( Number NumberToken[\"NaN\"] ) )
 						{
 						CommonTree root_1 = (CommonTree)adaptor.nil();
 						root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SupportBreakDown, "SupportBreakDown"), root_1);
@@ -7331,9 +7291,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 						adaptor.addChild(root_1, (smoothP!=null?((CommonTree)smoothP.getTree()):null));
 						adaptor.addChild(root_1, (lowestStart!=null?((CommonTree)lowestStart.getTree()):null));
 						adaptor.addChild(root_1, (highestStart!=null?((CommonTree)highestStart.getTree()):null));
-						adaptor.addChild(root_1, (lowestEnd!=null?((CommonTree)lowestEnd.getTree()):null));
-						adaptor.addChild(root_1, (highestEnd!=null?((CommonTree)highestEnd.getTree()):null));
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:182: ^( Number NumberToken[\"NaN\"] )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:145: ^( Number NumberToken[\"NaN\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Number, "Number"), root_2);
@@ -7341,7 +7299,23 @@ public class ParameterizedIndicatorsParser extends Parser {
 						adaptor.addChild(root_1, root_2);
 						}
 
-						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:211: ^( Number NumberToken[\"NaN\"] )
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:174: ^( Number NumberToken[\"NaN\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Number, "Number"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(NumberToken, "NaN"));
+						adaptor.addChild(root_1, root_2);
+						}
+
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:203: ^( Number NumberToken[\"NaN\"] )
+						{
+						CommonTree root_2 = (CommonTree)adaptor.nil();
+						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Number, "Number"), root_2);
+						adaptor.addChild(root_2, (CommonTree)adaptor.create(NumberToken, "NaN"));
+						adaptor.addChild(root_1, root_2);
+						}
+
+						// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:316:232: ^( Number NumberToken[\"NaN\"] )
 						{
 						CommonTree root_2 = (CommonTree)adaptor.nil();
 						root_2 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(Number, "Number"), root_2);
@@ -7369,59 +7343,59 @@ public class ParameterizedIndicatorsParser extends Parser {
 					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:319:3: ( 'trends flat' WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon= constant -> ^( LinearFlatTrendsCondition ) )
 					// com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g:319:4: 'trends flat' WhiteChar 'over' WhiteChar overNbDays= constant WhiteChar DAYS WhiteChar 'for' WhiteChar forNbDays= constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon= constant
 					{
-					string_literal455=(Token)match(input,96,FOLLOW_96_in_presetcondition3657);  
-					stream_96.add(string_literal455);
+					string_literal449=(Token)match(input,96,FOLLOW_96_in_presetcondition3647);  
+					stream_96.add(string_literal449);
 
-					WhiteChar456=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3665);  
-					stream_WhiteChar.add(WhiteChar456);
+					WhiteChar450=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3655);  
+					stream_WhiteChar.add(WhiteChar450);
 
-					string_literal457=(Token)match(input,87,FOLLOW_87_in_presetcondition3667);  
-					stream_87.add(string_literal457);
+					string_literal451=(Token)match(input,87,FOLLOW_87_in_presetcondition3657);  
+					stream_87.add(string_literal451);
 
-					WhiteChar458=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3669);  
-					stream_WhiteChar.add(WhiteChar458);
+					WhiteChar452=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3659);  
+					stream_WhiteChar.add(WhiteChar452);
 
-					pushFollow(FOLLOW_constant_in_presetcondition3673);
+					pushFollow(FOLLOW_constant_in_presetcondition3663);
 					overNbDays=constant();
 					state._fsp--;
 
 					stream_constant.add(overNbDays.getTree());
-					WhiteChar459=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3675);  
-					stream_WhiteChar.add(WhiteChar459);
+					WhiteChar453=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3665);  
+					stream_WhiteChar.add(WhiteChar453);
 
-					DAYS460=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition3677);  
-					stream_DAYS.add(DAYS460);
+					DAYS454=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition3667);  
+					stream_DAYS.add(DAYS454);
 
-					WhiteChar461=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3685);  
-					stream_WhiteChar.add(WhiteChar461);
+					WhiteChar455=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3675);  
+					stream_WhiteChar.add(WhiteChar455);
 
-					string_literal462=(Token)match(input,71,FOLLOW_71_in_presetcondition3687);  
-					stream_71.add(string_literal462);
+					string_literal456=(Token)match(input,71,FOLLOW_71_in_presetcondition3677);  
+					stream_71.add(string_literal456);
 
-					WhiteChar463=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3689);  
-					stream_WhiteChar.add(WhiteChar463);
+					WhiteChar457=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3679);  
+					stream_WhiteChar.add(WhiteChar457);
 
-					pushFollow(FOLLOW_constant_in_presetcondition3693);
+					pushFollow(FOLLOW_constant_in_presetcondition3683);
 					forNbDays=constant();
 					state._fsp--;
 
 					stream_constant.add(forNbDays.getTree());
-					WhiteChar464=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3695);  
-					stream_WhiteChar.add(WhiteChar464);
+					WhiteChar458=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3685);  
+					stream_WhiteChar.add(WhiteChar458);
 
-					DAYS465=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition3697);  
-					stream_DAYS.add(DAYS465);
+					DAYS459=(Token)match(input,DAYS,FOLLOW_DAYS_in_presetcondition3687);  
+					stream_DAYS.add(DAYS459);
 
-					WhiteChar466=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3705);  
-					stream_WhiteChar.add(WhiteChar466);
+					WhiteChar460=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3695);  
+					stream_WhiteChar.add(WhiteChar460);
 
-					string_literal467=(Token)match(input,67,FOLLOW_67_in_presetcondition3707);  
-					stream_67.add(string_literal467);
+					string_literal461=(Token)match(input,67,FOLLOW_67_in_presetcondition3697);  
+					stream_67.add(string_literal461);
 
-					WhiteChar468=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3709);  
-					stream_WhiteChar.add(WhiteChar468);
+					WhiteChar462=(Token)match(input,WhiteChar,FOLLOW_WhiteChar_in_presetcondition3699);  
+					stream_WhiteChar.add(WhiteChar462);
 
-					pushFollow(FOLLOW_constant_in_presetcondition3713);
+					pushFollow(FOLLOW_constant_in_presetcondition3703);
 					epsilon=constant();
 					state._fsp--;
 
@@ -8026,33 +8000,25 @@ public class ParameterizedIndicatorsParser extends Parser {
 	public static final BitSet FOLLOW_54_in_presetcondition3560 = new BitSet(new long[]{0x0080000800000000L});
 	public static final BitSet FOLLOW_constant_in_presetcondition3564 = new BitSet(new long[]{0x0200000000000000L});
 	public static final BitSet FOLLOW_57_in_presetcondition3566 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3568 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
-	public static final BitSet FOLLOW_66_in_presetcondition3570 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3572 = new BitSet(new long[]{0x0100000000000000L});
-	public static final BitSet FOLLOW_56_in_presetcondition3574 = new BitSet(new long[]{0x0080000800000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition3578 = new BitSet(new long[]{0x0040000000000000L});
-	public static final BitSet FOLLOW_54_in_presetcondition3580 = new BitSet(new long[]{0x0080000800000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition3584 = new BitSet(new long[]{0x0200000000000000L});
-	public static final BitSet FOLLOW_57_in_presetcondition3586 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3592 = new BitSet(new long[]{0x0000000000000000L,0x0000000080000000L});
-	public static final BitSet FOLLOW_95_in_presetcondition3594 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3596 = new BitSet(new long[]{0x0080000800000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition3600 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_96_in_presetcondition3657 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3665 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
-	public static final BitSet FOLLOW_87_in_presetcondition3667 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3669 = new BitSet(new long[]{0x0080000800000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition3673 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3675 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition3677 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3685 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
-	public static final BitSet FOLLOW_71_in_presetcondition3687 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3689 = new BitSet(new long[]{0x0080000800000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition3693 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3695 = new BitSet(new long[]{0x0000000000002000L});
-	public static final BitSet FOLLOW_DAYS_in_presetcondition3697 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3705 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000008L});
-	public static final BitSet FOLLOW_67_in_presetcondition3707 = new BitSet(new long[]{0x0020000000000000L});
-	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3709 = new BitSet(new long[]{0x0080000800000000L});
-	public static final BitSet FOLLOW_constant_in_presetcondition3713 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3572 = new BitSet(new long[]{0x0000000000000000L,0x0000000080000000L});
+	public static final BitSet FOLLOW_95_in_presetcondition3574 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3576 = new BitSet(new long[]{0x0080000800000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3580 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_96_in_presetcondition3647 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3655 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
+	public static final BitSet FOLLOW_87_in_presetcondition3657 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3659 = new BitSet(new long[]{0x0080000800000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3663 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3665 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition3667 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3675 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+	public static final BitSet FOLLOW_71_in_presetcondition3677 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3679 = new BitSet(new long[]{0x0080000800000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3683 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3685 = new BitSet(new long[]{0x0000000000002000L});
+	public static final BitSet FOLLOW_DAYS_in_presetcondition3687 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3695 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000008L});
+	public static final BitSet FOLLOW_67_in_presetcondition3697 = new BitSet(new long[]{0x0020000000000000L});
+	public static final BitSet FOLLOW_WhiteChar_in_presetcondition3699 = new BitSet(new long[]{0x0080000800000000L});
+	public static final BitSet FOLLOW_constant_in_presetcondition3703 = new BitSet(new long[]{0x0000000000000002L});
 }

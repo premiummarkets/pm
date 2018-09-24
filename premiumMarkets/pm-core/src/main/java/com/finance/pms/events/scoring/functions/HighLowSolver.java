@@ -25,11 +25,9 @@ public interface HighLowSolver {
 			Double minSlope, Double maxSlope);
 
 	Boolean flatHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
-			Double tolerance);
+			Double lowestStart, Double highestStart, Double tolerance);
 
 	Boolean flatLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
-			Double tolerance);
+			Double lowestStart, Double highestStart, Double tolerance);
 
 }
