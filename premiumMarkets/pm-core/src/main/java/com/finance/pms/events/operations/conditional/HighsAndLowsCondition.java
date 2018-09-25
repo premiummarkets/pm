@@ -198,6 +198,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 					if (expertTangent.isSet()) {
 
 						try {
+
 							Boolean knotNotCharted = knotNotRowRegistered || currentLabel == null;
 							if (knotNotCharted) { //Will map tangent to date for return if new knots are involved
 
