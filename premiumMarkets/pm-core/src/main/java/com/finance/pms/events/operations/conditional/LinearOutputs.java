@@ -1,17 +1,21 @@
 package com.finance.pms.events.operations.conditional;
 
-import java.util.Date;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import com.finance.pms.events.scoring.functions.Line;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 public interface LinearOutputs {
 
-	public static double DAY_IN_MILLI = 24*60*60*1000;
+	double DAY_IN_MILLI = 24*60*60*1000;
 
-	public default SortedMap<Date, Double> buildLineFor(SortedMap<Date, Double> lookBack, Double[] slopeAIntercept) {
-		SortedMap<Date, Double> result = lookBack.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> slopeAIntercept[1] + slopeAIntercept[0] * (double) (e.getKey().getTime()/DAY_IN_MILLI - lookBack.firstKey().getTime()/DAY_IN_MILLI), (a, b) -> a, TreeMap::new));
+	default SortedMap<Date, Double> buildLineFor(Collection<Date> lookBackDates, Line<Integer, Double> line) {
+		double firstX = lookBackDates.iterator().next().getTime() / DAY_IN_MILLI;
+		SortedMap<Date, Double> result = lookBackDates.stream()
+				.collect(Collectors.toMap(
+						e -> e,
+						e -> line.getIntersect() + line.getSlope() * (e.getTime()/DAY_IN_MILLI - firstX),
+						(a, b) -> a, TreeMap::new));
 		return result;
 	}
 

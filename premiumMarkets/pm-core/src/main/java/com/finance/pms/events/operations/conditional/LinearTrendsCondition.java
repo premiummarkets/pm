@@ -1,20 +1,12 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.events.scoring.functions.Line;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -43,13 +35,15 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 	}
 
 	protected BooleanMultiMapValue getBooleanMultiMapValue(TargetStockInfo targetStock, Integer overPeriod, Integer forPeriod, Direction direction, Double epsilon, List<SortedMap<Date, Double>> inputsOps) {
-		SortedSet<Date> fullKeySet = new TreeSet<>();
+		NavigableSet<Date> fullKeySet = new TreeSet<>();
 		if (forPeriod == null || forPeriod < 2) {
 			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 2 days for period to draw a linear regression.");
 			return new BooleanMultiMapValue(fullKeySet, false);
 		}
 
 		inputsOps.stream().forEach(in -> fullKeySet.addAll(in.keySet()));
+		List<Date> fullKeyArray = new ArrayList<>(fullKeySet);
+		List<Integer> dateTimeKeys = fullKeySet.stream().map(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI))).collect(Collectors.toList());
 
 		//		//Normalizing of Y to X //FIXME auto normalizing would require putting the inputs in different groups for charting as the may have different magnitude
 		//		Normalizer<Double> normalizer = new Normalizer<>(Double.class, fullKeySet.first(), fullKeySet.last(), 0, forPeriod);
@@ -58,9 +52,8 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 
 		//Main loop
 		String expertTangentLabel = forPeriod + " days regression";
-		Map<String, TangentElement> expertTangentsResult = new HashMap<>();
+		Map<Line<Integer, Double>, TangentElement> expertTangentsResult = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		String currentLabel;
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : fullKeySet) {
@@ -75,11 +68,11 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 				List<SortedMap<Date, Double>> opLookBackMaps = normInputsOps.stream()
 						.map(in -> MapUtils.subMapInclusive(in, lookBackPeriodStart, date))
 						.collect(Collectors.toList());
-				List<Double[]> slopesAIntersects = opLookBackMaps.stream()
+				List<Line<Integer, Double>> tangentLines = opLookBackMaps.stream()
 						.map(lkBkMap -> linearReg(lkBkMap))
 						.collect(Collectors.toList());
 
-				List<Comparable> conditionCheckParams = slopesAIntersects.stream().map(sAi -> sAi[0]).collect(Collectors.toList());
+				List<Comparable> conditionCheckParams = tangentLines.stream().map(line -> line.getSlope()).collect(Collectors.toList());
 				conditionCheckParams.add(direction);
 				conditionCheckParams.add(epsilon);
 				@SuppressWarnings("unchecked")
@@ -87,13 +80,13 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 				if (conditionCheck != null) {
 
 					if (conditionCheck) {
-						currentLabel = expertTangentLabel + " at " + dateFormat.format(date);
 						for (int i = 0; i < opLookBackMaps.size(); i++) {
-							SortedMap<Date, Double> opLinearAtDate = buildLineFor(opLookBackMaps.get(i), slopesAIntersects.get(i));
-							currentLabel = currentLabel +
-									" of " + getOperands().get(getFirstDataInputIndex()+i).getReference() +
-									" / slope " + slopesAIntersects.get(i)[0] + " / afterglow " + overPeriod;
-							expertTangentsResult.put(currentLabel, new TangentElement(opLinearAtDate, date));
+							String currentLabel =
+									expertTangentLabel +
+											" at " + dateFormat.format(date) +
+											" of " + getOperands().get(getFirstDataInputIndex()+i).getReference() +
+											" / slope " + tangentLines.get(i).getSlope() + " / afterglow " + overPeriod;
+							expertTangentsResult.put(tangentLines.get(i), new TangentElement(tangentLines.get(i), currentLabel));
 						}
 					}
 
@@ -110,8 +103,11 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 
 		if (!expertTangentsResult.isEmpty()) {
 			expertTangentsResult.entrySet().stream().forEach(e -> {
-				String key = e.getKey();
-				outputs.getAdditionalOutputs().put(key, new DoubleMapValue(e.getValue().getTangent()));
+				String key = e.getValue().getLabel();
+				Integer fromElement = dateTimeKeys.indexOf(e.getValue().getLine().getxStart());
+				Integer toElement = dateTimeKeys.indexOf(e.getValue().getLine().getxEnd());
+				SortedMap<Date, Double> expertTangentPoints = buildLineFor(fullKeyArray.subList(fromElement, toElement), e.getValue().getLine());
+				outputs.getAdditionalOutputs().put(key, new DoubleMapValue(expertTangentPoints));
 				outputs.getAdditionalOutputsTypes().put(key, Type.MULTI);
 			});
 		}
@@ -119,13 +115,18 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 		return outputs;
 	}
 
-	private Double[] linearReg(SortedMap<Date, Double> lookBack) {
+	private Line<Integer, Double> linearReg(SortedMap<Date, Double> lookBack) {
 		SimpleRegression simpleRegression = new SimpleRegression(true);
 		double firstX = lookBack.firstKey().getTime()/DAY_IN_MILLI;
 		lookBack.keySet().stream().forEach(k -> {
 			simpleRegression.addData(k.getTime()/DAY_IN_MILLI - firstX, lookBack.get(k));
 		});
-		return new Double[] {simpleRegression.getSlope(), simpleRegression.getIntercept()};
+		//return new Double[] {simpleRegression.getSlope(), simpleRegression.getIntercept()};
+		Line<Integer, Double> line = new Line<>();
+		line.setIntersect((int) firstX, simpleRegression.getIntercept());
+		line.setSlope(simpleRegression.getSlope());
+		line.setxEnd((int) (lookBack.lastKey().getTime()/DAY_IN_MILLI));
+		return line;
 	}
 
 	@Override

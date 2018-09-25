@@ -1,21 +1,20 @@
 package com.finance.pms.events.operations.conditional;
 
+import com.finance.pms.events.scoring.functions.Line;
+
 import java.util.Date;
 import java.util.SortedMap;
 
 public class TangentElement {
 
-	private SortedMap<Date, Double> tangent;
+	private String label;
+	private Line<Integer, Double> line;
 	private Date closingDate;
 
-	TangentElement(SortedMap<Date, Double> tangent, Date closingDate) {
+	TangentElement(Line<Integer, Double> line, String label) {
 		super();
-		this.tangent = tangent;
-		this.closingDate = closingDate;
-	}
-
-	public SortedMap<Date, Double> getTangent() {
-		return tangent;
+		this.line = line;
+		this.label = label;
 	}
 
 	public Date getClosingDate() {
@@ -24,6 +23,14 @@ public class TangentElement {
 
 	public void setClosingDate(Date closingDate) {
 		this.closingDate = closingDate;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public Line<Integer, Double> getLine() {
+		return line;
 	}
 
 }

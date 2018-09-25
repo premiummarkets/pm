@@ -30,16 +30,7 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -138,18 +129,17 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		}
 
 		String expertTangentLabel = lookBackNbDays + " days tangent";
-		Map<String, TangentElement> expertTangentsResult = new HashMap<>();
+		Map<Line<Integer, Double>, TangentElement> expertTangentsResult = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		String currentLabel = null;
 
-		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
-		ArrayList<Date> fullKeyArray = new ArrayList<>(data.keySet());
-		SortedMap<Integer, Double> dataTimeMap = fullKeySet.stream().collect(Collectors.toMap(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI)), d -> data.get(d), (a, b) -> b, TreeMap::new));
-		ArrayList<Integer> dateTimeKeys = new ArrayList<Integer>(dataTimeMap.keySet());
+		NavigableSet<Date> fullKeySet = new TreeSet<>(data.keySet());
+		List<Date> fullKeyArray = new ArrayList<>(fullKeySet);
+		SortedMap<Integer, Double> dataTimeMap = fullKeyArray.stream().collect(Collectors.toMap(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI)), d -> data.get(d), (a, b) -> b, TreeMap::new));
+		List<Integer> dateTimeKeys = new ArrayList<>(dataTimeMap.keySet());
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		SortedMap<Date, Line<Integer, Double>> realRowTangents = new TreeMap<>();
-		for (Date date : fullKeySet) {
+		for (Date date : fullKeyArray) {
 
 			Calendar currentDate = Calendar.getInstance();
 			currentDate.setTime(date);
@@ -185,8 +175,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				if (conditionCheck != null) {
 
 					Line<Integer, Double> expertTangent = (Line<Integer, Double>) _expertTangentCmp;
-					boolean knotNotRowRegistered = realRowTangents.isEmpty() || !realRowTangents.get(realRowTangents.lastKey()).equals(expertTangent);
-					if (expertTangent.isSet() && knotNotRowRegistered) realRowTangents.put(date, expertTangent);
+					if (expertTangent.isSet() && !realRowTangents.containsValue(expertTangent)) realRowTangents.put(date, expertTangent);
 
 					//We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
 					//However we may want a confirmation reduction
@@ -199,21 +188,14 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 						try {
 
-							Boolean knotNotCharted = knotNotRowRegistered || currentLabel == null;
+							Boolean knotNotCharted = !expertTangentsResult.containsValue(expertTangent);
 							if (knotNotCharted) { //Will map tangent to date for return if new knots are involved
-
-								//Tangent for charting
-								SortedMap<Date, Double> expertTangentsResultAtDate =
-										buildLineFor(
-												MapUtils.subMapInclusive(data, fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxStart())), fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxEnd()))),
-												new Double[]{expertTangent.getSlope(), expertTangent.getIntersect()});
-								currentLabel =
+								String currentLabel =
 										expertTangentLabel +
 												" at " + dateFormat.format(date) +
 												" of " + this.getOperands().get(MAIN_POSITION).getReference() +
 												" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence;
-								expertTangentsResult.put(currentLabel, new TangentElement(expertTangentsResultAtDate, date));
-
+								expertTangentsResult.put(expertTangent, new TangentElement(expertTangent, currentLabel));
 							}
 
 						} catch (Exception e) {
@@ -233,9 +215,13 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		if (true && !expertTangentsResult.isEmpty()) {
 			expertTangentsResult.entrySet().stream().forEach(e -> {
-				String key = e.getKey() + " / ends " + dateFormat.format(e.getValue().getClosingDate());
-				outputs.getAdditionalOutputs().put(key, new DoubleMapValue(e.getValue().getTangent()));
-				outputs.getAdditionalOutputsTypes().put(key, Type.MULTI);
+				String label = e.getValue().getLabel(); // + " / ends " + dateFormat.format(e.getValue().getClosingDate());
+				Line<Integer, Double> expertTangent = e.getValue().getLine();
+				Integer fromElement = dateTimeKeys.indexOf(e.getValue().getLine().getxStart());
+				Integer toElement = dateTimeKeys.indexOf(e.getValue().getLine().getxEnd());
+				SortedMap<Date, Double> expertTangentPoints = buildLineFor(fullKeyArray.subList(fromElement, toElement), expertTangent);
+				outputs.getAdditionalOutputs().put(label, new DoubleMapValue(expertTangentPoints));
+				outputs.getAdditionalOutputsTypes().put(label, Type.MULTI);
 			});
 		}
 
