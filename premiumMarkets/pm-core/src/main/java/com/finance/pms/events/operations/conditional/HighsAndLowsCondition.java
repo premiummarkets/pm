@@ -185,8 +185,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				if (conditionCheck != null) {
 
 					Line<Integer, Double> expertTangent = (Line<Integer, Double>) _expertTangentCmp;
-					boolean notSameKnots = realRowTangents.isEmpty() || !realRowTangents.get(realRowTangents.lastKey()).equals(expertTangent);
-					if (expertTangent.isSet() && notSameKnots) realRowTangents.put(date, expertTangent);
+					boolean knotNotRowRegistered = realRowTangents.isEmpty() || !realRowTangents.get(realRowTangents.lastKey()).equals(expertTangent);
+					if (expertTangent.isSet() && knotNotRowRegistered) realRowTangents.put(date, expertTangent);
 
 					//We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
 					//However we may want a confirmation reduction
@@ -198,35 +198,31 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 					if (expertTangent.isSet()) {
 
 						try {
-
-							if (notSameKnots) { //Will map tangent to date for return if new knots are involved
+							Boolean knotNotCharted = knotNotRowRegistered || currentLabel == null;
+							if (knotNotCharted) { //Will map tangent to date for return if new knots are involved
 
 								//Tangent for charting
 								SortedMap<Date, Double> expertTangentsResultAtDate =
 										buildLineFor(
 												MapUtils.subMapInclusive(data, fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxStart())), fullKeyArray.get(dateTimeKeys.indexOf(expertTangent.getxEnd()))),
-												new Double[] {expertTangent.getSlope(), expertTangent.getIntersect()});
-
-								//currentLabel = expertTangentLabel + " at " + dateFormat.format(date);
-								//currentLabel + " of " + getOperands().get(getFirstDataInputIndex()+i).getReference() + " - slope " + slopesAIntersects.get(i)[0]
+												new Double[]{expertTangent.getSlope(), expertTangent.getIntersect()});
 								currentLabel =
-										expertTangentLabel + " at " + dateFormat.format(date) +
-										" of " + this.getOperands().get(MAIN_POSITION).getReference() + " / slope " + expertTangent.getSlope();
+										expertTangentLabel +
+												" at " + dateFormat.format(date) +
+												" of " + this.getOperands().get(MAIN_POSITION).getReference() +
+												" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence;
 								expertTangentsResult.put(currentLabel, new TangentElement(expertTangentsResultAtDate, date));
 
-							} else {
-								expertTangentsResult.get(currentLabel).setClosingDate(date);
 							}
 
 						} catch (Exception e) {
 							//Out of range wont be printed
-							LOGGER.error(e,e);
+							LOGGER.error(e, e);
 						}
 
 					}
 
 					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, expertTangent.isSet(), outputs);
-
 
 				}
 

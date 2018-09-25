@@ -90,7 +90,10 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 						currentLabel = expertTangentLabel + " at " + dateFormat.format(date);
 						for (int i = 0; i < opLookBackMaps.size(); i++) {
 							SortedMap<Date, Double> opLinearAtDate = buildLineFor(opLookBackMaps.get(i), slopesAIntersects.get(i));
-							expertTangentsResult.put(currentLabel + " of " + getOperands().get(getFirstDataInputIndex()+i).getReference() + " / slope " + slopesAIntersects.get(i)[0], new TangentElement(opLinearAtDate, date));
+							currentLabel = currentLabel +
+									" of " + getOperands().get(getFirstDataInputIndex()+i).getReference() +
+									" / slope " + slopesAIntersects.get(i)[0] + " / afterglow " + overPeriod;
+							expertTangentsResult.put(currentLabel, new TangentElement(opLinearAtDate, date));
 						}
 					}
 
