@@ -30,7 +30,16 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -118,13 +127,12 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
-		if (minimumNbDaysBetweenExtremes == null || minimumNbDaysBetweenExtremes < 4) {
-			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days over period to draw an HL condition check.");
-			return new BooleanMultiMapValue(data.keySet(), false);
+		if (minimumNbDaysBetweenExtremes == null || minimumNbDaysBetweenExtremes < 0) {
+			minimumNbDaysBetweenExtremes = 0;
 		}
 
 		if (lookBackNbDays == null || lookBackNbDays < 4) {
-			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 5 days over period to draw an HL condition check.");
+			LOGGER.warn(this.getReference() + " can't be calculated, we need a minimum of 3 days over period to draw an HL condition check.");
 			return new BooleanMultiMapValue(data.keySet(), false);
 		}
 
@@ -188,7 +196,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 						try {
 
-							Boolean knotNotCharted = !expertTangentsResult.containsValue(expertTangent);
+							Boolean knotNotCharted = !expertTangentsResult.containsKey(expertTangent);
 							if (knotNotCharted) { //Will map tangent to date for return if new knots are involved
 								String currentLabel =
 										expertTangentLabel +
@@ -218,7 +226,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				String label = e.getValue().getLabel(); // + " / ends " + dateFormat.format(e.getValue().getClosingDate());
 				Line<Integer, Double> expertTangent = e.getValue().getLine();
 				Integer fromElement = dateTimeKeys.indexOf(e.getValue().getLine().getxStart());
-				Integer toElement = dateTimeKeys.indexOf(e.getValue().getLine().getxEnd());
+				Integer toElement = Math.min(dateTimeKeys.indexOf(e.getValue().getLine().getxEnd()) + 1, dateTimeKeys.size());
 				SortedMap<Date, Double> expertTangentPoints = buildLineFor(fullKeyArray.subList(fromElement, toElement), expertTangent);
 				outputs.getAdditionalOutputs().put(label, new DoubleMapValue(expertTangentPoints));
 				outputs.getAdditionalOutputsTypes().put(label, Type.MULTI);
