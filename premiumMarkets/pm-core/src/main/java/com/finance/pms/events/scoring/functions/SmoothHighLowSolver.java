@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NavigableSet;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
@@ -54,15 +53,16 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	//private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
 
-	Function<Double, Function<Double, Function<Double, Boolean>>> peak = l -> e -> r -> l < e && e >= r;
-	Function<Double, Function<Double, Function<Double, Boolean>>> trough = l -> e -> r -> l > e && e <= r;
-	BiFunction<Double, Double, Boolean> inferiorOrEqual = (a, b) -> a <= b;
-	BiFunction<Double, Double, Boolean> superiorOrEqual = (a, b) -> a >= b;
-	BiFunction<Double, Double, Boolean> inferior = (a, b) -> a < b;
-	BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
+	private Function<Double, Function<Double, Function<Double, Boolean>>> peak = l -> e -> r -> l < e && e >= r;
+	private Function<Double, Function<Double, Function<Double, Boolean>>> trough = l -> e -> r -> l > e && e <= r;
+	private BiFunction<Double, Double, Boolean> inferiorOrEqual = (a, b) -> a <= b;
+	private BiFunction<Double, Double, Boolean> superiorOrEqual = (a, b) -> a >= b;
+	private BiFunction<Double, Double, Boolean> inferior = (a, b) -> a < b;
+	private BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
-	BiFunction<Double, Double, Double> toleratedValueBelow = (ref, t) -> ref*(1 - t);
-	BiFunction<Double, Double, Double> toleratedValueAbove = (ref, t) -> ref*(1 + t);
+	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = l -> r -> t -> l > r*(1 + t);
+	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = l -> r -> t -> l < r*(1 - t);
+	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r*(1 - t) < l && l < r*(1 + t);
 
 	@Override
 	public Boolean higherHigh(
@@ -160,7 +160,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (tolerance.isNaN()) tolerance = 0d;
 
 		Boolean fhs = calculateFHAndFL(
-				peak, superiorOrEqual, toleratedValueBelow,
+				peak, superiorOrEqual, cutsAboveSupport, isInTolerance,
 				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
 				lowestStart, highestStart, tolerance);
 
@@ -178,7 +178,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (tolerance.isNaN()) tolerance = 0d;
 
 		Boolean fhs = calculateFHAndFL(
-				trough, inferiorOrEqual, toleratedValueAbove,
+				trough, inferiorOrEqual, cutsBelowSupport, isInTolerance,
 				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
 				lowestStart, highestStart, tolerance);
 
@@ -189,7 +189,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private Boolean calculateFHAndFL(
 			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
 			BiFunction<Double, Double, Boolean> mostExremeKnotIsToOtherKnots,
-			BiFunction<Double, Double, Double> maxToleratedValue,
+			Function<Double, Function<Double, Function<Double, Boolean>>> leftKnotCutsSupports,
+			Function<Double, Function<Double, Function<Double, Boolean>>> leftKnotIsInTolerance,
 			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart,
 			Double tolerance) {
@@ -209,39 +210,35 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		//check that all previous knot are within tolerance to the most extreme knot.
 		List<Integer> knotsAbs = new ArrayList<>(knotsInBand.keySet());
 
-		Optional<Integer> reducedMostExtremeKnotAbs = knotsAbs.stream().reduce((r, e) -> mostExremeKnotIsToOtherKnots.apply(knotsInBand.get(r), knotsInBand.get(e))?r:e);
-		if (!reducedMostExtremeKnotAbs.isPresent()) return false;
-		Integer mostExtremKnotAbs = reducedMostExtremeKnotAbs.get();
-		Double mostExtremKnot = knotsInBand.get(mostExtremKnotAbs);
-
 		ListIterator<Integer> knotsAbsIterator = knotsAbs.listIterator(knotsAbs.size());
-		Integer maxSpan = 0;
+		Integer rightMostKnotAbs = pickRightMostKnotInBand(knots, knotsAbsIterator, lowestStart, highestStart); //start and end are the same as it is flat..
+		if (rightMostKnotAbs == null) return false;
+		Double rightMostKnot = knots.get(rightMostKnotAbs);
+
 		Integer validLeftMostKnotAbs = null;
 		while (knotsAbsIterator.hasPrevious()) {
 
 			Integer nextLeftKnotAbs = knotsAbsIterator.previous();
 			Double nextLeftKnot = knotsInBand.get(nextLeftKnotAbs);
 
-			//Checking the selected left knots against tolerance and distance to most extreme.
-			if ( Math.abs(mostExtremKnotAbs - nextLeftKnotAbs) >= Math.max(maxSpan, minimumNbDaysBetweenExtremes) && nextLeftKnot < maxToleratedValue.apply(mostExtremKnot, tolerance)) {
+			//Checking the selected left knots against break through, tolerance and distance to most extreme.
+			if (leftKnotCutsSupports.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance)) return false;
+			if ( rightMostKnotAbs - nextLeftKnotAbs >= minimumNbDaysBetweenExtremes && leftKnotIsInTolerance.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance) ) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
-				maxSpan = Math.abs(mostExtremKnotAbs - nextLeftKnotAbs);
 			}
 
 		}
 
 		//Update output map
 		if (validLeftMostKnotAbs == null) return false;
-		int minAbs = Math.min(validLeftMostKnotAbs, mostExtremKnotAbs);
-		_higherHighs.put(minAbs, knotsInBand.get(minAbs));
-		int maxAbs = Math.max(validLeftMostKnotAbs, mostExtremKnotAbs);
-		_higherHighs.put(maxAbs, knotsInBand.get(maxAbs));
+		_higherHighs.put(validLeftMostKnotAbs, knotsInBand.get(validLeftMostKnotAbs));
+		_higherHighs.put(rightMostKnotAbs, rightMostKnot);
 
 		//Slope
 		if (_higherHighs.size() >= 2) {
 			_expertTangent.setSlope(0d);
-			_expertTangent.setIntersect(_higherHighs.firstKey(), knotsInBand.get(_higherHighs.firstKey()));
-			_expertTangent.setxEnd(_higherHighs.lastKey());
+			_expertTangent.setIntersect(validLeftMostKnotAbs, knotsInBand.get(validLeftMostKnotAbs));
+			_expertTangent.setxEnd(rightMostKnotAbs);
 			return true;
 		}
 

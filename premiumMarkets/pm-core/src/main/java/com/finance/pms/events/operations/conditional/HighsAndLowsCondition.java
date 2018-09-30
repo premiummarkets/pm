@@ -137,7 +137,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		}
 
 		String expertTangentLabel = lookBackNbDays + " days tangent";
-		Map<Line<Integer, Double>, TangentElement> expertTangentsResult = new HashMap<>();
+		Map<Line<Integer, Double>, TangentElement> expertTangentsStore = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
 		NavigableSet<Date> fullKeySet = new TreeSet<>(data.keySet());
@@ -183,37 +183,34 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				if (conditionCheck != null) {
 
 					Line<Integer, Double> expertTangent = (Line<Integer, Double>) _expertTangentCmp;
-					if (expertTangent.isSet() && !realRowTangents.containsValue(expertTangent)) realRowTangents.put(date, expertTangent);
+
+					//Has it been already found as row tangent
+					boolean alreadyFoundTangent = realRowTangents.containsValue(expertTangent);
+					if (expertTangent.isSet() && !alreadyFoundTangent) realRowTangents.put(date, expertTangent);
 
 					//We don't have a 'for' reduction here as 'for' is actually the distance between extreme knots.
-					//However we may want a confirmation reduction
+					//However we may want a confirmation reduction. The latter is check against the 'overPeriodRemanence' history of positive expertTangent and the latest actual one
+					expertTangent = confirmationReduction(targetStock, realRowTangents, overPeriodRemanence, expertTangent, date, data.get(date), tolerance, outputs);
+					boolean alreadyFoundReduced = expertTangentsStore.containsKey(expertTangent);
+
+					//Update output if no overPeriodRemanence is running.
 					if ((overPeriodRemanence == 0 || outputs.getValue(targetStock).get(date) == null)) {
-						expertTangent = confirmationReduction(targetStock, realRowTangents, overPeriodRemanence, date, data.get(date), expertTangent, outputs);
+						if (!alreadyFoundReduced) outputs.getValue(targetStock).put(date, expertTangent.isSet());
 					}
 
-					//Tangent output
-					if (expertTangent.isSet()) {
-
-						try {
-
-							Boolean knotNotCharted = !expertTangentsResult.containsKey(expertTangent);
-							if (knotNotCharted) { //Will map tangent to date for return if new knots are involved
-								String currentLabel =
-										expertTangentLabel +
-												" at " + dateFormat.format(date) +
-												" of " + this.getOperands().get(MAIN_POSITION).getReference() +
-												" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence;
-								expertTangentsResult.put(expertTangent, new TangentElement(expertTangent, currentLabel));
-							}
-
-						} catch (Exception e) {
-							//Out of range wont be printed
-							LOGGER.error(e, e);
-						}
-
+					//Tangent output (may have been reduced by confirmation so we check now in the output set of tangents if it has been seen already)
+					conditionCheck = expertTangent.isSet() && !alreadyFoundReduced;
+					if (conditionCheck) {
+						//Will map tangent to date for return if new knots are involved
+						String currentLabel =
+								expertTangentLabel +
+								" at " + dateFormat.format(date) +
+								" of " + this.getOperands().get(MAIN_POSITION).getReference() +
+								" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence;
+						expertTangentsStore.put(expertTangent, new TangentElement(expertTangent, currentLabel));
 					}
 
-					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, expertTangent.isSet(), outputs);
+					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, conditionCheck, outputs);
 
 				}
 
@@ -221,8 +218,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		}
 
-		if (true && !expertTangentsResult.isEmpty()) {
-			expertTangentsResult.entrySet().stream().forEach(e -> {
+		if (true && !expertTangentsStore.isEmpty()) {
+			expertTangentsStore.entrySet().stream().forEach(e -> {
 				String label = e.getValue().getLabel(); // + " / ends " + dateFormat.format(e.getValue().getClosingDate());
 				Line<Integer, Double> expertTangent = e.getValue().getLine();
 				Integer fromElement = dateTimeKeys.indexOf(e.getValue().getLine().getxStart());
@@ -246,9 +243,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 	protected Line<Integer, Double> confirmationReduction(
 			TargetStockInfo targetStock,
 			SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
-			Date actualDate, Double actualData, Line<Integer, Double> actualTangent,
+			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance,
 			BooleanMultiMapValue outputs) {
-		outputs.getValue(targetStock).put(actualDate, actualTangent.isSet());
 		return actualTangent;
 	}
 

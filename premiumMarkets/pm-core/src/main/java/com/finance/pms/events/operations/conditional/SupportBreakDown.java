@@ -44,7 +44,7 @@ public class SupportBreakDown extends HighsAndLowsCondition {
 
 	private Line<Integer, Double> reduceRawOutputConfirmation(
 			SortedMap<Date,Line<Integer,Double>> realRowTangents, Integer overPeriodRemanence,
-			Date actualDate, Double actualData, Line<Integer,Double> actualTangent) {
+			Line<Integer,Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
 
 		if (overPeriodRemanence > 0) {
 
@@ -56,7 +56,7 @@ public class SupportBreakDown extends HighsAndLowsCondition {
 			SortedMap<Date, Line<Integer, Double>> remananceLookBack = MapUtils.subMapInclusive(realRowTangents, startRemanance, actualDate);
 			for (Line<Integer, Double> previousTangent : remananceLookBack.values()) {
 				double tangentY = previousTangent.getIntersect() + previousTangent.getSlope() * (actualDate.getTime()/DAY_IN_MILLI - previousTangent.getxStart());
-				if (actualData < tangentY) return previousTangent;
+				if (actualData < tangentY*(1-tolerance)) return previousTangent;
 			}
 
 			return new Line<>();
@@ -70,10 +70,11 @@ public class SupportBreakDown extends HighsAndLowsCondition {
 	@Override
 	protected Line<Integer, Double> confirmationReduction(
 			TargetStockInfo targetStock,
-			SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence, Date actualDate, Double actualData, Line<Integer, Double> actualTangent, BooleanMultiMapValue outputs) {
-		Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(realRowTangents, overPeriodRemanence, actualDate, actualData, actualTangent);
+			SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
+			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance,
+			BooleanMultiMapValue outputs) {
+		Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(realRowTangents, overPeriodRemanence, actualTangent, actualDate, actualData, tolerance);
 		//TODO fill in remaining remanance period??
-		if (reducedTangent.isSet()) outputs.getValue(targetStock).put(actualDate, reducedTangent.isSet());
 		return reducedTangent;
 	}
 
