@@ -3,6 +3,7 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.ListIterator;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
@@ -54,7 +55,9 @@ public class SupportBreakDown extends HighsAndLowsCondition {
 			Date startRemanance = startRemananceCal.getTime();
 
 			SortedMap<Date, Line<Integer, Double>> remananceLookBack = MapUtils.subMapInclusive(realRowTangents, startRemanance, actualDate);
-			for (Line<Integer, Double> previousTangent : remananceLookBack.values()) {
+			ListIterator<Line<Integer, Double>> values = new ArrayList<>(remananceLookBack.values()).listIterator(remananceLookBack.size());
+			while (values.hasPrevious()) {
+				Line<Integer, Double> previousTangent = values.previous();
 				double tangentY = previousTangent.getIntersect() + previousTangent.getSlope() * (actualDate.getTime()/DAY_IN_MILLI - previousTangent.getxStart());
 				if (actualData < tangentY*(1-tolerance)) return previousTangent;
 			}

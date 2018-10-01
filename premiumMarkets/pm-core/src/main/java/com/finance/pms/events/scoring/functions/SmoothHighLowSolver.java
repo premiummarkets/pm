@@ -61,8 +61,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
 	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = l -> r -> t -> l > r*(1 + t);
-	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = l -> r -> t -> l < r*(1 - t);
-	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r*(1 - t) < l && l < r*(1 + t);
+	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = l -> r -> t -> l*(1 + t) < r;
+	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r/(1 + t) < l && l < r*(1 + t);
 
 	@Override
 	public Boolean higherHigh(
@@ -160,7 +160,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (tolerance.isNaN()) tolerance = 0d;
 
 		Boolean fhs = calculateFHAndFL(
-				peak, superiorOrEqual, cutsAboveSupport, isInTolerance,
+				peak, cutsAboveSupport, isInTolerance,
 				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
 				lowestStart, highestStart, tolerance);
 
@@ -178,7 +178,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (tolerance.isNaN()) tolerance = 0d;
 
 		Boolean fhs = calculateFHAndFL(
-				trough, inferiorOrEqual, cutsBelowSupport, isInTolerance,
+				trough, cutsBelowSupport, isInTolerance,
 				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
 				lowestStart, highestStart, tolerance);
 
@@ -188,7 +188,6 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	//Flats
 	private Boolean calculateFHAndFL(
 			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
-			BiFunction<Double, Double, Boolean> mostExremeKnotIsToOtherKnots,
 			Function<Double, Function<Double, Function<Double, Boolean>>> leftKnotCutsSupports,
 			Function<Double, Function<Double, Function<Double, Boolean>>> leftKnotIsInTolerance,
 			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
