@@ -39,6 +39,7 @@ tokens {
   LowerHighCondition ;
   LowerLowCondition ;
   SupportBreakDown ;
+  SupportBreakUp ;
   
   LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
@@ -314,7 +315,15 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
   		WhiteChar 'tolerance' WhiteChar tolerance=constant
   	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
-  	
+
+  	('makes a support break up spanning' WhiteChar lookBack=constant WhiteChar DAYS
+      		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS
+      		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS
+      		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS
+      		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
+      		WhiteChar 'tolerance' WhiteChar tolerance=constant
+     -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
+
 
   ('trends flat'
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
