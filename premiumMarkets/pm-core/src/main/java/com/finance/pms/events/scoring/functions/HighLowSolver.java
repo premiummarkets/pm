@@ -1,8 +1,12 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.SortedMap;
+import java.util.function.Function;
 
 public interface HighLowSolver {
+
+	Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = l -> r -> t -> l > r*(1 + t);
+	Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = l -> r -> t -> l*(1 + t) < r;
 
 	Boolean higherHigh(
 			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,

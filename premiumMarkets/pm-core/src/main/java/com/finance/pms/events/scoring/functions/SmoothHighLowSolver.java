@@ -60,8 +60,6 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private BiFunction<Double, Double, Boolean> inferior = (a, b) -> a < b;
 	private BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
-	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = l -> r -> t -> l > r*(1 + t);
-	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = l -> r -> t -> l*(1 + t) < r;
 	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r < l*(1 + t) && l < r*(1 + t);
 
 	@Override

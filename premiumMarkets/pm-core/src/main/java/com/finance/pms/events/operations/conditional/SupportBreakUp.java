@@ -10,15 +10,15 @@ import java.util.SortedMap;
 import java.util.function.Function;
 
 //TODO add to grammar
-public class SupportBreakDown extends HighsAndLowsCondition implements SupportBreak {
+public class SupportBreakUp extends HighsAndLowsCondition implements SupportBreak {
 
 	HighLowSolver highLowSolver = new SmoothHighLowSolver();
 
-	public SupportBreakDown() {
-		super("break down low", "True when the time series breaks down a flat low support line.");
+	public SupportBreakUp() {
+		super("break up high", "True when the time series breaks up a flat high support line.");
 	}
 
-	public SupportBreakDown(ArrayList<Operation> operands, String outputSelector) {
+	public SupportBreakUp(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
 	}
@@ -30,7 +30,7 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 		SortedMap<Integer, Double> lookBackData = ((SortedMap<Integer, Double>) ops[0]);
 
 		@SuppressWarnings("unchecked")
-		Boolean hasSupport = highLowSolver.flatLow( //data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent, lowestStart, highestStart, lowestEnd, highestEnd, tolerance)(
+		Boolean hasSupport = highLowSolver.flatHigh( //data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent, lowestStart, highestStart, lowestEnd, highestEnd, tolerance)(
 				lookBackData, (Integer) ops[1], (Integer) ops[2], (SortedMap<Integer, Double>) ops[3], (Line<Integer, Double>) ops[4],
 				(Double) ops[5], (Double) ops[6], (Double) ops[11]);
 
@@ -41,7 +41,7 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 	public Function<Double, Function<Double, Function<Double, Boolean>>> breakThroughCondition() {
 		//return actualData*(1+tolerance) < tangentY;
 		//l -> r -> t -> l*(1 + t) < r
-		return HighLowSolver.cutsBelowSupport;
+		return HighLowSolver.cutsAboveSupport;
 	}
 
 }

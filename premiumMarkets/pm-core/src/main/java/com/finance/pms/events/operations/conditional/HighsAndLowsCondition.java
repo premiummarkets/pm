@@ -240,7 +240,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		return outputs;
 	}
 
-	protected Line<Integer, Double> confirmationReduction(
+	public Line<Integer, Double> confirmationReduction(
 			TargetStockInfo targetStock,
 			SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
 			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance,
