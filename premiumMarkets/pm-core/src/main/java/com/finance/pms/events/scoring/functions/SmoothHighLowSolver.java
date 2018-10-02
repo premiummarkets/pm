@@ -62,7 +62,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = l -> r -> t -> l > r*(1 + t);
 	private Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = l -> r -> t -> l*(1 + t) < r;
-	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r/(1 + t) < l && l < r*(1 + t);
+	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r < l*(1 + t) && l < r*(1 + t);
 
 	@Override
 	public Boolean higherHigh(
@@ -221,7 +221,9 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			Double nextLeftKnot = knotsInBand.get(nextLeftKnotAbs);
 
 			//Checking the selected left knots against break through, tolerance and distance to most extreme.
-			if (leftKnotCutsSupports.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance)) return false;
+			if (leftKnotCutsSupports.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance)) {//left break through met.
+				if (validLeftMostKnotAbs == null) return false; else break;
+			}
 			if ( rightMostKnotAbs - nextLeftKnotAbs >= minimumNbDaysBetweenExtremes && leftKnotIsInTolerance.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance) ) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
 			}
@@ -296,7 +298,10 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			Double nextLeftKnot = knots.get(nextLeftKnotAbs);
 
 			//Checking next left knots against the right most.
-			if (rightMostKnotIsNotToLefts.apply(rightMostKnot, nextLeftKnot)) return false;
+			if (rightMostKnotIsNotToLefts.apply(rightMostKnot, nextLeftKnot)) {
+				return false;
+				//if (validLeftMostKnotAbs == null) return false; else break; //Allow tangent cut through on the left.
+			}
 
 			//Checking the selected left knots against the in between ones, band and distance to right most.
 			if ( leftMostKnotAbs == null || leftMostKnotIsToInners.apply(nextLeftKnot, knots.get(leftMostKnotAbs)) ) {
