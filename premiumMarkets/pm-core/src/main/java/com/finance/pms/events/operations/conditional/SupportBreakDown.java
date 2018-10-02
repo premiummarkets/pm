@@ -1,15 +1,17 @@
 package com.finance.pms.events.operations.conditional;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.events.scoring.functions.Line;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.function.Function;
 
-//TODO add to grammar
 public class SupportBreakDown extends HighsAndLowsCondition implements SupportBreak {
 
 	HighLowSolver highLowSolver = new SmoothHighLowSolver();
@@ -40,8 +42,27 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 	@Override
 	public Function<Double, Function<Double, Function<Double, Boolean>>> breakThroughCondition() {
 		//return actualData*(1+tolerance) < tangentY;
-		//l -> r -> t -> l*(1 + t) < r
+		//leftKnotCutsSupports.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance)
+		//actual -> threshold -> tolerance -> actual*(1 + tolerance) < threshold;
 		return HighLowSolver.cutsBelowSupport;
+	}
+
+	@Override
+	protected Line<Integer, Double> confirmationReduction(
+			TargetStockInfo targetStock,
+			SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
+			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance,
+			BooleanMultiMapValue outputs) {
+		Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(realRowTangents, overPeriodRemanence, actualTangent, actualDate, actualData, tolerance);
+		//TODO fill in remaining remanance period??
+		return reducedTangent;
+	}
+
+	@Override
+	protected void overPeriodFilling(
+			TargetStockInfo targetStock, SortedSet<Date> fullKeySet,
+			Integer overPeriod, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
+		//Nothing as the remanance period is used for confirmation
 	}
 
 }

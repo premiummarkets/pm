@@ -1,14 +1,17 @@
 package com.finance.pms.events.operations.conditional;
 
-import com.finance.pms.events.calculation.util.MapUtils;
-import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.functions.Line;
+import static com.finance.pms.events.operations.conditional.LinearOutputs.DAY_IN_MILLI;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.ListIterator;
+import java.util.SortedMap;
 import java.util.function.Function;
 
-import static com.finance.pms.events.operations.conditional.LinearOutputs.DAY_IN_MILLI;
+import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.functions.Line;
 
 public interface SupportBreak {
 
@@ -39,19 +42,4 @@ public interface SupportBreak {
 
     Function<Double, Function<Double, Function<Double, Boolean>>> breakThroughCondition();
 
-    default Line<Integer, Double> confirmationReduction(
-            TargetStockInfo targetStock,
-            SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
-            Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance,
-            BooleanMultiMapValue outputs) {
-        Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(realRowTangents, overPeriodRemanence, actualTangent, actualDate, actualData, tolerance);
-        //TODO fill in remaining remanance period??
-        return reducedTangent;
-    }
-
-    default void overPeriodFilling(
-            TargetStockInfo targetStock, SortedSet<Date> fullKeySet,
-            Integer overPeriod, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
-        //Nothing as the remanance period is used for confirmation
-    }
 }

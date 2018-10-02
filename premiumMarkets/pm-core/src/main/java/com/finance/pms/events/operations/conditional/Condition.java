@@ -130,7 +130,7 @@ public class Condition<T> extends Operation {
 	 * @param conditionCheck
 	 * @param outputs
 	 */
-	public void overPeriodFilling(TargetStockInfo targetStock, SortedSet<Date> fullKeySet, Integer overPeriod, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
+	protected void overPeriodFilling(TargetStockInfo targetStock, SortedSet<Date> fullKeySet, Integer overPeriod, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
 		if (conditionCheck != null && conditionCheck && overPeriod > 0) {
 			Calendar endOverPeriodCal = Calendar.getInstance();
 			endOverPeriodCal.setTime(actualDate);
