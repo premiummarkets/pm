@@ -433,7 +433,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	//Check that the slope does not cross inner knots and calculate line intersect, slope and boundaries
 	private boolean isValidSlope(
 			SortedMap<Integer, Double> zEMASmoothed,
-			double minSlope, double maxSlope,
+			double lowTolerance, double highTolerance,
 			BiFunction<Double, Double, Boolean> tangentIsNotToKnots,
 			SortedMap<Integer, Double> higherHighs, Line<Integer, Double> tangent) {
 
@@ -442,7 +442,10 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Integer xEnd = higherHighs.lastKey();
 		double endPeak = zEMASmoothed.get(xEnd);
 		double slope = (endPeak - startPeak)/(double)(xEnd - xStart);
-		if (minSlope > slope || slope > maxSlope) return false;
+		Boolean isTolerated =
+				(slope >= 0 && startPeak*(1 + lowTolerance/(xEnd-xStart)) <= endPeak && endPeak <= startPeak*(1 + highTolerance/(xEnd-xStart))) ||
+				(slope <= 0 && endPeak*(1 + lowTolerance/(xEnd-xStart)) >= startPeak && startPeak >= endPeak*(1 + highTolerance/(xEnd-xStart)));
+		if (!isTolerated) return false;
 
 		tangent.setSlope(slope);
 		tangent.setxEnd(xEnd);
