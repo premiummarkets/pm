@@ -94,8 +94,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
 		if (lowestEnd.isNaN()) lowestEnd = -Double.MAX_VALUE;
 		if (highestEnd.isNaN()) highestEnd = Double.MAX_VALUE;
-		if (minSlope.isNaN()) minSlope = -Double.MAX_VALUE;
-		if (maxSlope.isNaN()) maxSlope = 0d;
+		if (minSlope.isNaN()) minSlope = 0d;
+		if (maxSlope.isNaN()) maxSlope = Double.MAX_VALUE;
 
 		Boolean hls = calculateHHAndLL(
 				trough, superiorOrEqual, inferiorOrEqual, superior,
@@ -444,7 +444,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		double slope = (endPeak - startPeak)/(double)(xEnd - xStart);
 		Boolean isTolerated =
 				(slope >= 0 && startPeak*(1 + lowTolerance/(xEnd-xStart)) <= endPeak && endPeak <= startPeak*(1 + highTolerance/(xEnd-xStart))) ||
-				(slope <= 0 && endPeak*(1 + lowTolerance/(xEnd-xStart)) >= startPeak && startPeak >= endPeak*(1 + highTolerance/(xEnd-xStart)));
+				(slope <= 0 && endPeak*(1 + lowTolerance/(xEnd-xStart)) <= startPeak && startPeak <= endPeak*(1 + highTolerance/(xEnd-xStart)));
 		if (!isTolerated) return false;
 
 		tangent.setSlope(slope);
