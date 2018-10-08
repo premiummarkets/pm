@@ -48,7 +48,7 @@ import com.finance.pms.events.calculation.util.MapUtils;
  * @author Guillaume Thoreton
  *
  */
-
+//TODO rewrite : draw all slope considering ratio and keep valid ones.
 public class SmoothHighLowSolver implements HighLowSolver {
 
 	//private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
@@ -86,7 +86,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean lowerLow(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -99,7 +99,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean hls = calculateHHAndLL(
 				trough, superiorOrEqual, inferiorOrEqual, superior,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, _expertTangent,
+				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return hls;
@@ -136,8 +136,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
 		if (lowestEnd.isNaN()) lowestEnd = -Double.MAX_VALUE;
 		if (highestEnd.isNaN()) highestEnd = Double.MAX_VALUE;
-		if (minSlope.isNaN()) minSlope = -Double.MAX_VALUE;
-		if (maxSlope.isNaN()) maxSlope = 0d;
+		if (minSlope.isNaN()) minSlope = 0d;
+		if (maxSlope.isNaN()) maxSlope = Double.MAX_VALUE;
 
 		Boolean calculateLHAndHL = calculateLHAndHL(
 				peak, inferior, superiorOrEqual, superiorOrEqual, inferior, 3,
@@ -297,8 +297,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 			//Checking next left knots against the right most.
 			if (rightMostKnotIsNotToLefts.apply(rightMostKnot, nextLeftKnot)) {
-				return false;
-				//if (validLeftMostKnotAbs == null) return false; else break; //Allow tangent cut through on the left.
+				return false; //Uncomment to disallow tangent cut through on the left.
+				//if (validLeftMostKnotAbs == null) return false; else break; //Uncomment to allow tangent cut through on the left.
 			}
 
 			//Checking the selected left knots against the in between ones, band and distance to right most.
@@ -372,17 +372,19 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			//Check left knot against its right neighbor, against the in between ones, band and distance to right most.
 			//For the in between ones, we check that left most and right most are ratio equidistant in value from opposite knot value.
 			//Also check that the resulting tangent is above (LH case) or below (HL case).
-			if ( (leftMostKnotAbs == null && leftKnotIsToRight.apply(nextLeftKnot, rightMostKnot)) || (leftMostKnotAbs != null && leftKnotIsToRight.apply(nextLeftKnot, knots.get(leftMostKnotAbs))) ) {
-				Boolean troughRatio = (nextLeftKnot-mostAntiKnot)/(rightMostKnot-mostAntiKnot) <= knotToAntiKnotRatio;
-				if (
-						lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart && (rightMostKnotAbs - nextLeftKnotAbs) >= minimumNbDaysBetweenExtremes && troughRatio &&
-						validLine(knots, tangentIsToKnots, rightMostKnotAbs, leftMostKnotAbs, nextLeftKnotAbs)
-						) {
-					validLeftMostKnotAbs = nextLeftKnotAbs;
-					//leftMostKnotAbs = nextLeftKnotAbs; //Uncomment for test
-				}
-				leftMostKnotAbs = nextLeftKnotAbs;
+			Boolean troughRatio = (nextLeftKnot-mostAntiKnot)/(rightMostKnot-mostAntiKnot) <= knotToAntiKnotRatio;
+			if (!leftKnotIsToRight.apply(nextLeftKnot, rightMostKnot) && !troughRatio) {
+				//return false;
+				if (validLeftMostKnotAbs == null) return false; else break;
 			}
+			if (
+					lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart && (rightMostKnotAbs - nextLeftKnotAbs) >= minimumNbDaysBetweenExtremes &&
+					validLine(knots, tangentIsToKnots, rightMostKnotAbs, leftMostKnotAbs, nextLeftKnotAbs)
+					) {
+				validLeftMostKnotAbs = nextLeftKnotAbs;
+				//leftMostKnotAbs = nextLeftKnotAbs; //Uncomment for test
+			}
+			leftMostKnotAbs = nextLeftKnotAbs;
 		}
 
 		//Update output map
@@ -442,10 +444,10 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Integer xEnd = higherHighs.lastKey();
 		double endPeak = zEMASmoothed.get(xEnd);
 		double slope = (endPeak - startPeak)/(double)(xEnd - xStart);
-		Boolean isTolerated =
-				(slope >= 0 && startPeak*(1 + lowTolerance/(xEnd-xStart)) <= endPeak && endPeak <= startPeak*(1 + highTolerance/(xEnd-xStart))) ||
-				(slope <= 0 && endPeak*(1 + lowTolerance/(xEnd-xStart)) <= startPeak && startPeak <= endPeak*(1 + highTolerance/(xEnd-xStart)));
-		if (!isTolerated) return false;
+//		Boolean isTolerated =
+//				(slope >= 0 && startPeak*(1 + lowTolerance/(xEnd-xStart)) <= endPeak && endPeak <= startPeak*(1 + highTolerance/(xEnd-xStart))) ||
+//				(slope <= 0 && endPeak*(1 + lowTolerance/(xEnd-xStart)) <= startPeak && startPeak <= endPeak*(1 + highTolerance/(xEnd-xStart)));
+//		if (!isTolerated) return false;
 
 		tangent.setSlope(slope);
 		tangent.setxEnd(xEnd);
