@@ -42,14 +42,15 @@ import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.util.MapUtils;
 
-//TODO unleash tolerance and slope check
+//TODO unleash tolerance
+//TODO calculate inner surface comprise within anti knot and line as ratio instead of distance to anti knot
 
 /**
  * 
  * @author Guillaume Thoreton
  *
  */
-@SuppressWarnings("Duplicates")
+//@SuppressWarnings("Duplicates")
 public class SmoothHighLowSolver implements HighLowSolver {
 
 	//private static MyLogger LOGGER = MyLogger.getLogger(SmoothHighLowSolver.class);
@@ -264,78 +265,6 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		return rightMostKnotAbs;
 	}
 
-	//HigherHigh LowerLow
-	private Boolean calculateHHAndLL(
-			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
-			BiFunction<Double, Double, Boolean> rightMostKnotIsNotToLefts,
-			BiFunction<Double, Double, Boolean> leftMostKnotIsToInners,
-			BiFunction<Double, Double, Boolean> tangentIsNotToKnots,
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
-			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
-			Double minSlope, Double maxSlope) {
-
-		//Smooth
-		SortedMap<Integer, Double> zEMASmoothed = calculateSmooth(data, smoothingPeriod);
-
-		//Knots
-		SortedMap<Integer, Double> knots = calculateKnots(zEMASmoothed, aKnotIsA);
-
-		//
-		if (knots.isEmpty()) return false;
-
-		//check that the last peak is not the last data point and within the required lowest - highest band.
-		//check that all previous peaks are strictly lower (HH case) or higher (LL case)
-		//check the second highest (HH case) happens minimumNbDaysBetweenExtremes before
-		List<Integer> knotsAbs = new ArrayList<>(knots.keySet());
-		ListIterator<Integer> knotsAbsIterator = knotsAbs.listIterator(knotsAbs.size());
-
-		Integer rightMostKnotAbs = pickRightMostKnotInBand(knots, knotsAbsIterator, lowestEnd, highestEnd);
-		if (rightMostKnotAbs == null) return false;
-		Double rightMostKnot = knots.get(rightMostKnotAbs);
-
-		Integer leftMostKnotAbs = null;
-		Integer validLeftMostKnotAbs = null;
-		while (knotsAbsIterator.hasPrevious()) {
-
-			Integer nextLeftKnotAbs = knotsAbsIterator.previous();
-			Double nextLeftKnot = knots.get(nextLeftKnotAbs);
-
-			//Checking next left knots against the right most.
-			Boolean isNotToRightMost = rightMostKnotIsNotToLefts.apply(rightMostKnot, nextLeftKnot);
-			if (isNotToRightMost) {
-				return false; //Uncomment to disallow tangent cut through on the left.
-				//if (validLeftMostKnotAbs == null) return false; else break; //Uncomment to allow tangent cut through on the left.
-			}
-
-			//Checking the selected left knots against the in between ones, band and distance to right most.
-			Boolean isWithinBand = lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart;
-			Boolean isAwayFromRightMost = (rightMostKnotAbs - nextLeftKnotAbs) >= minimumNbDaysBetweenExtremes;
-			Boolean isToRightInners = leftMostKnotIsToInners.apply(nextLeftKnot, knots.get(leftMostKnotAbs));
-			if ( leftMostKnotAbs == null || (isWithinBand && isAwayFromRightMost && isToRightInners) ) {
-					validLeftMostKnotAbs = nextLeftKnotAbs;
-					//leftMostKnotAbs = nextLeftKnotAbs; //Uncomment for test
-			}
-			leftMostKnotAbs = nextLeftKnotAbs;
-		}
-
-		//Update output map
-		if (validLeftMostKnotAbs == null) return false;
-		_higherHighs.put(validLeftMostKnotAbs, knots.get(validLeftMostKnotAbs));
-		_higherHighs.put(rightMostKnotAbs, rightMostKnot);
-
-		//Slope
-		if (_higherHighs.size() >= 2) {
-			boolean isValidSlope =
-					isValidSlope(
-							zEMASmoothed, leftMostKnotIsToInners, minSlope, maxSlope,
-							tangentIsNotToKnots, _higherHighs, _expertTangent);
-			return isValidSlope;
-		}
-
-		return false;
-	}
-
 	//LowerHigh HigherLow
 	private Boolean calculateLHAndHL(
 			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
@@ -367,7 +296,6 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (rightMostKnotAbs == null) return false;
 		Double rightMostKnot = knots.get(rightMostKnotAbs);
 
-		Integer leftMostKnotAbs = null;
 		Integer validLeftMostKnotAbs = null;
 		Double mostAntiKnot = Double.MAX_VALUE;
 		while (knotsAbsIterator.hasPrevious()) {
@@ -381,20 +309,18 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			//Check left knot against its right neighbor, against the in between ones, band and distance to right most.
 			//For the in between ones, we check that left most and right most are ratio equidistant in value from opposite knot value.
 			//Also check that the resulting tangent is above (LH case) or below (HL case).
-			Boolean troughRatio = (nextLeftKnot-mostAntiKnot)/(rightMostKnot-mostAntiKnot) <= knotToAntiKnotRatio;
+			Boolean hasLowRatio = (nextLeftKnot-mostAntiKnot)/(rightMostKnot-mostAntiKnot) <= knotToAntiKnotRatio;
 			Boolean isNotToRightMost = !leftKnotIsToRight.apply(nextLeftKnot, rightMostKnot);
-			if (isNotToRightMost && !troughRatio) {
+			if (isNotToRightMost && !hasLowRatio) {
 				//return false;
 				if (validLeftMostKnotAbs == null) return false; else break;
 			}
 			Boolean isWithinBand = lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart;
 			Boolean isAwayFromRightMost = (rightMostKnotAbs - nextLeftKnotAbs) >= minimumNbDaysBetweenExtremes;
-			Boolean isToRightInners = validLine(knots, tangentIsToKnots, rightMostKnotAbs, leftMostKnotAbs, nextLeftKnotAbs);
+			Boolean isToRightInners = validLine(knots, tangentIsToKnots, rightMostKnotAbs, validLeftMostKnotAbs, nextLeftKnotAbs);
 			if ( isWithinBand && isAwayFromRightMost && isToRightInners ) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
-				//leftMostKnotAbs = nextLeftKnotAbs; //Uncomment for test
 			}
-			leftMostKnotAbs = nextLeftKnotAbs;
 		}
 
 		//Update output map
