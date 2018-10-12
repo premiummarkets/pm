@@ -283,12 +283,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		//Knots
 		SortedMap<Integer, Double> knots = calculateKnots(zEMASmoothed, aKnotIsA);
-
-		//
 		if (knots.isEmpty()) return false;
 
-		//Find the knot further left higher than last (LH case)
-		//Check the minimumNbDaysBetweenExtremes distance and exit if not met
 		List<Integer> knotsAbs = new ArrayList<>(knots.keySet());
 		ListIterator<Integer> knotsAbsIterator = knotsAbs.listIterator(knotsAbs.size());
 
@@ -297,30 +293,23 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Double rightMostKnot = knots.get(rightMostKnotAbs);
 
 		Integer validLeftMostKnotAbs = null;
-		Double mostAntiKnot = Double.MAX_VALUE;
+		Line<Integer, Double> nextLeftTangent = new Line<>();
 		while (knotsAbsIterator.hasPrevious()) {
 
 			Integer nextLeftKnotAbs = knotsAbsIterator.previous();
-			Double nextLeftKnot = knots.get(nextLeftKnotAbs);
 
-			//Update the most opposite knot value (ie lowest for highest and vice versa) to right most
-			mostAntiKnot = (knotIsToAntiKnot.apply(nextLeftKnot, mostAntiKnot))?nextLeftKnot:mostAntiKnot;
-
-			//Check left knot against its right neighbor, against the in between ones, band and distance to right most.
-			//For the in between ones, we check that left most and right most are ratio equidistant in value from opposite knot value.
-			//Also check that the resulting tangent is above (LH case) or below (HL case).
-			Boolean hasLowRatio = (nextLeftKnot-mostAntiKnot)/(rightMostKnot-mostAntiKnot) <= knotToAntiKnotRatio;
-			Boolean isNotToRightMost = !leftKnotIsToRight.apply(nextLeftKnot, rightMostKnot);
-			if (isNotToRightMost && !hasLowRatio) {
-				//return false;
-				if (validLeftMostKnotAbs == null) return false; else break;
-			}
-			Boolean isWithinBand = lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart;
+			//X distance to right most
 			Boolean isAwayFromRightMost = (rightMostKnotAbs - nextLeftKnotAbs) >= minimumNbDaysBetweenExtremes;
-			Boolean isToRightInners = validLine(knots, tangentIsToKnots, rightMostKnotAbs, validLeftMostKnotAbs, nextLeftKnotAbs);
-			if ( isWithinBand && isAwayFromRightMost && isToRightInners ) {
+			//Start within band
+			Boolean startWithinBand = lowestStart <= knots.get(nextLeftKnotAbs) && knots.get(nextLeftKnotAbs) <= highestStart;
+			//Check tangent cuts, slope tolerance and sign, and surface from tangent to price.
+			boolean validSlope = calculateValidTengant(
+					zEMASmoothed, leftKnotIsToRight, minSlope, maxSlope, tangentIsNotToKnots,
+					new TreeMap<>(), nextLeftTangent);
+			if (validSlope && isAwayFromRightMost && startWithinBand) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
 			}
+
 		}
 
 		//Update output map
@@ -328,16 +317,17 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		_higherHighs.put(validLeftMostKnotAbs, knots.get(validLeftMostKnotAbs));
 		_higherHighs.put(rightMostKnotAbs, rightMostKnot);
 
-		//Slope
+		//Tangent
 		if (_higherHighs.size() >= 2) {
-			boolean isValidSlope =
-					isValidSlope(
-							zEMASmoothed, leftKnotIsToRight, minSlope, maxSlope,
-							tangentIsNotToKnots, _higherHighs, _expertTangent);
-			return isValidSlope;
+			_expertTangent.set(nextLeftTangent);
+			return true;
 		}
 
 		return false;
+	}
+
+	private boolean isValidSurface(SortedMap<Integer, Double> zEMASmoothed, Line<Integer, Double> nextLeftTangent) {
+		return true; //TODO
 	}
 
 	private Boolean validLine(
@@ -371,10 +361,10 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	}
 
 	//Check that the slope does not cross inner knots and calculate line intersect, slope and boundaries
-	private boolean isValidSlope(
+	private boolean calculateValidTengant(
 			SortedMap<Integer, Double> zEMASmoothed,
 			BiFunction<Double,Double, Boolean> zeroIsToSlope,
-			double lowTolerance, double highTolerance,
+			double lowSlopeTolerance, double highSlopeTolerance,
 			BiFunction<Double, Double, Boolean> tangentIsNotToKnots,
 			SortedMap<Integer, Double> higherHighs, Line<Integer, Double> tangent) {
 
@@ -408,6 +398,9 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		}
 
 		tangent.setIntersect(i, zEMASmoothed.get(i));
+
+		boolean isValidSurface = isValidSurface(zEMASmoothed, tangent);
+
 		return true;
 	}
 

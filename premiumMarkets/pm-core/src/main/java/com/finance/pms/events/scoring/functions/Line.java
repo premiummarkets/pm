@@ -119,4 +119,9 @@ public class Line<XT extends Comparable<XT>, YT extends Comparable<YT>> implemen
 		return xStart != null && xEnd != null && slope != null && intersect != null;
 	}
 
+	public void set(Line<XT, YT> otherTangent) {
+		this.setIntersect(otherTangent.getxStart(), otherTangent.getIntersect());
+		this.setxEnd(otherTangent.getxEnd());
+		this.setSlope(otherTangent.getSlope());
+	}
 }
