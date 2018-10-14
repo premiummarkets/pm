@@ -83,14 +83,14 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		super(reference, description,
 				new NumberOperation("Spanning period as look back period in days"),
 				new NumberOperation("Over period as remanence/persistence of the divergence from its trigger date"),
-				new NumberOperation("For period as minimum number of days between two extreme knots"),
+				new NumberOperation("Surface minimum within the divergence line and actual supported knots"),
 				new NumberOperation("Smoothing period for sporadic peaks and troughs mitigation"),
 				new NumberOperation("Lowest knot start (can be NaN)"),
 				new NumberOperation("Highest knot start (can be NaN)"),
 				new NumberOperation("Lowest knot end (can be NaN)"),
 				new NumberOperation("Highest knot end (can be NaN)"),
-				new NumberOperation("Minimum slope (can be NaN)"),
-				new NumberOperation("Maximum slope (can be NaN)"),
+				new NumberOperation("Slope minimum daily % of change tolerance (can be NaN)"),
+				new NumberOperation("Slope maximum daily % of change tolerance (can be NaN)"),
 				new NumberOperation("Knots Tolerance (can be NaN)"),
 				new DoubleMapOperation("Historical data input"));
 	}
