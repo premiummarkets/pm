@@ -111,7 +111,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		Integer lookBackNbDays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue(); //s
 		Integer overPeriodRemanence = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue(); //o
-		Integer minimumNbDaysBetweenExtremes = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue(); //f
+		Double minimumSurfaceOfChange = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue(); //f
 		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
 
 		Double lowestStart = ((NumberValue) inputs.get(THRESHOLDS_IDX)).getValue(targetStock).doubleValue();
@@ -127,8 +127,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		Date dataFirstKey = data.firstKey();
 
-		if (minimumNbDaysBetweenExtremes == null || minimumNbDaysBetweenExtremes < 0) {
-			minimumNbDaysBetweenExtremes = 0;
+		if (minimumSurfaceOfChange == null || minimumSurfaceOfChange < 0) {
+			minimumSurfaceOfChange = 0d;
 		}
 
 		if (lookBackNbDays == null || lookBackNbDays < 4) {
@@ -163,7 +163,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 								.subMapInclusive(dataTimeMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI)))
 								);
 				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
-				Comparable minimumNbDaysBetweenExtremesCmp = minimumNbDaysBetweenExtremes;
+				Comparable minimumSurfaceOfChangeCmp = minimumSurfaceOfChange;
 				Comparable _higherHighsCmp = new ComparableSortedMap<Integer, Double>();
 				Comparable _expertTangentCmp = new Line<Integer, Double>();
 				Comparable lowestStartCmp = lowestStart;
@@ -176,7 +176,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 				Boolean conditionCheck = conditionCheck(
 						dataLookBackTimeCmp,
-						lookBackSmoothingPeriodCmp, minimumNbDaysBetweenExtremesCmp, _higherHighsCmp, _expertTangentCmp,
+						lookBackSmoothingPeriodCmp, minimumSurfaceOfChangeCmp, _higherHighsCmp, _expertTangentCmp,
 						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp,
 						minSlopeCmp, maxSlopeCmp, toleranceCmp);
 
