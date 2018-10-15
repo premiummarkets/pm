@@ -33,7 +33,7 @@ public class SupportBreakUp extends HighsAndLowsCondition implements SupportBrea
 
 		@SuppressWarnings("unchecked")
 		Boolean hasSupport = highLowSolver.flatHigh( //data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent, lowestStart, highestStart, lowestEnd, highestEnd, tolerance)(
-				lookBackData, (Integer) ops[1], (Integer) ops[2], (SortedMap<Integer, Double>) ops[3], (Line<Integer, Double>) ops[4],
+				lookBackData, (Integer) ops[1], (Double) ops[2], (SortedMap<Integer, Double>) ops[3], (Line<Integer, Double>) ops[4],
 				(Double) ops[5], (Double) ops[6], (Double) ops[11]);
 
 		return hasSupport;

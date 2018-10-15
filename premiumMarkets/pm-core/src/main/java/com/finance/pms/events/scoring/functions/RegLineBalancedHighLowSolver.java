@@ -519,7 +519,7 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	}
 
 	@Override
-	public Boolean flatHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+	public Boolean flatHigh(SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
 			Double highestStart, Double tolerance) {
 		// TODO Auto-generated method stub
@@ -527,7 +527,7 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	}
 
 	@Override
-	public Boolean flatLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+	public Boolean flatLow(SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
 			Double highestStart, Double tolerance) {
 		// TODO Auto-generated method stub

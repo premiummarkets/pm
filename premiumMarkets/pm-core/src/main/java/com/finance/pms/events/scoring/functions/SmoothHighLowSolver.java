@@ -42,8 +42,10 @@ import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.util.MapUtils;
 
-//TODO review grammar for is now surface of change
+//TODO review grammar 'for' is now surface of change
 //TODO review flat in light of latest changes
+	//=> test against previous version??
+	//=> review support break tolerance?
 
 /**
  * 
@@ -62,7 +64,9 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private BiFunction<Double, Double, Boolean> inferior = (a, b) -> a < b;
 	private BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
-	private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r < l*(1 + t) && l < r*(1 + t);
+	//private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r < l*(1 + t) && l < r*(1 + t);
+	//private Function<Double, BiFunction<Double, Double, Boolean>> isInTolerance = tolerance -> (reference, value) -> reference - tolerance <= value && value <= reference - tolerance;
+	private BiFunction<Double, Double, Boolean> isOk = (a, b) -> true;
 
 	@Override
 	public Boolean higherHigh(
@@ -132,7 +136,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean lowerHigh(
-			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, SortedMap<Integer, Double> higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -145,7 +149,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean lh = calculateLHAndHL(
 				peak, superiorOrEqual, inferior, data,
-				smoothingPeriod, minimumSurfaceOfChange, higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return lh;
@@ -153,7 +157,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean flatHigh(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double tolerance
 			) {
@@ -162,17 +166,22 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
 		if (tolerance.isNaN()) tolerance = 0d;
 
-		Boolean fhs = calculateFHAndFL(
-				peak, cutsAboveSupport, isInTolerance,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
-				lowestStart, highestStart, tolerance);
+//		Boolean fhs = calculateFHAndFL(
+//				peak, cutsAboveSupport, isInTolerance,
+//				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
+//				lowestStart, highestStart, tolerance);
+		Boolean fhs = calculateLHAndHL(
+				peak, isOk, inferior, data,
+				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				lowestStart, highestStart, lowestStart, highestStart,
+				tolerance, tolerance);
 
 		return fhs;
 	}
 
 	@Override
 	public Boolean flatLow(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double tolerance
 			) {
@@ -181,10 +190,15 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
 		if (tolerance.isNaN()) tolerance = 0d;
 
-		Boolean fhs = calculateFHAndFL(
-				trough, cutsBelowSupport, isInTolerance,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
-				lowestStart, highestStart, tolerance);
+//		Boolean fhs = calculateFHAndFL(
+//				trough, cutsBelowSupport, isInTolerance,
+//				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
+//				lowestStart, highestStart, tolerance);
+		Boolean fhs = calculateLHAndHL(
+				trough, isOk, superior, data,
+				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				lowestStart, highestStart, lowestStart, highestStart,
+				tolerance, tolerance);
 
 		return fhs;
 	}
@@ -354,7 +368,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Double lowestKnot = (slope >= 0)?yKnotStart:yKnotEnd;
 
 		//Daily % of change tolerance
-		Boolean isTolerated = lowSlopeTolerance <= Math.abs(slope/lowestKnot) && Math.abs(slope/lowestKnot) <= highSlopeTolerance;
+		double slopeRateOfChange = Math.abs(slope/lowestKnot);
+		Boolean isTolerated = lowSlopeTolerance <= slopeRateOfChange && slopeRateOfChange <= highSlopeTolerance;
 		if (!isTolerated) return false;
 
 		NavigableSet<Integer> smoothedXes = (NavigableSet<Integer>) MapUtils.subMapInclusive(zEMASmoothed, xStart, xEnd).keySet();

@@ -32,8 +32,8 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 		SortedMap<Integer, Double> lookBackData = ((SortedMap<Integer, Double>) ops[0]);
 
 		@SuppressWarnings("unchecked")
-		Boolean hasSupport = highLowSolver.flatLow( //data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent, lowestStart, highestStart, lowestEnd, highestEnd, tolerance)(
-				lookBackData, (Integer) ops[1], (Integer) ops[2], (SortedMap<Integer, Double>) ops[3], (Line<Integer, Double>) ops[4],
+		Boolean hasSupport = highLowSolver.flatLow(
+				lookBackData, (Integer) ops[1], (Double) ops[2], (SortedMap<Integer, Double>) ops[3], (Line<Integer, Double>) ops[4],
 				(Double) ops[5], (Double) ops[6], (Double) ops[11]);
 
 		return hasSupport;
@@ -41,9 +41,6 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 
 	@Override
 	public Function<Double, Function<Double, Function<Double, Boolean>>> breakThroughCondition() {
-		//return actualData*(1+tolerance) < tangentY;
-		//leftKnotCutsSupports.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance)
-		//actual -> threshold -> tolerance -> actual*(1 + tolerance) < threshold;
 		return HighLowSolver.cutsBelowSupport;
 	}
 
