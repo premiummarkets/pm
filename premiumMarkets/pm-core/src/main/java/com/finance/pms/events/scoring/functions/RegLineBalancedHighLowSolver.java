@@ -519,38 +519,6 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	}
 
 	@Override
-	public Boolean higherHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
-			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Boolean lowerHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
-			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Boolean higherLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
-			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Boolean lowerLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
-			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Boolean flatHigh(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
 			Double highestStart, Double tolerance) {
@@ -562,6 +530,38 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	public Boolean flatLow(SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
 			Double highestStart, Double tolerance) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean higherHigh(SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean lowerHigh(SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean higherLow(SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean lowerLow(SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
+			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent, Double lowestStart,
+			Double highestStart, Double lowestEnd, Double highestEnd, Double minSlope, Double maxSlope) {
 		// TODO Auto-generated method stub
 		return null;
 	}

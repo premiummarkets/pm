@@ -26,7 +26,7 @@ public class SmoothHighLowSolverTest {
 
     @Test
     public void higherHigh() {
-        SortedMap<Integer, Double> data;
+        SortedMap<Integer, Double> data = generateData();
         int smoothingPeriod = 0;
         int minimumNbDaysBetweenExtremes = 5;
         SortedMap<Integer, Double> _higherHighs = new TreeMap<>();
@@ -38,7 +38,7 @@ public class SmoothHighLowSolverTest {
         Double minSlope = Double.NaN;
         Double maxSlope = Double.NaN;
         Boolean hasHH = smoothHighLowSolver.higherHigh(
-                generateData(),
+                data,
                 smoothingPeriod, minimumNbDaysBetweenExtremes,
                 _higherHighs, _expertTangent,
                 lowestStart, highestStart,
@@ -70,13 +70,18 @@ public class SmoothHighLowSolverTest {
     private SortedMap<Integer, Double> generateData() {
         SortedMap<Integer, Double> result = new TreeMap<>();
         result.putAll(draw(0, 5, 1, +1)); //up
-        result.putAll(draw(5, 10, 1, -1)); // = down
+        result.putAll(draw(5, 10, ((TreeMap<Integer, Double>) result).lastEntry().getValue(), -1)); // == down
+        result.putAll(draw(10, 20, ((TreeMap<Integer, Double>) result).lastEntry().getValue(), +1)); // ++ up
+        result.putAll(draw(20, 25, ((TreeMap<Integer, Double>) result).lastEntry().getValue(), -1)); // -- down
+        result.putAll(draw(25, 30, ((TreeMap<Integer, Double>) result).lastEntry().getValue(), -1)); // == down
+        result.putAll(draw(30, 35, ((TreeMap<Integer, Double>) result).lastEntry().getValue(), -1)); // == down
+        result.entrySet().stream().forEach(e -> System.out.println(e.getKey() + "," + e.getValue()));
         return result;
     }
 
-    private SortedMap<Integer, Double> draw(int from, int to, double extremeStart, double sign) {
+    private SortedMap<Integer, Double> draw(int from, int to, double intersect, double sign) {
         TreeMap<Integer, Double> result = IntStream.range(from, to).boxed().collect(
-                Collectors.toMap(i -> i, i -> extremeStart + sign*i, (a, b) -> a, TreeMap::new));
+                Collectors.toMap(i -> i, i -> intersect + sign*i, (a, b) -> a, TreeMap::new));
         return result;
     }
 }

@@ -42,8 +42,8 @@ import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.util.MapUtils;
 
-//TODO unleash tolerance
-//TODO calculate inner surface comprise within anti knot and line as ratio instead of distance to anti knot
+//TODO review grammar for is now surface of change
+//TODO review flat in light of latest changes
 
 /**
  * 
@@ -66,7 +66,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean higherHigh(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
@@ -79,8 +79,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (maxSlope.isNaN()) maxSlope = Double.MAX_VALUE;
 
 		Boolean hh = calculateLHAndHL(
-				peak, superior, inferiorOrEqual, superiorOrEqual, inferior, 3,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
+				peak, inferiorOrEqual, inferior, data,
+				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return hh;
@@ -88,7 +88,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean lowerLow(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
@@ -101,8 +101,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (maxSlope.isNaN()) maxSlope = Double.MAX_VALUE;
 
 		Boolean ll = calculateLHAndHL(
-				trough, inferior, superiorOrEqual, inferiorOrEqual, superior, 3,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
+				trough, superiorOrEqual, superior, data,
+				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return ll;
@@ -110,7 +110,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean higherLow(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
@@ -123,8 +123,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (maxSlope.isNaN()) maxSlope = Double.MAX_VALUE;
 
 		Boolean hl = calculateLHAndHL(
-				trough, superior, inferiorOrEqual, inferiorOrEqual, superior, 3,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, _expertTangent,
+				trough, inferiorOrEqual, superior, data,
+				smoothingPeriod, minimumSurfaceOfChange, higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return hl;
@@ -132,7 +132,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean lowerHigh(
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes, SortedMap<Integer, Double> higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, SortedMap<Integer, Double> higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -144,8 +144,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (maxSlope.isNaN()) maxSlope = Double.MAX_VALUE;
 
 		Boolean lh = calculateLHAndHL(
-				peak, inferior, superiorOrEqual, superiorOrEqual, inferior, 3,
-				data, smoothingPeriod, minimumNbDaysBetweenExtremes, higherHighs, _expertTangent,
+				peak, superiorOrEqual, inferior, data,
+				smoothingPeriod, minimumSurfaceOfChange, higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return lh;
@@ -268,12 +268,10 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	//LowerHigh HigherLow
 	private Boolean calculateLHAndHL(
 			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
-			BiFunction<Double,Double, Boolean> knotIsToAntiKnot,
-			BiFunction<Double,Double, Boolean> leftKnotIsToRight,
-			BiFunction<Double,Double, Boolean> tangentIsToKnots,
+			BiFunction<Double,Double, Boolean> zeroIsToSlope,
 			BiFunction<Double,Double, Boolean> tangentIsNotToKnots,
-			double knotToAntiKnotRatio,
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
+			SortedMap<Integer, Double> data,
+			int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
@@ -293,20 +291,20 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Double rightMostKnot = knots.get(rightMostKnotAbs);
 
 		Integer validLeftMostKnotAbs = null;
-		Line<Integer, Double> nextLeftTangent = new Line<>();
+
 		while (knotsAbsIterator.hasPrevious()) {
 
 			Integer nextLeftKnotAbs = knotsAbsIterator.previous();
+			Double nextLeftKnot = knots.get(nextLeftKnotAbs);
 
-			//X distance to right most
-			Boolean isAwayFromRightMost = (rightMostKnotAbs - nextLeftKnotAbs) >= minimumNbDaysBetweenExtremes;
-			//Start within band
-			Boolean startWithinBand = lowestStart <= knots.get(nextLeftKnotAbs) && knots.get(nextLeftKnotAbs) <= highestStart;
-			//Check tangent cuts, slope tolerance and sign, and surface from tangent to price.
-			boolean validSlope = calculateValidTengant(
-					zEMASmoothed, leftKnotIsToRight, minSlope, maxSlope, tangentIsNotToKnots,
-					new TreeMap<>(), nextLeftTangent);
-			if (validSlope && isAwayFromRightMost && startWithinBand) {
+			//Check band and distance to right most and tangent slope, surface and intersections and position against knots
+			Boolean isWithinBand = lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart;
+			Boolean isValidTangent =
+					isValidTangent(
+							zEMASmoothed, zeroIsToSlope,
+							minSlope, maxSlope, tangentIsNotToKnots, minimumSurfaceOfChange,
+							nextLeftKnotAbs, rightMostKnotAbs, _expertTangent);
+			if ( isWithinBand && isValidTangent ) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
 			}
 
@@ -317,31 +315,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		_higherHighs.put(validLeftMostKnotAbs, knots.get(validLeftMostKnotAbs));
 		_higherHighs.put(rightMostKnotAbs, rightMostKnot);
 
-		//Tangent
-		if (_higherHighs.size() >= 2) {
-			_expertTangent.set(nextLeftTangent);
-			return true;
-		}
-
-		return false;
-	}
-
-	private boolean isValidSurface(SortedMap<Integer, Double> zEMASmoothed, Line<Integer, Double> nextLeftTangent) {
-		return true; //TODO
-	}
-
-	private Boolean validLine(
-			SortedMap<Integer, Double> knots, BiFunction<Double, Double, Boolean> tangentIsToKnots,
-			Integer rightMostKnotAbs, Integer leftMostKnotAbs, Integer nextLeftKnotAbs) {
-		Boolean validLine = true;
-		if (leftMostKnotAbs != null ) {
-			Double nextLeftKnot = knots.get(nextLeftKnotAbs);
-			Double rightMostKnot = knots.get(rightMostKnotAbs);
-			double slope = (nextLeftKnot - rightMostKnot)/(double)(nextLeftKnotAbs - rightMostKnotAbs);
-			double lineY = rightMostKnot + slope*(leftMostKnotAbs - rightMostKnotAbs);
-			validLine = tangentIsToKnots.apply(lineY, knots.get(leftMostKnotAbs));
-		}
-		return validLine;
+		return true;
 	}
 
 	private SortedMap<Integer, Double> calculateKnots(
@@ -361,45 +335,58 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	}
 
 	//Check that the slope does not cross inner knots and calculate line intersect, slope and boundaries
-	private boolean calculateValidTengant(
+	private boolean isValidTangent(
 			SortedMap<Integer, Double> zEMASmoothed,
 			BiFunction<Double,Double, Boolean> zeroIsToSlope,
 			double lowSlopeTolerance, double highSlopeTolerance,
 			BiFunction<Double, Double, Boolean> tangentIsNotToKnots,
-			SortedMap<Integer, Double> higherHighs, Line<Integer, Double> tangent) {
+			double minSurface,
+			Integer xStart, Integer xEnd, Line<Integer, Double> _tangent) {
 
-		Integer xStart = higherHighs.firstKey();
-		double startPeak = zEMASmoothed.get(xStart);
-		Integer xEnd = higherHighs.lastKey();
-		double endPeak = zEMASmoothed.get(xEnd);
-		double slope = (endPeak - startPeak)/(double)(xEnd - xStart);
+		double yKnotStart = zEMASmoothed.get(xStart);
+		double yKnotEnd = zEMASmoothed.get(xEnd);
+		double slope = (yKnotEnd - yKnotStart)/(double)(xEnd - xStart);
+		double pSlope = -1/slope;
 
 		Boolean isRightSign = zeroIsToSlope.apply(0d, slope);
 		if (!isRightSign) return false;
 
-//		Boolean isTolerated =
-//				(slope >= 0 && startPeak*(1 + lowTolerance/(xEnd-xStart)) <= endPeak && endPeak <= startPeak*(1 + highTolerance/(xEnd-xStart))) ||
-//				(slope <= 0 && endPeak*(1 + lowTolerance/(xEnd-xStart)) <= startPeak && startPeak <= endPeak*(1 + highTolerance/(xEnd-xStart)));
-//		if (!isTolerated) return false;
+		Double lowestKnot = (slope >= 0)?yKnotStart:yKnotEnd;
 
-		tangent.setSlope(slope);
-		tangent.setxEnd(xEnd);
+		//Daily % of change tolerance
+		Boolean isTolerated = lowSlopeTolerance <= Math.abs(slope/lowestKnot) && Math.abs(slope/lowestKnot) <= highSlopeTolerance;
+		if (!isTolerated) return false;
 
 		NavigableSet<Integer> smoothedXes = (NavigableSet<Integer>) MapUtils.subMapInclusive(zEMASmoothed, xStart, xEnd).keySet();
 		Iterator<Integer> listIterator = smoothedXes.descendingIterator();
-		Integer i = xEnd;
+		Integer xKnot = xEnd;
+		//Daily % of change surface
+		Double surfaceOfChange = 0d;
 		while(listIterator.hasNext()) {
-			i = listIterator.next();
-			double lineY = startPeak + slope*(i - xStart);
-			if (tangentIsNotToKnots.apply(lineY, zEMASmoothed.get(i))) {
-				if (xStart < i) return false;
+
+			xKnot = listIterator.next();
+			Double yKnot = zEMASmoothed.get(xKnot);
+
+			double yLine = yKnotStart + slope*(xKnot - xStart);
+			if (tangentIsNotToKnots.apply(yLine, yKnot)) {
+				if (xStart < xKnot) return false;
 				break; //Comment out for test
 			}
+
+			//Surface : shortest distance from knot to tangent.
+			Double xIntersection = (Double.isFinite(pSlope))?xKnot:(yKnot - yKnotStart + slope*xStart - pSlope*xKnot)/(slope - pSlope);
+			//yKnotStart == yLineStart as it the left most not and intersect with it tangent.
+			Double yIntersection = slope*(xIntersection-xStart) + yKnotStart;
+			Double distance = Math.sqrt((xKnot-xIntersection)*(xKnot-xIntersection)+(yKnot-yIntersection)*(yKnot-yIntersection));
+			surfaceOfChange = surfaceOfChange + distance/lowestKnot;
+
 		}
 
-		tangent.setIntersect(i, zEMASmoothed.get(i));
+		if (surfaceOfChange < minSurface) return false;
 
-		boolean isValidSurface = isValidSurface(zEMASmoothed, tangent);
+		_tangent.setSlope(slope);
+		_tangent.setxEnd(xEnd);
+		_tangent.setIntersect(xKnot, zEMASmoothed.get(xKnot));
 
 		return true;
 	}
