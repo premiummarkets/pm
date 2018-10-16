@@ -65,7 +65,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
 	//private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r < l*(1 + t) && l < r*(1 + t);
-	//private Function<Double, BiFunction<Double, Double, Boolean>> isInTolerance = tolerance -> (reference, value) -> reference - tolerance <= value && value <= reference - tolerance;
+	private Function<Double, BiFunction<Double, Double, Boolean>> isInTolerance = tolerance -> (reference, value) -> reference - tolerance <= value && value <= reference - tolerance;
 	private BiFunction<Double, Double, Boolean> isOk = (a, b) -> true;
 
 	@Override
@@ -168,7 +168,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 //		Boolean fhs = calculateFHAndFL(
 //				peak, cutsAboveSupport, isInTolerance,
-//				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
+//				data, smoothingPeriod, (int) minimumSurfaceOfChange, _higherHighs, _expertTangent,
 //				lowestStart, highestStart, tolerance);
 		Boolean fhs = calculateLHAndHL(
 				peak, isOk, inferior, data,
@@ -192,7 +192,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 //		Boolean fhs = calculateFHAndFL(
 //				trough, cutsBelowSupport, isInTolerance,
-//				data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent,
+//				data, smoothingPeriod, (int) minimumSurfaceOfChange, _higherHighs, _expertTangent,
 //				lowestStart, highestStart, tolerance);
 		Boolean fhs = calculateLHAndHL(
 				trough, isOk, superior, data,
