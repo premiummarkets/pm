@@ -38,14 +38,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.util.MapUtils;
 
 //TODO review grammar 'for' is now surface of change
 //TODO review flat in light of latest changes
-	//=> test against previous version??
-	//=> review support break tolerance?
+	//=> test over > 0 and review support break tolerance calculation?
 
 /**
  * 
@@ -64,8 +62,6 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private BiFunction<Double, Double, Boolean> inferior = (a, b) -> a < b;
 	private BiFunction<Double, Double, Boolean> superior = (a, b) -> a > b;
 
-	//private Function<Double, Function<Double, Function<Double, Boolean>>> isInTolerance = l -> r -> t -> r < l*(1 + t) && l < r*(1 + t);
-	private Function<Double, BiFunction<Double, Double, Boolean>> isInTolerance = tolerance -> (reference, value) -> reference - tolerance <= value && value <= reference - tolerance;
 	private BiFunction<Double, Double, Boolean> isOk = (a, b) -> true;
 
 	@Override
@@ -166,15 +162,11 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
 		if (tolerance.isNaN()) tolerance = 0d;
 
-//		Boolean fhs = calculateFHAndFL(
-//				peak, cutsAboveSupport, isInTolerance,
-//				data, smoothingPeriod, (int) minimumSurfaceOfChange, _higherHighs, _expertTangent,
-//				lowestStart, highestStart, tolerance);
 		Boolean fhs = calculateLHAndHL(
 				peak, isOk, inferior, data,
 				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestStart, highestStart,
-				tolerance, tolerance);
+				-tolerance, tolerance);
 
 		return fhs;
 	}
@@ -190,79 +182,13 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		if (highestStart.isNaN()) highestStart = Double.MAX_VALUE;
 		if (tolerance.isNaN()) tolerance = 0d;
 
-//		Boolean fhs = calculateFHAndFL(
-//				trough, cutsBelowSupport, isInTolerance,
-//				data, smoothingPeriod, (int) minimumSurfaceOfChange, _higherHighs, _expertTangent,
-//				lowestStart, highestStart, tolerance);
-		Boolean fhs = calculateLHAndHL(
+		Boolean fls = calculateLHAndHL(
 				trough, isOk, superior, data,
 				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestStart, highestStart,
-				tolerance, tolerance);
+				-tolerance, tolerance);
 
-		return fhs;
-	}
-
-	//Flats
-	private Boolean calculateFHAndFL(
-			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
-			Function<Double, Function<Double, Function<Double, Boolean>>> leftKnotCutsSupports,
-			Function<Double, Function<Double, Function<Double, Boolean>>> leftKnotIsInTolerance,
-			SortedMap<Integer, Double> data, int smoothingPeriod, int minimumNbDaysBetweenExtremes,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
-			Double lowestStart, Double highestStart,
-			Double tolerance) {
-
-		//Smooth
-		SortedMap<Integer, Double> zEMASmoothed = calculateSmooth(data, smoothingPeriod);
-
-		//Knots
-		SortedMap<Integer, Double> knots = calculateKnots(zEMASmoothed, aKnotIsA);
-
-		//Knots in band
-		SortedMap<Integer, Double> knotsInBand = knots.entrySet().stream()
-				.filter( e -> lowestStart <= e.getValue() && e.getValue() <= highestStart)
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-		if (knotsInBand.isEmpty()) return false;
-
-		//check that all previous knot are within tolerance to the most extreme knot.
-		List<Integer> knotsAbs = new ArrayList<>(knotsInBand.keySet());
-
-		ListIterator<Integer> knotsAbsIterator = knotsAbs.listIterator(knotsAbs.size());
-		Integer rightMostKnotAbs = pickRightMostKnotInBand(knots, knotsAbsIterator, lowestStart, highestStart); //start and end are the same as it is flat..
-		if (rightMostKnotAbs == null) return false;
-		Double rightMostKnot = knots.get(rightMostKnotAbs);
-
-		Integer validLeftMostKnotAbs = null;
-		while (knotsAbsIterator.hasPrevious()) {
-
-			Integer nextLeftKnotAbs = knotsAbsIterator.previous();
-			Double nextLeftKnot = knotsInBand.get(nextLeftKnotAbs);
-
-			//Checking the selected left knots against break through, tolerance and distance to most extreme.
-			if (leftKnotCutsSupports.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance)) {//left break through met.
-				if (validLeftMostKnotAbs == null) return false; else break;
-			}
-			if ( rightMostKnotAbs - nextLeftKnotAbs >= minimumNbDaysBetweenExtremes && leftKnotIsInTolerance.apply(nextLeftKnot).apply(rightMostKnot).apply(tolerance) ) {
-				validLeftMostKnotAbs = nextLeftKnotAbs;
-			}
-
-		}
-
-		//Update output map
-		if (validLeftMostKnotAbs == null) return false;
-		_higherHighs.put(validLeftMostKnotAbs, knotsInBand.get(validLeftMostKnotAbs));
-		_higherHighs.put(rightMostKnotAbs, rightMostKnot);
-
-		//Slope
-		if (_higherHighs.size() >= 2) {
-			_expertTangent.setSlope(0d);
-			_expertTangent.setIntersect(validLeftMostKnotAbs, knotsInBand.get(validLeftMostKnotAbs));
-			_expertTangent.setxEnd(rightMostKnotAbs);
-			return true;
-		}
-
-		return false;
+		return fls;
 	}
 
 	//Pick up right most knot within the required lowest - highest band.
