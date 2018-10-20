@@ -2,10 +2,16 @@ package com.finance.pms.events.scoring.functions;
 
 public class Line<XT extends Comparable<XT>, YT extends Comparable<YT>> implements Comparable<Line<XT, YT>>{
 
-	XT xStart;
-	XT xEnd;
-	YT intersect;
-	Double slope;
+	private XT xStart;
+	private XT xEnd;
+	private YT intersect;
+	private Double slope;
+
+	//Test
+	private YT lowKnot;
+	private YT highKnot;
+	private YT change;
+	private Double surfaceOfChange;
 
 	public Line() {
 		super();
@@ -124,4 +130,34 @@ public class Line<XT extends Comparable<XT>, YT extends Comparable<YT>> implemen
 		this.setxEnd(otherTangent.getxEnd());
 		this.setSlope(otherTangent.getSlope());
 	}
+
+	//Test
+	public void setToleranceCriterias(YT lowKnot, YT highKnot, YT change) {
+		this.lowKnot = lowKnot;
+		this.highKnot= highKnot;
+		this.change = change;
+
+	}
+
+	public void setSurface(Double surfaceOfChange) {
+		this.surfaceOfChange = surfaceOfChange;
+
+	}
+
+	public YT getLowKnot() {
+		return lowKnot;
+	}
+
+	public YT getHighKnot() {
+		return highKnot;
+	}
+
+	public YT getChange() {
+		return change;
+	}
+
+	public Double getSurfaceOfChange() {
+		return surfaceOfChange;
+	}
+
 }

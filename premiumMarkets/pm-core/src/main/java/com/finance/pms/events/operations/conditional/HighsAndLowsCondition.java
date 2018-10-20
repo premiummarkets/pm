@@ -60,6 +60,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.Line;
 
 
+//TODO review grammar 'for' is now surface of change + 'slope within' is tolerance (always positive)
+
 /**
  * @author Guillaume Thoreton
  * Additional constraints :
@@ -202,11 +204,17 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 					conditionCheck = expertTangent.isSet() && !alreadyFoundReduced;
 					if (conditionCheck) {
 						//Will map tangent to date for return if new knots are involved
+
 						String currentLabel =
 								expertTangentLabel +
 								" at " + dateFormat.format(date) +
 								" of " + this.getOperands().get(MAIN_POSITION).getReference() +
-								" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence;
+								" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence +
+								//Test
+								" / intersect " + expertTangent.getIntersect() +
+								" / extremes " + expertTangent.getLowKnot() + "l, " + expertTangent.getHighKnot() + "h, " + expertTangent.getChange() + "ch, "+
+								" / surface " + expertTangent.getSurfaceOfChange();
+
 						expertTangentsStore.put(expertTangent, new TangentElement(expertTangent, currentLabel));
 					}
 

@@ -41,10 +41,6 @@ import java.util.function.Function;
 
 import com.finance.pms.events.calculation.util.MapUtils;
 
-//TODO review grammar 'for' is now surface of change
-//TODO review flat in light of latest changes
-	//=> test over > 0 and review support break tolerance calculation?
-
 /**
  * 
  * @author Guillaume Thoreton
@@ -291,11 +287,11 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Boolean isRightSign = zeroIsToSlope.apply(0d, slope);
 		if (!isRightSign) return false;
 
-		Double lowestKnot = (slope >= 0)?yKnotStart:yKnotEnd;
+		Double lowKnot = (slope >= 0)?yKnotStart:yKnotEnd;
+		Double highKnot = (slope >= 0)?yKnotEnd:yKnotStart;
 
 		//Daily % of change tolerance
-		double slopeRateOfChange = Math.abs(slope/lowestKnot);
-		Boolean isTolerated = lowSlopeTolerance <= slopeRateOfChange && slopeRateOfChange <= highSlopeTolerance;
+		Boolean isTolerated = lowKnot*(1 + highSlopeTolerance) >= highKnot && highKnot >= lowKnot*(1 + lowSlopeTolerance);
 		if (!isTolerated) return false;
 
 		NavigableSet<Integer> smoothedXes = (NavigableSet<Integer>) MapUtils.subMapInclusive(zEMASmoothed, xStart, xEnd).keySet();
@@ -309,17 +305,17 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			Double yKnot = zEMASmoothed.get(xKnot);
 
 			double yLine = yKnotStart + slope*(xKnot - xStart);
-			if (tangentIsNotToKnots.apply(yLine, yKnot)) {
+			if (tangentIsNotToKnots.apply(yLine, yKnot)) {//left cut knot reached
 				if (xStart < xKnot) return false;
 				break; //Comment out for test
 			}
 
 			//Surface : shortest distance from knot to tangent.
-			Double xIntersection = (Double.isFinite(pSlope))?xKnot:(yKnot - yKnotStart + slope*xStart - pSlope*xKnot)/(slope - pSlope);
+			Double xIntersection = (Double.isInfinite(pSlope))?xKnot:(yKnot - yKnotStart + slope*xStart - pSlope*xKnot)/(slope - pSlope);
 			//yKnotStart == yLineStart as it the left most not and intersect with it tangent.
 			Double yIntersection = slope*(xIntersection-xStart) + yKnotStart;
 			Double distance = Math.sqrt((xKnot-xIntersection)*(xKnot-xIntersection)+(yKnot-yIntersection)*(yKnot-yIntersection));
-			surfaceOfChange = surfaceOfChange + distance/lowestKnot;
+			surfaceOfChange = surfaceOfChange + distance/lowKnot;
 
 		}
 
@@ -327,7 +323,11 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		_tangent.setSlope(slope);
 		_tangent.setxEnd(xEnd);
-		_tangent.setIntersect(xKnot, zEMASmoothed.get(xKnot));
+		_tangent.setIntersect(xKnot, yKnotStart + slope*(xKnot - xStart));
+
+		//Test
+		_tangent.setToleranceCriterias(lowKnot, highKnot, (highKnot - lowKnot)/lowKnot);
+		_tangent.setSurface(surfaceOfChange);
 
 		return true;
 	}

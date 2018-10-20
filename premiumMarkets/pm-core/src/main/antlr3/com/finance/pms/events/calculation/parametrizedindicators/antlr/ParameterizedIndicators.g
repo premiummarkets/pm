@@ -324,7 +324,6 @@ presetcondition [CommonTree firstOp] :
       		WhiteChar 'tolerance' WhiteChar tolerance=constant
      -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
 
-
   ('trends flat'
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS

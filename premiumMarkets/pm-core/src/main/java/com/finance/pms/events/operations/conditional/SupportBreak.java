@@ -15,6 +15,9 @@ import com.finance.pms.events.scoring.functions.Line;
 
 public interface SupportBreak {
 
+	Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = actual -> threshold -> tolerance -> actual > threshold*(1 + tolerance);
+	Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = actual -> threshold -> tolerance -> actual*(1 + tolerance) < threshold;
+
     default Line<Integer, Double> reduceRawOutputConfirmation(
             SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
             Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
