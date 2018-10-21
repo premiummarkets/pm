@@ -212,7 +212,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 								" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence +
 								//Test
 								" / intersect " + expertTangent.getIntersect() +
-								" / extremes " + expertTangent.getLowKnot() + "l, " + expertTangent.getHighKnot() + "h, " + expertTangent.getChange() + "ch, "+
+								" / extremes " + expertTangent.getLowKnot() + "l, " + expertTangent.getHighKnot() + "h, " + expertTangent.getRelativeDifference() + "rd, "+
 								" / surface " + expertTangent.getSurfaceOfChange();
 
 						expertTangentsStore.put(expertTangent, new TangentElement(expertTangent, currentLabel));
@@ -238,11 +238,11 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			});
 		}
 
-		if (LOGGER.isDebugEnabled()) {
+		if (LOGGER.isInfoEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
-			LOGGER.debug(
-					"Condition '" + this.getReference() + "' returns this map " +
-							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b));
+			LOGGER.info(
+					"Condition '" + this.getReference() + "' returns this map \n" +
+							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).get());
 		}
 
 		return outputs;

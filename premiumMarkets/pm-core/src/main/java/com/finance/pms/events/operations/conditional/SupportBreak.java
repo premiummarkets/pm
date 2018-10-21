@@ -15,8 +15,12 @@ import com.finance.pms.events.scoring.functions.Line;
 
 public interface SupportBreak {
 
-	Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = actual -> threshold -> tolerance -> actual > threshold*(1 + tolerance);
-	Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = actual -> threshold -> tolerance -> actual*(1 + tolerance) < threshold;
+	Function<Double, Function<Double, Function<Double, Boolean>>> cutsAboveSupport = actual -> threshold -> tolerance -> {
+		return actual > threshold && ((actual == 0 && threshold == 0)?0d:Math.abs(actual - threshold)/Math.max(Math.abs(actual), Math.abs(threshold))) > tolerance;
+	};
+	Function<Double, Function<Double, Function<Double, Boolean>>> cutsBelowSupport = actual -> threshold -> tolerance -> {
+		return actual < threshold && ((actual == 0 && threshold == 0)?0d:Math.abs(actual - threshold)/Math.max(Math.abs(actual), Math.abs(threshold))) > tolerance;
+	};
 
     default Line<Integer, Double> reduceRawOutputConfirmation(
             SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,

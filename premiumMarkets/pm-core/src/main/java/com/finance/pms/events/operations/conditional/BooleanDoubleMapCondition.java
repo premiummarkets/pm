@@ -93,6 +93,9 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 					gruyereDetected = true;
 					//Detection of on element in an operand being not present at date in an other operand
 					//Will result in an empty output when the comparison is required exactDataSet true.
+					//ex : NOT, !linient AND
+					//Otherwise the present elements will be compared ignoring the missing operand element.
+					//ex : OR
 					break;
 				}
 			}
@@ -108,11 +111,11 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 
 		}
 
-		if (LOGGER.isDebugEnabled()) {
+		if (LOGGER.isInfoEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
-			LOGGER.debug(
-					"Condition '" + this.getReference() + "' returns this map " +
-					outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce( (a, b) -> a + "\n" + b));
+			LOGGER.info(
+					"Condition '" + this.getReference() + "' returns this map \n" +
+					outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).get());
 		}
 
 		return outputs;

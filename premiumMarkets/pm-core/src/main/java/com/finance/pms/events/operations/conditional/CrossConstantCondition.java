@@ -112,11 +112,11 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 			}
 		}
 
-		if (LOGGER.isDebugEnabled()) {
+		if (LOGGER.isInfoEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
-			LOGGER.debug(
-					"Condition '" + this.getReference() + "' returns this map " +
-							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce( (a, b) -> a + "\n" + b));
+			LOGGER.info(
+					"Condition '" + this.getReference() + "' returns this map \n" +
+					outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).get());
 		}
 
 		return outputs;

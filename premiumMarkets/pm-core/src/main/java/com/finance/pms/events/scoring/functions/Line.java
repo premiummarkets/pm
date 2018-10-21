@@ -10,7 +10,7 @@ public class Line<XT extends Comparable<XT>, YT extends Comparable<YT>> implemen
 	//Test
 	private YT lowKnot;
 	private YT highKnot;
-	private YT change;
+	private YT relativeDifference;
 	private Double surfaceOfChange;
 
 	public Line() {
@@ -132,10 +132,10 @@ public class Line<XT extends Comparable<XT>, YT extends Comparable<YT>> implemen
 	}
 
 	//Test
-	public void setToleranceCriterias(YT lowKnot, YT highKnot, YT change) {
+	public void setToleranceCriterias(YT lowKnot, YT highKnot, YT relativeDifference) {
 		this.lowKnot = lowKnot;
 		this.highKnot= highKnot;
-		this.change = change;
+		this.relativeDifference = relativeDifference;
 
 	}
 
@@ -152,8 +152,8 @@ public class Line<XT extends Comparable<XT>, YT extends Comparable<YT>> implemen
 		return highKnot;
 	}
 
-	public YT getChange() {
-		return change;
+	public YT getRelativeDifference() {
+		return relativeDifference;
 	}
 
 	public Double getSurfaceOfChange() {

@@ -205,7 +205,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	private Boolean calculateLHAndHL(
 			Function<Double, Function<Double, Function<Double, Boolean>>> aKnotIsA,
 			BiFunction<Double,Double, Boolean> zeroIsToSlope,
-			BiFunction<Double,Double, Boolean> tangentIsNotToKnots,
+			BiFunction<Double,Double, Boolean> tangentIsNotToData,
 			SortedMap<Integer, Double> data,
 			int smoothingPeriod, double minimumSurfaceOfChange,
 			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
@@ -237,8 +237,9 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			Boolean isWithinBand = lowestStart <= nextLeftKnot && nextLeftKnot <= highestStart;
 			Boolean isValidTangent =
 					isValidTangent(
-							zEMASmoothed, zeroIsToSlope,
-							minSlope, maxSlope, tangentIsNotToKnots, minimumSurfaceOfChange,
+							knots, zEMASmoothed,
+							zeroIsToSlope, minSlope, maxSlope, 
+							tangentIsNotToData, minimumSurfaceOfChange,
 							nextLeftKnotAbs, rightMostKnotAbs, _expertTangent);
 			if ( isWithinBand && isValidTangent ) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
@@ -272,61 +273,60 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	//Check that the slope does not cross inner knots and calculate line intersect, slope and boundaries
 	private boolean isValidTangent(
-			SortedMap<Integer, Double> zEMASmoothed,
-			BiFunction<Double,Double, Boolean> zeroIsToSlope,
-			double lowSlopeTolerance, double highSlopeTolerance,
-			BiFunction<Double, Double, Boolean> tangentIsNotToKnots,
-			double minSurface,
+			SortedMap<Integer, Double> knots, SortedMap<Integer, Double> zEMASmoothed,
+			BiFunction<Double,Double, Boolean> zeroIsToSlope, double lowSlopeTolerance, double highSlopeTolerance,
+			BiFunction<Double, Double, Boolean> tangentIsNotToData, double minSurface,
 			Integer xStart, Integer xEnd, Line<Integer, Double> _tangent) {
 
 		double yKnotStart = zEMASmoothed.get(xStart);
 		double yKnotEnd = zEMASmoothed.get(xEnd);
 		double slope = (yKnotEnd - yKnotStart)/(double)(xEnd - xStart);
-		double pSlope = -1/slope;
 
 		Boolean isRightSign = zeroIsToSlope.apply(0d, slope);
 		if (!isRightSign) return false;
 
-		Double lowKnot = (slope >= 0)?yKnotStart:yKnotEnd;
-		Double highKnot = (slope >= 0)?yKnotEnd:yKnotStart;
-
-		//Daily % of change tolerance
-		Boolean isTolerated = lowKnot*(1 + highSlopeTolerance) >= highKnot && highKnot >= lowKnot*(1 + lowSlopeTolerance);
+		//Daily relative difference tolerance
+		double maxAbsYknot = Math.max(Math.abs(yKnotStart), Math.abs(yKnotEnd));
+		Double relativeDifference = (yKnotStart == 0 && yKnotEnd == 0)?0d:Math.abs(yKnotEnd - yKnotStart)/maxAbsYknot;
+		Boolean isTolerated = highSlopeTolerance >= relativeDifference && relativeDifference >= lowSlopeTolerance;
 		if (!isTolerated) return false;
 
-		NavigableSet<Integer> smoothedXes = (NavigableSet<Integer>) MapUtils.subMapInclusive(zEMASmoothed, xStart, xEnd).keySet();
-		Iterator<Integer> listIterator = smoothedXes.descendingIterator();
-		Integer xKnot = xEnd;
-		//Daily % of change surface
-		Double surfaceOfChange = 0d;
+		SortedMap<Integer, Double> dataSubMap = MapUtils.subMapInclusive(zEMASmoothed, xStart, xEnd);
+		NavigableSet<Integer> xes = (NavigableSet<Integer>) dataSubMap.keySet();
+		Iterator<Integer> listIterator = xes.descendingIterator();
+		Integer xData = xEnd;
+
+		//Tangent left cut
 		while(listIterator.hasNext()) {
 
-			xKnot = listIterator.next();
-			Double yKnot = zEMASmoothed.get(xKnot);
+			xData = listIterator.next();
+			Double yData = zEMASmoothed.get(xData);
 
-			double yLine = yKnotStart + slope*(xKnot - xStart);
-			if (tangentIsNotToKnots.apply(yLine, yKnot)) {//left cut knot reached
-				if (xStart < xKnot) return false;
-				break; //Comment out for test
+			double yLine = yKnotStart + slope*(xData - xStart);
+			if (tangentIsNotToData.apply(yLine, yData)) {//left cut knot reached
+				//We check further left up to, potentially, xStart (left most extreme). If xData is not a knot and no other knot is met in between XSart and xData, it is making a valid tangent.
+				while(listIterator.hasNext()) {
+					if (xData <= xStart) break; //We have reach leftMost : ok
+					if (knots.containsKey(xData)) return false; //An other knot is met in between : nok
+					xData = listIterator.next();
+				}
+				if (xData <= xStart) break;
 			}
-
-			//Surface : shortest distance from knot to tangent.
-			Double xIntersection = (Double.isInfinite(pSlope))?xKnot:(yKnot - yKnotStart + slope*xStart - pSlope*xKnot)/(slope - pSlope);
-			//yKnotStart == yLineStart as it the left most not and intersect with it tangent.
-			Double yIntersection = slope*(xIntersection-xStart) + yKnotStart;
-			Double distance = Math.sqrt((xKnot-xIntersection)*(xKnot-xIntersection)+(yKnot-yIntersection)*(yKnot-yIntersection));
-			surfaceOfChange = surfaceOfChange + distance/lowKnot;
 
 		}
 
+		//Daily % of change surface
+		Double surfaceOfChange = surfaceOfPolygone(dataSubMap)/maxAbsYknot;
 		if (surfaceOfChange < minSurface) return false;
 
 		_tangent.setSlope(slope);
 		_tangent.setxEnd(xEnd);
-		_tangent.setIntersect(xKnot, yKnotStart + slope*(xKnot - xStart));
+		_tangent.setIntersect(xData, yKnotStart + slope*(xData - xStart));
 
 		//Test
-		_tangent.setToleranceCriterias(lowKnot, highKnot, (highKnot - lowKnot)/lowKnot);
+		Double lowKnot = Math.min(yKnotStart, yKnotEnd);
+		Double highKnot = Math.max(yKnotStart, yKnotEnd);
+		_tangent.setToleranceCriterias(lowKnot, highKnot, relativeDifference);
 		_tangent.setSurface(surfaceOfChange);
 
 		return true;
@@ -347,6 +347,24 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		SortedMap<Integer, Double> result = new TreeMap<>();
 		for(int j = 0; j < smoothed.length; j ++) result.put(dataKeys.get(j+firstX), smoothed[j][0]);
 		return result;
+	}
+
+	private Double surfaceOfPolygone(SortedMap<Integer, Double> vertices) {
+		//Shoelace formula
+		Double surface = 0d;
+		List<Integer> xs = new ArrayList<>(vertices.keySet());
+		List<Double> ys = new ArrayList<>(vertices.values());
+		int n = vertices.size()-1;
+		for (int i = 0; i <= n-1; i++) {
+			surface = surface + xs.get(i)*ys.get(i+1);
+		}
+		surface = surface + xs.get(n)*ys.get(0);
+		for (int i = 0; i <= n-1; i++) {
+			surface = surface - xs.get(i+1)*ys.get(i);
+		}
+		surface = surface - xs.get(0)*ys.get(n);
+
+		return Math.abs(surface)/2;
 	}
 
 }
