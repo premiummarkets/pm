@@ -144,8 +144,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 		NavigableSet<Date> fullKeySet = new TreeSet<>(data.keySet());
 		List<Date> fullKeyArray = new ArrayList<>(fullKeySet);
-		SortedMap<Integer, Double> dataTimeMap = fullKeyArray.stream().collect(Collectors.toMap(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI)), d -> data.get(d), (a, b) -> b, TreeMap::new));
-		List<Integer> dateTimeKeys = new ArrayList<>(dataTimeMap.keySet());
+		SortedMap<Integer, Double> fullDataDayNumIndexedMap = fullKeyArray.stream().collect(Collectors.toMap(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI)), d -> data.get(d), (a, b) -> b, TreeMap::new));
+		List<Integer> fullDataDayNumArray = new ArrayList<>(fullDataDayNumIndexedMap.keySet());
 
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		SortedMap<Date, Line<Integer, Double>> realRowTangents = new TreeMap<>();
@@ -162,7 +162,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				Comparable dataLookBackTimeCmp = 
 						new ComparableSortedMap<>(
 								MapUtils
-								.subMapInclusive(dataTimeMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI)))
+								.subMapInclusive(fullDataDayNumIndexedMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI)))
 								);
 				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
 				Comparable minimumSurfaceOfChangeCmp = minimumSurfaceOfChange;
@@ -230,8 +230,16 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			expertTangentsStore.entrySet().stream().forEach(e -> {
 				String label = e.getValue().getLabel(); // + " / ends " + dateFormat.format(e.getValue().getClosingDate());
 				Line<Integer, Double> expertTangent = e.getValue().getLine();
-				Integer fromElement = dateTimeKeys.indexOf(e.getValue().getLine().getxStart());
-				Integer toElement = Math.min(dateTimeKeys.indexOf(e.getValue().getLine().getxEnd()) + 1, dateTimeKeys.size());
+				Integer fromElement = fullDataDayNumArray.indexOf(e.getValue().getLine().getxStart());
+
+				//Integer toElement = Math.min(dateTimeKeys.indexOf(e.getValue().getLine().getxEnd()) + 1, dateTimeKeys.size());
+				//Now drawing the over period as well.
+				Calendar endOverPeriodCal = Calendar.getInstance();
+				endOverPeriodCal.setTime(fullKeyArray.get(fullDataDayNumArray.indexOf(e.getValue().getLine().getxEnd()) + 1));
+				QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriodRemanence);
+				Date endOverPeriod = endOverPeriodCal.getTime();
+				Integer toElement = fullDataDayNumArray.indexOf(MapUtils.subMapInclusive(fullDataDayNumIndexedMap, 0, new Integer((int) (endOverPeriod.getTime()/DAY_IN_MILLI))).lastKey());
+
 				SortedMap<Date, Double> expertTangentPoints = buildLineFor(fullKeyArray.subList(fromElement, toElement), expertTangent);
 				outputs.getAdditionalOutputs().put(label, new DoubleMapValue(expertTangentPoints));
 				outputs.getAdditionalOutputsTypes().put(label, Type.MULTI);
