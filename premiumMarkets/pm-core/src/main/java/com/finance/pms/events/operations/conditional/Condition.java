@@ -83,7 +83,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	HighsAndLowsCondition.class, 
 	NullCondition.class,
 	ReverseCondition.class,
-	LinearTrendsCondition.class})
+	LinearTrendsCondition.class,
+	MatchingMapCondition.class})
 public class Condition<T> extends Operation {
 
 	protected Condition() {

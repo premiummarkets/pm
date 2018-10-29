@@ -1320,6 +1320,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
 			this.emailHint(hintNumber);
 
+			EventTaskQueue.getSingleton().close();
 			SpringContext.getSingleton().close();
 
 		} catch (Throwable e) {

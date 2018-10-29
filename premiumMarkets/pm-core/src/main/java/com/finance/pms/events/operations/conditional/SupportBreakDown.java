@@ -41,7 +41,7 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 
 	@Override
 	public Function<Double, Function<Double, Function<Double, Boolean>>> breakThroughCondition() {
-		return HighLowSolver.cutsBelowSupport;
+		return cutsBelowSupport;
 	}
 
 	@Override

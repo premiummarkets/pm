@@ -127,7 +127,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		fullKeySet.addAll(bullishMap.keySet());
 		fullKeySet.addAll(bearishMap.keySet());
 
-		for (Date date : bullishMap.keySet()) {
+		for (Date date : fullKeySet) {
 
 			EventType dateEventType = EventType.NONE;
 			Boolean isBullish = bullishMap.get(date);

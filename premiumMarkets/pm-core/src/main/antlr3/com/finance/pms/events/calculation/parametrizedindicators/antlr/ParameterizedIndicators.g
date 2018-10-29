@@ -12,25 +12,26 @@ tokens {
   OperationOutput ;
   Tcheat;
   String;
-  
+
   NullCondition;
-  
+
   OrDoubleMapCondition ;
   AndDoubleMapCondition ;
   NotDoubleMapCondition;
-  
+  MatchingMapCondition ;
+
   SupDoubleMapCondition ;
   InfDoubleMapCondition ;
   EqualDoubleMapCondition ;
   CrossDownDoubleMapCondition ;
   CrossUpDoubleMapCondition ;
-  
+
   SupConstantCondition ;
   InfConstantCondition ;
   EqualConstantCondition ;
   CrossDownConstantCondition ;
   CrossUpConstantCondition ;
-  
+
   UpRatioCondition ;
   DownRatioCondition ;
   ReverseCondition ;
@@ -40,25 +41,26 @@ tokens {
   LowerLowCondition ;
   SupportBreakDown ;
   SupportBreakUp ;
-  
+
   LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
   LinearFlatTrendsCondition ;
-  
+
   EqualStringConstantCondition ;
-  
+
   EventInfoOpsCompoOperation ;
   StringOperation ;
-  
+
   OR ='or';
   AND ='and';
-  LENIENT='lenient';
-  NOT='not';
-  COMMA=';';
-  OPENPARENTEHSIS='(';
-  CLOSEPARENTEHSIS=')';
-  PERCENT='%';
-  DAYS='days';
+  MATCHES = 'matches';
+  LENIENT = 'lenient';
+  NOT = 'not';
+  COMMA = ';';
+  OPENPARENTEHSIS = '(';
+  CLOSEPARENTEHSIS = ')';
+  PERCENT = '%';
+  DAYS = 'days';
 
 }
 @header { //parser
@@ -119,15 +121,15 @@ tokens {
   public void setLexerDelegate(IndsLexerDelegate lexerDelegate) {
       this.lexerDelegate = lexerDelegate;
   }
-  
+
   public IndsLexerDelegate getLexerDelegate() {
      return lexerDelegate;
   }
-  
+
   public void setMyErrorReporter(MyErrorReporter errorReporter) {
       this.errorReporter = errorReporter;
   }
-   
+
   @Override
   public void reportError(RecognitionException e) {
       if (this.errorReporter != null) {
@@ -136,7 +138,7 @@ tokens {
         super.reportError(e);
       }
   }
-  
+
   private boolean runtimeHistoryOpAhead() {
     return lexerDelegate.runtimeHistoryOpAhead();
   }
@@ -157,7 +159,7 @@ bullish_condition :
  'is bullish when' WhiteChar primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression
  ;
 bearish_condition[CommonTree bcond] :
- 'is bearish when' WhiteChar  primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression |
+ 'is bearish when' WhiteChar primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression |
  bearish_not_bullish[$bcond] WhiteChar* COMMA WhiteChar* -> bearish_not_bullish
  ;
  also_display :
@@ -172,29 +174,38 @@ bearish_condition[CommonTree bcond] :
 bearish_not_bullish[CommonTree bcond] :
  'is bearish if not bullish' 
   (
-  WhiteChar AND WhiteChar primary_expression -> ^(AndDoubleMapCondition ^(String StringToken["\"FALSE\""]) ^(NotDoubleMapCondition {$bcond}) primary_expression)| 
-  WhiteChar OR WhiteChar  primary_expression -> ^(OrDoubleMapCondition ^(NotDoubleMapCondition {$bcond}) primary_expression)|
+  WhiteChar AND WhiteChar primary_expression -> ^(AndDoubleMapCondition ^(String StringToken["\"FALSE\""]) ^(NotDoubleMapCondition {$bcond}) primary_expression)|
+  WhiteChar OR WhiteChar primary_expression -> ^(OrDoubleMapCondition ^(NotDoubleMapCondition {$bcond}) primary_expression)|
   -> ^(NotDoubleMapCondition {$bcond})
   )
  ;
 
+
 primary_expression :
  and_expression
  ;
- 
 and_expression :
-  or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndDoubleMapCondition {$lenientParam.tree}  or_expression or_expression*)
+  or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndDoubleMapCondition {$lenientParam.tree} or_expression or_expression*)
   ;
 or_expression :
-  atom (WhiteChar OR WhiteChar atom)* -> ^(OrDoubleMapCondition atom atom*)
+  matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrDoubleMapCondition matches_expression matches_expression*)
   ;
-atom : 
-  booleanhistory | 
-  '(' WhiteChar* primary_expression WhiteChar* ')' -> primary_expression | 
+matches_expression :
+  atom (WhiteChar MATCHES WhiteChar atom)* -> ^(MatchingMapCondition atom atom*) 
+  ;
+atom :
+  booleanhistory |
+  '(' WhiteChar* primary_expression WhiteChar* ')' -> primary_expression |
   'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotDoubleMapCondition primary_expression)
   ;
- 
-booleanhistory : firstOp=operand WhiteChar ( presetcondition[$firstOp.tree] -> presetcondition | opcmpcondition[$firstOp.tree] -> opcmpcondition| constantcmp[$firstOp.tree] -> constantcmp );
+
+
+booleanhistory :
+	firstOp=operand WhiteChar (
+		presetcondition[$firstOp.tree] -> presetcondition |
+		opcmpcondition[$firstOp.tree] -> opcmpcondition |
+		constantcmp[$firstOp.tree] -> constantcmp
+	);
 operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""])) | opName = Operation {checkOperationValidity($opName);} -> Operation;
 constant :  NumberToken -> ^(Number NumberToken) | 'NaN' -> ^(Number NumberToken["NaN"]);
 stringconstant : StringToken -> ^(String StringToken);
@@ -307,7 +318,7 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
   	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
-  	
+
   	('makes a support break down spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
@@ -323,7 +334,6 @@ presetcondition [CommonTree firstOp] :
       		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
       		WhiteChar 'tolerance' WhiteChar tolerance=constant
      -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
-
 
   ('trends flat'
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
