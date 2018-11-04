@@ -46,6 +46,12 @@ public abstract class NumericableMapValue extends Value<SortedMap<Date, Double>>
 	public abstract List<Date> getDateKeys();
 
 	@Override
+	public String toString() {
+		SortedMap<Date, Double> map = this.getValue(null);
+		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
+	}
+
+	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}

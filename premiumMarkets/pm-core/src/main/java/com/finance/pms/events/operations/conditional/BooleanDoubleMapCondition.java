@@ -64,9 +64,12 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		if (shortcutUnary() && inputs.size() == 1) {
-			BooleanMapValue booleanMapValue = new BooleanMapValue();
-			booleanMapValue.getValue(targetStock).putAll(((BooleanMapValue) inputs.get(0)).getValue(targetStock)); //We need to recreate the input object as an inherited BooleanMultiMapValue would break the graph
-			return booleanMapValue;
+			return (BooleanMapValue) inputs.get(0); 
+//			//FIXME TargetStockInfo.populateChartedOutputGroups
+//			//We need to recreate the input into an BooleanMapValue object as an inherited BooleanMultiMapValue would break the graph adding unrequested chartings (or ..)
+//			BooleanMapValue booleanMapValue = new BooleanMapValue();
+//			booleanMapValue.getValue(targetStock).putAll(((BooleanMapValue) inputs.get(0)).getValue(targetStock));
+//			return booleanMapValue;
 		}
 
 		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;
@@ -111,7 +114,7 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 
 		}
 
-		if (LOGGER.isInfoEnabled()) {
+		if (LOGGER.isDebugEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
 			LOGGER.info(
 					"Condition '" + this.getReference() + "' returns this map \n" +

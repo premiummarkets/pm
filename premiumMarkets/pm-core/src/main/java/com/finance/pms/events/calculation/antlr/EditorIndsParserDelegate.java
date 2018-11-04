@@ -74,8 +74,8 @@ public class EditorIndsParserDelegate extends EditorParserDelegate implements In
 			if (lt == null || !lt.getText().trim().isEmpty()) {
 				
 				if (type.isEmpty()) {
-					wrongToken = !"and".startsWith(lt.getText()) && !"or".startsWith(lt.getText()) && !"matches".startsWith(lt.getText());
-					unfinishToken = !wrongToken && !"and".equals(lt.getText()) && !"or".equals(lt.getText()) && !"matches".equals(lt.getText());
+					wrongToken = !"and".startsWith(lt.getText()) && !"or".startsWith(lt.getText()) && !"matching".startsWith(lt.getText());
+					unfinishToken = !wrongToken && !"and".equals(lt.getText()) && !"or".equals(lt.getText()) && !"matching".equals(lt.getText());
 				}
 				else if (type.equals("and")) {
 					wrongToken = !"and".startsWith(lt.getText());
@@ -85,9 +85,9 @@ public class EditorIndsParserDelegate extends EditorParserDelegate implements In
 					wrongToken = !"or".startsWith(lt.getText());
 					unfinishToken = !wrongToken && !"or".equals(lt.getText());
 				}
-				else if (type.equals("matches")) {
-					wrongToken = !"matches".startsWith(lt.getText());
-					unfinishToken = !wrongToken && !"matches".equals(lt.getText());
+				else if (type.equals("matching")) {
+					wrongToken = !"matching".startsWith(lt.getText());
+					unfinishToken = !wrongToken && !"matching".equals(lt.getText());
 				}
 				wrongToken = wrongToken && !lt.getText().equals(")");
 				//unfinishToken = unfinishToken || lt.getText().equals(")");

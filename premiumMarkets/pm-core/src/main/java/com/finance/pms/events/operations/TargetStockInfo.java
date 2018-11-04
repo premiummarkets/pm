@@ -433,19 +433,22 @@ public class TargetStockInfo {
 					if (chartedOutputGroup == null) { //No main has been set for potential other operands in witch group the multi output of this operand could reflect.
 						Operation mainOperandOfOperand;
 						Optional<String> outputSelector;
-						if (operand instanceof ChartableWithMain) { //This operand itself has main though, among its own operands. We use this main and group.
+						if (operand instanceof ChartableWithMain) { //This operand itself has main although it is among its own operands. We reuse this main operand and group.
 							mainOperandOfOperand = operand.getOperands().get(((ChartableWithMain) operand).mainInputPosition());
 							outputSelector = Optional.ofNullable(mainOperandOfOperand.getOutputSelector());
-						} else { //This operand has no main and no main is defined by other operands. We create a new group picking up the first multi output as main.
-							mainOperandOfOperand = operand;
-							outputSelector = Optional.of(multiMapValueOutputTypes.keySet().iterator().next());
+							//						}
+							//						else { //This operand has no main and no main is defined by other operands. We create a new group picking up the first multi output as main.
+							//							mainOperandOfOperand = operand;
+							//							outputSelector = Optional.of(multiMapValueOutputTypes.keySet().iterator().next());
+							//						}
+							setMain(mainOperandOfOperand, outputSelector);
+							addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.orElse(null)));
 						}
-						setMain(mainOperandOfOperand, outputSelector);
-						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.orElse(null)));
-					//FIXME?? remove this case as it may cause scaling issues linking operands of this operand to other operands in this operation.
-					} else { //A main and group is set by other operands. We use theses.
-						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
 					}
+//					//FIXME?? remove this case as it may cause scaling issues linking operands of this operand to other operands in this operation.
+//					else { //A main and group is set by other operands. We use theses.
+//						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
+//					}
 				}
 			}
 		}

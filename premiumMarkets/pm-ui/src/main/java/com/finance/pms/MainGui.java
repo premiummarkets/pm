@@ -953,7 +953,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING));
 
 			shell.layout();
-			shell.pack();            	
+			shell.pack();
 			shell.open();
 
 			sashesSizes(shell, inst);

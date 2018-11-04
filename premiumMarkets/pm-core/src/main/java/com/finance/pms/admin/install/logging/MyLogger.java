@@ -32,6 +32,7 @@ package com.finance.pms.admin.install.logging;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Observable;
@@ -114,10 +115,10 @@ public class MyLogger {
 			if (props.containsKey("mail.log.activated")) {
 				MainPMScmd.getMyPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
 				MyLogger.mailActivationType = props.getProperty("mail.log.activated");
-				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
+				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in db.properties) : " + MyLogger.mailActivationType);
 			} else {
 				MyLogger.mailActivationType =  MainPMScmd.getMyPrefs().get("mail.log.activated", "false");
-				System.out.println("Logger activation status (no 'mail.log.activated' prop in db.properties) : "+MyLogger.mailActivationType);
+				System.out.println("Logger activation status (no 'mail.log.activated' prop in db.properties) : " + MyLogger.mailActivationType);
 			}
 
 			if (props.containsKey("mail.log.local")) {
@@ -143,6 +144,16 @@ public class MyLogger {
 			e3.printStackTrace();
 			MainPMScmd.getMyPrefs().put("mail.log.activated", "false");
 			MainPMScmd.getMyPrefs().flushy();
+		}
+		
+		//Get version
+		try {
+			Properties pbuild = new Properties();
+			pbuild.load(MyLogger.class.getClassLoader().getResourceAsStream("pmsbuild.properties"));
+			version = pbuild.getProperty("application.buildtime");
+		} catch (Throwable e1) {
+			System.out.println("log send failed, exception: " + e1); 
+			e1.printStackTrace();
 		}
 
 		try {
@@ -171,7 +182,7 @@ public class MyLogger {
 				Properties mailSessionProps = new Properties();
 				mailSessionProps.put("mail.transport.protocol", "smtp");
 				mailSessionProps.put("mail.smtp.host", MyLogger.mailHost);
-
+				mailSessionProps.put("mail.smtp.timeout", "5000");
 
 				Boolean isLocal = new Boolean(MainPMScmd.getMyPrefs().get("mail.log.local", "false"));
 				if (isLocal) {
@@ -181,9 +192,8 @@ public class MyLogger {
 					MyLogger.session = Session.getInstance(mailSessionProps, null);
 					//MyLogger.session.setDebug(true);
 
-				} else {
+				} else { //Test the smtp session sending a test message.
 
-					//Test the smtp session
 					mailSessionProps.put("mail.smtp.localhost", MainPMScmd.getMyPrefs().get("site.url", "none.com"));
 					mailSessionProps.put("mail.smtp.user", MyLogger.mailUserName);
 					mailSessionProps.put("mail.smtp.password", MyLogger.mailPassword);
@@ -199,7 +209,7 @@ public class MyLogger {
 						senderAddress = new InternetAddress(MyLogger.mailUserName);
 					}
 
-					buildSession(mailSessionProps);
+					buildAuthSession(mailSessionProps);
 					Transport transport = MyLogger.session.getTransport("smtp");
 					MimeMessage testMsg = buildTestMessage(senderAddress);
 					try {
@@ -214,7 +224,7 @@ public class MyLogger {
 						mailSessionProps.put("mail.smtp.socketFactory.host", MyLogger.mailHost);
 						mailSessionProps.put("mail.smtp.socketFactory.port", "465");
 						mailSessionProps.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
-						buildSession(mailSessionProps);
+						buildAuthSession(mailSessionProps);
 						transport = MyLogger.session.getTransport("smtp");
 						testMsg = buildTestMessage(senderAddress);
 						try {
@@ -226,7 +236,7 @@ public class MyLogger {
 							mailSessionProps.put("mail.smtp.auth", "false");
 							mailSessionProps.put("mail.smtp.starttls.enable", "false");
 							mailSessionProps.put("mail.smtp.port", "25");
-							buildSession(mailSessionProps);
+							buildAuthSession(mailSessionProps);
 							transport = MyLogger.session.getTransport("smtp");
 							testMsg = buildTestMessage(senderAddress);
 							try {
@@ -248,7 +258,7 @@ public class MyLogger {
 
 			} else {
 
-				System.out.println("SMTP connection params are Invalid : propsMailUserName="+propsMailUserName+", propsMailPassword=xxx, propsMailHost="+propsMailHost);
+				System.out.println("SMTP connection params are invalid : propsMailUserName=" + propsMailUserName + ", propsMailPassword=xxx, propsMailHost=" + propsMailHost);
 				if (MyLogger.mailActivationType.equals("true")) {
 					MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
 					MainPMScmd.getMyPrefs().flushy();
@@ -268,19 +278,9 @@ public class MyLogger {
 
 		}
 
-		//Get version
-		try {
-			Properties pbuild = new Properties();
-			pbuild.load(MyLogger.class.getClassLoader().getResourceAsStream("pmsbuild.properties"));
-			version = pbuild.getProperty("application.buildtime");
-		} catch (Throwable e1) {
-			System.out.println("log send failed, exception: " + e1); 
-			e1.printStackTrace();
-		}
-
 	}
 
-	protected static void buildSession(Properties mailSessionProps) {
+	protected static void buildAuthSession(Properties mailSessionProps) {
 		MyLogger.session = Session.getInstance(mailSessionProps, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(MyLogger.mailUserName, MyLogger.mailPassword);
@@ -291,8 +291,8 @@ public class MyLogger {
 
 	protected static MimeMessage buildTestMessage(InternetAddress senderAddress) throws MessagingException {
 		MimeMessage testMsg = new MimeMessage(MyLogger.session);
-		testMsg.setSubject("Smtp connection test msg");
-		testMsg.setText("Smtp connection test msg");
+		testMsg.setSubject("Smtp connection test message from " + MainPMScmd.getMyPrefs().get("site.url", "none.com"));
+		testMsg.setText("Build version : " + version);
 		testMsg.setFrom(senderAddress);
 		testMsg.setSender(senderAddress);
 		Address[] rTo = {senderAddress};
@@ -544,10 +544,11 @@ public class MyLogger {
 	//true (sends errors, no tests, no duplicates, with popup)
 	//force (sends errors, tests - with duplicates -, without popup) ie test
 	//forceNoTest (sends errors, no tests, without popup) ie trueNoPopups
+	//failed (no email, with popup)
 	private void sendMail(Object errorMsg, final Throwable error, final Boolean isTest) {
 
 		//Is active?
-		MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");  
+		MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");
 		String errorMailSetup = "Mail Settings : log activation type : " + MyLogger.mailActivationType;
 		System.out.println(errorMailSetup);
 		delegateLogger.info(errorMailSetup);
@@ -566,7 +567,7 @@ public class MyLogger {
 
 				try {
 
-					MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");  
+					MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");
 					if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;
 
 					Boolean isSendingErrorEmail = "true".equals(MyLogger.mailActivationType) || "force".equals(MyLogger.mailActivationType) || "forceNoTest".equals(MyLogger.mailActivationType);
@@ -574,7 +575,7 @@ public class MyLogger {
 					Boolean isFailed = "failed".equals(MyLogger.mailActivationType);
 
 					Boolean isSendingEmail = ((isTest && isSendingTestEmail) || (!isTest && isSendingErrorEmail)) && !isFailed;
-					Boolean isPopup = ("true".equals(MyLogger.mailActivationType) || "failed".equals(MyLogger.mailActivationType)) && !isTest ;
+					Boolean isPopup = ("true".equals(MyLogger.mailActivationType) || "failed".equals(MyLogger.mailActivationType)) && !isTest;
 					Boolean sendDuplicates = isTest;
 
 					boolean errorMailHandlingsGrants = !isSendingEmail && !isPopup;
@@ -593,7 +594,7 @@ public class MyLogger {
 					try {
 
 						semaphore.acquire();
-						delegateLogger.info("Sending mail on error; grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup+", has duplicate "+sendDuplicates);	
+						delegateLogger.info("Sending mail on error; grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup+", has duplicate "+sendDuplicates);
 
 						if (isPopup) {
 
@@ -650,7 +651,7 @@ public class MyLogger {
 						Thread.sleep(msgDelay);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
-					}		
+					}
 				}
 
 			}
@@ -658,14 +659,14 @@ public class MyLogger {
 			private void doSend(Integer bodyHashcode, boolean isTestMail) throws IOException, MessagingException {
 
 				//Email msg
-				Transport transport = MyLogger.session.getTransport("smtp"); 
+				Transport transport = MyLogger.session.getTransport("smtp");
 				transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 
-				MimeMessage msg = new MimeMessage(MyLogger.session);		
+				MimeMessage msg = new MimeMessage(MyLogger.session);
 				InternetAddress senderAddress = fromAdressResolution();
 
 				StringBuffer msgBody = createMsgBodyFirstLines(error, errorStr, 200);
-				String msgSubject = "Error detected on Version build : "+version+ " from user "+senderAddress;
+				String msgSubject = "Error detected on build version : " + version + " from user " + senderAddress;
 
 				if (isTestMail) {
 					msgBody.insert(0, "This is an info test message : \n");
@@ -676,14 +677,14 @@ public class MyLogger {
 				msg.setSender(senderAddress);
 				Address[] rTo = {senderAddress};
 				msg.setReplyTo(rTo);
-				msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo); 
-				msg.setSubject(msgSubject); 
-				msg.setSentDate(new Date());					
+				msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo);
+				msg.setSubject(msgSubject);
+				msg.setSentDate(new Date());
 				msg.setText(msgBody.toString());
 
 				msg.saveChanges();      // don't forget this
 
-				delegateLogger.info("Sending error mail : senderAddress="+senderAddress.getAddress()+ ", recipient="+MyLogger.mailTo+", transport="+transport.getURLName().toString());
+				delegateLogger.info("Sending error mail : senderAddress=" + senderAddress.getAddress() + ", recipient=" + Arrays.toString(msg.getAllRecipients()) + ", transport=" + transport.getURLName().toString());
 				transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
 
 				transport.close();
@@ -704,14 +705,15 @@ public class MyLogger {
 					}
 				}
 				return senderAddress;
+
 			}
 
 			private StringBuffer createMsgBodyFirstLines(Throwable error, String errorStr, Integer sizeMax) {
-				StringBuffer msgBoddy = new StringBuffer("Text : " + errorStr + "\n");  
+				StringBuffer msgBoddy = new StringBuffer("Text : " + errorStr + "\n");
 				if (error != null) {
 					msgBoddy.append("Error :" + error + "\n"); 
-					msgBoddy.append("Message :" + error.getMessage() + "\n");  
-					msgBoddy.append("Cause :" + error.getCause() + "\n");  
+					msgBoddy.append("Message :" + error.getMessage() + "\n");
+					msgBoddy.append("Cause :" + error.getCause() + "\n");
 					StackTraceElement[] ste = error.getStackTrace();
 					for (int i = 0; i < Math.min(ste.length,sizeMax); i++) {
 						msgBoddy.append(ste[i] + "\n"); 

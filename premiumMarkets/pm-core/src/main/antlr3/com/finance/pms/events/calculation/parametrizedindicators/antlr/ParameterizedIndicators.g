@@ -53,14 +53,18 @@ tokens {
 
   OR ='or';
   AND ='and';
-  MATCHES = 'matches';
+  MATCHING = 'matching';
   LENIENT = 'lenient';
   NOT = 'not';
-  COMMA = ';';
+  SEMICOLUMN = ';';
   OPENPARENTEHSIS = '(';
   CLOSEPARENTEHSIS = ')';
   PERCENT = '%';
   DAYS = 'days';
+  OPENSQRT = '[';
+  CLOSESQRT = ']';
+  COMMA = ',';
+
 
 }
 @header { //parser
@@ -156,23 +160,23 @@ complete_expression :
    ;
 
 bullish_condition :
- 'is bullish when' WhiteChar primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression
+ 'is bullish when' WhiteChar primary_expression WhiteChar* SEMICOLUMN WhiteChar* -> primary_expression
  ;
 bearish_condition[CommonTree bcond] :
- 'is bearish when' WhiteChar primary_expression WhiteChar* COMMA WhiteChar* -> primary_expression |
- bearish_not_bullish[$bcond] WhiteChar* COMMA WhiteChar* -> bearish_not_bullish
+ 'is bearish when' WhiteChar primary_expression WhiteChar* SEMICOLUMN WhiteChar* -> primary_expression |
+ bearish_not_bullish[$bcond] WhiteChar* SEMICOLUMN WhiteChar* -> bearish_not_bullish
  ;
  also_display :
-  'also display' WhiteChar primary_expression WhiteChar* COMMA -> ^(AndDoubleMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
+  'also display' WhiteChar primary_expression WhiteChar* SEMICOLUMN -> ^(AndDoubleMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
   -> NullCondition
  ;
  fixed_start_shift :
-  'override start shift with' WhiteChar fixedStartShift=constant WhiteChar DAYS COMMA -> {$fixedStartShift.tree} |
+  'override start shift with' WhiteChar fixedStartShift=constant WhiteChar DAYS SEMICOLUMN -> {$fixedStartShift.tree} |
   -> ^(Number NumberToken["-1"])
  ;
  
 bearish_not_bullish[CommonTree bcond] :
- 'is bearish if not bullish' 
+ 'is bearish if not bullish'
   (
   WhiteChar AND WhiteChar primary_expression -> ^(AndDoubleMapCondition ^(String StringToken["\"FALSE\""]) ^(NotDoubleMapCondition {$bcond}) primary_expression)|
   WhiteChar OR WhiteChar primary_expression -> ^(OrDoubleMapCondition ^(NotDoubleMapCondition {$bcond}) primary_expression)|
@@ -191,7 +195,7 @@ or_expression :
   matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrDoubleMapCondition matches_expression matches_expression*)
   ;
 matches_expression :
-  atom (WhiteChar MATCHES WhiteChar atom)* -> ^(MatchingMapCondition atom atom*) 
+  atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingMapCondition constant* atom atom?)
   ;
 atom :
   booleanhistory |
@@ -274,11 +278,11 @@ presetcondition [CommonTree firstOp] :
   ('goes down more than' WhiteChar percentdown=constant PERCENT -> ^(DownRatioCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-      -> ^(DownRatioCondition {$percentdown.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$forNbDays.tree} {$firstOp}) )? |
+      -> ^(DownRatioCondition {$percentdown.tree} {$spanningNbDays.tree} ^(Number NumberToken["0.0"]) {$forNbDays.tree} {$firstOp}) )? |
   ('goes up more than' WhiteChar percentup=constant PERCENT -> ^(UpRatioCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-      -> ^(UpRatioCondition {$percentup.tree} {$spanningNbDays.tree}  ^(Number NumberToken["0.0"]) {$forNbDays.tree} {$firstOp}) )? |
+      -> ^(UpRatioCondition {$percentup.tree} {$spanningNbDays.tree} ^(Number NumberToken["0.0"]) {$forNbDays.tree} {$firstOp}) )? |
       
   ('crosses up threshold' WhiteChar threshold=constant -> ^(CrossUpConstantCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
@@ -365,7 +369,7 @@ WhiteChar
 Tcheat
      : ('a'..'z' | 'A'..'Z' | '0'..'9')+
      ;
-    
+
 //additionnal lexical rules (hidden chars)
 //WS  : (' '|'\r'|'\t'|'\u000C'|'\n') {$channel=HIDDEN;}
 WS  : ('\r'|'\t'|'\u000C'|'\n') {$channel=HIDDEN;}

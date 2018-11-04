@@ -67,7 +67,7 @@ import com.finance.pms.events.scoring.functions.Line;
  * Additional constraints :
  * 'spanning'		:	is the period we look back into
  * 'over' 			: 	is remanence/persistence of the tangent from its trigger date
- * 'for' 			: 	is minimum distance between knots
+ * 'for' 			: 	is minimum surface of change
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
@@ -235,7 +235,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				//Integer toElement = Math.min(dateTimeKeys.indexOf(e.getValue().getLine().getxEnd()) + 1, dateTimeKeys.size());
 				//Now drawing the over period as well.
 				Calendar endOverPeriodCal = Calendar.getInstance();
-				endOverPeriodCal.setTime(fullKeyArray.get(fullDataDayNumArray.indexOf(e.getValue().getLine().getxEnd()) + 1));
+				endOverPeriodCal.setTime(fullKeyArray.get(fullDataDayNumArray.indexOf(e.getValue().getLine().getxEnd()) + 1 + 1)); //+1 for inclusion +1 for detection lag
 				QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriodRemanence);
 				Date endOverPeriod = endOverPeriodCal.getTime();
 				Integer toElement = fullDataDayNumArray.indexOf(MapUtils.subMapInclusive(fullDataDayNumIndexedMap, 0, new Integer((int) (endOverPeriod.getTime()/DAY_IN_MILLI))).lastKey());
@@ -246,7 +246,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 			});
 		}
 
-		if (LOGGER.isInfoEnabled()) {
+		if (LOGGER.isDebugEnabled()) {
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
 			LOGGER.info(
 					"Condition '" + this.getReference() + "' returns this map \n" +
