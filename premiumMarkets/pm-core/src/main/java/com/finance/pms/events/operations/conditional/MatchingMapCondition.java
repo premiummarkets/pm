@@ -34,9 +34,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
+import java.util.Optional;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -50,12 +52,18 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
-//TODO The input has to be a BooleanMultiMapValue.
+//TODO Dynamic criterias  (by inheritance or parameter?)
 @SuppressWarnings("rawtypes")
 /**
  * So far only makes sense for binary comparison of Series (i.e. two Series as parameters).
- * 
+ * Additional constraints :
+ * 'spanning'. Does not make sense : As this condition is a status check in time not an event (change of status) check in time.
+ * 'over'
+ * 'for'
  * @author Gheeyom Thor
  *
  */
@@ -63,8 +71,11 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(MatchingMapCondition.class);
 
-	protected MatchingMapCondition() {
+	public MatchingMapCondition() {
 		super("matching", "Compare boolean time series also having multiple numeric outputs and is true when the operands numeric outputs match the criteria.");
+		//				new NumberOperation("Criteria parameters"),
+		//				new DoubleMapOperation("Historical data inputs"));
+		//		this.getOperands().stream().forEach(o -> o.setIsVarArgs(true)); //FIXME multiple VarArgs is not supported?
 	}
 
 	public MatchingMapCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -76,71 +87,111 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
 
+		//Sof (sof is first because of the following constants VarArgs.
+		//And
 		//Constants
-		int constantInputSize = 0;
 		List<Double> constantInputs = new ArrayList<>();
+		int sofSize = 0;
+		Integer overPeriod = 0;
+		Integer forPeriod = 0;
+		int i = 0;
 		for(Value input : inputs) {
 			if (input instanceof BooleanMapValue) break;
-			constantInputSize++;
-			constantInputs.add(((NumberValue) input).getValue(targetStock).doubleValue());
+			switch(i) {
+			case 0 :
+				overPeriod = ((NumberValue) inputs.get(sofSize++)).getValue(targetStock).intValue();
+				break;
+			case 1 :
+				forPeriod = ((NumberValue) inputs.get(sofSize++)).getValue(targetStock).intValue();
+				break;
+			default :
+				constantInputs.add(((NumberValue) input).getValue(targetStock).doubleValue());	
+			}
+			i++;
 		}
+		int constantInputSize = i - sofSize;
+		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
 
 		//Series
-		if (inputs.size() == constantInputSize + 1) {
-			return (BooleanMapValue) inputs.get(constantInputSize);
-			//			//FIXME TargetStockInfo.populateChartedOutputGroups
-			//			//We need to recreate the input into an BooleanMapValue object as an inherited BooleanMultiMapValue would break the graph adding unrequested chartings (or ..)
-			//			BooleanMapValue booleanMapValue = new BooleanMapValue();
-			//			booleanMapValue.getValue(targetStock).putAll(((BooleanMapValue) inputs.get(firstSeriesIdx)).getValue(targetStock));
-			//			return booleanMapValue;
+		int inputMapsStartIdx = sofSize + constantInputSize; //sof size + constants size
+		if (inputs.size() - inputMapsStartIdx == 1) { //Only one map was passed => return as is
+			return (BooleanMapValue) inputs.get(inputMapsStartIdx);
 		}
-		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
-		SortedMap<Date, List<SortedMap<Date, Double>>> matchingsStore = new TreeMap<>();
+		List<BooleanMultiMapValue> checkedInputMaps = (List<BooleanMultiMapValue>) inputs.subList(inputMapsStartIdx, inputs.size());
 
-		List<BooleanMultiMapValue> checkedInputMaps = (List<BooleanMultiMapValue>) inputs.subList(constantInputSize, inputs.size());
-
-		//Build cmp
-		List<TreeMap<Date, ComparableSortedMap<Date, Double>>> inputMapsCmp = checkedInputMaps.stream().map(cinput ->
+		//Build cmp : for each inputs -> for each additional output : build a list of maps one per input. Each map being <Date, Additional output> with date being the end of each additional output.
+		// input0, <<date01, List of addOutput01>, <date02, List of addOutput02>, ...>
+		// input1, <<date11, List of  addOutput11>, <date12, List of addOutput12>, ...>
+		List<TreeMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>>> inputMapsCmp = checkedInputMaps.stream().map(cinput ->
 		cinput.getAdditionalOutputs().values().stream()
 		.collect(
 				Collectors.toMap(
 						addInput -> addInput.getValue(targetStock).lastKey(),
-						addInput -> new ComparableSortedMap<Date, Double>(addInput.getValue(targetStock)),
-						(addInputA, addInputB) -> addInputA,
+						addInput -> {
+							ComparableArray<ComparableSortedMap<Date, Double>> inputArray = new ComparableArray<>();
+							inputArray.add(new ComparableSortedMap<Date, Double>(addInput.getValue(targetStock)));
+							return inputArray;
+						},
+						(addInputA, addInputB) -> {
+							addInputB.stream().forEach(e -> {if (!addInputA.contains(e)) addInputA.add(e);});
+							return addInputA;
+						},
 						TreeMap::new
 						)
 				))
 				.collect(Collectors.toList());
 
+		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
+		BooleanMapValue realRowOutputs = new BooleanMapValue();
+		SortedMap<Date, List<ComparableSortedMap<Date, Double>>> matchingsStore = new TreeMap<>();
+
+		SortedSet<Date> fullKeySet;
+		try {
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+			        targetStock.getStock(), getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(),
+			        true, targetStock.getStock().getMarketValuation().getCurrency(),
+			        0, ValidityFilter.NONE);
+			fullKeySet = new TreeSet(QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations).keySet());
+		} catch (Exception e1) {
+			throw new RuntimeException(e1);
+		}
+
 		//condition check
-		for(int refIdx = 0; refIdx < inputMapsCmp.size(); refIdx++) {
-			for(Date date : inputMapsCmp.get(refIdx).keySet()) {
-				Comparable[] constNHeadMapArrayCmp = new Comparable[constantInputSize + inputMapsCmp.size() + 1];
-				for(int ci = 0; ci < constantInputs.size(); ci++) constNHeadMapArrayCmp[ci] = constantInputs.get(ci); //constants
-				constNHeadMapArrayCmp[constantInputSize] = new ComparableSortedMap(inputMapsCmp.get(refIdx).headMap(date, true)); //reference
-				int cmpIdx = constantInputSize + 1; //we start at constants size + one reference
+		for(int refIdx = 0; refIdx < inputMapsCmp.size(); refIdx++) {//Going through each input taken as reference in turn
+			for(Date date : inputMapsCmp.get(refIdx).keySet()) {//Going through each 'additional output maps' end date of the selected reference
+				Comparable[] constNHeadMapArrayCmp = new Comparable[constantInputSize + inputMapsCmp.size() + 1]; //constants + input maps + return
+				for(int ci = 0; ci < constantInputs.size(); ci++) constNHeadMapArrayCmp[ci] = constantInputs.get(ci); //Matching criteria constants
+				constNHeadMapArrayCmp[constantInputSize] = new ComparableSortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>>(inputMapsCmp.get(refIdx).headMap(date, true)); //Reference input 'additional outputs maps' up to date
+				int cmpIdx = constantInputSize + 1; //we start at constants size + one for the reference input.
 				for(int chalIdx = 0; chalIdx < inputMapsCmp.size(); chalIdx++) {
 					if (chalIdx != refIdx) {
-						constNHeadMapArrayCmp[cmpIdx] = new ComparableSortedMap(inputMapsCmp.get(chalIdx).headMap(date, true));
+						constNHeadMapArrayCmp[cmpIdx] = new ComparableSortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>>(inputMapsCmp.get(chalIdx).headMap(date, true)); //Challenging inputs 'additional outputs maps' up to date
 						cmpIdx++;
 					}
 				}
-				Comparable _Matching = new ComparableArray<>();
-				constNHeadMapArrayCmp[constNHeadMapArrayCmp.length-1] = _Matching;
+				Comparable _Matching = new ComparableArray<ComparableSortedMap<Date, Double>>();
+				constNHeadMapArrayCmp[constNHeadMapArrayCmp.length-1] = _Matching; //Adding the return parameter, array of <Date>.
 				Boolean conditionCheck = conditionCheck(constNHeadMapArrayCmp);
 				if (conditionCheck != null) {
 
 					outputs.getValue(targetStock).put(date, conditionCheck);
+//					//For
+//					if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
+//						conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
+//					}
+//
+//					//Over
+//					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 
 					if (conditionCheck) {
-						//Sorting the matching back in order and storing
-						List<SortedMap<Date, Double>> matching = new ArrayList<>();
+						//Sorting the matching back in order (with the reference map in its original place instead of 0) and storing.
+						List<ComparableSortedMap<Date, Double>> matching = new ArrayList<>();
 						int matchIdx = 1;
 						for(int mapIdx = 0; mapIdx < inputMapsCmp.size(); mapIdx++) {
 							if (mapIdx == refIdx) {
-								matching.add(inputMapsCmp.get(mapIdx).get(((ArrayList<Date>) _Matching).get(0)));
+								matching.add(((ArrayList<ComparableSortedMap<Date, Double>>) _Matching).get(0));
 							} else {
-								matching.add(inputMapsCmp.get(mapIdx).get(((ArrayList<Date>) _Matching).get(matchIdx)));
+								matching.add(((ArrayList<ComparableSortedMap<Date, Double>>) _Matching).get(matchIdx));
 								matchIdx++;
 							}
 						}
@@ -152,14 +203,13 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 		}
 
 		if (true && !matchingsStore.isEmpty()) {
-			final int fConstantInputSize = constantInputSize;
+			final int fInputMapsStartIdx = inputMapsStartIdx;
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 			matchingsStore.entrySet().stream().forEachOrdered(e -> {
 				String label = "matching" +
 						" at " + dateFormat.format(e.getKey());
-						//+ " of " + this.getOperands().subList(fConstantInputSize, this.getOperands().size()).stream().map(o -> o.getReference()).reduce((r, oe) -> r + " and " + oe);
 				IntStream.range(0, e.getValue().size()).forEachOrdered(index -> {
-					outputs.getAdditionalOutputs().put(label + " of " + this.getOperands().get(fConstantInputSize + index).getReference(), new DoubleMapValue(e.getValue().get(index)));
+					outputs.getAdditionalOutputs().put(label + " of " + this.getOperands().get(fInputMapsStartIdx + index).getReference(), new DoubleMapValue(e.getValue().get(index)));
 					outputs.getAdditionalOutputsTypes().put(label, Type.MULTI);
 				});
 			});
@@ -175,56 +225,89 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 					"Condition '" + this.getReference() + "' returns this map \n" +
 							addOutputs.entrySet().stream()
 							.map(
-								e -> "label : " + e.getKey()
-								+ " : " + e.getValue().toString()
-								//+ " :\n" + e.getValue().getValue(null).entrySet().stream().map(t -> t.getKey() + "=" + t.getValue()).reduce((a, b) -> a + "\n" + b).get()
-							).reduce((a, b) -> a + "\n" + b).get());
+									e -> "label : " + e.getKey()
+									+ " : " + e.getValue().toString()
+									).reduce((a, b) -> a + "\n" + b).orElse("No Data"));
 		}
 
 		return outputs;
 	}
 
 	/**
-	 * @param constNHeadMapsCmp : constants, .., reference, challengers .., _Matchings
+	 * @param constNHeadMapsCmp : constants..., reference, challengers..., _Matching
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Boolean conditionCheck(Comparable... constNHeadMapsCmp) {
+		List<ComparableSortedMap<Date, Double>> _Matching = (ArrayList<ComparableSortedMap<Date, Double>>) constNHeadMapsCmp[constNHeadMapsCmp.length-1]; //Return parameter
+		return applyCriteria(_Matching, constNHeadMapsCmp);
+	}
 
-		List<Date> _Matching = (ArrayList<Date>) constNHeadMapsCmp[constNHeadMapsCmp.length-1];
+	/**
+	 * This is the actual criteria algorithm
+	 * Here matches :
+	 * 	- end date of reference V challengers 'additional output map'
+	 * 	- length  of reference V challengers 'additional output map'
+	 * @param _Matching Return parameter, list of matching dates found.
+	 */
+	@SuppressWarnings("unchecked")
+	protected Boolean applyCriteria(List<ComparableSortedMap<Date, Double>> _Matching, Comparable... constNHeadMapsCmp) {
 
 		int firstTailMapIdx = 2;
 		Double matchEndAlpha = (Double) constNHeadMapsCmp[0];
 		Double matchLengthAlpha = (Double) constNHeadMapsCmp[1];
 
-		SortedMap<Date, ComparableSortedMap<Date, Double>> refMap = (SortedMap<Date, ComparableSortedMap<Date, Double>>) constNHeadMapsCmp[firstTailMapIdx];
+		SortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>> refMap = (SortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>>) constNHeadMapsCmp[firstTailMapIdx];
 		Date refRightMost = refMap.lastKey();
-		_Matching.add(refRightMost);
-		Date refLeftMost = refMap.get(refMap.lastKey()).firstKey();
-		Double refLength = Double.valueOf(refRightMost.getTime() - refLeftMost.getTime());
-		for(int i = firstTailMapIdx +1; i < constNHeadMapsCmp.length-1; i++) {
-			SortedMap<Date, ComparableSortedMap<Date, Double>> chalMap = (SortedMap<Date, ComparableSortedMap<Date, Double>>) constNHeadMapsCmp[i];
-			ListIterator<Date> chalIter = new ArrayList<>(chalMap.keySet()).listIterator(chalMap.size());
-			Boolean okRight = false;
-			Boolean okLength = false;
-			Date chalRightMost = null;
-			while(chalIter.hasPrevious()) {
-				chalRightMost = chalIter.previous();
-				Date chalLeftMost = chalMap.get(chalRightMost).firstKey();
-				Double chalLength = Double.valueOf(chalRightMost.getTime() - chalLeftMost.getTime());
-				double maxLength = Math.max(Math.abs(chalLength), Math.abs(refLength));
+		ComparableArray<ComparableSortedMap<Date, Double>> refComparableArray = refMap.get(refRightMost);
+		Optional<ArrayList<ComparableSortedMap<Date, Double>>> foundMatching = refComparableArray.stream()
+				.map(refRightMostAddOutput -> {
+					ArrayList<ComparableSortedMap<Date, Double>> refMatching = new ArrayList<>();
+					refMatching.add(refRightMostAddOutput);
+					Date refLeftMost = refRightMostAddOutput.firstKey();
+					Double refLength = Double.valueOf(refRightMost.getTime() - refLeftMost.getTime());
+					for(int i = firstTailMapIdx +1; i < constNHeadMapsCmp.length-1; i++) { //Challengers Iteration: From after the reference Map Up to the return parameter.
+						SortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>> chalMap = (SortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>>) constNHeadMapsCmp[i];
+						ListIterator<Date> chalIter = new ArrayList<>(chalMap.keySet()).listIterator(chalMap.size());
+						ArrayList<ComparableSortedMap<Date, Double>> chalMatching = new ArrayList<>();
+						while(chalIter.hasPrevious()) {
+							Date chalRightMost = chalIter.previous();
+							ComparableArray<ComparableSortedMap<Date, Double>> comparableArray = chalMap.get(chalRightMost);
+							Boolean goneTooFarLeft = comparableArray.stream()
+									.map(rightMostAddOutput -> {
+										Date chalLeftMost = rightMostAddOutput.firstKey();
+										Double chalLength = Double.valueOf(chalRightMost.getTime() - chalLeftMost.getTime());
+										double maxLength = Math.max(Math.abs(chalLength), Math.abs(refLength));
+										Boolean okRight = Double.valueOf(refRightMost.getTime() - chalRightMost.getTime())/maxLength < matchEndAlpha;
+										if (okRight) {
+											Boolean okLength = Math.abs(refLength - chalLength)/maxLength < matchLengthAlpha;
+											if (okLength) {
+												chalMatching.add(rightMostAddOutput); //Found a match
+											}
+											return false; //Not Gone too far left.
+										} else {
+											return true; //Gone too far left for the end criteria.
+										}
+									})
+									.reduce((r, e) -> r || e) //Should be an && but does it matter as all the maps should end at the same date in this iteration?
+									.orElse(false);
+							if (goneTooFarLeft || !chalMatching.isEmpty()) break; //Too far left or a match was found, we give up the loop
+						}
 
-				okRight = Double.valueOf(refRightMost.getTime() - chalRightMost.getTime())/maxLength < matchEndAlpha;
-				if (okRight) {
-					okLength = Math.abs(refLength - chalLength)/maxLength < matchLengthAlpha;
-					if (okLength) break; //Found
-				} else break; //Gone too far left : Not found
-			}
-			if (!okRight || !okLength) return false;
-			_Matching.add(chalRightMost);
-		}
-		return true;
+						if (chalMatching.isEmpty()) {
+							break; //This challengers doesn't match invalidating the loop on challengers
+						} else {
+							refMatching.add(chalMatching.get(0)); //We add the first match for this challenger.
+						}
 
+					}
+					return refMatching;
+				})
+				.filter(e -> e.size() == (constNHeadMapsCmp.length-1) - (firstTailMapIdx))
+				.findFirst();
+
+		_Matching.addAll(foundMatching.orElse(new ArrayList<>()));
+		return _Matching.size() == (constNHeadMapsCmp.length-1) - (firstTailMapIdx);
 	}
 
 }

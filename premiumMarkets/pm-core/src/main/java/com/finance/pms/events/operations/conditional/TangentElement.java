@@ -1,9 +1,8 @@
 package com.finance.pms.events.operations.conditional;
 
-import com.finance.pms.events.scoring.functions.Line;
-
 import java.util.Date;
-import java.util.SortedMap;
+
+import com.finance.pms.events.scoring.functions.Line;
 
 public class TangentElement {
 

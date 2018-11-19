@@ -71,7 +71,7 @@ import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.portfolio.PortfolioMgr;
 
 public class GnuCashTransactionReportParser {
-	
+
 	private static final int AMOUNT_COLUMN = 5; //Quantity + Stock Symbol
 	private static final int PRICE_COLUMN = 4;	//Share unit price
 	private static final int SHARES_COLUMN = 3; //Quantity
@@ -80,7 +80,7 @@ public class GnuCashTransactionReportParser {
 	private static final int DATE_COLUMN = 0;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(GnuCashTransactionReportParser.class);
-	
+
 	GnuCashParserHelper gnuCashParserHelper;
 	private ArrayList<TransactionElement> reportElements;
 
@@ -127,17 +127,17 @@ public class GnuCashTransactionReportParser {
 					reportElements.add(reportElement);
 				}
 			}
-			
+
 			LOGGER.info("Finish parsing : "+reportElements);
 			if (reportElements.size() == 0) throw new IOException("Invalid file.\nNo transaction found.");
-			
+
 			LOGGER.info("Storing transactions");
 			for (TransactionElement transactionElement : reportElements) {
 				PortfolioMgr.getInstance().getPortfolioDAO().deleteOrphanTransactionReportsFor(transactionElement.getExternalAccount());
 			}
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdateTransactionReports(reportElements);
 			LOGGER.info("Finished storing transactions");
-			
+
 		} catch (XPathExpressionException e) {
 			LOGGER.error(e,e);
 			throw new IOException("Invalid file.", e);
@@ -151,26 +151,26 @@ public class GnuCashTransactionReportParser {
 	}
 
 	private void checkTitles(Element row) throws XPathExpressionException {
-		
-//		<TH ALIGN="center">
-//		<B>Date</B>
-//		</TH>
-//		<TH ALIGN="center">
-//		<B>Description</B>
-//		</TH>
-//		<TH ALIGN="center">
-//		<B>Account</B>
-//		</TH>
-//		<TH ALIGN="center">
-//		<B>Shares</B>
-//		</TH>
-//		<TH ALIGN="center">
-//		<B>Price</B>
-//		</TH>
-//		<TH ALIGN="center">
-//		<B>Amount</B>
-//		</TH>
-	
+
+		//		<TH ALIGN="center">
+		//		<B>Date</B>
+		//		</TH>
+		//		<TH ALIGN="center">
+		//		<B>Description</B>
+		//		</TH>
+		//		<TH ALIGN="center">
+		//		<B>Account</B>
+		//		</TH>
+		//		<TH ALIGN="center">
+		//		<B>Shares</B>
+		//		</TH>
+		//		<TH ALIGN="center">
+		//		<B>Price</B>
+		//		</TH>
+		//		<TH ALIGN="center">
+		//		<B>Amount</B>
+		//		</TH>
+
 		NodeList rowAtts = extractAtts(row, "th");
 		Element dateItem = (Element) rowAtts.item(DATE_COLUMN);
 		boolean hasDate = dateItem != null && "Date".equals(dateItem.getTextContent().trim());
@@ -184,18 +184,18 @@ public class GnuCashTransactionReportParser {
 		boolean hasPrice = priceItem != null && "Price".equals(priceItem.getTextContent().trim());
 		Element amountItem = (Element) rowAtts.item(AMOUNT_COLUMN);
 		boolean hasAmount = amountItem != null && "Amount".equals(amountItem.getTextContent().trim());
-		
+
 		if (hasDate && hasAccount && hasDescription && hasShares && hasPrice && hasAmount) return;
-			
+
 		throw new RuntimeException(String.format("Invalid file or Gnucash report : hasDate %b, hasAccount %b, hasDescription %b, hasShares %b, hasPrice %b, hasAmount %b", hasDate, hasAccount, hasDescription, hasShares, hasPrice, hasAmount));
 	}
 
 	private TransactionElement addReportElement(Element row)  {
 
 		try {
-			
+
 			NodeList rowAtts = extractAtts(row,"td");
-			
+
 			Date date;
 			try {
 				DateFormat sdf = new SimpleDateFormat(MainPMScmd.getMyPrefs().get("gnurepport.dateformat", "yyyy-MM-dd")); // SimpleDateFormat("dd/MM/yy");
@@ -205,15 +205,15 @@ public class GnuCashTransactionReportParser {
 				//Ignoring lines not starting with a date
 				return null;
 			}
-			
+
 			String[] accountPath = ((Element) rowAtts.item(ACCOUNT_COLUMN)).getTextContent().trim().split(":");
 			String gnucashAccount = accountPath[accountPath.length-1].trim().replaceAll("[ \n]+","_");
-			
+
 			Currency transactionCurrency = gnuCashParserHelper.extractCurrency(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
 			BigDecimal price = gnuCashParserHelper.calculateBigDecimal(((Element) rowAtts.item(PRICE_COLUMN)).getTextContent());
-			
+
 			String[] amountString = ((Element) rowAtts.item(AMOUNT_COLUMN)).getTextContent().trim().split(" +");
-			
+
 
 			BigDecimal quantity;
 			String symbol;
@@ -229,16 +229,16 @@ public class GnuCashTransactionReportParser {
 				//Ignoring lines that are not stocks transactions
 				return null;
 			}
-			
+
 			Stock stock = gnuCashParserHelper.findMatchingStock(symbol);
 			if (stock != null) return new TransactionElement(stock, null, gnucashAccount, date, price, quantity, transactionCurrency);
-			
+
 		} catch (Exception e) { //Error
 			LOGGER.error("Unparsable line :"+row.getTextContent()+" with error : "+e);
 		}
-		
+
 		return null;
-		
+
 	}
 
 	private NodeList extractRows(InputStream inputStream) throws XPathExpressionException {
@@ -246,31 +246,31 @@ public class GnuCashTransactionReportParser {
 		XPath xPath = factory.newXPath();  
 		InputSource inputSource = new InputSource(inputStream);  
 		String expression = "//tr";  
-		
+
 		NodeList rows = (NodeList) xPath.evaluate(expression, inputSource, XPathConstants.NODESET);
 		return rows;
 	}
-	
+
 	private NodeList extractAtts(Element row, String expression) throws XPathExpressionException {
-		
+
 		XPathFactory factory=XPathFactory.newInstance();  
 		XPath xPath=factory.newXPath();   
 		NodeList nodeList =  (NodeList) xPath.evaluate(expression, row, XPathConstants.NODESET);
-		
+
 		return nodeList;
 	}
 
 	//Main for Test
 	public static void main(String... arg) throws IOException, InvalidAlgorithmParameterException {
-		
+
 		SpringContext springContext = new SpringContext(arg[0]);
 		//springContext.setDataSource(arg[0]);
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 		springContext.refresh();
-		
+
 		GnuCashTransactionReportParser cashTransactionReportParser = new GnuCashTransactionReportParser();
 		cashTransactionReportParser.parse("/home/guil/Documents/Comptes/Gestion/PMS/transactionReport.html");
-		
+
 		Stock stock = new Stock("LU0294219869","LU0294219869","",true,
 				StockCategories.DEFAULT_CATEGORY,EventSignalConfig.getNewDate(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
@@ -279,16 +279,18 @@ public class GnuCashTransactionReportParser {
 		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", EventSignalConfig.getNewDate());
 		StringBuffer printReportTransactions = cashTransactionReportParser.printReportTransactions(fteReports);
 		System.out.println(printReportTransactions);
+
+		springContext.close();
 	}
 
 	private StringBuffer printReportTransactions(SortedSet<TransactionElement> fteReports) {
-		
+
 		StringBuffer reportPrint = new StringBuffer("SortedSet<ReportElement> elements = new TreeSet<ReportElement>();\n");
 		for (TransactionElement reportElement : fteReports) {
 			//elements.add(new ReportElement("FR0010096354", simpleDateFormat.parse("11/07/04"), new BigDecimal(11.2894), new BigDecimal(246.6478)));
 			reportPrint.append(reportElement.printTestElement());
 		}
-		
+
 		return reportPrint;
 	}
 

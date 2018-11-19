@@ -30,6 +30,7 @@
 package com.finance.pms.events.calculation;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
-import com.finance.pms.events.scoring.functions.Line;
+import com.finance.pms.events.scoring.functions.HighLowSolver.Greed;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 import com.finance.pms.talib.indicators.FormulatRes;
 import com.finance.pms.talib.indicators.TalibException;
@@ -102,9 +103,9 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 			Boolean isOscWithinBullThresholds = isOscWithinBullThresholds(idxSpan, oscIdx);
 
 			if (isOscWithinBullThresholds) {
-				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
+				isPriceDown = highLowSolver.lowerLow(stockLookBackP, 0, getAlphaBalance().intValue(),  Greed.GREEDY, new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				if (isPriceDown) {
-					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
+					isOscillatorUp = highLowSolver.higherLow(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(),  Greed.GREEDY, new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				}
 			}
 
@@ -120,9 +121,9 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 			Boolean isOcsWithinBearThresholds = isOcsWithinBearThresholds(idxSpan, oscIdx);
 
 			if (isOcsWithinBearThresholds) {
-				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
+				isPriceUp = highLowSolver.higherHigh(stockLookBackP, 0, getAlphaBalance().intValue(),  Greed.GREEDY, new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				if (isPriceUp) {
-					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), new TreeMap<>(), new Line<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
+					isOscillatorDown = highLowSolver.lowerHigh(oscLookBackP, oscLookBackSmoothingPeriod(), getAlphaBalance().intValue(), Greed.GREEDY, new TreeMap<>(), new ArrayList<>(), Double.NaN,  Double.NaN,  Double.NaN, Double.NaN, Double.NaN, Double.NaN); //FIXME
 				}
 			}
 

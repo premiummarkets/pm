@@ -62,8 +62,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean higherHigh(
-			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, Greed greed,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -76,7 +76,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean hh = calculateLHAndHL(
 				peak, inferiorOrEqual, inferior, data,
-				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, greed, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return hh;
@@ -84,8 +84,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean lowerLow(
-			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, Greed greed,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -98,7 +98,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean ll = calculateLHAndHL(
 				trough, superiorOrEqual, superior, data,
-				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, greed, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return ll;
@@ -106,8 +106,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean higherLow(
-			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
-			SortedMap<Integer, Double> higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, Greed greed,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -120,7 +120,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean hl = calculateLHAndHL(
 				trough, inferiorOrEqual, superior, data,
-				smoothingPeriod, minimumSurfaceOfChange, higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, greed, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return hl;
@@ -128,7 +128,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 	@Override
 	public Boolean lowerHigh(
-			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange, Greed greed,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -141,7 +142,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean lh = calculateLHAndHL(
 				peak, superiorOrEqual, inferior, data,
-				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, greed, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestEnd, highestEnd,
 				minSlope, maxSlope);
 		return lh;
@@ -150,7 +151,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	@Override
 	public Boolean flatHigh(
 			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double tolerance
 			) {
 
@@ -160,7 +161,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean fhs = calculateLHAndHL(
 				peak, isOk, inferior, data,
-				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, Greed.GREEDY, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestStart, highestStart,
 				-tolerance, tolerance);
 
@@ -170,7 +171,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 	@Override
 	public Boolean flatLow(
 			SortedMap<Integer, Double> data, int smoothingPeriod, double minimumSurfaceOfChange,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double tolerance
 			) {
 
@@ -180,7 +181,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 
 		Boolean fls = calculateLHAndHL(
 				trough, isOk, superior, data,
-				smoothingPeriod, minimumSurfaceOfChange, _higherHighs, _expertTangent,
+				smoothingPeriod, minimumSurfaceOfChange, Greed.GREEDY, _higherHighs, _expertTangent,
 				lowestStart, highestStart, lowestStart, highestStart,
 				-tolerance, tolerance);
 
@@ -208,7 +209,8 @@ public class SmoothHighLowSolver implements HighLowSolver {
 			BiFunction<Double,Double, Boolean> tangentIsNotToData,
 			SortedMap<Integer, Double> data,
 			int smoothingPeriod, double minimumSurfaceOfChange,
-			SortedMap<Integer, Double> _higherHighs, Line<Integer, Double> _expertTangent,
+			Greed greed,
+			SortedMap<Integer, Double> _higherHighs, List<Line<Integer, Double>> _expertTangent,
 			Double lowestStart, Double highestStart, Double lowestEnd, Double highestEnd,
 			Double minSlope, Double maxSlope) {
 
@@ -227,7 +229,7 @@ public class SmoothHighLowSolver implements HighLowSolver {
 		Double rightMostKnot = knots.get(rightMostKnotAbs);
 
 		Integer validLeftMostKnotAbs = null;
-
+		Line<Integer, Double> _tangent = new Line<>();
 		while (knotsAbsIterator.hasPrevious()) {
 
 			Integer nextLeftKnotAbs = knotsAbsIterator.previous();
@@ -240,17 +242,28 @@ public class SmoothHighLowSolver implements HighLowSolver {
 							knots, zEMASmoothed,
 							zeroIsToSlope, minSlope, maxSlope, 
 							tangentIsNotToData, minimumSurfaceOfChange,
-							nextLeftKnotAbs, rightMostKnotAbs, _expertTangent);
+							nextLeftKnotAbs, rightMostKnotAbs, _tangent);
 			if ( isWithinBand && isValidTangent ) {
 				validLeftMostKnotAbs = nextLeftKnotAbs;
+				if (Greed.LAZY.equals(greed)) break; //exit at first finding if lazy
+				if (Greed.FULL.equals(greed)) { //Update output map for each finding (if full)
+					_expertTangent.add(_tangent);
+					_higherHighs.put(validLeftMostKnotAbs, knots.get(validLeftMostKnotAbs));
+					_higherHighs.put(rightMostKnotAbs, rightMostKnot);
+					_tangent = new Line<>();
+				}
 			}
 
 		}
 
-		//Update output map
 		if (validLeftMostKnotAbs == null) return false;
-		_higherHighs.put(validLeftMostKnotAbs, knots.get(validLeftMostKnotAbs));
-		_higherHighs.put(rightMostKnotAbs, rightMostKnot);
+
+		//Update output map (greedy && lazy)
+		if(Greed.GREEDY.equals(greed) || Greed.LAZY.equals(greed)) {
+			_expertTangent.add(_tangent);
+			_higherHighs.put(validLeftMostKnotAbs, knots.get(validLeftMostKnotAbs));
+			_higherHighs.put(rightMostKnotAbs, rightMostKnot);
+		}
 
 		return true;
 	}

@@ -1,9 +1,12 @@
 package com.finance.pms.events.operations.conditional;
 
-import com.finance.pms.events.scoring.functions.Line;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import com.finance.pms.events.scoring.functions.Line;
 
 public interface LinearOutputs {
 

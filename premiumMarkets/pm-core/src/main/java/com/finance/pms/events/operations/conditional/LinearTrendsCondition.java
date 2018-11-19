@@ -1,12 +1,20 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.SortedMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import com.finance.pms.events.scoring.functions.Line;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -16,6 +24,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.functions.Line;
 
 /**
  * 'spanning' : does not make sense. As this condition is a status check in time not an event check (change of status) in time.

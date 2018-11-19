@@ -1,15 +1,19 @@
 package com.finance.pms.events.scoring.functions;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.finance.pms.events.scoring.functions.HighLowSolver.Greed;
 
 public class SmoothHighLowSolverTest {
 
@@ -30,7 +34,7 @@ public class SmoothHighLowSolverTest {
         int smoothingPeriod = 0;
         int minimumNbDaysBetweenExtremes = 5;
         SortedMap<Integer, Double> _higherHighs = new TreeMap<>();
-        Line<Integer, Double> _expertTangent = new Line<>();
+        List<Line<Integer, Double>> _expertTangent = new ArrayList<>();
         Double lowestStart = Double.NaN;
         Double highestStart = Double.NaN;
         Double lowestEnd = Double.NaN;
@@ -39,7 +43,7 @@ public class SmoothHighLowSolverTest {
         Double maxSlope = Double.NaN;
         Boolean hasHH = smoothHighLowSolver.higherHigh(
                 data,
-                smoothingPeriod, minimumNbDaysBetweenExtremes,
+                smoothingPeriod, minimumNbDaysBetweenExtremes, Greed.GREEDY,
                 _higherHighs, _expertTangent,
                 lowestStart, highestStart,
                 lowestEnd, highestEnd,

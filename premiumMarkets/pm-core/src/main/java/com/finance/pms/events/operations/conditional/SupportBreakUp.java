@@ -1,16 +1,17 @@
 package com.finance.pms.events.operations.conditional;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.function.Function;
+
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.events.scoring.functions.Line;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.function.Function;
 
 public class SupportBreakUp extends HighsAndLowsCondition implements SupportBreak {
 
@@ -32,8 +33,9 @@ public class SupportBreakUp extends HighsAndLowsCondition implements SupportBrea
 		SortedMap<Integer, Double> lookBackData = ((SortedMap<Integer, Double>) ops[0]);
 
 		@SuppressWarnings("unchecked")
-		Boolean hasSupport = highLowSolver.flatHigh( //data, smoothingPeriod, minimumNbDaysBetweenExtremes, _higherHighs, _expertTangent, lowestStart, highestStart, lowestEnd, highestEnd, tolerance)(
-				lookBackData, (Integer) ops[1], (Double) ops[2], (SortedMap<Integer, Double>) ops[3], (Line<Integer, Double>) ops[4],
+		Boolean hasSupport = highLowSolver.flatHigh(
+				lookBackData, (Integer) ops[1], (Double) ops[2],
+				(SortedMap<Integer, Double>) ops[3], (List<Line<Integer, Double>>) ops[4],
 				(Double) ops[5], (Double) ops[6], (Double) ops[11]);
 
 		return hasSupport;
@@ -47,9 +49,8 @@ public class SupportBreakUp extends HighsAndLowsCondition implements SupportBrea
 	@Override
     protected Line<Integer, Double> confirmationReduction(
             TargetStockInfo targetStock,
-            SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
-            Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance,
-            BooleanMultiMapValue outputs) {
+            SortedMap<Date, ArrayList<Line<Integer, Double>>> realRowTangents, Integer overPeriodRemanence,
+            Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
         Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(realRowTangents, overPeriodRemanence, actualTangent, actualDate, actualData, tolerance);
         //TODO fill in remaining remanance period??
         return reducedTangent;

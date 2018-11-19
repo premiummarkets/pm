@@ -53,7 +53,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * Additional constraints :
  * 'spanning'
  * 'over'
- * 'for'. Only makes sense for Down and Up Ratios.
+ * 'for'. Only makes sense for Down and Up Ratios (status V change of status).
  */
 
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class, DownRatioCondition.class, UpRatioCondition.class})

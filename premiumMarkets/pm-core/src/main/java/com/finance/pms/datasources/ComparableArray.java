@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-public class ComparableArray<T extends Comparable<T>> extends ArrayList<T> implements Comparable<ArrayList<T>> {
+public class ComparableArray<T extends Comparable<T>> extends ArrayList<T> implements Comparable<ComparableArray<T>> {
 
 	private static final long serialVersionUID = -363699288012620328L;
 
@@ -47,7 +47,7 @@ public class ComparableArray<T extends Comparable<T>> extends ArrayList<T> imple
 
 	@Override
 	//XXX
-	public int compareTo(ArrayList<T> o) {
+	public int compareTo(ComparableArray<T> o) {
 		int size = new Integer(this.size()).compareTo(new Integer(o.size()));
 		if (size != 0) {
 			return size;

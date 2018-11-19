@@ -30,10 +30,12 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.scoring.functions.HighLowSolver;
+import com.finance.pms.events.scoring.functions.HighLowSolver.Greed;
 import com.finance.pms.events.scoring.functions.Line;
 import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
@@ -54,9 +56,10 @@ public class HigherHighCondition extends HighsAndLowsCondition {
 	@Override
 	public Boolean conditionCheck(Comparable ... ops) {
 		return highLowSolver.higherHigh(
-				(SortedMap<Integer, Double>) ops[0], (Integer) ops[1], (Double) ops[2], (SortedMap<Integer, Double>) ops[3], ((Line<Integer, Double>) ops[4]),
-				(Double) ops[5], (Double) ops[6], (Double) ops[7], (Double) ops[8],
-				(Double) ops[9], (Double) ops[10]);
+				(SortedMap<Integer, Double>) ops[0], (Integer) ops[1], (Double) ops[2], (Greed) ops[3],
+				(SortedMap<Integer, Double>) ops[4], (List<Line<Integer, Double>>) ops[5],
+				(Double) ops[6], (Double) ops[7], (Double) ops[8], (Double) ops[9],
+				(Double) ops[10], (Double) ops[11]);
 	}
 
 }

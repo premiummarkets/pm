@@ -50,9 +50,9 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 /**
  * @author Guillaume Thoreton
  * Additional constraints :
+ * 'spanning'. Does not make sense : As this condition is a status check in time not an event (change of status) check in time.
  * 'over'
  * 'for'
- * does not make sense : 'spanning'. As this condition is a status check in time not an event check (change of status) in time.
  */
 @XmlSeeAlso({EqualConstantCondition.class, InfConstantCondition.class, SupConstantCondition.class})
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {

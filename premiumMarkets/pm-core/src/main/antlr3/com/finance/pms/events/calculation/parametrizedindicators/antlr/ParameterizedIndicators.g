@@ -298,30 +298,34 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
+  		WhiteChar 'greed' WhiteChar greed=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(HigherHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(HigherHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
   ('makes a higher low spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
+  		WhiteChar 'greed' WhiteChar greed=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(HigherLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(HigherLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
   ('makes a lower high spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
+  		WhiteChar 'greed' WhiteChar greed=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(LowerHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(LowerHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
   ('makes a lower low spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
+  		WhiteChar 'greed' WhiteChar greed=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
 
   	('makes a support break down spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
@@ -329,7 +333,7 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
   		WhiteChar 'tolerance' WhiteChar tolerance=constant
-  	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
+  	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} ^(String StringToken["\"greedy\""]) {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
 
   	('makes a support break up spanning' WhiteChar lookBack=constant WhiteChar DAYS
       		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS
@@ -337,7 +341,7 @@ presetcondition [CommonTree firstOp] :
       		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS
       		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
       		WhiteChar 'tolerance' WhiteChar tolerance=constant
-     -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
+     -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} ^(String StringToken["\"greedy\""]) {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
 
   ('trends flat'
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS

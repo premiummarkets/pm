@@ -32,7 +32,7 @@ package com.finance.pms.datasources;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class ComparableSortedMap<K extends Comparable<K>, V extends Comparable<V>> extends TreeMap<K,V> implements Comparable<TreeMap<K,V>> {
+public class ComparableSortedMap<K extends Comparable<K>, V extends Comparable<V>> extends TreeMap<K,V> implements Comparable<ComparableSortedMap<K,V>> {
 
 	private static final long serialVersionUID = -363699288012620328L;
 
@@ -46,7 +46,7 @@ public class ComparableSortedMap<K extends Comparable<K>, V extends Comparable<V
 
 	@Override
 	//XXX
-	public int compareTo(TreeMap<K,V> o) {
+	public int compareTo(ComparableSortedMap<K,V> o) {
 		int size = new Integer(this.size()).compareTo(new Integer(o.size()));
 		if (size != 0) {
 			return size;

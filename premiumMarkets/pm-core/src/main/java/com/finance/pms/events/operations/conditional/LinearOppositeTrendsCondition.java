@@ -1,10 +1,5 @@
 package com.finance.pms.events.operations.conditional;
 
-import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.*;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -12,6 +7,16 @@ import java.util.SortedMap;
 import java.util.stream.Collectors;
 
 import javax.transaction.NotSupportedException;
+
+import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.StringValue;
 
 public class LinearOppositeTrendsCondition extends LinearTrendsCondition implements OnSignalCondition  {
 

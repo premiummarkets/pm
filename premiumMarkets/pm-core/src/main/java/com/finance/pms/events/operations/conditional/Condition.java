@@ -80,7 +80,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	CrossConstantCondition.class,
 	CrossDoubleMapCondition.class,
 	EqualStringConstantCondition.class,
-	HighsAndLowsCondition.class, 
+	HighsAndLowsCondition.class,
 	NullCondition.class,
 	ReverseCondition.class,
 	LinearTrendsCondition.class,
@@ -124,6 +124,7 @@ public class Condition<T> extends Operation {
 
 	/**
 	 * We fill in ahead a period a of 'overPeriod' length with the actual condition status if it is true.
+	 * Does nothing if the the actual condition status is false.
 	 * @param targetStock
 	 * @param fullKeySet data full date set
 	 * @param overPeriod

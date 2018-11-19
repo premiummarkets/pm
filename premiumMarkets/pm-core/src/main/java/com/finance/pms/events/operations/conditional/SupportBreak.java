@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.ListIterator;
 import java.util.SortedMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -23,7 +24,7 @@ public interface SupportBreak {
 	};
 
     default Line<Integer, Double> reduceRawOutputConfirmation(
-            SortedMap<Date, Line<Integer, Double>> realRowTangents, Integer overPeriodRemanence,
+            SortedMap<Date, ArrayList<Line<Integer, Double>>> realRowTangents, Integer overPeriodRemanence,
             Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
         if (overPeriodRemanence > 0) {
 
@@ -32,10 +33,10 @@ public interface SupportBreak {
             QuotationsFactories.getFactory().incrementDate(startRemananceCal, -overPeriodRemanence-1);
             Date startRemanance = startRemananceCal.getTime();
 
-            SortedMap<Date, Line<Integer, Double>> remananceLookBack = MapUtils.subMapInclusive(realRowTangents, startRemanance, actualDate);
-            ListIterator<Line<Integer, Double>> values = new ArrayList<>(remananceLookBack.values()).listIterator(remananceLookBack.size());
-            while (values.hasPrevious()) {
-                Line<Integer, Double> previousTangent = values.previous();
+            SortedMap<Date, ArrayList<Line<Integer, Double>>> remananceLookBack = MapUtils.subMapInclusive(realRowTangents, startRemanance, actualDate);
+            ListIterator<Line<Integer, Double>> remananceLookBackExpTangs = new ArrayList<>(remananceLookBack.values().stream().flatMap(a -> a.stream()).collect(Collectors.toList())).listIterator(remananceLookBack.size());
+            while (remananceLookBackExpTangs.hasPrevious()) {
+                Line<Integer, Double> previousTangent = remananceLookBackExpTangs.previous();
                 double tangentY = previousTangent.getIntersect() + previousTangent.getSlope() * (actualDate.getTime()/DAY_IN_MILLI - previousTangent.getxStart());
                 if (breakThroughCondition().apply(actualData).apply(tangentY).apply(tolerance)) return previousTangent;
             }
