@@ -34,14 +34,10 @@ import java.util.List;
 import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.events.scoring.functions.HighLowSolver.Greed;
 import com.finance.pms.events.scoring.functions.Line;
-import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
 public class LowerHighCondition extends HighsAndLowsCondition {
-
-	HighLowSolver highLowSolver = new SmoothHighLowSolver();
 
 	public LowerHighCondition() {
 		super("lower high",  "True when the time series is making a lower high.");
@@ -55,7 +51,7 @@ public class LowerHighCondition extends HighsAndLowsCondition {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Boolean conditionCheck(Comparable ... ops) {
-		return highLowSolver.lowerHigh(
+		return getHighLowSolver((String) ops[13]).lowerHigh(
 				(SortedMap<Integer, Double>) ops[0], (Integer) ops[1], (Double) ops[2], (Greed) ops[3],
 				(SortedMap<Integer, Double>) ops[4], (List<Line<Integer, Double>>) ops[5],
 				(Double) ops[6], (Double) ops[7], (Double) ops[8], (Double) ops[9],

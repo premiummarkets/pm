@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -43,6 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.EventDefDescriptor;
@@ -263,34 +263,34 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Set<OutputDescr> all100OutputDescr() {
-		HashSet<OutputDescr> all100OutputDescr = new HashSet<>();
-		Iterator<OutputDescr> iterator = getOutputDescrFlatList().values().iterator();
-		int i = 0;
-		while(iterator.hasNext() && i < 100) {
-			i++;
-			all100OutputDescr.add(iterator.next());
-		}
-		return all100OutputDescr;
+	public Set<OutputDescr> nonMULTIOutputDescr() {
+		HashSet<OutputDescr> nonMultiOutputDescr = new HashSet<>();
+
+		Set<OutputDescr> filteredODs = getOutputDescrFlatList().values().stream()
+				.filter(od -> !od.getType().equals(Type.MULTI))
+				.collect(Collectors.toSet());
+		nonMultiOutputDescr.addAll(filteredODs);
+
+		return nonMultiOutputDescr;
 	}
 
 	@Override
-	public Set<OutputDescr> displayedOutputsDescr() {
+	public Set<OutputDescr> mULTIOutputDescr() {
+		HashSet<OutputDescr> nonMultiOutputDescr = new HashSet<>();
 
-		Set<OutputDescr> ret = new TreeSet<>();
-		Set<OutputDescr> all100OutputDescr = all100OutputDescr();
-		for (final OutputDescr outputDescr: all100OutputDescr) {
-			if (outputDescr.getDisplayOnChart()) ret.add(outputDescr);
-		}
-		return ret;
+		Set<OutputDescr> filteredODs = getOutputDescrFlatList().values().stream()
+				.filter(od -> od.getType().equals(Type.MULTI))
+				.collect(Collectors.toSet());
+		nonMultiOutputDescr.addAll(filteredODs);
 
+		return nonMultiOutputDescr;
 	}
 
 	@Override
 	public boolean isDisplayed(int outputIdx) {
 		try {
 			OutputDescr outputDescr = getOutputDescr(outputIdx);
-			return displayedOutputsDescr().contains(outputDescr);
+			return outputDescr.getDisplayOnChart(); //displayedOutputsDescr().contains(outputDescr);
 		} catch (Exception e) {
 			return false;
 		}

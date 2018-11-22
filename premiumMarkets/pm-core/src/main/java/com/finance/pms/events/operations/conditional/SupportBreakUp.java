@@ -9,13 +9,9 @@ import java.util.function.Function;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.events.scoring.functions.Line;
-import com.finance.pms.events.scoring.functions.SmoothHighLowSolver;
 
 public class SupportBreakUp extends HighsAndLowsCondition implements SupportBreak {
-
-	HighLowSolver highLowSolver = new SmoothHighLowSolver();
 
 	public SupportBreakUp() {
 		super("break up high", "True when the time series breaks up a flat high support line.");
@@ -33,10 +29,10 @@ public class SupportBreakUp extends HighsAndLowsCondition implements SupportBrea
 		SortedMap<Integer, Double> lookBackData = ((SortedMap<Integer, Double>) ops[0]);
 
 		@SuppressWarnings("unchecked")
-		Boolean hasSupport = highLowSolver.flatHigh(
+		Boolean hasSupport = getHighLowSolver((String) ops[13]).flatHigh(
 				lookBackData, (Integer) ops[1], (Double) ops[2],
 				(SortedMap<Integer, Double>) ops[3], (List<Line<Integer, Double>>) ops[4],
-				(Double) ops[5], (Double) ops[6], (Double) ops[11]);
+				(Double) ops[5], (Double) ops[6], (Double) ops[12]);
 
 		return hasSupport;
 	}

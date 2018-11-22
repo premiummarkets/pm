@@ -60,6 +60,7 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.functions.HighLowSolver;
 import com.finance.pms.events.scoring.functions.HighLowSolver.Greed;
 import com.finance.pms.events.scoring.functions.Line;
 
@@ -77,8 +78,8 @@ import com.finance.pms.events.scoring.functions.Line;
 @XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
 public abstract class HighsAndLowsCondition extends Condition<Comparable> implements UnaryCondition, LinearOutputs {
 
-	private static final int THRESHOLDS_IDX = 5;
-	private static final int MAIN_POSITION = 12;
+	private static final int THRESHOLDS_IDX = 6;
+	private static final int MAIN_POSITION = 13;
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HighsAndLowsCondition.class);
 
@@ -91,7 +92,8 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				new NumberOperation("Over period as remanence/persistence of the divergence from its trigger date"),
 				new NumberOperation("Surface minimum within the divergence line and actual supported knots"),
 				new NumberOperation("Smoothing period for sporadic peaks and troughs mitigation"),
-				new StringOperation("Lazy or Greedy lookback finds?"),
+				new StringOperation("Greedy, Full or Lazy lookback finds?"),
+				new StringOperation("High and Low solver type : Smooth, Trend, ..."),
 				new NumberOperation("Lowest knot start (can be NaN)"),
 				new NumberOperation("Highest knot start (can be NaN)"),
 				new NumberOperation("Lowest knot end (can be NaN)"),
@@ -105,6 +107,10 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 	public HighsAndLowsCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
+	}
+
+	public HighLowSolver getHighLowSolver(String highLowSolverType) {
+		return HighLowSolver.getHighLowSolverFor(highLowSolverType);
 	}
 
 	@Override
@@ -121,6 +127,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 		Double minimumSurfaceOfChange = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue(); //f
 		Integer lookBackSmoothingPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
 		Greed greed = Greed.valueOf(((StringValue) inputs.get(4)).getValue(targetStock).toString().toUpperCase());
+		String highLowSolverType = ((StringValue) inputs.get(5)).getValue(targetStock);
 
 		Double lowestStart = ((NumberValue) inputs.get(THRESHOLDS_IDX)).getValue(targetStock).doubleValue();
 		Double highestStart = ((NumberValue) inputs.get(THRESHOLDS_IDX+1)).getValue(targetStock).doubleValue();
@@ -165,7 +172,7 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 
 				if (MapUtils.subMapInclusive(data, lookBackPeriodStart, date).size() < 4) continue;
 
-				Comparable dataLookBackTimeCmp = 
+				Comparable dataLookBackTimeCmp =
 						new ComparableSortedMap<>(
 								MapUtils
 								.subMapInclusive(fullDataDayNumIndexedMap, new Integer((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), new Integer((int) (date.getTime()/DAY_IN_MILLI)))
@@ -182,13 +189,15 @@ public abstract class HighsAndLowsCondition extends Condition<Comparable> implem
 				Comparable minSlopeCmp = minSlope;
 				Comparable maxSlopeCmp = maxSlope;
 				Comparable toleranceCmp = tolerance;
+				Comparable highLowSolverTypeCmp = highLowSolverType;
 
 				Boolean conditionCheck = conditionCheck(
 						dataLookBackTimeCmp,
 						lookBackSmoothingPeriodCmp, minimumSurfaceOfChangeCmp, greedCmp,
 						_higherHighsCmp, _expertTangentCmp,
 						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp,
-						minSlopeCmp, maxSlopeCmp, toleranceCmp);
+						minSlopeCmp, maxSlopeCmp, toleranceCmp,
+						highLowSolverTypeCmp);
 
 				if (conditionCheck != null) {
 

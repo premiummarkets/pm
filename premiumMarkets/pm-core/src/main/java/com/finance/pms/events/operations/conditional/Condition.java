@@ -73,7 +73,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  */
 
 @XmlSeeAlso({
-	BooleanDoubleMapCondition.class,
+	BooleanMapCondition.class,
 	CmpConstantCondition.class,
 	CmpDoubleMapCondition.class,
 	CmpDoubleMapCondition.class,
@@ -84,7 +84,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	NullCondition.class,
 	ReverseCondition.class,
 	LinearTrendsCondition.class,
-	MatchingMapCondition.class})
+	MatchingBooleanMapCondition.class})
 public class Condition<T> extends Operation {
 
 	protected Condition() {

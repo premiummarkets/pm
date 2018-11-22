@@ -33,33 +33,30 @@ import java.util.ArrayList;
 
 import com.finance.pms.events.operations.Operation;
 
-public class OrDoubleMapCondition extends BooleanDoubleMapCondition {
-
-	private OrDoubleMapCondition() {
-		super("or", "Compare two boolean time series over time and is true when at least one is true.");
+public class NotBooleanMapCondition extends BooleanMapCondition {
+	
+	private NotBooleanMapCondition() {
+		super("not", "Return the complementary of a boolean series.", new Condition<Boolean>("boolean historical data"));
 	}
-
-	public OrDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {
+	
+	public NotBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
 	}
 
 	@Override
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Boolean>... ops) {
-		for (Comparable<Boolean> op : ops) {
-			if (op.compareTo(Boolean.TRUE) == 0) return true;
-		}
-		return false;
+	   return !(Boolean)ops[0];
 	}
 
 	@Override
 	protected Boolean shortcutUnary() {
-		return true;
+		return false;
 	}
 
 	@Override
 	protected Boolean exactDataSet() {
-		return false;
+		return true;
 	}
 
 }

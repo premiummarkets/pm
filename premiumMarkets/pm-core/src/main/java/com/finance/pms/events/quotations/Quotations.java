@@ -61,7 +61,7 @@ public class Quotations {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 
-	public static enum ValidityFilter {NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV};
+	public static enum ValidityFilter {NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV}; //NONE doesn't return anything. ALL returns everything? (not implemented)
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
 	private static ConcurrentHashMap<Validatable, LastUpdateStampChecker> UPDATESTAMP_CACHE = new ConcurrentHashMap<Validatable, LastUpdateStampChecker>();
 

@@ -15,10 +15,10 @@ tokens {
 
   NullCondition;
 
-  OrDoubleMapCondition ;
-  AndDoubleMapCondition ;
-  NotDoubleMapCondition;
-  MatchingMapCondition ;
+  OrBooleanMapCondition ;
+  AndBooleanMapCondition ;
+  NotBooleanMapCondition;
+  MatchingBooleanMapCondition ;
 
   SupDoubleMapCondition ;
   InfDoubleMapCondition ;
@@ -44,7 +44,7 @@ tokens {
 
   LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
-  LinearFlatTrendsCondition ;
+  LinearDirectedTrendsCondition ;
 
   EqualStringConstantCondition ;
 
@@ -167,7 +167,7 @@ bearish_condition[CommonTree bcond] :
  bearish_not_bullish[$bcond] WhiteChar* SEMICOLUMN WhiteChar* -> bearish_not_bullish
  ;
  also_display :
-  'also display' WhiteChar primary_expression WhiteChar* SEMICOLUMN -> ^(AndDoubleMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
+  'also display' WhiteChar primary_expression WhiteChar* SEMICOLUMN -> ^(AndBooleanMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
   -> NullCondition
  ;
  fixed_start_shift :
@@ -178,9 +178,9 @@ bearish_condition[CommonTree bcond] :
 bearish_not_bullish[CommonTree bcond] :
  'is bearish if not bullish'
   (
-  WhiteChar AND WhiteChar primary_expression -> ^(AndDoubleMapCondition ^(String StringToken["\"FALSE\""]) ^(NotDoubleMapCondition {$bcond}) primary_expression)|
-  WhiteChar OR WhiteChar primary_expression -> ^(OrDoubleMapCondition ^(NotDoubleMapCondition {$bcond}) primary_expression)|
-  -> ^(NotDoubleMapCondition {$bcond})
+  WhiteChar AND WhiteChar primary_expression -> ^(AndBooleanMapCondition ^(String StringToken["\"FALSE\""]) ^(NotBooleanMapCondition {$bcond}) primary_expression)|
+  WhiteChar OR WhiteChar primary_expression -> ^(OrBooleanMapCondition ^(NotBooleanMapCondition {$bcond}) primary_expression)|
+  -> ^(NotBooleanMapCondition {$bcond})
   )
  ;
 
@@ -189,18 +189,18 @@ primary_expression :
  and_expression
  ;
 and_expression :
-  or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndDoubleMapCondition {$lenientParam.tree} or_expression or_expression*)
+  or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndBooleanMapCondition {$lenientParam.tree} or_expression or_expression*)
   ;
 or_expression :
-  matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrDoubleMapCondition matches_expression matches_expression*)
+  matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrBooleanMapCondition matches_expression matches_expression*)
   ;
 matches_expression :
-  atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingMapCondition constant* atom atom?)
+  atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingBooleanMapCondition constant* atom atom?)
   ;
 atom :
   booleanhistory |
   '(' WhiteChar* primary_expression WhiteChar* ')' -> primary_expression |
-  'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotDoubleMapCondition primary_expression)
+  'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotBooleanMapCondition primary_expression)
   ;
 
 
@@ -299,33 +299,37 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'greed' WhiteChar greed=stringconstant
+  		WhiteChar 'type' WhiteChar type=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(HigherHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(HigherHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$type.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
   ('makes a higher low spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'greed' WhiteChar greed=stringconstant
+  		WhiteChar 'type' WhiteChar type=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(HigherLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(HigherLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$type.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
   ('makes a lower high spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'greed' WhiteChar greed=stringconstant
+  		WhiteChar 'type' WhiteChar type=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(LowerHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(LowerHighCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$type.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
   ('makes a lower low spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
   		WhiteChar 'for' WhiteChar extremesSpan=constant WhiteChar DAYS 
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'greed' WhiteChar greed=stringconstant
+  		WhiteChar 'type' WhiteChar type=stringconstant
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']' WhiteChar 'ending within' WhiteChar '[' lowestEnd=constant ',' highestEnd=constant ']'
   		WhiteChar 'slope within' WhiteChar '[' minSlope=constant ',' maxSlope=constant ']'
-  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
+  	-> ^(LowerLowCondition {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} {$greed.tree} {$type.tree} {$lowestStart.tree} {$highestStart.tree} {$lowestEnd.tree} {$highestEnd.tree} {$minSlope.tree} {$maxSlope.tree} ^(Number NumberToken["NaN"]) {$firstOp}) ) |
 
   	('makes a support break down spanning' WhiteChar lookBack=constant WhiteChar DAYS 
   		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS 
@@ -333,7 +337,7 @@ presetcondition [CommonTree firstOp] :
   		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS 
   		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
   		WhiteChar 'tolerance' WhiteChar tolerance=constant
-  	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} ^(String StringToken["\"greedy\""]) {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
+  	-> ^(SupportBreakDown {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} ^(String StringToken["\"greedy\""]) ^(String StringToken["\"smooth\""]) {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
 
   	('makes a support break up spanning' WhiteChar lookBack=constant WhiteChar DAYS
       		WhiteChar 'over' WhiteChar remanencePeriod=constant WhiteChar DAYS
@@ -341,13 +345,25 @@ presetcondition [CommonTree firstOp] :
       		WhiteChar 'smoothed' WhiteChar smoothP=constant WhiteChar DAYS
       		WhiteChar 'starting within' WhiteChar '[' lowestStart=constant ',' highestStart=constant ']'
       		WhiteChar 'tolerance' WhiteChar tolerance=constant
-     -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} ^(String StringToken["\"greedy\""]) {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
+     -> ^(SupportBreakUp {$lookBack.tree} {$remanencePeriod.tree} {$extremesSpan.tree} {$smoothP.tree} ^(String StringToken["\"greedy\""]) ^(String StringToken["\"smooth\""]) {$lowestStart.tree} {$highestStart.tree} ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) ^(Number NumberToken["NaN"]) {$tolerance.tree} {$firstOp}) ) |
 
   ('trends flat'
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
       WhiteChar 'epsilon' WhiteChar epsilon=constant
-      -> ^(LinearFlatTrendsCondition {$overNbDays.tree} {$forNbDays.tree} {$epsilon.tree} {$firstOp}));
+      -> ^(LinearDirectedTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"flat\""]) {$epsilon.tree} {$firstOp})) |
+
+  ('trends up'
+      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      WhiteChar 'epsilon' WhiteChar epsilon=constant
+      -> ^(LinearDirectedTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"up\""]) {$epsilon.tree} {$firstOp})) |
+
+  ('trends down'
+      WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
+      WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
+      WhiteChar 'epsilon' WhiteChar epsilon=constant
+      -> ^(LinearDirectedTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"down\""]) {$epsilon.tree} {$firstOp}));
 
 
 Operation

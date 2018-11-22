@@ -43,20 +43,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 
 
 /**
- * 
  * @author Guillaume Thoreton
- * ll  :  
- * 		^^^^^
- * 		_____ and down
- * hl  :   
- *  	^^^^^
- * 		_____ and up
- * lh  : 
- * 		_____
- * 		^^^^^ and down
- * hh :
- * 		_____
- * 		^^^^^ and up
  *
  */
 

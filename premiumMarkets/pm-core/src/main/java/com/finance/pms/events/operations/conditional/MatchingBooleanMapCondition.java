@@ -42,6 +42,8 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.datasources.ComparableSortedMap;
@@ -67,18 +69,18 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * @author Gheeyom Thor
  *
  */
-public class MatchingMapCondition extends Condition<Comparable> implements LinearOutputs {
+public class MatchingBooleanMapCondition extends BooleanMapCondition implements LinearOutputs {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(MatchingMapCondition.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(MatchingBooleanMapCondition.class);
 
-	public MatchingMapCondition() {
-		super("matching", "Compare boolean time series also having multiple numeric outputs and is true when the operands numeric outputs match the criteria.");
+	public MatchingBooleanMapCondition() {
+		super("matching", "Compare boolean time series having multiple numeric outputs. Is true when the operands available numeric outputs match the criteria.");
 		//				new NumberOperation("Criteria parameters"),
 		//				new DoubleMapOperation("Historical data inputs"));
 		//		this.getOperands().stream().forEach(o -> o.setIsVarArgs(true)); //FIXME multiple VarArgs is not supported?
 	}
 
-	public MatchingMapCondition(ArrayList<Operation> operands, String outputSelector) {
+	public MatchingBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
 	}
@@ -105,7 +107,7 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 				forPeriod = ((NumberValue) inputs.get(sofSize++)).getValue(targetStock).intValue();
 				break;
 			default :
-				constantInputs.add(((NumberValue) input).getValue(targetStock).doubleValue());	
+				constantInputs.add(((NumberValue) input).getValue(targetStock).doubleValue());
 			}
 			i++;
 		}
@@ -150,7 +152,7 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
 			        targetStock.getStock(), getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(),
 			        true, targetStock.getStock().getMarketValuation().getCurrency(),
-			        0, ValidityFilter.NONE);
+			        0, ValidityFilter.CLOSE);
 			fullKeySet = new TreeSet(QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations).keySet());
 		} catch (Exception e1) {
 			throw new RuntimeException(e1);
@@ -172,16 +174,16 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 				Comparable _Matching = new ComparableArray<ComparableSortedMap<Date, Double>>();
 				constNHeadMapArrayCmp[constNHeadMapArrayCmp.length-1] = _Matching; //Adding the return parameter, array of <Date>.
 				Boolean conditionCheck = conditionCheck(constNHeadMapArrayCmp);
-				if (conditionCheck != null) {
+				if (conditionCheck != null && conditionCheck) { //We output only if true
 
 					outputs.getValue(targetStock).put(date, conditionCheck);
-//					//For
-//					if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
-//						conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
-//					}
-//
-//					//Over
-//					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
+					//For
+					if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
+						conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
+					}
+
+					//Over
+					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 
 					if (conditionCheck) {
 						//Sorting the matching back in order (with the reference map in its original place instead of 0) and storing.
@@ -219,7 +221,7 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
 			LOGGER.info(
 					"Condition '" + this.getReference() + "' returns this map \n" +
-							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).get());
+							outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).orElse("No Data"));
 			SortedMap<String, NumericableMapValue> addOutputs = new TreeMap(outputs.getAdditionalOutputs());
 			LOGGER.info(
 					"Condition '" + this.getReference() + "' returns this map \n" +
@@ -308,6 +310,16 @@ public class MatchingMapCondition extends Condition<Comparable> implements Linea
 
 		_Matching.addAll(foundMatching.orElse(new ArrayList<>()));
 		return _Matching.size() == (constNHeadMapsCmp.length-1) - (firstTailMapIdx);
+	}
+
+	@Override
+	protected Boolean shortcutUnary() {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	protected Boolean exactDataSet() {
+		throw new NotImplementedException();
 	}
 
 }

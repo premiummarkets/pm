@@ -25,16 +25,16 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 	private static final int SIGNAL_POSITION = 4;
 
 	private LinearOppositeTrendsCondition() {
-		super("unlike trend regression", "Opposite linear regression of two inputs for a defined period.");
+		super("unlk trend reg", "Opposite linear regression of two inputs for a defined period.");
 	}
 
 	public LinearOppositeTrendsCondition(String reference, String description) {
 		super(reference, description,
 				new NumberOperation("Time OVER which the condition will remain true"),
 				new NumberOperation("Look back period FOR which the condition has to be true"),
-				new StringOperation("Direction of the trend"),
-				new DoubleMapOperation("'trend regression' left operand (normed data)"),
-				new DoubleMapOperation("'trend regression' right operand (normed data)"));
+				new StringOperation("Direction of the left operand trend"),
+				new DoubleMapOperation("'trend regression' left operand (must be normed data)"),
+				new DoubleMapOperation("'trend regression' right operand (must be normed data)"));
 	}
 
 	public LinearOppositeTrendsCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -47,7 +47,7 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 
 		Integer overPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(getLastPeriodsIndex())).getValue(targetStock).intValue();
-		Direction direction = Direction.valueOf(((StringValue)inputs.get(2)).getValue(targetStock));
+		Direction direction = Direction.valueOf(((StringValue)inputs.get(2)).getValue(targetStock).toString().toLowerCase());
 		List<SortedMap<Date, Double>> inputsOps = inputs.subList(getFirstDataInputIndex(), inputs.size()).stream().map(in -> ((NumericableMapValue) in).getValue(targetStock)).collect(Collectors.toList());
 
 		return getBooleanMultiMapValue(targetStock, overPeriod, forPeriod, direction, 0.0d, inputsOps);
@@ -62,16 +62,16 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 		//Double epsilon = (Double) ops[3];
 
 		switch (direction) {
-		case up :
-			if (firstSlope < 0) return false;
-			break;
-		case down :
-			if (firstSlope > 0) return false;
-			break;
-		case both :
-			break;
-		default:
-			throw new RuntimeException(new NotSupportedException(direction.name()));
+			case up :
+				if (firstSlope < 0) return false;
+				break;
+			case down :
+				if (firstSlope > 0) return false;
+				break;
+			case both :
+				break;
+			default:
+				throw new RuntimeException(new NotSupportedException(direction.name()));
 		}
 
 		Double diff = Math.abs(firstSlope - secondSlope);

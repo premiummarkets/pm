@@ -37,15 +37,15 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
-public class AndDoubleMapCondition extends BooleanDoubleMapCondition {
+public class AndBooleanMapCondition extends BooleanMapCondition {
 
 	private Boolean exactDataSet;
 
-	private AndDoubleMapCondition() {
+	private AndBooleanMapCondition() {
 		super("and", "Compare two boolean time series over time and is true when all are true and present.");
 	}
 
-	public AndDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {
+	public AndBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
 	}

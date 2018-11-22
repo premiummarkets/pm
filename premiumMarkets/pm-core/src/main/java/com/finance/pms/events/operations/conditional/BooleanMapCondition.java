@@ -43,20 +43,20 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({AndDoubleMapCondition.class, OrDoubleMapCondition.class, NotDoubleMapCondition.class})
-public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
+@XmlSeeAlso({AndBooleanMapCondition.class, OrBooleanMapCondition.class, NotBooleanMapCondition.class})
+public abstract class BooleanMapCondition extends Condition<Boolean> {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanDoubleMapCondition.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapCondition.class);
 
-	protected BooleanDoubleMapCondition() {
+	protected BooleanMapCondition() {
 		super();
 	}
 
-	public BooleanDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
+	public BooleanMapCondition(String reference, String description, ArrayList<Operation> operands) {
 		super(reference, description, operands);
 	}
 
-	public BooleanDoubleMapCondition(String reference, String description, Operation... operands) {
+	public BooleanMapCondition(String reference, String description, Operation... operands) {
 		super(reference, description, operands);
 	}
 
@@ -65,11 +65,6 @@ public abstract class BooleanDoubleMapCondition extends Condition<Boolean> {
 
 		if (shortcutUnary() && inputs.size() == 1) {
 			return (BooleanMapValue) inputs.get(0); 
-//			//FIXME TargetStockInfo.populateChartedOutputGroups
-//			//We need to recreate the input into an BooleanMapValue object as an inherited BooleanMultiMapValue would break the graph adding unrequested chartings (or ..)
-//			BooleanMapValue booleanMapValue = new BooleanMapValue();
-//			booleanMapValue.getValue(targetStock).putAll(((BooleanMapValue) inputs.get(0)).getValue(targetStock));
-//			return booleanMapValue;
 		}
 
 		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;

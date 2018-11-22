@@ -32,7 +32,7 @@ package com.finance.pms.datasources;
 import com.finance.pms.portfolio.InfoObject;
 
 public class ShareListInfo implements InfoObject {
-	
+
 	String shareListName;
 
 	public ShareListInfo(String shareListName) {
@@ -78,6 +78,6 @@ public class ShareListInfo implements InfoObject {
 	@Override
 	public String tootTip() {
 		return info();
-	}	
-	
+	}
+
 }

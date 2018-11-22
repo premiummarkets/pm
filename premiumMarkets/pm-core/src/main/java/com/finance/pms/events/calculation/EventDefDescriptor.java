@@ -59,9 +59,9 @@ public interface EventDefDescriptor {
 
 	String getMainLabelForGroup(int groupIdx);
 
-	Set<OutputDescr> displayedOutputsDescr();
+	Set<OutputDescr> nonMULTIOutputDescr();
 
-	Set<OutputDescr> all100OutputDescr();
+	Set<OutputDescr> mULTIOutputDescr();
 
 	Set<OutputDescr> allOutputDescr();
 

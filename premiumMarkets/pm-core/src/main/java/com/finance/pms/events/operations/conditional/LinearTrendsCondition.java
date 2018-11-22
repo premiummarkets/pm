@@ -32,7 +32,7 @@ import com.finance.pms.events.scoring.functions.Line;
  * 'for'
  */
 @SuppressWarnings("rawtypes")
-@XmlSeeAlso({LinearFlatTrendsCondition.class, LinearOppositeTrendsCondition.class, LinearSimilarTrendsCondition.class})
+@XmlSeeAlso({LinearDirectedTrendsCondition.class, LinearOppositeTrendsCondition.class, LinearSimilarTrendsCondition.class})
 public abstract class LinearTrendsCondition extends Condition<Comparable> implements LinearOutputs {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(LinearTrendsCondition.class);
@@ -54,13 +54,13 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 		List<Date> fullKeyArray = new ArrayList<>(fullKeySet);
 		List<Integer> dateTimeKeys = fullKeySet.stream().map(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI))).collect(Collectors.toList());
 
-		//		//Normalizing of Y to X //FIXME auto normalizing would require putting the inputs in different groups for charting as the may have different magnitude
+		//		//Normalizing of Y to X //FIXME auto normalizing would require putting the inputs in different groups for charting as they may have different magnitude
 		//		Normalizer<Double> normalizer = new Normalizer<>(Double.class, fullKeySet.first(), fullKeySet.last(), 0, forPeriod);
 		//		List<SortedMap<Date, Double>> normInputsOps = inputsOps.stream().map(in -> normalizer.normalised(in)).collect(Collectors.toList());
 		List<SortedMap<Date, Double>> normInputsOps = inputsOps;
 
 		//Main loop
-		String expertTangentLabel = forPeriod + " days regression";
+		String expertTangentLabel = forPeriod + " days " + direction + " regression";
 		Map<Line<Integer, Double>, TangentElement> expertTangentsResult = new HashMap<>();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
@@ -130,7 +130,7 @@ public abstract class LinearTrendsCondition extends Condition<Comparable> implem
 		lookBack.keySet().stream().forEach(k -> {
 			simpleRegression.addData(k.getTime()/DAY_IN_MILLI - firstX, lookBack.get(k));
 		});
-		//return new Double[] {simpleRegression.getSlope(), simpleRegression.getIntercept()};
+
 		Line<Integer, Double> line = new Line<>();
 		line.setIntersect((int) firstX, simpleRegression.getIntercept());
 		line.setSlope(simpleRegression.getSlope());

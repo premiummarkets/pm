@@ -45,19 +45,21 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	public String fullQualifiedName() {
 
+		//outputReference || discriminentConstant
 		String discriminantReference = outputReference.getReference();
 		if (outputReference.getIsLeaf()) {
 			discriminantReference = discriminentConstant.getValueAsString();
 		}
 
-		//(OperationReference)? + ( ":" + OutputSelector)?
+		//(operationReference)? (: outputSelector)?
 		String familyName = 
 				(!(outputReference.getOperationReference().equals(discriminantReference))?outputReference.getOperationReference() :"") +
 				((outputReference.getOutputSelector() != null)? ":" + outputReference.getOutputSelector():"");
-		//ReferenceAsOperand?
+
+		//(referenceAsOperand)?
 		String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
-		
-		//discriminantReference + ( "(" + familyName + ")")? + (" on chart as " + displayedAs)?
+
+		//discriminantReference ( \(familyName\) )? (as displayedAs)? \n groupUUID
 		return discriminantReference + ((!familyName.isEmpty())?" (" + familyName + ")":"") + ((!displayedAs.isEmpty())?" as " + displayedAs:"");
 	}
 
@@ -98,8 +100,18 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	}
 
 	@Override
+	public String groupId() {
+		return getContainer().groupUniqueId().toString();
+	}
+
+	@Override
+	public Boolean isMain() {
+		return getContainer().getThisGroupMainOutputDescription().equals(this);
+	}
+
+	@Override
 	public String tootTip() {
-		return (outputReference.getFormula() != null)?outputReference.getFormula():fullQualifiedName();
+		return ((outputReference.getFormula() != null)?outputReference.getFormula():fullQualifiedName()) + "\ngroup : " + getContainer().groupUniqueId().toString();
 	}
 
 	@Override

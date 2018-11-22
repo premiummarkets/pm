@@ -29,11 +29,23 @@
  */
 package com.finance.pms.portfolio;
 
-
 public interface InfoObject {
-	
+
 	public String info();
-	
+
+	default public String info(int limit) {
+		String info = info();
+		return info.substring(0, Math.min(info.length(), limit));
+	}
+
 	public String tootTip();
+
+	default public String groupId() {
+		return null;
+	}
+
+	default public Boolean isMain() {
+		return false;
+	}
 
 }
