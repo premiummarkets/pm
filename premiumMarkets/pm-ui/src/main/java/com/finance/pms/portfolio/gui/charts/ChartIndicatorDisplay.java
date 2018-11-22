@@ -493,7 +493,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
 				calculatorSettingsButton.setToolTipText(
 						"Only user defined calculators can be customised.\n" +
-								"You must select one of your user defined calculators in '"+INDICATORSBUTTXT + "'\n" +
+								"You must select one of your user defined calculators in '" + INDICATORSBUTTXT + "'\n" +
 								"And wait for its calculation to finish before changing the display settings.\n" +
 						"New calculators can be defined using the menu Events -> Customise and create calculators ...");
 				calculatorSettingsButton.addSelectionListener(new SelectionListener() {
@@ -533,7 +533,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				chartedTrendsButton.addSelectionListener(new SelectionListener() {
 
 					@Override
-					public void widgetSelected(SelectionEvent e) {		
+					public void widgetSelected(SelectionEvent e) {
 						handleChartedTrendsSelection();
 					}
 
@@ -799,15 +799,36 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				final Set<OutputDescr> displayableOutputs = new TreeSet<>();
 
 				try {
+
+					//Non Multi
 					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
-						availableOutputs.addAll(t.getEventDefDescriptor().all100OutputDescr());
-						if (t.getEventDefDescriptor().allOutputDescr().size() > 100) {
-							calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE+" TOP 100 only.");
-						} else {
-							calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
-						}
-						displayableOutputs.addAll(t.getEventDefDescriptor().displayedOutputsDescr());
+						Set<OutputDescr> nonMultiOutputDescr = t.getEventDefDescriptor().nonMULTIOutputDescr();
+						availableOutputs.addAll(nonMultiOutputDescr);
 					});
+
+					//Multi
+					Set<OutputDescr> multiOutputDesrcLimited = chartTarget.getChartedEvtDefsTrends().stream()
+							.flatMap(t -> t.getEventDefDescriptor().mULTIOutputDescr().stream())
+							.limit(100)
+							.collect(Collectors.toSet());
+					availableOutputs.addAll(multiOutputDesrcLimited);
+
+					//Displaybles
+					availableOutputs.stream().forEach(aOut -> {if (aOut.getDisplayOnChart()) displayableOutputs.add(aOut);});
+					chartTarget.getChartedEvtDefsTrends().stream()
+						.flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream())
+						.forEach(t -> {
+							if (!displayableOutputs.contains(t)) t.setDisplayOnChart(false);
+						});
+
+					//Truncation Indicator
+					long allOutputsSize = chartTarget.getChartedEvtDefsTrends().stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();
+					if (allOutputsSize > availableOutputs.size()) {
+						calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE+" TOP only.");
+					} else {
+						calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
+					}
+
 				} catch (NoSuchElementException e) {
 					LOGGER.warn(e);
 				} 

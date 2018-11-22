@@ -73,7 +73,6 @@ public class UserDialog extends Dialog {
 		this.getParent().setText(title);
 		this.erreur = erreur;
 		this.addMessage = addMessage;
-
 	}
 
 	public void open() {

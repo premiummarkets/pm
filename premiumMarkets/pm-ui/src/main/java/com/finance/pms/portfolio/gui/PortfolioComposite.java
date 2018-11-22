@@ -1557,7 +1557,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 								Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 								final SortedSet<EventInfo> selectedEventDefs = new TreeSet<EventInfo>(new Comparator<EventInfo>() {
-
 									@Override
 									public int compare(EventInfo o1, EventInfo o2) {
 										return o1.info().compareTo(o2.info());

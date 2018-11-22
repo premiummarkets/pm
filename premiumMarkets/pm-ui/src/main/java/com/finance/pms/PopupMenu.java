@@ -29,7 +29,6 @@
  */
 package com.finance.pms;
 
-import java.util.Comparator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -107,16 +106,8 @@ public class PopupMenu<T extends InfoObject> {
 	}
 
 	private void addAvailableOpts(Set<T> availableOptSet) {
-
-		this.availableOptSet = new TreeSet<T>(new Comparator<T>() {
-			@Override
-			public int compare(T o1, T o2) {
-				return o1.info().compareTo(o2.info());
-			}
-		});
-
+		this.availableOptSet = new TreeSet<>();
 		this.availableOptSet.addAll(availableOptSet);
-
 	}
 
 	public PopupMenu(
@@ -218,7 +209,7 @@ public class PopupMenu<T extends InfoObject> {
 	public void inhibate() {
 		this.hasChanged = false;
 		this.closeAction = null;
-		//		this.selectionAction = null;
+
 	}
 
 	protected void initPopup() {
@@ -247,8 +238,7 @@ public class PopupMenu<T extends InfoObject> {
 					if (selectAllBut.getSelection()) {
 						for (Control button : selectionShell.getChildren()) {
 							((Button)button).setSelection(true);
-							@SuppressWarnings("unchecked")
-							T data = (T) ((Button)button).getData();
+							@SuppressWarnings("unchecked") T data = (T) ((Button)button).getData();
 							if (data != null) selectionSet.add(data);
 						}
 					} else {
@@ -269,30 +259,48 @@ public class PopupMenu<T extends InfoObject> {
 		for (final T buttonInfo : availableOptSet) {
 
 			final Button button = new Button(selectionShell, style);
-			button.setText(buttonInfo.info());
+			button.setText(buttonInfo.info(50));
+			button.setToolTipText(buttonInfo.tootTip());
 			button.setData(buttonInfo);
 			button.setFont(MainGui.DEFAULTFONT);
-			button.setToolTipText(buttonInfo.tootTip());
 			button.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					handleButtonSelection(buttonInfo, button);
+					handleButtonSelection(buttonInfo, button, e);
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					handleButtonSelection(buttonInfo, button);
+					handleButtonSelection(buttonInfo, button, e);
 				}
 
-				private void handleButtonSelection(T buttonInfo, final Button button) {
+				private void handleButtonSelection(T buttonInfo, final Button button, SelectionEvent e) {
 
 					hasChanged=true;
 
 					if (button.getSelection()) {
 						selectionSet.add(buttonInfo);
+						if ((e.stateMask & SWT.CONTROL) != 0 && buttonInfo.isMain()) {
+							for (Control otherButton : selectionShell.getChildren()) {
+								@SuppressWarnings("unchecked") T data = (T) ((Button)otherButton).getData();
+								if (data != null && data.groupId() != null && data.groupId().equals(buttonInfo.groupId())) {
+									((Button)otherButton).setSelection(true);
+									selectionSet.add(data);
+								}
+							}
+						}
 					} else {
 						selectionSet.remove(buttonInfo);
+						if ((e.stateMask & SWT.CONTROL) != 0 && buttonInfo.isMain()) {
+							for (Control otherButton : selectionShell.getChildren()) {
+								@SuppressWarnings("unchecked") T data = (T) ((Button)otherButton).getData();
+								if (data != null &&  data.groupId() != null && data.groupId().equals(buttonInfo.groupId())) {
+									((Button)otherButton).setSelection(false);
+									selectionSet.remove(data);
+								}
+							}
+						}
 					}
 
 					if (selectionAction != null ) selectionAction.action();

@@ -61,7 +61,7 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
     protected EventModel<? extends EventModelStrategyEngine<?>, ?> eventModel;
     protected RefreshableView view;
-    Config config;
+    protected Config config;
 
     private Date currentDate;
 
@@ -117,7 +117,7 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
             List<EventRefreshTask> tasksGroup = new ArrayList<EventRefreshController.EventRefreshTask>();
 
-            if (taskIds.contains(TaskId.FetchLists) ) { // && isFetchListStocks() ) {	
+            if (taskIds.contains(TaskId.FetchLists) ) { // && isFetchListStocks() ) {
 
                 if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
 
