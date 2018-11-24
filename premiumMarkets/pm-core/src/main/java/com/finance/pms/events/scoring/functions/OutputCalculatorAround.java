@@ -36,7 +36,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.functions.CurveTransformator.Extremity;
+import com.finance.pms.events.scoring.functions.SectorCurveTransformator.Extremity;
 
 public class OutputCalculatorAround implements OutputCalculator {
 

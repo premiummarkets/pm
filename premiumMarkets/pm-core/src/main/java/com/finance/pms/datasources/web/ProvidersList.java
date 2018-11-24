@@ -52,7 +52,6 @@ import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
@@ -266,9 +265,9 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		//Fetch		
 		Set<Stock> listAsFromWeb  = fetchStockList(marketQuotationsProviders);
 
-		LOGGER.guiInfo("Number of stocks retrieved from web for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + listAsFromWeb.size());
-		LOGGER.guiInfo("Number of stocks in the list " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + thisSharesList.getListShares().size());
-		LOGGER.guiInfo("All stocks in the database - updating " + shareListDescrTxt + " - on the " + EventSignalConfig.getNewDate() + " : " + dbStocks.size());
+		LOGGER.guiInfo("Number of stocks retrieved from web for " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + listAsFromWeb.size());
+		LOGGER.guiInfo("Number of stocks in the list " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + thisSharesList.getListShares().size());
+		LOGGER.guiInfo("All stocks in the database - updating " + shareListDescrTxt + " - on the " + DateFactory.getNowEndDate() + " : " + dbStocks.size());
 		LOGGER.warn(
 				"Before update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
 				", initial in "+shareListDescrTxt+" share list : " +thisSharesList.getListShares().size(), true);
@@ -425,7 +424,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		} catch (Exception e) {
 			LOGGER.error("Can't save share list : "+thisSharesList.getName(), e);
 		}
-		LOGGER.guiInfo("Number of stocks in the list after update for " + shareListDescrTxt + " on the " + EventSignalConfig.getNewDate() + " : " + thisSharesList.getListShares().size());
+		LOGGER.guiInfo("Number of stocks in the list after update for " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + thisSharesList.getListShares().size());
 		LOGGER.warn(
 				"After update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
 				", in "+shareListDescrTxt+" list : " +thisSharesList.getListShares().size() +

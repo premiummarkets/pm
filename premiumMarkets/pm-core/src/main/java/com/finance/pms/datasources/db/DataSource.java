@@ -56,7 +56,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.finance.pms.MainPMScmd;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
@@ -236,17 +235,20 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	private String testEndConstraint() {
 
-		String endConstraint = "";
-
-		try {
-			if (EventSignalConfig.ENDDATE != null) {
-				endConstraint = " AND "+QUOTATIONS.DATE_FIELD+ " <= '" + new SimpleDateFormat("yyyy-MM-dd").format(EventSignalConfig.getNewDate())+ "' ";
-			}
-		} catch (IllegalArgumentException e) {
-			LOGGER.debug("No test past end date specified because : "+e);
-		}
-
-		return endConstraint;
+//		String endConstraint = "";
+//
+//		try {
+//			if (EventSignalConfig.ENDDATE != null) {
+//				endConstraint = " AND "+QUOTATIONS.DATE_FIELD+ " <= '" + new SimpleDateFormat("yyyy-MM-dd").format(DateFactory.getNowEndDate())+ "' ";
+//			}
+//		} catch (IllegalArgumentException e) {
+//			LOGGER.debug("No test past end date specified because : "+e);
+//		}
+//
+//		return endConstraint;
+		
+		//FIXME
+		return "";
 
 	}
 

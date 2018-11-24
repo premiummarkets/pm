@@ -185,17 +185,17 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 
 	public Date getLastListFetch(Date oldLastListFetch) {
-		return (oldLastListFetch == null)?EventModel.DEFAULT_DATE:oldLastListFetch;
+		return (oldLastListFetch == null)?DateFactory.DEFAULT_DATE:oldLastListFetch;
 	}
 
 
 	public Date getLastQuotationFetch(Date oldLastQuotationFetch) {
-		return (oldLastQuotationFetch == null)?EventModel.DEFAULT_DATE:oldLastQuotationFetch;
+		return (oldLastQuotationFetch == null)?DateFactory.DEFAULT_DATE:oldLastQuotationFetch;
 	}
 
 
 	public Date getLastAnalyse(Date oldLastAnalyse) {
-		return (oldLastAnalyse == null)?EventModel.DEFAULT_DATE:oldLastAnalyse;
+		return (oldLastAnalyse == null)?DateFactory.DEFAULT_DATE:oldLastAnalyse;
 	}
 
 

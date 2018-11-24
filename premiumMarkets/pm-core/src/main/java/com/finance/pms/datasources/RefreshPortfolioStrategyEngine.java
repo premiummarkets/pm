@@ -38,7 +38,6 @@ import java.util.Set;
 
 import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.AlertCalculationRunnableMessage;
@@ -60,7 +59,7 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 	@Override
 	public void callbackForAlerts(Set<Observer> engineObservers, Collection<Stock> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>... viewStateParams) throws InterruptedException {
 		
-		Date endDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+		Date endDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		
 		UserPortfolio[] userPortfolios = viewStateParams[0].toArray(new UserPortfolio[0]);
 		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), IndicatorCalculationServiceMain.UI_ANALYSIS, endDate, userPortfolios);

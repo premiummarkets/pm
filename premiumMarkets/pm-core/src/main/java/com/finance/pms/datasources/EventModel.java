@@ -57,6 +57,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
@@ -173,16 +174,6 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 
 	}
 
-	public static Date DEFAULT_DATE;
-	static {
-		DEFAULT_DATE = new Date(0);
-		try {
-			DEFAULT_DATE = new SimpleDateFormat("yyyy/MM/dd").parse("1970/01/01");
-		} catch (ParseException e1) {
-			LOGGER.error("Shouldn't be here", e1);
-		}
-	}
-
 	@SuppressWarnings("rawtypes")
 	public static Map<Class<? extends EventModelStrategyEngine>, EventModel> models = new HashMap<Class<? extends EventModelStrategyEngine>, EventModel>();
 
@@ -259,8 +250,8 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	 * @author Guillaume Thoreton
 	 */
 	public void hardResetLastQuotationDate() {
-		this.setLastAnalyse(EventModel.DEFAULT_DATE);
-		this.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+		this.setLastAnalyse(DateFactory.DEFAULT_DATE);
+		this.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 
 	}
 
@@ -397,7 +388,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	 * @author Guillaume Thoreton
 	 */
 	public void resetLastAnalyse() {
-		eventRefreshStrategyEngine.setLastAnalyse(EventModel.DEFAULT_DATE, null);
+		eventRefreshStrategyEngine.setLastAnalyse(DateFactory.DEFAULT_DATE, null);
 	}
 
 

@@ -42,7 +42,6 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -86,7 +85,7 @@ public class WeatherChecker extends IndicatorsOperator {
 
 		Calendar endDateCalendar = firstDayOfPrevMonthOf(endDate);
 		Calendar currentDateCalendar = firstDayOfPrevMonthOf(startDate);
-		Calendar todayCalendar = firstDayOfPrevMonthOf(EventSignalConfig.getNewDate());
+		Calendar todayCalendar = firstDayOfPrevMonthOf(DateFactory.getNowEndDate());
 
 		EventValue meanEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
 		EventValue trendChangeEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);

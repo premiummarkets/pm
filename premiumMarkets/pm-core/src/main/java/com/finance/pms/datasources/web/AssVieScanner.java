@@ -49,6 +49,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.AssVieFormater;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.portfolio.InvalidQuantityException;
 import com.finance.pms.portfolio.MonitorLevel;
@@ -104,7 +105,7 @@ public class AssVieScanner implements MyBeanFactoryAware {
 		for (Stock stock : assVieStockList) {
 
 			try {
-				portfolio.addOrUpdateShareForQuantity(stock, BigDecimal.ONE, EventSignalConfig.getNewDate(), MonitorLevel.NONE, Currency.EUR);
+				portfolio.addOrUpdateShareForQuantity(stock, BigDecimal.ONE, DateFactory.getNowEndDate(), MonitorLevel.NONE, Currency.EUR);
 			} catch (InvalidAlgorithmParameterException e) {
 				LOGGER.error(e,e);
 			} catch (InvalidQuantityException e) {

@@ -57,7 +57,6 @@ import org.xml.sax.InputSource;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
@@ -68,6 +67,7 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.SymbolNameResolver;
 import com.finance.pms.datasources.shares.TradingMode;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.PortfolioMgr;
 
 public class GnuCashTransactionReportParser {
@@ -272,11 +272,11 @@ public class GnuCashTransactionReportParser {
 		cashTransactionReportParser.parse("/home/guil/Documents/Comptes/Gestion/PMS/transactionReport.html");
 
 		Stock stock = new Stock("LU0294219869","LU0294219869","",true,
-				StockCategories.DEFAULT_CATEGORY,EventSignalConfig.getNewDate(),
+				StockCategories.DEFAULT_CATEGORY,DateFactory.getNowEndDate(),
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
-		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", EventSignalConfig.getNewDate());
+		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", DateFactory.getNowEndDate());
 		StringBuffer printReportTransactions = cashTransactionReportParser.printReportTransactions(fteReports);
 		System.out.println(printReportTransactions);
 

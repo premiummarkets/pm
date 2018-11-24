@@ -45,7 +45,6 @@ import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -55,6 +54,7 @@ import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.Providers;
 import com.finance.pms.datasources.web.ProvidersInflation;
 import com.finance.pms.datasources.web.ProvidersList;
+import com.finance.pms.events.calculation.DateFactory;
 
 
 /**
@@ -80,12 +80,13 @@ public class MainPMScmd {
 		String marketQuotationProvider = new String();
 		QuotationUpdate dbHi;
 
-		commandParamsPrinter(args, MainPMScmd.class, EventSignalConfig.getNewDate());
+		commandParamsPrinter(args, MainPMScmd.class, DateFactory.getNowEndDate());
 
 		long t0 = System.currentTimeMillis();
 		LOGGER.info("Start time " + t0);
 
-		try {
+		try (SpringContext springContext = new SpringContext(dbProps)){
+
 			List<String> argList = Arrays.asList(args);
 			Boolean db = argList.contains("DB");
 			dbProps = (db) ? args[1] : args[0];
@@ -102,10 +103,10 @@ public class MainPMScmd {
 			Boolean yahooIndicesSymbols = argList.contains("-yahooIndicesSymbol");
 			Boolean getInflationData = argList.contains("-getInflationData");
 
-			SpringContext springContext = new SpringContext(dbProps);
+			//SpringContext springContext = new SpringContext(dbProps);
 			springContext.loadBeans("/connexions.xml", "/swtclients.xml");
 			springContext.refresh();
-			
+
 			if (!SharesListId.checkProvider(sharesListName)) {
 				LOGGER.error("Market list provider not available : " + sharesListName + " \n");
 				String validProv =" ";
@@ -114,7 +115,7 @@ public class MainPMScmd {
 				}
 				LOGGER.error("Valid providers : " +validProv+ " \n");
 			}
-			
+
 			dbHi = new QuotationUpdate();
 			if (quoteProvider) {
 				marketQuotationProvider = args[argList.indexOf("-quoteProvider")+1];
@@ -127,7 +128,7 @@ public class MainPMScmd {
 				LOGGER.warn("You should specify a Provider for the quotation via the option -quoteProvider (ex. : -quoteProvider yahoo)");
 				marketQuotationProvider = sharesListName;
 			}
-			
+
 			SortedSet<Indice> indices = new TreeSet<Indice>();
 			if (yahooIndicesSymbols) {
 				int i = argList.indexOf("-yahooIndicesSymbol")+1;
@@ -165,15 +166,15 @@ public class MainPMScmd {
 				dbHi.getQuotesForSharesListInDB(sharesListName, indices);
 			}
 			if (getInflationData) {
-//				Stock inflationStock = new Stock(
-//						ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
-//						true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
-//						new SymbolMarketQuotationProvider(), new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
+				//				Stock inflationStock = new Stock(
+				//						ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL, ProvidersInflation.SYMBOL,
+				//						true, StockCategories.INDICES_OTHER, DateFactory.dateAtZero(),
+				//						new SymbolMarketQuotationProvider(), new MarketValuation(Market.NYSE),"None",TradingMode.UNKNOWN,0L);
 				Stock inflationStock = ProvidersInflation.inflationStock();
 				DataSource.getInstance().getShareDAO().saveOrUpdateStock(inflationStock);
 				Providers.getInstance("inflation").getQuotes(inflationStock, null, null);
 			}
-			
+
 		} catch (Exception e) {
 			LOGGER.info("Usage :");
 			LOGGER.info(" - No parameter : load intra day for ticker file specified in qm.propreties");
@@ -189,7 +190,7 @@ public class MainPMScmd {
 			LOGGER.info(" - 'DB' /path/db.properties 'yahoo'||'yahoofr'||'boursorama' '-initStocks'  : initialise the stocks list in database from the web");
 			LOGGER.info(" - 'DB' /path/db.properties 'yahoo'||'yahoofr'||'boursorama' '-validateStocks'  : validate the stocks list contained in database");
 			LOGGER
-					.info(" - 'DB' /path/db.properties 'yahoo'||'yahoofr'||'boursorama' '-cmdStocks' <codes NYSE> : retrieve historical values for the stocks on commande line");
+			.info(" - 'DB' /path/db.properties 'yahoo'||'yahoofr'||'boursorama' '-cmdStocks' <codes NYSE> : retrieve historical values for the stocks on commande line");
 			LOGGER.info("\n		-------------------------------Exemples------------------------------- ");
 			LOGGER.info("java -jar com.finance.pm.jar DB /opt/com.finance.pms/db.properties boursorama -fileStocks /root/tmp/stocks.txt -majStocks");
 			LOGGER.info("java -jar com.finance.pm.jar DB /opt/com.finance.pms/db.properties boursorama -fileStocks /root/tmp/stocks.txt -cleanStocks");
@@ -225,11 +226,11 @@ public class MainPMScmd {
 		}
 		return myPrefs;
 	}
-	
+
 	static Preferences prefRoot() {
 		return Preferences.userRoot();
 	}
-	
+
 	public static class MyPreference {
 
 		private Preferences prefs;
@@ -248,7 +249,7 @@ public class MainPMScmd {
 					LOGGER.warn("Can't initialise prefs : "+ e1);
 				}
 			}
-			
+
 			sessionPrefs = new Properties();
 			if (prefs != null) {
 				try {
@@ -261,7 +262,7 @@ public class MainPMScmd {
 				}
 			}
 		}
-		
+
 		@Override
 		public String toString() {
 			String toStr = prefs.absolutePath() + " : ";
@@ -275,8 +276,8 @@ public class MainPMScmd {
 			}
 			return "Prefs =" + toStr + "]";
 		}
-		
-		
+
+
 
 		private Object get(String key, Object alt, PrefsGetter<? extends Object> pg) {
 			Object fromSessionPrefs = getFromSessionPrefs(key, alt);
@@ -340,7 +341,7 @@ public class MainPMScmd {
 			}
 			return null;
 		}
-		
+
 
 		public String get(String key, String alt) {
 			return (String) get(key, alt, new PrefsGetter<String>(alt) {
@@ -349,7 +350,7 @@ public class MainPMScmd {
 				String get(String key) {
 					return prefs.get(key, alt);
 				}
-				
+
 			});
 		}
 
@@ -360,7 +361,7 @@ public class MainPMScmd {
 				Double get(String key) {
 					return prefs.getDouble(key, alt);
 				}
-				
+
 			});
 		}
 
@@ -371,7 +372,7 @@ public class MainPMScmd {
 				Boolean get(String key) {
 					return prefs.getBoolean(key, alt);
 				}
-				
+
 			});
 		}
 
@@ -382,10 +383,10 @@ public class MainPMScmd {
 				Integer get(String key) {
 					return prefs.getInt(key, alt);
 				}
-				
+
 			});
 		}
-		
+
 
 		public void put(String key, String alt) {
 			put(key, alt, new PrefsSetter<String>(alt) {
@@ -426,7 +427,7 @@ public class MainPMScmd {
 				}
 			});
 		}
-		
+
 		private abstract class PrefsGetter<T> {
 			T alt;
 			public PrefsGetter(T alt) {
@@ -434,7 +435,7 @@ public class MainPMScmd {
 			}
 			abstract T get(String key);
 		}
-		
+
 		private abstract class PrefsSetter<T> {
 			T alt;
 			public PrefsSetter(T alt) {
@@ -442,6 +443,6 @@ public class MainPMScmd {
 			}
 			abstract void put(String key);
 		}
-		
+
 	}
 }

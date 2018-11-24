@@ -173,7 +173,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		} catch (ParseException e) {
 			LOGGER.error("Wrong date format for last  shares list update, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastlistfetch", "1970/01/01"),e);
 			LOGGER.debug(e,e);
-			return EventModel.DEFAULT_DATE;
+			return DateFactory.DEFAULT_DATE;
 		}
 	}
 
@@ -184,7 +184,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		} catch (ParseException e) {
 			LOGGER.error("Wrong date format for last quotation update, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastfetch", "1970/01/01"),e);
 			LOGGER.debug(e,e);
-			return EventModel.DEFAULT_DATE;
+			return DateFactory.DEFAULT_DATE;
 		}
 	}
 
@@ -195,7 +195,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		} catch (ParseException e) {
 			LOGGER.error("Wrong date format for last analyse, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastanalyse", "1970/01/01"),e);
 			LOGGER.debug(e,e);
-			return EventModel.DEFAULT_DATE;
+			return DateFactory.DEFAULT_DATE;
 		}
 	}	
 	

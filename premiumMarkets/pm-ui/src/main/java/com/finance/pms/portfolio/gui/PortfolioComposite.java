@@ -243,12 +243,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			handleManualQuotation(EventSignalConfig.getNewDate());
+			handleManualQuotation(DateFactory.getNowEndDate());
 		}
 
 		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
-			handleManualQuotation(EventSignalConfig.getNewDate());
+			handleManualQuotation(DateFactory.getNowEndDate());
 		}
 
 		private void handleManualQuotation(Date date) {
@@ -1302,7 +1302,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			for (Portfolio portfolio : visiblePortfolios) {
 				for (final PortfolioShare pS : portfolio.getListShares().values()) {
 
-					final Date today = EventSignalConfig.getNewDate();
+					final Date today = DateFactory.getNowEndDate();
 					if (pS.getQuantity(chartsComposite.getSlidingStartDate(), today).compareTo(BigDecimal.ZERO) > 0) {
 						try {
 
@@ -1609,7 +1609,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 								SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
 								evtModelInst.setViewParamRoot(selectedShare.getStock());
-								evtModelInst.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+								evtModelInst.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 								this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 								super.widgetSelected(evt);
 							}
@@ -1895,7 +1895,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						String lastCloseDate = "NA";
 						String origin = selectedShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
 						try {
-							Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(selectedShare.getStock(), EventSignalConfig.getNewDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+							Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(selectedShare.getStock(), DateFactory.getNowEndDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 							if (quotationsInstance.hasQuotations()) {
 								lastClose = quotationsInstance.get(quotationsInstance.size()-1);
 								lastCloseDate = dateFormat.format(selectedShare.getStock().getLastQuote());
@@ -2113,7 +2113,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		try {
 
 			final SlidingPortfolioShare pstmp = modelControler.getSlidingShareInTab(tabIdx, rowIdx);
-			Date newDate = EventSignalConfig.getNewDate();
+			Date newDate = DateFactory.getNowEndDate();
 
 			BigDecimal transactionPrice = BigDecimal.ZERO;
 			try {
@@ -2255,14 +2255,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						try {
 							LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog(
 									(slidingStartAnchor.getSelection()) ? chartsComposite.getSlidingStartDate() : DateFactory.dateAtZero(),
-											(slidingEndAnchor.getSelection()) ? chartsComposite.getSlidingEndDate() : EventSignalConfig.getNewDate()));
+											(slidingEndAnchor.getSelection()) ? chartsComposite.getSlidingEndDate() : DateFactory.getNowEndDate()));
 						} catch (Throwable e) {
 							e.printStackTrace();
 						}
 					}
 
 					final Date currentStartDate = DateFactory.dateAtZero();
-					final Date currentEndDate = EventSignalConfig.getNewDate();
+					final Date currentEndDate = DateFactory.getNowEndDate();
 					;
 					Runnable anchorCheckRunnable = new Runnable() {
 						public void run() {
@@ -2775,7 +2775,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			PortfolioShare portfolioShare;
 			try {
 				Portfolio portfolio = modelControler.getPortfolio(tabi);
-				portfolioShare = portfolio.addOrUpdateShareForQuantity(stock, quantity, EventSignalConfig.getNewDate(), monitorLevel, stock.getMarketValuation().getCurrency());
+				portfolioShare = portfolio.addOrUpdateShareForQuantity(stock, quantity, DateFactory.getNowEndDate(), monitorLevel, stock.getMarketValuation().getCurrency());
 				listOfBoughtShares.add(portfolioShare);
 
 			} catch (InvalidAlgorithmParameterException e) {
@@ -3192,7 +3192,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		String dateStr = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 		String transactionExportName = portfolio.getName()+"_"+dateStr;
 		final Date startDate = (slidingStartAnchor.getSelection())?chartsComposite.getSlidingStartDate():DateFactory.dateAtZero();
-		final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+		final Date endDate = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():DateFactory.getNowEndDate();
 
 		TransactionExtractor te = new TransactionExtractor() {	
 			@Override
@@ -3235,7 +3235,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		currencyListCombo.select(gbpIdx);
 
 		//Capital gain period
-		final Date slidingEnd = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():EventSignalConfig.getNewDate();
+		final Date slidingEnd = (slidingEndAnchor.getSelection())?chartsComposite.getSlidingEndDate():DateFactory.getNowEndDate();
 		final DateFormat dateInstance = new SimpleDateFormat("yyyy-MM-dd");
 		final Label startPeriodLabel = new Label(actionDialog.getParent(), SWT.NONE);
 		startPeriodLabel.setBackground(MainGui.pOPUP_BG);

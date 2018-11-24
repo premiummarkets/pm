@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EmailFilterEventSource;
@@ -47,6 +46,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
@@ -77,7 +77,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 			LOGGER.debug("Calculate alerts for : " + portfolioShare);
 
-			BigDecimal quantity = portfolioShare.getQuantity(EventSignalConfig.getNewDate());
+			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());
 			QuotationUnit quotation = quotations.get(quotationIndex);
 
 			if (quantity.compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(quotation.getDate())) {
@@ -121,7 +121,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					if (
 							(
 									AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) && 
-									portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0
+									portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0
 							) || 
 							AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())
 						) 
@@ -172,7 +172,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 	private String additionnalMessage(BigDecimal todaysQuotation) {
 		BigDecimal avgPriceDist = BigDecimal.ZERO;
-		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(EventSignalConfig.getNewDate(), portfolioShare.getTransactionCurrency());
+		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency());
 		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {
 			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
 		}

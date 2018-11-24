@@ -286,7 +286,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				//else we skip the operand
 			}
 		} catch (NoSuchElementException e) {//Not enough operands
-			throw new IllegalArgumentException(this + " rejected " + overridingOperands+" are no enough operands. Expected : "+operands+", Parameterised : "+parameter);
+			throw new IllegalArgumentException(
+					this.getReference() + " rejected " + overridingOperands.stream().map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) +
+					" are no enough operands. Expected : "+operands+", Parameterised : "+parameter);
 		}
 		//Too many operands
 		if (overridingOperandsIt.hasNext()) {

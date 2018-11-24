@@ -54,14 +54,14 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
 
 	private static Stock inflationStock;
-	
+
 	public static final Stock inflationStock() {
 		if (inflationStock == null) {
 			inflationStock = DataSource.getInstance().loadStockBySymbol("Inflation");
 		}
 		return inflationStock;
 	}
-	
+
 	protected ProvidersInflation() {
 		super();
 		this.addObserver(new InflationUpdateObserver());
@@ -75,15 +75,15 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 
 	@Override
 	public void getQuotes(Stock stock, Date start, Date end) throws SQLException, HttpException {
-		
+
 		try {
-			
+
 			if (!stock.equals(ProvidersInflation.inflationStock())) {
 				String message = "Error : This should be used to retrieve inflation historical only, not : " + stock.toString();
 				LOGGER.error(message);
 				throw new RuntimeException(message);
 			}
-			
+
 			long twoMonthAndHalf = (long) 1000*60*60*24*31*2 + 1000*60*60*24*15;
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
 			boolean isLastLessThan2AndHalfMonthOld = stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime();
@@ -107,8 +107,8 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
-			
-		} finally  {
+
+		} finally {
 			this.setChanged();
 			this.notifyObservers(end);
 		}

@@ -7,6 +7,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,16 +20,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -48,7 +56,7 @@ public class VolatilityClassifier {
 	@Autowired
 	PortfolioDAO portfolioDAO;
 
-	public void generatePortfoliosLMHFromPreviousCalculation(String volatiliesCsvPath, Currency currency, int nbRows) throws Exception {
+	public void generateFromFileLMHToDB(String volatiliesCsvPath, Currency currency, int nbRows) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
@@ -65,34 +73,21 @@ public class VolatilityClassifier {
 	}
 
 	/**
-	 * Generate a volatilities file around the reference stock volatility using all available stocks
-	 * @param referenceStock
-	 * @param nbRows
-	 * @param supportFile
-	 * @throws Exception
-	 */
-	public void generateSupportFileInRangeOfFromNewCalculation(Stock referenceStock, int nbRows, String supportFile) throws Exception {
-
-		List<Entry<Stock, Double[]>> sorted = calculateFor(shareDAO.loadAllStocks(), DateFactory.dateAtZero(), new Date());
-		List<Entry<Stock, Double[]>> entries = filterSubListInRange(referenceStock, nbRows, sorted);
-		exportToFile(referenceStock.getFriendlyName(), supportFile, entries);
-
-	}
-
-	/**
 	 * Generate a volatilities file around the reference stock volatility using existing calculations
 	 * @param referenceStock
 	 * @param nbRows
 	 * @param supportFile
+	 * @param sameCurrency 
 	 * @throws Exception
 	 */
-	public void generateSupportFileInRangeOfFromPreviousCalculations(String volatiliesCsvPath, Stock referenceStock, int nbRows, String supportFile) throws Exception {
+	public void generateFromFileInRangeOfToFile(String volatiliesCsvPath, Stock referenceStock, Boolean sameCurrency, int nbRows, String supportFile) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
 		if (existsCsvFile) {
 			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
 			List<Entry<Stock, Double[]>> entries = filterSubListInRange(referenceStock, nbRows, sorted);
+			if (sameCurrency) entries = filterSubListSameCurrency(referenceStock.getMarketValuation().getCurrency(), entries);
 			exportToFile(referenceStock.getFriendlyName(), supportFile, entries);
 		}
 
@@ -104,7 +99,7 @@ public class VolatilityClassifier {
 		int i = 0;
 		Iterator<Entry<Stock, Double[]>> iterator = sorted.iterator();
 		while(iterator.hasNext() && !referenceStock.equals(iterator.next().getKey())) i++;
-		if (!referenceStock.equals(sorted.get(i).getKey())) throw new IOException(referenceStock+" not found in calculated volatilities. Please calculateFor.");
+		if (!referenceStock.equals(sorted.get(i).getKey())) throw new IOException(referenceStock+" not found in calculated volatilities. Please rerun generateNewCalculationFiltered?");
 
 		//SubList
 		return sorted.subList(Math.max(0, i - nbRows/2), Math.min(i + nbRows/2, sorted.size()));
@@ -123,7 +118,7 @@ public class VolatilityClassifier {
 	 * @param nbRows
 	 * @throws Exception
 	 */
-	public void generatePortfoliosLMHFromPreviousCalculation(String volatiliesCsvPath, int nbRows) {
+	public void generateFromFileLMHToDB(String volatiliesCsvPath, int nbRows) {
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
 		if (existsCsvFile) {
@@ -131,19 +126,6 @@ public class VolatilityClassifier {
 			//Create Indep Portfolios
 			exportToLowMedHighVolsShareLists("MISCELLANEOUS", nbRows, sorted);
 		}
-	}
-
-	/**
-	 * Will create or recreate 3 portfolios of low, medium and high volatilities using all available stocks
-	 * @param nbRows
-	 * @throws Exception
-	 */
-	public void generatePortfoliosLMHFromNewCalculation(int nbRows) throws Exception {
-
-		List<Entry<Stock, Double[]>> sorted = calculateFor(shareDAO.loadAllStocks(), DateFactory.dateAtZero(), new Date());
-
-		//Create Indep Portfolios
-		exportToLowMedHighVolsShareLists("MISCELLANEOUS", nbRows, sorted);
 	}
 
 	private List<Entry<Stock, Double[]>> uploadFromFile(File volatilitiesCsv) {
@@ -166,6 +148,47 @@ public class VolatilityClassifier {
 			LOGGER.error(e1);
 		}
 		return sortVolatilities(stockVolatilities);
+
+	}
+
+	public void generateNewCalculationFilteredToFile() throws Exception {
+
+		List<Predicate<Stock>> predicates = new ArrayList<Predicate<Stock>>();
+
+		//n years ago
+		{
+			Date nYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(10)).atStartOfDay(ZoneId.systemDefault()).toInstant());
+			Predicate<Stock> predicate = s -> {
+				Boolean match = DataSource.getInstance().getFirstQuotationDateFromQuotations(s).before(nYearsAgo);
+				if (!match) LOGGER.info(s + " does ont match 'before "+nYearsAgo+" years ago' predicate.");
+				return match;
+			};
+			predicates.add(predicate);
+		}
+		//daily change max
+		{
+			Predicate<Stock> predicate = s -> {
+				try {
+					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 900, ValidityFilter.OHLCV);
+					SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+					List<Double> values = new ArrayList<>(closeQuotations.values());
+					Boolean match = IntStream
+							.range(1, quotations.size())
+							.allMatch(i -> Math.abs(Math.log(values.get(i)/values.get(i-1))) <= Math.log(110/100));
+					if (!match) LOGGER.info(s + " does ont match 'ln(110/100) daily change max' predicate.");
+					return match;
+				} catch (NoQuotationsException e) {
+					LOGGER.warn(e);
+					return false;
+				} catch (Exception e) {
+					LOGGER.error(e);
+					return false;
+				}
+			};
+			predicates.add(predicate);
+		}
+
+		calculateFor(loadStocks(predicates), DateFactory.dateAtZero(), new Date());
 
 	}
 
@@ -194,7 +217,9 @@ public class VolatilityClassifier {
 			.forEach(e -> {
 				try {
 					Stock key = e.getKey();
-					String line = key.getSymbol() + ", " + key.getIsin() + ", " + Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
+					String line = 
+							key.getSymbol() + ", " + key.getIsin() + ", " +
+									Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);//Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
 					fileWriter.write(line+"\n");
 				} catch (IOException e1) {
 					throw new RuntimeException(e1);
@@ -236,6 +261,16 @@ public class VolatilityClassifier {
 		});
 		portfolioDAO.saveOrUpdatePortfolio(shareList);
 
+	}
+
+	private List<Stock> loadStocks(List<Predicate<Stock>> predicates) {
+		List<Stock> allStocks = shareDAO.loadAllStocks();
+
+		List<Stock> filtered = allStocks.stream()
+				.filter(s -> predicates.stream().allMatch(p -> p.test(s)))
+				.collect(Collectors.toList());
+
+		return filtered;
 	}
 
 }

@@ -55,12 +55,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.currency.CurrencyConverter;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -250,7 +250,7 @@ public class GnuCashAdvPortfolioParser {
 			stock = getStockFor(symbol, name);
 			LOGGER.info("Parsing row for "+stock);
 
-			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, account, EventSignalConfig.getNewDate());
+			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, account, DateFactory.getNowEndDate());
 			if (transactionsForStock.size() == 0) {
 				throw new NoResultException(
 						""+stock+"\n is in Portfolio "+newPortfolioName +" but no transaction was found in the database regarding the former.\n" +
@@ -317,7 +317,7 @@ public class GnuCashAdvPortfolioParser {
 		for (TransactionElement transactionElement : transactionsForStock) {
 			portfolio.rawAddTransaction(transactionElement);
 		}
-		return portfolio.addOrUpdateShareWithoutTransaction(stock, account, portfolioReportCurrency, EventSignalConfig.getNewDate());
+		return portfolio.addOrUpdateShareWithoutTransaction(stock, account, portfolioReportCurrency, DateFactory.getNowEndDate());
 
 	}
 

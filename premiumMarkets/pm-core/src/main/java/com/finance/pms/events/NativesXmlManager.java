@@ -40,6 +40,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
+import com.finance.pms.events.operations.nativeops.InflationRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
@@ -49,6 +50,7 @@ import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.PMSMAOperation;
 import com.finance.pms.events.operations.nativeops.Product;
+import com.finance.pms.events.operations.nativeops.SkewRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
@@ -75,7 +77,7 @@ public class NativesXmlManager {
 
 		NativeOperations nativeOperations = initNativeOperationInstance();
 
-		//Arithm //=> Arithm are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
+		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)
 		//TODO match the same dynamic as operations in indicators?. This requires more work as the grammar rules are different from one condition to another.
 		Sum sum = new Sum();
@@ -122,6 +124,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(bandNormalizerOperation);
 		VolatilityOperation volatilityOperation = new VolatilityOperation();
 		nativeOperations.addOperation(volatilityOperation);
+		InflationRationaliserOperation inflationRationaliserOperation = new InflationRationaliserOperation();
+		nativeOperations.addOperation(inflationRationaliserOperation);
+		SkewRationaliserOperation skewRationaliserOperation = new SkewRationaliserOperation();
+		nativeOperations.addOperation(skewRationaliserOperation);
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
 		nativeOperations.addOperation(zeroLagEMAOperation);
 

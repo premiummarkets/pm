@@ -53,11 +53,11 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.AlertsMgrDelegate;
 import com.finance.pms.portfolio.PortfolioShare;
 
@@ -191,7 +191,7 @@ public class AddAlertDialog extends Dialog {
 								new AlertsMgrDelegate(portfolioShare).addSimpleAlertOnThreshold(threshold, value, commentText.getText());
 								break;
 							case 2 :
-								new AlertsMgrDelegate(portfolioShare).addBuyAlerts(value, EventSignalConfig.getNewDate());
+								new AlertsMgrDelegate(portfolioShare).addBuyAlerts(value, DateFactory.getNowEndDate());
 								break;
 							case 3 :
 								new AlertsMgrDelegate(portfolioShare).addAboveTakeProfitAlert(value,commentText.getText());

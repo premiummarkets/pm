@@ -14,6 +14,7 @@ import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
 import com.finance.pms.alerts.ThresholdType;
 import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class AlertsMgrDelegate {
@@ -204,7 +205,7 @@ public class AlertsMgrDelegate {
 			//remove and reset alert buy price up
 			//this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
 			//addBuyPriceAlertAbove();
-			this.addBuyPriceAlerts(crossingPrice, EventSignalConfig.getNewDate());
+			this.addBuyPriceAlerts(crossingPrice, DateFactory.getNowEndDate());
 			break;
 		case BELOW_PRICE_CHANNEL:
 			this.resetAlertLimitBelow(alert, crossingPrice);
@@ -229,17 +230,17 @@ public class AlertsMgrDelegate {
 			break;
 		case ABOVE_TAKE_PROFIT_LIMIT:
 			//remove and reset a new take profit above alert
-			addAboveTakeProfitAlert(crossingPrice, EventSignalConfig.getNewDate());
+			addAboveTakeProfitAlert(crossingPrice, DateFactory.getNowEndDate());
 			break;
 		case BELOW_MAX_LOSS_LIMIT:
 			//remove and reset stop loss alert
-			addBelowMaxLossAlert(crossingPrice, EventSignalConfig.getNewDate());
+			addBelowMaxLossAlert(crossingPrice, DateFactory.getNowEndDate());
 			break;
 		case AVG_BUY_PRICE:
 			//remove and reset alert buy price down
 			//this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
 			//addBuyPriceAlertBelow();
-			addBuyPriceAlerts(crossingPrice, EventSignalConfig.getNewDate());
+			addBuyPriceAlerts(crossingPrice, DateFactory.getNowEndDate());
 			break;
 		case ABOVE_PRICE_CHANNEL:
 			this.resetAlertLimitAbove(alert, crossingPrice);

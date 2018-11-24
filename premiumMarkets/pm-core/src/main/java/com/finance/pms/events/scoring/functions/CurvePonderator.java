@@ -39,7 +39,7 @@ import java.util.TreeMap;
 
 public class CurvePonderator implements CurvesOperation {
 	
-	NormMinMaxCurvePonderationRule curvePonderationRule;	
+	NormMinMaxCurvePonderationRule curvePonderationRule;
 
 	public CurvePonderator(NormMinMaxCurvePonderationRule curvePonderationRule) {
 		super();

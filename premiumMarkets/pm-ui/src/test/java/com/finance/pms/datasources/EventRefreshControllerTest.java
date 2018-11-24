@@ -38,11 +38,11 @@ import org.eclipse.swt.widgets.Display;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.web.MarketListProvider;
 import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
 import com.finance.pms.events.gui.EventsComposite;
 
@@ -89,7 +89,7 @@ public class EventRefreshControllerTest extends TestCase {
 	/** The start analyse date. */
 	//Date startAnalyseDate = IndicatorCalculationServiceMain.getDateMoinsNJours(EventSignalConfig.getNewDate(),15);
 	//FIXME
-	Date startAnalyseDate = EventSignalConfig.getNewDate();
+	Date startAnalyseDate = DateFactory.getNowEndDate();
 	
 	/** The dofetch list of quotes. */
 	Boolean dofetchListOfQuotes = true;
@@ -339,7 +339,7 @@ public void testMouseDownChangeDateAll() {
 		
 		//startAnalyseDate = IndicatorCalculationServiceMain.getDateMoinsNJours(new Date(),16);
 		//FIXME
-		startAnalyseDate = EventSignalConfig.getNewDate();
+		startAnalyseDate = DateFactory.getNowEndDate();
 		dofetchListOfQuotes = false;
 		dofetchQuotes = false;
 		doAnalyse = false;

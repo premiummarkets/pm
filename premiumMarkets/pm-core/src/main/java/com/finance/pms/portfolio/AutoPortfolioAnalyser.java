@@ -34,7 +34,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.math.BigDecimal;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.events.calculation.DateFactory;
 
 public class AutoPortfolioAnalyser {
@@ -51,7 +50,7 @@ public class AutoPortfolioAnalyser {
 		try {
 			
 			File transactions = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + portfolioWays.getName()+"_TransactionsExport.csv");
-			String extractTransactionLog = portfolioWays.extractPortfolioTransactionLog(DateFactory.dateAtZero(), EventSignalConfig.getNewDate());
+			String extractTransactionLog = portfolioWays.extractPortfolioTransactionLog(DateFactory.dateAtZero(), DateFactory.getNowEndDate());
 			FileWriter fileWriter = new FileWriter(transactions);
 			fileWriter.write(extractTransactionLog);
 		
@@ -62,14 +61,14 @@ public class AutoPortfolioAnalyser {
 			msg = msg + "Totals : \n";
 			try {
 				
-				BigDecimal value = ((Portfolio) portfolioWays).getValue(null, EventSignalConfig.getNewDate());
-				BigDecimal basis = ((Portfolio) portfolioWays).getBasis(null, EventSignalConfig.getNewDate());
-				BigDecimal gainTotal = ((Portfolio) portfolioWays).getGainTotal(null, EventSignalConfig.getNewDate());
-				BigDecimal gainTotalPercent = ((Portfolio) portfolioWays).getGainTotalPercent(null, EventSignalConfig.getNewDate());
-				BigDecimal gainUnReal = ((Portfolio) portfolioWays).getGainUnReal(null, EventSignalConfig.getNewDate());
-				BigDecimal gainUnRealPercent = ((Portfolio) portfolioWays).getGainUnRealPercent(null, EventSignalConfig.getNewDate());
-				BigDecimal totalInAmountEver = ((Portfolio) portfolioWays).getTotalInAmountEver(null, EventSignalConfig.getNewDate());
-				BigDecimal totalOutAmountEver = ((Portfolio) portfolioWays).getTotalOutAmountEver(null, EventSignalConfig.getNewDate());
+				BigDecimal value = ((Portfolio) portfolioWays).getValue(null, DateFactory.getNowEndDate());
+				BigDecimal basis = ((Portfolio) portfolioWays).getBasis(null, DateFactory.getNowEndDate());
+				BigDecimal gainTotal = ((Portfolio) portfolioWays).getGainTotal(null, DateFactory.getNowEndDate());
+				BigDecimal gainTotalPercent = ((Portfolio) portfolioWays).getGainTotalPercent(null, DateFactory.getNowEndDate());
+				BigDecimal gainUnReal = ((Portfolio) portfolioWays).getGainUnReal(null, DateFactory.getNowEndDate());
+				BigDecimal gainUnRealPercent = ((Portfolio) portfolioWays).getGainUnRealPercent(null, DateFactory.getNowEndDate());
+				BigDecimal totalInAmountEver = ((Portfolio) portfolioWays).getTotalInAmountEver(null, DateFactory.getNowEndDate());
+				BigDecimal totalOutAmountEver = ((Portfolio) portfolioWays).getTotalOutAmountEver(null, DateFactory.getNowEndDate());
 				
 				msg = msg + "Value : "+ value + ", Basis : " + basis + "\n";
 				msg = msg +	"GainTotal : " + gainTotal + ", GainUnreal : " + gainUnReal + "\n";

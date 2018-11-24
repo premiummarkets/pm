@@ -32,14 +32,11 @@ package com.finance.pms.admin.config;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +52,6 @@ import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
@@ -70,33 +66,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private static final long serialVersionUID = -6626853648071949858L;
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventSignalConfig.class);
 
-	//Retro tests
-	public static Date ENDDATE; 
-	static {
-		initEndDate();
-	}
-
-	private static void initEndDate() {
-		String endDateStr = MainPMScmd.getMyPrefs().get("test.endDate",null);
-		if (endDateStr != null && !endDateStr.isEmpty()) {
-			try {
-				ENDDATE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endDateStr);
-			} catch (ParseException e) {
-				LOGGER.error(e);
-			}
-		}
-	}
-
-	public static Date getNewDate() {
-		if (EventSignalConfig.ENDDATE != null) {
-			return new Date(EventSignalConfig.ENDDATE.getTime());
-		} else {
-			return DateFactory.midnithDate(new Date());
-		}
-	}
-
 	private static ParameterizedIndicatorsBuilder PARAMETERIZEDINDICATORSBUILDER;
-
 
 	private String analysis = "";
 

@@ -35,9 +35,9 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.alerts.AlertOnThresholdType;
+import com.finance.pms.events.calculation.DateFactory;
 
 public class InflationUpdateObserver implements Observer {
 
@@ -52,8 +52,8 @@ public class InflationUpdateObserver implements Observer {
 					if (alertOnThr.getAlertType().equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) {
 						new AlertsMgrDelegate(ps)
 							.addWeightedZeroProfitAlertGuardSetter(
-									ps.getPriceUnitCost(EventSignalConfig.getNewDate(), 
-									ps.getTransactionCurrency()), EventSignalConfig.getNewDate());
+									ps.getPriceUnitCost(DateFactory.getNowEndDate(), 
+									ps.getTransactionCurrency()), DateFactory.getNowEndDate());
 					}
 				}
 			}

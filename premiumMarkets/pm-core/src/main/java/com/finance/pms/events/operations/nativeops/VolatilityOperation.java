@@ -8,12 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -24,11 +22,12 @@ public class VolatilityOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(VolatilityOperation.class);
 
+	private static final int DATA_IDX = 2;
+
 	public VolatilityOperation() {
-		super("volatilityCalculator", "Calculate the input volatility", 
-				new NumberOperation("number", "Basic Period", "Basic period for log change calculation in days", new NumberValue(1.0)),
-				new NumberOperation("number", "Calculation Periods Number", "Number of basic changes in the standard deviation calculation", new NumberValue(63.0)),
-				new NumberOperation("number", "Basic Yearly Periods Number", "Number of basic periods in the year for a yearly basis", new NumberValue(252.0)),
+		super("volatilityCalculator", "Calculate the input volatility",
+				new NumberOperation("number", "Basic Period", "Basic period for ln return calculation in days", new NumberValue(1.0)),
+				new NumberOperation("number", "Periods in STDev", "Number of return periods in each standard deviation calculation", new NumberValue(63.0)),
 				new DoubleMapOperation("Input data"));
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"annualisedAtDate","average"})));
 	}
@@ -45,13 +44,12 @@ public class VolatilityOperation extends PMWithDataOperation {
 		//Param check
 		int basicPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		int returnCalculationNbPeriods = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
-		int yearNbPeriods = ((NumberValue)inputs.get(2)).getValue(targetStock).intValue();
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(3)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATA_IDX)).getValue(targetStock);
 
 		//Calc
 		try {
 
-			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods, yearNbPeriods);
+			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods);
 
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
 			TreeMap<Date, Double> collectedAnnulisedVolatilties = IntStream
@@ -87,7 +85,11 @@ public class VolatilityOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		return (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
+		int maxDateShift = 0;
+		for (int i = 0; i < DATA_IDX; i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
 	}
 
 }

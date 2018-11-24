@@ -305,6 +305,24 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inflationRationaliserOperation">
+            <reference>inflationRationaliser</reference>
+            <description>Applies a reversed inflation rate to the data in an attempt to reduce the inflation bias</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data to rationalize</reference>
+                    <description>data to rationalize</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>rationalizedData</availableOutputSelector>
+                <availableOutputSelector>dailyRate</availableOutputSelector>
+            </availableOutputSelectors>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
             <description>Subtraction of two historical data series</description>
@@ -319,6 +337,21 @@
                 <operand xsi:type="doubleMapOperation">
                     <reference>subtrahend</reference>
                     <description>subtrahend</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="skewRationaliserOperation">
+            <reference>skewRationaliser</reference>
+            <description>Transform the input removing volatility skewness</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Input data</reference>
+                    <description>Input data</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
@@ -389,7 +422,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>Basic Period</referenceAsOperand>
-                    <description>Basic period for log change calculation in days</description>
+                    <description>Basic period for ln return calculation in days</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>1.0</numberValue>
                     </defaultValue>
@@ -399,21 +432,10 @@
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
-                    <referenceAsOperand>Calculation Periods Number</referenceAsOperand>
-                    <description>Number of basic changes in the standard deviation calculation</description>
+                    <referenceAsOperand>Periods in STDev</referenceAsOperand>
+                    <description>Number of return periods in each standard deviation calculation</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>63.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>Basic Yearly Periods Number</referenceAsOperand>
-                    <description>Number of basic periods in the year for a yearly basis</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>252.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>

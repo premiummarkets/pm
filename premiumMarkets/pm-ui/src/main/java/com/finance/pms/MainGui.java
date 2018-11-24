@@ -107,6 +107,7 @@ import com.finance.pms.datasources.web.ProvidersInflation;
 import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EmailFilterEventSource;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.gui.EventsComposite;
 import com.finance.pms.events.gui.OperationBuilderDialog;
 import com.finance.pms.portfolio.ShareListMgr;
@@ -522,8 +523,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				public void widgetSelected(SelectionEvent evt) {										
 					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 
-					fourToutStrategyEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
-					//Stock inflationStock  = DataSource.getInstance().loadStockBySymbol(ProvidersInflation.SYMBOL);
+					fourToutStrategyEventModel.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 					Stock inflationStock = ProvidersInflation.inflationStock();
 					fourToutStrategyEventModel.setViewParamRoot(Arrays.asList(new Stock[]{inflationStock}));
 
@@ -543,7 +543,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
 					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-					monitoredStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+					monitoredStocksEventModel.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 					super.widgetSelected(evt);
 				}
@@ -560,7 +560,7 @@ public class MainGui extends SashForm implements RefreshableView {
 				public void widgetSelected(SelectionEvent evt) {
 					LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
 					portfolioStocksEventModel.setViewParamRoot(null); //reset (should mean all portfolio stocks)
-					portfolioStocksEventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+					portfolioStocksEventModel.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 					this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
 					super.widgetSelected(evt);
 				}
@@ -795,7 +795,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 								allStocksEventModel.setViewParamRoot(Arrays.asList(new ShareListInfo[]{new ShareListInfo(ProvidersList.providerIndicedShareListName(provider))}));
 								LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-								allStocksEventModel.setLastListFetch(EventModel.DEFAULT_DATE);
+								allStocksEventModel.setLastListFetch(DateFactory.DEFAULT_DATE);
 								updateEventRefreshModelState(0l, TaskId.FetchLists);
 								superwidgetSelected();
 

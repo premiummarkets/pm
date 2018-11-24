@@ -89,7 +89,6 @@ import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.RefreshableView;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.RefreshChartHighlighted;
@@ -165,7 +164,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 
-		this.slidingEndDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+		this.slidingEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.YEAR, -1);
 		this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
@@ -793,7 +792,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								Calendar calendar = Calendar.getInstance();
 								calendar.setTime(slidingEndDate);
 								calendar.add(Calendar.YEAR, +1);
-								Date newDate = EventSignalConfig.getNewDate();
+								Date newDate = DateFactory.getNowEndDate();
 								if (calendar.getTime().after(newDate)) {
 									calendar.setTime(newDate);
 								}
@@ -959,7 +958,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	private Date maxDate() {
 		if (lastEndDate == null) {
-			lastEndDate = DateFactory.midnithDate(EventSignalConfig.getNewDate());
+			lastEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		}
 		return lastEndDate;
 	}

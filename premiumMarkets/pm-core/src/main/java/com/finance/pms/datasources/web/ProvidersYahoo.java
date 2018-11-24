@@ -41,7 +41,6 @@ import java.util.TreeSet;
 
 import org.apache.http.HttpException;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
@@ -53,6 +52,7 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.shares.YahooMarketExtentions;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooFormater;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.SharesList;
 
@@ -158,7 +158,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		
 		MyUrl url;
 			
-		Date today = EventSignalConfig.getNewDate();
+		Date today = DateFactory.getNowEndDate();
 		Calendar todayCal = Calendar.getInstance();
 		todayCal.setTime(today);
 		todayCal.set(Calendar.HOUR_OF_DAY, 0);

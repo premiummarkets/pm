@@ -64,7 +64,7 @@ public class LastUpdateStampCheckerTest {
 		mockStatic( DateFactory.class );
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(Calendar.HOUR_OF_DAY, 5);
-		expect( DateFactory.now() ).andReturn( calendar ).anyTimes();
+		expect( DateFactory.getNowEndDateCalendar() ).andReturn( calendar ).anyTimes();
 		replayAll();
 		
 		Boolean firstAttempt = checker.isUpdateGranted();

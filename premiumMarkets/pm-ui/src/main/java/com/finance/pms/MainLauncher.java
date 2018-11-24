@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.DateFactory;
 
 
 
@@ -88,15 +88,15 @@ public class MainLauncher {
 			PMScmdArgrs[5] = ("true".equals(monitoredOnlyQuotations))?"-monitoredOnly":"-fileStocks";
 			PMScmdArgrs[6] = (args.length > 6)?args[6]:"./list_test.txt";
 			
-			String updateDate = new SimpleDateFormat("yyyy/MM/dd").format(EventSignalConfig.getNewDate());
+			String updateDate = new SimpleDateFormat("yyyy/MM/dd").format(DateFactory.getNowEndDate());
 			LOGGER.info("Last quotations update : "+lastFetch);
-			if (lastFetch.compareTo(new SimpleDateFormat("yyyy/MM/dd").format(EventSignalConfig.getNewDate())) < 0) {
+			if (lastFetch.compareTo(new SimpleDateFormat("yyyy/MM/dd").format(DateFactory.getNowEndDate())) < 0) {
 				LOGGER.info("Quotation needs update.");
 				MainPMScmd.getMyPrefs().put("quotes.lastfetch", updateDate);
 				PMScmdArgrs[7] = "-updateQuotations";
 			}
 			LOGGER.info("Last list of shares update : "+lastListFetch);
-			if (lastListFetch.compareTo(new SimpleDateFormat("yyyy/MM/dd").format(EventSignalConfig.getNewDate())) < 0) {
+			if (lastListFetch.compareTo(new SimpleDateFormat("yyyy/MM/dd").format(DateFactory.getNowEndDate())) < 0) {
 				LOGGER.info("Share list needs update.");
 				MainPMScmd.getMyPrefs().put("quotes.lastlistfetch", updateDate);
 				PMScmdArgrs[8] = "-updateStocks";
@@ -124,7 +124,7 @@ public class MainLauncher {
 			ICalargs[4] = "-autoPortfolio";
 			
 			LOGGER.info("Last analyse : "+lastAnalyse);
-			if (lastAnalyse.compareTo(new SimpleDateFormat("yyyy/MM/dd").format(EventSignalConfig.getNewDate())) < 0) {
+			if (lastAnalyse.compareTo(new SimpleDateFormat("yyyy/MM/dd").format(DateFactory.getNowEndDate())) < 0) {
 				LOGGER.info("Analyse needs update.");
 				IndicatorCalculationServiceMain.main(ICalargs);
 				MainPMScmd.getMyPrefs().put("quotes.lastanalyse", updateDate);

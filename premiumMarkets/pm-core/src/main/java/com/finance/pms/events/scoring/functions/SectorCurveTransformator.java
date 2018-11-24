@@ -46,9 +46,9 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public class CurveTransformator {
+public class SectorCurveTransformator {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(CurveTransformator.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(SectorCurveTransformator.class);
 	
 	public enum Extremity {
 		UNKNOWN(0.5), BOTTOM(0.0), TOP(1.0);
@@ -74,7 +74,7 @@ public class CurveTransformator {
 	private SortedMap<Date, double[]> transformedCurve;
 	private SortedMap<Date, double[]> smoothedData;
 
-	public CurveTransformator(OutputCalculator calculator, Smoother smoother, int periodBand) {
+	public SectorCurveTransformator(OutputCalculator calculator, Smoother smoother, int periodBand) {
 		super();
 		this.calculator = calculator;
 		this.smoother = smoother;

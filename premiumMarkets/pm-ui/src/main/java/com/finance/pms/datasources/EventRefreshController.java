@@ -44,7 +44,6 @@ import org.eclipse.swt.widgets.Display;
 
 import com.finance.pms.RefreshableView;
 import com.finance.pms.admin.config.Config;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.threads.ObserverMsg;
@@ -74,7 +73,7 @@ public class EventRefreshController implements SelectionListener { //MouseListen
         this.view = view;
         this.eventModel = refreshModel;
         try {
-            currentDate = new SimpleDateFormat("yyyy/MM/dd").parse(new SimpleDateFormat("yyyy/MM/dd").format((EventSignalConfig.getNewDate())));
+            currentDate = new SimpleDateFormat("yyyy/MM/dd").parse(new SimpleDateFormat("yyyy/MM/dd").format((DateFactory.getNowEndDate())));
         } catch (ParseException e) {
             LOGGER.error("Can't parse "+new SimpleDateFormat("yyyy/MM/dd"),e);
         }
@@ -121,7 +120,7 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
                 if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
 
-                    eventModel.setLastQuotationFetch(EventModel.DEFAULT_DATE);
+                    eventModel.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 
                     tasksGroup.add(new EventRefreshTask(TaskId.FetchLists, eventModel.rootViewParam , eventModel.otherViewParams) {
                         public void run() {

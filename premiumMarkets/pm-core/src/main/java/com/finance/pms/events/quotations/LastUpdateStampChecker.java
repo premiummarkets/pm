@@ -54,7 +54,7 @@ public class LastUpdateStampChecker {
 	public Boolean isUpdateGranted() {
 		
 		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
-		Date now = DateFactory.now().getTime();
+		Date now = DateFactory.getNowEndDateCalendar().getTime();
 		Calendar  lastMarketCloseTime = lastMarketCloseTime(now);
 		if ( this.lastMarketCloseUpdate.after(lastMarketCloseTime.getTime()) || this.lastMarketCloseUpdate.equals(lastMarketCloseTime.getTime()) ) {
 			if (nbAttempts >= MAXATTEMPTS) {

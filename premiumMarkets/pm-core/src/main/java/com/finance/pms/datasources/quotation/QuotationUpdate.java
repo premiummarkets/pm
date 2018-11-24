@@ -51,7 +51,6 @@ import org.apache.http.HttpException;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.ToDoException;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
@@ -61,6 +60,7 @@ import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.MarketListProvider;
 import com.finance.pms.datasources.web.ProvidersList;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.threads.ObserverMsg;
 
 /**
@@ -234,7 +234,7 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 			
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
-			GetQuotation command = new GetQuotation(EventSignalConfig.getNewDate(), stock, reset);
+			GetQuotation command = new GetQuotation(DateFactory.getNowEndDate(), stock, reset);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
 			}

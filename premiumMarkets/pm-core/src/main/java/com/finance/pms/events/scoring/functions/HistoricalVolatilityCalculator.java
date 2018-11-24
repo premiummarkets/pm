@@ -7,6 +7,7 @@ import java.util.SortedMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 /**
  * 
@@ -15,54 +16,76 @@ import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
  */
 public class HistoricalVolatilityCalculator {
 
-    int basicPeriod; //1
-    int returnCalculationNbPeriods; //21 or 63
-    int yearNbPeriods; //252
-    List<Double> closeValues;
+	static int YEAR_LENGTH = 252;
 
-    public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations) {
-        this(closeQuotations, 1, 63, 252);
-    }
+	int basicPeriodLength; //Usually 1. i.e. on day
+	int returnCalculationNbPeriods; //Usually 21 or 63
+	List<Double> closeValues;
 
-    public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations, int basicPeriod, int returnCalculationNbPeriods, int yearNbPeriods) {
-        super();
-        this.basicPeriod = basicPeriod;
-        this.returnCalculationNbPeriods = returnCalculationNbPeriods;
-        this.yearNbPeriods = yearNbPeriods;
-        this.closeValues = new ArrayList<>(closeQuotations.values());
-    }
+	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations) {
+		this(closeQuotations, 1, 63);
+	}
 
-    public Double averageAnnualisedVolatility(int from, int to) throws IndexOutOfBoundsException {
-        if (to < basicPeriod + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriod + returnCalculationNbPeriods));
-        return IntStream
-                .range(from + basicPeriod + returnCalculationNbPeriods, to)
-                .mapToDouble(d -> annualisedVolatilityAt(d))
-                .average()
-                .getAsDouble();
-    }
+	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations, int basicPeriodLength, int returnCalculationNbPeriods) {
+		super();
+		this.basicPeriodLength = basicPeriodLength;
+		this.returnCalculationNbPeriods = returnCalculationNbPeriods;
+		this.closeValues = new ArrayList<>(closeQuotations.values());
+	}
 
-    public Double annualisedVolatilityAt(int d) {
-        Double stdOfD2DReturns = stdOfReturnsAt(d);
-        return stdOfD2DReturns * Math.sqrt(yearNbPeriods);
-    }
+	public Double averageAnnualisedVolatility(int from, int to) throws IndexOutOfBoundsException {
+		if (to < basicPeriodLength + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriodLength + returnCalculationNbPeriods));
+		return IntStream
+				.range(from + basicPeriodLength + returnCalculationNbPeriods, to)
+				.mapToDouble(d -> annualisedVolatilityAt(d))
+				.average()
+				.getAsDouble();
+	}
 
-    private Double stdOfReturnsAt(int d) {
+	public Double annualisedVolatilityAt(int d) {
+		Double stdOfD2DReturns = stdOfReturnsAt(d);
+		return stdOfD2DReturns * Math.sqrt(YEAR_LENGTH/basicPeriodLength);
+	}
 
-        int d0 = d - returnCalculationNbPeriods - basicPeriod;
-        List<Double> d2DRetruns = IntStream
-                .range(0, returnCalculationNbPeriods)
-                .mapToObj(i -> {
-                    return periodReturn(closeValues.get(d0 + i + basicPeriod), closeValues.get(d0 + i));
-                })
-                .collect(Collectors.toList());
+	public Double volatilityLnSkewRatio(int from, int to) {
+		if (to >= closeValues.size()) to = closeValues.size()-1;
+		if (from +1 > to) throw new RuntimeException(from + " !< " + to);
 
-        ApacheStats stdev = new ApacheStats(new StandardDeviation());
-        return stdev.sEvaluate(d2DRetruns);
+		List<Double> positiveLns = IntStream
+				.range(from +1, to)
+				.mapToObj(i -> Math.log(closeValues.get(i)/closeValues.get(i-1)))
+				.filter(ln -> ln > 0)
+				.collect(Collectors.toList());
+		ApacheStats stdev = new ApacheStats(new Mean());
+		Double positiveLnMean = stdev.sEvaluate(positiveLns);
 
-    }
+		List<Double> negativeLns = IntStream
+				.range(from +1, to)
+				.mapToObj(i -> Math.log(closeValues.get(i)/closeValues.get(i-1)))
+				.filter(ln -> ln < 0)
+				.collect(Collectors.toList());
+		Double negativeLnMean = stdev.sEvaluate(negativeLns);
 
-    private Double periodReturn(double d0, double dMp) {
-        return Math.log(d0/dMp);
-    }
+		return positiveLnMean/negativeLnMean;
+	}
+
+	private Double stdOfReturnsAt(int d) {
+
+		int d0 = d - returnCalculationNbPeriods - basicPeriodLength;
+		List<Double> d2DRetruns = IntStream
+				.range(0, returnCalculationNbPeriods)
+				.mapToObj(i -> {
+					return periodReturn(closeValues.get(d0 + i), closeValues.get(d0 + i + basicPeriodLength));
+				})
+				.collect(Collectors.toList());
+
+		ApacheStats stdev = new ApacheStats(new StandardDeviation());
+		return stdev.sEvaluate(d2DRetruns);
+
+	}
+
+	private Double periodReturn(double dMp, double d) {
+		return Math.log(d/dMp);
+	}
 
 }

@@ -1076,7 +1076,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	protected Date getFilterDate() {
 		Calendar newDate = Calendar.getInstance();
-		newDate.setTime(EventSignalConfig.getNewDate());
+		newDate.setTime(DateFactory.getNowEndDate());
 		newDate.add(Calendar.DAY_OF_YEAR, -nbDaysFilter);
 		return DateFactory.midnithDate(newDate.getTime());
 	}
@@ -1286,7 +1286,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	public Date getAnalysisStartDate() {
 		Calendar newDate = Calendar.getInstance();
-		newDate.setTime(EventSignalConfig.getNewDate());
+		newDate.setTime(DateFactory.getNowEndDate());
 		newDate.add(Calendar.MONTH, -nbMonthsAnalysis);
 		return DateFactory.midnithDate(newDate.getTime());
 	}

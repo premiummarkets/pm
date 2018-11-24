@@ -739,12 +739,12 @@ public class Portfolio extends AbstractSharesList {
 
 	@Transient
 	public List<PortfolioShare> getUnOwnedPorfolioShares() {
-		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) == 0).collect(Collectors.toList());
+		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) == 0).collect(Collectors.toList());
 	}
 
 	@Transient
 	public List<PortfolioShare> getOwnedPorfolioShares() {
-		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(EventSignalConfig.getNewDate()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
+		return this.getListShares().values().stream().filter(ps -> ps.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
 	}
 
 	@Transient

@@ -62,9 +62,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.ShareListInfo;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
@@ -389,8 +387,8 @@ public class EventsResources {
 	private void updateEventsCache(Stock stock, Set<EventInfo> eventDefinitions, Set<String> eventListNames, String eventsTableName) {
 
 		//We load up the full date range and this is to simplify the cache consistency management.
-		Date startDate = EventModel.DEFAULT_DATE;
-		Date endDate = EventSignalConfig.getNewDate();
+		Date startDate = DateFactory.DEFAULT_DATE;
+		Date endDate = DateFactory.getNowEndDate();
 
 		//
 		for (String eventListName : eventListNames) {
@@ -903,7 +901,7 @@ public class EventsResources {
 	public void updateEventsTabsByCriteriaAndDate(Date date, Integer inf, Integer sup, PonderationRule pr, Set<EventInfo> indicators, String eventListNames) throws InvalidAlgorithmParameterException {
 
 
-		List<SymbolEvents> all = (indicators != null)?SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, EventSignalConfig.getNewDate(), indicators, eventListNames), pr):new ArrayList<SymbolEvents>();
+		List<SymbolEvents> all = (indicators != null)?SymbolEvents.sortList(EventsResources.getInstance().crudReadEvents(date, DateFactory.getNowEndDate(), indicators, eventListNames), pr):new ArrayList<SymbolEvents>();
 		int indexSup = 0;
 		int indexInf = all.size() - 1;
 
@@ -1136,8 +1134,8 @@ public class EventsResources {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 		}
 
-		Date datedeb = EventModel.DEFAULT_DATE;
-		Date datefin = EventSignalConfig.getNewDate();
+		Date datedeb = DateFactory.DEFAULT_DATE;
+		Date datefin = DateFactory.getNowEndDate();
 
 		//Cache
 		if (isEventCached) {
@@ -1166,8 +1164,8 @@ public class EventsResources {
 
 		LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r+","+e)+" for "+analysisName);
 
-		Date datedeb = EventModel.DEFAULT_DATE;
-		Date datefin = EventSignalConfig.getNewDate();
+		Date datedeb = DateFactory.DEFAULT_DATE;
+		Date datefin = DateFactory.getNowEndDate();
 
 		for (EventInfo eventInfo : indicators) {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");

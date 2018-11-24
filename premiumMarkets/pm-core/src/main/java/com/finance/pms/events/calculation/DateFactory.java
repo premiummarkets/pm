@@ -32,26 +32,29 @@
 
 package com.finance.pms.events.calculation;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 
 public class DateFactory {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(DateFactory.class);
-	
+
 	public static Date dateAtZero() {
-		
+
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(1970, 0, 1, 0, 0, 0);
 		calendar.set(Calendar.MILLISECOND, 0);
 		return calendar.getTime();
-		
+
 	}
-	
+
 	public static Date midnithDate(Date date) {
-		
+
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -59,9 +62,9 @@ public class DateFactory {
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.MILLISECOND, 0);
 		return calendar.getTime();
-		
+
 	}
-	
+
 	public static synchronized long milliSecStamp() {
 		long time = new Date().getTime();
 		try {
@@ -70,11 +73,55 @@ public class DateFactory {
 			LOGGER.error(e,e);
 		}
 		return time;
-		
+
+	}
+
+	public static Calendar getNowEndDateCalendar() {
+		Calendar instance = Calendar.getInstance();
+		instance.setTime(getNowEndDate());
+		return instance;
+	}
+
+	//Retro tests
+	private static Date ENDDATE; 
+	static {
+		initEndDate();
+	}
+
+	private static void initEndDate() {
+		String endDateStr = MainPMScmd.getMyPrefs().get("test.endDate",null);
+		if (endDateStr != null && !endDateStr.isEmpty()) {
+			try {
+				ENDDATE = midnithDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endDateStr));
+			} catch (ParseException e) {
+				LOGGER.error(e);
+			}
+		}
+	}
+
+	public static Date getNowEndDate() {
+		if (ENDDATE != null) {
+			return new Date(ENDDATE.getTime());
+		} else {
+			return midnithDate(new Date());
+		}
 	}
 	
-	public static Calendar now() {
-		return Calendar.getInstance();
+	public static void forceEndDate(Date date) {
+		ENDDATE = date;
 	}
+	//
+
+	//TODO replace with DateFactory.dateAtZero
+	public static Date DEFAULT_DATE;
+	static {
+		DateFactory.DEFAULT_DATE = new Date(0);
+		try {
+			DateFactory.DEFAULT_DATE = new SimpleDateFormat("yyyy/MM/dd").parse("1970/01/01");
+		} catch (ParseException e1) {
+			LOGGER.error("Shouldn't be here", e1);
+		}
+	}
+
 
 }

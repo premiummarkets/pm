@@ -35,7 +35,6 @@ import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
 
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.datasources.files.Transaction;
@@ -120,7 +119,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		if (slidingEnd) {
 			currentDate = end;
 		} else {
-			currentDate = EventSignalConfig.getNewDate();
+			currentDate = DateFactory.getNowEndDate();
 		}
 		return currentDate;
 	}
